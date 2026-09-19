@@ -50,13 +50,13 @@ function insertSource(db: DatabaseSync, id: string, status = "approved", kind = 
   ).run(id, id, kind, status, T, T);
 }
 
-function insertRelease(db: DatabaseSync, sourceId: string, header: string[], opts: { sha?: string; status?: string; current?: number } = {}): number {
+function insertRelease(db: DatabaseSync, sourceId: string, header: string[], opts: { sha?: string; status?: string; current?: number; observedOn?: string | null } = {}): number {
   const status = opts.status ?? "applied";
   const r = db.prepare(
     `INSERT INTO source_releases (source_id, observed_on, fetched_at, source_url, content_sha256, byte_length,
        header_json, record_count, parser_version, status, is_current, applied_at)
-     VALUES (?, '2026-08-18', ?, 'https://example.invalid/x.csv', ?, 1, ?, 0, 'test.v1', ?, ?, ?)`,
-  ).run(sourceId, T, opts.sha ?? sha256(String(Math.random())), JSON.stringify(header), status, opts.current ?? 0, status === "applied" ? T : null);
+     VALUES (?, ?, ?, 'https://example.invalid/x.csv', ?, 1, ?, 0, 'test.v1', ?, ?, ?)`,
+  ).run(sourceId, opts.observedOn === undefined ? "2026-08-18" : opts.observedOn, T, opts.sha ?? sha256(String(Math.random())), JSON.stringify(header), status, opts.current ?? 0, status === "applied" ? T : null);
   return Number(r.lastInsertRowid);
 }
 
@@ -115,7 +115,7 @@ test("migration applies to an empty database and passes integrity/foreign-key ch
   const names = db.prepare("SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name").all()
     .map((r) => `${r.type}:${r.name}`);
   for (const expected of [
-    "table:sources", "table:source_releases", "table:source_records", "table:source_entities",
+    "table:sources", "table:source_releases", "table:source_records", "table:source_record_match_keys", "table:source_entities",
     "table:source_record_entities", "table:spots", "table:spot_source_entities", "table:spot_field_provenance",
     "table:tile_snapshots", "table:tile_snapshot_spots",
     "index:spots_tile", "index:tile_snapshot_spots_tile", "index:source_releases_one_current",
@@ -157,7 +157,7 @@ test("raw records: width must match header, and records are immutable", () => {
   assert.throws(() => insertRecord(db, rel, 1, ["2", "y"]), /UNIQUE/);
 });
 
-test("releases: identical bytes are one release, and a source has at most one current release", () => {
+test("releases: same bytes + same observation is one release; a source has at most one current release", () => {
   const db = freshDb();
   insertSource(db, "src-a");
   insertRelease(db, "src-a", ["a"], { sha: "a".repeat(64) });
@@ -165,6 +165,84 @@ test("releases: identical bytes are one release, and a source has at most one cu
   insertRelease(db, "src-a", ["a"], { current: 1 });
   assert.throws(() => insertRelease(db, "src-a", ["a"], { current: 1 }), /UNIQUE/);
   assert.throws(() => insertRelease(db, "src-a", ["a"], { status: "ingested", current: 1 }), /CHECK/);
+});
+
+test("releases: identical bytes re-published with a newer observed_on are a new release with their own evidence", () => {
+  const db = freshDb();
+  insertSource(db, "src-a", "approved");
+  const sha = "b".repeat(64);
+  const older = insertRelease(db, "src-a", ["#", "name"], { sha, observedOn: "2026-08-18" });
+  const newer = insertRelease(db, "src-a", ["#", "name"], { sha, observedOn: "2026-11-18" });
+  assert.notEqual(older, newer);
+  const recOld = insertRecord(db, older, 1, ["1", "x"]);
+  const recNew = insertRecord(db, newer, 1, ["1", "x"]);
+  const rows = db.prepare(
+    `SELECT rel.observed_on FROM source_records r JOIN source_releases rel USING (release_id)
+     WHERE r.record_id IN (?, ?) ORDER BY rel.observed_on`,
+  ).all(recOld, recNew).map((r) => r.observed_on);
+  assert.deepEqual(rows, ["2026-08-18", "2026-11-18"]);
+  assert.equal(db.prepare("SELECT count(*) n FROM source_releases WHERE content_sha256 = ?").get(sha)!.n, 2);
+});
+
+test("releases: evidence metadata is frozen once records exist; workflow fields stay updatable", () => {
+  const db = freshDb();
+  insertSource(db, "src-a");
+  insertSource(db, "src-b");
+  const rel = insertRelease(db, "src-a", ["#"], { status: "ingested" });
+  db.prepare("UPDATE source_releases SET observed_on = '2026-08-19' WHERE release_id = ?").run(rel); // no records yet
+  insertRecord(db, rel, 1, ["1"]);
+  for (const set of [
+    "source_id = 'src-b'", "observed_on = '2026-09-01'", "observed_on = NULL", "fetched_at = 'x'",
+    "content_sha256 = '" + "c".repeat(64) + "'", "header_json = '[\"id\"]'", "parser_version = 'p.v2'",
+    "source_url = 'https://example.invalid/y.csv'", "byte_length = 2", "record_count = 5", "release_id = 999",
+  ]) {
+    assert.throws(() => db.prepare(`UPDATE source_releases SET ${set} WHERE release_id = ?`).run(rel), /immutable once records exist/, set);
+  }
+  db.prepare("UPDATE source_releases SET status = 'applied', applied_at = ?, is_current = 1 WHERE release_id = ?").run(T, rel);
+});
+
+test("match keys: versioned separately from immutable raw records, and never rewritten", () => {
+  const db = freshDb();
+  insertSource(db, "src-a");
+  const rel = insertRelease(db, "src-a", ["#", "name"]);
+  const rec = insertRecord(db, rel, 1, ["1", "Ｘ"]);
+  const add = db.prepare("INSERT INTO source_record_match_keys (record_id, key_version, match_key, derived_at) VALUES (?, ?, ?, ?)");
+  add.run(rec, "key.v1", "Ｘ", T);
+  add.run(rec, "key.v2", "x", T); // a new algorithm adds a row; raw record untouched
+  assert.throws(() => add.run(rec, "key.v1", "other", T), /UNIQUE|PRIMARY/);
+  assert.throws(() => db.prepare("UPDATE source_record_match_keys SET match_key = 'y' WHERE record_id = ?").run(rec), /immutable/);
+  assert.throws(() => db.prepare("DELETE FROM source_record_match_keys WHERE record_id = ?").run(rec), /immutable/);
+  assert.throws(() => add.run(rec + 1, "key.v1", "z", T), /FOREIGN KEY/);
+  const cols = db.prepare("PRAGMA table_info(source_records)").all().map((c) => c.name);
+  assert.ok(!cols.some((c) => String(c).includes("key")), `raw table has derived key column: ${cols}`);
+});
+
+test("reconciliation: source identity cannot be mutated into a cross-source link after insert", () => {
+  const db = freshDb();
+  insertSource(db, "src-a");
+  insertSource(db, "src-b");
+  const relA = insertRelease(db, "src-a", ["#"]);
+  const relB = insertRelease(db, "src-b", ["#"]);
+  const recA = insertRecord(db, relA, 1, ["1"]);
+  const recA2 = insertRecord(db, relA, 2, ["2"]);
+  const recB = insertRecord(db, relB, 1, ["1"]);
+  db.prepare("INSERT INTO source_entities (source_entity_id, source_id, created_at) VALUES (1, 'src-a', ?), (2, 'src-b', ?), (3, 'src-a', ?)").run(T, T, T);
+  db.prepare(
+    "INSERT INTO source_record_entities (record_id, release_id, source_entity_id, method, matcher_version, decided_at) VALUES (?, ?, 1, 'new', 'm.v1', ?)",
+  ).run(recA, relA, T);
+
+  assert.throws(() => db.prepare("UPDATE source_entities SET source_id = 'src-b' WHERE source_entity_id = 1").run(), /immutable/);
+  assert.throws(() => db.prepare("UPDATE source_entities SET source_entity_id = 9 WHERE source_entity_id = 1").run(), /immutable/);
+  assert.throws(() => db.prepare("UPDATE source_releases SET source_id = 'src-b' WHERE release_id = ?").run(relA), /immutable once records exist/);
+  assert.throws(() => db.prepare("UPDATE source_record_entities SET source_entity_id = 2, method = 'manual' WHERE record_id = ?").run(recA), /different sources/);
+  assert.throws(() => db.prepare("UPDATE source_record_entities SET record_id = ?, release_id = ? WHERE record_id = ?").run(recB, relB, recA), /cannot change|different sources/);
+  assert.throws(() => db.prepare("UPDATE source_record_entities SET record_id = ? WHERE record_id = ?").run(recA2, recA), /cannot change/);
+  assert.throws(() => db.prepare("UPDATE source_record_entities SET source_entity_id = 3 WHERE record_id = ?").run(recA), /manual/);
+  assert.throws(() => db.prepare("DELETE FROM source_record_entities WHERE record_id = ?").run(recA), /do not delete/);
+
+  // The allowed correction: a same-source manual reassignment.
+  db.prepare("UPDATE source_record_entities SET source_entity_id = 3, method = 'manual', decided_at = ?, note = 'reviewed' WHERE record_id = ?").run(T, recA);
+  assert.equal(db.prepare("SELECT source_entity_id FROM source_record_entities WHERE record_id = ?").get(recA)!.source_entity_id, 3);
 });
 
 test("reconciliation: an entity has at most one record per release and never crosses sources", () => {

@@ -3,6 +3,7 @@
 --
 -- Layers, from raw to published:
 --   sources -> source_releases -> source_records             (immutable raw evidence)
+--   source_record_match_keys                                  (versioned derived matcher input)
 --   source_entities + source_record_entities                  (our cross-release identity)
 --   spots + spot_source_entities + spot_field_provenance      (resolved canonical data)
 --   tile_snapshots + tile_snapshot_spots                      (published per-tile state)
@@ -45,9 +46,29 @@ CREATE TABLE source_releases (
   applied_at           TEXT,
   CHECK (is_current = 0 OR status = 'applied'),
   CHECK ((status = 'applied') = (applied_at IS NOT NULL)),
-  -- Re-importing identical bytes is a no-op, not a new release.
-  UNIQUE (source_id, content_sha256)
+  -- A release is one publisher observation of some content. content_sha256 identifies the bytes
+  -- only: identical bytes re-published with a newer observed_on are a new release (a new
+  -- attestation). Re-importing the same bytes for the same observation is a no-op. (SQLite treats
+  -- NULLs as distinct, so with observed_on unknown the importer must check before inserting.)
+  UNIQUE (source_id, content_sha256, observed_on)
 );
+
+CREATE INDEX source_releases_content ON source_releases (content_sha256);
+
+-- Evidence-defining metadata is fixed once records hang off the release. Workflow fields
+-- (status, is_current, applied_at) stay updatable.
+CREATE TRIGGER source_releases_evidence_immutable
+BEFORE UPDATE ON source_releases
+WHEN EXISTS (SELECT 1 FROM source_records WHERE release_id = OLD.release_id)
+  AND (NEW.release_id IS NOT OLD.release_id OR NEW.source_id IS NOT OLD.source_id
+    OR NEW.observed_on IS NOT OLD.observed_on OR NEW.fetched_at IS NOT OLD.fetched_at
+    OR NEW.source_url IS NOT OLD.source_url OR NEW.http_last_modified IS NOT OLD.http_last_modified
+    OR NEW.content_sha256 IS NOT OLD.content_sha256 OR NEW.byte_length IS NOT OLD.byte_length
+    OR NEW.header_json IS NOT OLD.header_json OR NEW.record_count IS NOT OLD.record_count
+    OR NEW.parser_version IS NOT OLD.parser_version)
+BEGIN
+  SELECT RAISE(ABORT, 'source_releases: evidence metadata is immutable once records exist');
+END;
 
 -- At most one current (latest applied) release per source; absence from it drives removal.
 CREATE UNIQUE INDEX source_releases_one_current ON source_releases (source_id) WHERE is_current = 1;
@@ -65,16 +86,11 @@ CREATE TABLE source_records (
   raw_values_json      TEXT NOT NULL CHECK (json_valid(raw_values_json) AND json_type(raw_values_json) = 'array'),
   -- sha256 of raw_values_json; lets the matcher detect unchanged rows cheaply.
   raw_sha256           TEXT NOT NULL CHECK (length(raw_sha256) = 64 AND raw_sha256 NOT GLOB '*[^0-9a-f]*'),
-  -- Matcher input derived from raw values (e.g. normalised 名称 + 設置位置), with its algorithm version.
-  natural_key          TEXT,
-  natural_key_version  TEXT,
-  CHECK ((natural_key IS NULL) = (natural_key_version IS NULL)),
   UNIQUE (release_id, ordinal),
   UNIQUE (record_id, release_id)
 );
 
 CREATE UNIQUE INDEX source_records_row_ref ON source_records (release_id, upstream_row_ref) WHERE upstream_row_ref IS NOT NULL;
-CREATE INDEX source_records_natural_key ON source_records (natural_key) WHERE natural_key IS NOT NULL;
 
 CREATE TRIGGER source_records_width_matches_header
 BEFORE INSERT ON source_records
@@ -95,6 +111,31 @@ BEGIN
   SELECT RAISE(ABORT, 'source_records are immutable raw evidence');
 END;
 
+-- Derived matcher input, versioned separately from the raw row it is computed from (e.g.
+-- normalised 名称 + 設置位置). A new key algorithm adds rows under a new key_version; existing
+-- rows are never rewritten, so every recorded matcher decision stays reproducible.
+CREATE TABLE source_record_match_keys (
+  record_id            INTEGER NOT NULL REFERENCES source_records (record_id),
+  key_version          TEXT NOT NULL,
+  match_key            TEXT NOT NULL,
+  derived_at           TEXT NOT NULL,
+  PRIMARY KEY (record_id, key_version)
+);
+
+CREATE INDEX source_record_match_keys_lookup ON source_record_match_keys (key_version, match_key);
+
+CREATE TRIGGER source_record_match_keys_immutable
+BEFORE UPDATE ON source_record_match_keys
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_match_keys are immutable; add a new key_version instead');
+END;
+
+CREATE TRIGGER source_record_match_keys_no_delete
+BEFORE DELETE ON source_record_match_keys
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_match_keys are immutable; add a new key_version instead');
+END;
+
 -- MannerPath's own identity for "the same upstream thing across releases". Server-assigned,
 -- because the upstream source has no stable ID.
 CREATE TABLE source_entities (
@@ -104,12 +145,23 @@ CREATE TABLE source_entities (
   UNIQUE (source_entity_id, source_id)
 );
 
--- Reconciliation decision: which entity a release's record belongs to, and why.
+CREATE TRIGGER source_entities_source_immutable
+BEFORE UPDATE OF source_entity_id, source_id ON source_entities
+WHEN NEW.source_entity_id IS NOT OLD.source_entity_id OR NEW.source_id IS NOT OLD.source_id
+BEGIN
+  SELECT RAISE(ABORT, 'source_entities: identity and source are immutable');
+END;
+
+-- Reconciliation decision: which entity a release's record belongs to, and why. One current
+-- decision per record. Correction model: a reviewer may reassign the entity in place, but only
+-- as a 'manual' decision (new decided_at, note); the record it describes never changes. The
+-- automatic decision it replaced is reproducible from raw records + match keys + matcher_version.
 CREATE TABLE source_record_entities (
   record_id            INTEGER PRIMARY KEY,
   release_id           INTEGER NOT NULL,
   source_entity_id     INTEGER NOT NULL REFERENCES source_entities (source_entity_id),
   -- new: first seen; natural_key / raw_identical: automatic match to the previous release; manual: reviewed.
+  -- matcher_version names the matcher and the match-key key_version it read.
   method               TEXT NOT NULL CHECK (method IN ('new', 'natural_key', 'raw_identical', 'manual')),
   matcher_version      TEXT NOT NULL,
   decided_at           TEXT NOT NULL,
@@ -125,6 +177,34 @@ WHEN (SELECT source_id FROM source_releases WHERE release_id = NEW.release_id)
   <> (SELECT source_id FROM source_entities WHERE source_entity_id = NEW.source_entity_id)
 BEGIN
   SELECT RAISE(ABORT, 'source_record_entities: record and entity belong to different sources');
+END;
+
+CREATE TRIGGER source_record_entities_same_source_on_update
+BEFORE UPDATE ON source_record_entities
+WHEN (SELECT source_id FROM source_releases WHERE release_id = NEW.release_id)
+  <> (SELECT source_id FROM source_entities WHERE source_entity_id = NEW.source_entity_id)
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_entities: record and entity belong to different sources');
+END;
+
+CREATE TRIGGER source_record_entities_record_fixed
+BEFORE UPDATE OF record_id, release_id ON source_record_entities
+WHEN NEW.record_id IS NOT OLD.record_id OR NEW.release_id IS NOT OLD.release_id
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_entities: the record of a decision cannot change');
+END;
+
+CREATE TRIGGER source_record_entities_correction_is_manual
+BEFORE UPDATE OF source_entity_id ON source_record_entities
+WHEN NEW.source_entity_id IS NOT OLD.source_entity_id AND NEW.method <> 'manual'
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_entities: reassigning an entity must be a manual decision');
+END;
+
+CREATE TRIGGER source_record_entities_no_delete
+BEFORE DELETE ON source_record_entities
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_entities: correct a decision with a manual update, do not delete it');
 END;
 
 -- Canonical resolved spot. Typed columns: this is the only table API hot paths need.
