@@ -34,7 +34,7 @@ Status: **Accepted baseline**
 | HTTP framework | Hono |
 | Validation | Zod |
 | Database | Cloudflare D1 |
-| Geo indexing | deterministic map-tile/geohash columns + indexed bounding candidate queries |
+| Geo indexing | Web Mercator Slippy XYZ data tiles at one fixed `DATA_TILE_ZOOM` for v1 (numeric zoom TBD until launch-region benchmarking); tile ID `"{z}/{x}/{y}"`; indexed tile-ID column (ADR-0005) |
 | Public API | versioned REST `/v1/...` |
 | Cache | HTTP cache semantics (`ETag`, `If-None-Match`) + Cloudflare cache where appropriate |
 | Scheduled import | data-pipeline CLI, later scheduled CI/Cron after each source is stable |

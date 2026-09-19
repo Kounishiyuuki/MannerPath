@@ -24,10 +24,13 @@ Exit: usable without backend using fixture/cached data.
 
 ## Phase 2 — Real data sync
 
+- shared Swift/TypeScript tile test vectors (ADR-0005);
+- launch-region density/payload benchmark → fix `DATA_TILE_ZOOM` (ADR-0005);
+- decide concrete evidence/provenance schema (ADR-0006);
 - D1 schema;
 - tile API + ETag;
 - first municipal importer;
-- OSM importer;
+- OSM importer (publication gated on ODbL review, see `DATA_POLICY.md`);
 - attribution UI;
 - source/confidence model.
 
@@ -53,6 +56,7 @@ Exit: real launch-region data flows from source to device.
 
 ## Phase 5 — Verification/reports
 
+- report privacy/retention ADR;
 - report API;
 - App Attest/rate limits;
 - moderation/reconciliation workflow;

@@ -42,8 +42,10 @@ Unknown values remain unknown and are not silently treated as allowed.
 - `designatedOutdoorArea`
 - `publicSmokingRoom`
 - `facilitySmokingRoom`
-- `confirmedAshtray`
+- `ashtray`
 - `smokingPermittedVenue` (post-v1 unless data quality is adequate)
+
+Spot type describes the physical location only. Whether it is confirmed is a separate verification/evidence axis (ADR-0006).
 
 Host context is separate from spot type:
 
@@ -54,7 +56,9 @@ Host context is separate from spot type:
 - `restaurantOrCafe`
 - `other`
 
-A convenience store becomes a result only when the ashtray/smoking permission is confirmed from an approved source or verification workflow.
+A convenience store becomes a result only when the ashtray/smoking permission is confirmed from an approved source or verification workflow. A host never creates a published spot by itself (publication gate, ADR-0006).
+
+Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Access type includes `unknown`.
 
 ## 4. iPhone v1 requirements
 
@@ -121,18 +125,22 @@ Hard filters may include:
 - explicitly unsupported tobacco type;
 - explicitly closed at the current time;
 - inaccessible spot type under the selected access preference;
-- stale/removed status.
+- lifecycle `removed` or `temporarilyClosed`.
+
+Staleness is not a status. It is freshness computed on device from `lastVerifiedAt` and affects score and display; a user may choose a "verified recently" filter. `unknown` values are never hard-filtered as incompatible unless the user explicitly requires `yes`.
 
 Base score inputs:
 
 1. walking ETA/detour when an online route is available;
 2. otherwise straight-line distance;
-3. verification confidence;
-4. verification freshness;
+3. evidence quality (stable, from the server);
+4. verification freshness (computed on device from `lastVerifiedAt`);
 5. access convenience;
 6. user preferences.
 
 Distance must never override an explicit incompatibility.
+
+Ranking and confidence algorithms are versioned (ADR-0006).
 
 ## 7. Offline behavior
 
