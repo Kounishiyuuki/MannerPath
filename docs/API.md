@@ -10,7 +10,7 @@ Every response body carries an explicit `schemaVersion` (DTO schema version). `/
 
 ## Forward compatibility
 
-- Clients must tolerate unknown enum values (e.g. a new `spotType`, `accessType`, report type). An unknown value must not crash or fail decoding of the whole response; the client treats it as unknown and may skip the spot.
+- Clients must tolerate **unsupported** enum values: a wire value that is not in the client's schema version, such as a `spotType`, `accessType` or report type added after the client shipped. An unsupported value must not crash decoding or fail the whole response. The client may treat it as unrecognised or skip that one spot. This is different from the literal value `"unknown"`, which is a defined, supported value (see `spotType` below).
 - Clients must ignore unknown JSON fields.
 - Tri-state attributes are strings `"yes" | "no" | "unknown"`, never booleans or null.
 
@@ -82,6 +82,7 @@ Implementation: `services/api/src/app.ts`. Zod schema: `services/api/src/tiles/d
 - `id`: opaque (`sp_` + 26 Crockford base32 characters). Clients never parse it.
 - `name`: string or `null`.
 - `spotType`: one of `designatedOutdoorArea | publicSmokingRoom | facilitySmokingRoom | ashtray | smokingPermittedVenue | unknown`. `accessType`: `public | customerOnly | facilityOnly | unknown`. `environment`: `indoor | outdoor | covered | unknown`. Clients tolerate values they do not know.
+- `spotType: "unknown"` is a **known, valid canonical value** in schemaVersion 1. It means the physical subtype is unresolved: the source does not say whether the spot is an outdoor area, a room or an ashtray. It says nothing about existence or verification. Every spot in a tile has passed the publication gate (ADR-0006), whatever its `spotType`. A published spot with `spotType: "unknown"` is eligible for Nearby and other results like any other spot. It is left out only when the user sets an explicit spot-type filter that does not include it. Clients must decode it as a real case, not as an unsupported value, and must not skip it or treat it as unverified.
 - `openingHours.status`:
   - `none`: no hours.
   - `parsed`: `parsed` is `{"v":1,"kind":"allDay"}` or `{"v":1,"kind":"daily","opens":"HH:MM","closes":"HH:MM"}`, where `closes` may be `24:00`. The times are local to `timeZone`.
