@@ -235,10 +235,18 @@ test("reconciliation: source identity cannot be mutated into a cross-source link
   assert.throws(() => db.prepare("UPDATE source_entities SET source_entity_id = 9 WHERE source_entity_id = 1").run(), /immutable/);
   assert.throws(() => db.prepare("UPDATE source_releases SET source_id = 'src-b' WHERE release_id = ?").run(relA), /immutable once records exist/);
   assert.throws(() => db.prepare("UPDATE source_record_entities SET source_entity_id = 2, method = 'manual' WHERE record_id = ?").run(recA), /different sources/);
-  assert.throws(() => db.prepare("UPDATE source_record_entities SET record_id = ?, release_id = ? WHERE record_id = ?").run(recB, relB, recA), /cannot change|different sources/);
-  assert.throws(() => db.prepare("UPDATE source_record_entities SET record_id = ? WHERE record_id = ?").run(recA2, recA), /cannot change/);
+  assert.throws(() => db.prepare("UPDATE source_record_entities SET method = 'manual', record_id = ?, release_id = ? WHERE record_id = ?").run(recB, relB, recA), /cannot change|different sources/);
+  assert.throws(() => db.prepare("UPDATE source_record_entities SET method = 'manual', record_id = ? WHERE record_id = ?").run(recA2, recA), /cannot change/);
   assert.throws(() => db.prepare("UPDATE source_record_entities SET source_entity_id = 3 WHERE record_id = ?").run(recA), /manual/);
   assert.throws(() => db.prepare("DELETE FROM source_record_entities WHERE record_id = ?").run(recA), /do not delete/);
+  // Automatic decision audit metadata cannot be silently rewritten.
+  for (const set of ["matcher_version = 'm.v2'", "decided_at = '2027-01-01T00:00:00Z'", "note = 'x'", "method = 'natural_key'"]) {
+    assert.throws(() => db.prepare(`UPDATE source_record_entities SET ${set} WHERE record_id = ?`).run(recA), /manual/, set);
+  }
+  assert.deepEqual(
+    { ...db.prepare("SELECT method, matcher_version, decided_at FROM source_record_entities WHERE record_id = ?").get(recA) },
+    { method: "new", matcher_version: "m.v1", decided_at: T },
+  );
 
   // The allowed correction: a same-source manual reassignment.
   db.prepare("UPDATE source_record_entities SET source_entity_id = 3, method = 'manual', decided_at = ?, note = 'reviewed' WHERE record_id = ?").run(T, recA);

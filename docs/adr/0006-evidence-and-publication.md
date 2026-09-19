@@ -79,7 +79,8 @@ The schema follows the real Taito source shape (research §3): 12 CSV columns, a
 4. **Cross-release reconciliation is an explicit, versioned decision.** `source_entities` is MannerPath's own identity for "the same upstream thing". Each record is assigned to one entity in `source_record_entities`, which records `method` (`new | natural_key | raw_identical | manual`), `matcher_version` and time. Constraints: an entity has at most one record per release (`UNIQUE (source_entity_id, release_id)`), so an ambiguous match cannot be linked silently. Records and entities must share a source; triggers check this on INSERT and UPDATE. An entity's `source_id` is immutable.
    - **Matcher input** is derived, not raw. It lives in `source_record_match_keys (record_id, key_version, match_key)`, for Taito a normalised 名称 + 設置位置. Rows are immutable. An improved algorithm adds rows under a new `key_version` and leaves both the raw record and old keys untouched, so every decision stays reproducible. `matcher_version` names the matcher and the `key_version` it read.
    - **Correction model:** there is one current decision per record. A reviewer corrects it in place, and a trigger enforces the rules:
-     - `source_entity_id` can change only with `method = 'manual'`, and within the same source;
+     - every UPDATE must leave the row with `method = 'manual'`. An automatic decision's `method`, `matcher_version`, `decided_at` and `note` therefore cannot be rewritten while it still claims to be automatic. A correction replaces it with a manual decision;
+     - `source_entity_id` can change only within the same source;
      - `record_id`/`release_id` never change;
      - decisions are never deleted.
      The replaced automatic decision is not stored as history. It is reproducible from raw records, match keys and `matcher_version`. The matching rules themselves belong to the importer task.
@@ -89,11 +90,16 @@ The schema follows the real Taito source shape (research §3): 12 CSV columns, a
 8. **Spot ↔ source mapping.** `spot_source_entities` maps each source entity to at most one spot (PK). A spot may have several entities (multi-source).
 9. **Merges are permanent one-hop redirects.** `spots.merged_into` is enforced by triggers. The target must not itself be merged. A spot with inbound redirects cannot be merged until they are repointed, so `/spots/{id}` resolves in at most one hop. A redirect cannot be removed, and spots are never deleted.
 10. **Tiles are stored snapshots.** `tile_snapshots` holds the exact response body (`body_json`), `content_sha256` (the ETag input), `schema_version`, `spot_count` and `revision` for each tile. The tile API reads one row by primary key, so the body cannot drift from its ETag even if `spots` changes between publishes. Triggers enforce that revisions strictly increase and that rows are never deleted: an emptied tile is republished with `spot_count = 0`. `z` is pinned by `CHECK (z = 14)`, and `tile_id` must equal `z/x/y`.
-11. **The publication invariant is enforced by the database.** `tile_snapshot_spots` lists the spots in each tile's current snapshot (a spot is in at most one tile). A trigger rejects inserting a spot unless all of these hold:
+11. **The publication invariant is enforced by the database when a spot is published.** `tile_snapshot_spots` lists the spots in each tile's current snapshot (a spot is in at most one tile). A trigger rejects inserting a spot unless all of these hold:
     - it is `active` and unmerged;
     - its `tile_id` matches the tile;
     - it has an `existence` provenance row whose record comes from an `applied` release of an `approved` source.
     A second trigger rejects changing `lifecycle`, `merged_into` or `tile_id` of a spot that is still in a snapshot. The publish step must unpublish, update and republish in one D1 batch.
+    The database does **not** re-check the invariant after publication for changes to the evidence behind it. These transitions are allowed even while a dependent spot is published:
+    - `sources.publication_status` changes from `approved` to `blocked`;
+    - `source_releases.status` leaves `applied`;
+    - the spot's `existence` row in `spot_field_provenance` is updated to point at other evidence, or deleted.
+    **Rule:** the transaction (one D1 batch) that makes any of these changes must first unpublish the affected spots, republish their tiles (higher `revision`, new body) and re-insert only spots that still qualify. That re-insert re-runs the insert trigger. Until the importer/publish code exists, this rule is a documented application obligation and is not tested.
 12. **Identifiers.** `spots.spot_id` is opaque server-assigned TEXT (8–64 chars; the format is chosen by the importer task). Internal tables use integer keys that are never exposed.
 13. **Not PostGIS, but friendly to it.** Coordinates are `REAL` WGS84 plus integer tile columns and an index on `spots.tile_id`. A PostGIS backend can add a geography column derived from `latitude`/`longitude` without changing identities or the tile contract (ADR-0003, ADR-0005).
 
@@ -102,7 +108,7 @@ The schema follows the real Taito source shape (research §3): 12 CSV columns, a
 - The tile x/y of a spot matches its coordinates: SQLite has no portable Mercator math. The TypeScript tile module is checked against the shared vectors.
 - `spots.last_verified_at` equals the `observed_on` of the release behind the newest `existence` provenance.
 - `body_json` / `content_sha256` match the rows in `tile_snapshot_spots`.
-- Changing `sources.publication_status` to `blocked` is not blocked when spots are already published. The publish step must unpublish the affected tiles.
+- Evidence-gating changes after publication are not guarded: a source becoming `blocked`, a release leaving `applied`, or a published spot's `existence` provenance changing or being deleted (see decision 11 for the required publish transaction).
 - A provenance `record_id` belongs to a source entity linked to that spot in `spot_source_entities`.
 - The `spot_field_provenance` field names map to spot columns. There is no check that a non-unknown value has a provenance row.
 

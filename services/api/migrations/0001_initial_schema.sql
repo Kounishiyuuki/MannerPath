@@ -194,11 +194,14 @@ BEGIN
   SELECT RAISE(ABORT, 'source_record_entities: the record of a decision cannot change');
 END;
 
-CREATE TRIGGER source_record_entities_correction_is_manual
-BEFORE UPDATE OF source_entity_id ON source_record_entities
-WHEN NEW.source_entity_id IS NOT OLD.source_entity_id AND NEW.method <> 'manual'
+-- Any change to a decision (entity, method, matcher_version, decided_at, note) makes it a manual
+-- decision, so an automatic decision's audit metadata can never be rewritten while it still
+-- claims to be automatic.
+CREATE TRIGGER source_record_entities_updates_are_manual
+BEFORE UPDATE ON source_record_entities
+WHEN NEW.method <> 'manual'
 BEGIN
-  SELECT RAISE(ABORT, 'source_record_entities: reassigning an entity must be a manual decision');
+  SELECT RAISE(ABORT, 'source_record_entities: an updated decision must be recorded as manual');
 END;
 
 CREATE TRIGGER source_record_entities_no_delete
