@@ -1,6 +1,6 @@
 # ADR-0006 — Evidence, resolution and publication
 
-Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8)
+Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment
 
 ## Context
 
@@ -119,4 +119,39 @@ The schema follows the real Taito source shape (research §3): 12 CSV columns, a
 - The spot ID format, `evidence_quality` values and the tile DTO / `schemaVersion` 1 body shape.
 - History of canonical values: provenance describes the current value only. Earlier values can be reproduced from raw records plus versions, but they are not stored.
 - User reports as evidence: `spot_field_provenance.record_id` is `NOT NULL` for source records only. Adding reports needs the report privacy ADR and a migration.
-- Verification on a remote Cloudflare D1 database. The migration has been applied to local D1 (`wrangler d1 migrations apply --local`, wrangler 4.135.0) and to SQLite 3.47 (node:sqlite) and 3.51 (sqlite3 CLI). Wrangler is not yet a project dependency.
+- Verification on a remote Cloudflare D1 database. The migration has been applied to local D1 (`wrangler d1 migrations apply --local`, wrangler 4.135.0) and to SQLite 3.47 (node:sqlite) and 3.51 (sqlite3 CLI). Wrangler is now a pinned dev dependency of `services/api` (Issue #12); 0001 + 0002 were applied to a fresh local D1 with it.
+
+## Amendment 2026-09 — first vertical slice: Taito import and tile API (Issue #12)
+
+Code: `services/api/src/pipeline/` (ingest, first-release reconciliation, Taito rules), `src/tiles/` (DTO, publish), `src/app.ts` (`GET /v1/tiles/{z}/{x}/{y}`), `src/spot-id.ts`. Tests: `services/api/test/pipeline.test.ts`, `publish-api.test.ts`, `migration-0002.test.ts`.
+This amendment settles only what the slice needs. Of the items under "Unresolved before the Taito importer / tile API" above, it resolves the spot ID format, the `evidence_quality` values and the tile DTO / `schemaVersion` 1. The other items remain open.
+
+### Decisions
+
+1. **Spot ID.** `"sp_"` followed by 26 Crockford base32 characters encoding 128 bits from a CSPRNG (`crypto.getRandomValues`). Nothing about the spot goes into the ID: not the source ID, the row number, the coordinates, the tile or the time. The ID is stored once. It is found again through `spot_source_entities` and never recomputed, so it survives changes to any of those attributes.
+2. **Evidence quality, vocabulary `evidence-quality.v1`.** It has one value, `officialListing`: the spot's existence evidence is a listing in an applied release of a `municipal` source. The resolver refuses other source kinds. Further values arrive with the sources and workflows that need them, and adding one bumps the version.
+3. **`spotType = unknown` (migration `0002_spot_type_unknown.sql`).** The Taito list does not say whether a place is an outdoor area, a room or an ashtray. A physical type must not be guessed from a name, so `unknown` is added to the `spot_type` CHECK. SQLite cannot alter a CHECK, so 0002 rebuilds `spots` with identical indexes and triggers. It also drops and recreates `tile_snapshot_spots_publication_invariant`, the one trigger on another table that reads `spots`. The rebuild is valid only while `spots` is empty: dropping a referenced parent leaves deferred foreign-key violations, and D1 cannot turn foreign keys off. A guard table aborts 0002 when spots exist (tested). A later change to `spots` constraints needs a different procedure.
+4. **First-release reconciliation (`first-release.v1`).** When a source has no applied release, each record gets a new `source_entity`, a `source_record_entities` decision with `method = 'new'`, and a new spot linked with `method = 'created'`. No match keys are derived. When the source already has an applied release, the resolver **refuses** and writes nothing. Cross-release matching stays unimplemented until a matcher is validated against two real releases. The Taito `#` is stored only as the release-scoped `upstream_row_ref`. Reconciliation, spot creation, provenance and the release's `applied`/`is_current` switch happen in one batch. Resolving an already-applied release is a no-op.
+5. **Taito field rules (`taito-resolver.v1`).** Raw values are never rewritten. Each resolved field has a `spot_field_provenance` row naming the record, columns and rule. A field with no row is unresolved.
+
+   | Field | Rule | Source columns | Result |
+   |---|---|---|---|
+   | existence, lifecycle | `taito.listed.v1` | the whole record | Listed in the applied release → accepted existence evidence; `active`. A host (for example a convenience store in `名称`) adds nothing |
+   | location | `taito.coordinates.v1` | 緯度, 経度 | Decimal degrees as written. A malformed value aborts the import. The datum is not stated and is treated as WGS84 |
+   | name | `taito.name.v1` | 名称 | Verbatim, including suffixes such as 「※加熱式たばこ専用」 |
+   | supportsPaper / supportsHeated | `taito.heatedOnly.v1` | 名称 and/or 特記事項, whichever contains the marker | 「※加熱式たばこ専用」 → paper `no`, heated `yes` (record 32 only). Otherwise `unknown`, with no provenance row |
+   | openingHours | `taito.hours.v1` | 利用開始時間, 利用終了時間, 特記事項 | `raw` = the range (`終日利用可能` or `start-end`), followed by the note on a new line if there is one. `parsed` only when 特記事項 is blank and both times are `終日利用可能` (`{"v":1,"kind":"allDay"}`) or `H:MM` with close after open (`{"v":1,"kind":"daily","opens":"07:00","closes":"20:00"}`; `0:00` as a close time means `24:00`). Any note (closure text, the heated-only marker) or other format → `unparsed`, so `openNow` stays unknown |
+   | lastVerifiedAt | — | release `observed_on` | 2026-08-18 for the fixture. The fetch date is never used |
+   | spotType, hostType, accessType, environment, feeType, floor, entranceNote | — | — | Not resolved: `unknown`/NULL, no provenance row. 設置位置, 方書 and 名称カナ stay in raw evidence only |
+
+6. **Publish.** One operation rebuilds the complete body of every tile whose spots or sources changed, including previously published tiles that are now empty. It writes all of them in one batch: clear `tile_snapshot_spots`, upsert `tile_snapshots` with `revision + 1`, re-insert spots (re-running the invariant trigger). Candidates are active, unmerged spots whose existence evidence is in an applied release. Spots whose source is not `approved` are **excluded and reported**, never published. This is how the decision-11 obligation is met whenever the publisher runs after a source is blocked (tested). Unchanged tiles keep their revision, body and ETag.
+7. **Snapshot bytes and ETag.** `body_json` is `JSON.stringify` of the v1 body built with a fixed key order, spots sorted by `id` and sources by `id`. It is validated with Zod before storage. `content_sha256 = sha256(body_json)`, and the API serves `body_json` byte-for-byte with the strong ETag `"{schemaVersion}-{content_sha256}"`. The DTO is specified in `docs/API.md`.
+8. **Registry.** The importer inserts the Taito `sources` row as `blocked` when it is missing and never updates an existing row. Approval stays an explicit registry change (`docs/SOURCES.md`). Tests prove a successful publication only with an isolated test source that is explicitly approved, and prove that the real Taito source publishes nothing and is rejected by the trigger.
+
+### Still unresolved
+
+- Cross-release matching for Taito (natural key, ambiguous-match review), which needs a second real release. Removal detection depends on it.
+- Taito publication approval and in-app attribution wording (`sources.attribution_text` is NULL, and the tile sends `attributionText: null`).
+- Physical spot type, access type, environment and host context for Taito records. There is also no address field in the canonical model yet (設置位置/方書 are raw evidence only).
+- Parsing Taito closure notes (「土日祝日、年末年始は休業」, 「12月を除く毎月第3水曜日は休業」) into structured hours.
+- Archiving the original file bytes (R2). A remote D1 database. `GET /spots/{id}`, `/config`, reports.

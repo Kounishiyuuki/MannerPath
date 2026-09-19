@@ -6,6 +6,19 @@
     "node": ">=23.3"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --experimental-sqlite --no-warnings --test test/*.test.ts"
+    "test": "node --experimental-strip-types --experimental-sqlite --no-warnings --test test/*.test.ts",
+    "typecheck": "tsc -p .",
+    "dev": "wrangler dev --local",
+    "local:migrate": "wrangler d1 migrations apply DB --local",
+    "local:pipeline": "node --experimental-strip-types --no-warnings scripts/local-pipeline.ts"
+  },
+  "dependencies": {
+    "hono": "4.13.8",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260919.1",
+    "typescript": "7.0.2",
+    "wrangler": "4.135.0"
   }
 }

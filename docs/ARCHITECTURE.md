@@ -65,7 +65,7 @@ No SwiftUI import inside Domain.
 
 ## 3. Canonical spot model
 
-This is the logical model. The physical D1 schema is `services/api/migrations/0001_initial_schema.sql`, recorded in the ADR-0006 amendment (2026-09).
+This is the logical model. The physical D1 schema is `services/api/migrations/` (0001, plus 0002 adding spotType `unknown`), recorded in the ADR-0006 amendments (2026-09).
 
 ```text
 Spot (canonical, resolved)
@@ -90,7 +90,7 @@ Spot (canonical, resolved)
 - createdAt / updatedAt: Date
 ```
 
-`SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue` (post-v1).
+`SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue` (post-v1), `unknown` (the source does not state it; migration 0002).
 `ashtray` describes the physical thing; whether it is confirmed is the verification axis.
 
 Unknown must be represented separately from false. Tri-state attributes use `yes | no | unknown`, not optional booleans, in the domain and in the API.

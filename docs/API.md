@@ -42,6 +42,65 @@ Response shape:
 - `sources` is a compact attribution summary for the spots in the tile, so attribution can be shown offline.
 - Freshness is not precomputed; each spot carries `lastVerifiedAt` (evidence observation time) and a stable evidence quality.
 
+### schemaVersion 1 (implemented, Issue #12)
+
+Implementation: `services/api/src/app.ts`. Zod schema: `services/api/src/tiles/dto.ts`. Decisions: ADR-0006 amendment (Issue #12).
+
+```json
+{
+  "schemaVersion": 1,
+  "tile": "14/14553/6450",
+  "revision": 1,
+  "generatedAt": "2026-09-21T00:00:00Z",
+  "spots": [
+    {
+      "id": "sp_01V64NN31G72E5KJJ5W22W1A1J",
+      "name": "上野公園前交番裏",
+      "latitude": 35.7112,
+      "longitude": 139.77377,
+      "spotType": "unknown",
+      "accessType": "unknown",
+      "environment": "unknown",
+      "supportsPaper": "unknown",
+      "supportsHeated": "unknown",
+      "openingHours": { "status": "parsed", "raw": "終日利用可能", "parsed": { "v": 1, "kind": "allDay" }, "timeZone": "Asia/Tokyo" },
+      "lifecycle": "active",
+      "evidenceQuality": "officialListing",
+      "evidenceQualityVersion": "evidence-quality.v1",
+      "lastVerifiedAt": "2026-08-18",
+      "sourceIds": ["taito-public-smoking-areas"]
+    }
+  ],
+  "sources": [
+    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": null }
+  ]
+}
+```
+
+(Illustrative only: the Taito source is `blocked`, so the server publishes no Taito tile today.)
+
+- `id`: opaque (`sp_` + 26 Crockford base32 characters). Clients never parse it.
+- `name`: string or `null`.
+- `spotType`: one of `designatedOutdoorArea | publicSmokingRoom | facilitySmokingRoom | ashtray | smokingPermittedVenue | unknown`. `accessType`: `public | customerOnly | facilityOnly | unknown`. `environment`: `indoor | outdoor | covered | unknown`. Clients tolerate values they do not know.
+- `openingHours.status`:
+  - `none`: no hours.
+  - `parsed`: `parsed` is `{"v":1,"kind":"allDay"}` or `{"v":1,"kind":"daily","opens":"HH:MM","closes":"HH:MM"}`, where `closes` may be `24:00`. The times are local to `timeZone`.
+  - `unparsed`: `parsed` is `null`. Only `raw` text is known, so the client must treat `openNow` as unknown.
+- `lastVerifiedAt`: the observation date of the evidence (`YYYY-MM-DD`, day precision), or `null`.
+- `sourceIds`: IDs of the sources that provide the spot's existence evidence. Every one has an entry in `sources`.
+- `sources`: `attributionText` is `null` until approved wording exists.
+- `spots` are sorted by `id` and `sources` by `id`. The body is compact JSON, and the served bytes are exactly the stored snapshot.
+
+Responses:
+
+| Case | Status | Body / headers |
+|---|---|---|
+| Published tile | `200` | Snapshot body; `ETag: "1-<sha256 of body>"`; `Cache-Control: public, no-cache` |
+| `If-None-Match` matches (weak comparison; list or `*`) | `304` | No body; same `ETag` |
+| Malformed ID (padding, sign, non-decimal, x/y out of range) | `400` | `{"error":"invalidTileId","detail":…}` |
+| `z` ≠ `DATA_TILE_ZOOM` (14) | `400` | `{"error":"unsupportedZoom","detail":…}` |
+| Valid z14 tile with no published snapshot | `404` | `{"error":"tileNotPublished","detail":…}`. The client caches the tile as empty |
+
 ## GET `/spots/{id}`
 
 Returns the full current spot record and public provenance/verification summary.

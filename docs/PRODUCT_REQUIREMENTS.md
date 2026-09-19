@@ -44,6 +44,7 @@ Unknown values remain unknown and are not silently treated as allowed.
 - `facilitySmokingRoom`
 - `ashtray`
 - `smokingPermittedVenue` (post-v1 unless data quality is adequate)
+- `unknown` — the source does not state the physical type (for example the Taito ward list); never guessed from a name (ADR-0006, Issue #12 amendment)
 
 Spot type describes the physical location only. Whether it is confirmed is a separate verification/evidence axis (ADR-0006).
 
