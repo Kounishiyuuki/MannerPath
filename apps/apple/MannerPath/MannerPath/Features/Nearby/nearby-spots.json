@@ -1,0 +1,45 @@
+[
+  {
+    "id": "fixture-designated-area",
+    "name": "Synthetic designated area",
+    "latitude": 35.681236,
+    "longitude": 139.767125,
+    "tileId": "14/14552/6451",
+    "spotType": "designatedOutdoorArea",
+    "hostType": "municipality",
+    "accessType": "public",
+    "environment": "outdoor",
+    "supportsPaper": "yes",
+    "supportsHeated": "unknown",
+    "lifecycle": "active",
+    "verification": {
+      "acceptedExistenceEvidence": "yes",
+      "evidenceQuality": null,
+      "sourceDisplayNames": ["Synthetic fixture only"]
+    },
+    "lastVerifiedAt": "2026-01-01T00:00:00Z",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "updatedAt": "2026-01-01T00:00:00Z"
+  },
+  {
+    "id": "fixture-unverified-store",
+    "name": "Synthetic store host without existence evidence",
+    "latitude": 35.681237,
+    "longitude": 139.767125,
+    "tileId": "14/14552/6451",
+    "spotType": "ashtray",
+    "hostType": "convenienceStore",
+    "accessType": "unknown",
+    "environment": "unknown",
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "lifecycle": "active",
+    "verification": {
+      "acceptedExistenceEvidence": "unknown",
+      "evidenceQuality": null,
+      "sourceDisplayNames": ["Synthetic fixture only"]
+    },
+    "createdAt": "2026-01-01T00:00:00Z",
+    "updatedAt": "2026-01-01T00:00:00Z"
+  }
+]
