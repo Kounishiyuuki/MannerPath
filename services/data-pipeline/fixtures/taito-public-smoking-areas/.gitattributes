@@ -1,0 +1,2 @@
+# Keep the source bytes exactly as published (SHA-256 recorded in PROVENANCE.md).
+*.csv -text

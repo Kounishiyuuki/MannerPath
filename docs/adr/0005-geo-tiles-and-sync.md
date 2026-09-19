@@ -1,6 +1,6 @@
 # ADR-0005 — Geographic partitioning and tile sync
 
-Status: Accepted (zoom value pending benchmark)
+Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchmark)
 
 ## Decision
 
@@ -8,7 +8,12 @@ Status: Accepted (zoom value pending benchmark)
 
 - Tiles are Web Mercator Slippy XYZ tiles.
 - v1 uses one fixed `DATA_TILE_ZOOM` for all data tiles.
-- The value of `DATA_TILE_ZOOM` is **not chosen yet**. It is chosen after a launch-region density/payload benchmark (spots per tile, response size, number of tiles fetched for a typical nearby search). The result and chosen value are recorded in this ADR.
+- `DATA_TILE_ZOOM = 14`. It was chosen from a launch-region density/payload benchmark (spots per tile, response size, number of tiles fetched for a nearby search). See `docs/research/2026-09-launch-dataset-and-tile-zoom.md` (Issue #4). Measured results:
+  - Official data (台東区, 34 spots): at z14, the nearest 1–3 spots are found in 9 requests even at p90. At z15, k=3 needs 25 requests at p90.
+  - OSM density proxy for the 23 wards (190 spots): at z14, the nearest 1–3 spots are found in 9 requests for the median origin. z15 needs 25 at the median and 121–289 at p90.
+  - Hypothetical dense upper bound (5,823 spots; every OSM convenience store counted): the largest z14 tile is 4.3 KB gzip / 65 KB raw. A 3x3 fetch is 25.5 KB gzip at p90.
+  - z13 was rejected: its largest raw tile was 178 KB, and one change invalidates a ~4 km tile.
+- Re-evaluate the zoom before release if a source makes any z14 tile exceed about 250 spots or 16 KB gzip, or if the spot DTO grows substantially. The benchmark used an estimated DTO.
 - Tile ID format: `"{z}/{x}/{y}"` (decimal integers, no padding).
 - Tile assignment of a spot is computed server-side from its canonical WGS84 coordinates.
 - Shared Swift/TypeScript test vectors (coordinate → tile ID, including tile-boundary and antimeridian/latitude-limit cases) are mandatory. Both implementations must pass the same vectors in CI.
