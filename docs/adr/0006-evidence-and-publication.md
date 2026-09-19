@@ -14,7 +14,7 @@ The product's core claim — "smoking is permitted / an ashtray exists here" —
 - Accepted user reports can become evidence; reports never edit canonical rows directly.
 - Canonical resolved values retain **field-level provenance**: for each resolved attribute (existence, tobacco support, access, hours, …) it is possible to tell which evidence it came from.
 - API hot paths read resolved canonical data, not raw evidence.
-- The physical D1 schema is **not fixed** by this ADR. In particular, a generic `(field, value_json)` claim table is not adopted by default. The concrete schema is decided immediately before the first migration and recorded as an amendment to this ADR.
+- The physical D1 schema is **not fixed** by this ADR. In particular, a generic `(field, value_json)` claim table is not adopted by default. The concrete schema is decided immediately before the first migration and recorded as an amendment to this ADR. Source-derived inputs for that decision (the first municipal source's fields, dataset-level observation date, source-release provenance, open questions about stable record keys) are in `docs/research/2026-09-launch-dataset-and-tile-zoom.md` §3 and §7.
 
 ### Publication invariant
 

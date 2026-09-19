@@ -1,0 +1,1507 @@
+{
+ "generatedBy": "benchmark.mjs",
+ "zooms": [
+  13,
+  14,
+  15,
+  16
+ ],
+ "originSample": 1000,
+ "scenarios": [
+  {
+   "scenario": "taito-official",
+   "spots": 34,
+   "zooms": {
+    "13": {
+     "tileWidthMetersAt35_7N": 3973,
+     "occupiedTiles": 4,
+     "spotsPerOccupiedTile": {
+      "n": 4,
+      "mean": 8.5,
+      "p50": 11,
+      "p90": 12,
+      "p99": 12,
+      "max": 12
+     },
+     "tileRawBytes": {
+      "n": 4,
+      "mean": 3830.75,
+      "p50": 5056,
+      "p90": 5274,
+      "p99": 5274,
+      "max": 5274
+     },
+     "tileGzipBytes": {
+      "n": 4,
+      "mean": 886.5,
+      "p50": 1048,
+      "p90": 1093,
+      "p99": 1093,
+      "max": 1093
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 3973,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 4106,
+       "p50": 4106,
+       "p90": 4106,
+       "p99": 4106,
+       "max": 4106
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4106,
+        "p50": 4106,
+        "p90": 4106,
+        "p99": 4106,
+        "max": 4106
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 34,
+        "p50": 34,
+        "p90": 34,
+        "p99": 34,
+        "max": 34
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4106,
+        "p50": 4106,
+        "p90": 4106,
+        "p99": 4106,
+        "max": 4106
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 34,
+        "p50": 34,
+        "p90": 34,
+        "p99": 34,
+        "max": 34
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4106,
+        "p50": 4106,
+        "p90": 4106,
+        "p99": 4106,
+        "max": 4106
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 34,
+        "p50": 34,
+        "p90": 34,
+        "p99": 34,
+        "max": 34
+       },
+       "unresolvedWithinMaxRing": 0
+      }
+     }
+    },
+    "14": {
+     "tileWidthMetersAt35_7N": 1986,
+     "occupiedTiles": 5,
+     "spotsPerOccupiedTile": {
+      "n": 5,
+      "mean": 6.8,
+      "p50": 9,
+      "p90": 11,
+      "p99": 11,
+      "max": 11
+     },
+     "tileRawBytes": {
+      "n": 5,
+      "mean": 3106.8,
+      "p50": 3958,
+      "p90": 5057,
+      "p99": 5057,
+      "max": 5057
+     },
+     "tileGzipBytes": {
+      "n": 5,
+      "mean": 785.4,
+      "p50": 873,
+      "p90": 1095,
+      "p99": 1095,
+      "max": 1095
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 1986,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 4168.07,
+       "p50": 4375,
+       "p90": 4375,
+       "p99": 4375,
+       "max": 4375
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4168.07,
+        "p50": 4375,
+        "p90": 4375,
+        "p99": 4375,
+        "max": 4375
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 32.82,
+        "p50": 34,
+        "p90": 34,
+        "p99": 34,
+        "max": 34
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4168.07,
+        "p50": 4375,
+        "p90": 4375,
+        "p99": 4375,
+        "max": 4375
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 32.82,
+        "p50": 34,
+        "p90": 34,
+        "p99": 34,
+        "max": 34
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4168.07,
+        "p50": 4375,
+        "p90": 4375,
+        "p99": 4375,
+        "max": 4375
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 32.82,
+        "p50": 34,
+        "p90": 34,
+        "p99": 34,
+        "max": 34
+       },
+       "unresolvedWithinMaxRing": 0
+      }
+     }
+    },
+    "15": {
+     "tileWidthMetersAt35_7N": 993,
+     "occupiedTiles": 11,
+     "spotsPerOccupiedTile": {
+      "n": 11,
+      "mean": 3.09,
+      "p50": 2,
+      "p90": 6,
+      "p99": 7,
+      "max": 7
+     },
+     "tileRawBytes": {
+      "n": 11,
+      "mean": 1526.09,
+      "p50": 1087,
+      "p90": 2930,
+      "p99": 3115,
+      "max": 3115
+     },
+     "tileGzipBytes": {
+      "n": 11,
+      "mean": 585.27,
+      "p50": 569,
+      "p90": 763,
+      "p99": 854,
+      "max": 854
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 993,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 3516.86,
+       "p50": 3184,
+       "p90": 4773,
+       "p99": 4913,
+       "max": 4913
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9.74,
+        "p50": 9,
+        "p90": 9,
+        "p99": 25,
+        "max": 25
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 3705.13,
+        "p50": 3903,
+        "p90": 4913,
+        "p99": 6879,
+        "max": 7549
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 18.62,
+        "p50": 20,
+        "p90": 30,
+        "p99": 30,
+        "max": 32
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 12.42,
+        "p50": 9,
+        "p90": 25,
+        "p99": 25,
+        "max": 25
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4406.12,
+        "p50": 4078,
+        "p90": 6879,
+        "p99": 7549,
+        "max": 7692
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 21.39,
+        "p50": 21,
+        "p90": 30,
+        "p99": 32,
+        "max": 33
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 14.49,
+        "p50": 9,
+        "p90": 25,
+        "p99": 25,
+        "max": 25
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4925.82,
+        "p50": 4773,
+        "p90": 7235,
+        "p99": 7692,
+        "max": 7692
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 23.32,
+        "p50": 22,
+        "p90": 31,
+        "p99": 33,
+        "max": 33
+       },
+       "unresolvedWithinMaxRing": 0
+      }
+     }
+    },
+    "16": {
+     "tileWidthMetersAt35_7N": 497,
+     "occupiedTiles": 21,
+     "spotsPerOccupiedTile": {
+      "n": 21,
+      "mean": 1.62,
+      "p50": 1,
+      "p90": 2,
+      "p99": 5,
+      "max": 5
+     },
+     "tileRawBytes": {
+      "n": 21,
+      "mean": 898.43,
+      "p50": 640,
+      "p90": 1137,
+      "p99": 2456,
+      "max": 2456
+     },
+     "tileGzipBytes": {
+      "n": 21,
+      "mean": 492.19,
+      "p50": 466,
+      "p90": 580,
+      "p99": 736,
+      "max": 736
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 497,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 2294.06,
+       "p50": 2186,
+       "p90": 3519,
+       "p99": 4362,
+       "max": 4362
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 15.18,
+        "p50": 9,
+        "p90": 25,
+        "p99": 49,
+        "max": 49
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 3475.18,
+        "p50": 3133,
+        "p90": 5469,
+        "p99": 8846,
+        "max": 9442
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 7.88,
+        "p50": 8,
+        "p90": 13,
+        "p99": 18,
+        "max": 23
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 26.17,
+        "p50": 25,
+        "p90": 49,
+        "p99": 81,
+        "max": 81
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 5873.85,
+        "p50": 5426,
+        "p90": 9087,
+        "p99": 14459,
+        "max": 15128
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 13.38,
+        "p50": 12,
+        "p90": 21,
+        "p99": 25,
+        "max": 27
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 33.04,
+        "p50": 25,
+        "p90": 49,
+        "p99": 81,
+        "max": 81
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 7387.56,
+        "p50": 7221,
+        "p90": 11095,
+        "p99": 15128,
+        "max": 15328
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 16.68,
+        "p50": 16,
+        "p90": 25,
+        "p99": 28,
+        "max": 28
+       },
+       "unresolvedWithinMaxRing": 0
+      }
+     }
+    }
+   }
+  },
+  {
+   "scenario": "osm-smoking-area-23wards (density proxy)",
+   "spots": 190,
+   "zooms": {
+    "13": {
+     "tileWidthMetersAt35_7N": 3973,
+     "occupiedTiles": 31,
+     "spotsPerOccupiedTile": {
+      "n": 31,
+      "mean": 6.13,
+      "p50": 4,
+      "p90": 15,
+      "p99": 27,
+      "max": 27
+     },
+     "tileRawBytes": {
+      "n": 31,
+      "mean": 2823.45,
+      "p50": 1893,
+      "p90": 6586,
+      "p99": 11776,
+      "max": 11776
+     },
+     "tileGzipBytes": {
+      "n": 31,
+      "mean": 738.58,
+      "p50": 661,
+      "p90": 1252,
+      "p99": 1637,
+      "max": 1637
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 3973,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 5706.03,
+       "p50": 6226,
+       "p90": 10010,
+       "p99": 10044,
+       "max": 10044
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 29.71,
+        "p50": 9,
+        "p90": 25,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 8105.58,
+        "p50": 6738,
+        "p90": 10044,
+        "p99": 32368,
+        "max": 32368
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 55.56,
+        "p50": 56,
+        "p90": 124,
+        "p99": 124,
+        "max": 124
+       },
+       "unresolvedWithinMaxRing": 72
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 33.34,
+        "p50": 9,
+        "p90": 25,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 9068.72,
+        "p50": 7359,
+        "p90": 11259,
+        "p99": 32368,
+        "max": 32806
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 61.87,
+        "p50": 63,
+        "p90": 124,
+        "p99": 124,
+        "max": 124
+       },
+       "unresolvedWithinMaxRing": 77
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 34.46,
+        "p50": 9,
+        "p90": 25,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 9495.28,
+        "p50": 7649,
+        "p90": 11974,
+        "p99": 32368,
+        "max": 32806
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 65.39,
+        "p50": 72,
+        "p90": 124,
+        "p99": 124,
+        "max": 132
+       },
+       "unresolvedWithinMaxRing": 77
+      }
+     }
+    },
+    "14": {
+     "tileWidthMetersAt35_7N": 1986,
+     "occupiedTiles": 65,
+     "spotsPerOccupiedTile": {
+      "n": 65,
+      "mean": 2.92,
+      "p50": 2,
+      "p90": 7,
+      "p99": 23,
+      "max": 23
+     },
+     "tileRawBytes": {
+      "n": 65,
+      "mean": 1455.32,
+      "p50": 1010,
+      "p90": 3108,
+      "p99": 10065,
+      "max": 10065
+     },
+     "tileGzipBytes": {
+      "n": 65,
+      "mean": 575.83,
+      "p50": 503,
+      "p90": 791,
+      "p99": 1531,
+      "max": 1531
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 1986,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 3269.62,
+       "p50": 2875,
+       "p90": 5685,
+       "p99": 7275,
+       "max": 7275
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 33.11,
+        "p50": 9,
+        "p90": 49,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 6253.73,
+        "p50": 4405,
+        "p90": 7275,
+        "p99": 32368,
+        "max": 32368
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 17.75,
+        "p50": 12,
+        "p90": 44,
+        "p99": 60,
+        "max": 60
+       },
+       "unresolvedWithinMaxRing": 72
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 42.67,
+        "p50": 9,
+        "p90": 81,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 8235.96,
+        "p50": 5554,
+        "p90": 14249,
+        "p99": 32368,
+        "max": 32807
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 23.44,
+        "p50": 20,
+        "p90": 45,
+        "p99": 60,
+        "max": 104
+       },
+       "unresolvedWithinMaxRing": 77
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 47.57,
+        "p50": 25,
+        "p90": 81,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 9540.98,
+        "p50": 7009,
+        "p90": 16523,
+        "p99": 32368,
+        "max": 32807
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 28.84,
+        "p50": 29,
+        "p90": 54,
+        "p99": 76,
+        "max": 104
+       },
+       "unresolvedWithinMaxRing": 77
+      }
+     }
+    },
+    "15": {
+     "tileWidthMetersAt35_7N": 993,
+     "occupiedTiles": 99,
+     "spotsPerOccupiedTile": {
+      "n": 99,
+      "mean": 1.92,
+      "p50": 1,
+      "p90": 4,
+      "p99": 14,
+      "max": 14
+     },
+     "tileRawBytes": {
+      "n": 99,
+      "mean": 1027.61,
+      "p50": 683,
+      "p90": 1878,
+      "p99": 6181,
+      "max": 6181
+     },
+     "tileGzipBytes": {
+      "n": 99,
+      "mean": 517.38,
+      "p50": 485,
+      "p90": 667,
+      "p99": 1169,
+      "max": 1169
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 993,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 1922.27,
+       "p50": 1428,
+       "p90": 3560,
+       "p99": 4547,
+       "max": 4662
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 45.1,
+        "p50": 25,
+        "p90": 121,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 6500.39,
+        "p50": 3714,
+        "p90": 13906,
+        "p99": 32368,
+        "max": 32368
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 7.02,
+        "p50": 5,
+        "p90": 17,
+        "p99": 27,
+        "max": 33
+       },
+       "unresolvedWithinMaxRing": 75
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 73.92,
+        "p50": 25,
+        "p90": 289,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 10737.58,
+        "p50": 7059,
+        "p90": 32368,
+        "p99": 35205,
+        "max": 37144
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 11.68,
+        "p50": 9,
+        "p90": 25,
+        "p99": 36,
+        "max": 44
+       },
+       "unresolvedWithinMaxRing": 88
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 89.6,
+        "p50": 49,
+        "p90": 289,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 13370.32,
+        "p50": 9990,
+        "p90": 32368,
+        "p99": 36494,
+        "max": 38287
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 16.01,
+        "p50": 14,
+        "p90": 30,
+        "p99": 46,
+        "max": 49
+       },
+       "unresolvedWithinMaxRing": 93
+      }
+     }
+    },
+    "16": {
+     "tileWidthMetersAt35_7N": 497,
+     "occupiedTiles": 126,
+     "spotsPerOccupiedTile": {
+      "n": 126,
+      "mean": 1.51,
+      "p50": 1,
+      "p90": 2,
+      "p99": 7,
+      "max": 13
+     },
+     "tileRawBytes": {
+      "n": 126,
+      "mean": 851.98,
+      "p50": 639,
+      "p90": 1160,
+      "p99": 3166,
+      "max": 5760
+     },
+     "tileGzipBytes": {
+      "n": 126,
+      "mean": 489.31,
+      "p50": 464,
+      "p90": 578,
+      "p99": 800,
+      "max": 1113
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 497,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 1334.85,
+       "p50": 1008,
+       "p90": 2083,
+       "p99": 3050,
+       "max": 3767
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 79.83,
+        "p50": 49,
+        "p90": 289,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 9867.11,
+        "p50": 5846,
+        "p90": 32368,
+        "p99": 33067,
+        "max": 33421
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 3.72,
+        "p50": 2,
+        "p90": 8,
+        "p99": 18,
+        "max": 28
+       },
+       "unresolvedWithinMaxRing": 100
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 136.5,
+        "p50": 81,
+        "p90": 289,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 17010.42,
+        "p50": 12549,
+        "p90": 33098,
+        "p99": 34917,
+        "max": 35710
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 7.05,
+        "p50": 6,
+        "p90": 15,
+        "p99": 25,
+        "max": 32
+       },
+       "unresolvedWithinMaxRing": 234
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 161.48,
+        "p50": 121,
+        "p90": 289,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 20407,
+        "p50": 18674,
+        "p90": 34051,
+        "p99": 36268,
+        "max": 37871
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 9.52,
+        "p50": 9,
+        "p90": 19,
+        "p99": 29,
+        "max": 32
+       },
+       "unresolvedWithinMaxRing": 297
+      }
+     }
+    }
+   }
+  },
+  {
+   "scenario": "stress: osm smoking_area + every konbini (hypothetical upper bound)",
+   "spots": 5823,
+   "zooms": {
+    "13": {
+     "tileWidthMetersAt35_7N": 3973,
+     "occupiedTiles": 191,
+     "spotsPerOccupiedTile": {
+      "n": 191,
+      "mean": 30.49,
+      "p50": 3,
+      "p90": 104,
+      "p99": 312,
+      "max": 416
+     },
+     "tileRawBytes": {
+      "n": 191,
+      "mean": 13244.71,
+      "p50": 1480,
+      "p90": 45214,
+      "p99": 133192,
+      "max": 178136
+     },
+     "tileGzipBytes": {
+      "n": 191,
+      "mean": 1323.66,
+      "p50": 603,
+      "p90": 3508,
+      "p99": 7506,
+      "max": 9433
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 3973,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 35413.51,
+       "p50": 34930,
+       "p90": 55059,
+       "p99": 58407,
+       "max": 58407
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 35413.51,
+        "p50": 34930,
+        "p90": 55059,
+        "p99": 58407,
+        "max": 58407
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 1260.28,
+        "p50": 1218,
+        "p90": 2181,
+        "p99": 2342,
+        "max": 2342
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 10.5,
+        "p50": 9,
+        "p90": 9,
+        "p99": 25,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 35592.8,
+        "p50": 34930,
+        "p90": 55059,
+        "p99": 58407,
+        "max": 58407
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 1260.35,
+        "p50": 1218,
+        "p90": 2181,
+        "p99": 2342,
+        "max": 2342
+       },
+       "unresolvedWithinMaxRing": 4
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 11.22,
+        "p50": 9,
+        "p90": 9,
+        "p99": 49,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 35684.58,
+        "p50": 34930,
+        "p90": 55059,
+        "p99": 58407,
+        "max": 58407
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 1260.45,
+        "p50": 1218,
+        "p90": 2181,
+        "p99": 2342,
+        "max": 2342
+       },
+       "unresolvedWithinMaxRing": 6
+      }
+     }
+    },
+    "14": {
+     "tileWidthMetersAt35_7N": 1986,
+     "occupiedTiles": 377,
+     "spotsPerOccupiedTile": {
+      "n": 377,
+      "mean": 15.45,
+      "p50": 4,
+      "p90": 41,
+      "p99": 105,
+      "max": 151
+     },
+     "tileRawBytes": {
+      "n": 377,
+      "mean": 6812.82,
+      "p50": 1915,
+      "p90": 17908,
+      "p99": 45361,
+      "max": 64752
+     },
+     "tileGzipBytes": {
+      "n": 377,
+      "mean": 1053.09,
+      "p50": 694,
+      "p90": 2125,
+      "p99": 3453,
+      "max": 4325
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 1986,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 16848.09,
+       "p50": 17188,
+       "p90": 25504,
+       "p99": 26598,
+       "max": 28088
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 16848.09,
+        "p50": 17188,
+        "p90": 25504,
+        "p99": 26598,
+        "max": 28088
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 367.4,
+        "p50": 323,
+        "p90": 698,
+        "p99": 742,
+        "max": 813
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 11.52,
+        "p50": 9,
+        "p90": 9,
+        "p99": 81,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 17150.33,
+        "p50": 17256,
+        "p90": 25504,
+        "p99": 28088,
+        "max": 33477
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 367.5,
+        "p50": 323,
+        "p90": 698,
+        "p99": 742,
+        "max": 813
+       },
+       "unresolvedWithinMaxRing": 4
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 12.4,
+        "p50": 9,
+        "p90": 9,
+        "p99": 169,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 17271.11,
+        "p50": 17355,
+        "p90": 25504,
+        "p99": 28088,
+        "max": 33477
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 367.62,
+        "p50": 323,
+        "p90": 698,
+        "p99": 742,
+        "max": 813
+       },
+       "unresolvedWithinMaxRing": 7
+      }
+     }
+    },
+    "15": {
+     "tileWidthMetersAt35_7N": 993,
+     "occupiedTiles": 888,
+     "spotsPerOccupiedTile": {
+      "n": 888,
+      "mean": 6.56,
+      "p50": 4,
+      "p90": 15,
+      "p99": 36,
+      "max": 53
+     },
+     "tileRawBytes": {
+      "n": 888,
+      "mean": 3012.5,
+      "p50": 1928,
+      "p90": 6608,
+      "p99": 15920,
+      "max": 22741
+     },
+     "tileGzipBytes": {
+      "n": 888,
+      "mean": 766.53,
+      "p50": 681,
+      "p90": 1241,
+      "p99": 1938,
+      "max": 2388
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 993,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 8770.77,
+       "p50": 8470,
+       "p90": 13359,
+       "p99": 16170,
+       "max": 16170
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 8770.77,
+        "p50": 8470,
+        "p90": 13359,
+        "p99": 16170,
+        "max": 16170
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 105.72,
+        "p50": 82,
+        "p90": 213,
+        "p99": 289,
+        "max": 289
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 13.14,
+        "p50": 9,
+        "p90": 9,
+        "p99": 225,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 9268.31,
+        "p50": 8672,
+        "p90": 13913,
+        "p99": 26951,
+        "max": 36005
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 105.88,
+        "p50": 82,
+        "p90": 213,
+        "p99": 289,
+        "max": 289
+       },
+       "unresolvedWithinMaxRing": 8
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 14.7,
+        "p50": 9,
+        "p90": 9,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 9484.34,
+        "p50": 8778,
+        "p90": 13913,
+        "p99": 32724,
+        "max": 36005
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 106.12,
+        "p50": 82,
+        "p90": 213,
+        "p99": 289,
+        "max": 289
+       },
+       "unresolvedWithinMaxRing": 11
+      }
+     }
+    },
+    "16": {
+     "tileWidthMetersAt35_7N": 497,
+     "occupiedTiles": 2142,
+     "spotsPerOccupiedTile": {
+      "n": 2142,
+      "mean": 2.72,
+      "p50": 2,
+      "p90": 6,
+      "p99": 14,
+      "max": 25
+     },
+     "tileRawBytes": {
+      "n": 2142,
+      "mean": 1370.65,
+      "p50": 1037,
+      "p90": 2700,
+      "p99": 6211,
+      "max": 11034
+     },
+     "tileGzipBytes": {
+      "n": 2142,
+      "mean": 571.14,
+      "p50": 521,
+      "p90": 772,
+      "p99": 1173,
+      "max": 1644
+     },
+     "emptyTileGzipBytes": 112,
+     "fixed3x3": {
+      "guaranteedRadiusMeters": 497,
+      "gzipBytes": {
+       "n": 1000,
+       "mean": 4949.29,
+       "p50": 4685,
+       "p90": 7672,
+       "p99": 9487,
+       "max": 9680
+      }
+     },
+     "nearestK": {
+      "k1": {
+       "requests": {
+        "n": 1000,
+        "mean": 9,
+        "p50": 9,
+        "p90": 9,
+        "p99": 9,
+        "max": 9
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 4949.29,
+        "p50": 4685,
+        "p90": 7672,
+        "p99": 9487,
+        "max": 9680
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 30.65,
+        "p50": 23,
+        "p90": 71,
+        "p99": 114,
+        "max": 123
+       },
+       "unresolvedWithinMaxRing": 0
+      },
+      "k3": {
+       "requests": {
+        "n": 1000,
+        "mean": 16.17,
+        "p50": 9,
+        "p90": 9,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 5994.06,
+        "p50": 5082,
+        "p90": 8384,
+        "p99": 32726,
+        "max": 33355
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 31.9,
+        "p50": 24,
+        "p90": 71,
+        "p99": 114,
+        "max": 123
+       },
+       "unresolvedWithinMaxRing": 16
+      },
+      "k5": {
+       "requests": {
+        "n": 1000,
+        "mean": 20.13,
+        "p50": 9,
+        "p90": 25,
+        "p99": 289,
+        "max": 289
+       },
+       "gzipBytes": {
+        "n": 1000,
+        "mean": 7025.33,
+        "p50": 5726,
+        "p90": 10612,
+        "p99": 33032,
+        "max": 34167
+       },
+       "spotsFetched": {
+        "n": 1000,
+        "mean": 34.99,
+        "p50": 28,
+        "p90": 71,
+        "p99": 114,
+        "max": 123
+       },
+       "unresolvedWithinMaxRing": 21
+      }
+     }
+    }
+   }
+  }
+ ],
+ "osmSnapshot": "2026-09-19T18:19:35Z"
+}
