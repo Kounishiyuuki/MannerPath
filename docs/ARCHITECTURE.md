@@ -65,7 +65,7 @@ No SwiftUI import inside Domain.
 
 ## 3. Canonical spot model
 
-This is the logical model. The physical D1 schema is decided immediately before the first migration and must satisfy the requirements below and ADR-0006.
+This is the logical model. The physical D1 schema is `services/api/migrations/0001_initial_schema.sql`, recorded in the ADR-0006 amendment (2026-09).
 
 ```text
 Spot (canonical, resolved)
@@ -110,7 +110,7 @@ Field-level provenance is an architectural requirement (ADR-0006):
 Source IDs (e.g. an OSM element ID, a municipal record ID) are mappings to a canonical spot, not canonical IDs.
 License and attribution are held in the source registry (`docs/SOURCES.md`), not free text per spot.
 
-Do not collapse provenance into a single text field. The physical schema (for example, whether evidence is typed columns or a generic claim table) is intentionally not fixed yet.
+Do not collapse provenance into a single text field. Physically, resolved values are typed `spots` columns, and provenance is a narrow `spot_field_provenance` table (one row per spot and field, pointing to a raw source record). No generic value claim table is used (ADR-0006 amendment).
 
 ## 4. Region synchronization
 

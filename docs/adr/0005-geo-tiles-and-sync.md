@@ -14,9 +14,18 @@ Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchma
   - Hypothetical dense upper bound (5,823 spots; every OSM convenience store counted): the largest z14 tile is 4.3 KB gzip / 65 KB raw. A 3x3 fetch is 25.5 KB gzip at p90.
   - z13 was rejected: its largest raw tile was 178 KB, and one change invalidates a ~4 km tile.
 - Re-evaluate the zoom before release if a source makes any z14 tile exceed about 250 spots or 16 KB gzip, or if the spot DTO grows substantially. The benchmark used an estimated DTO.
+- Re-evaluate the zoom if the transport changes. The benchmark's request-count advantage for z14 assumes one HTTP request per tile. If multi-tile batching or neighborhood retrieval is added, the latency/request-count tradeoff changes and z15 may become more attractive. `DATA_TILE_ZOOM` is not independent of transport semantics.
 - Tile ID format: `"{z}/{x}/{y}"` (decimal integers, no padding).
 - Tile assignment of a spot is computed server-side from its canonical WGS84 coordinates.
 - Shared Swift/TypeScript test vectors (coordinate → tile ID, including tile-boundary and antimeridian/latitude-limit cases) are mandatory. Both implementations must pass the same vectors in CI.
+- The vectors live in `contracts/tiles/slippy-xyz-vectors.v1.json` (language-neutral JSON; its `rules` array is the normative tile math). The TypeScript implementation is `services/api/src/geo/tile.ts`, checked by `services/api/test/tile-vectors.test.ts`. The Swift implementation (not yet written) must load the same file and pass every case; it must not copy the values into Swift literals. Pinned rules:
+  - `z` is an integer in [0, 30]; input must be finite, lat in [-90, 90], lon in [-180, 180]. Anything else is an error, not a clamp.
+  - Tile edges are half-open: a point on an edge belongs to the tile east (x) or south (y) of it.
+  - `lon = 180` is the antimeridian and maps to `x = 0`.
+  - Latitudes beyond ±85.05112877980659 are clamped to the first/last row.
+  - Tile ID parsing rejects padding, sign, whitespace, exponent and out-of-range x/y.
+  - The vectors were generated with an independent formula (`asinh(tan φ)` in Python, `contracts/tiles/generate_vectors.py`) and are frozen, so an implementation cannot pass by sharing a bug with the generator.
+- The D1 schema pins the zoom: `spots.tile_z` and `tile_snapshots.z` have `CHECK (… = 14)` (ADR-0006, physical schema). Changing the zoom needs a migration as well as a client contract change.
 
 ### Sync
 
