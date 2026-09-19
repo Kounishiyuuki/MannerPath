@@ -62,12 +62,12 @@ struct ContentView: View {
                 Text("Finding your location…")
             }
         case .denied:
-            locationMessage("Location access is denied. Allow While Using the App in Settings to see nearby results.")
+            locationMessage("Location access is off. Check Location Services and this app's While Using the App permission in Settings.")
         case .restricted:
             locationMessage("Location access is restricted on this device.")
         case .unavailable:
             VStack(alignment: .leading, spacing: 12) {
-                locationMessage("Location is unavailable. Check device Location Services and try again.")
+                locationMessage("Location could not be determined. Try again.")
                 Button("Try Again") { model.refresh() }
                     .buttonStyle(.bordered)
             }

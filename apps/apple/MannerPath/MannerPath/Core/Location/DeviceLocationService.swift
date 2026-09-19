@@ -43,11 +43,6 @@ final class DeviceLocationService: NSObject, LocationProviding, CLLocationManage
     }
 
     func refresh() {
-        guard CLLocationManager.locationServicesEnabled() else {
-            state = .unavailable
-            return
-        }
-
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
@@ -109,10 +104,6 @@ final class DeviceLocationService: NSObject, LocationProviding, CLLocationManage
     }
 
     private func updateAuthorization() {
-        guard CLLocationManager.locationServicesEnabled() else {
-            state = .unavailable
-            return
-        }
         switch manager.authorizationStatus {
         case .notDetermined:
             state = .notDetermined

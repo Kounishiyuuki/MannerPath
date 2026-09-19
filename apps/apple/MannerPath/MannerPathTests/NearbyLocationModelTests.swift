@@ -22,7 +22,7 @@ struct NearbyLocationModelTests {
         #expect(location.refreshCount == 2)
     }
 
-    @Test func permissionAndLocationFailuresClearNearbyResults() throws {
+    @Test func deniedOrUnavailableLocationClearsNearbyResults() throws {
         let location = FakeLocationProvider(state: .locating)
         let model = NearbyModel(location: location, spots: try FixtureSpotRepository().allSpots())
         #expect(model.results.isEmpty)
@@ -30,6 +30,7 @@ struct NearbyLocationModelTests {
         location.send(.usable(deviceLocation()))
         #expect(model.results.count == 1)
 
+        // A denied authorization status can also mean device Location Services are off.
         location.send(.denied)
         guard case .denied = model.locationState else {
             Issue.record("Expected denied state")
