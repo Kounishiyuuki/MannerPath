@@ -30,15 +30,21 @@ Do not treat an `ashtray` tag attached to an arbitrary feature as automatic lega
 
 Public Overpass endpoints are ingestion sources, not production client APIs.
 
+The importer architecture may support OSM. **Production publication of OSM-derived canonical records is gated** until ODbL attribution and redistribution/share-alike obligations for MannerPath's combined dataset are reviewed and documented. This document makes no legal conclusion on that question.
+
+## Source registry
+
+Every source is registered in `docs/SOURCES.md` before its data is published. License fields that have not been reviewed are marked `unreviewed`; an unreviewed source is not published.
+
 ## Convenience-store ashtrays
 
 A convenience store POI alone is never enough.
 
-A store is surfaced as a smoking result only when there is evidence of an ashtray/permitted smoking location from an approved source or sufficiently trusted verification workflow.
+A store is surfaced as a smoking result only when there is evidence of an ashtray/permitted smoking location from an approved source or sufficiently trusted verification workflow. This is enforced by the publication gate in ADR-0006.
 
 ## Confidence
 
-Confidence is derived from evidence quality and recency, not popularity alone.
+Confidence is derived from evidence quality and recency, not popularity alone. Evidence quality is stable and computed server-side; recency (freshness) is computed client-side from `lastVerifiedAt`, which is evidence observation time, never import/fetch time (ADR-0006).
 
 Suggested evidence order:
 

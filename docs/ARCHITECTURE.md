@@ -65,55 +65,60 @@ No SwiftUI import inside Domain.
 
 ## 3. Canonical spot model
 
+This is the logical model. The physical D1 schema is decided immediately before the first migration and must satisfy the requirements below and ADR-0006.
+
 ```text
-Spot
-- id: UUID
-- name: String
-- latitude: Double
-- longitude: Double
-- tileId: String
-- spotType: SpotType
-- hostType: HostType?
-- accessType: AccessType
-- environment: EnvironmentType?
-- supportsPaper: Bool?
-- supportsHeated: Bool?
-- openingHours: structured/normalized value?
+Spot (canonical, resolved)
+- id: opaque stable ID (server-assigned; clients never derive it)
+- mergedInto: Spot ID?            // set when this spot was merged; clients follow the redirect
+- name: String?                   // many designated areas have no name
+- latitude / longitude: Double    // WGS84
+- tileId: String                  // "{z}/{x}/{y}" at DATA_TILE_ZOOM, see ADR-0005
+- spotType: SpotType              // physical type only, never verification state
+- hostType: HostType?             // context only; never evidence of smoking permission
+- accessType: public | customerOnly | facilityOnly | unknown
+- environment: indoor | outdoor | covered | unknown
+- supportsPaper: TriState         // yes | no | unknown
+- supportsHeated: TriState
+- openingHours: { raw: String?, parsed: normalized value?, parseStatus, timeZone }?
 - feeType: FeeType?
 - floor: String?
 - entranceNote: String?
-- status: active | unverified | temporarilyUnavailable | removed
-- confidence: 0...1
-- lastVerifiedAt: Date?
-- createdAt: Date
-- updatedAt: Date
+- lifecycle: active | temporarilyClosed | removed
+- verification: evidence quality/state (ADR-0006), separate from lifecycle
+- lastVerifiedAt: Date?           // evidence observation time, never import/fetch time
+- createdAt / updatedAt: Date
 ```
 
-Unknown must be represented separately from false.
+`SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue` (post-v1).
+`ashtray` describes the physical thing; whether it is confirmed is the verification axis.
 
-### Source provenance
+Unknown must be represented separately from false. Tri-state attributes use `yes | no | unknown`, not optional booleans, in the domain and in the API.
 
-```text
-SpotSource
-- spotId
-- sourceType
-- externalId
-- sourceURL
-- license
-- attribution
-- observedAt
-- importedAt
-```
+### Publication gate
 
-Do not collapse provenance into a single text field.
+A spot is published (included in tile data) only when it is `active` and has accepted existence evidence from an approved source or verification process (ADR-0006). A host such as a convenience store never creates a published smoking spot by itself.
+
+### Evidence and provenance
+
+Field-level provenance is an architectural requirement (ADR-0006):
+
+- raw source evidence is preserved (which source, which record, when observed, when fetched);
+- each canonical resolved value retains which evidence it was resolved from;
+- API hot paths read resolved canonical data, not raw evidence.
+
+Source IDs (e.g. an OSM element ID, a municipal record ID) are mappings to a canonical spot, not canonical IDs.
+License and attribution are held in the source registry (`docs/SOURCES.md`), not free text per spot.
+
+Do not collapse provenance into a single text field. The physical schema (for example, whether evidence is typed columns or a generic claim table) is intentionally not fixed yet.
 
 ## 4. Region synchronization
 
 1. Core Location obtains location on device.
-2. Client derives current tile and neighboring tile IDs.
+2. Client derives current tile and neighboring tile IDs at `DATA_TILE_ZOOM`.
 3. Client requests those tile resources without sending precise lat/lon.
-4. Server returns snapshots with a revision/ETag.
-5. Client upserts into GRDB.
+4. Server returns a complete snapshot per tile with a per-tile revision and ETag.
+5. Client replaces that tile's cached spots atomically (spots absent from the snapshot are removed locally).
 6. On-device search applies filters and exact distance calculations.
 
 ## 5. Routing
@@ -131,6 +136,14 @@ Watch receives:
 - a compact set of nearby/recent Spot DTOs;
 - revision and generated timestamp.
 
+Watch snapshot contract (Codable file):
+
+- `schemaVersion` and `generatedAt`;
+- per spot: id, coordinates, spotType, accessType, tri-state tobacco fields (`yes | no | unknown`), lifecycle, evidence quality, `lastVerifiedAt`;
+- a compact attribution summary (source display names) sufficient to show provenance offline.
+
+Freshness is computed on the Watch from `lastVerifiedAt`, never stored as a precomputed value. Unknown enum values are tolerated, not fatal.
+
 The Watch can refresh its own location and rank the local snapshot independently.
 
 ## 7. Reports
@@ -142,12 +155,18 @@ Report
 - id
 - spotId?
 - proposedLocation?
-- type: exists | missing | moved | hoursChanged | tobaccoTypeChanged | other
+- type: exists | missing | moved | hoursChanged | tobaccoTypeChanged | accessChanged | prohibited | other
 - payload
 - attestation metadata
 - createdAt
 - moderationStatus
 ```
+
+`prohibited` covers a location where smoking is signposted as not allowed or where the listed permission is misleading.
+
+Accepted reports may become evidence (ADR-0006); they never edit canonical rows directly.
+
+Privacy and retention of report data (proposed location, attestation identifiers) are **unresolved** and require a dedicated ADR before the report API ships.
 
 ## 8. Scaling boundaries
 
