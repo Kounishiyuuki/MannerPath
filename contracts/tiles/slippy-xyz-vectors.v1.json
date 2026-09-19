@@ -1,0 +1,292 @@
+{
+  "contract": "mannerpath-slippy-xyz-tile-vectors",
+  "version": 1,
+  "rules": [
+    "Web Mercator Slippy XYZ. n = 2^z; z is an integer in [0, 30].",
+    "Inputs must be finite; lat in [-90, 90] and lon in [-180, 180] inclusive. Anything else is an error, not a clamp.",
+    "x = floor((lon + 180) / 360 * n) mod n. lon 180 is the antimeridian and maps to x = 0.",
+    "lat is clamped to [-85.05112877980659, 85.05112877980659] before projection; y = floor((1 - ln(tan(phi) + sec(phi)) / pi) / 2 * n), then clamped to [0, n-1].",
+    "Tile edges are half-open: a point exactly on an edge belongs to the tile east (x) or south (y) of it.",
+    "Tile ID is \"{z}/{x}/{y}\" in base-10 without sign, padding, whitespace or exponent; 0 <= x, y < n.",
+    "Data tiles use DATA_TILE_ZOOM = 14 (ADR-0005); other zooms appear here only to pin the math."
+  ],
+  "coordinateToTile": [
+    {
+      "name": "origin z0",
+      "lat": 0.0,
+      "lon": 0.0,
+      "z": 0,
+      "x": 0,
+      "y": 0,
+      "tileId": "0/0/0"
+    },
+    {
+      "name": "origin z1 is south-east quadrant (half-open edges)",
+      "lat": 0.0,
+      "lon": 0.0,
+      "z": 1,
+      "x": 1,
+      "y": 1,
+      "tileId": "1/1/1",
+      "note": "lat 0 and lon 0 are tile edges; an edge belongs to the tile east/south of it"
+    },
+    {
+      "name": "origin z14",
+      "lat": 0.0,
+      "lon": 0.0,
+      "z": 14,
+      "x": 8192,
+      "y": 8192,
+      "tileId": "14/8192/8192"
+    },
+    {
+      "name": "just north-west of origin z14",
+      "lat": 1e-09,
+      "lon": -1e-09,
+      "z": 14,
+      "x": 8191,
+      "y": 8191,
+      "tileId": "14/8191/8191"
+    },
+    {
+      "name": "west edge lon -180",
+      "lat": 10.0,
+      "lon": -180.0,
+      "z": 14,
+      "x": 0,
+      "y": 7734,
+      "tileId": "14/0/7734"
+    },
+    {
+      "name": "antimeridian lon 180 wraps to x=0",
+      "lat": 10.0,
+      "lon": 180.0,
+      "z": 14,
+      "x": 0,
+      "y": 7734,
+      "tileId": "14/0/7734",
+      "note": "lon 180 is the same meridian as lon -180"
+    },
+    {
+      "name": "just west of antimeridian",
+      "lat": 10.0,
+      "lon": 179.9999999,
+      "z": 14,
+      "x": 16383,
+      "y": 7734,
+      "tileId": "14/16383/7734"
+    },
+    {
+      "name": "north mercator limit",
+      "lat": 85.05112877980659,
+      "lon": 0.0,
+      "z": 14,
+      "x": 8192,
+      "y": 0,
+      "tileId": "14/8192/0"
+    },
+    {
+      "name": "north pole clamps to y=0",
+      "lat": 90.0,
+      "lon": 0.0,
+      "z": 14,
+      "x": 8192,
+      "y": 0,
+      "tileId": "14/8192/0",
+      "note": "latitudes beyond +-85.05112877980659 clamp; they are not rejected"
+    },
+    {
+      "name": "south pole clamps to y=n-1",
+      "lat": -90.0,
+      "lon": 0.0,
+      "z": 14,
+      "x": 8192,
+      "y": 16383,
+      "tileId": "14/8192/16383"
+    },
+    {
+      "name": "south mercator limit",
+      "lat": -85.05112877980659,
+      "lon": 0.0,
+      "z": 14,
+      "x": 8192,
+      "y": 16383,
+      "tileId": "14/8192/16383"
+    },
+    {
+      "name": "southern hemisphere",
+      "lat": -33.8688,
+      "lon": 151.2093,
+      "z": 14,
+      "x": 15073,
+      "y": 9831,
+      "tileId": "14/15073/9831"
+    },
+    {
+      "name": "western hemisphere",
+      "lat": 40.7128,
+      "lon": -74.006,
+      "z": 14,
+      "x": 4823,
+      "y": 6160,
+      "tileId": "14/4823/6160"
+    },
+    {
+      "name": "Taito #1 上野公園前交番裏",
+      "lat": 35.7112,
+      "lon": 139.77377,
+      "z": 14,
+      "x": 14553,
+      "y": 6449,
+      "tileId": "14/14553/6449"
+    },
+    {
+      "name": "Taito #4 浅草寺境内",
+      "lat": 35.71361,
+      "lon": 139.79737,
+      "z": 14,
+      "x": 14554,
+      "y": 6449,
+      "tileId": "14/14554/6449"
+    },
+    {
+      "name": "Taito #32 e-booth御徒町",
+      "lat": 35.706313,
+      "lon": 139.77347,
+      "z": 14,
+      "x": 14553,
+      "y": 6450,
+      "tileId": "14/14553/6450"
+    },
+    {
+      "name": "Taito #34 千束通り商店街",
+      "lat": 35.719649,
+      "lon": 139.79532,
+      "z": 14,
+      "x": 14554,
+      "y": 6449,
+      "tileId": "14/14554/6449"
+    },
+    {
+      "name": "1e-7 deg west of a z14 column edge in Taito",
+      "lat": 35.7112,
+      "lon": 139.76806630625,
+      "z": 14,
+      "x": 14552,
+      "y": 6449,
+      "tileId": "14/14552/6449"
+    },
+    {
+      "name": "1e-7 deg east of a z14 column edge in Taito",
+      "lat": 35.7112,
+      "lon": 139.76806650625,
+      "z": 14,
+      "x": 14553,
+      "y": 6449,
+      "tileId": "14/14553/6449"
+    },
+    {
+      "name": "1e-7 deg north of a z14 row edge in Taito",
+      "lat": 35.72867714485169,
+      "lon": 139.77377,
+      "z": 14,
+      "x": 14553,
+      "y": 6448,
+      "tileId": "14/14553/6448"
+    },
+    {
+      "name": "1e-7 deg south of a z14 row edge in Taito",
+      "lat": 35.728676944851685,
+      "lon": 139.77377,
+      "z": 14,
+      "x": 14553,
+      "y": 6449,
+      "tileId": "14/14553/6449"
+    },
+    {
+      "name": "exact column edge in Taito belongs to the east tile",
+      "lat": 35.7112,
+      "lon": 139.76806640625,
+      "z": 14,
+      "x": 14553,
+      "y": 6449,
+      "tileId": "14/14553/6449",
+      "note": "x edges are exactly representable at z14 in this case; row edges are irrational so no exact-row-edge vector is given"
+    }
+  ],
+  "invalidCoordinates": [
+    {
+      "name": "latitude above 90",
+      "lat": 90.000001,
+      "lon": 0.0,
+      "z": 14
+    },
+    {
+      "name": "latitude below -90",
+      "lat": -91.0,
+      "lon": 0.0,
+      "z": 14
+    },
+    {
+      "name": "longitude above 180",
+      "lat": 0.0,
+      "lon": 180.000001,
+      "z": 14
+    },
+    {
+      "name": "longitude below -180",
+      "lat": 0.0,
+      "lon": -180.5,
+      "z": 14
+    },
+    {
+      "name": "negative zoom",
+      "lat": 0.0,
+      "lon": 0.0,
+      "z": -1
+    },
+    {
+      "name": "zoom above 30",
+      "lat": 0.0,
+      "lon": 0.0,
+      "z": 31
+    }
+  ],
+  "tileIds": {
+    "valid": [
+      {
+        "tileId": "14/14552/6450",
+        "z": 14,
+        "x": 14552,
+        "y": 6450
+      },
+      {
+        "tileId": "0/0/0",
+        "z": 0,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "tileId": "14/16383/16383",
+        "z": 14,
+        "x": 16383,
+        "y": 16383
+      }
+    ],
+    "invalid": [
+      "14/16384/0",
+      "14/0/16384",
+      "14/014552/6450",
+      "14/-1/0",
+      "14/1.5/0",
+      "14/1/2/3",
+      "14/1",
+      "",
+      " 14/1/2",
+      "14/1/2 ",
+      "31/0/0",
+      "+14/1/2",
+      "14/1e3/2"
+    ]
+  }
+}
