@@ -18,7 +18,7 @@ struct NearbyDomainTests {
     @Test func futureEnumValuesDecodeWithoutPublishingUnknownSpot() throws {
         let json = #"""
         {
-          "id": "future", "latitude": 35, "longitude": 139, "tileId": "0/0/0",
+          "id": "future", "latitude": 35, "longitude": 139, "tileId": "14/14518/6489",
           "spotType": "futureType", "hostType": "futureHost",
           "accessType": "futureAccess", "environment": "futureEnvironment",
           "supportsPaper": "futureSupport", "supportsHeated": "no",
@@ -47,9 +47,36 @@ struct NearbyDomainTests {
         #expect(NearbySearch.rank([spot], from: origin, at: now).isEmpty)
     }
 
+    @Test func openingHoursDecodesDocumentedWireKeys() throws {
+        let json = #"""
+        {
+          "id": "hours", "latitude": 35, "longitude": 139, "tileId": "14/14518/6489",
+          "spotType": "ashtray", "accessType": "public", "environment": "outdoor",
+          "supportsPaper": "unknown", "supportsHeated": "unknown",
+          "openingHours": {
+            "raw": "09:00-17:00", "parsed": "09:00-17:00",
+            "parseStatus": "parsed", "timeZone": "Asia/Tokyo"
+          },
+          "lifecycle": "active",
+          "verification": { "acceptedExistenceEvidence": "yes", "sourceDisplayNames": [] },
+          "createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-01T00:00:00Z"
+        }
+        """#
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let spot = try decoder.decode(Spot.self, from: Data(json.utf8))
+        let hours = try #require(spot.openingHours)
+        #expect(hours.raw == "09:00-17:00")
+        #expect(hours.parsed == "09:00-17:00")
+        #expect(hours.parseStatus == "parsed")
+        #expect(hours.timeZone == "Asia/Tokyo")
+    }
+
     @Test func fixtureStoreHostDoesNotPassPublicationGate() throws {
         let spots = try FixtureSpotRepository().allSpots()
         #expect(spots.count == 2)
+        #expect(spots.allSatisfy { $0.tileId == "14/14552/6451" })
         #expect(spots.contains { $0.hostType == .convenienceStore })
 
         let results = NearbySearch.rank(
@@ -163,7 +190,7 @@ struct NearbyDomainTests {
             name: nil,
             latitude: 35,
             longitude: longitude,
-            tileId: "0/0/0",
+            tileId: "14/14518/6489",
             spotType: spotType,
             hostType: nil,
             accessType: access,

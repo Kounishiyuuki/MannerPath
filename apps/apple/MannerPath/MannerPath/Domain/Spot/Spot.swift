@@ -86,7 +86,7 @@ enum SpotLifecycle: String, Codable, Sendable {
 // Keep their supplied values without trying to infer whether a spot is open or free.
 struct SpotOpeningHours: Codable, Sendable {
     let raw: String?
-    let normalized: String?
+    let parsed: String?
     let parseStatus: String
     let timeZone: String
 }
