@@ -11,6 +11,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
 - `src/app.ts`: `GET /v1/config`, `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`, `GET /v1/spots/{id}` and `POST /v1/reports`.
 - `src/config/`: the `GET /v1/config` compatibility body, built from the canonical constants the rest of the code enforces.
+- `src/pipeline/promotion.ts`: the deterministic promotion bundle (`npm run local:export`) that carries a validated local release to another database.
 - `src/reports/`: the report API (ADR-0007) — strict request schema, hashed-submitter rate limiting, the App Attest boundary, retention/minimization and moderation state.
 - `src/geo/tile.ts`: Slippy XYZ tile math, checked against `contracts/tiles/slippy-xyz-vectors.v1.json`.
 - `test/`: node:test suites. They run on node:sqlite through a D1-shaped adapter that applies the real migrations.
@@ -26,13 +27,22 @@ npm run local:pipeline   # ingest -> resolve -> publish the Taito fixture into l
 npm run dev              # wrangler dev --local
 npm run local:reports    # moderation queue / decisions / retention pass (local D1 only)
 npm run local:smoke      # read-only smoke checks against http://127.0.0.1:8787
+npm run local:export     # validate local state and build the promotion bundle (local D1 only)
 ```
 
 `local:smoke` verifies `/v1/config`, a tile `200`, the `ETag`/`304` pair, the `tileNotPublished`
 `404`, spot detail, attribution and how the report endpoint is configured. It targets loopback
-unless both `--base-url` and `--remote` are given, and it never submits a valid report. Standing up
-and verifying a staging / production-like environment is `../../docs/OPERATIONS.md`; nothing in this
-repository deploys or migrates a remote database.
+unless both `--base-url` and `--remote` are given, and it never submits a valid report.
+
+`local:export` (`src/pipeline/promotion.ts`) validates the published local state and emits the
+**promotion bundle**: deterministic, reviewable SQL carrying one release's registry row, evidence,
+canonical spots, provenance and tile snapshots, with opaque IDs, revisions and attribution
+preserved. It writes nothing without `--out`, refuses to export unapproved or inconsistent state,
+and carries no report data. Applying it (`wrangler d1 execute … --remote --file`) is an explicit
+human step.
+
+Standing up and verifying a staging / production-like environment is `../../docs/OPERATIONS.md`;
+nothing in this repository deploys or migrates a remote database.
 
 Only local D1 is configured. `wrangler.jsonc` also carries the `staging` and `production` environment shapes, but every one of them keeps the all-zero placeholder `database_id`, so nothing here can target a remote database (`test/deploy-config.test.ts` enforces it).
 The Taito source is `approved` in the registry (`docs/SOURCES.md`), so `local:pipeline` resolves all 34 records and publishes them into 5 z14 tile snapshots with the approved attribution text. Sources that are not approved are excluded and listed under `excluded` in the publish report, and the D1 publication trigger rejects them even if the publisher is bypassed.
@@ -64,7 +74,8 @@ npm run local:reports -- retain                               # minimize reports
 App Attest is deferred (ADR-0007 §6, Issue #37): v1 accepts no attestation material, and
 `REPORT_ATTESTATION` set to `required` — or to any unrecognised value — makes the endpoint answer
 `503` before reading the body, so a typo cannot silently disable attestation. Unset or `disabled`
-is the local/test default.
+is the local/test default; the committed `staging` and `production` environments set `required`, so
+a deployed environment accepts no reports until #37 lands.
 
 Deployment settings this repository deliberately does not contain: `REPORT_SUBMITTER_PEPPER`
 (hashed abuse key pepper) and the edge rate-limit rule. No Apple key or pepper value is committed.

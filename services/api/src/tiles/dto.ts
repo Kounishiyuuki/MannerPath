@@ -5,6 +5,11 @@
 import { z } from "zod";
 
 export const TILE_SCHEMA_VERSION = 1;
+/**
+ * The oldest tile body schemaVersion this server still serves. Each resource carries its own
+ * minimum because they version independently; /v1/config publishes them (docs/API.md).
+ */
+export const MINIMUM_TILE_SCHEMA_VERSION = 1;
 
 const triState = z.enum(["yes", "no", "unknown"]);
 

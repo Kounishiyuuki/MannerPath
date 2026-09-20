@@ -6,6 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
+import { configBody } from "../src/config/dto.ts";
 import { attestationConfig } from "../src/reports/attestation.ts";
 
 const PLACEHOLDER_DATABASE_ID = "00000000-0000-0000-0000-000000000000";
@@ -66,20 +67,30 @@ test("no environment commits a secret, and every var is non-secret", () => {
   assert.equal(existsSync(new URL("../.dev.vars", import.meta.url)), false, ".dev.vars must never be committed");
 });
 
-test("no environment enables a report attestation mode that does not exist yet (Issue #37)", () => {
+test("no environment implies attestation exists, and every remote-like one fails closed (Issue #37)", () => {
+  // Local accepts reports so the endpoint is testable; a deployed environment must not, because
+  // App Attest is not implemented. Neither state claims attestation works.
+  const expected: Record<string, "disabled" | "unsupported"> = {
+    "<top level>": "disabled",
+    staging: "unsupported",
+    production: "unsupported",
+  };
   for (const [name, env] of environments) {
     const value = (env.vars ?? {}).REPORT_ATTESTATION;
-    assert.equal(
-      attestationConfig(value).kind,
-      "disabled",
-      `${name}: REPORT_ATTESTATION=${value} would make POST /v1/reports fail closed with 503`,
-    );
+    assert.equal(attestationConfig(value).kind, expected[name], `${name}: REPORT_ATTESTATION=${value}`);
+    // The advertised availability follows from the same value the Worker reads.
+    assert.equal(configBody(value).reports.available, expected[name] === "disabled", `${name}: /v1/config reports.available`);
   }
+  assert.equal((config.env.staging.vars ?? {}).REPORT_ATTESTATION, "required");
+  assert.equal((config.env.production.vars ?? {}).REPORT_ATTESTATION, "required");
 });
 
-test("request logs are sampled rather than complete", () => {
+test("automatic invocation logs, which persist request URLs, are disabled everywhere", () => {
   for (const [name, env] of environments) {
     assert.equal(env.observability?.enabled, true, `${name}: observability`);
-    assert.equal(env.observability.head_sampling_rate < 1, true, `${name}: request logs must be sampled`);
+    // A Fetch invocation log records the request URL, and a tile path is the z14 cell the user was
+    // looking at. Sampling would keep a smaller location history, not none, so it is not the control.
+    assert.equal(env.observability.logs?.invocation_logs, false, `${name}: invocation logs must be off`);
+    assert.equal("head_sampling_rate" in env.observability, false, `${name}: sampling is not the privacy control`);
   }
 });

@@ -255,8 +255,8 @@ Moderation is not reconciliation: an accepted report may be `queued` or `discard
 ## GET `/config`
 
 Returns non-secret server-controlled values a client cannot safely hard-code: the data schema
-versions this deployment serves, the minimum schema version it still supports, `DATA_TILE_ZOOM`, and
-whether reports are being accepted.
+versions this deployment serves, the oldest ones it still supports, `DATA_TILE_ZOOM`, and whether
+reports are being accepted.
 
 It is a **compatibility contract, not a settings channel**. It carries no secret, nothing per-caller
 and no feature flags: the body is identical for every client of a given deployment, and every value
@@ -271,22 +271,29 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
 {
   "schemaVersion": 1,
   "apiVersion": "v1",
-  "minimumSupportedSchemaVersion": 1,
   "dataTileZoom": 14,
   "schemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
+  "minimumSupportedSchemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
   "reports": { "available": true, "maxBodyBytes": 4096, "noteMaxLength": 280 }
 }
 ```
 
 - `schemaVersion`: the schema version of *this* body.
 - `apiVersion`: the base path this document describes (`v1`).
-- `minimumSupportedSchemaVersion`: the oldest DTO schemaVersion the deployment still serves. A
-  client whose highest supported schema version is below it must ask the user to update rather than
-  decode responses it cannot interpret. Raising it is a breaking change.
 - `dataTileZoom`: the only zoom `GET /tiles/{z}/{x}/{y}` accepts. Clients request tiles at this
   zoom instead of hard-coding `14`.
-- `schemaVersions`: the schemaVersion each endpoint's body currently carries — `tile`, `spotDetail`
-  and the `report` request/response pair.
+- **Compatibility is per resource, never global.** `tile`, `spotDetail` and `report` version
+  independently, so a single server-wide minimum could only be accurate about one of them. For each
+  resource the deployment publishes the closed range it supports:
+  - `schemaVersions.<resource>`: the version it serves now — the `schemaVersion` in a tile or spot
+    detail body, and for `report` the request version `POST /reports` accepts.
+  - `minimumSupportedSchemaVersions.<resource>`: the oldest version it still supports. A client
+    whose decoder for *that* resource is older must ask the user to update; it says nothing about
+    the other resources. Raising one is a breaking change for that resource.
+  - `minimumSupportedSchemaVersions.<resource>` is never greater than `schemaVersions.<resource>`;
+    a body that violates this is invalid, and the server's own schema rejects it.
+  - A resource added to `/v1` later appears in both objects; clients ignore resources they do not
+    know.
 - `reports.available`: whether `POST /reports` accepts submissions on this deployment. It is
   `false` whenever the attestation policy is enforcing or unrecognised, because the endpoint then
   fails closed with `503` (ADR-0007 §6, Issue #37). A client hides the report entry point instead of

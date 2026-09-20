@@ -7,6 +7,11 @@ import { z } from "zod";
 import { SPOT_ID } from "../spot-id.ts";
 
 export const REPORT_SCHEMA_VERSION = 1;
+/**
+ * The oldest report request schemaVersion the endpoint accepts. ReportRequestV1 pins the request to
+ * a literal, so this is the same value until a second request version exists (docs/API.md).
+ */
+export const MINIMUM_REPORT_SCHEMA_VERSION = 1;
 
 export const REPORT_TYPES = [
   "exists", "missing", "moved", "hoursChanged",

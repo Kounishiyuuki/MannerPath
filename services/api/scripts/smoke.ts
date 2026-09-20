@@ -13,7 +13,7 @@
 //   npm run local:smoke -- --tile 14/14553/6450
 //   node --experimental-strip-types scripts/smoke.ts --base-url https://staging.example --remote
 import { DATA_TILE_ZOOM, parseTileId } from "../src/geo/tile.ts";
-import { ConfigBodyV1 } from "../src/config/dto.ts";
+import { CONFIG_RESOURCES, ConfigBodyV1 } from "../src/config/dto.ts";
 import { SpotDetailBodyV1 } from "../src/spots/dto.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 
@@ -57,8 +57,15 @@ console.log(`target: ${args.baseUrl} (${args.loopback ? "local" : "REMOTE, expli
 // 1. /v1/config — the compatibility contract, and the zoom every later check depends on.
 const configRes = await get("/v1/config");
 const config = ConfigBodyV1.safeParse(configRes.status === 200 ? await configRes.json() : null);
-check("config", configRes.status === 200 && config.success && config.data.dataTileZoom === DATA_TILE_ZOOM,
-  `status=${configRes.status} schema=${config.success ? "valid" : "invalid"} dataTileZoom=${config.success ? config.data.dataTileZoom : "?"}`);
+// Per-resource compatibility: each resource must advertise a range this build could actually
+// decode, and the range must be non-empty.
+const ranges = config.success
+  ? CONFIG_RESOURCES.map((r) => `${r}=${config.data.minimumSupportedSchemaVersions[r]}..${config.data.schemaVersions[r]}`).join(" ")
+  : "";
+const rangesOk = config.success
+  && CONFIG_RESOURCES.every((r) => config.data.minimumSupportedSchemaVersions[r] <= config.data.schemaVersions[r]);
+check("config", configRes.status === 200 && config.success && config.data.dataTileZoom === DATA_TILE_ZOOM && rangesOk,
+  `status=${configRes.status} schema=${config.success ? "valid" : "invalid"} dataTileZoom=${config.success ? config.data.dataTileZoom : "?"} ${ranges}`);
 
 // 2. A published tile: 200, a well-formed body and an ETag.
 // With no --tile the default is the documented Taito tile: the only published data in the local
@@ -67,8 +74,12 @@ const tileId = args.tile !== "" ? args.tile : DEFAULT_TILE;
 const tileRes = await get(`/v1/tiles/${tileId}`);
 const tile = tileRes.status === 200 ? TileBodyV1.safeParse(await tileRes.json()) : null;
 const etag = tileRes.headers.get("ETag") ?? "";
-const tileOk = check("tile 200", tileRes.status === 200 && tile?.success === true && etag !== "",
-  `tile=${tileId} status=${tileRes.status} etag=${etag || "missing"} spots=${tile?.success ? tile.data.spots.length : "?"}`);
+// The served body must also sit inside the range /v1/config advertises for tiles.
+const tileVersionOk = tile?.success === true && config.success
+  && tile.data.schemaVersion >= config.data.minimumSupportedSchemaVersions.tile
+  && tile.data.schemaVersion <= config.data.schemaVersions.tile;
+const tileOk = check("tile 200", tileRes.status === 200 && tile?.success === true && etag !== "" && tileVersionOk,
+  `tile=${tileId} status=${tileRes.status} etag=${etag || "missing"} spots=${tile?.success ? tile.data.spots.length : "?"} schemaVersion=${tile?.success ? tile.data.schemaVersion : "?"}`);
 
 // 3. Conditional request on the same tile: 304 with the same ETag.
 const notModified = tileOk ? await get(`/v1/tiles/${tileId}`, { "If-None-Match": etag }) : null;
@@ -85,7 +96,10 @@ check("tileNotPublished 404", emptyRes.status === 404 && emptyBody.error === "ti
 const spotId = tile?.success ? tile.data.spots[0]?.id ?? "" : "";
 const detailRes = spotId === "" ? null : await get(`/v1/spots/${spotId}`);
 const detail = detailRes?.status === 200 ? SpotDetailBodyV1.safeParse(await detailRes.json()) : null;
-check("spot detail", detail?.success === true && detail.data.spot.id === spotId,
+const detailVersionOk = detail?.success === true && config.success
+  && detail.data.schemaVersion >= config.data.minimumSupportedSchemaVersions.spotDetail
+  && detail.data.schemaVersion <= config.data.schemaVersions.spotDetail;
+check("spot detail", detail?.success === true && detail.data.spot.id === spotId && detailVersionOk,
   `spot=${spotId || "none in tile"} status=${detailRes?.status ?? "-"} schema=${detail === null ? "-" : detail.success ? "valid" : "invalid"}`);
 
 // 6. Attribution: every source behind a published spot carries displayable attribution, in both

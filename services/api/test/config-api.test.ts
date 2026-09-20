@@ -2,11 +2,23 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
-import { CONFIG_SCHEMA_VERSION, ConfigBodyV1, MINIMUM_SUPPORTED_SCHEMA_VERSION } from "../src/config/dto.ts";
+import { CONFIG_RESOURCES, CONFIG_SCHEMA_VERSION, ConfigBodyV1 } from "../src/config/dto.ts";
 import { DATA_TILE_ZOOM } from "../src/geo/tile.ts";
-import { REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION } from "../src/reports/dto.ts";
-import { SPOT_DETAIL_SCHEMA_VERSION } from "../src/spots/dto.ts";
-import { TILE_SCHEMA_VERSION } from "../src/tiles/dto.ts";
+import { MINIMUM_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION, ReportRequestV1 } from "../src/reports/dto.ts";
+import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../src/spots/dto.ts";
+import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../src/tiles/dto.ts";
+
+/** The body the handler builds, read back through the schema like any other config body. */
+function configBodyFixture(): unknown {
+  return {
+    schemaVersion: CONFIG_SCHEMA_VERSION,
+    apiVersion: "v1",
+    dataTileZoom: DATA_TILE_ZOOM,
+    schemaVersions: { tile: TILE_SCHEMA_VERSION, spotDetail: SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
+    minimumSupportedSchemaVersions: { tile: MINIMUM_TILE_SCHEMA_VERSION, spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, report: MINIMUM_REPORT_SCHEMA_VERSION },
+    reports: { available: true, maxBodyBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
+  };
+}
 
 // The handler is synchronous (it touches no database), so app.request returns a Response directly.
 const config = async (env: Record<string, string> = {}) => await app.request("/v1/config", {}, env as any);
@@ -22,12 +34,16 @@ test("/v1/config serves the canonical constants, and reaches no database", async
   assert.deepEqual(body, {
     schemaVersion: CONFIG_SCHEMA_VERSION,
     apiVersion: "v1",
-    minimumSupportedSchemaVersion: MINIMUM_SUPPORTED_SCHEMA_VERSION,
     dataTileZoom: DATA_TILE_ZOOM,
     schemaVersions: {
       tile: TILE_SCHEMA_VERSION,
       spotDetail: SPOT_DETAIL_SCHEMA_VERSION,
       report: REPORT_SCHEMA_VERSION,
+    },
+    minimumSupportedSchemaVersions: {
+      tile: MINIMUM_TILE_SCHEMA_VERSION,
+      spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
+      report: MINIMUM_REPORT_SCHEMA_VERSION,
     },
     reports: { available: true, maxBodyBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
   });
@@ -35,6 +51,31 @@ test("/v1/config serves the canonical constants, and reaches no database", async
   assert.equal(body.dataTileZoom, 14);
   assert.equal(body.reports.maxBodyBytes, 4096);
   assert.equal(body.reports.noteMaxLength, 280);
+});
+
+test("compatibility is per resource, and each range is one the server really serves", async () => {
+  const body = ConfigBodyV1.parse(await config().then((r) => r.json()));
+  // Nothing global: tile, spotDetail and report version independently, so a single minimum could
+  // only be right about one of them.
+  assert.equal("minimumSupportedSchemaVersion" in body, false);
+  assert.deepEqual(Object.keys(body.schemaVersions), [...CONFIG_RESOURCES]);
+  assert.deepEqual(Object.keys(body.minimumSupportedSchemaVersions), [...CONFIG_RESOURCES]);
+  for (const resource of CONFIG_RESOURCES) {
+    assert.equal(body.minimumSupportedSchemaVersions[resource] <= body.schemaVersions[resource], true, resource);
+  }
+
+  // The report range is the one the request schema actually enforces: a schemaVersion outside
+  // [minimum, current] is rejected.
+  const request = { type: "exists", spotId: "sp_01V64NN31G72E5KJJ5W22W1A1J", installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f" };
+  assert.equal(ReportRequestV1.safeParse({ ...request, schemaVersion: body.schemaVersions.report }).success, true);
+  assert.equal(ReportRequestV1.safeParse({ ...request, schemaVersion: body.minimumSupportedSchemaVersions.report - 1 }).success, false);
+  assert.equal(ReportRequestV1.safeParse({ ...request, schemaVersion: body.schemaVersions.report + 1 }).success, false);
+});
+
+test("a body whose minimum outruns the version it serves is not a valid config", () => {
+  const body = ConfigBodyV1.parse(configBodyFixture());
+  const broken = { ...body, minimumSupportedSchemaVersions: { ...body.minimumSupportedSchemaVersions, tile: body.schemaVersions.tile + 1 } };
+  assert.equal(ConfigBodyV1.safeParse(broken).success, false);
 });
 
 test("/v1/config reports the report endpoint as unavailable exactly when it fails closed", async () => {
