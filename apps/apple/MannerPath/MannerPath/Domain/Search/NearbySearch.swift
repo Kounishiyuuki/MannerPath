@@ -48,7 +48,7 @@ enum NearbySearch {
             guard spot.lifecycle == .active,
                   spot.mergedInto == nil,
                   spot.verification.acceptedExistenceEvidence == .yes,
-                  spot.spotType != .unknown else { return nil }
+                  spot.spotType != .unsupported else { return nil }
 
             let destination = SpotCoordinate(latitude: spot.latitude, longitude: spot.longitude)
             guard destination.isValid else { return nil }

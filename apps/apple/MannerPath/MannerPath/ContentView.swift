@@ -133,6 +133,7 @@ private extension SpotType {
         case .ashtray: "Ashtray location"
         case .smokingPermittedVenue: "Smoking-permitted venue"
         case .unknown: "Spot type unknown"
+        case .unsupported: "Spot type unsupported"
         }
     }
 }

@@ -1,9 +1,5 @@
 import Foundation
 
-protocol SpotRepository: Sendable {
-    func allSpots() -> [Spot]
-}
-
 struct FixtureSpotRepository: SpotRepository {
     private let spots: [Spot]
 
