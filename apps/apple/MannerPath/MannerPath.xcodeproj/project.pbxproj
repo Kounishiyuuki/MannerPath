@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		000000000000000000000150 /* MannerPathWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		000000000000000000000310 /* slippy-xyz-vectors.v1.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000300 /* slippy-xyz-vectors.v1.json */; };
+		4E7D6A010000000000000001 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4E7D6A010000000000000003 /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +98,7 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				4E7D6A010000000000000001 /* GRDB in Frameworks */,
 			);
 		};
 		000000000000000000000250 /* Frameworks */ = {
@@ -168,6 +170,9 @@
 				000000000000000000000010 /* MannerPath */,
 			);
 			name = MannerPath;
+			packageProductDependencies = (
+				4E7D6A010000000000000003 /* GRDB */,
+			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* MannerPath.app */;
 			productType = "com.apple.product-type.application";
@@ -292,6 +297,9 @@
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4E7D6A010000000000000002 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
@@ -858,6 +866,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4E7D6A010000000000000002 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 7.9.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4E7D6A010000000000000003 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4E7D6A010000000000000002 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }
