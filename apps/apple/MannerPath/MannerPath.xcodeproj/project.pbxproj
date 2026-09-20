@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		000000000000000000000150 /* MannerPathWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		000000000000000000000310 /* slippy-xyz-vectors.v1.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000300 /* slippy-xyz-vectors.v1.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,7 @@
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* MannerPath.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MannerPath.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000210 /* MannerPathTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MannerPathTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000300 /* slippy-xyz-vectors.v1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ../../../contracts/tiles/slippy-xyz-vectors.v1.json; sourceTree = SOURCE_ROOT; };
 		3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MannerPathWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F1AF78A305EFE5200984937 /* MannerPathWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MannerPathWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F1AF794305EFE5300984937 /* MannerPathWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MannerPathWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,6 +127,7 @@
 			children = (
 				000000000000000000000010 /* MannerPath */,
 				000000000000000000000220 /* MannerPathTests */,
+				000000000000000000000300 /* slippy-xyz-vectors.v1.json */,
 				3F1AF77F305EFE5100984937 /* MannerPathWatch Watch App */,
 				3F1AF78D305EFE5300984937 /* MannerPathWatch Watch AppTests */,
 				3F1AF797305EFE5300984937 /* MannerPathWatch Watch AppUITests */,
@@ -312,6 +315,7 @@
 		000000000000000000000260 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				000000000000000000000310 /* slippy-xyz-vectors.v1.json in Resources */,
 			);
 		};
 		3F1AF779305EFE5100984937 /* Resources */ = {

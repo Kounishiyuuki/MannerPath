@@ -25,7 +25,7 @@ struct Spot: Codable, Sendable, Identifiable {
     let updatedAt: Date
 }
 
-// Unknown wire values decode conservatively so one new server value cannot discard a tile.
+// Unsupported future wire values decode conservatively so one new server value cannot discard a tile.
 enum TriState: String, Codable, Sendable {
     case yes, no, unknown
 
@@ -35,13 +35,14 @@ enum TriState: String, Codable, Sendable {
     }
 }
 
+// "unknown" is a supported physical type; only a future unsupported value is excluded from Nearby.
 enum SpotType: String, Codable, Hashable, Sendable {
     case designatedOutdoorArea, publicSmokingRoom, facilitySmokingRoom
-    case ashtray, smokingPermittedVenue, unknown
+    case ashtray, smokingPermittedVenue, unknown, unsupported
 
     init(from decoder: Decoder) throws {
         let value = try decoder.singleValueContainer().decode(String.self)
-        self = Self(rawValue: value) ?? .unknown
+        self = Self(rawValue: value) ?? .unsupported
     }
 }
 

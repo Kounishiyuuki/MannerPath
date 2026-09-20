@@ -34,7 +34,7 @@ struct NearbyDomainTests {
         decoder.dateDecodingStrategy = .iso8601
 
         let spot = try decoder.decode(Spot.self, from: Data(json.utf8))
-        #expect(spot.spotType == .unknown)
+        #expect(spot.spotType == .unsupported)
         #expect(spot.hostType == .unknown)
         #expect(spot.accessType == .unknown)
         #expect(spot.environment == .unknown)
@@ -76,7 +76,12 @@ struct NearbyDomainTests {
     @Test func fixtureStoreHostDoesNotPassPublicationGate() throws {
         let spots = try FixtureSpotRepository().allSpots()
         #expect(spots.count == 2)
-        #expect(spots.allSatisfy { $0.tileId == "14/14552/6451" })
+        for spot in spots {
+            let tile = try SlippyTile.forCoordinate(
+                latitude: spot.latitude, longitude: spot.longitude, zoom: SlippyTile.dataZoom
+            )
+            #expect(spot.tileId == tile.id)
+        }
         #expect(spots.contains { $0.hostType == .convenienceStore })
 
         let results = NearbySearch.rank(
@@ -99,6 +104,22 @@ struct NearbyDomainTests {
         ]
 
         #expect(NearbySearch.rank(candidates, from: origin, at: now).map(\.spot.id) == ["published"])
+    }
+
+    @Test func publishedUnknownPhysicalTypeIsDistinctFromUnsupportedWireType() throws {
+        let decoder = JSONDecoder()
+        let knownUnknown = try decoder.decode(SpotType.self, from: Data(#""unknown""#.utf8))
+        let unsupported = try decoder.decode(SpotType.self, from: Data(#""futureType""#.utf8))
+        #expect(knownUnknown == .unknown)
+        #expect(unsupported == .unsupported)
+
+        let spot = makeSpot(id: "type-unknown", spotType: knownUnknown)
+        let futureSpot = makeSpot(id: "type-future", spotType: unsupported)
+        #expect(NearbySearch.rank([spot, futureSpot], from: origin, at: now).map(\.spot.id) == ["type-unknown"])
+
+        var filters = NearbyFilters()
+        filters.spotTypes = [.ashtray]
+        #expect(NearbySearch.rank([spot, futureSpot], from: origin, filters: filters, at: now).isEmpty)
     }
 
     @Test func explicitTobaccoIncompatibilityBeatsDistance() {

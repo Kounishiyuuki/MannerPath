@@ -18,7 +18,7 @@ Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchma
 - Tile ID format: `"{z}/{x}/{y}"` (decimal integers, no padding).
 - Tile assignment of a spot is computed server-side from its canonical WGS84 coordinates.
 - Shared Swift/TypeScript test vectors (coordinate → tile ID, including tile-boundary and antimeridian/latitude-limit cases) are mandatory. Both implementations must pass the same vectors in CI.
-- The vectors live in `contracts/tiles/slippy-xyz-vectors.v1.json` (language-neutral JSON; its `rules` array is the normative tile math). The TypeScript implementation is `services/api/src/geo/tile.ts`, checked by `services/api/test/tile-vectors.test.ts`. The Swift implementation (not yet written) must load the same file and pass every case; it must not copy the values into Swift literals. Pinned rules:
+- The vectors live in `contracts/tiles/slippy-xyz-vectors.v1.json` (language-neutral JSON; its `rules` array is the normative tile math). The TypeScript implementation is `services/api/src/geo/tile.ts`, checked by `services/api/test/tile-vectors.test.ts`. The Swift implementation is `apps/apple/MannerPath/MannerPath/Core/Mapping/SlippyTile.swift`, checked by `apps/apple/MannerPath/MannerPathTests/SlippyTileContractTests.swift` using that same file; vector values are not copied into Swift literals. Pinned rules:
   - `z` is an integer in [0, 30]; input must be finite, lat in [-90, 90], lon in [-180, 180]. Anything else is an error, not a clamp.
   - Tile edges are half-open: a point on an edge belongs to the tile east (x) or south (y) of it.
   - `lon = 180` is the antimeridian and maps to `x = 0`.
