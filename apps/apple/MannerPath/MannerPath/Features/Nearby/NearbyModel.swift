@@ -19,10 +19,26 @@ final class NearbyModel {
     private let refresher: (any NearbyTileRefreshing)?
     private var loadTask: Task<Void, Never>?
     private var generation = 0
+    private var activeTileIDs: Set<String> = []
 
     private(set) var locationState: NearbyLocationState
     private(set) var dataState: NearbyDataState = .waitingForLocation
     private(set) var results: [NearbyResult] = []
+    private(set) var resultsLocation: DeviceLocation?
+    private(set) var sources: [SpotSource] = []
+    private var lastUsableLocation: DeviceLocation?
+
+    var displayLocation: DeviceLocation? {
+        switch locationState {
+        case .usable(let location): location
+        case .locating: lastUsableLocation
+        default: nil
+        }
+    }
+
+    func result(id: String) -> NearbyResult? {
+        results.first { $0.spot.id == id }
+    }
 
     init(
         location: any LocationProviding,
@@ -33,6 +49,9 @@ final class NearbyModel {
         self.repository = repository
         self.refresher = refresher
         locationState = location.state
+        if case .usable(let deviceLocation) = locationState {
+            lastUsableLocation = deviceLocation
+        }
         location.onStateChange = { [weak self] state in
             self?.receive(state)
         }
@@ -53,11 +72,20 @@ final class NearbyModel {
     private func receive(_ state: NearbyLocationState) {
         locationState = state
         if case .usable(let deviceLocation) = state {
+            lastUsableLocation = deviceLocation
             load(for: deviceLocation)
+        } else if case .locating = state, lastUsableLocation != nil {
+            generation += 1
+            loadTask?.cancel()
+            dataState = .waitingForLocation
         } else {
             generation += 1
             loadTask?.cancel()
             results = []
+            resultsLocation = nil
+            sources = []
+            activeTileIDs = []
+            lastUsableLocation = nil
             dataState = .waitingForLocation
         }
     }
@@ -66,9 +94,12 @@ final class NearbyModel {
         generation += 1
         let currentGeneration = generation
         loadTask?.cancel()
-        results = []
 
         guard let repository else {
+            results = []
+            resultsLocation = nil
+            sources = []
+            activeTileIDs = []
             dataState = .cacheUnavailable
             return
         }
@@ -77,25 +108,38 @@ final class NearbyModel {
             longitude: deviceLocation.coordinate.longitude,
             zoom: SlippyTile.dataZoom
         ) else {
+            results = []
+            resultsLocation = nil
+            sources = []
+            activeTileIDs = []
             dataState = .cacheUnavailable
             return
         }
 
         let tiles = currentTile.neighborhood3x3()
+        let tileIDs = Set(tiles.map(\.id))
+        if tileIDs != activeTileIDs {
+            results = []
+            resultsLocation = nil
+            sources = []
+        }
+        activeTileIDs = tileIDs
         dataState = .readingCache
         loadTask = Task { [weak self] in
             guard let self else { return }
             var cachedByTile: [String: [Spot]] = [:]
+            var sourcesByTile: [String: [SpotSource]] = [:]
             var cacheReadFailed = false
             for tile in tiles {
                 do {
                     cachedByTile[tile.id] = try await repository.spots(inTile: tile.id)
+                    sourcesByTile[tile.id] = try await repository.sources(inTile: tile.id)
                 } catch {
                     cacheReadFailed = true
                 }
                 guard currentGeneration == generation else { return }
             }
-            publish(cachedByTile, from: deviceLocation, generation: currentGeneration)
+            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation, generation: currentGeneration)
 
             guard let refresher else {
                 dataState = cacheReadFailed ? .refreshFailed : .cacheOnly
@@ -122,21 +166,35 @@ final class NearbyModel {
             for tile in tiles {
                 do {
                     cachedByTile[tile.id] = try await repository.spots(inTile: tile.id)
+                    sourcesByTile[tile.id] = try await repository.sources(inTile: tile.id)
                 } catch {
                     cacheReadFailed = true
                 }
                 guard currentGeneration == generation else { return }
             }
-            publish(cachedByTile, from: deviceLocation, generation: currentGeneration)
+            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation, generation: currentGeneration)
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
         }
     }
 
-    private func publish(_ cachedByTile: [String: [Spot]], from deviceLocation: DeviceLocation, generation currentGeneration: Int) {
+    private func publish(
+        _ cachedByTile: [String: [Spot]],
+        sourcesByTile: [String: [SpotSource]],
+        from deviceLocation: DeviceLocation,
+        generation currentGeneration: Int
+    ) {
         guard currentGeneration == generation else { return }
         var seenIDs = Set<String>()
         let spots = cachedByTile.keys.sorted().flatMap { cachedByTile[$0] ?? [] }
             .filter { seenIDs.insert($0.id).inserted }
         results = NearbySearch.rank(spots, from: deviceLocation.coordinate, at: Date())
+        resultsLocation = deviceLocation
+        var seenSources = Set<SpotSource>()
+        sources = sourcesByTile.keys.sorted().flatMap { sourcesByTile[$0] ?? [] }
+            .filter { seenSources.insert($0).inserted }
+            .sorted {
+                ($0.displayName, $0.id, $0.attributionText ?? "") <
+                ($1.displayName, $1.id, $1.attributionText ?? "")
+            }
     }
 }

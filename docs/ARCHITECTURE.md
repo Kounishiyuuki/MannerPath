@@ -134,8 +134,9 @@ spots). A 200 or authoritative `tileNotPublished` 404 replaces one tile in a
 single database transaction. A 304 leaves the stored snapshot untouched.
 Concurrent responses for one tile are ordered by the latest successfully applied
 request so an older 200 or 404 cannot overwrite a newer successful response.
-`CachedSpotRepository` exposes offline Domain spots per tile; the current Nearby
-screen still uses its fixture until its integration task.
+`CachedSpotRepository` exposes offline Domain spots and source attribution per tile.
+The live Nearby screen reads that cache before refreshing the current tile neighborhood,
+ranks the Domain spots on device, and presents the same results on its map and list.
 
 ## 5. Routing
 

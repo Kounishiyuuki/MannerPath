@@ -30,7 +30,7 @@ nonisolated struct SpotVerification: Codable, Sendable {
     }
 }
 
-nonisolated struct SpotSource: Codable, Sendable {
+nonisolated struct SpotSource: Codable, Hashable, Sendable {
     let id: String
     let displayName: String
     let licenseName: String?

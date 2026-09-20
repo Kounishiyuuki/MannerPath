@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated struct SpotCoordinate: Sendable {
+nonisolated struct SpotCoordinate: Equatable, Sendable {
     let latitude: Double
     let longitude: Double
 

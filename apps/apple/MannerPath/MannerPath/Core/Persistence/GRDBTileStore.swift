@@ -76,6 +76,13 @@ actor GRDBTileStore: CachedSpotRepository {
         return try cachedTile(tile)?.spots ?? []
     }
 
+    func sources(inTile tileID: String) throws -> [SpotSource] {
+        guard let tile = SlippyTile.parse(id: tileID), tile.z == SlippyTile.dataZoom else {
+            throw TileSyncError.invalidTile
+        }
+        return try cachedTile(tile)?.sources ?? []
+    }
+
     // Request order matters only after a response has committed. A newer failed
     // request must not suppress a still-valid older response.
     func beginSync(_ tile: SlippyTile) throws -> UInt64 {
