@@ -57,7 +57,7 @@ nonisolated enum HostType: String, Codable, Sendable {
     }
 }
 
-nonisolated enum AccessType: String, Codable, Sendable {
+nonisolated enum AccessType: String, Codable, Hashable, Sendable {
     case `public`, customerOnly, facilityOnly, unknown
 
     init(from decoder: Decoder) throws {
@@ -66,7 +66,7 @@ nonisolated enum AccessType: String, Codable, Sendable {
     }
 }
 
-nonisolated enum SpotEnvironment: String, Codable, Sendable {
+nonisolated enum SpotEnvironment: String, Codable, Hashable, Sendable {
     case indoor, outdoor, covered, unknown
 
     init(from decoder: Decoder) throws {

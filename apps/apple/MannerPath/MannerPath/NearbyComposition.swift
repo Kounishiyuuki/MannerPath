@@ -22,7 +22,10 @@ enum NearbyComposition {
         } else {
             refresher = nil
         }
-        return NearbyModel(location: DeviceLocationService(), repository: store, refresher: refresher)
+        return NearbyModel(
+            location: DeviceLocationService(), repository: store, refresher: refresher,
+            destinationSearch: MapKitDestinationSearch(), walkingRouter: MapKitWalkingRouter()
+        )
     }
 
     private static var apiBaseURL: URL? {

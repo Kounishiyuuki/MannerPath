@@ -1,10 +1,17 @@
+import MapKit
 import SwiftUI
 
 struct SpotDetailView: View {
     let result: NearbyResult
     let locationAccuracyMeters: Double
     let estimateFromPreviousLocation: Bool
+    let routeOrigin: SpotCoordinate?
     let nearbySources: [SpotSource]
+
+    @State private var previewRouter = MapKitWalkingRouter()
+    @State private var previewRoute: WalkingRoute?
+    @State private var previewLoading = false
+    @State private var previewUnavailable = false
 
     private var spot: Spot { result.spot }
 
@@ -23,6 +30,37 @@ struct SpotDetailView: View {
                      : "Distance and bearing are estimates from your device location, not a walking route.")
             }
 
+            Section("Walking directions") {
+                if let previewRoute {
+                    if previewRoute.geometry.count > 1 {
+                        Map {
+                            MapPolyline(coordinates: previewRoute.geometry.map {
+                                CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                            })
+                            .stroke(.blue, lineWidth: 5)
+                            Annotation("Place", coordinate: CLLocationCoordinate2D(
+                                latitude: spot.latitude, longitude: spot.longitude
+                            )) { Image(systemName: "mappin.circle.fill").foregroundStyle(.red) }
+                        }
+                        .frame(height: 220)
+                    }
+                    LabeledContent("Walking time", value: "About \(Int((previewRoute.travelTime / 60).rounded())) min")
+                    LabeledContent("Walking distance", value: SpotPresentation.distance(previewRoute.distanceMeters))
+                } else if previewLoading {
+                    ProgressView("Finding a pedestrian route…")
+                } else {
+                    Text(previewUnavailable
+                         ? "Walking route unavailable. The straight-line distance and bearing above remain available."
+                         : "A current device location is needed for a walking preview. The straight-line estimate remains available.")
+                        .foregroundStyle(.secondary)
+                }
+                Button {
+                    AppleMapsHandoff.openWalkingDirections(to: spot)
+                } label: {
+                    Label("Open walking directions in Apple Maps", systemImage: "map")
+                }
+            }
+
             Section("Use and access") {
                 LabeledContent("Paper tobacco", value: SpotPresentation.tobacco(spot.supportsPaper))
                 LabeledContent("Heated tobacco", value: SpotPresentation.tobacco(spot.supportsHeated))
@@ -38,6 +76,9 @@ struct SpotDetailView: View {
 
             Section {
                 LabeledContent("Hours state", value: SpotPresentation.hoursState(spot.openingHours))
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    LabeledContent("Open now", value: openNowText(at: context.date))
+                }
                 detailText("Raw source text", spot.openingHours?.raw ?? "Unknown")
                 if let hours = spot.openingHours, hours.status == .parsed,
                    let parsed = hours.parsed {
@@ -47,7 +88,7 @@ struct SpotDetailView: View {
             } header: {
                 Text("Opening hours")
             } footer: {
-                Text("Current open or closed status is unconfirmed.")
+                Text("Based on reported hours when available. Follow on-site rules and signs.")
             }
 
             Section("Evidence and freshness") {
@@ -64,6 +105,43 @@ struct SpotDetailView: View {
         }
         .navigationTitle("Place details")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: previewKey) { await loadPreview() }
+        .onDisappear { previewRouter.cancel() }
+    }
+
+    private var previewKey: String {
+        "\(spot.id)|\(routeOrigin?.latitude.description ?? "none")|\(routeOrigin?.longitude.description ?? "none")"
+    }
+
+    private func openNowText(at date: Date) -> String {
+        switch NearbySearch.openNow(spot.openingHours, at: date) {
+        case .yes: "Reported open"
+        case .no: "Reported closed"
+        case .unknown: "Unknown"
+        }
+    }
+
+    private func loadPreview() async {
+        previewRouter.cancel()
+        previewRoute = nil
+        previewUnavailable = false
+        guard let routeOrigin else {
+            previewLoading = false
+            return
+        }
+        previewLoading = true
+        do {
+            let route = try await previewRouter.route(
+                from: routeOrigin,
+                to: SpotCoordinate(latitude: spot.latitude, longitude: spot.longitude)
+            )
+            guard !Task.isCancelled else { return }
+            previewRoute = route
+        } catch {
+            guard !Task.isCancelled else { return }
+            previewUnavailable = true
+        }
+        previewLoading = false
     }
 
     private func schedule(_ parsed: SpotParsedOpeningHours) -> String {
