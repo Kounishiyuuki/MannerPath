@@ -1,5 +1,9 @@
 import Foundation
 
+nonisolated protocol NearbyTileRefreshing: Sendable {
+    func refresh(_ tile: SlippyTile) async throws
+}
+
 // Synchronizes one known tile on demand. Nearby can read GRDBTileStore while offline;
 // no location, scheduling, or UI concern enters this boundary.
 actor TileSyncService {
@@ -31,5 +35,11 @@ actor TileSyncService {
             throw TileSyncError.malformedResponse
         }
         return cached
+    }
+}
+
+extension TileSyncService: NearbyTileRefreshing {
+    func refresh(_ tile: SlippyTile) async throws {
+        _ = try await sync(tile)
     }
 }

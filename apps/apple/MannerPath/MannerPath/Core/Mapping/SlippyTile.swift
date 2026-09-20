@@ -42,6 +42,19 @@ nonisolated struct SlippyTile: Equatable, Hashable, Sendable {
 
     var id: String { "\(z)/\(x)/\(y)" }
 
+    func neighborhood3x3() -> [SlippyTile] {
+        let tileCount = 1 << z
+        var seen = Set<SlippyTile>()
+        return (-1...1).flatMap { yOffset in
+            (-1...1).compactMap { xOffset in
+                let neighborY = y + yOffset
+                guard (0..<tileCount).contains(neighborY) else { return nil }
+                let neighborX = (x + xOffset + tileCount) % tileCount
+                return SlippyTile(z: z, x: neighborX, y: neighborY)
+            }
+        }.filter { seen.insert($0).inserted }
+    }
+
     static func parse(id: String) -> Self? {
         let parts = id.split(separator: "/", omittingEmptySubsequences: false)
         guard parts.count == 3,

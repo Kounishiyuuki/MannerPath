@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @State private var model = NearbyModel.live()
+    @State private var model = NearbyComposition.makeModel()
 
     var body: some View {
         NavigationStack {
@@ -12,22 +12,17 @@ struct ContentView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
-                    Text("Synthetic demo data near Tokyo Station. Locations are not verified for real-world use.")
-                        .font(.subheadline)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.yellow.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
-
                     locationSection
 
-                    if !model.fixtureAvailable {
-                        ContentUnavailableView("Demo data unavailable", systemImage: "tray")
-                    } else if case .usable = model.locationState {
+                    if case .usable = model.locationState {
+                        dataStatus
                         if model.results.isEmpty {
-                            ContentUnavailableView("No confirmed fixture spots", systemImage: "mappin.slash")
+                            if [.refreshed, .refreshFailed, .cacheOnly].contains(model.dataState) {
+                                ContentUnavailableView("No cached or published spots nearby", systemImage: "mappin.slash")
+                            }
                         } else {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Fixture results")
+                                Text("Nearby places")
                                     .font(.headline)
                                 ForEach(model.results, id: \.spot.id) { result in
                                     if case .usable(let location) = model.locationState {
@@ -44,6 +39,26 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active { model.start() }
+        }
+    }
+
+    @ViewBuilder
+    private var dataStatus: some View {
+        switch model.dataState {
+        case .waitingForLocation:
+            EmptyView()
+        case .readingCache:
+            Label("Reading saved nearby places…", systemImage: "internaldrive")
+        case .refreshing:
+            Label("Refreshing nearby places…", systemImage: "arrow.clockwise")
+        case .refreshed:
+            Text("Nearby data refreshed.")
+        case .refreshFailed:
+            Text("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
+        case .cacheOnly:
+            Text("Showing saved nearby data. Live updates are not configured.")
+        case .cacheUnavailable:
+            Text("Saved nearby data is unavailable on this device.")
         }
     }
 
@@ -110,12 +125,12 @@ private struct NearbySpotRow: View {
                  ? "\(result.distanceMeters.distanceLabel) straight-line estimate · \(Int(result.bearingDegrees.rounded()))° bearing"
                  : "\(result.distanceMeters.distanceLabel) straight-line estimate · Bearing uncertain within location accuracy")
                 .fontWeight(.medium)
-            Text("Paper (fixture): \(result.spot.supportsPaper.label) · Heated (fixture): \(result.spot.supportsHeated.label)")
+            Text("Paper: \(result.spot.supportsPaper.label) · Heated: \(result.spot.supportsHeated.label)")
             Text(result.spot.lastVerifiedAt.map {
-                "Fixture observation date \($0.formatted(date: .abbreviated, time: .omitted))"
-            } ?? "Fixture observation date unknown")
+                "Last verified \($0.formatted(date: .abbreviated, time: .omitted))"
+            } ?? "Last verification date unknown")
             Text("Evidence quality: \(result.spot.verification.evidenceQuality ?? "unknown")")
-            Text("Source: \(result.spot.verification.sourceDisplayNames.joined(separator: ", "))")
+            Text("Source: \(result.spot.verification.sourceDisplayNames.isEmpty ? "unknown" : result.spot.verification.sourceDisplayNames.joined(separator: ", "))")
         }
         .font(.subheadline)
         .frame(maxWidth: .infinity, alignment: .leading)
