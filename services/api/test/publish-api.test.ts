@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { app } from "../src/app.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../src/geo/tile.ts";
-import { TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
+import { TAITO_ATTRIBUTION_TEXT, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { TileBodyV1, tileEtag } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { NOW, TEST_APPROVED_SOURCE, addApprovedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
+import { NOW, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
@@ -15,12 +15,12 @@ const all = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).all(
 const one = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).get(...p) as Row;
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
-/** The real (blocked) Taito source plus the same file under an isolated approved test source. */
+/** The real (approved) Taito source plus the same file under an isolated unapproved test source. */
 async function publishedDb(prefix = "0"): Promise<SqliteD1> {
   const db = new SqliteD1();
-  await importTaito(db, { newSpotId: sequentialSpotIds("9") });
-  addApprovedTestSource(db);
-  await importTaito(db, { sourceId: TEST_APPROVED_SOURCE, newSpotId: sequentialSpotIds(prefix) });
+  addBlockedTestSource(db);
+  await importTaito(db, { sourceId: TEST_BLOCKED_SOURCE, newSpotId: sequentialSpotIds("9") });
+  await importTaito(db, { newSpotId: sequentialSpotIds(prefix) });
   await publishTiles(db, { now: NOW });
   return db;
 }
@@ -28,16 +28,16 @@ async function publishedDb(prefix = "0"): Promise<SqliteD1> {
 const get = (db: SqliteD1, path: string, headers: Record<string, string> = {}) =>
   app.request(path, { headers }, { DB: db });
 
-test("the real Taito source is blocked, so nothing of it publishes", async () => {
+test("an unapproved source publishes nothing, and bypassing the publisher is rejected by the trigger", async () => {
   const db = new SqliteD1();
-  await importTaito(db);
+  addBlockedTestSource(db);
+  await importTaito(db, { sourceId: TEST_BLOCKED_SOURCE });
   const report = await publishTiles(db, { now: NOW });
   assert.deepEqual(report.published, []);
-  assert.deepEqual(report.excluded, [{ sourceId: TAITO_SOURCE_ID, publicationStatus: "blocked", spotCount: 34 }]);
+  assert.deepEqual(report.excluded, [{ sourceId: TEST_BLOCKED_SOURCE, publicationStatus: "blocked", spotCount: 34 }]);
   assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshots").n, 0);
-  assert.equal(one(db, "SELECT publication_status FROM sources WHERE source_id = ?", TAITO_SOURCE_ID).publication_status, "blocked");
 
-  // Bypassing the publisher does not help: the database trigger rejects the Taito spot.
+  // Bypassing the publisher does not help: the database trigger rejects the unpublishable spot.
   const s = one(db, "SELECT spot_id, tile_id, tile_x, tile_y FROM spots LIMIT 1");
   db.raw.prepare(
     `INSERT INTO tile_snapshots (tile_id, z, x, y, revision, schema_version, content_sha256, spot_count, body_json, published_at)
@@ -49,18 +49,19 @@ test("the real Taito source is blocked, so nothing of it publishes", async () =>
   );
 });
 
-test("an isolated approved source publishes complete z14 snapshots; the blocked Taito spots stay out", async () => {
+test("the approved Taito source publishes complete z14 snapshots; the unapproved source's spots stay out", async () => {
   const db = await publishedDb();
+  assert.equal(one(db, "SELECT publication_status FROM sources WHERE source_id = ?", TAITO_SOURCE_ID).publication_status, "approved");
   const tiles = all(db, "SELECT * FROM tile_snapshots ORDER BY tile_id");
   const published = all(db, "SELECT spot_id, tile_id FROM tile_snapshot_spots");
   const approvedSpots = all(db,
     `SELECT s.* FROM spots s JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id
-     WHERE rel.source_id = ?`, TEST_APPROVED_SOURCE);
+     WHERE rel.source_id = ?`, TAITO_SOURCE_ID);
   assert.equal(approvedSpots.length, 34);
   assert.equal(published.length, 34);
   assert.deepEqual(new Set(published.map((p) => p.spot_id)), new Set(approvedSpots.map((s) => s.spot_id)));
-  assert.ok(published.every((p) => !p.spot_id.startsWith("sp_9")), "no Taito (blocked) spot is published");
+  assert.ok(published.every((p) => !p.spot_id.startsWith("sp_9")), "no spot of the unapproved source is published");
 
   const bodySpotIds: string[] = [];
   for (const t of tiles) {
@@ -72,12 +73,12 @@ test("an isolated approved source publishes complete z14 snapshots; the blocked 
     assert.equal(body.tile, t.tile_id);
     assert.equal(body.spots.length, t.spot_count);
     assert.deepEqual(body.sources, [{
-      id: TEST_APPROVED_SOURCE, displayName: "TEST ONLY approved municipal source", licenseName: "CC BY 4.0",
-      licenseUrl: "https://creativecommons.org/licenses/by/4.0/legalcode.ja", attributionText: "TEST ONLY attribution",
-    }]);
+      id: TAITO_SOURCE_ID, displayName: "台東区 公衆喫煙所", licenseName: "CC BY 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by/4.0/legalcode.ja", attributionText: TAITO_ATTRIBUTION_TEXT,
+    }], "every Taito tile carries the approved attribution");
     for (const s of body.spots) {
       assert.equal(formatTileId(tileForCoordinate(s.latitude, s.longitude, DATA_TILE_ZOOM)), t.tile_id);
-      assert.deepEqual(s.sourceIds, [TEST_APPROVED_SOURCE]);
+      assert.deepEqual(s.sourceIds, [TAITO_SOURCE_ID]);
       bodySpotIds.push(s.id);
     }
     assert.deepEqual(all(db, "SELECT spot_id FROM tile_snapshot_spots WHERE tile_id = ? ORDER BY spot_id", t.tile_id).map((r) => r.spot_id),
@@ -106,7 +107,7 @@ test("tile body v1: exact shape, fixed key order, heated-only and unknown values
     environment: "unknown", supportsPaper: "unknown", supportsHeated: "unknown",
     openingHours: { status: "parsed", raw: "終日利用可能", parsed: { v: 1, kind: "allDay" }, timeZone: "Asia/Tokyo" },
     lifecycle: "active", evidenceQuality: "officialListing", evidenceQualityVersion: "evidence-quality.v1",
-    lastVerifiedAt: "2026-08-18", sourceIds: [TEST_APPROVED_SOURCE],
+    lastVerifiedAt: "2026-08-18", sourceIds: [TAITO_SOURCE_ID],
   });
   assert.ok(spots.every((s) => s.lastVerifiedAt === "2026-08-18"));
 });
@@ -132,9 +133,9 @@ test("snapshots are deterministic and republished only when content changes", as
   assert.notEqual(row.content_sha256, before.find((t) => t.tile_id === target.tile_id)!.content_sha256);
 });
 
-test("blocking a source after publication empties its tiles on the next publish (complete snapshots)", async () => {
+test("blocking an approved source after publication empties its tiles on the next publish (complete snapshots)", async () => {
   const db = await publishedDb();
-  db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(TEST_APPROVED_SOURCE);
+  db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(TAITO_SOURCE_ID);
   const report = await publishTiles(db, { now: "2026-12-31T00:00:00Z" });
   assert.equal(report.published.length, 5);
   assert.ok(report.published.every((p) => p.spotCount === 0 && p.revision === 2));
@@ -204,9 +205,10 @@ test("invalid and unpublished tiles: 400 for malformed or non-z14 IDs, 404 when 
     assert.equal(res.headers.get("ETag"), null);
   }
 
-  // A tile that only contains blocked Taito spots was never published.
+  // A tile that only contains spots of an unapproved source was never published.
   const blocked = new SqliteD1();
-  await importTaito(blocked);
+  addBlockedTestSource(blocked);
+  await importTaito(blocked, { sourceId: TEST_BLOCKED_SOURCE });
   const tileId = one(blocked, "SELECT tile_id FROM spots LIMIT 1").tile_id;
   assert.equal((await get(blocked, `/v1/tiles/${tileId}`)).status, 404);
 });

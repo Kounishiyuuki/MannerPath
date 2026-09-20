@@ -2,10 +2,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
-import { TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
+import { TAITO_ATTRIBUTION_TEXT, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { SpotDetailBodyV1 } from "../src/spots/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { NOW, TEST_APPROVED_SOURCE, addApprovedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
+import { NOW, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
@@ -13,12 +13,12 @@ const all = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).all(
 const one = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).get(...p) as Row;
 const get = (db: SqliteD1, path: string) => app.request(path, {}, { DB: db });
 
-/** The real (blocked) Taito source plus the same file under an isolated approved test source. */
+/** The real (approved) Taito source plus the same file under an isolated unapproved test source. */
 async function publishedDb(): Promise<SqliteD1> {
   const db = new SqliteD1();
-  await importTaito(db, { newSpotId: sequentialSpotIds("9") });
-  addApprovedTestSource(db);
-  await importTaito(db, { sourceId: TEST_APPROVED_SOURCE, newSpotId: sequentialSpotIds("0") });
+  addBlockedTestSource(db);
+  await importTaito(db, { sourceId: TEST_BLOCKED_SOURCE, newSpotId: sequentialSpotIds("9") });
+  await importTaito(db, { newSpotId: sequentialSpotIds("0") });
   await publishTiles(db, { now: NOW });
   return db;
 }
@@ -48,11 +48,11 @@ test("a published spot returns 200 with the v1 detail body, tile-consistent spot
   // spotType "unknown" is a supported canonical value and is returned normally (ADR-0006).
   assert.equal(body.spot.spotType, "unknown");
   assert.equal(body.spot.lastVerifiedAt, "2026-08-18");
-  assert.deepEqual(body.spot.sourceIds, [TEST_APPROVED_SOURCE]);
+  assert.deepEqual(body.spot.sourceIds, [TAITO_SOURCE_ID]);
   assert.deepEqual(body.sources, [{
-    id: TEST_APPROVED_SOURCE, displayName: "TEST ONLY approved municipal source", licenseName: "CC BY 4.0",
-    licenseUrl: "https://creativecommons.org/licenses/by/4.0/legalcode.ja", attributionText: "TEST ONLY attribution",
-  }], "attribution matches the tile API's source DTO");
+    id: TAITO_SOURCE_ID, displayName: "台東区 公衆喫煙所", licenseName: "CC BY 4.0",
+    licenseUrl: "https://creativecommons.org/licenses/by/4.0/legalcode.ja", attributionText: TAITO_ATTRIBUTION_TEXT,
+  }], "the approved Taito attribution matches the tile API's source DTO exactly");
   assert.deepEqual(body.sources, tileBody.sources);
 });
 
@@ -61,11 +61,11 @@ test("public provenance names field, source, rule and observation date only", as
   const id = publishedSpotId(db, "上野公園前交番裏");
   const body = SpotDetailBodyV1.parse(await (await get(db, `/v1/spots/${id}`)).json());
   assert.deepEqual(body.provenance, [
-    { field: "existence", sourceId: TEST_APPROVED_SOURCE, rule: "taito.listed.v1", observedOn: "2026-08-18" },
-    { field: "lifecycle", sourceId: TEST_APPROVED_SOURCE, rule: "taito.listed.v1", observedOn: "2026-08-18" },
-    { field: "location", sourceId: TEST_APPROVED_SOURCE, rule: "taito.coordinates.v1", observedOn: "2026-08-18" },
-    { field: "name", sourceId: TEST_APPROVED_SOURCE, rule: "taito.name.v1", observedOn: "2026-08-18" },
-    { field: "openingHours", sourceId: TEST_APPROVED_SOURCE, rule: "taito.hours.v1", observedOn: "2026-08-18" },
+    { field: "existence", sourceId: TAITO_SOURCE_ID, rule: "taito.listed.v1", observedOn: "2026-08-18" },
+    { field: "lifecycle", sourceId: TAITO_SOURCE_ID, rule: "taito.listed.v1", observedOn: "2026-08-18" },
+    { field: "location", sourceId: TAITO_SOURCE_ID, rule: "taito.coordinates.v1", observedOn: "2026-08-18" },
+    { field: "name", sourceId: TAITO_SOURCE_ID, rule: "taito.name.v1", observedOn: "2026-08-18" },
+    { field: "openingHours", sourceId: TAITO_SOURCE_ID, rule: "taito.hours.v1", observedOn: "2026-08-18" },
   ]);
   // Every resolved field in the response has a provenance row and vice versa (no invented fields).
   const stored = all(db, "SELECT field FROM spot_field_provenance WHERE spot_id = ? ORDER BY field", id).map((r) => r.field);
@@ -86,13 +86,13 @@ test("no raw source record, internal identifier or unresolved raw column leaks i
   assert.equal(body.spot.openingHours.status, "unparsed");
 });
 
-test("canonical but unpublished spots are not discoverable: blocked source, unpublished row, unknown and malformed IDs", async () => {
+test("canonical but unpublished spots are not discoverable: unapproved source, unpublished row, unknown and malformed IDs", async () => {
   const db = await publishedDb();
-  // The real Taito source is blocked, so its canonical spots exist but are in no snapshot.
+  // The unapproved source's canonical spots exist but are in no snapshot.
   const blockedId = one(db,
     `SELECT s.spot_id FROM spots s JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id
-     WHERE rel.source_id = ? LIMIT 1`, TAITO_SOURCE_ID).spot_id;
+     WHERE rel.source_id = ? LIMIT 1`, TEST_BLOCKED_SOURCE).spot_id;
   assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", blockedId).n, 0);
 
   const unknownId = `sp_${"0".repeat(26)}`;
@@ -102,18 +102,19 @@ test("canonical but unpublished spots are not discoverable: blocked source, unpu
     assert.equal((await res.json() as { error: string }).error, "spotNotFound", path);
   }
 
-  // Blocking the approved source and republishing empties the snapshots, hiding its spots too.
+  // Blocking the approved Taito source and republishing empties the snapshots, hiding its spots too.
   const publishedId = publishedSpotId(db, "上野公園前交番裏");
   assert.equal((await get(db, `/v1/spots/${publishedId}`)).status, 200);
-  db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(TEST_APPROVED_SOURCE);
+  db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(TAITO_SOURCE_ID);
   await publishTiles(db, { now: "2026-12-31T00:00:00Z" });
   assert.equal((await get(db, `/v1/spots/${publishedId}`)).status, 404);
   assert.equal(one(db, "SELECT count(*) AS n FROM spots WHERE spot_id = ?", publishedId).n, 1, "the canonical row still exists");
 });
 
-test("the real Taito source is blocked, so no Taito spot has a public detail at all", async () => {
+test("an unapproved source's spots have no public detail at all", async () => {
   const db = new SqliteD1();
-  await importTaito(db);
+  addBlockedTestSource(db);
+  await importTaito(db, { sourceId: TEST_BLOCKED_SOURCE });
   await publishTiles(db, { now: NOW });
   for (const s of all(db, "SELECT spot_id FROM spots")) {
     assert.equal((await get(db, `/v1/spots/${s.spot_id}`)).status, 404);

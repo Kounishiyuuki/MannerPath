@@ -10,7 +10,8 @@
     "typecheck": "tsc -p .",
     "dev": "wrangler dev --local",
     "local:migrate": "wrangler d1 migrations apply DB --local",
-    "local:pipeline": "node --experimental-strip-types --no-warnings scripts/local-pipeline.ts"
+    "local:pipeline": "node --experimental-strip-types --no-warnings scripts/local-pipeline.ts",
+    "local:registry": "node --experimental-strip-types --no-warnings scripts/apply-source-registry.ts"
   },
   "dependencies": {
     "hono": "4.13.8",
