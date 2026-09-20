@@ -8,6 +8,10 @@ Every number below comes from the local publication state or from the ward's own
 above. Claims are tagged **[measured]** (output of the commands in §1), **[verified]** (read from the
 publisher's own page or file on 2026-09-20) or **[judgement]**.
 
+**Result in one line:** the corpus is usable for internal development and device testing, bounded to
+台東区 and never called Tokyo coverage; the **external real-data beta is blocked on Issue #42**
+(§5a). `DATA_TILE_ZOOM = 14` is unchanged.
+
 ## 1. How to reproduce
 
 ```sh
@@ -39,7 +43,7 @@ Its committed output is `services/data-pipeline/research/beta-data-quality/2026-
 | Published tiles | 5, all z14, all non-empty (0 empty snapshots) |
 | Spots per occupied tile | min 1 / p50 9 / p90 11 / max 11 |
 | Bounding box | 35.69849–35.727847 N, 139.76573–139.805037 E (≈3.3 km N–S × 3.6 km E–W) |
-| Nearest-neighbour spacing | min 56 m / p50 223 m / p90 696 m / max 1,112 m |
+| Nearest-neighbour spacing | min 56 m / p50 209 m / p90 695 m / max 1,112 m (`corpus.nearestNeighbourMeters`, haversine, whole metres) |
 | Applied releases | 1 (`observedOn` 2026-08-18, 34 records, sha256 `5123ee41…c6c74`) |
 | Verification dates | 2026-08-18 for all 34 spots (dataset-level 時点 date; 34 days old at measurement) |
 | Evidence quality | `evidence-quality.v1:officialListing` for all 34 |
@@ -56,18 +60,36 @@ Unknown rates — what the source does not state and the resolver therefore refu
 | opening hours not usable for `openNow` | 7 / 34 | 20.6 % (`parsed` 27, `unparsed` 7) |
 
 Largest tile **[measured]**: `14/14553/6449` with 11 spots; `14/14553/6450` is the largest payload at
-6,689 raw bytes / 1,593 gzip bytes. No tile is empty or sparse at z14 — the corpus occupies exactly
-5 tiles in one contiguous 2×3 block minus one cell.
+6,689 raw bytes / 1,593 gzip bytes. The corpus occupies exactly 5 z14 tiles — one contiguous 3×2
+block minus one cell — and none of the 5 is empty. They are not uniformly dense: `14/14552/6449`
+holds a **single** spot and `14/14554/6450` holds two, against 9–11 in the other three.
 
 ## 3. Manual official-source spot check
+
+### Evidence chain
+
+What is proved, and by what, in order. Each link is a different artifact; none of them stands in for
+the next one.
+
+| Link | Established by | Covers |
+|---|---|---|
+| The ward's live release file **is** the committed fixture, byte for byte | `spot-check.mjs` (`fixture.identicalToLiveRelease: true`) | the whole file, including coordinates |
+| Canonical spot fields are derived from that fixture, by the pinned resolver rules | `services/api/test/pipeline.test.ts`, `schema.test.ts`, `migration-0002.test.ts` and the field-provenance rows | name, coordinates, hours, tobacco semantics, provenance |
+| The published corpus is what those spots became in the tiles | `npm run local:quality` (reads `tile_snapshots`; `publishedSpots` equals `activeSpotsInDatabase`) | every published value and the tile payloads |
+| A second official publication agrees, on the fields it exposes | `spot-check.mjs` census against the ward's list page | number, name, hours — **not** coordinates |
+
+So the coordinates are traced to the ward's own bytes and to the resolver, **not** independently
+confirmed: the ward's list page publishes addresses, not coordinates, and `spot-check.mjs` reads
+neither the local database nor the tile snapshots. Nothing here is a physical check of any location.
 
 - Date checked: **2026-09-20** (UTC).
 - Source checked: the release file `shisethutizujouhou.files/20260818_koshukitsuenjo.csv` served by
   台東区 right now, its catalog page, and — as independent material — the ward's
   **公衆喫煙所ウェブマップ・一覧** page (`/kenchiku/machibika/kosyu/webmap.html`, 更新日 2026年9月4日,
   labelled 令和8年8月18日現在). This is a different publication of the same list by the same ward.
-- Sample method: **census**, not a sample. All 34 records compared on name, coordinates, hours and
-  heated/paper semantics; additionally all 34 published tile spots compared back to the CSV.
+- Sample method: **census**, not a sample. All 34 CSV records compared with the ward's list page on
+  the fields that page exposes — number, name and operating hours. The list page carries no
+  coordinates, so no coordinate was independently verified.
 - Sample size: 34 of 34.
 
 Results **[verified]**:
@@ -77,7 +99,8 @@ Results **[verified]**:
   `Last-Modified: Fri, 11 Sep 2026 07:48:17 GMT`). The source still exists and has not been re-released.
 - The catalog page still labels the file 「公衆喫煙所（令和8年8月18日時点）」 and still states CC BY 4.0.
 - All 34 published spots reproduce their CSV record exactly: name, coordinates, hours status and the
-  heated-only semantics. **No discrepancy between the CSV and what MannerPath publishes.**
+  heated-only semantics. **No discrepancy between the CSV and what MannerPath publishes.** This link
+  is the pipeline and provenance tests plus the corpus measurement, not `spot-check.mjs`.
 
 Discrepancies **between the two official publications of the same list** (the CSV we publish and the
 ward's list page) — these are the ones that matter for a beta:
@@ -104,7 +127,7 @@ check — it is a check of one official publication against another.
 
 ## 4. License, attribution and registry validation **[measured]**
 
-All nine checks in the analysis pass (`failedChecks: 0`):
+All ten checks in the analysis pass (`failedChecks: 0`):
 
 | Check | Result |
 |---|---|
@@ -114,7 +137,8 @@ All nine checks in the analysis pass (`failedChecks: 0`):
 | `published-sources-carry-license-and-attribution` | license name, license URL and attribution text are all present |
 | `published-tiles-carry-attribution` | all 5 non-empty tiles carry `sources[].attributionText` |
 | `osm-blocked` | no `kind = 'osm'` source is approved or published |
-| `no-host-inferred-attributes` | no spot in the database carries `spotType`, `hostType`, `accessType` or `environment` — a convenience store's existence is never used as smoking evidence |
+| `taito-public-smoking-areas-unstated-fields-stay-unknown` | all 34 Taito-derived spots leave `spotType`, `hostType`, `accessType` and `environment` unknown/null with no provenance row, **because 台東区's file states none of them**. This is a per-source expectation, not a repository invariant: a future reviewed source that states a type resolves it with provenance and is untouched by this check (`test/data-quality.test.ts`) |
+| `taito-public-smoking-areas-existence-evidence-is-the-municipal-listing` | all 34 cite `taito.listed.v1` for existence — the ward listing, never the convenience store or venue that hosts the spot |
 | `tiles-at-data-tile-zoom` | every tile is z14 |
 | `tile-zoom-thresholds` | max 11 spots/tile and 1,593 gzip bytes/tile |
 
@@ -135,14 +159,15 @@ Covered:
 - Ward-designated public smoking locations in Taito, from the ward's own current release: 上野 (7),
   浅草 (6), 上野公園 (3), 東上野 (3), 台東 (3), 松が谷 (2), and one each in 池之端, 今戸, 清川, 根岸,
   西浅草, 花川戸, 柳橋, 寿, 雷門, 小島 **[measured]**.
-- The dense core — Ueno and Asakusa stations — where p50 spacing is 223 m.
+- The dense core — Ueno and Asakusa stations — where median nearest-neighbour spacing is 209 m.
 
 Not covered:
 
 - Anything outside 台東区. Any adjacent ward (墨田, 荒川, 文京, 千代田, 中央, 江東) has **zero** spots.
   A user 300 m over the ward line sees an empty map with no explanation.
 - Within Taito: 谷中, 入谷, 三ノ輪, 橋場, 日本堤, 千束 have no listed spot **[measured]**; the
-  north-west and north-east of the ward is empty. Max nearest-neighbour distance is 1,112 m.
+  north-west and north-east of the ward is empty. Max nearest-neighbour distance is 1,112 m, and one
+  z14 tile holds a single spot.
 - Smoking locations that exist but the ward does not list (private venues that never applied,
   ashtrays inside facilities). The corpus is "what 台東区 designates", not "where you may smoke".
 
@@ -160,10 +185,33 @@ Known limitations to state in the beta UI:
 4. **Location meaning**: coordinates are the ward's values, datum unstated (assumed JGD2011 ≈ WGS84),
    and #29 is temporarily relocated in a way the CSV does not express.
 
-**Verdict [judgement]:** Taito-only is enough for a narrowly bounded beta — the corpus is small,
-fully attributed, entirely from one approved official source, and every unknown is published as
-unknown. It is not enough for anything described as Tokyo, and the hours discrepancies in §3 are the
-first thing to fix, ahead of adding a second ward.
+## 5a. Beta gate verdict **[judgement]**
+
+The geography question and the corpus measurement are settled. Readiness is not, and the two are
+answered separately:
+
+| Use | Verdict |
+|---|---|
+| Internal development and on-device testing | **Usable now.** The corpus is small, fully attributed, from one approved official source, and every unknown is published as unknown. |
+| Bounded geography, whenever this corpus is used | **台東区 only.** Never described as Tokyo coverage. |
+| External real-data beta | **BLOCKED on Issue #42** — *"Taito data reconciliation: conservative hours and temporary-location handling"*. |
+
+The block is not about coverage; it is about the corpus asserting things the ward's own other
+publication contradicts (§3):
+
+- parsed hours can produce a confirmed `openNow` that a second official Taito publication contradicts
+  (清川清掃車庫, 金竜公園内, 隅田公園内);
+- temporary-closure and restricted-day qualifiers the ward states are absent from what we publish
+  (本庁舎 「平日開庁日のみ」, 佐竹's exception days, ファミリーマート台東一丁目店's renovation closure);
+- one location is documented as temporarily relocated while the published coordinate is still the
+  permanent one (中小企業振興センター駐車場内).
+
+Telling an external user a place is open when the ward says it is closed is a core-behaviour failure,
+not a data-completeness gap, so it gates the external beta rather than being listed as a caveat.
+
+**No correction is hard-coded here.** Issue #33 is a measurement and decision gate; the reconciliation
+belongs to #42 and is deliberately not implemented in this change. **After #42 lands, rerun this gate**
+(§1) and re-decide external readiness against the regenerated artifacts.
 
 ## 6. Candidate next sources — research only **[verified 2026-09-20]**
 
@@ -206,10 +254,11 @@ analysis fails its `tile-zoom-thresholds` check automatically if a future corpus
 
 ## 8. Recommended next source work **[judgement]**
 
-1. Reconcile published hours against the ward's 公衆喫煙所ウェブマップ・一覧 page (§3) — decide
-   whether the list page becomes a second evidence input, or whether the CSV's parsed hours are
-   downgraded to `unparsed` where the page adds a qualifier. Three records currently publish a
-   closing time the ward's other page contradicts.
+1. **Issue #42 — the external-beta blocker.** Reconcile published hours against the ward's
+   公衆喫煙所ウェブマップ・一覧 page (§3) and decide the temporary-location handling: whether the list
+   page becomes a second evidence input, or whether the CSV's parsed hours are downgraded to
+   `unparsed` wherever the page adds a qualifier. Three records currently publish a closing time the
+   ward's other page contradicts, and one publishes a location the ward says is temporarily vacated.
 2. Import a second Taito release when one appears, and settle the stable source record key. The row
    order already differs between the two publications of the same 時点, so `#` is confirmed unusable.
 3. Only then survey a second municipality. The catalog census (§6) says the supply of machine-readable

@@ -50,6 +50,12 @@
       "p90": 11,
       "max": 11
     },
+    "nearestNeighbourMeters": {
+      "min": 56,
+      "p50": 209,
+      "p90": 695,
+      "max": 1112
+    },
     "boundingBox": {
       "minLatitude": 35.69849,
       "maxLatitude": 35.727847,
@@ -219,9 +225,14 @@
       "detail": "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
     },
     {
-      "id": "no-host-inferred-attributes",
+      "id": "taito-public-smoking-areas-unstated-fields-stay-unknown",
       "status": "pass",
-      "detail": "no spot in the database has spotType, hostType, accessType or environment set; nothing is inferred from a host name"
+      "detail": "all 34 spots derived from taito-public-smoking-areas leave spotType, hostType, accessType, environment unknown/null with no provenance row, because that source states none of them"
+    },
+    {
+      "id": "taito-public-smoking-areas-existence-evidence-is-the-municipal-listing",
+      "status": "pass",
+      "detail": "all 34 Taito-derived spots cite taito.listed.v1 for existence — the ward listing, never the convenience store or venue that hosts the spot"
     },
     {
       "id": "tiles-at-data-tile-zoom",

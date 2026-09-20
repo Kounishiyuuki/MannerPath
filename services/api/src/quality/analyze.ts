@@ -12,6 +12,7 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
+import { TAITO_EXISTENCE_RULE, TAITO_SOURCE_ID, TAITO_UNRESOLVED_FIELDS } from "../pipeline/taito.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
 
 export const ANALYSIS_VERSION = "beta-data-quality.v1";
@@ -54,6 +55,42 @@ function percentile(sorted: number[], p: number): number | null {
 
 function rate(unknown: number, total: number): number | null {
   return total === 0 ? null : Number((unknown / total).toFixed(4));
+}
+
+const EARTH_RADIUS_M = 6_371_008.8;
+
+/** Great-circle distance in metres (haversine). Deterministic; no projection, no datum shift. */
+function haversineMeters(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {
+  const toRad = Math.PI / 180;
+  const dLat = (b.latitude - a.latitude) * toRad;
+  const dLon = (b.longitude - a.longitude) * toRad;
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.cos(a.latitude * toRad) * Math.cos(b.latitude * toRad) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/**
+ * Distance from each published spot to its closest neighbour, which is how thin the corpus is where
+ * it does have data. O(n²) on purpose: the corpus is small and an exact answer is worth more here
+ * than an index. Returns null below two spots, where the measure has no meaning.
+ */
+function nearestNeighbourMeters(spots: { latitude: number; longitude: number }[]) {
+  if (spots.length < 2) return null;
+  const distances = spots.map((a) => {
+    let nearest = Infinity;
+    for (const b of spots) {
+      if (b === a) continue;
+      nearest = Math.min(nearest, haversineMeters(a, b));
+    }
+    // Whole metres: the source coordinates carry 3-6 decimals, so sub-metre digits are noise.
+    return Math.round(nearest);
+  }).sort((x, y) => x - y);
+  return {
+    min: distances[0],
+    p50: percentile(distances, 50),
+    p90: percentile(distances, 90),
+    max: distances[distances.length - 1],
+  };
 }
 
 function days(from: string, to: string): number {
@@ -126,18 +163,30 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const bySourceId = new Map(sources.map((s) => [s.source_id, s]));
   const reviewed = new Map(REVIEWED_SOURCES.map((s) => [s.sourceId, s]));
 
-  // Fields whose value the resolver may set only from an explicit statement in the source. A
-  // provenance row for one of these on a spot that no source states would be an inference — the
-  // "a convenience store is not evidence that smoking is allowed" rule in machine-readable form.
-  const { results: inferred } = await db.prepare(
-    `SELECT s.spot_id, s.spot_type, s.access_type, s.environment,
-            (SELECT group_concat(field) FROM spot_field_provenance p WHERE p.spot_id = s.spot_id
-              AND p.field IN ('spotType', 'hostType', 'accessType', 'environment')) AS host_fields
+  // Per-source expectation, not a repository invariant. 台東区's file has no column for a spot's
+  // type, host, access or environment (services/api/src/pipeline/taito.ts), so a Taito-derived spot
+  // that carries one of them was inferred — in this corpus, from a convenience store's name. A
+  // future reviewed source that *states* such a value resolves it with provenance and is untouched
+  // by these two checks.
+  const { results: taitoSpots } = await db.prepare(
+    `SELECT s.spot_id, s.spot_type, s.host_type, s.access_type, s.environment, p.rule AS existence_rule,
+            (SELECT group_concat(field) FROM spot_field_provenance q WHERE q.spot_id = s.spot_id
+              AND q.field IN ('spotType', 'hostType', 'accessType', 'environment')) AS typed_fields
      FROM spots s
-     WHERE s.spot_type <> 'unknown' OR s.access_type <> 'unknown' OR s.environment <> 'unknown'
-        OR s.host_type IS NOT NULL
+     JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
+     JOIN source_records r ON r.record_id = p.record_id
+     JOIN source_releases rel ON rel.release_id = r.release_id
+     WHERE rel.source_id = ?
      ORDER BY s.spot_id`,
-  ).all<{ spot_id: string; spot_type: string; access_type: string; environment: string; host_fields: string | null }>();
+  ).bind(TAITO_SOURCE_ID).all<{
+    spot_id: string; spot_type: string; host_type: string | null; access_type: string;
+    environment: string; existence_rule: string; typed_fields: string | null;
+  }>();
+
+  const taitoTyped = taitoSpots.filter((r) =>
+    r.spot_type !== "unknown" || r.host_type !== null || r.access_type !== "unknown"
+    || r.environment !== "unknown" || r.typed_fields !== null);
+  const taitoHostEvidence = taitoSpots.filter((r) => r.existence_rule !== TAITO_EXISTENCE_RULE);
 
   const checks: Check[] = [];
   const check = (id: string, ok: boolean, detail: string) => checks.push({ id, status: ok ? "pass" : "fail", detail });
@@ -188,10 +237,15 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       ? "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
       : `osm data is approved or published: ${[...osmApproved.map((s) => s.source_id), ...osmPublished].join(", ")}`);
 
-  check("no-host-inferred-attributes", inferred.length === 0,
-    inferred.length === 0
-      ? "no spot in the database has spotType, hostType, accessType or environment set; nothing is inferred from a host name"
-      : `spots carrying host-derived attributes: ${inferred.map((r) => r.spot_id).join(", ")}`);
+  check(`${TAITO_SOURCE_ID}-unstated-fields-stay-unknown`, taitoTyped.length === 0,
+    taitoTyped.length === 0
+      ? `all ${taitoSpots.length} spots derived from ${TAITO_SOURCE_ID} leave ${TAITO_UNRESOLVED_FIELDS.join(", ")} unknown/null with no provenance row, because that source states none of them`
+      : `Taito-derived spots carrying a value that source does not state: ${taitoTyped.map((r) => r.spot_id).join(", ")}`);
+
+  check(`${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`, taitoHostEvidence.length === 0,
+    taitoHostEvidence.length === 0
+      ? `all ${taitoSpots.length} Taito-derived spots cite ${TAITO_EXISTENCE_RULE} for existence — the ward listing, never the convenience store or venue that hosts the spot`
+      : `Taito-derived spots citing another existence rule: ${taitoHostEvidence.map((r) => `${r.spot_id} (${r.existence_rule})`).join(", ")}`);
 
   const wrongZoom = tiles.filter((t) => t.z !== DATA_TILE_ZOOM);
   check("tiles-at-data-tile-zoom", wrongZoom.length === 0,
@@ -253,6 +307,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
         p90: percentile(perTile, 90),
         max: perTile[perTile.length - 1] ?? null,
       },
+      nearestNeighbourMeters: nearestNeighbourMeters(spots),
       boundingBox: spots.length === 0 ? null : {
         minLatitude: latitudes[0],
         maxLatitude: latitudes[latitudes.length - 1],
