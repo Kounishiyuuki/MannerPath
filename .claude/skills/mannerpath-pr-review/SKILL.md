@@ -14,9 +14,11 @@ It is the source of truth for the steps; this skill only names the inputs.
 
 - `gh pr diff <n>` for a PR, or `git diff main...HEAD` for the current branch
 - `AGENTS.md` for every diff
-- `apps/apple/AGENTS.md` if the diff touches `apps/apple/**`
-- `services/AGENTS.md` if the diff touches `services/**`
-- the ADR for any accepted decision the diff appears to change
+- `apps/apple/AGENTS.md` if the diff touches `apps/apple/**` (read it explicitly; it is
+  not auto-loaded)
+- `services/AGENTS.md` if the diff touches `services/**` or `contracts/**` (same)
+- only the docs/ADRs those area tables map to what the diff actually changes, plus the
+  ADR for any accepted decision the diff appears to change
 
 **Validation:** run `make contract`, plus `make apple-validate` / `make api-validate` for
 the areas the diff touches, and `git diff --check`.

@@ -10,13 +10,16 @@ Run the MannerPath Apple workflow for $ARGUMENTS.
 Follow `docs/AGENT_WORKFLOWS.md` (session model, common workflow, reporting contract).
 It is the source of truth for the steps; this skill only scopes them to the Apple app.
 
-**Authoritative files to inspect — these, not the whole repository:**
+**Read, in this order — and nothing else by default:**
 
-- `AGENTS.md` (root contract)
-- `apps/apple/AGENTS.md` (Apple area contract: location, offline, architecture, quality gates)
-- `apps/apple/README.md` (target/project layout)
-- `docs/PRODUCT_REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/TECH_STACK.md`
-- only the ADRs covering the touched paths — commonly ADR-0001 (map platform), ADR-0004 (offline), ADR-0005 (tiles/sync)
+1. `AGENTS.md` (root contract), if it is not already in context.
+2. `apps/apple/AGENTS.md` — always, before the first edit. It is not auto-loaded by
+   opening a file under `apps/apple/`; read it explicitly.
+3. Only the docs/ADRs that the "What to read for this task" table in
+   `apps/apple/AGENTS.md` maps to your concern. A pure UI/layout change needs none.
+
+Do not read backend, API, or source documents for an Apple task unless that table
+names one.
 
 **Scope:** `apps/apple/**` only. If the change needs an API or pipeline edit, stop and
 say so rather than editing `services/**` in the same pass.

@@ -8,13 +8,14 @@ Run the MannerPath backend workflow for the Issue given in the prompt.
 Follow `docs/AGENT_WORKFLOWS.md` (session model, common workflow, reporting contract).
 It is the source of truth for the steps; this skill only scopes them to the backend.
 
-**Authoritative files to inspect — these, not the whole repository:**
+**Read, in this order — and nothing else by default:**
 
-- `AGENTS.md` (root contract)
-- `services/AGENTS.md` (backend area contract: deps, migrations, publication, API surface)
-- `services/api/README.md`, `services/data-pipeline/README.md`
-- `docs/API.md`, `docs/DATA_POLICY.md`, `docs/SOURCES.md`
-- only the ADRs covering the touched paths — commonly ADR-0002 (canonical spot data), ADR-0003 (backend), ADR-0005 (tiles/sync), ADR-0006 (evidence and publication)
+1. `AGENTS.md` (root contract), if it is not already in context.
+2. `services/AGENTS.md` — always, before the first edit. It is not auto-loaded by
+   opening a file under `services/`; read it explicitly.
+3. Only the docs/ADRs that the "What to read for this task" table in
+   `services/AGENTS.md` maps to your concern. An endpoint change does not pull in the
+   data-pipeline README unless it touches ingest or reconciliation.
 
 **Scope:** `services/**` and `contracts/**` only. If the change needs an Apple app edit,
 stop and say so rather than editing `apps/apple/**` in the same pass.

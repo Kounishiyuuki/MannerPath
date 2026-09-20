@@ -3,9 +3,22 @@
 Area contract for `services/api` (Cloudflare Workers, ADR-0003) and `services/data-pipeline`.
 The root `AGENTS.md` still applies in full; nothing here repeats it.
 
-Read before editing: `services/api/README.md`, `services/data-pipeline/README.md`,
-`docs/API.md`, `docs/SOURCES.md`, ADR-0003, ADR-0005, ADR-0006.
 Validation: `make api-validate`.
+
+## What to read for this task
+
+Read only the rows that match what you are changing. No document below is required for
+every backend task — an endpoint change does not pull in the data-pipeline README unless
+it touches ingest or reconciliation.
+
+| Your change concerns | Read |
+| --- | --- |
+| an endpoint, or a request/response shape | `docs/API.md` |
+| D1 schema, migrations, or Worker/runtime setup | `services/api/README.md`, ADR-0003 |
+| tile generation, tile publication, or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
+| evidence, reconciliation, or publication gating | ADR-0006 |
+| ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
+| adding, approving, or changing a data source | `docs/SOURCES.md`, `docs/DATA_POLICY.md` |
 
 ## Dependencies and build
 

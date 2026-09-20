@@ -15,14 +15,19 @@ One Issue, one branch, one worktree, one fresh session. Branch name `claude/<top
 ## Common workflow
 
 1. Confirm the Issue number and the scope it implies. Ask before widening it.
-2. Read root `AGENTS.md`, the area `AGENTS.md` for the paths you will touch, and only
-   the docs/ADRs relevant to those paths. Do not read the repository broadly.
-3. If the change conflicts with an accepted ADR, stop and surface it, or update/add the
+2. Read root `AGENTS.md`, then the area `AGENTS.md` for every path you will touch.
+   Read the area file explicitly — a nested `AGENTS.md` is not injected automatically
+   when you open a file beneath it, and a session started at the repository root has
+   only loaded the root one.
+3. Read only the docs/ADRs that the area file's "What to read for this task" table maps
+   to your concern. Do not read the repository broadly, and do not load a document
+   because it is nearby.
+4. If the change conflicts with an accepted ADR, stop and surface it, or update/add the
    ADR in the same change. Never work around an ADR silently.
-4. Implement the smallest complete vertical slice.
-5. Run the validation commands for the area (below). Failures are reported verbatim.
-6. `git status`, `git diff`, `git diff --check`. Confirm the diff matches the intent.
-7. Commit on the branch, push, open a PR to `main`. Do not merge.
+5. Implement the smallest complete vertical slice.
+6. Run the validation commands for the area (below). Failures are reported verbatim.
+7. `git status`, `git diff`, `git diff --check`. Confirm the diff matches the intent.
+8. Commit on the branch, push, open a PR to `main`. Do not merge.
 
 ## Validation commands
 

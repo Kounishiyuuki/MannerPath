@@ -1,22 +1,39 @@
 # AGENTS.md — MannerPath engineering contract
 
 Authoritative, always-on contract for AI coding agents in this repository.
-Only rules that every task needs live here. Area rules live in nested `AGENTS.md`;
-reusable workflows live in `docs/AGENT_WORKFLOWS.md` and the repository skills.
+Only rules that every task needs live here. Area rules live in nested `AGENTS.md` files
+that you must read explicitly (see below); reusable workflows live in
+`docs/AGENT_WORKFLOWS.md` and the repository skills.
 
 | Scope | File |
 | --- | --- |
 | Apple app (`apps/apple/**`) | `apps/apple/AGENTS.md` |
-| Backend & data pipeline (`services/**`) | `services/AGENTS.md` |
+| Backend & data pipeline (`services/**`, `contracts/**`) | `services/AGENTS.md` |
 | Task workflows and validation | `docs/AGENT_WORKFLOWS.md` |
 
 ## Before changing code
 
-1. Read `docs/PRODUCT_REQUIREMENTS.md`.
-2. Read `docs/ARCHITECTURE.md`.
-3. Read `docs/TECH_STACK.md`.
-4. Read every ADR related to the files being changed.
-5. If a requested change conflicts with these documents, do not silently work around them. Update the relevant ADR/requirement in the same change or surface the conflict. Never change an accepted architectural decision without updating or adding an ADR.
+1. **Read the area `AGENTS.md` for every path you are about to edit, unless it is already
+   in context.** Editing `apps/apple/**` requires `apps/apple/AGENTS.md`; editing
+   `services/**` or `contracts/**` requires `services/AGENTS.md`.
+
+   Do not assume it was loaded for you. A session started at the repository root loads
+   only the `AGENTS.md` files from the root down to its working directory; a nested
+   `AGENTS.md` is **not** injected later merely because you open or edit a file beneath
+   it. Read it yourself.
+
+2. **Read only the documents the change actually touches.** Each area `AGENTS.md` carries
+   a concern → document map; use it to pick the relevant docs and ADRs, and read nothing
+   beyond that. A pure UI/layout change inside an existing feature needs no ADR; a
+   tile-contract change still needs ADR-0005; an evidence/publication change still needs
+   ADR-0006.
+
+3. Read the repository-wide documents only when the change reaches them:
+   - `docs/PRODUCT_REQUIREMENTS.md` — when user-facing product behavior changes.
+   - `docs/ARCHITECTURE.md` — when a component or layer boundary changes.
+   - `docs/TECH_STACK.md` — when a dependency, runtime, or tool changes.
+
+4. If a requested change conflicts with these documents, do not silently work around them. Update the relevant ADR/requirement in the same change or surface the conflict. Never change an accepted architectural decision without updating or adding an ADR.
 
 ## Non-negotiable product rules
 

@@ -1,7 +1,23 @@
 # AGENTS.md — Apple app (`apps/apple/**`)
 
 Area contract. The root `AGENTS.md` still applies in full; nothing here repeats it.
-Project layout and target setup: `apps/apple/README.md`. Validation: `make apple-validate`.
+Validation: `make apple-validate`.
+
+## What to read for this task
+
+Read only the rows that match what you are changing. Nothing here is required for every
+Apple task; a pure UI/layout change inside an existing feature needs none of it.
+
+| Your change concerns | Read |
+| --- | --- |
+| adding files, targets, or capabilities | `apps/apple/README.md` |
+| map display, search, or routing | ADR-0001 |
+| caching or offline behavior | ADR-0004 |
+| tile math or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
+| spot fields, freshness, or publication state shown in the UI | `docs/API.md`, ADR-0006 |
+| user-facing product behavior | `docs/PRODUCT_REQUIREMENTS.md` |
+
+Backend/API/source documents are not part of an Apple task unless a row above names one.
 
 ## Location authorization
 
