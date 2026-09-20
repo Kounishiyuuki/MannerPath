@@ -147,7 +147,7 @@ whose attribution is missing. `test/promotion.test.ts` covers these.
 to one fails on primary keys rather than half-updating it, which is the behaviour that keeps a
 partially-applied promotion from existing. This slice adds no remote upsert or update path, and none
 should be improvised at the console. Corrected or new data ships through the blue/green procedure in
-step 5.
+step 6.
 
 Applying it is a separate human step, and the only step that writes to a remote database. The
 binding form below is for the **first** promotion into a freshly created environment, where the
