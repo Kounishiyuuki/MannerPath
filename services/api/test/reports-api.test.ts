@@ -3,7 +3,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
-import type { AttestationVerifier } from "../src/reports/attestation.ts";
 import { REPORT_BODY_MAX_BYTES, ReportAcceptedV1 } from "../src/reports/dto.ts";
 import { REPORT_RATE_LIMITS } from "../src/reports/rate-limit.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -84,6 +83,8 @@ test("invalid payloads are rejected and the error never echoes a submitted value
     ["malformed spot id", existsReport({ spotId: "sp_not-an-id" })],
     ["a future schema version", existsReport({ schemaVersion: 2 })],
     ["a non-object body", "[]"],
+    // App Attest is deferred: v1 accepts no attestation material at all (ADR-0007 §6).
+    ["attestation material", existsReport({ attestation: { keyId: "key-abc", assertion: "YXNz", challenge: "chal-123" } })],
   ];
   for (const [name, payload] of cases) {
     const res = await post(db, payload);
@@ -142,36 +143,28 @@ test("the per-install hourly budget refuses further reports with Retry-After and
   for (const w of windows) assert.match(w.submitter_hash, /^[0-9a-f]{64}$/);
 });
 
-test("attestation: required fails closed, a verifier decides, and no material is ever stored", async () => {
-  const accepting: AttestationVerifier = { async verify() { return true; } };
-  const rejecting: AttestationVerifier = { async verify() { return false; } };
-  const attestation = { keyId: "key-abc", assertion: "YXNzZXJ0aW9u", challenge: "chal-123" };
-
-  const closed = new SqliteD1();
-  const unavailable = await post(closed, existsReport({ attestation }), { REPORT_ATTESTATION: "required" });
-  assert.equal(unavailable.status, 503, "required attestation with no verifier must not degrade to accepting");
-  assert.equal((await unavailable.json() as Row).error, "attestationUnavailable");
-  assert.equal(one(closed, "SELECT count(*) AS n FROM reports").n, 0);
-
-  const missing = await post(closed, existsReport(), { REPORT_ATTESTATION: "required", ATTESTATION: accepting });
-  assert.equal(missing.status, 400);
-  assert.equal((await missing.json() as Row).error, "attestationInvalid");
-
-  const denied = await post(closed, existsReport({ attestation }), { REPORT_ATTESTATION: "required", ATTESTATION: rejecting });
-  assert.equal(denied.status, 400);
-  assert.equal(one(closed, "SELECT count(*) AS n FROM reports").n, 0);
-
+test("attestation is deferred: every configured mode fails closed and nothing is stored", async () => {
   const db = new SqliteD1();
-  assert.equal((await post(db, existsReport({ attestation }), { REPORT_ATTESTATION: "required", ATTESTATION: accepting })).status, 201);
-  // Policy disabled: an attestation is accepted by the schema, never trusted, and dropped.
-  assert.equal((await post(db, existsReport({ attestation })).then((r) => r.status)), 201);
-  const statuses = all(db, "SELECT attestation_status FROM reports ORDER BY received_at, report_id").map((r) => r.attestation_status);
-  assert.deepEqual([...statuses].sort(), ["unverified", "verified"]);
 
-  const dump = JSON.stringify(all(db, "SELECT * FROM reports"));
-  for (const secret of [attestation.keyId, attestation.assertion, attestation.challenge]) {
-    assert.equal(dump.includes(secret), false, `attestation material ${secret} must not be persisted`);
+  // "required" is honest intent, but the challenge/request-binding protocol does not exist yet, so
+  // the endpoint refuses to run rather than storing unverifiable device claims.
+  const required = await post(db, existsReport(), { REPORT_ATTESTATION: "required" });
+  assert.equal(required.status, 503);
+  assert.equal((await required.json() as Row).error, "attestationUnavailable");
+
+  // A typo must never silently disable attestation.
+  for (const typo of ["Required", "requierd", "enabled", "true", "0", " "]) {
+    const res = await post(db, existsReport(), { REPORT_ATTESTATION: typo });
+    assert.equal(res.status, 503, typo);
+    assert.equal((await res.json() as Row).error, "attestationUnavailable", typo);
   }
+  assert.equal(one(db, "SELECT count(*) AS n FROM reports").n, 0, "no report is stored under an enforcing or invalid policy");
+
+  // Unset and the explicit "disabled" are the documented local/test default.
+  assert.equal((await post(db, existsReport())).status, 201);
+  assert.equal((await post(db, existsReport(), { REPORT_ATTESTATION: "disabled" })).status, 201);
+  const statuses = all(db, "SELECT DISTINCT attestation_status FROM reports").map((r) => r.attestation_status);
+  assert.deepEqual(statuses, ["notProvided"], "v1 can only ever record notProvided");
 });
 
 test("a report submission logs nothing", async () => {

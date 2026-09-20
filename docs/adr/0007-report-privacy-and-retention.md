@@ -1,6 +1,8 @@
 # ADR-0007 — User report privacy, retention and moderation
 
-Status: Accepted (2026-09, Issue #29)
+Status: Accepted (2026-09, Issue #29). Amended 2026-09 by the PR #36 review: App Attest deferred
+(§6), moderation notes replaced by a bounded reason vocabulary (§4), reconciliation transitions
+narrowed to the ones this slice can honestly make (§2).
 
 Prerequisite for the report API. ADR-0006 ends with "Report privacy/retention requires a separate
 ADR before the report API ships"; this is that ADR. It governs `POST /v1/reports`
@@ -39,7 +41,21 @@ Moderation state and reconciliation state are separate, explicit columns
 - `state`: `pending | accepted | rejected | duplicate | needsInfo`. A report is created `pending`;
   a decision requires a decision time and a decider, and cannot return to `pending`.
 - `reconciliation_state`: `notQueued | queued | applied | discarded`, and it may leave `notQueued`
-  only while `state = 'accepted'`.
+  only while `state = 'accepted'`. The transitions that exist **today** are exactly:
+
+  | From | To | Allowed |
+  |---|---|---|
+  | `notQueued` | `queued` | yes (report must be `accepted`) |
+  | `notQueued` | `discarded` | yes (report must be `accepted`) |
+  | `queued` | `discarded` | yes |
+  | anything | `applied` | **no** — nothing in this slice applies a report |
+  | `queued` / `discarded` / `applied` | `notQueued` | **no** — backward |
+  | `discarded` / `applied` | anything | **no** — terminal |
+
+  `applied` stays in the column's vocabulary for the reconciliation slice that will set it, but it
+  is unreachable: a database trigger rejects entering it, a row is born `notQueued`, and the
+  moderation module's type does not offer it. Neither the module nor the local CLI can claim that
+  reconciliation was applied while no reconciliation exists.
 
 Accepting a report records a human judgement that the claim looks true. It does **not** make the
 report canonical evidence and does not change any published tile. Turning an accepted report into
@@ -61,7 +77,7 @@ Zod schema (`services/api/src/reports/dto.ts`); anything else is rejected, not i
 | `observedOn` | when the submitter saw it | date only, `YYYY-MM-DD`; no time of day, so a report cannot place someone at a place at an hour |
 | `note` | free-text detail a moderator needs | optional, ≤ 280 characters |
 | `installId` | abuse control only | client-generated UUID, never stored as sent (§5) |
-| `attestation` | device integrity (§6) | never stored |
+| ~~`attestation`~~ | — | **not accepted in v1**; App Attest is deferred (§6) |
 
 Explicitly **not** accepted and never stored: the device's own position, any trajectory, bearing,
 accuracy or sensor data, a sequence of positions, a user account, an email address, an IP address,
@@ -87,6 +103,13 @@ a client obligation.
   outlive their window by at most 24 hours.
 - A full erase (deleting the row) stays available for a deletion request and is not something the
   public API can trigger.
+- **Moderation metadata carries no free text.** `report_moderation` stores `decided_at`,
+  `decided_by` (a reviewer handle) and `decision_reason` from a closed vocabulary —
+  `confirmed | contradictedBySource | insufficientDetail | duplicateOfExistingReport | outOfScope |
+  abuse | unspecified` — enforced by a CHECK constraint. A free-text moderator note would be an
+  unbounded, unminimized channel through which a reporter's words could outlive the 90-day ceiling
+  on the report itself, so the column does not exist. A moderator who needs to record more decides
+  again with a different reason code or opens a repository issue that contains no reporter content.
 
 ### 5. Abuse boundary and rate limiting
 
@@ -103,20 +126,38 @@ a client obligation.
   front of the Worker, keyed on IP, is a deployment-level pre-launch requirement and is recorded as
   such rather than implemented in application code where it would need to store IPs.
 
-### 6. App Attest / DeviceCheck boundary
+### 6. App Attest / DeviceCheck: deferred, and fail-closed
 
-- The Worker never holds Apple private keys, and none are committed. Verification is an injected
-  `AttestationVerifier` (`services/api/src/reports/attestation.ts`); this repository ships the
-  interface, the policy and the fail-closed behaviour, not an Apple client.
-- Policy comes from the `REPORT_ATTESTATION` binding: `disabled` (default, local and test) or
-  `required`.
-- `required` with no verifier wired in **fails closed**: `503 attestationUnavailable`. It never
-  degrades to accepting unverified reports.
-- Under `disabled`, an attestation object may be sent and is discarded; the report is stored with
-  `attestation_status = 'unverified'` and is never treated as verified.
-- Only the three-valued `attestation_status` (`notProvided | verified | unverified`) is persisted.
-  Key IDs, assertions, challenges and raw attestation blobs are never stored and never logged —
-  they are device-linked identifiers, which is exactly what §3 excludes.
+App Attest is **not implemented in v1, and v1 does not pretend otherwise.** A correct assertion
+check needs all three of:
+
+1. a one-time, server-issued challenge, stored and consumed exactly once;
+2. a `clientDataHash` binding that challenge to the exact report payload being submitted;
+3. server-side replay protection, including the strictly increasing per-key assertion counter.
+
+A client-supplied challenge satisfies none of them — it is replayable and bound to nothing — so a
+verdict derived from it would be worse than no verdict: it would look like evidence of device
+integrity. Therefore:
+
+- the v1 request schema accepts **no attestation material**; sending any is a `400 invalidReport`;
+- every report is stored with `attestation_status = 'notProvided'`. The `verified`/`unverified`
+  values stay in the column for the protocol slice that will set them;
+- no `AttestationVerifier` interface is exposed, because a verifier without §6.1–§6.3 cannot be
+  correct, and a plausible-looking hook invites exactly that mistake;
+- the follow-up work is Issue #37.
+
+`REPORT_ATTESTATION` parsing is exhaustive and fails closed:
+
+| Value | Behaviour |
+|---|---|
+| unset | disabled — the documented local and test default; reports are accepted |
+| `disabled` | disabled — same, stated explicitly |
+| `required` | `503 attestationUnavailable`; no report is stored until Issue #37 lands |
+| anything else (typo, `true`, `enabled`, whitespace, …) | `503 attestationUnavailable` — a misconfiguration never silently disables attestation |
+
+The check runs before the request body is read, so an enforcing or misspelled policy cannot store
+a single report. No Apple private key, team ID or bundle secret is committed to this repository at
+any point; they are deployment configuration for Issue #37.
 
 ### 7. Logging
 
@@ -132,7 +173,9 @@ model would be a larger risk than the workflow it saves. Moderation runs through
 `services/api/src/reports/moderation.ts` and the local-only CLI `npm run local:reports` against
 local D1 (`services/api/README.md`). The queue view never returns `submitter_hash`, because a
 moderator judges the claim, not the submitter; it does print the claim itself, which is the point
-of review and is distinct from the request-path logging §7 forbids.
+of review and is distinct from the request-path logging §7 forbids. Decisions take a reason code
+from the §4 vocabulary — the CLI rejects anything else — and the reconciliation command exposes
+only `queued` and `discarded`.
 
 ## Consequences
 
@@ -140,6 +183,8 @@ of review and is distinct from the request-path logging §7 forbids.
   not depend on anyone doing moderation work.
 - Reports cannot improve data on their own. Until the reconciliation step exists, their value is
   a reviewed queue, and that is deliberate.
-- Before public launch: set `REPORT_SUBMITTER_PEPPER`, wire an App Attest verifier and set
+- Reports are unattested in v1. That is a known, stated gap: the abuse boundary is the hashed
+  submitter key plus rate limiting, and moderation assumes nothing about device integrity.
+- Before public launch: set `REPORT_SUBMITTER_PEPPER`, land Issue #37 and then turn on
   `REPORT_ATTESTATION=required`, add the edge rate-limit rule, and schedule the retention pass.
   None of these may be substituted by application-level guesses.

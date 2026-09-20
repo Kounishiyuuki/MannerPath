@@ -5,7 +5,14 @@ import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
 import { isoSeconds } from "../src/db.ts";
 import { REPORT_MINIMIZE_AFTER_DAYS, createReport, minimizeAfter, submitterHash } from "../src/reports/create.ts";
-import { listModerationQueue, recordModerationDecision, setReconciliationState } from "../src/reports/moderation.ts";
+import {
+  DECISION_REASONS,
+  RECONCILIATION_TRANSITIONS,
+  type ReconciliationState,
+  listModerationQueue,
+  recordModerationDecision,
+  setReconciliationState,
+} from "../src/reports/moderation.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
@@ -105,11 +112,12 @@ test("moderation state is explicit and acceptance alone never queues reconciliat
   // Reconciliation cannot start from a pending report.
   await assert.rejects(setReconciliationState(db, id, "queued", AT), /CHECK constraint failed/);
 
-  await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", note: "写真と一致", now: AT });
+  await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: AT });
   let row = one(db, "SELECT * FROM report_moderation WHERE report_id = ?", id);
   assert.equal(row.state, "accepted");
   assert.equal(row.reconciliation_state, "notQueued", "accepted is a judgement, not evidence");
   assert.equal(row.decided_by, "reviewer-1");
+  assert.equal(row.decision_reason, "confirmed");
 
   await setReconciliationState(db, id, "queued", AT);
   assert.equal(one(db, "SELECT reconciliation_state FROM report_moderation WHERE report_id = ?", id).reconciliation_state, "queued");
@@ -172,4 +180,87 @@ test("reports never mutate canonical or published data", async () => {
   // The report tables are a separate space: no foreign key ties a report to a canonical spot.
   const fks = all(db, "SELECT * FROM pragma_foreign_key_list('reports')");
   assert.deepEqual(fks, []);
+});
+
+test("moderation metadata cannot carry reporter content past the retention deadline", async () => {
+  const db = new SqliteD1();
+  const id = await storeReport(db, { note: "報告者の自由記述" });
+
+  // There is no free-text column to copy a report into: the vocabulary is closed (ADR-0007 §4).
+  const columns = all(db, "SELECT name FROM pragma_table_info('report_moderation')").map((c) => c.name);
+  assert.equal(columns.includes("decision_note"), false, "moderation metadata has no free-text column");
+  assert.deepEqual(columns.filter((c) => c.startsWith("decid") || c.startsWith("decision")).sort(), ["decided_at", "decided_by", "decision_reason"]);
+
+  assert.throws(
+    () => db.raw.prepare("UPDATE report_moderation SET decision_reason = ? WHERE report_id = ?").run("報告者の自由記述", id),
+    /CHECK constraint failed/,
+    "an arbitrary string cannot be stored as a decision reason",
+  );
+  for (const reason of DECISION_REASONS) {
+    const other = await storeReport(db, {}, new Date(AT.getTime() + DECISION_REASONS.indexOf(reason) * 1000 + 1000));
+    await recordModerationDecision(db, other, { state: "rejected", decidedBy: "reviewer-1", reason, now: AT });
+  }
+
+  await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: AT });
+  await applyReportRetention(db, { now: new Date(minimizeAfter(AT).getTime() + 1000) });
+
+  // After minimization nothing anywhere in the report tables still holds the reporter's words.
+  const dump = JSON.stringify([all(db, "SELECT * FROM reports"), all(db, "SELECT * FROM report_moderation")]);
+  assert.equal(dump.includes("報告者の自由記述"), false, "reporter content must not survive through moderation metadata");
+});
+
+test("reconciliation transitions: forward skips, backward steps and terminal states are refused", async () => {
+  const db = new SqliteD1();
+  const accept = async (now = AT) => {
+    const id = await storeReport(db, {}, now);
+    await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now });
+    return id;
+  };
+  const force = (id: string, state: ReconciliationState) =>
+    db.raw.prepare("UPDATE report_moderation SET reconciliation_state = ? WHERE report_id = ?").run(state, id);
+  const stateOf = (id: string) => one(db, "SELECT reconciliation_state FROM report_moderation WHERE report_id = ?", id).reconciliation_state;
+  const TRIGGER = "report_moderation_reconciliation_transitions";
+  const seedReconciliation = (id: string, state: ReconciliationState) => {
+    const sql = one(db, "SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?", TRIGGER).sql;
+    db.raw.exec(`DROP TRIGGER ${TRIGGER}`);
+    db.raw.prepare("UPDATE report_moderation SET reconciliation_state = ? WHERE report_id = ?").run(state, id);
+    db.raw.exec(sql);
+  };
+
+  // The module refuses the illegal moves, with `applied` unreachable because nothing applies reports.
+  assert.deepEqual(RECONCILIATION_TRANSITIONS.applied, []);
+  assert.deepEqual(RECONCILIATION_TRANSITIONS.discarded, []);
+  const a = await accept();
+  await assert.rejects(setReconciliationState(db, a, "applied" as never, AT), /illegal reconciliation transition notQueued -> applied/);
+  await setReconciliationState(db, a, "queued", AT);
+  await assert.rejects(setReconciliationState(db, a, "notQueued" as never, AT), /illegal reconciliation transition queued -> notQueued/);
+  await setReconciliationState(db, a, "discarded", AT);
+  await assert.rejects(setReconciliationState(db, a, "queued", AT), /illegal reconciliation transition discarded -> queued/);
+  assert.equal(stateOf(a), "discarded");
+
+  // The database refuses them too, so no other caller can bypass the module.
+  const illegal: Array<[ReconciliationState, ReconciliationState]> = [
+    ["notQueued", "applied"], ["queued", "applied"], ["queued", "notQueued"],
+    ["applied", "queued"], ["applied", "notQueued"], ["applied", "discarded"],
+    ["discarded", "notQueued"], ["discarded", "queued"], ["discarded", "applied"],
+  ];
+  const b = await accept(new Date(AT.getTime() + 1000));
+  for (const [from, to] of illegal) {
+    // Seed the starting state with the trigger lifted (some starting states, like `applied`, are
+    // unreachable by design), then reinstate it so the transition itself is what is under test.
+    seedReconciliation(b, from);
+    assert.throws(() => force(b, to), /illegal reconciliation transition/, `${from} -> ${to}`);
+  }
+
+  // A row cannot be born in a later state either.
+  const fresh = await storeReport(db, {}, new Date(AT.getTime() + 2000));
+  assert.throws(
+    () => db.raw.prepare("UPDATE report_moderation SET reconciliation_state = 'queued' WHERE report_id = ?").run(fresh),
+    /CHECK constraint failed/,
+    "a pending report cannot be queued",
+  );
+  assert.throws(
+    () => db.raw.prepare("INSERT INTO report_moderation (report_id, state, reconciliation_state, updated_at) VALUES (?, 'pending', 'applied', ?)").run("rp_" + "0".repeat(26), "2026-09-21T03:00:00Z"),
+    /reconciliation starts at notQueued/,
+  );
 });

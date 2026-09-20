@@ -38,12 +38,9 @@ export const ReportRequestV1 = z.object({
   note: z.string().min(1).max(REPORT_NOTE_MAX).optional(),
   // Client-generated per install, used only to derive the hashed abuse key. Never stored as sent.
   installId: z.string().regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/),
-  // Discarded after the verdict; nothing from it is persisted (ADR-0007 §6).
-  attestation: z.object({
-    keyId: z.string().min(1).max(256),
-    assertion: z.string().min(1).max(2048),
-    challenge: z.string().min(1).max(256),
-  }).strict().optional(),
+  // No `attestation` field in v1: App Attest is deferred until the challenge/request-binding
+  // protocol exists, and the strict schema rejects attestation material rather than storing a
+  // claim it cannot check (ADR-0007 §6).
 }).strict().superRefine((r, ctx) => {
   const needsLocation = LOCATION_REPORT_TYPES.includes(r.type);
   if (r.type === "missing" && r.spotId !== undefined) {

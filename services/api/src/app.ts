@@ -8,7 +8,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { type Db } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
-import { type AttestationVerifier, attestationPolicy, checkAttestation } from "./reports/attestation.ts";
+import { ATTESTATION_STATUS_V1, attestationConfig } from "./reports/attestation.ts";
 import { createReport, submitterHash } from "./reports/create.ts";
 import { REPORT_BODY_MAX_BYTES, ReportRequestV1, validationDetail } from "./reports/dto.ts";
 import { consumeReportBudget } from "./reports/rate-limit.ts";
@@ -18,16 +18,14 @@ import { tileEtag } from "./tiles/dto.ts";
 
 export interface Env {
   DB: Db;
-  /** "required" turns on App Attest enforcement; anything else (including unset) is "disabled". */
+  /**
+   * "disabled" or unset (the documented local/test default). "required" is accepted as intent but
+   * unsupported while App Attest is deferred, and any other value is a misconfiguration; both fail
+   * closed with 503 so a typo can never silently disable attestation (ADR-0007 §6).
+   */
   REPORT_ATTESTATION?: string;
   /** Pepper for the hashed report submitter key. No value is committed (ADR-0007 §5). */
   REPORT_SUBMITTER_PEPPER?: string;
-  /**
-   * App Attest verifier, injected by the deployment that holds the Apple credentials. No binding
-   * for it exists in this repository, so under `REPORT_ATTESTATION=required` the endpoint fails
-   * closed until one is wired in (ADR-0007 §6).
-   */
-  ATTESTATION?: AttestationVerifier;
 }
 
 const TileParams = z.object({ z: z.string(), x: z.string(), y: z.string() });
@@ -85,6 +83,11 @@ app.get("/v1/spots/:id", async (c) => {
 // immutable proposal with a pending moderation state; it never mutates canonical spot data, and no
 // part of the payload is logged. Error details carry JSON paths and issue codes, never values.
 app.post("/v1/reports", async (c) => {
+  // Configuration is checked before anything is read: an enforcing or misspelled policy must not
+  // accept a single report while the attestation protocol is missing.
+  const attestation = attestationConfig(c.env.REPORT_ATTESTATION);
+  if (attestation.kind === "unsupported") return problem(503, "attestationUnavailable", attestation.detail);
+
   const raw = await c.req.text();
   if (new TextEncoder().encode(raw).length > REPORT_BODY_MAX_BYTES) {
     return problem(413, "reportTooLarge", `report body must be at most ${REPORT_BODY_MAX_BYTES} bytes`);
@@ -110,21 +113,9 @@ app.post("/v1/reports", async (c) => {
     });
   }
 
-  const attestation = await checkAttestation(
-    attestationPolicy(c.env.REPORT_ATTESTATION),
-    c.env.ATTESTATION,
-    request.attestation,
-  );
-  if (!attestation.ok) {
-    if (attestation.reason === "unavailable") {
-      return problem(503, "attestationUnavailable", "report attestation is required but not configured");
-    }
-    return problem(400, "attestationInvalid", `device attestation was ${attestation.reason}`);
-  }
-
   const body = await createReport(c.env.DB, request, {
     now,
-    attestationStatus: attestation.status,
+    attestationStatus: ATTESTATION_STATUS_V1,
     submitterHash: hash,
   });
   return new Response(JSON.stringify(body), {

@@ -10,6 +10,30 @@ import { type Db, isoSeconds } from "../db.ts";
 export type ModerationState = "pending" | "accepted" | "rejected" | "duplicate" | "needsInfo";
 export type ReconciliationState = "notQueued" | "queued" | "applied" | "discarded";
 
+/**
+ * Why a report was decided, from a bounded non-personal vocabulary. Moderation metadata carries no
+ * free text: it would be an unbounded channel for reporter content that outlives the report's own
+ * 90-day minimization deadline (ADR-0007 §4).
+ */
+export const DECISION_REASONS = [
+  "confirmed", "contradictedBySource", "insufficientDetail",
+  "duplicateOfExistingReport", "outOfScope", "abuse", "unspecified",
+] as const;
+export type DecisionReason = (typeof DECISION_REASONS)[number];
+
+/**
+ * The reconciliation transitions that exist today. `applied` is absent on purpose: this slice has
+ * no reconciliation implementation, so nothing here may claim that a report was applied. The
+ * database enforces the same table (migration 0003).
+ */
+export const RECONCILIATION_TRANSITIONS: Readonly<Record<ReconciliationState, readonly ReconciliationState[]>> = {
+  notQueued: ["queued", "discarded"],
+  queued: ["discarded"],
+  applied: [],
+  discarded: [],
+};
+export type ExposedReconciliationState = "queued" | "discarded";
+
 /** A moderator judges the claim, not the submitter, so submitter_hash is never selected here. */
 export interface ModerationQueueRow {
   report_id: string;
@@ -47,26 +71,37 @@ export async function listModerationQueue(
 export async function recordModerationDecision(
   db: Db,
   reportId: string,
-  decision: { state: Exclude<ModerationState, "pending">; decidedBy: string; note?: string; now: Date },
+  decision: { state: Exclude<ModerationState, "pending">; decidedBy: string; reason?: DecisionReason; now: Date },
 ): Promise<void> {
   const at = isoSeconds(decision.now);
   await db.prepare(
     `UPDATE report_moderation
-        SET state = ?, decided_at = ?, decided_by = ?, decision_note = ?, updated_at = ?
+        SET state = ?, decided_at = ?, decided_by = ?, decision_reason = ?, updated_at = ?
       WHERE report_id = ?`,
-  ).bind(decision.state, at, decision.decidedBy, decision.note ?? null, at, reportId).run();
+  ).bind(decision.state, at, decision.decidedBy, decision.reason ?? "unspecified", at, reportId).run();
 }
 
 /**
- * Marks an accepted report as picked up by reconciliation. The database rejects this for any
- * report that is not accepted; it still does not make the report canonical evidence.
+ * Moves an accepted report through the reconciliation states that exist today: queueing it for
+ * review or discarding it. `applied` cannot be reached from here, because nothing applies reports
+ * yet. The database rejects the same moves, plus any transition from a report that is not accepted.
  */
 export async function setReconciliationState(
   db: Db,
   reportId: string,
-  state: ReconciliationState,
+  state: ExposedReconciliationState,
   now: Date,
 ): Promise<void> {
+  const current = await db.prepare(
+    "SELECT reconciliation_state FROM report_moderation WHERE report_id = ?",
+  ).bind(reportId).first<{ reconciliation_state: ReconciliationState }>();
+  if (current === null) throw new Error(`no such report: ${reportId}`);
+  const allowed = RECONCILIATION_TRANSITIONS[current.reconciliation_state];
+  if (!allowed.includes(state)) {
+    throw new Error(
+      `illegal reconciliation transition ${current.reconciliation_state} -> ${state} (allowed: ${allowed.join(", ") || "none"})`,
+    );
+  }
   await db.prepare(
     "UPDATE report_moderation SET reconciliation_state = ?, updated_at = ? WHERE report_id = ?",
   ).bind(state, isoSeconds(now), reportId).run();

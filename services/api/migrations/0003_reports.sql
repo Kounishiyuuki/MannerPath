@@ -24,7 +24,9 @@ CREATE TABLE reports (
   note                 TEXT CHECK (note IS NULL OR length(note) <= 280),
   -- SHA-256(pepper || installId). The raw install identifier is never stored (ADR-0007 §5).
   submitter_hash       TEXT CHECK (submitter_hash IS NULL OR (length(submitter_hash) = 64 AND submitter_hash NOT GLOB '*[^0-9a-f]*')),
-  -- Only the verdict is kept; key IDs, assertions and challenges are never persisted (ADR-0007 §6).
+  -- App Attest is deferred (ADR-0007 §6): v1 accepts no attestation material, so this is always
+  -- 'notProvided'. The other values exist for the protocol slice that will set them; only a
+  -- verdict is ever stored here, never a key ID, assertion or challenge.
   attestation_status   TEXT NOT NULL CHECK (attestation_status IN ('notProvided', 'verified', 'unverified')),
   received_at          TEXT NOT NULL,
   -- Personal content is minimized after this time whatever the moderation state (ADR-0007 §4).
@@ -79,10 +81,16 @@ CREATE TABLE report_moderation (
   decided_at           TEXT,
   -- Who decided. A reviewer handle, never an end user.
   decided_by           TEXT,
-  decision_note        TEXT,
+  -- A bounded, non-personal vocabulary instead of free text: a moderator note would be an
+  -- unbounded channel for reporter content that outlives the 90-day ceiling on the report
+  -- itself (ADR-0007 §4). Nothing a reporter submits can be copied into this column.
+  decision_reason      TEXT CHECK (decision_reason IS NULL OR decision_reason IN (
+                         'confirmed', 'contradictedBySource', 'insufficientDetail',
+                         'duplicateOfExistingReport', 'outOfScope', 'abuse', 'unspecified')),
   updated_at           TEXT NOT NULL,
   CHECK ((state = 'pending') = (decided_at IS NULL)),
   CHECK ((state = 'pending') = (decided_by IS NULL)),
+  CHECK ((state = 'pending') = (decision_reason IS NULL)),
   CHECK (reconciliation_state = 'notQueued' OR state = 'accepted')
 );
 
@@ -93,6 +101,28 @@ BEFORE UPDATE ON report_moderation
 WHEN NEW.state = 'pending' AND OLD.state <> 'pending'
 BEGIN
   SELECT RAISE(ABORT, 'report_moderation: a decided report cannot return to pending');
+END;
+
+-- Reconciliation state machine (ADR-0007 §2). This slice has no reconciliation implementation, so
+-- the only transitions that exist are the ones it can honestly make: notQueued -> queued,
+-- notQueued -> discarded and queued -> discarded. Forward skips into 'applied', every backward
+-- step and every move out of a terminal state are rejected here, in the database, so no caller --
+-- module, CLI or future code path -- can claim work that was not done.
+-- A row is always born notQueued, so the transition trigger below sees every later move.
+CREATE TRIGGER report_moderation_reconciliation_starts_unqueued
+BEFORE INSERT ON report_moderation
+WHEN NEW.reconciliation_state <> 'notQueued'
+BEGIN
+  SELECT RAISE(ABORT, 'report_moderation: reconciliation starts at notQueued');
+END;
+
+CREATE TRIGGER report_moderation_reconciliation_transitions
+BEFORE UPDATE OF reconciliation_state ON report_moderation
+WHEN NEW.reconciliation_state <> OLD.reconciliation_state
+  AND NOT (OLD.reconciliation_state = 'notQueued' AND NEW.reconciliation_state IN ('queued', 'discarded'))
+  AND NOT (OLD.reconciliation_state = 'queued' AND NEW.reconciliation_state = 'discarded')
+BEGIN
+  SELECT RAISE(ABORT, 'report_moderation: illegal reconciliation transition (allowed: notQueued->queued, notQueued->discarded, queued->discarded; applied is not implemented in this slice)');
 END;
 
 CREATE TRIGGER report_moderation_report_fixed

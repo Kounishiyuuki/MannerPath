@@ -209,8 +209,9 @@ server responses, while the report body is the server's minimization boundary.)
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
   IDFV, IDFA, a DeviceCheck value or any other system identifier.
-- `attestation`: optional `{ "keyId", "assertion", "challenge" }` for App Attest. Only the verdict
-  is kept; the material itself is never stored (ADR-0007 §6).
+- `attestation`: **not accepted in schemaVersion 1.** App Attest is deferred until the server-issued
+  one-time challenge, request binding and replay protection exist (ADR-0007 §6, Issue #37), so
+  sending attestation material is a `400 invalidReport` rather than a claim the server cannot check.
 - Nothing else is accepted: no account, no email, no device position, no position sequence, no
   client-supplied timestamp finer than a day.
 
@@ -231,8 +232,7 @@ Responses:
 | Body over 4 KiB | `413` | `{"error":"reportTooLarge","detail":…}` |
 | Body is not JSON | `400` | `{"error":"invalidJson","detail":…}` |
 | Schema violation (unknown field, wrong type for the report type, oversized note, …) | `400` | `{"error":"invalidReport","detail":…}` — JSON paths and issue codes only, never the submitted values |
-| Attestation missing or rejected while attestation is required | `400` | `{"error":"attestationInvalid","detail":…}` |
-| Attestation required but not configured on the server | `503` | `{"error":"attestationUnavailable","detail":…}` — fails closed, never degrades to accepting |
+| Server configured with `REPORT_ATTESTATION=required`, or with any unrecognised value | `503` | `{"error":"attestationUnavailable","detail":…}` — checked before the body is read; fails closed, and a typo never silently disables attestation |
 | Per-install rate limit exceeded (10/hour, 50/day) | `429` | `{"error":"reportRateLimited","detail":…}`; `Retry-After` seconds |
 
 **An unknown, unpublished or merged-away `spotId` is accepted exactly like a known one**, with an
@@ -242,7 +242,12 @@ handled during moderation.
 
 Retention: personal content (`note`, `proposedLocation`, `observedOn`, the hashed submitter key) is
 erased 90 days after the report arrives, whatever its moderation state; the non-personal skeleton
-of the report remains. See ADR-0007 §4.
+of the report remains. Moderation metadata holds no free text — only a decision time, a reviewer
+handle and a reason code from a closed vocabulary — so nothing a reporter wrote can survive through
+it. See ADR-0007 §4.
+
+Moderation is not reconciliation: an accepted report may be `queued` or `discarded`, and the
+`applied` state is unreachable until the reconciliation step exists (ADR-0007 §2).
 
 ## GET `/config`
 

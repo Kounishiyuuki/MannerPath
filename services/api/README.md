@@ -48,12 +48,15 @@ Moderation and retention run locally; there is no authenticated admin HTTP surfa
 
 ```sh
 npm run local:reports                                         # pending queue (never shows the submitter key)
-npm run local:reports -- decide rp_... accepted reviewer-1 "写真と一致"
-npm run local:reports -- queue rp_... queued                  # accepted reports only; still not publication
+npm run local:reports -- decide rp_... accepted reviewer-1 confirmed   # reason code, never free text
+npm run local:reports -- queue rp_... queued                  # accepted reports only; 'applied' is unreachable
 npm run local:reports -- retain                               # minimize reports past 90 days, purge rate counters
 ```
 
+App Attest is deferred (ADR-0007 §6, Issue #37): v1 accepts no attestation material, and
+`REPORT_ATTESTATION` set to `required` — or to any unrecognised value — makes the endpoint answer
+`503` before reading the body, so a typo cannot silently disable attestation. Unset or `disabled`
+is the local/test default.
+
 Deployment settings this repository deliberately does not contain: `REPORT_SUBMITTER_PEPPER`
-(hashed abuse key pepper), `REPORT_ATTESTATION=required` plus an injected App Attest verifier, and
-the edge rate-limit rule. No Apple key or pepper value is committed; with the policy `required`
-and no verifier, the endpoint answers `503` rather than accepting unverified reports.
+(hashed abuse key pepper) and the edge rate-limit rule. No Apple key or pepper value is committed.
