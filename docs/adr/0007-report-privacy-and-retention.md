@@ -74,7 +74,7 @@ Zod schema (`services/api/src/reports/dto.ts`); anything else is rejected, not i
 | `type` | what is being proposed | one of the eight v1 report types |
 | `spotId` | which spot the claim is about | required except for `missing`, forbidden for `missing` |
 | `proposedLocation` | where the proposed/moved spot is | **only** for `missing` and `moved`; rejected for every other type; stored rounded to 5 decimal places (~1 m), the precision canonical spot data already uses |
-| `observedOn` | when the submitter saw it | date only, `YYYY-MM-DD`; no time of day, so a report cannot place someone at a place at an hour |
+| `observedOn` | when the submitter saw it | a real calendar date at day precision, `YYYY-MM-DD` (`z.iso.date()`), with a matching database CHECK; no time of day, so a report cannot place someone at a place at an hour. No future-date restriction |
 | `note` | free-text detail a moderator needs | optional, ≤ 280 characters |
 | `installId` | abuse control only | client-generated UUID, never stored as sent (§5) |
 | ~~`attestation`~~ | — | **not accepted in v1**; App Attest is deferred (§6) |

@@ -19,8 +19,13 @@ CREATE TABLE reports (
   -- types that are about a location. One coordinate per report; no trajectory, ever (ADR-0007 §3).
   proposed_latitude    REAL CHECK (proposed_latitude IS NULL OR proposed_latitude BETWEEN -90 AND 90),
   proposed_longitude   REAL CHECK (proposed_longitude IS NULL OR proposed_longitude BETWEEN -180 AND 180),
-  -- Day precision only: a report must not place a person somewhere at an hour.
-  observed_on          TEXT CHECK (observed_on IS NULL OR observed_on GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+  -- Day precision only: a report must not place a person somewhere at an hour. Defence in depth
+  -- behind the API's calendar validation: SQLite's date() normalises an impossible day
+  -- (2026-02-31 -> 2026-03-03) and yields NULL for an unparseable one, so requiring the round trip
+  -- to be identical rejects both.
+  observed_on          TEXT CHECK (observed_on IS NULL OR (
+                         observed_on GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'
+                         AND observed_on IS date(observed_on))),
   note                 TEXT CHECK (note IS NULL OR length(note) <= 280),
   -- SHA-256(pepper || installId). The raw install identifier is never stored (ADR-0007 §5).
   submitter_hash       TEXT CHECK (submitter_hash IS NULL OR (length(submitter_hash) = 64 AND submitter_hash NOT GLOB '*[^0-9a-f]*')),

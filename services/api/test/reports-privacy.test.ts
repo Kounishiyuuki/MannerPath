@@ -264,3 +264,21 @@ test("reconciliation transitions: forward skips, backward steps and terminal sta
     /reconciliation starts at notQueued/,
   );
 });
+
+test("the database refuses an impossible observed_on even if the API is bypassed", async () => {
+  const db = new SqliteD1();
+  let n = 0;
+  const insert = (observedOn: string) => () => db.raw.prepare(
+    `INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, proposed_latitude,
+       proposed_longitude, observed_on, note, submitter_hash, attestation_status, received_at, minimize_after, redacted_at)
+     VALUES (?, 1, 'exists', ?, NULL, NULL, ?, NULL, ?, 'notProvided', ?, ?, NULL)`,
+  ).run(`rp_${String(++n).padStart(26, "0")}`, SPOT, observedOn, HASH, isoSeconds(AT), isoSeconds(minimizeAfter(AT)));
+
+  // date() normalises an impossible day and yields NULL for an unparseable one, so requiring an
+  // identical round trip rejects both (defence in depth behind the API's calendar validation).
+  for (const bad of ["2026-02-31", "2026-19-39", "2026-00-00", "2026-04-31", "2026-02-29"]) {
+    assert.throws(insert(bad), /CHECK constraint failed/, bad);
+  }
+  insert("2024-02-29")();
+  assert.equal(one(db, "SELECT count(*) AS n FROM reports WHERE observed_on = '2024-02-29'").n, 1);
+});

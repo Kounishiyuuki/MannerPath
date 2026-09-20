@@ -204,7 +204,10 @@ server responses, while the report body is the server's minimization boundary.)
 - `proposedLocation`: required for `missing` and `moved`, and **rejected for every other type**.
   It is the **map pin being proposed, not the device's position**; clients must never send the
   user's own location. It is stored rounded to 5 decimal places (~1 m).
-- `observedOn`: optional, `YYYY-MM-DD`. Day precision only; a value carrying a time is rejected.
+- `observedOn`: optional, `YYYY-MM-DD`. Day precision only, and a **real calendar date**: a value
+  carrying a time, an unpadded component, or an impossible day (`2026-02-31`, `2026-19-39`,
+  `2026-00-00`, `2026-02-29` in a non-leap year) is rejected with `400`. Leap days of actual leap
+  years (`2024-02-29`) are accepted. There is no future-date restriction.
 - `note`: optional, 1–280 characters.
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send

@@ -80,6 +80,14 @@ test("invalid payloads are rejected and the error never echoes a submitted value
     ["moved report without a location", existsReport({ type: "moved" })],
     ["note over 280 characters", existsReport({ note: "あ".repeat(281) })],
     ["observedOn with a time of day", existsReport({ observedOn: "2026-09-19T12:30:00Z" })],
+    // Calendar validity, not just shape: an impossible day is rejected as well.
+    ["observedOn with an impossible month and day", existsReport({ observedOn: "2026-19-39" })],
+    ["observedOn with a zero month and day", existsReport({ observedOn: "2026-00-00" })],
+    ["observedOn on a day that does not exist", existsReport({ observedOn: "2026-02-31" })],
+    ["observedOn on 31 April", existsReport({ observedOn: "2026-04-31" })],
+    ["observedOn on a leap day of a non-leap year", existsReport({ observedOn: "2026-02-29" })],
+    ["observedOn with a 13th month", existsReport({ observedOn: "2026-13-01" })],
+    ["observedOn without zero padding", existsReport({ observedOn: "2026-9-1" })],
     ["malformed spot id", existsReport({ spotId: "sp_not-an-id" })],
     ["a future schema version", existsReport({ schemaVersion: 2 })],
     ["a non-object body", "[]"],
@@ -96,6 +104,16 @@ test("invalid payloads are rejected and the error never echoes a submitted value
     assert.equal(body.detail.includes("smokedHere"), false, name);
   }
   assert.equal(one(db, "SELECT count(*) AS n FROM reports").n, 0, "no invalid report was stored");
+});
+
+test("a real calendar date is accepted, including a leap day", async () => {
+  const db = new SqliteD1();
+  for (const observedOn of ["2024-02-29", "2026-09-19", "2026-01-01", "2026-12-31", "2000-02-29"]) {
+    const res = await post(db, existsReport({ observedOn }));
+    assert.equal(res.status, 201, observedOn);
+  }
+  const stored = all(db, "SELECT observed_on FROM reports ORDER BY observed_on").map((r) => r.observed_on);
+  assert.deepEqual(stored, ["2000-02-29", "2024-02-29", "2026-01-01", "2026-09-19", "2026-12-31"]);
 });
 
 test("malformed JSON and oversized bodies are refused before parsing", async () => {

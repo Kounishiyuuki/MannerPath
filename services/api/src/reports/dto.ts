@@ -33,8 +33,9 @@ export const ReportRequestV1 = z.object({
   spotId: z.string().regex(SPOT_ID).optional(),
   // The map pin being proposed, not the device's position (docs/API.md, ADR-0007 §3).
   proposedLocation: proposedLocation.optional(),
-  // Day precision by contract: the server rejects anything finer.
-  observedOn: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/).optional(),
+  // Day precision by contract, and a real calendar date: z.iso.date() rejects both a finer
+  // timestamp and an impossible day such as 2026-02-31 or 2026-19-39 (leap years included).
+  observedOn: z.iso.date().optional(),
   note: z.string().min(1).max(REPORT_NOTE_MAX).optional(),
   // Client-generated per install, used only to derive the hashed abuse key. Never stored as sent.
   installId: z.string().regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/),
