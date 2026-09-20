@@ -1,0 +1,249 @@
+{
+  "generator": "beta-data-quality.v1",
+  "generatedAt": "2026-09-21T00:00:00Z",
+  "sources": {
+    "total": 1,
+    "approved": 1,
+    "blocked": 0,
+    "publishedSourceIds": [
+      "taito-public-smoking-areas"
+    ],
+    "entries": [
+      {
+        "sourceId": "taito-public-smoking-areas",
+        "displayName": "台東区 公衆喫煙所",
+        "kind": "municipal",
+        "publicationStatus": "approved",
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "attributionText": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+        "reviewedInCode": true
+      }
+    ]
+  },
+  "releases": [
+    {
+      "releaseId": 1,
+      "sourceId": "taito-public-smoking-areas",
+      "observedOn": "2026-08-18",
+      "observedDaysAgo": 34,
+      "fetchedAt": "2026-09-20T00:00:00Z",
+      "sourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "httpLastModified": "Fri, 11 Sep 2026 07:48:17 GMT",
+      "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+      "byteLength": 7266,
+      "recordCount": 34,
+      "parserVersion": "taito-csv.v1",
+      "status": "applied",
+      "isCurrent": true
+    }
+  ],
+  "corpus": {
+    "publishedSpots": 34,
+    "activeSpotsInDatabase": 34,
+    "publishedTiles": 5,
+    "occupiedTiles": 5,
+    "emptyTiles": 0,
+    "spotsPerOccupiedTile": {
+      "min": 1,
+      "p50": 9,
+      "p90": 11,
+      "max": 11
+    },
+    "nearestNeighbourMeters": {
+      "min": 56,
+      "p50": 209,
+      "p90": 695,
+      "max": 1112
+    },
+    "boundingBox": {
+      "minLatitude": 35.69849,
+      "maxLatitude": 35.727847,
+      "minLongitude": 139.76573,
+      "maxLongitude": 139.805037
+    }
+  },
+  "freshness": {
+    "lastVerifiedAt": {
+      "2026-08-18": 34
+    },
+    "oldest": "2026-08-18",
+    "newest": "2026-08-18",
+    "oldestDaysAgo": 34
+  },
+  "evidenceQuality": {
+    "evidence-quality.v1:officialListing": 34
+  },
+  "openingHoursStatus": {
+    "parsed": 27,
+    "unparsed": 7
+  },
+  "unknownRates": {
+    "spotType": {
+      "unknown": 34,
+      "total": 34,
+      "rate": 1
+    },
+    "accessType": {
+      "unknown": 34,
+      "total": 34,
+      "rate": 1
+    },
+    "environment": {
+      "unknown": 34,
+      "total": 34,
+      "rate": 1
+    },
+    "supportsPaper": {
+      "unknown": 33,
+      "total": 34,
+      "rate": 0.9706
+    },
+    "supportsHeated": {
+      "unknown": 33,
+      "total": 34,
+      "rate": 0.9706
+    },
+    "openingHours": {
+      "unknown": 7,
+      "total": 34,
+      "rate": 0.2059
+    }
+  },
+  "tiles": [
+    {
+      "tileId": "14/14552/6449",
+      "revision": 1,
+      "spotCount": 1,
+      "rawBytes": 1095,
+      "gzipBytes": 764,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    },
+    {
+      "tileId": "14/14553/6449",
+      "revision": 1,
+      "spotCount": 11,
+      "rawBytes": 6588,
+      "gzipBytes": 1472,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    },
+    {
+      "tileId": "14/14553/6450",
+      "revision": 1,
+      "spotCount": 11,
+      "rawBytes": 6689,
+      "gzipBytes": 1593,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    },
+    {
+      "tileId": "14/14554/6449",
+      "revision": 1,
+      "spotCount": 9,
+      "rawBytes": 5533,
+      "gzipBytes": 1370,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    },
+    {
+      "tileId": "14/14554/6450",
+      "revision": 1,
+      "spotCount": 2,
+      "rawBytes": 1662,
+      "gzipBytes": 881,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    }
+  ],
+  "largestTile": {
+    "bySpotCount": {
+      "tileId": "14/14553/6449",
+      "revision": 1,
+      "spotCount": 11,
+      "rawBytes": 6588,
+      "gzipBytes": 1472,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    },
+    "byRawBytes": {
+      "tileId": "14/14553/6450",
+      "revision": 1,
+      "spotCount": 11,
+      "rawBytes": 6689,
+      "gzipBytes": 1593,
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ]
+    }
+  },
+  "thresholds": {
+    "dataTileZoom": 14,
+    "maxSpotsPerTile": 11,
+    "maxRawBytesPerTile": 6689,
+    "maxGzipBytesPerTile": 1593,
+    "reevaluateAboveSpots": 250,
+    "reevaluateAboveGzipBytes": 16384,
+    "withinThresholds": true
+  },
+  "checks": [
+    {
+      "id": "published-sources-reviewed",
+      "status": "pass",
+      "detail": "every published source is in REVIEWED_SOURCES: taito-public-smoking-areas"
+    },
+    {
+      "id": "published-sources-approved",
+      "status": "pass",
+      "detail": "every published source row is publication_status = approved"
+    },
+    {
+      "id": "registry-row-matches-reviewed-entry",
+      "status": "pass",
+      "detail": "every published source row equals its REVIEWED_SOURCES entry (license, URL, attribution, status)"
+    },
+    {
+      "id": "published-sources-carry-license-and-attribution",
+      "status": "pass",
+      "detail": "every published source has a license name, a license URL and attribution text"
+    },
+    {
+      "id": "published-tiles-carry-attribution",
+      "status": "pass",
+      "detail": "all 5 non-empty tiles carry sources[].attributionText"
+    },
+    {
+      "id": "osm-blocked",
+      "status": "pass",
+      "detail": "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
+    },
+    {
+      "id": "taito-public-smoking-areas-unstated-fields-stay-unknown",
+      "status": "pass",
+      "detail": "all 34 spots derived from taito-public-smoking-areas leave spotType, hostType, accessType, environment unknown/null with no provenance row, because that source states none of them"
+    },
+    {
+      "id": "taito-public-smoking-areas-existence-evidence-is-the-municipal-listing",
+      "status": "pass",
+      "detail": "all 34 Taito-derived spots cite taito.listed.v1 for existence — the ward listing, never the convenience store or venue that hosts the spot"
+    },
+    {
+      "id": "tiles-at-data-tile-zoom",
+      "status": "pass",
+      "detail": "every tile is z14"
+    },
+    {
+      "id": "tile-zoom-thresholds",
+      "status": "pass",
+      "detail": "max 11 spots/tile (trigger 250), max 1593 gzip bytes/tile (trigger 16384)"
+    }
+  ],
+  "failedChecks": 0
+}

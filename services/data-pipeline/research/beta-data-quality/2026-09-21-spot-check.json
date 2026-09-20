@@ -1,0 +1,237 @@
+{
+  "checkedAt": "2026-09-20T17:59:26.516Z",
+  "releaseFile": {
+    "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+    "sha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+    "bytes": 7266,
+    "httpLastModified": "Fri, 11 Sep 2026 07:48:17 GMT"
+  },
+  "fixture": {
+    "sha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+    "bytes": 7266,
+    "identicalToLiveRelease": true
+  },
+  "catalogPage": {
+    "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html",
+    "stillLabels20260818": true,
+    "stillStatesCcBy": true
+  },
+  "listPage": {
+    "url": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+    "asOfLabelPresent": true
+  },
+  "sampleMethod": "census: all 34 CSV records compared with the ward's list page",
+  "sampleSize": 34,
+  "findings": [
+    {
+      "ordinal": "4",
+      "name": "浅草寺境内 ①「二尊仏前」東",
+      "pageOrdinal": "4",
+      "listedName": "浅草寺境内 （1）「二尊仏前」東",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "5",
+      "name": "浅草寺境内 ②「観音前警備派出所」北",
+      "pageOrdinal": "5",
+      "listedName": "浅草寺境内 （2）「観音前警備派出所」北",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "6",
+      "name": "浅草寺境内 ③「北側トイレ」南",
+      "pageOrdinal": "6",
+      "listedName": "浅草寺境内 （3）「北側トイレ」南",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "7",
+      "name": "浅草寺境内 ④「はとバス駐車場」西",
+      "pageOrdinal": "7",
+      "listedName": "浅草寺境内 （4）「はとバス駐車場」西",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "10",
+      "name": "本庁舎駐車場出口横",
+      "pageOrdinal": "10",
+      "listedName": "本庁舎駐車場出口横",
+      "csvHours": "8:00-19:00",
+      "csvNote": "",
+      "listedHours": "8：00～19：00 （平日開庁日のみ）",
+      "kind": "qualifier-only-on-list-page"
+    },
+    {
+      "ordinal": "12",
+      "name": "清川清掃車庫内",
+      "pageOrdinal": "12",
+      "listedName": "清川清掃車庫",
+      "csvHours": "7:00-19:00",
+      "csvNote": "",
+      "listedHours": "8：00～20：00",
+      "kind": "hours-differ,name-differs"
+    },
+    {
+      "ordinal": "14",
+      "name": "上野公園正岡子規記念球場横",
+      "pageOrdinal": "16",
+      "listedName": "上野公園正岡子規記念球場横",
+      "csvHours": "7:00-18:00",
+      "csvNote": "",
+      "listedHours": "7：00～18：00",
+      "kind": "ordinal-differs"
+    },
+    {
+      "ordinal": "15",
+      "name": "金竜公園内",
+      "pageOrdinal": "14",
+      "listedName": "金竜公園内",
+      "csvHours": "7:00-19:00",
+      "csvNote": "",
+      "listedHours": "7：00～19：30※金竜公園内のクレーン作業に伴い、安全のため、一時的に閉鎖することがあります。",
+      "kind": "hours-differ,qualifier-only-on-list-page,ordinal-differs"
+    },
+    {
+      "ordinal": "16",
+      "name": "隅田公園内",
+      "pageOrdinal": "15",
+      "listedName": "隅田公園内",
+      "csvHours": "7:00-19:00",
+      "csvNote": "",
+      "listedHours": "7：00～19：30",
+      "kind": "hours-differ,ordinal-differs"
+    },
+    {
+      "ordinal": "17",
+      "name": "paspa 浅草橋",
+      "pageOrdinal": "17",
+      "listedName": "paspa浅草橋",
+      "csvHours": "7:00-20:00",
+      "csvNote": "土日祝日、年末年始は休業",
+      "listedHours": "7：00～20：00(土日・祝日・年末年始を除く)",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "18",
+      "name": "ファミリーマート　台東一丁目店",
+      "pageOrdinal": "18",
+      "listedName": "ファミリーマート 台東一丁目店",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日※令和8年9月6日(日曜)～令和8年9月22日(火曜)（予定）の間、店舗内改修のため閉鎖します。",
+      "kind": "qualifier-only-on-list-page,name-differs"
+    },
+    {
+      "ordinal": "19",
+      "name": "セブン-イレブン　東上野１丁目店",
+      "pageOrdinal": "19",
+      "listedName": "セブンイレブン 東上野1丁目店",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "20",
+      "name": "セブン-イレブン　台東松が谷１丁目店",
+      "pageOrdinal": "20",
+      "listedName": "セブンイレブン 台東松が谷1丁目店",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "21",
+      "name": "セブン-イレブン　田原町駅前店",
+      "pageOrdinal": "21",
+      "listedName": "セブンイレブン 田原町駅前店",
+      "csvHours": "終日",
+      "csvNote": "",
+      "listedHours": "終日",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "22",
+      "name": "smokers peace in ミマツ書房",
+      "pageOrdinal": "22",
+      "listedName": "smokers peace in ミマツ書房",
+      "csvHours": "8:00-21:00",
+      "csvNote": "日祝日・元旦は休業",
+      "listedHours": "平日・土 8：00～21：00日・祝日 9：00～17：00（年始を除く）",
+      "kind": "hours-differ"
+    },
+    {
+      "ordinal": "23",
+      "name": "paspa 上野",
+      "pageOrdinal": "23",
+      "listedName": "paspa上野",
+      "csvHours": "7:00-20:00",
+      "csvNote": "土日祝日、年末年始は休業",
+      "listedHours": "7：00～20：00(土日・祝日・年末年始を除く)",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "24",
+      "name": "paspa 御徒町",
+      "pageOrdinal": "24",
+      "listedName": "paspa御徒町",
+      "csvHours": "7:00-20:00",
+      "csvNote": "土日祝日、年末年始は休業",
+      "listedHours": "7：00～20：00(土日・祝日・年末年始を除く)",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "28",
+      "name": "セブン-イレブン　上野１丁目店",
+      "pageOrdinal": "28",
+      "listedName": "セブンイレブン 上野1丁目店",
+      "csvHours": "7:00-20:00",
+      "csvNote": "",
+      "listedHours": "7：00～20：00",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "29",
+      "name": "中小企業振興センター駐車場内",
+      "pageOrdinal": "29",
+      "listedName": "中小企業振興センター駐車場内(小島公園北側隣接)※小島公園内へ仮移転中",
+      "csvHours": "7:00-19:30",
+      "csvNote": "",
+      "listedHours": "7：00～19：30",
+      "kind": "name-differs"
+    },
+    {
+      "ordinal": "30",
+      "name": "佐竹公衆喫煙所",
+      "pageOrdinal": "30",
+      "listedName": "佐竹公衆喫煙所",
+      "csvHours": "7:00-0:00",
+      "csvNote": "",
+      "listedHours": "7：00～24：00（年末年始・5月連休・お盆休みを除く）",
+      "kind": "qualifier-only-on-list-page"
+    },
+    {
+      "ordinal": "32",
+      "name": "e-booth御徒町　※加熱式たばこ専用",
+      "pageOrdinal": "32",
+      "listedName": "e-booth御徒町※加熱式たばこ専用",
+      "csvHours": "7:00-20:00",
+      "csvNote": "土日祝日、年末年始は休業\n※加熱式たばこ専用",
+      "listedHours": "7：00～20：00 (土日・祝日・年末年始を除く)",
+      "kind": "name-differs"
+    }
+  ]
+}

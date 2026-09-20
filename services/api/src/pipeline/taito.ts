@@ -6,6 +6,18 @@ export const TAITO_SOURCE_ID = "taito-public-smoking-areas";
 export const TAITO_PARSER_VERSION = "taito-csv.v1";
 export const TAITO_RESOLVER_VERSION = "taito-resolver.v1";
 
+// Being listed in an applied release of the ward's own dataset is the existence evidence. For the
+// convenience stores and private venues in the list, this rule is what is cited — never the host or
+// its name (root AGENTS.md: a convenience store's existence is not evidence that smoking is allowed).
+export const TAITO_EXISTENCE_RULE = "taito.listed.v1";
+
+/**
+ * Fields the Taito dataset has no column for and the resolver therefore never resolves. This is a
+ * property of *this source*, not a repository-wide invariant: a future reviewed source that states
+ * a spot's type or access explicitly resolves it, with provenance, and is right to.
+ */
+export const TAITO_UNRESOLVED_FIELDS = ["spotType", "hostType", "accessType", "environment"] as const;
+
 // Catalog/dataset metadata: the landing page that lists the releases. It is NOT the attribution's
 // original-data URL — 台東区's display example asks for 元データ, the data itself (docs/SOURCES.md).
 export const TAITO_DATASET_URL = "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html";
@@ -127,8 +139,8 @@ export function resolveTaitoRecord(values: string[]): ResolvedTaitoRecord {
   }
   const v = Object.fromEntries(TAITO_HEADER.map((h, i) => [h, values[i]])) as Record<(typeof TAITO_HEADER)[number], string>;
   const provenance: FieldProvenance[] = [
-    { field: "existence", columns: [], rule: "taito.listed.v1" },
-    { field: "lifecycle", columns: [], rule: "taito.listed.v1" },
+    { field: "existence", columns: [], rule: TAITO_EXISTENCE_RULE },
+    { field: "lifecycle", columns: [], rule: TAITO_EXISTENCE_RULE },
     { field: "location", columns: ["緯度", "経度"], rule: "taito.coordinates.v1" },
   ];
 
