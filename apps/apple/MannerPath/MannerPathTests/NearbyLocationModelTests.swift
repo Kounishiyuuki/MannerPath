@@ -141,6 +141,42 @@ struct NearbyLocationModelTests {
         #expect(await store.refreshedTileIDs().isEmpty)
     }
 
+    @Test func offlineSourcesAreCompleteAndDetailResolvesFromTheSameRankedResults() async throws {
+        let tile = try tile(at: origin)
+        let east = try #require(SlippyTile(z: tile.z, x: tile.x + 1, y: tile.y))
+        let first = spot("first", at: origin, tile: tile, longitudeOffset: 0.001)
+        let second = spot("second", at: origin, tile: east, longitudeOffset: 0.002)
+        let wardText = "台東区 CC-BY表示4.0国際 元データ https://example.org/data.csv"
+        let ward = SpotSource(id: "ward", displayName: "Ward", licenseName: "CC BY 4.0",
+                              licenseURL: "https://example.org/license", attributionText: wardText)
+        let revisedWard = SpotSource(id: "ward", displayName: "Ward", licenseName: "CC BY 4.0",
+                                     licenseURL: "https://example.org/license", attributionText: "Revised attribution wording")
+        let station = SpotSource(id: "station", displayName: "Station", licenseName: nil,
+                                 licenseURL: nil, attributionText: "Station source text, unchanged.")
+        let store = FakeTileData(
+            cached: [tile.id: [first], east.id: [second]],
+            sources: [tile.id: [ward], east.id: [revisedWard, station]]
+        )
+        let model = NearbyModel(
+            location: FakeLocationProvider(state: .usable(deviceLocation(at: origin))),
+            repository: store,
+            refresher: nil
+        )
+
+        #expect(await waitUntil {
+            if case .cacheOnly = model.dataState { return true }
+            return false
+        })
+        #expect(model.results.map(\.spot.id) == ["first", "second"])
+        #expect(model.result(id: "second")?.spot.id == model.results[1].spot.id)
+        #expect(model.result(id: "missing") == nil)
+        #expect(model.sources.map(\.id) == ["station", "ward", "ward"])
+        #expect(Set(model.sources.filter { $0.id == "ward" }.compactMap(\.attributionText)) ==
+                Set([wardText, "Revised attribution wording"]))
+        #expect(model.sources.first(where: { $0.id == "station" })?.attributionText == "Station source text, unchanged.")
+        #expect(await store.refreshedTileIDs().isEmpty)
+    }
+
     @Test func locationChangeReplacesActiveTileNeighborhood() async throws {
         let second = SpotCoordinate(latitude: 35.5, longitude: 139.2)
         let firstTile = try tile(at: origin)
@@ -159,6 +195,35 @@ struct NearbyLocationModelTests {
         #expect(Set(await store.readTileIDs()) == Set(
             firstTile.neighborhood3x3().map(\.id) + secondTile.neighborhood3x3().map(\.id)
         ))
+    }
+
+    @Test func sameNeighborhoodLocationRefreshKeepsDetailAvailableWhileReadingCache() async throws {
+        let tile = try tile(at: origin)
+        let location = FakeLocationProvider(state: .usable(deviceLocation(at: origin)))
+        let model = NearbyModel(
+            location: location,
+            repository: FakeTileData(cached: [tile.id: [spot("cached", at: origin, tile: tile)]]),
+            refresher: nil
+        )
+        #expect(await waitUntil { model.result(id: "cached") != nil })
+
+        location.send(.locating)
+        #expect(model.displayLocation != nil)
+        #expect(model.result(id: "cached") != nil)
+        let movedCoordinate = SpotCoordinate(latitude: origin.latitude, longitude: origin.longitude + 0.0001)
+        let moved = deviceLocation(at: movedCoordinate)
+        location.send(.usable(moved))
+        #expect(model.result(id: "cached") != nil)
+        #expect(model.resultsLocation?.coordinate == origin)
+        #expect(model.displayLocation?.coordinate == movedCoordinate)
+        #expect(await waitUntil {
+            if case .cacheOnly = model.dataState {
+                return model.resultsLocation?.coordinate == movedCoordinate
+            }
+            return false
+        })
+        #expect(model.result(id: "cached") != nil)
+        #expect((model.result(id: "cached")?.distanceMeters ?? 0) > 0)
     }
 
     @Test func lateOldNeighborhoodRefreshCannotReplaceNewLocationResults() async throws {
@@ -348,6 +413,7 @@ private enum FakeRefreshError: Error { case failed }
 
 private actor FakeTileData: CachedSpotRepository, NearbyTileRefreshing {
     private var cached: [String: [Spot]]
+    private var sourcesByTile: [String: [SpotSource]]
     private let replacements: [String: [Spot]]
     private let failing: Set<String>
     private let gate: RefreshGate?
@@ -357,12 +423,14 @@ private actor FakeTileData: CachedSpotRepository, NearbyTileRefreshing {
 
     init(
         cached: [String: [Spot]] = [:],
+        sources: [String: [SpotSource]] = [:],
         replacements: [String: [Spot]] = [:],
         failing: Set<String> = [],
         gate: RefreshGate? = nil,
         gatedTiles: Set<String>? = nil
     ) {
         self.cached = cached
+        sourcesByTile = sources
         self.replacements = replacements
         self.failing = failing
         self.gate = gate
@@ -372,6 +440,10 @@ private actor FakeTileData: CachedSpotRepository, NearbyTileRefreshing {
     func spots(inTile tileID: String) async throws -> [Spot] {
         reads.append(tileID)
         return cached[tileID] ?? []
+    }
+
+    func sources(inTile tileID: String) async throws -> [SpotSource] {
+        sourcesByTile[tileID] ?? []
     }
 
     func refresh(_ tile: SlippyTile) async throws {
