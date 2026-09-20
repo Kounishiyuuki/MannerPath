@@ -3,9 +3,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { parseCsv } from "../src/pipeline/csv.ts";
-import { ensureTaitoSource, ingestTaitoCsv } from "../src/pipeline/ingest.ts";
+import { ingestTaitoCsv } from "../src/pipeline/ingest.ts";
+import { applyReviewedSourceRegistry, ensureReviewedSource, reviewedSource } from "../src/pipeline/registry.ts";
 import { EVIDENCE_QUALITY_VERSION, FIRST_RELEASE_MATCHER_VERSION, OFFICIAL_LISTING, resolveFirstRelease } from "../src/pipeline/resolve.ts";
-import { TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_SOURCE_ID, resolveTaitoRecord } from "../src/pipeline/taito.ts";
+import { TAITO_ATTRIBUTION_TEXT, TAITO_DATASET_URL, TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_SOURCE_ID, resolveTaitoRecord } from "../src/pipeline/taito.ts";
 import { SPOT_ID } from "../src/spot-id.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../src/geo/tile.ts";
 import { NOW, TAITO_BYTES, importTaito } from "./support/fixture.ts";
@@ -38,7 +39,7 @@ test("CSV reader rejects malformed input instead of guessing", () => {
 
 test("ingest: all 34 Taito records stored with all 12 raw columns verbatim, including the multi-line field", async () => {
   const db = new SqliteD1();
-  await ensureTaitoSource(db, NOW);
+  await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
   const { releaseId, created } = await ingestTaitoCsv(db, TAITO_SOURCE_ID, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
   assert.equal(created, true);
 
@@ -74,22 +75,62 @@ test("ingest: all 34 Taito records stored with all 12 raw columns verbatim, incl
 
 test("ingest rejects a file whose header is not the Taito format", async () => {
   const db = new SqliteD1();
-  await ensureTaitoSource(db, NOW);
+  await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
   const bytes = new TextEncoder().encode("#,名称\n1,x\n");
   await assert.rejects(ingestTaitoCsv(db, TAITO_SOURCE_ID, bytes, TAITO_FIXTURE_RELEASE), /unexpected header/);
   assert.equal(one(db, "SELECT count(*) AS n FROM source_releases").n, 0);
 });
 
-test("registry: the Taito source is registered blocked and ensureTaitoSource never changes an existing row", async () => {
+test("registry: a fresh database gets the reviewed Taito row as approved, and ensure never rewrites an existing row", async () => {
   const db = new SqliteD1();
-  await ensureTaitoSource(db, NOW);
-  assert.equal(one(db, "SELECT publication_status FROM sources WHERE source_id = ?", TAITO_SOURCE_ID).publication_status, "blocked");
-  db.raw.prepare("UPDATE sources SET display_name = 'edited' WHERE source_id = ?").run(TAITO_SOURCE_ID);
-  await ensureTaitoSource(db, NOW);
+  assert.deepEqual(await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW), { created: true });
+  const fresh = one(db, "SELECT * FROM sources WHERE source_id = ?", TAITO_SOURCE_ID);
+  assert.equal(fresh.publication_status, "approved", "the known reviewed source is not created as a generic blocked row");
+  assert.equal(fresh.display_name, "台東区 公衆喫煙所");
+  assert.equal(fresh.license_name, "CC BY 4.0");
+  assert.equal(fresh.attribution_text, TAITO_ATTRIBUTION_TEXT);
+
+  // Ensure is insert-only: an operator edit survives an import, which is why the upgrade path below
+  // is a separate, named operation rather than a side effect of ingest.
+  db.raw.prepare("UPDATE sources SET display_name = 'edited', publication_status = 'blocked' WHERE source_id = ?").run(TAITO_SOURCE_ID);
+  assert.deepEqual(await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW), { created: false });
   const s = one(db, "SELECT * FROM sources WHERE source_id = ?", TAITO_SOURCE_ID);
   assert.equal(s.display_name, "edited");
   assert.equal(s.publication_status, "blocked");
-  assert.equal(s.attribution_text, null, "no attribution wording is approved yet");
+});
+
+test("registry: the reviewed Taito attribution carries all four required display elements", () => {
+  const text = reviewedSource(TAITO_SOURCE_ID).attributionText!;
+  assert.equal(text, TAITO_ATTRIBUTION_TEXT);
+  for (const element of ["台東区", "CC-BY表示4.0国際", "本作品の内容について、台東区は一切保証しないものとする。", TAITO_DATASET_URL]) {
+    assert.ok(text.includes(element), `attribution must state ${element}`);
+  }
+  // The stable dataset page, not the per-release CSV URL (which changes every 時点 release).
+  assert.ok(!text.includes(TAITO_FIXTURE_RELEASE.sourceUrl));
+});
+
+test("registry: the upgrade path re-applies the reviewed entry to an existing blocked row, and only to reviewed sources", async () => {
+  const db = new SqliteD1();
+  // A database created before the review: the older code inserted Taito blocked with no attribution.
+  db.raw.prepare(
+    `INSERT INTO sources (source_id, display_name, kind, license_name, license_url, attribution_text, publication_status, created_at, updated_at)
+     VALUES (?, '台東区 公衆喫煙所', 'municipal', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/legalcode.ja', NULL, 'blocked', ?, ?)`,
+  ).run(TAITO_SOURCE_ID, NOW, NOW);
+
+  assert.deepEqual(await applyReviewedSourceRegistry(db, TAITO_SOURCE_ID, "2026-09-22T00:00:00Z"),
+    { status: "updated", publicationStatus: "approved" });
+  const s = one(db, "SELECT * FROM sources WHERE source_id = ?", TAITO_SOURCE_ID);
+  assert.equal(s.publication_status, "approved");
+  assert.equal(s.attribution_text, TAITO_ATTRIBUTION_TEXT);
+  assert.equal(s.updated_at, "2026-09-22T00:00:00Z");
+  assert.deepEqual(await applyReviewedSourceRegistry(db, TAITO_SOURCE_ID, NOW), { status: "unchanged", publicationStatus: "approved" });
+
+  // Nothing can approve a source this repository has not reviewed — including OSM.
+  for (const id of ["osm", "some-new-municipality"]) {
+    await assert.rejects(() => ensureReviewedSource(db, id, NOW), /not a reviewed source/);
+    await assert.rejects(() => applyReviewedSourceRegistry(db, id, NOW), /not a reviewed source/);
+    assert.equal(one(db, "SELECT count(*) AS n FROM sources WHERE source_id = ?", id).n, 0);
+  }
 });
 
 test("first release: one new source entity, one 'new' decision and one opaque spot per record", async () => {

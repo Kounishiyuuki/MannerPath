@@ -161,8 +161,10 @@ the zoom after release is a contract change (ADR-0005).
 - **Observation-date semantics [unresolved]:** 「令和8年8月18日時点」 is interpreted as the date the list
   reflects. It is not stated to be a per-site physical verification date.
 - **Geodetic datum [unresolved]:** not stated. Assumed JGD2011 ≈ WGS84 (sub-metre difference); unverified.
-- **Exact attribution wording [unresolved]:** the ward prescribes no verbatim text. Proposed text:
-  「出典：台東区「公衆喫煙所」（CC BY 4.0）」 plus the license URI. It needs maintainer/legal sign-off for the in-app attribution screen.
+- **Exact attribution wording [resolved by Issue #22]:** the ward prescribes no verbatim text, but its
+  open-data terms page gives a display example with four elements. The approved wording is in
+  `docs/SOURCES.md` and fixed in code as `TAITO_ATTRIBUTION_TEXT`; it is what the API sends as
+  `sources[].attributionText`.
 - **Database rights / combination with other sources [unresolved, no legal conclusion]:** not analysed.
   ODbL obligations for combining with OSM remain unreviewed (DATA_POLICY.md).
 - **Kōtō terms [unresolved]:** only the catalog's metadata was checked, not the ward's own terms.

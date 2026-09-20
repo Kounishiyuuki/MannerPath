@@ -7,7 +7,7 @@ See `../../docs/API.md` and `../../docs/adr/0006-evidence-and-publication.md` (I
 ## Contents
 
 - `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists.
-- `src/pipeline/`: Taito ingest (raw evidence), first-release reconciliation, and the field rules in `taito.ts`.
+- `src/pipeline/`: Taito ingest (raw evidence), first-release reconciliation, the field rules in `taito.ts`, and the reviewed source registry in `registry.ts`.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
 - `src/app.ts`: `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`.
 - `src/geo/tile.ts`: Slippy XYZ tile math, checked against `contracts/tiles/slippy-xyz-vectors.v1.json`.
@@ -25,4 +25,13 @@ npm run dev              # wrangler dev --local
 ```
 
 Only local D1 is configured. `wrangler.jsonc` has a placeholder `database_id`, and nothing here targets a remote database.
-The Taito source is `blocked` in the registry, so `local:pipeline` resolves all 34 records but publishes none of them (its report lists them under `excluded`). The tile endpoint therefore returns `404 tileNotPublished` for Taito tiles until the source is approved in `docs/SOURCES.md` and the `sources` table.
+The Taito source is `approved` in the registry (`docs/SOURCES.md`), so `local:pipeline` resolves all 34 records and publishes them into 5 z14 tile snapshots with the approved attribution text. Sources that are not approved are excluded and listed under `excluded` in the publish report, and the D1 publication trigger rejects them even if the publisher is bypassed.
+
+`local:pipeline` creates the Taito registry row from the reviewed entry in `src/pipeline/registry.ts` only when it is missing, and never rewrites an existing row. A local database created before the approval still holds the older `blocked` Taito row; upgrade it deliberately with:
+
+```bash
+npm run local:registry   # re-apply the reviewed registry entries (local D1 only)
+npm run local:pipeline   # republish so the tiles reflect the new status
+```
+
+Only sources listed in `REVIEWED_SOURCES` can be registered or approved by this code; anything else throws. Approving a new source is a repository change (`docs/SOURCES.md` + that list), reviewed in a PR.

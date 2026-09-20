@@ -72,12 +72,12 @@ Implementation: `services/api/src/app.ts`. Zod schema: `services/api/src/tiles/d
     }
   ],
   "sources": [
-    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": null }
+    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": "台東区「公衆喫煙所」（CC-BY表示4.0国際）本作品の内容について、台東区は一切保証しないものとする。 https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html" }
   ]
 }
 ```
 
-(Illustrative only: the Taito source is `blocked`, so the server publishes no Taito tile today.)
+(The Taito source is `approved` (`docs/SOURCES.md`), so this is the shape of a real published Taito tile. `attributionText` is the wording approved for that source; a client displays it verbatim for every source behind the spots it shows.)
 
 - `id`: opaque (`sp_` + 26 Crockford base32 characters). Clients never parse it.
 - `name`: string or `null`.
@@ -138,7 +138,7 @@ Implementation: `services/api/src/app.ts`, `services/api/src/spots/`. Zod schema
     "tile": "14/14553/6450"
   },
   "sources": [
-    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": null }
+    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": "台東区「公衆喫煙所」（CC-BY表示4.0国際）本作品の内容について、台東区は一切保証しないものとする。 https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html" }
   ],
   "provenance": [
     { "field": "existence", "sourceId": "taito-public-smoking-areas", "rule": "taito.listed.v1", "observedOn": "2026-08-18" },
@@ -147,7 +147,7 @@ Implementation: `services/api/src/app.ts`, `services/api/src/spots/`. Zod schema
 }
 ```
 
-(Illustrative only: the Taito source is `blocked`, so the server serves no Taito spot detail today.)
+(`sources` is byte-identical to the entry the tile API sends for the same source: both endpoints build it from the same registry row through the same DTO.)
 
 - `spot` repeats the tile DTO's spot object field-for-field, with identical values, plus `tile` (the data tile the spot is published in). A client decodes it with the same decoder it uses for tile spots. `spotType: "unknown"` is returned normally here too, with the same meaning as in the tile DTO.
 - The **verification summary** is the same triple the tile carries: `evidenceQuality`, `evidenceQualityVersion` and `lastVerifiedAt` (the observation date of the accepted existence evidence). Freshness stays a client-side computation.

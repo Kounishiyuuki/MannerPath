@@ -3,7 +3,7 @@
 
 import { type Db, sha256Hex } from "../db.ts";
 import { parseCsv } from "./csv.ts";
-import { TAITO_PARSER_VERSION, TAITO_REGISTRY, assertTaitoHeader } from "./taito.ts";
+import { TAITO_PARSER_VERSION, assertTaitoHeader } from "./taito.ts";
 
 export interface ReleaseMetadata {
   sourceUrl: string;
@@ -11,15 +11,6 @@ export interface ReleaseMetadata {
   observedOn: string | null;
   fetchedAt: string;
   httpLastModified: string | null;
-}
-
-/** Inserts the Taito registry row if missing. Never changes an existing row, so never approves a source. */
-export async function ensureTaitoSource(db: Db, now: string): Promise<void> {
-  const s = TAITO_REGISTRY;
-  await db.prepare(
-    `INSERT INTO sources (source_id, display_name, kind, license_name, license_url, attribution_text, publication_status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'blocked', ?, ?) ON CONFLICT (source_id) DO NOTHING`,
-  ).bind(s.sourceId, s.displayName, s.kind, s.licenseName, s.licenseUrl, s.attributionText, now, now).run();
 }
 
 /**

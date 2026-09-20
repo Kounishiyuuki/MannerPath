@@ -6,16 +6,28 @@ export const TAITO_SOURCE_ID = "taito-public-smoking-areas";
 export const TAITO_PARSER_VERSION = "taito-csv.v1";
 export const TAITO_RESOLVER_VERSION = "taito-resolver.v1";
 
-// Registry mirror of docs/SOURCES.md. There is deliberately no publication status here: a new
-// source row is always inserted as 'blocked', and approval is an explicit registry edit.
+// Stable dataset page. It is the original-data URL in the attribution because it survives every
+// 時点 release; the release CSV URL (TAITO_FIXTURE_RELEASE.sourceUrl) changes with each one and is
+// release provenance, not the citation a client shows.
+export const TAITO_DATASET_URL = "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html";
+
+// The four display elements 台東区's open-data terms require (docs/SOURCES.md, Issue #22): the
+// publisher, the license label, the publisher's no-warranty sentence and the original-data URL.
+// The wording is fixed here because it is what the tile/detail DTOs send as sources[].attributionText.
+export const TAITO_ATTRIBUTION_TEXT =
+  `台東区「公衆喫煙所」（CC-BY表示4.0国際）本作品の内容について、台東区は一切保証しないものとする。 ${TAITO_DATASET_URL}`;
+
+// Registry mirror of the reviewed docs/SOURCES.md entry, including its publication status. This is
+// a repository-controlled constant, not something an importer computes: it is the only way the
+// Taito row becomes 'approved' (see src/pipeline/registry.ts). Unlisted sources stay blocked.
 export const TAITO_REGISTRY = {
   sourceId: TAITO_SOURCE_ID,
   displayName: "台東区 公衆喫煙所",
   kind: "municipal",
   licenseName: "CC BY 4.0",
   licenseUrl: "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
-  // No in-app wording is approved yet (SOURCES.md), so none is published.
-  attributionText: null,
+  attributionText: TAITO_ATTRIBUTION_TEXT,
+  publicationStatus: "approved",
 } as const;
 
 // Release metadata of the committed fixture (services/data-pipeline/fixtures/.../PROVENANCE.md).
