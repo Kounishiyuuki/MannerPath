@@ -34,7 +34,7 @@ target; `local:pipeline`, `local:registry` and `local:export` open their binding
 | `npx wrangler d1 create …` | Typed by hand; creates the database |
 | `npx wrangler d1 migrations apply DB --env staging --remote` | Needs `--remote` **and** a real `database_id` |
 | `npx wrangler secret put … --env staging` | Interactive; value never in the repository |
-| `npx wrangler d1 execute DB --env staging --remote --file promotion.sql` | Needs `--remote`, a real `database_id`, and a bundle a human reviewed |
+| `npx wrangler d1 execute DB --env staging --remote --file promotion.sql` | Needs `--remote`, a real `database_id`, and a bundle a human reviewed. Targets an empty, freshly migrated database only |
 | `npx wrangler deploy --env staging` | Needs a real `database_id` |
 | `node --experimental-strip-types --no-warnings scripts/smoke.ts --base-url https://… --remote` | Refuses a non-loopback target without `--remote`, and refuses non-HTTPS |
 | `npx wrangler delete --env staging` | Typed by hand; the disable step |
@@ -47,6 +47,11 @@ against canonical data on whatever it points at.
 ## Sequence
 
 Run in order. Each step is verifiable before the next.
+
+Steps 1–5 bootstrap an environment. Data changes after that are **blue/green** (step 6): the
+promotion bundle is INSERT-only and targets an empty database, so corrected data means a new D1
+database that the Worker is switched onto, with the previous one kept for rollback. Nothing in this
+runbook updates a populated remote database in place, and this PR adds no code that could.
 
 ### 1. Create / configure
 
@@ -137,9 +142,17 @@ bundle does not carry; provenance points at evidence outside the release; a stor
 not match its content hash, its schema, its membership or its spot count; or a tile cites a source
 whose attribution is missing. `test/promotion.test.ts` covers these.
 
+**The bundle is a bootstrap artifact, not an update.** It is INSERT-only, and its target is an
+**empty, freshly migrated database**. It cannot modify an already-populated remote D1: applying it
+to one fails on primary keys rather than half-updating it, which is the behaviour that keeps a
+partially-applied promotion from existing. This slice adds no remote upsert or update path, and none
+should be improvised at the console. Corrected or new data ships through the blue/green procedure in
+step 5.
+
 Applying it is a separate human step, and the only step that writes to a remote database:
 
 ```sh
+npx wrangler d1 migrations apply DB --env staging --remote    # a fresh, empty database
 npx wrangler d1 execute DB --env staging --remote --file promotion.sql
 ```
 
@@ -168,18 +181,86 @@ It prints one line per check and exits non-zero if any fails:
 The attribution check is a licence check, not a cosmetic one: publishing a spot without its source's
 approved attribution violates the source licence (`DATA_POLICY.md`).
 
-### 6. Rollback / disable
+### 6. Ship corrected or new data: blue/green D1 promotion
 
-- **Bad tile content:** republish. Tiles are replaced atomically per tile and `revision` is
-  monotonic, so a corrected snapshot supersedes a bad one; clients replace the whole tile.
+There is no in-place remote data update. A promotion bundle bootstraps an empty database (step 4),
+so a corrected tile, a new release or a fixed attribution ships as a **new database that the Worker
+is switched onto** — blue/green — not as an edit of the live one.
+
+Re-publish locally first (`npm run local:pipeline`), regenerate the bundle
+(`npm run local:export -- --out promotion-<release>-<date>.sql`) and review it. Then:
+
+```sh
+# 1. Create the new (green) database. Keep the old (blue) one running and untouched.
+npx wrangler d1 create mannerpath-staging-2
+
+# 2. Migrate it. It must be empty apart from the schema.
+#    Point the environment's database_id at the new ID in a branch first, or migrate with an
+#    explicit --database-id; never mutate the live database to "prepare" it.
+npx wrangler d1 migrations apply DB --env staging --remote
+npx wrangler d1 migrations list DB --env staging --remote      # expect: no pending migrations
+
+# 3. Apply the reviewed bundle to the new database.
+npx wrangler d1 execute DB --env staging --remote --file promotion-<release>-<date>.sql
+
+# 4. Smoke verify the new database before any user reaches it — deploy the branch to a separate
+#    environment/preview bound to the green database, and point the smoke script at that host.
+node --experimental-strip-types --no-warnings scripts/smoke.ts \
+  --base-url https://<green-host> --remote --tile <a tile in the new data>
+
+# 5. Switch the live Worker onto it: change `database_id` for that environment in
+#    services/api/wrangler.jsonc, land the change in a reviewed PR, then deploy.
+npx wrangler deploy --env staging
+
+# 6. Smoke verify the live host again, now serving the green database.
+node --experimental-strip-types --no-warnings scripts/smoke.ts \
+  --base-url https://<worker-host> --remote --tile <a tile in the new data>
+```
+
+**Keep the previous (blue) database.** Do not delete it when the switch succeeds: it is the rollback
+target until the new data has been observed in the beta for long enough to trust. Deleting it is a
+separate, later, deliberate decision (`npx wrangler d1 delete`), taken after a successful
+promotion has settled, and never in the same session as the switch.
+
+Notes:
+
+- The `database_id` switch is a reviewed repository change, exactly like the first one — the
+  deployment is what makes a database live, so it goes through a PR.
+- The cut-over is not atomic across the two databases, but each tile is: clients revalidate with
+  `ETag` and replace a tile wholesale, so a client sees the old tile or the new one, never a mix.
+- User reports live in the database being replaced. In beta, remote report acceptance is closed
+  (`REPORT_ATTESTATION=required`, Issue #37), so a green database starts with no reports to carry
+  and nothing is lost. **This stops being true the moment #37 lands**: a blue/green switch would
+  then drop the reports written to the blue database since the bundle was built, and that issue must
+  define how reports are carried across (or replace this model) before reports are accepted
+  remotely.
+
+### 7. Rollback / disable
+
+- **Bad tile content:** there is no in-place remote fix. Correct it locally, republish
+  (`npm run local:pipeline`), regenerate and review a bundle, and run the blue/green promotion in
+  step 6 onto a new database. Within one database, tiles are replaced atomically per tile with a
+  monotonic `revision`, so a client always sees a whole old tile or a whole new one.
+- **Bad data just promoted:** switch the Worker's `database_id` back to the previous (blue)
+  database in a reviewed change and redeploy, then smoke verify:
+
+  ```sh
+  # restore the previous database_id in services/api/wrangler.jsonc (reviewed PR)
+  npx wrangler deploy --env staging
+  node --experimental-strip-types --no-warnings scripts/smoke.ts \
+    --base-url https://<worker-host> --remote --tile 14/14553/6450
+  ```
+
+  This works only while the previous database still exists, which is why step 6 keeps it.
 - **Bad code:** `npx wrangler rollback --env staging` (previous deployment), or redeploy the
   previous commit.
 - **Stop accepting reports:** already the committed state remotely (`REPORT_ATTESTATION=required`
   fails closed). There is no separate kill-switch var, and one would be a second, weaker gate.
 - **Take the environment down:** `npx wrangler delete --env staging`. Deleting the Worker does not
   delete the D1 database; `npx wrangler d1 delete` is a separate, destructive decision.
-- A rollback never edits canonical data by hand. Canonical rows change only through ingest → resolve
-  → publish.
+- A rollback never edits canonical data by hand, in either database. Canonical rows change only
+  through ingest → resolve → publish locally, and reach a remote database only as a reviewed
+  promotion bundle applied to a fresh one.
 
 ## Cache and CDN semantics
 

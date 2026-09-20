@@ -41,6 +41,10 @@ preserved. It writes nothing without `--out`, refuses to export unapproved or in
 and carries no report data. Applying it (`wrangler d1 execute … --remote --file`) is an explicit
 human step.
 
+The bundle is INSERT-only and **bootstraps an empty, freshly migrated database**; it cannot update a
+populated one. Corrected data ships blue/green — a new D1 database the Worker is switched onto, with
+the previous one kept for rollback (`../../docs/OPERATIONS.md` step 6).
+
 Standing up and verifying a staging / production-like environment is `../../docs/OPERATIONS.md`;
 nothing in this repository deploys or migrates a remote database.
 

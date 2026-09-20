@@ -1,6 +1,12 @@
 // Promotion bundle (docs/OPERATIONS.md): the deterministic, reviewable artifact that carries one
 // validated *local* release's published state to another database.
 //
+// It is a BOOTSTRAP artifact: INSERT-only, for an empty, freshly migrated target database. It cannot
+// update a populated one, and this slice deliberately adds no upsert path — corrected data ships by
+// promoting a new database and switching the Worker's binding (the blue/green procedure in
+// docs/OPERATIONS.md). Applying a bundle to a populated database fails on primary keys, which is what
+// keeps a half-applied update from ever existing.
+//
 // It is a pure read of a local database plus a text serialisation. Nothing here opens a connection,
 // and nothing here applies anything: the caller writes a file, a human reads it, and a human runs
 // `wrangler d1 execute ... --remote --file`. That split is the point — the repository never grows a
@@ -326,10 +332,17 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
     ...manifest.tiles.map((t) => `-- tile ${t.tileId}: revision ${t.revision}, ${t.spotCount} spot(s), ${t.contentSha256}`),
     `-- contentSha256: ${contentSha256}`,
     "--",
+    "-- TARGET: an EMPTY, freshly migrated database. This bundle is INSERT-only — it bootstraps a new",
+    "-- database and cannot update a populated one. To ship corrected data, create a new D1 database,",
+    "-- migrate it, apply the new bundle, smoke verify, then switch the Worker's binding in a reviewed",
+    "-- deployment (blue/green; docs/OPERATIONS.md). Re-applying this file to a populated database",
+    "-- fails on primary keys rather than half-updating it.",
+    "--",
     "-- This file contains no secret and no user report data. Applying it is an explicit human step:",
+    "--   npx wrangler d1 migrations apply DB --env <environment> --remote",
     "--   npx wrangler d1 execute DB --env <environment> --remote --file <this file>",
-    "-- Run the migrations first. The receiving database re-checks the publication invariant on every",
-    "-- tile_snapshot_spots row, so a tampered bundle is rejected there as well as here.",
+    "-- The receiving database re-checks the publication invariant on every tile_snapshot_spots row,",
+    "-- so a tampered bundle is rejected there as well as here.",
     "",
   ].join("\n");
 

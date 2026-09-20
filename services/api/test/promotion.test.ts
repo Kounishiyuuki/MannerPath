@@ -127,6 +127,32 @@ test("the bundle applies to a freshly migrated database and reproduces the publi
   assert.equal((await buildPromotionBundle(new SqliteD1(target))).sql, sql);
 });
 
+test("the bundle is a bootstrap artifact: INSERT-only, and it refuses a populated database", async () => {
+  const { sql, manifest } = await buildPromotionBundle(await publishedDb());
+
+  // INSERT-only by construction. An UPDATE, DELETE or upsert would be an in-place remote update
+  // path, which this slice deliberately does not have (docs/OPERATIONS.md: blue/green promotion).
+  // One statement per `);` terminator. A few source values (opening-hours text) contain newlines and
+  // stay inside their quoted literal, so statements are not split on line breaks.
+  const withoutComments = sql.split("\n").filter((line) => !line.startsWith("--")).join("\n");
+  const statements = withoutComments.split(");\n").map((s) => s.trim()).filter((s) => s !== "");
+  assert.equal(statements.length, Object.values(manifest.rows).reduce((a, b) => a + b, 0), "one statement per exported row");
+  assert.equal(statements.every((s) => s.startsWith("INSERT INTO ")), true, "every statement is an INSERT");
+  for (const forbidden of ["UPDATE ", "DELETE ", "ON CONFLICT", "INSERT OR ", "REPLACE INTO", "BEGIN;", "COMMIT;", "PRAGMA ", "DROP "]) {
+    assert.equal(sql.includes(forbidden), false, `${forbidden} must not appear`);
+  }
+  // The artifact says what it targets, so a maintainer reading it cannot mistake it for an update.
+  assert.match(sql, /TARGET: an EMPTY, freshly migrated database/);
+  assert.match(sql, /cannot update a populated one/);
+
+  // Applying it to a database that already holds the data fails outright rather than half-updating:
+  // that failure is what makes the blue/green procedure the only path for corrected data.
+  const target = migratedSqlite();
+  target.exec("PRAGMA foreign_keys = ON;");
+  target.exec(sql);
+  assert.throws(() => target.exec(sql), /UNIQUE constraint failed|constraint failed/);
+});
+
 test("an unapproved source is never exported", async () => {
   const db = new SqliteD1();
   addBlockedTestSource(db);
