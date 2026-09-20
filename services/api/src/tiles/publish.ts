@@ -7,7 +7,7 @@
 import { type Db, sha256Hex } from "../db.ts";
 import { TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
 
-interface CandidateRow {
+export interface CandidateRow {
   spot_id: string;
   name: string | null;
   latitude: number;
@@ -42,7 +42,7 @@ export interface PublishReport {
   excluded: { sourceId: string; publicationStatus: string; spotCount: number }[];
 }
 
-function spotDto(r: CandidateRow): TileSpotV1 {
+export function spotDto(r: CandidateRow): TileSpotV1 {
   const p = r.opening_hours_json === null ? null : JSON.parse(r.opening_hours_json);
   const parsed = p === null ? null
     : p.kind === "daily" ? { v: p.v, kind: p.kind, opens: p.opens, closes: p.closes }
@@ -66,7 +66,7 @@ function spotDto(r: CandidateRow): TileSpotV1 {
   };
 }
 
-function sourceDto(r: CandidateRow): TileSourceV1 {
+export function sourceDto(r: CandidateRow): TileSourceV1 {
   return {
     id: r.source_id,
     displayName: r.display_name,

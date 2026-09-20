@@ -108,6 +108,61 @@ Returns the full current spot record and public provenance/verification summary.
 
 Spot IDs are opaque and stable. If a spot was merged, the response identifies the target (`mergedInto`) so clients can update local references (favorites, recents). Clients never derive canonical IDs from source IDs.
 
+### schemaVersion 1 (implemented, Issue #16)
+
+Implementation: `services/api/src/app.ts`, `services/api/src/spots/`. Zod schema: `services/api/src/spots/dto.ts`. Decisions: ADR-0006 amendment (Issue #16).
+
+**Publication membership is the read gate.** The endpoint serves a spot only while it is in a published tile snapshot (ADR-0006). A canonical spot that is blocked, never published, merged away or no longer active is not discoverable here: it answers exactly like an ID that does not exist.
+
+```json
+{
+  "schemaVersion": 1,
+  "requestedId": "sp_01V64NN31G72E5KJJ5W22W1A1J",
+  "mergedInto": null,
+  "spot": {
+    "id": "sp_01V64NN31G72E5KJJ5W22W1A1J",
+    "name": "上野公園前交番裏",
+    "latitude": 35.7112,
+    "longitude": 139.77377,
+    "spotType": "unknown",
+    "accessType": "unknown",
+    "environment": "unknown",
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": { "status": "parsed", "raw": "終日利用可能", "parsed": { "v": 1, "kind": "allDay" }, "timeZone": "Asia/Tokyo" },
+    "lifecycle": "active",
+    "evidenceQuality": "officialListing",
+    "evidenceQualityVersion": "evidence-quality.v1",
+    "lastVerifiedAt": "2026-08-18",
+    "sourceIds": ["taito-public-smoking-areas"],
+    "tile": "14/14553/6450"
+  },
+  "sources": [
+    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": null }
+  ],
+  "provenance": [
+    { "field": "existence", "sourceId": "taito-public-smoking-areas", "rule": "taito.listed.v1", "observedOn": "2026-08-18" },
+    { "field": "name", "sourceId": "taito-public-smoking-areas", "rule": "taito.name.v1", "observedOn": "2026-08-18" }
+  ]
+}
+```
+
+(Illustrative only: the Taito source is `blocked`, so the server serves no Taito spot detail today.)
+
+- `spot` repeats the tile DTO's spot object field-for-field, with identical values, plus `tile` (the data tile the spot is published in). A client decodes it with the same decoder it uses for tile spots. `spotType: "unknown"` is returned normally here too, with the same meaning as in the tile DTO.
+- The **verification summary** is the same triple the tile carries: `evidenceQuality`, `evidenceQualityVersion` and `lastVerifiedAt` (the observation date of the accepted existence evidence). Freshness stays a client-side computation.
+- `sources` is the same compact attribution shape as the tile DTO's `sources`, holding the sources behind `spot.sourceIds`.
+- `provenance` is the **public** field-level provenance: for each resolved field, which source it came from, the named derivation `rule` and the observation date of that evidence. It is limited to evidence from an applied release of an approved source. Raw source records, source column names, record/release/entity IDs, matcher and resolver internals are never exposed. A field absent from the list has no accepted evidence (it is unknown/default).
+- `requestedId` / `mergedInto`: merges resolve in exactly one hop (ADR-0006). When the requested ID was merged, the response is the live target's, `mergedInto` names it, and `requestedId` is what the client asked for, so a client can rewrite stored references. When the spot is live, `requestedId` equals `spot.id` and `mergedInto` is `null`. A merge whose target is not published answers `404` like any other unpublished spot.
+- No `ETag` in schemaVersion 1: unlike a tile, no stored snapshot hash describes this body, and the slice does not add a per-request hash. Clients revalidate normally.
+
+Responses:
+
+| Case | Status | Body / headers |
+|---|---|---|
+| Published spot (or a merged ID whose target is published) | `200` | Detail body; `Cache-Control: public, no-cache`; no `ETag` |
+| Unknown, malformed, unpublished, blocked, merged-away or inactive ID | `404` | `{"error":"spotNotFound","detail":…}` — deliberately indistinguishable |
+
 ## POST `/reports`
 
 Creates a verification/correction report.

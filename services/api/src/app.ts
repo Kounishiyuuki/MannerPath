@@ -1,10 +1,14 @@
-// Public API v1 (docs/API.md). Only the tile read exists in this slice. The handler serves the stored
+// Public API v1 (docs/API.md). Two reads exist in this slice. The tile handler serves the stored
 // snapshot body byte-for-byte; the ETag is derived from the stored hash, never recomputed here.
+// The spot detail handler builds its body from canonical rows, gated on published snapshot
+// membership; it carries no ETag, because no stored hash describes that body.
 
 import { Hono } from "hono";
 import { z } from "zod";
 import { type Db } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
+import { SPOT_ID } from "./spot-id.ts";
+import { readPublishedSpot } from "./spots/detail.ts";
 import { tileEtag } from "./tiles/dto.ts";
 
 export interface Env {
@@ -48,6 +52,18 @@ app.get("/v1/tiles/:z/:x/:y", async (c) => {
   const headers = { ETag: etag, "Cache-Control": CACHE_CONTROL };
   if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) return new Response(null, { status: 304, headers });
   return new Response(row.body_json, { status: 200, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
+});
+
+app.get("/v1/spots/:id", async (c) => {
+  const id = c.req.param("id");
+  // A malformed, unknown, unpublished and blocked ID are all the same 404: publication membership
+  // is the read gate, and the response must never reveal that an unpublished canonical row exists.
+  const body = SPOT_ID.test(id) ? await readPublishedSpot(c.env.DB, id) : null;
+  if (body === null) return problem(404, "spotNotFound", "no published spot with this id");
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
+  });
 });
 
 app.notFound(() => problem(404, "notFound", "no such endpoint"));
