@@ -28,7 +28,7 @@ it touches ingest or reconciliation.
 ## Database and migrations
 
 - D1 schema changes are new numbered files under `services/api/migrations/`. Never edit an applied migration in place.
-- Only local D1 is configured. Nothing here may target a remote database; `wrangler.jsonc` keeps a placeholder `database_id`.
+- Only local D1 is configured. Nothing here may target a remote database; every environment in `wrangler.jsonc` — local, `staging` and `production` — keeps the all-zero placeholder `database_id`, and `test/deploy-config.test.ts` fails if one is replaced. Standing up a real environment is `docs/OPERATIONS.md`, and a maintainer's action.
 - Tests run the real migrations through the node:sqlite D1-shaped adapter in `test/`.
 
 ## Publication and provenance

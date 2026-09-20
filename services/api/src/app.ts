@@ -1,11 +1,13 @@
-// Public API v1 (docs/API.md). Two reads and one write exist in this slice. The tile handler
-// serves the stored snapshot body byte-for-byte; the ETag is derived from the stored hash, never recomputed here.
+// Public API v1 (docs/API.md). Three reads and one write exist in this slice. The config handler
+// answers from the canonical constants alone and touches no database.
+// The tile handler serves the stored snapshot body byte-for-byte; the ETag is derived from the stored hash, never recomputed here.
 // The spot detail handler builds its body from canonical rows, gated on published snapshot
 // membership; it carries no ETag, because no stored hash describes that body.
 // The report write stores an immutable proposal and never touches canonical data (ADR-0007).
 
 import { Hono } from "hono";
 import { z } from "zod";
+import { configBody } from "./config/dto.ts";
 import { type Db } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { ATTESTATION_STATUS_V1, attestationConfig } from "./reports/attestation.ts";
@@ -49,6 +51,16 @@ export function ifNoneMatchMatches(header: string | undefined, etag: string): bo
 }
 
 export const app = new Hono<{ Bindings: Env }>();
+
+// GET /v1/config: the non-secret compatibility contract (docs/API.md). Every value is read from the
+// canonical constant the serving code uses, so it cannot drift from behaviour. It exposes no secret
+// and nothing per-caller; of the environment it reveals only whether reports are accepted, derived
+// from REPORT_ATTESTATION, never the configured value.
+app.get("/v1/config", (c) =>
+  new Response(JSON.stringify(configBody(c.env.REPORT_ATTESTATION)), {
+    status: 200,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
+  }));
 
 app.get("/v1/tiles/:z/:x/:y", async (c) => {
   const params = TileParams.parse(c.req.param());

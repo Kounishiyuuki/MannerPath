@@ -1,10 +1,22 @@
-// Local development only. No remote D1 database is configured: database_id is a placeholder, so
-// `--remote` commands cannot reach a real database until one is created and this is reviewed.
+// Worker configuration. The top level is the LOCAL development environment; `env.staging` and
+// `env.production` are the staging / production-like shapes described in `../../docs/OPERATIONS.md`.
+//
+// No environment here can reach a real database: every `database_id` is the all-zero placeholder, so
+// a `--remote` or `deploy` command fails until a maintainer creates the database and lands the real
+// ID in a reviewed change (`services/AGENTS.md`). That is deliberate, and `test/deploy-config.test.ts`
+// enforces it. Secrets (REPORT_SUBMITTER_PEPPER) are never `vars`; they are set with
+// `wrangler secret put` per environment and are not committed.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mannerpath-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
+  // Sampled request logs only, and never report payloads or precise positions: see the
+  // monitoring/logging policy in `../../docs/OPERATIONS.md`.
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+  // Attestation stays disabled until Issue #37 ships the App Attest challenge protocol. "required"
+  // is accepted as intent but fails closed with 503 (ADR-0007 §6) — do not set it to enable reports.
+  "vars": { "REPORT_ATTESTATION": "disabled" },
   "d1_databases": [
     {
       "binding": "DB",
@@ -12,5 +24,35 @@
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
-  ]
+  ],
+  // Named environments are not merged with the top level for these keys: each one repeats its own
+  // vars, bindings and observability settings in full.
+  "env": {
+    "staging": {
+      "name": "mannerpath-api-staging",
+      "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+      "vars": { "REPORT_ATTESTATION": "disabled" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "mannerpath-staging",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    },
+    "production": {
+      "name": "mannerpath-api-production",
+      "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+      "vars": { "REPORT_ATTESTATION": "disabled" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "mannerpath-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
 }

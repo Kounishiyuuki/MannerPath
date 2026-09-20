@@ -9,7 +9,8 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 - `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables.
 - `src/pipeline/`: Taito ingest (raw evidence), first-release reconciliation, the field rules in `taito.ts`, and the reviewed source registry in `registry.ts`.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
-- `src/app.ts`: `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`, `GET /v1/spots/{id}` and `POST /v1/reports`.
+- `src/app.ts`: `GET /v1/config`, `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`, `GET /v1/spots/{id}` and `POST /v1/reports`.
+- `src/config/`: the `GET /v1/config` compatibility body, built from the canonical constants the rest of the code enforces.
 - `src/reports/`: the report API (ADR-0007) — strict request schema, hashed-submitter rate limiting, the App Attest boundary, retention/minimization and moderation state.
 - `src/geo/tile.ts`: Slippy XYZ tile math, checked against `contracts/tiles/slippy-xyz-vectors.v1.json`.
 - `test/`: node:test suites. They run on node:sqlite through a D1-shaped adapter that applies the real migrations.
@@ -24,9 +25,16 @@ npm run local:migrate    # wrangler d1 migrations apply DB --local
 npm run local:pipeline   # ingest -> resolve -> publish the Taito fixture into local D1
 npm run dev              # wrangler dev --local
 npm run local:reports    # moderation queue / decisions / retention pass (local D1 only)
+npm run local:smoke      # read-only smoke checks against http://127.0.0.1:8787
 ```
 
-Only local D1 is configured. `wrangler.jsonc` has a placeholder `database_id`, and nothing here targets a remote database.
+`local:smoke` verifies `/v1/config`, a tile `200`, the `ETag`/`304` pair, the `tileNotPublished`
+`404`, spot detail, attribution and how the report endpoint is configured. It targets loopback
+unless both `--base-url` and `--remote` are given, and it never submits a valid report. Standing up
+and verifying a staging / production-like environment is `../../docs/OPERATIONS.md`; nothing in this
+repository deploys or migrates a remote database.
+
+Only local D1 is configured. `wrangler.jsonc` also carries the `staging` and `production` environment shapes, but every one of them keeps the all-zero placeholder `database_id`, so nothing here can target a remote database (`test/deploy-config.test.ts` enforces it).
 The Taito source is `approved` in the registry (`docs/SOURCES.md`), so `local:pipeline` resolves all 34 records and publishes them into 5 z14 tile snapshots with the approved attribution text. Sources that are not approved are excluded and listed under `excluded` in the publish report, and the D1 publication trigger rejects them even if the publisher is bypassed.
 
 `local:pipeline` creates the Taito registry row from the reviewed entry in `src/pipeline/registry.ts` only when it is missing, and never rewrites an existing row. A local database created before the approval still holds the older `blocked` Taito row; upgrade it deliberately with:
