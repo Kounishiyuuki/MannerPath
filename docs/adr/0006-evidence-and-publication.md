@@ -53,7 +53,7 @@ Evidence-quality/confidence and ranking algorithms carry explicit versions so re
 
 - Importers must emit evidence, not canonical rows.
 - A resolution step produces canonical values + provenance; a publish step enforces the invariant and updates tile revisions (ADR-0005).
-- Report privacy/retention requires a separate ADR before the report API ships.
+- Report privacy/retention requires a separate ADR before the report API ships. That ADR is `docs/adr/0007-report-privacy-and-retention.md` (accepted 2026-09, Issue #29): reports are an immutable proposal layer, and an accepted report still becomes canonical evidence only through a separate reconciliation step that re-enters the ordinary source → release → record → resolve → publish path with this ADR's publication invariant intact.
 
 ## Amendment 2026-09 — physical schema (Issue #8)
 

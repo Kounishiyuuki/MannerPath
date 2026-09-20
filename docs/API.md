@@ -165,21 +165,84 @@ Responses:
 
 ## POST `/reports`
 
-Creates a verification/correction report.
+Creates a verification/correction report: a user's claim that a spot exists, is gone, moved, or
+that its hours, access or tobacco-type support changed.
 
 Report types: `exists | missing | moved | hoursChanged | tobaccoTypeChanged | accessChanged | prohibited | other`.
 
-The endpoint does not directly mutate canonical spot data.
+**A report is an immutable proposal, never a canonical mutation.** It is stored in its own table
+space with moderation state `pending`, and it changes no spot and no published tile. Acceptance is
+a later human decision, and even an accepted report becomes canonical evidence only through a
+separate reconciliation step (ADR-0006, ADR-0007 §2). The response therefore never reports
+anything but `pending`.
 
-Expected protections before public launch:
+### schemaVersion 1 (implemented, Issue #29)
 
-- per-install/device abuse controls;
-- rate limiting;
-- Apple App Attest / DeviceCheck strategy;
-- payload validation;
-- moderation status.
+Privacy and retention: `docs/adr/0007-report-privacy-and-retention.md`. Implementation:
+`services/api/src/app.ts`, `services/api/src/reports/`. Zod schema:
+`services/api/src/reports/dto.ts`. Migration: `services/api/migrations/0003_reports.sql`.
 
-Privacy/retention of report data is unresolved and requires a dedicated ADR before this endpoint ships.
+```json
+{
+  "schemaVersion": 1,
+  "type": "moved",
+  "spotId": "sp_01V64NN31G72E5KJJ5W22W1A1J",
+  "proposedLocation": { "latitude": 35.7112, "longitude": 139.77377 },
+  "observedOn": "2026-09-19",
+  "note": "10mほど北に移設されていました",
+  "installId": "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f"
+}
+```
+
+The request schema is **strict**: an unknown field is rejected with `400`, not ignored. (This is
+the one place where the forward-compatibility rule above does not apply — it binds clients reading
+server responses, while the report body is the server's minimization boundary.)
+
+- `type`: required.
+- `spotId`: required for every type **except** `missing`, and rejected for `missing` (a missing
+  spot has no canonical ID yet).
+- `proposedLocation`: required for `missing` and `moved`, and **rejected for every other type**.
+  It is the **map pin being proposed, not the device's position**; clients must never send the
+  user's own location. It is stored rounded to 5 decimal places (~1 m).
+- `observedOn`: optional, `YYYY-MM-DD`. Day precision only; a value carrying a time is rejected.
+- `note`: optional, 1–280 characters.
+- `installId`: required, a client-generated UUID that is stable per install and per app only. It
+  is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
+  IDFV, IDFA, a DeviceCheck value or any other system identifier.
+- `attestation`: optional `{ "keyId", "assertion", "challenge" }` for App Attest. Only the verdict
+  is kept; the material itself is never stored (ADR-0007 §6).
+- Nothing else is accepted: no account, no email, no device position, no position sequence, no
+  client-supplied timestamp finer than a day.
+
+Response (`201`):
+
+```json
+{ "schemaVersion": 1, "reportId": "rp_01V64NN31G72E5KJJ5W22W1A1J", "state": "pending", "receivedAt": "2026-09-20T09:30:00Z" }
+```
+
+- `reportId` is opaque (`rp_` + 26 Crockford base32 characters).
+- `state` is always `pending` in schemaVersion 1.
+
+Responses:
+
+| Case | Status | Body / headers |
+|---|---|---|
+| Stored | `201` | Accepted body; `Cache-Control: no-store` |
+| Body over 4 KiB | `413` | `{"error":"reportTooLarge","detail":…}` |
+| Body is not JSON | `400` | `{"error":"invalidJson","detail":…}` |
+| Schema violation (unknown field, wrong type for the report type, oversized note, …) | `400` | `{"error":"invalidReport","detail":…}` — JSON paths and issue codes only, never the submitted values |
+| Attestation missing or rejected while attestation is required | `400` | `{"error":"attestationInvalid","detail":…}` |
+| Attestation required but not configured on the server | `503` | `{"error":"attestationUnavailable","detail":…}` — fails closed, never degrades to accepting |
+| Per-install rate limit exceeded (10/hour, 50/day) | `429` | `{"error":"reportRateLimited","detail":…}`; `Retry-After` seconds |
+
+**An unknown, unpublished or merged-away `spotId` is accepted exactly like a known one**, with an
+identical response. The endpoint deliberately does not validate the ID against canonical data, so
+it cannot be used to discover which spots exist. A claim about an ID that resolves to nothing is
+handled during moderation.
+
+Retention: personal content (`note`, `proposedLocation`, `observedOn`, the hashed submitter key) is
+erased 90 days after the report arrives, whatever its moderation state; the non-personal skeleton
+of the report remains. See ADR-0007 §4.
 
 ## GET `/config`
 
