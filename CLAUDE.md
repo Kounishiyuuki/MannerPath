@@ -1,16 +1,10 @@
 # CLAUDE.md — MannerPath
 
-Before making any change, read and follow `AGENTS.md`.
+@AGENTS.md
 
-Then read:
+`AGENTS.md` above is the authoritative engineering contract. Area rules load on demand
+from `.claude/rules/` when you touch `apps/apple/**` or `services/**`.
 
-1. `docs/PRODUCT_REQUIREMENTS.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/TECH_STACK.md`
-4. the ADRs relevant to the task
-
-`AGENTS.md` is the authoritative engineering contract.
-
-Do not change an accepted architectural decision without updating or adding an ADR.
-Do not modify unrelated files opportunistically.
-Do not bypass data provenance, privacy, offline, or App Store compliance requirements.
+Task workflows are skills, not always-loaded prose — invoke `/mannerpath-apple`,
+`/mannerpath-backend`, or `/mannerpath-pr-review`. They share one source of truth with
+the Codex skills: `docs/AGENT_WORKFLOWS.md`.

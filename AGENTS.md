@@ -1,14 +1,39 @@
 # AGENTS.md — MannerPath engineering contract
 
-This file is authoritative for AI coding agents working in this repository.
+Authoritative, always-on contract for AI coding agents in this repository.
+Only rules that every task needs live here. Area rules live in nested `AGENTS.md` files
+that you must read explicitly (see below); reusable workflows live in
+`docs/AGENT_WORKFLOWS.md` and the repository skills.
+
+| Scope | File |
+| --- | --- |
+| Apple app (`apps/apple/**`) | `apps/apple/AGENTS.md` |
+| Backend & data pipeline (`services/**`, `contracts/**`) | `services/AGENTS.md` |
+| Task workflows and validation | `docs/AGENT_WORKFLOWS.md` |
 
 ## Before changing code
 
-1. Read `docs/PRODUCT_REQUIREMENTS.md`.
-2. Read `docs/ARCHITECTURE.md`.
-3. Read `docs/TECH_STACK.md`.
-4. Read every ADR related to the files being changed.
-5. If a requested change conflicts with these documents, do not silently work around them. Update the relevant ADR/requirement in the same change or surface the conflict.
+1. **Read the area `AGENTS.md` for every path you are about to edit, unless it is already
+   in context.** Editing `apps/apple/**` requires `apps/apple/AGENTS.md`; editing
+   `services/**` or `contracts/**` requires `services/AGENTS.md`.
+
+   Do not assume it was loaded for you. A session started at the repository root loads
+   only the `AGENTS.md` files from the root down to its working directory; a nested
+   `AGENTS.md` is **not** injected later merely because you open or edit a file beneath
+   it. Read it yourself.
+
+2. **Read only the documents the change actually touches.** Each area `AGENTS.md` carries
+   a concern → document map; use it to pick the relevant docs and ADRs, and read nothing
+   beyond that. A pure UI/layout change inside an existing feature needs no ADR; a
+   tile-contract change still needs ADR-0005; an evidence/publication change still needs
+   ADR-0006.
+
+3. Read the repository-wide documents only when the change reaches them:
+   - `docs/PRODUCT_REQUIREMENTS.md` — when user-facing product behavior changes.
+   - `docs/ARCHITECTURE.md` — when a component or layer boundary changes.
+   - `docs/TECH_STACK.md` — when a dependency, runtime, or tool changes.
+
+4. If a requested change conflicts with these documents, do not silently work around them. Update the relevant ADR/requirement in the same change or surface the conflict. Never change an accepted architectural decision without updating or adding an ADR.
 
 ## Non-negotiable product rules
 
@@ -27,42 +52,18 @@ This file is authoritative for AI coding agents working in this repository.
 - Preserve source provenance and license attribution for every imported spot.
 - Do not call public Overpass endpoints from every client request. OSM ingestion is a backend/data-pipeline concern.
 
-## Location/privacy rules
+## Privacy rules
 
-- Prefer `When In Use` location authorization.
-- Do not add `Always` authorization without a new ADR and explicit product requirement.
-- Keep precise current location on-device for nearby ranking whenever practical.
 - Never add location history collection by default.
-
-## Offline contract
-
-When network access is unavailable, the app must still be able to:
-
-- read cached nearby spots;
-- calculate straight-line distance;
-- calculate bearing/direction;
-- show data freshness/confidence;
-- hand off to any locally available system mapping behavior when possible.
-
-Do not claim offline turn-by-turn routing in v1.
-
-## Architecture rules
-
-- Feature-first folders; avoid global `Views/`, `Models/`, `ViewModels/` dumping grounds.
-- Domain types must not import SwiftUI.
-- UI must not call URLSession or SQL directly.
-- External services sit behind protocols where they materially improve testability.
-- Prefer Swift Concurrency (`async/await`, actors) over new Combine pipelines.
-- Use dependency injection through initializers/environment rather than singletons, except Apple framework coordinators where justified.
-- API models and persistence models must be mapped through domain types instead of leaking across layers.
+- Client location authorization rules are in `apps/apple/AGENTS.md`.
 
 ## Quality gates
 
 For meaningful changes:
 
-- add/update tests for domain behavior;
-- preserve Swift 6 concurrency correctness;
+- add/update tests for the behavior being changed;
 - update documentation when contracts change;
+- do not bypass data provenance, privacy, offline, or App Store compliance requirements;
 - do not commit credentials, Apple private keys, Cloudflare tokens, `.env`, generated secrets, or production datasets with restricted licenses.
 
 ## Scope discipline
