@@ -7,6 +7,8 @@ import { TileSourceV1, TileSpotV1 } from "../tiles/dto.ts";
 import { SPOT_ID } from "../spot-id.ts";
 
 export const SPOT_DETAIL_SCHEMA_VERSION = 1;
+/** The oldest spot detail schemaVersion this server still serves (docs/API.md). */
+export const MINIMUM_SPOT_DETAIL_SCHEMA_VERSION = 1;
 
 export const SpotDetailSpotV1 = TileSpotV1.extend({
   tile: z.string().regex(/^[0-9]+\/[0-9]+\/[0-9]+$/),

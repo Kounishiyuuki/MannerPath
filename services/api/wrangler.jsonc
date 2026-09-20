@@ -1,10 +1,29 @@
-// Local development only. No remote D1 database is configured: database_id is a placeholder, so
-// `--remote` commands cannot reach a real database until one is created and this is reviewed.
+// Worker configuration. The top level is the LOCAL development environment; `env.staging` and
+// `env.production` are the staging / production-like shapes described in `../../docs/OPERATIONS.md`.
+//
+// No environment here can reach a real database: every `database_id` is the all-zero placeholder, so
+// a `--remote` or `deploy` command fails until a maintainer creates the database and lands the real
+// ID in a reviewed change (`services/AGENTS.md`). That is deliberate, and `test/deploy-config.test.ts`
+// enforces it. Secrets (REPORT_SUBMITTER_PEPPER) are never `vars`; they are set with
+// `wrangler secret put` per environment and are not committed.
+//
+// Remote report acceptance is deferred: staging and production set REPORT_ATTESTATION=required,
+// which fails closed until Issue #37 implements App Attest.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mannerpath-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
+  // Automatic invocation logs are OFF in every environment: Cloudflare records the request URL in a
+  // Fetch invocation log, and a MannerPath tile path is a z14 cell the user was looking at, so
+  // persisting those would build exactly the location history this project must not keep. Sampling
+  // would only make that history smaller, not absent. Explicit logs stay enabled so a future
+  // diagnostic line (which must carry no request payload or position) is still visible; platform
+  // metrics are aggregate and unaffected. Policy: `../../docs/OPERATIONS.md`.
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+  // LOCAL/TEST ONLY. Reports are accepted here because the local default is `disabled`; the remote
+  // environments below deliberately fail closed until Issue #37 (ADR-0007 §6).
+  "vars": { "REPORT_ATTESTATION": "disabled" },
   "d1_databases": [
     {
       "binding": "DB",
@@ -12,5 +31,39 @@
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
-  ]
+  ],
+  // Named environments are not merged with the top level for these keys: each one repeats its own
+  // vars, bindings and observability settings in full.
+  "env": {
+    "staging": {
+      "name": "mannerpath-api-staging",
+      "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+      // Fail closed: App Attest is not implemented (Issue #37), so a deployed environment answers
+      // 503 attestationUnavailable and /v1/config reports reports.available = false. A remote
+      // environment must never accept unattested reports by default. Do not change this here.
+      "vars": { "REPORT_ATTESTATION": "required" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "mannerpath-staging",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    },
+    "production": {
+      "name": "mannerpath-api-production",
+      "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+      // Fail closed until Issue #37, exactly as staging.
+      "vars": { "REPORT_ATTESTATION": "required" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "mannerpath-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
 }
