@@ -1,6 +1,6 @@
 # ADR-0006 — Evidence, resolution and publication
 
-Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment
+Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment; spot detail read added by the 2026-09 Issue #16 amendment
 
 ## Context
 
@@ -154,4 +154,23 @@ This amendment settles only what the slice needs. Of the items under "Unresolved
 - Taito publication approval and in-app attribution wording (`sources.attribution_text` is NULL, and the tile sends `attributionText: null`).
 - Physical spot type, access type, environment and host context for Taito records. There is also no address field in the canonical model yet (設置位置/方書 are raw evidence only).
 - Parsing Taito closure notes (「土日祝日、年末年始は休業」, 「12月を除く毎月第3水曜日は休業」) into structured hours.
-- Archiving the original file bytes (R2). A remote D1 database. `GET /spots/{id}`, `/config`, reports.
+- Archiving the original file bytes (R2). A remote D1 database. `/config`, reports. (`GET /spots/{id}` is resolved by the Issue #16 amendment below.)
+
+## Amendment 2026-09 — published spot detail read (Issue #16)
+
+Code: `services/api/src/spots/` (detail DTO, read), `src/app.ts` (`GET /v1/spots/{id}`). Tests: `services/api/test/spot-detail.test.ts`. Contract: `docs/API.md`, `GET /spots/{id}` schemaVersion 1. No migration: the existing schema (canonical columns, `spot_field_provenance`, `tile_snapshot_spots`) carries the whole response.
+
+### Decisions
+
+1. **Publication membership is the public read gate.** The detail query starts from `tile_snapshot_spots`, so a spot is readable exactly while it is in a published snapshot — the same gate as the tile API, not a second definition of "public". The active/unmerged, `applied` release and `approved` source conditions are repeated in the query as defence in depth against a stale snapshot row (decision 11's transitions are an application obligation, not a database guarantee). Blocking a source and republishing therefore removes its spots from this endpoint as well, with no extra code path.
+2. **Unknown and unpublished IDs are indistinguishable.** A malformed ID, an unknown ID, a canonical row that was never published, one from a blocked source, one that is merged away or inactive: all answer `404 spotNotFound` with the same body. A 404 must not confirm that a canonical row exists, otherwise the publication gate would leak the unpublished corpus one probe at a time. In particular the real (blocked) Taito spots have no public detail.
+3. **Merged IDs resolve in one hop and report the redirect.** `spots.merged_into` is a permanent one-hop redirect whose target is never itself merged (decision 9), so at most one lookup is needed. The response body is the live target's, with `requestedId` (what the client asked for) and `mergedInto` (the target) at the top level, so a client can rewrite favourites and recents. A redirect to an unpublished target is a `404` like any other unpublished spot: the gate is checked on the resolved spot, never bypassed by the redirect.
+4. **The public provenance boundary.** `provenance` exposes per resolved field only: `field`, `sourceId`, the named `rule`, and `observedOn` (the release's observation date). It is filtered to evidence from an `applied` release of an `approved` source. The emitted fields are an explicit allowlist (`PUBLIC_PROVENANCE_FIELDS`), applied in SQL and re-checked by parsing the final body with the response schema before it is sent, because `spot_field_provenance.field`'s CHECK constraint is an internal vocabulary that may grow: a field added there is withheld until it is deliberately published, rather than exposed by default. Raw records, the source column names (`spot_field_provenance.source_columns_json`), record/release/entity IDs, matcher and resolver versions stay server-side: they are internal identifiers or raw-evidence detail, and none of them helps a user judge a spot. What a user needs — who says so, by which rule, observed when — is exactly what is sent. The verification summary is not a new vocabulary: it is the tile DTO's `evidenceQuality`, `evidenceQualityVersion` and `lastVerifiedAt`.
+5. **The spot object is the tile spot object.** `spot` reuses the tile DTO field-for-field (same Zod schema, same mapping function) plus `tile`, and `sources` reuses the tile source DTO, so attribution and field semantics cannot drift between the two endpoints and a client needs one decoder. `spotType: "unknown"` is served normally here, as in tiles.
+6. **No detail ETag in schemaVersion 1.** A tile's ETag is free because the publisher stores the exact body and its hash. No stored hash describes a detail body, which also includes provenance that is not in the snapshot, so an ETag would mean hashing a freshly built body on every request. That machinery is not justified by this slice; `Cache-Control: public, no-cache` is sent without a validator. If detail reads become hot, the honest fix is a stored detail snapshot, not a per-request hash.
+
+### Still unresolved (unchanged by this amendment)
+
+- Everything listed under the Issue #12 amendment except `GET /spots/{id}`.
+- Multi-source spots: the detail response derives `sources` from the existence evidence, like the tile publisher. A spot resolved from several sources needs both endpoints changed together.
+- `/config`, the report API, and any non-public (admin/moderation) view of evidence.

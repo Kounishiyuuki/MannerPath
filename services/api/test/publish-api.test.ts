@@ -194,7 +194,7 @@ test("invalid and unpublished tiles: 400 for malformed or non-z14 IDs, 404 when 
     ["/v1/tiles/14/-1/6451", 400, "invalidTileId"],
     ["/v1/tiles/14/abc/6451", 400, "invalidTileId"],
     ["/v1/tiles/14/0/0", 404, "tileNotPublished"],
-    ["/v1/spots/x", 404, "notFound"],
+    ["/v1/spots/x", 404, "spotNotFound"],
     ["/tiles/14/0/0", 404, "notFound"],
   ];
   for (const [path, status, error] of cases) {
