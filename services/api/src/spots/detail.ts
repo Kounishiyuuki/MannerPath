@@ -5,7 +5,7 @@
 
 import { type Db } from "../db.ts";
 import { type CandidateRow, sourceDto, spotDto } from "../tiles/publish.ts";
-import { SPOT_DETAIL_SCHEMA_VERSION, type SpotDetailBodyV1, type SpotProvenanceV1 } from "./dto.ts";
+import { PUBLIC_PROVENANCE_FIELDS, SPOT_DETAIL_SCHEMA_VERSION, SpotDetailBodyV1, type SpotProvenanceV1 } from "./dto.ts";
 
 type DetailRow = CandidateRow & { tile_snapshot_id: string };
 
@@ -34,8 +34,11 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
   ).bind(targetId).first<DetailRow>();
   if (row === null) return null;
 
-  // Provenance of resolved fields, limited to the same publishable evidence. Only the source, the
+  // Provenance of resolved fields, limited to the same publishable evidence and to the public field
+  // allowlist. The column's own CHECK constraint is not the public vocabulary, so the allowlist is
+  // applied in SQL: a provenance field added later is withheld by default. Only the source, the
   // named rule and the observation date are public; raw records and internal IDs never leave here.
+  const fields = PUBLIC_PROVENANCE_FIELDS;
   const { results: provenance } = await db.prepare(
     `SELECT p.field, rel.source_id, p.rule, rel.observed_on
      FROM spot_field_provenance p
@@ -43,15 +46,18 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
      WHERE p.spot_id = ? AND rel.status = 'applied' AND src.publication_status = 'approved'
+       AND p.field IN (${fields.map(() => "?").join(", ")})
      ORDER BY p.field`,
-  ).bind(targetId).all<{ field: SpotProvenanceV1["field"]; source_id: string; rule: string; observed_on: string | null }>();
+  ).bind(targetId, ...fields).all<{ field: SpotProvenanceV1["field"]; source_id: string; rule: string; observed_on: string | null }>();
 
-  return {
+  // Last gate before the body leaves the server: a DTO drift or an unexpected canonical value is a
+  // 500, never a silently malformed or over-sharing public response.
+  return SpotDetailBodyV1.parse({
     schemaVersion: SPOT_DETAIL_SCHEMA_VERSION,
     requestedId,
     mergedInto,
     spot: { ...spotDto(row), tile: row.tile_snapshot_id },
     sources: [sourceDto(row)],
     provenance: provenance.map((p) => ({ field: p.field, sourceId: p.source_id, rule: p.rule, observedOn: p.observed_on })),
-  };
+  });
 }

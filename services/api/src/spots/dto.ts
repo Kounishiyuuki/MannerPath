@@ -12,14 +12,20 @@ export const SpotDetailSpotV1 = TileSpotV1.extend({
   tile: z.string().regex(/^[0-9]+\/[0-9]+\/[0-9]+$/),
 }).strict();
 
+// The public provenance vocabulary: the only spot_field_provenance fields this endpoint may emit.
+// It is an allowlist, not a mirror of the column's CHECK constraint, so a provenance field added
+// later (internal bookkeeping, a future source's attribute) is withheld until it is deliberately
+// published here and documented in docs/API.md. The read filters on this list in SQL.
+export const PUBLIC_PROVENANCE_FIELDS = [
+  "existence", "location", "name", "spotType", "hostType", "accessType", "environment",
+  "supportsPaper", "supportsHeated", "openingHours", "feeType", "floor", "entranceNote", "lifecycle",
+] as const;
+
 // Public field-level provenance. It names which source and named rule produced a resolved field,
 // and when that evidence was observed. Raw source records, source column names, record/release IDs
 // and every other internal identifier stay server-side (ADR-0006).
 export const SpotProvenanceV1 = z.object({
-  field: z.enum([
-    "existence", "location", "name", "spotType", "hostType", "accessType", "environment",
-    "supportsPaper", "supportsHeated", "openingHours", "feeType", "floor", "entranceNote", "lifecycle",
-  ]),
+  field: z.enum(PUBLIC_PROVENANCE_FIELDS),
   sourceId: z.string(),
   rule: z.string(),
   observedOn: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/).nullable(),

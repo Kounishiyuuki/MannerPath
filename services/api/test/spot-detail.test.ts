@@ -146,3 +146,27 @@ test("a merged ID resolves one hop to its published target and reports the redir
   assert.equal((await get(db, `/v1/spots/${merged}`)).status, 404);
   assert.equal((await get(db, `/v1/spots/${target}`)).status, 404);
 });
+
+test("a provenance field outside the public allowlist is withheld, and the spot still reads normally", async () => {
+  const db = await publishedDb();
+  const id = publishedSpotId(db, "上野公園前交番裏");
+  const before = SpotDetailBodyV1.parse(await (await get(db, `/v1/spots/${id}`)).json());
+  const recordId = one(db, "SELECT record_id FROM spot_field_provenance WHERE spot_id = ? AND field = 'existence'", id).record_id;
+
+  // Simulate a later migration widening spot_field_provenance.field: the column's CHECK constraint
+  // is not the public vocabulary, so the row must be inserted past it to test the API's allowlist.
+  db.raw.exec("PRAGMA ignore_check_constraints = ON");
+  db.raw.prepare(
+    `INSERT INTO spot_field_provenance (spot_id, field, record_id, source_columns_json, rule, resolver_version, resolved_at)
+     VALUES (?, 'internalReviewNote', ?, '["名称カナ"]', 'internal.review.v1', 'internal.v1', ?)`,
+  ).run(id, recordId, NOW);
+  db.raw.exec("PRAGMA ignore_check_constraints = OFF");
+  assert.equal(one(db, "SELECT count(*) AS n FROM spot_field_provenance WHERE spot_id = ? AND field = 'internalReviewNote'", id).n, 1);
+
+  const res = await get(db, `/v1/spots/${id}`);
+  assert.equal(res.status, 200);
+  const text = await res.text();
+  assert.ok(!text.includes("internalReviewNote"), "a non-public provenance field must not be emitted");
+  assert.ok(!text.includes("internal.review.v1"));
+  assert.deepEqual(SpotDetailBodyV1.parse(JSON.parse(text)), before, "the published response is otherwise unchanged");
+});
