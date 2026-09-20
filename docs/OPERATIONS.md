@@ -34,7 +34,7 @@ target; `local:pipeline`, `local:registry` and `local:export` open their binding
 | `npx wrangler d1 create …` | Typed by hand; creates the database |
 | `npx wrangler d1 migrations apply DB --env staging --remote` | Needs `--remote` **and** a real `database_id` |
 | `npx wrangler secret put … --env staging` | Interactive; value never in the repository |
-| `npx wrangler d1 execute DB --env staging --remote --file promotion.sql` | Needs `--remote`, a real `database_id`, and a bundle a human reviewed. Targets an empty, freshly migrated database only |
+| `npx wrangler d1 execute DB --env staging --remote --file promotion.sql` | Needs `--remote`, a real `database_id`, and a bundle a human reviewed. Targets an empty, freshly migrated database only — the binding form is the first promotion; a later (green) database is addressed by name (step 6) |
 | `npx wrangler deploy --env staging` | Needs a real `database_id` |
 | `node --experimental-strip-types --no-warnings scripts/smoke.ts --base-url https://… --remote` | Refuses a non-loopback target without `--remote`, and refuses non-HTTPS |
 | `npx wrangler delete --env staging` | Typed by hand; the disable step |
@@ -149,7 +149,11 @@ partially-applied promotion from existing. This slice adds no remote upsert or u
 should be improvised at the console. Corrected or new data ships through the blue/green procedure in
 step 5.
 
-Applying it is a separate human step, and the only step that writes to a remote database:
+Applying it is a separate human step, and the only step that writes to a remote database. The
+binding form below is for the **first** promotion into a freshly created environment, where the
+environment's `database_id` is already the database being bootstrapped. Every later promotion goes
+through step 6 and addresses the new database **by name**, because `--env staging` would then resolve
+to the live one:
 
 ```sh
 npx wrangler d1 migrations apply DB --env staging --remote    # a fresh, empty database
@@ -190,29 +194,37 @@ is switched onto** — blue/green — not as an edit of the live one.
 Re-publish locally first (`npm run local:pipeline`), regenerate the bundle
 (`npm run local:export -- --out promotion-<release>-<date>.sql`) and review it. Then:
 
+**Until the reviewed cut-over in step 5, the `staging` binding still points at blue, and every
+command that resolves through it reaches blue.** So `--env staging` must not be used to prepare
+green: `npx wrangler d1 migrations apply DB --env staging --remote` and
+`npx wrangler d1 execute DB --env staging --remote …` would migrate and write to the **live**
+database. Address green by its own unique database name instead, which cannot resolve to blue.
+
 ```sh
-# 1. Create the new (green) database. Keep the old (blue) one running and untouched.
+# 1. Create the new (green) database. Blue stays live and untouched, and the `staging` binding
+#    keeps pointing at it until step 5.
 npx wrangler d1 create mannerpath-staging-2
 
-# 2. Migrate it. It must be empty apart from the schema.
-#    Point the environment's database_id at the new ID in a branch first, or migrate with an
-#    explicit --database-id; never mutate the live database to "prepare" it.
-npx wrangler d1 migrations apply DB --env staging --remote
-npx wrangler d1 migrations list DB --env staging --remote      # expect: no pending migrations
+# 2. Migrate green BY NAME. Never `--env staging` here: that is blue.
+npx wrangler d1 migrations apply mannerpath-staging-2 --remote
+npx wrangler d1 migrations list mannerpath-staging-2 --remote    # expect: no pending migrations
 
-# 3. Apply the reviewed bundle to the new database.
-npx wrangler d1 execute DB --env staging --remote --file promotion-<release>-<date>.sql
+# 3. Apply the reviewed bundle to green, again by name. Green must be empty apart from the schema.
+npx wrangler d1 execute mannerpath-staging-2 --remote \
+  --file promotion-<release>-<date>.sql
 
-# 4. Smoke verify the new database before any user reaches it — deploy the branch to a separate
-#    environment/preview bound to the green database, and point the smoke script at that host.
+# 4. Smoke verify green before any user reaches it. This needs a SEPARATE, TEMPORARY Worker
+#    environment whose own D1 binding points at mannerpath-staging-2 — a Worker serves one database
+#    per binding, so the live staging Worker cannot serve blue and green at the same time. Deploy
+#    that temporary environment from the branch, smoke it, and remove it after the cut-over.
 node --experimental-strip-types --no-warnings scripts/smoke.ts \
   --base-url https://<green-host> --remote --tile <a tile in the new data>
 
-# 5. Switch the live Worker onto it: change `database_id` for that environment in
-#    services/api/wrangler.jsonc, land the change in a reviewed PR, then deploy.
+# 5. Cut over: change `database_id` for `staging` in services/api/wrangler.jsonc from blue to
+#    green, land it in a reviewed PR, then deploy. This is the first command that makes green live.
 npx wrangler deploy --env staging
 
-# 6. Smoke verify the live host again, now serving the green database.
+# 6. Smoke verify the live host, now serving green.
 node --experimental-strip-types --no-warnings scripts/smoke.ts \
   --base-url https://<worker-host> --remote --tile <a tile in the new data>
 ```
@@ -226,6 +238,11 @@ Notes:
 
 - The `database_id` switch is a reviewed repository change, exactly like the first one — the
   deployment is what makes a database live, so it goes through a PR.
+- Steps 2–3 name the database positionally: `wrangler d1 migrations` and `wrangler d1 execute` take
+  the database name or a binding in that position.
+- The temporary green environment is scaffolding: it exists to smoke green before users see it, and
+  it is removed once the cut-over is verified (`npx wrangler delete --env <temporary>`). Deleting it
+  does not touch the green database.
 - The cut-over is not atomic across the two databases, but each tile is: clients revalidate with
   `ETag` and replace a tile wholesale, so a client sees the old tile or the new one, never a mix.
 - User reports live in the database being replaced. In beta, remote report acceptance is closed

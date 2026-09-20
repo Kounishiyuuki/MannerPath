@@ -61,7 +61,10 @@ test("the bundle carries the whole evidence-to-publication chain for the current
 
   // The artifact is the thing a human applies, so it says so, and identifies itself by hash.
   assert.match(sql, /^-- MannerPath promotion bundle\./);
-  assert.match(sql, /wrangler d1 execute DB --env <environment> --remote --file/);
+  // The apply instruction names the target database rather than an --env binding, which during a
+  // blue/green promotion would resolve to the live database (docs/OPERATIONS.md step 6).
+  assert.match(sql, /wrangler d1 execute <new-database-name> --remote --file <this file>/);
+  assert.equal(sql.includes("--env <environment>"), false);
   assert.equal(sql.includes(`-- contentSha256: ${manifest.contentSha256}`), true);
   const body = sql.slice(sql.indexOf("-- sources ("));
   assert.equal(createHash("sha256").update(body).digest("hex"), manifest.contentSha256);
