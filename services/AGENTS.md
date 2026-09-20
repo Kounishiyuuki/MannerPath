@@ -19,6 +19,7 @@ it touches ingest or reconciliation.
 | evidence, reconciliation, or publication gating | ADR-0006 |
 | ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
 | adding, approving, or changing a data source | `docs/SOURCES.md`, `docs/DATA_POLICY.md` |
+| the beta corpus's coverage, freshness, or measured quality | `docs/BETA_DATA_QUALITY.md` |
 
 ## Dependencies and build
 
