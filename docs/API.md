@@ -72,7 +72,7 @@ Implementation: `services/api/src/app.ts`. Zod schema: `services/api/src/tiles/d
     }
   ],
   "sources": [
-    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": "台東区「公衆喫煙所」（CC-BY表示4.0国際）本作品の内容について、台東区は一切保証しないものとする。 https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html" }
+    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv" }
   ]
 }
 ```
@@ -138,7 +138,7 @@ Implementation: `services/api/src/app.ts`, `services/api/src/spots/`. Zod schema
     "tile": "14/14553/6450"
   },
   "sources": [
-    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": "台東区「公衆喫煙所」（CC-BY表示4.0国際）本作品の内容について、台東区は一切保証しないものとする。 https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html" }
+    { "id": "taito-public-smoking-areas", "displayName": "台東区 公衆喫煙所", "licenseName": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja", "attributionText": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv" }
   ],
   "provenance": [
     { "field": "existence", "sourceId": "taito-public-smoking-areas", "rule": "taito.listed.v1", "observedOn": "2026-08-18" },

@@ -161,9 +161,10 @@ the zoom after release is a contract change (ADR-0005).
 - **Observation-date semantics [unresolved]:** 「令和8年8月18日時点」 is interpreted as the date the list
   reflects. It is not stated to be a per-site physical verification date.
 - **Geodetic datum [unresolved]:** not stated. Assumed JGD2011 ≈ WGS84 (sub-metre difference); unverified.
-- **Exact attribution wording [resolved by Issue #22]:** the ward prescribes no verbatim text, but its
-  open-data terms page gives a display example with four elements. The approved wording is in
-  `docs/SOURCES.md` and fixed in code as `TAITO_ATTRIBUTION_TEXT`; it is what the API sends as
+- **Exact attribution wording [resolved by Issue #22]:** the ward's open-data terms prescribe four
+  display elements joined by spaces or punctuation (author, license label, no-warranty sentence,
+  元データ + original-data URL) and no dataset title. The approved wording is in `docs/SOURCES.md`
+  and fixed in code as `TAITO_ATTRIBUTION_TEXT`; it is what the API sends as
   `sources[].attributionText`.
 - **Database rights / combination with other sources [unresolved, no legal conclusion]:** not analysed.
   ODbL obligations for combining with OSM remain unreviewed (DATA_POLICY.md).

@@ -6,16 +6,22 @@ export const TAITO_SOURCE_ID = "taito-public-smoking-areas";
 export const TAITO_PARSER_VERSION = "taito-csv.v1";
 export const TAITO_RESOLVER_VERSION = "taito-resolver.v1";
 
-// Stable dataset page. It is the original-data URL in the attribution because it survives every
-// 時点 release; the release CSV URL (TAITO_FIXTURE_RELEASE.sourceUrl) changes with each one and is
-// release provenance, not the citation a client shows.
+// Catalog/dataset metadata: the landing page that lists the releases. It is NOT the attribution's
+// original-data URL — 台東区's display example asks for 元データ, the data itself (docs/SOURCES.md).
 export const TAITO_DATASET_URL = "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html";
 
-// The four display elements 台東区's open-data terms require (docs/SOURCES.md, Issue #22): the
-// publisher, the license label, the publisher's no-warranty sentence and the original-data URL.
-// The wording is fixed here because it is what the tile/detail DTOs send as sources[].attributionText.
+// 元データ for the attribution: the release file this data actually came from. It is the same URL as
+// TAITO_FIXTURE_RELEASE.sourceUrl below, so what is cited is what was imported.
+export const TAITO_ORIGINAL_DATA_URL =
+  "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv";
+
+// The exact four display elements 台東区's open-data terms require, in their order, joined by spaces
+// as the terms instruct (「スペースや句読点などで繋げて表示」): the author, the license label, the
+// no-warranty sentence and 元データ + the original-data URL. Nothing is added: the terms prescribe no
+// dataset title, so none is inserted between the author and the license. This constant is the single
+// source of the tile and spot-detail sources[].attributionText, so both stay identical.
 export const TAITO_ATTRIBUTION_TEXT =
-  `台東区「公衆喫煙所」（CC-BY表示4.0国際）本作品の内容について、台東区は一切保証しないものとする。 ${TAITO_DATASET_URL}`;
+  `台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ ${TAITO_ORIGINAL_DATA_URL}`;
 
 // Registry mirror of the reviewed docs/SOURCES.md entry, including its publication status. This is
 // a repository-controlled constant, not something an importer computes: it is the only way the
@@ -33,7 +39,7 @@ export const TAITO_REGISTRY = {
 // Release metadata of the committed fixture (services/data-pipeline/fixtures/.../PROVENANCE.md).
 // observedOn is the 時点 date of the page label; fetchedAt is the retrieval date (date precision only).
 export const TAITO_FIXTURE_RELEASE = {
-  sourceUrl: "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+  sourceUrl: TAITO_ORIGINAL_DATA_URL,
   observedOn: "2026-08-18",
   fetchedAt: "2026-09-20T00:00:00Z",
   httpLastModified: "Fri, 11 Sep 2026 07:48:17 GMT",

@@ -6,7 +6,7 @@ import { parseCsv } from "../src/pipeline/csv.ts";
 import { ingestTaitoCsv } from "../src/pipeline/ingest.ts";
 import { applyReviewedSourceRegistry, ensureReviewedSource, reviewedSource } from "../src/pipeline/registry.ts";
 import { EVIDENCE_QUALITY_VERSION, FIRST_RELEASE_MATCHER_VERSION, OFFICIAL_LISTING, resolveFirstRelease } from "../src/pipeline/resolve.ts";
-import { TAITO_ATTRIBUTION_TEXT, TAITO_DATASET_URL, TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_SOURCE_ID, resolveTaitoRecord } from "../src/pipeline/taito.ts";
+import { TAITO_ATTRIBUTION_TEXT, TAITO_DATASET_URL, TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_ORIGINAL_DATA_URL, TAITO_SOURCE_ID, resolveTaitoRecord } from "../src/pipeline/taito.ts";
 import { SPOT_ID } from "../src/spot-id.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../src/geo/tile.ts";
 import { NOW, TAITO_BYTES, importTaito } from "./support/fixture.ts";
@@ -99,14 +99,18 @@ test("registry: a fresh database gets the reviewed Taito row as approved, and en
   assert.equal(s.publication_status, "blocked");
 });
 
-test("registry: the reviewed Taito attribution carries all four required display elements", () => {
+test("registry: the reviewed Taito attribution is exactly the four official display elements", () => {
   const text = reviewedSource(TAITO_SOURCE_ID).attributionText!;
   assert.equal(text, TAITO_ATTRIBUTION_TEXT);
-  for (const element of ["台東区", "CC-BY表示4.0国際", "本作品の内容について、台東区は一切保証しないものとする。", TAITO_DATASET_URL]) {
-    assert.ok(text.includes(element), `attribution must state ${element}`);
-  }
-  // The stable dataset page, not the per-release CSV URL (which changes every 時点 release).
-  assert.ok(!text.includes(TAITO_FIXTURE_RELEASE.sourceUrl));
+  // 台東区's display example: the four elements in this order, joined by spaces, nothing else.
+  assert.equal(text, `台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ ${TAITO_ORIGINAL_DATA_URL}`);
+
+  // 元データ is the release file the data actually came from, not the catalog landing page.
+  assert.equal(TAITO_ORIGINAL_DATA_URL, TAITO_FIXTURE_RELEASE.sourceUrl);
+  assert.ok(!text.includes(TAITO_DATASET_URL), "the dataset landing page is catalog metadata, not the cited 元データ");
+  // The terms prescribe no dataset title, so none is inserted between the author and the license.
+  assert.ok(text.startsWith("台東区 CC-BY表示4.0国際 "));
+  assert.ok(!text.includes("公衆喫煙所"));
 });
 
 test("registry: the upgrade path re-applies the reviewed entry to an existing blocked row, and only to reviewed sources", async () => {
