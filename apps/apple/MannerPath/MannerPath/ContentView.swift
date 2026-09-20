@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var path: [String] = []
     @State private var mapPosition: MapCameraPosition = .automatic
     @State private var selectedSnapshot: DetailSelection?
+    @State private var filters = NearbyFilters()
+    @State private var destinationQuery = ""
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -20,6 +22,8 @@ struct ContentView: View {
 
                     if model.displayLocation != nil {
                         dataStatus
+                        NearbyFilterView(filters: $filters)
+                        destinationSection
                         if !model.results.isEmpty { mapSection }
                         listSection
                     }
@@ -43,6 +47,10 @@ struct ContentView: View {
                         locationAccuracyMeters: selection.location.horizontalAccuracyMeters,
                         estimateFromPreviousLocation: selection.location.coordinate != model.displayLocation?.coordinate ||
                             selection.location.isLastKnown,
+                        routeOrigin: !selection.location.isLastKnown &&
+                            model.displayLocation?.isLastKnown == false &&
+                            selection.location.coordinate == model.displayLocation?.coordinate
+                            ? selection.location.coordinate : nil,
                         nearbySources: selection.nearbySources
                     )
                 } else {
@@ -59,6 +67,10 @@ struct ContentView: View {
         .onChange(of: resultCoordinates) { _, _ in
             if !mapPosition.positionedByUser { recenterMap() }
         }
+        .onChange(of: model.destination) { _, _ in
+            if !mapPosition.positionedByUser { recenterMap() }
+        }
+        .onChange(of: filters) { _, updated in model.setFilters(updated) }
     }
 
     private var mapCenter: SpotCoordinate? {
@@ -66,7 +78,8 @@ struct ContentView: View {
     }
 
     private var resultCoordinates: [SpotCoordinate] {
-        model.results.map { SpotCoordinate(latitude: $0.spot.latitude, longitude: $0.spot.longitude) }
+        model.results.map { SpotCoordinate(latitude: $0.spot.latitude, longitude: $0.spot.longitude) } +
+            (model.destination.map { [$0.coordinate] } ?? [])
     }
 
     private func recenterMap() {
@@ -126,6 +139,15 @@ struct ContentView: View {
                     .buttonStyle(.bordered)
             }
             Map(position: $mapPosition) {
+                if let destination = model.destination {
+                    Annotation("Destination: \(destination.name)", coordinate: CLLocationCoordinate2D(
+                        latitude: destination.coordinate.latitude,
+                        longitude: destination.coordinate.longitude
+                    )) {
+                        Image(systemName: "flag.checkered.circle.fill")
+                            .font(.title).foregroundStyle(.blue)
+                    }
+                }
                 if let location = model.resultsLocation ?? model.displayLocation {
                     Annotation(location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
                                ? "Last location used for distances" : "Your location", coordinate: CLLocationCoordinate2D(
@@ -168,37 +190,115 @@ struct ContentView: View {
 
     private var listSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Nearby places")
+            Text(model.destination == nil ? "Nearby places" : "Nearby places for your walk")
                 .font(.headline)
+            if model.destination != nil {
+                switch model.routeState {
+                case .idle: EmptyView()
+                case .loading: Label("Checking walking detours. Saved places remain available below.", systemImage: "figure.walk")
+                case .ready: Text("Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.")
+                case .unavailable:
+                    Label(model.resultsLocation?.isLastKnown == true
+                          ? "A current location is needed for walking detours. Showing straight-line distance and bearing."
+                          : "Walking routes unavailable. Showing saved places by straight-line distance and bearing.",
+                          systemImage: "wifi.exclamationmark")
+                }
+            }
             if model.results.isEmpty {
-                switch model.dataState {
-                case .readingCache, .refreshing:
-                    ProgressView("Loading nearby places…")
-                        .frame(maxWidth: .infinity, minHeight: 100)
-                case .cacheUnavailable:
-                    ContentUnavailableView("Saved nearby data unavailable", systemImage: "externaldrive.badge.exclamationmark")
-                case .refreshed:
-                    ContentUnavailableView("No published spots in this nearby area", systemImage: "mappin.slash")
-                case .refreshFailed:
-                    ContentUnavailableView("Could not load nearby data", systemImage: "wifi.exclamationmark",
-                                           description: Text("No saved places are available. Published places may still exist nearby."))
-                case .cacheOnly:
-                    ContentUnavailableView("No saved places nearby", systemImage: "mappin.slash",
-                                           description: Text("Live updates are not configured."))
-                case .waitingForLocation:
-                    EmptyView()
+                if model.hasUnfilteredResults {
+                    ContentUnavailableView("No places match these filters", systemImage: "line.3.horizontal.decrease.circle")
+                    Button("Clear filters") { filters = NearbyFilters() }
+                        .buttonStyle(.bordered)
+                } else {
+                    unfilteredEmptyState
                 }
             } else if let location = model.resultsLocation {
-                ForEach(model.results, id: \.spot.id) { result in
+                ForEach(displayResults, id: \.nearby.spot.id) { ranked in
                     Button {
-                        openDetail(result)
+                        openDetail(ranked.nearby)
                     } label: {
-                        NearbySpotRow(result: result, locationAccuracyMeters: location.horizontalAccuracyMeters)
+                        NearbySpotRow(result: ranked.nearby, detourSeconds: ranked.detourSeconds,
+                                      routeMode: model.destination != nil,
+                                      locationAccuracyMeters: location.horizontalAccuracyMeters)
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint("Opens place details")
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var unfilteredEmptyState: some View {
+        switch model.dataState {
+        case .readingCache, .refreshing:
+            ProgressView("Loading nearby places…")
+                .frame(maxWidth: .infinity, minHeight: 100)
+        case .cacheUnavailable:
+            ContentUnavailableView("Saved nearby data unavailable", systemImage: "externaldrive.badge.exclamationmark")
+        case .refreshed:
+            ContentUnavailableView("No published spots in this nearby area", systemImage: "mappin.slash")
+        case .refreshFailed:
+            ContentUnavailableView("Could not load nearby data", systemImage: "wifi.exclamationmark",
+                                   description: Text("No saved places are available. Published places may still exist nearby."))
+        case .cacheOnly:
+            ContentUnavailableView("No saved places nearby", systemImage: "mappin.slash",
+                                   description: Text("Live updates are not configured."))
+        case .waitingForLocation:
+            EmptyView()
+        }
+    }
+
+    private var displayResults: [RouteRankedResult] {
+        model.destination == nil
+            ? RouteDetourRanker.rank(model.results, detours: [:])
+            : model.routeResults
+    }
+
+    private var destinationSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Walking destination").font(.headline)
+            HStack {
+                TextField("Search a destination in Apple Maps", text: $destinationQuery)
+                    .textFieldStyle(.roundedBorder)
+                    .submitLabel(.search)
+                    .onSubmit { model.searchDestination(destinationQuery) }
+                Button("Search") { model.searchDestination(destinationQuery) }
+                    .buttonStyle(.bordered)
+            }
+            if model.searchingDestination { ProgressView("Searching destinations…") }
+            if model.destinationSearchFailed {
+                Text("Destination search unavailable. Saved nearby places remain available.")
+                    .font(.footnote)
+            }
+            ForEach(model.destinationMatches) { match in
+                Button {
+                    destinationQuery = match.name
+                    model.selectDestination(match)
+                } label: {
+                    HStack {
+                        Image(systemName: "mappin")
+                        VStack(alignment: .leading) {
+                            Text(match.name)
+                            if let subtitle = match.subtitle, subtitle != match.name {
+                                Text(subtitle).font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.bordered)
+            }
+            if let destination = model.destination {
+                HStack {
+                    Label(destination.name, systemImage: "flag.checkered")
+                    Spacer()
+                    Button("Clear") { model.selectDestination(nil) }
+                }
+                .font(.subheadline)
+            }
+            Text("Destination search stays in this screen and is never added to saved smoking places.")
+                .font(.footnote).foregroundStyle(.secondary)
         }
     }
 
@@ -289,6 +389,8 @@ private struct DetailSelection {
 
 private struct NearbySpotRow: View {
     let result: NearbyResult
+    let detourSeconds: TimeInterval?
+    let routeMode: Bool
     let locationAccuracyMeters: Double
 
     var body: some View {
@@ -299,6 +401,13 @@ private struct NearbySpotRow: View {
                 Text("\(SpotPresentation.type(result.spot.spotType)) · \(SpotPresentation.access(result.spot.accessType))")
                 Text("\(SpotPresentation.distance(result.distanceMeters)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
                     .fontWeight(.medium)
+                if let detourSeconds {
+                    Text("About \(Int((detourSeconds / 60).rounded())) min added walking time")
+                        .fontWeight(.semibold)
+                } else if routeMode {
+                    Text("Walking detour unconfirmed · straight-line fallback")
+                        .foregroundStyle(.secondary)
+                }
                 Text("Last verified: \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt)) · \(SpotPresentation.evidence(result.spot.verification.evidenceQuality))")
                     .foregroundStyle(.secondary)
             }
