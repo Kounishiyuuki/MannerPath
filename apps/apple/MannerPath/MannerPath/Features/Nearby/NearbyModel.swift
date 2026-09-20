@@ -35,6 +35,7 @@ final class NearbyModel {
     private var lastRouteKey: RouteRequestKey?
     private var lastDetours: [String: TimeInterval] = [:]
     private var lastRouteComputedAt: Date?
+    var onCachedCorpusChange: (([Spot], [SpotSource], SpotCoordinate) -> Void)?
 
     private(set) var filters = NearbyFilters()
     private(set) var destinationMatches: [PlaceDestination] = []
@@ -66,6 +67,11 @@ final class NearbyModel {
     var hasUnfilteredResults: Bool {
         guard let origin = resultsLocation?.coordinate else { return false }
         return !NearbySearch.rank(cachedSpots, from: origin, at: Date()).isEmpty
+    }
+
+    func publishCachedCorpusForWatch() {
+        guard let origin = resultsLocation?.coordinate else { return }
+        onCachedCorpusChange?(cachedSpots, sources, origin)
     }
 
     func setFilters(_ updated: NearbyFilters) {
@@ -289,6 +295,7 @@ final class NearbyModel {
                 ($0.displayName, $0.id, $0.attributionText ?? "") <
                 ($1.displayName, $1.id, $1.attributionText ?? "")
             }
+        onCachedCorpusChange?(spots, sources, deviceLocation.coordinate)
         updateRoutes()
     }
 

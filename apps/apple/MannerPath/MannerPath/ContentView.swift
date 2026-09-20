@@ -7,7 +7,7 @@ struct ContentView: View {
     @State private var path: [String] = []
     @State private var mapPosition: MapCameraPosition = .automatic
     @State private var selectedSnapshot: DetailSelection?
-    @State private var filters = NearbyFilters()
+    @State private var filters = WatchPreferenceStore.filters(from: WatchPreferenceStore.load())
     @State private var destinationQuery = ""
 
     var body: some View {
@@ -59,7 +59,17 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
-            if phase == .active { model.start() }
+            if phase == .active {
+                model.onCachedCorpusChange = { spots, sources, origin in
+                    PhoneWatchSync.shared.publish(snapshot: WatchSnapshotBuilder.build(
+                        spots: spots, sources: sources, near: origin
+                    ))
+                }
+                model.publishCachedCorpusForWatch()
+                model.setFilters(filters)
+                PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.load())
+                model.start()
+            }
         }
         .onChange(of: mapCenter, initial: true) { _, _ in
             if !mapPosition.positionedByUser { recenterMap() }
@@ -70,7 +80,10 @@ struct ContentView: View {
         .onChange(of: model.destination) { _, _ in
             if !mapPosition.positionedByUser { recenterMap() }
         }
-        .onChange(of: filters) { _, updated in model.setFilters(updated) }
+        .onChange(of: filters) { _, updated in
+            model.setFilters(updated)
+            PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.save(updated))
+        }
     }
 
     private var mapCenter: SpotCoordinate? {
