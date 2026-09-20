@@ -1,12 +1,12 @@
 import Foundation
 
-enum SlippyTileError: Error {
+nonisolated enum SlippyTileError: Error {
     case invalidZoom
     case invalidCoordinate
 }
 
 // Shared with services/api/src/geo/tile.ts through the JSON vectors in contracts/tiles.
-struct SlippyTile: Equatable, Hashable, Sendable {
+nonisolated struct SlippyTile: Equatable, Hashable, Sendable {
     static let dataZoom = 14
     static let maximumZoom = 30
     private static let maximumMercatorLatitude = 85.05112877980659

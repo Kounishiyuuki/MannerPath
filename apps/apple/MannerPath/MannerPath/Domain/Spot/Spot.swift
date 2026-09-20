@@ -1,7 +1,7 @@
 import Foundation
 
 // These values are resolved spot data, not source records or map search results.
-struct Spot: Codable, Sendable, Identifiable {
+nonisolated struct Spot: Codable, Sendable, Identifiable {
     let id: String
     let mergedInto: String?
     let name: String?
@@ -21,12 +21,13 @@ struct Spot: Codable, Sendable, Identifiable {
     let lifecycle: SpotLifecycle
     let verification: SpotVerification
     let lastVerifiedAt: Date?
-    let createdAt: Date
-    let updatedAt: Date
+    // Tile v1 does not supply these timestamps. An absent value is not the fetch time.
+    let createdAt: Date?
+    let updatedAt: Date?
 }
 
 // Unsupported future wire values decode conservatively so one new server value cannot discard a tile.
-enum TriState: String, Codable, Sendable {
+nonisolated enum TriState: String, Codable, Sendable {
     case yes, no, unknown
 
     init(from decoder: Decoder) throws {
@@ -36,7 +37,7 @@ enum TriState: String, Codable, Sendable {
 }
 
 // "unknown" is a supported physical type; only a future unsupported value is excluded from Nearby.
-enum SpotType: String, Codable, Hashable, Sendable {
+nonisolated enum SpotType: String, Codable, Hashable, Sendable {
     case designatedOutdoorArea, publicSmokingRoom, facilitySmokingRoom
     case ashtray, smokingPermittedVenue, unknown, unsupported
 
@@ -46,7 +47,7 @@ enum SpotType: String, Codable, Hashable, Sendable {
     }
 }
 
-enum HostType: String, Codable, Sendable {
+nonisolated enum HostType: String, Codable, Sendable {
     case municipality, station, commercialBuilding, convenienceStore
     case restaurantOrCafe, other, unknown
 
@@ -56,7 +57,7 @@ enum HostType: String, Codable, Sendable {
     }
 }
 
-enum AccessType: String, Codable, Sendable {
+nonisolated enum AccessType: String, Codable, Sendable {
     case `public`, customerOnly, facilityOnly, unknown
 
     init(from decoder: Decoder) throws {
@@ -65,7 +66,7 @@ enum AccessType: String, Codable, Sendable {
     }
 }
 
-enum SpotEnvironment: String, Codable, Sendable {
+nonisolated enum SpotEnvironment: String, Codable, Sendable {
     case indoor, outdoor, covered, unknown
 
     init(from decoder: Decoder) throws {
@@ -74,7 +75,7 @@ enum SpotEnvironment: String, Codable, Sendable {
     }
 }
 
-enum SpotLifecycle: String, Codable, Sendable {
+nonisolated enum SpotLifecycle: String, Codable, Sendable {
     case active, temporarilyClosed, removed, unknown
 
     init(from decoder: Decoder) throws {
@@ -83,16 +84,39 @@ enum SpotLifecycle: String, Codable, Sendable {
     }
 }
 
-// The normalized hours format and fee vocabulary are not yet an API contract.
-// Keep their supplied values without trying to infer whether a spot is open or free.
-struct SpotOpeningHours: Codable, Sendable {
+nonisolated struct SpotOpeningHours: Codable, Sendable {
     let raw: String?
-    let parsed: String?
-    let parseStatus: String
+    let parsed: SpotParsedOpeningHours?
+    let status: Status
     let timeZone: String
+
+    nonisolated enum Status: String, Codable, Sendable {
+        case none, parsed, unparsed, unsupported
+
+        init(from decoder: Decoder) throws {
+            let value = try decoder.singleValueContainer().decode(String.self)
+            self = Self(rawValue: value) ?? .unsupported
+        }
+    }
 }
 
-struct FeeType: Codable, Hashable, Sendable {
+nonisolated struct SpotParsedOpeningHours: Codable, Sendable {
+    let version: Int
+    let kind: Kind
+    let opens: String?
+    let closes: String?
+
+    nonisolated enum Kind: String, Codable, Sendable {
+        case allDay, daily, unsupported
+
+        init(from decoder: Decoder) throws {
+            let value = try decoder.singleValueContainer().decode(String.self)
+            self = Self(rawValue: value) ?? .unsupported
+        }
+    }
+}
+
+nonisolated struct FeeType: Codable, Hashable, Sendable {
     let rawValue: String
 
     init(from decoder: Decoder) throws {

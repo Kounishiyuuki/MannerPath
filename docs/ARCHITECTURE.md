@@ -80,15 +80,18 @@ Spot (canonical, resolved)
 - environment: indoor | outdoor | covered | unknown
 - supportsPaper: TriState         // yes | no | unknown
 - supportsHeated: TriState
-- openingHours: { raw: String?, parsed: normalized value?, parseStatus, timeZone }?
+- openingHours: { raw: String?, parsed: { version, kind: allDay | daily | unsupported, opens?, closes? }?, status, timeZone }?
 - feeType: FeeType?
 - floor: String?
 - entranceNote: String?
 - lifecycle: active | temporarilyClosed | removed
 - verification: evidence quality/state (ADR-0006), separate from lifecycle
 - lastVerifiedAt: Date?           // evidence observation time, never import/fetch time
-- createdAt / updatedAt: Date
+- createdAt / updatedAt: Date?
 ```
+
+An absent `createdAt` or `updatedAt` means the current transport did not supply
+that value. Neither timestamp may be synthesized from fetch or sync time.
 
 `SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue` (post-v1), `unknown` (the source does not state it; migration 0002).
 `ashtray` describes the physical thing; whether it is confirmed is the verification axis.
@@ -120,6 +123,19 @@ Do not collapse provenance into a single text field. Physically, resolved values
 4. Server returns a complete snapshot per tile with a per-tile revision and ETag.
 5. Client replaces that tile's cached spots atomically (spots absent from the snapshot are removed locally).
 6. On-device search applies filters and exact distance calculations.
+
+The iPhone tile sync boundary is `TileAPIClient` → `TileSpotMapper` → `GRDBTileStore`.
+The transport DTO is separate from `Spot`; the mapper preserves literal physical
+type `unknown`, structured v1 opening hours and source attribution. Tile v1 does
+not provide spot creation or update timestamps, so those Domain fields remain
+absent for tile-derived spots. The cache uses `cached_tiles` (revision, generated
+time, exact ETag, source summary) and `cached_tile_spots` (tile-owned resolved
+spots). A 200 or authoritative `tileNotPublished` 404 replaces one tile in a
+single database transaction. A 304 leaves the stored snapshot untouched.
+Concurrent responses for one tile are ordered by the latest successfully applied
+request so an older 200 or 404 cannot overwrite a newer successful response.
+`CachedSpotRepository` exposes offline Domain spots per tile; the current Nearby
+screen still uses its fixture until its integration task.
 
 ## 5. Routing
 

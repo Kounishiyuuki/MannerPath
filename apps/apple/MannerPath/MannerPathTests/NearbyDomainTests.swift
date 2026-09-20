@@ -54,8 +54,9 @@ struct NearbyDomainTests {
           "spotType": "ashtray", "accessType": "public", "environment": "outdoor",
           "supportsPaper": "unknown", "supportsHeated": "unknown",
           "openingHours": {
-            "raw": "09:00-17:00", "parsed": "09:00-17:00",
-            "parseStatus": "parsed", "timeZone": "Asia/Tokyo"
+            "raw": "09:00-17:00",
+            "parsed": { "version": 1, "kind": "daily", "opens": "09:00", "closes": "17:00" },
+            "status": "parsed", "timeZone": "Asia/Tokyo"
           },
           "lifecycle": "active",
           "verification": { "acceptedExistenceEvidence": "yes", "sourceDisplayNames": [] },
@@ -68,8 +69,10 @@ struct NearbyDomainTests {
         let spot = try decoder.decode(Spot.self, from: Data(json.utf8))
         let hours = try #require(spot.openingHours)
         #expect(hours.raw == "09:00-17:00")
-        #expect(hours.parsed == "09:00-17:00")
-        #expect(hours.parseStatus == "parsed")
+        #expect(hours.parsed?.kind == .daily)
+        #expect(hours.parsed?.opens == "09:00")
+        #expect(hours.parsed?.closes == "17:00")
+        #expect(hours.status == .parsed)
         #expect(hours.timeZone == "Asia/Tokyo")
     }
 
