@@ -87,8 +87,11 @@ Spot (canonical, resolved)
 - lifecycle: active | temporarilyClosed | removed
 - verification: evidence quality/state (ADR-0006), separate from lifecycle
 - lastVerifiedAt: Date?           // evidence observation time, never import/fetch time
-- createdAt / updatedAt: Date
+- createdAt / updatedAt: Date?
 ```
+
+An absent `createdAt` or `updatedAt` means the current transport did not supply
+that value. Neither timestamp may be synthesized from fetch or sync time.
 
 `SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue` (post-v1), `unknown` (the source does not state it; migration 0002).
 `ashtray` describes the physical thing; whether it is confirmed is the verification axis.
