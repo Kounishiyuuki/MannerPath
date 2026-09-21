@@ -1,8 +1,8 @@
 // Deployment configuration guard (docs/OPERATIONS.md, services/AGENTS.md).
 //
 // These assertions are about what may be *committed*, not about what a maintainer does at the
-// console: no environment in the repository may point at a real database, hold a secret, or enable
-// a report attestation mode that does not exist yet (Issue #37).
+// console: no environment in the repository may point at a real database, hold a secret, commit the
+// App Attest App ID (its App ID prefix is usually the Team ID), or accept unattested reports remotely (Issue #37).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
@@ -67,22 +67,37 @@ test("no environment commits a secret, and every var is non-secret", () => {
   assert.equal(existsSync(new URL("../.dev.vars", import.meta.url)), false, ".dev.vars must never be committed");
 });
 
-test("no environment implies attestation exists, and every remote-like one fails closed (Issue #37)", () => {
-  // Local accepts reports so the endpoint is testable; a deployed environment must not, because
-  // App Attest is not implemented. Neither state claims attestation works.
+test("remote-like environments require App Attest, and fail closed until a maintainer configures it (Issue #37)", () => {
+  // Local accepts unattested schema-1 reports so the endpoint is testable. A deployed environment
+  // must never accept an unattested report: it commits REPORT_ATTESTATION=required, and because the
+  // App ID (App ID prefix + bundle ID), environment and accepted bundle versions are deployment
+  // configuration that is never committed, the committed shape alone accepts nothing at all.
   const expected: Record<string, "disabled" | "unsupported"> = {
     "<top level>": "disabled",
     staging: "unsupported",
     production: "unsupported",
   };
   for (const [name, env] of environments) {
-    const value = (env.vars ?? {}).REPORT_ATTESTATION;
-    assert.equal(attestationConfig(value).kind, expected[name], `${name}: REPORT_ATTESTATION=${value}`);
-    // The advertised availability follows from the same value the Worker reads.
-    assert.equal(configBody(value).reports.available, expected[name] === "disabled", `${name}: /v1/config reports.available`);
+    const vars = env.vars ?? {};
+    assert.equal("REPORT_APP_ATTEST_APP_ID" in vars, false, `${name}: the App ID carries the App ID prefix (usually the Team ID) and is set per deployment, not committed`);
+    assert.equal("REPORT_APP_ATTEST_ENVIRONMENT" in vars, false, `${name}: the App Attest environment is set per deployment`);
+    assert.equal("REPORT_APP_ATTEST_BUNDLE_VERSIONS" in vars, false, `${name}: accepted build versions are set per deployment`);
+    assert.equal(attestationConfig(vars).kind, expected[name], `${name}: REPORT_ATTESTATION=${vars.REPORT_ATTESTATION}`);
+    // The advertised availability follows from the same derivation the Worker uses.
+    assert.equal(configBody(vars).reports.available, expected[name] === "disabled", `${name}: /v1/config reports.available`);
   }
   assert.equal((config.env.staging.vars ?? {}).REPORT_ATTESTATION, "required");
   assert.equal((config.env.production.vars ?? {}).REPORT_ATTESTATION, "required");
+
+  // Once a maintainer supplies the three deployment values, the same committed vars enforce App Attest.
+  const configured = {
+    ...config.env.production.vars,
+    REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath",
+    REPORT_APP_ATTEST_ENVIRONMENT: "production",
+    REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41",
+  };
+  assert.equal(attestationConfig(configured).kind, "appAttest");
+  assert.equal(configBody(configured).reports.attestation, "appAttest");
 });
 
 test("automatic invocation logs, which persist request URLs, are disabled everywhere", () => {

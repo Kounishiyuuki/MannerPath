@@ -4,7 +4,9 @@ import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
 import { CONFIG_RESOURCES, CONFIG_SCHEMA_VERSION, ConfigBodyV1 } from "../src/config/dto.ts";
 import { DATA_TILE_ZOOM } from "../src/geo/tile.ts";
-import { MINIMUM_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION, ReportRequestV1 } from "../src/reports/dto.ts";
+import {
+  ATTESTED_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION, REPORT_SUBMISSION_MAX_BYTES, ReportRequestV1,
+} from "../src/reports/dto.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../src/spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../src/tiles/dto.ts";
 
@@ -15,8 +17,8 @@ function configBodyFixture(): unknown {
     apiVersion: "v1",
     dataTileZoom: DATA_TILE_ZOOM,
     schemaVersions: { tile: TILE_SCHEMA_VERSION, spotDetail: SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
-    minimumSupportedSchemaVersions: { tile: MINIMUM_TILE_SCHEMA_VERSION, spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, report: MINIMUM_REPORT_SCHEMA_VERSION },
-    reports: { available: true, maxBodyBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
+    minimumSupportedSchemaVersions: { tile: MINIMUM_TILE_SCHEMA_VERSION, spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
+    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
   };
 }
 
@@ -43,9 +45,9 @@ test("/v1/config serves the canonical constants, and reaches no database", async
     minimumSupportedSchemaVersions: {
       tile: MINIMUM_TILE_SCHEMA_VERSION,
       spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
-      report: MINIMUM_REPORT_SCHEMA_VERSION,
+      report: REPORT_SCHEMA_VERSION,
     },
-    reports: { available: true, maxBodyBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
+    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
   });
   // The values are the ones the rest of the API actually enforces, not a second copy of them.
   assert.equal(body.dataTileZoom, 14);
@@ -78,22 +80,63 @@ test("a body whose minimum outruns the version it serves is not a valid config",
   assert.equal(ConfigBodyV1.safeParse(broken).success, false);
 });
 
+const APP_ATTEST = { REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42" };
+
 test("/v1/config reports the report endpoint as unavailable exactly when it fails closed", async () => {
-  for (const [value, available] of [
-    [undefined, true],
-    ["disabled", true],
-    // Enforcing and misspelled policies both make POST /v1/reports answer 503 until Issue #37.
-    ["required", false],
-    ["REQUIRED", false],
-    ["off", false],
+  for (const [env, available] of [
+    [{}, true],
+    [{ REPORT_ATTESTATION: "disabled" }, true],
+    // Enforcing and fully configured: reports are accepted, attested.
+    [{ REPORT_ATTESTATION: "required", ...APP_ATTEST }, true],
+    // Enforcing without what it verifies against, or misspelled: the endpoint answers 503.
+    [{ REPORT_ATTESTATION: "required" }, false],
+    [{ REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production" }, false],
+    [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_ENVIRONMENT: "prod" }, false],
+    // The bundle-version allowlist is required too: absent, empty or malformed fails closed rather
+    // than silently skipping bundle-version validation.
+    [{ REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ATTEST.REPORT_APP_ATTEST_APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production" }, false],
+    ...["", ",", "41,", ",41", "41, 42", " 41", "41,41", "1.0.0.0", "v41", "41;42", "*"].map((v) => [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_BUNDLE_VERSIONS: v }, false] as const),
+    // One or several exact versions are a usable allowlist.
+    [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_BUNDLE_VERSIONS: "7" }, true],
+    [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_BUNDLE_VERSIONS: "1.2.3,1.2.4,100" }, true],
+    [{ REPORT_ATTESTATION: "REQUIRED", ...APP_ATTEST }, false],
+    [{ REPORT_ATTESTATION: "off" }, false],
   ] as const) {
-    const env = value === undefined ? {} : { REPORT_ATTESTATION: value };
+    const label = JSON.stringify(env);
+    // The App Attest endpoints answer exactly when the deployment advertises App Attest.
+    const attested = ConfigBodyV1.parse(await config(env).then((r) => r.json())).reports;
+    const challenge = await app.request("/v1/app-attest/challenges", { method: "POST", body: "{}" }, env as any);
+    assert.equal(challenge.status === 503, !(attested.available && attested.attestation === "appAttest"), `challenges ${label}`);
     const body = ConfigBodyV1.parse(await config(env).then((r) => r.json()));
-    assert.equal(body.reports.available, available, `REPORT_ATTESTATION=${value}`);
+    assert.equal(body.reports.available, available, label);
 
     // The advertised availability must match what the endpoint really does.
     const post = await app.request("/v1/reports", { method: "POST", body: "{}" }, env as any);
-    assert.equal(post.status === 503, !available, `REPORT_ATTESTATION=${value}`);
+    assert.equal(post.status === 503, !available, label);
+  }
+});
+
+test("/v1/config names the one report protocol and schema version the deployment accepts", async () => {
+  const disabled = ConfigBodyV1.parse(await config().then((r) => r.json()));
+  assert.equal(disabled.reports.attestation, "none");
+  assert.equal(disabled.schemaVersions.report, REPORT_SCHEMA_VERSION);
+  assert.equal(disabled.minimumSupportedSchemaVersions.report, REPORT_SCHEMA_VERSION);
+  assert.equal(disabled.reports.maxSubmissionBytes, REPORT_BODY_MAX_BYTES);
+
+  // A required deployment cannot accept an unattested v1 report, so v1 is below its minimum: an old
+  // client is told to update instead of discovering it through a failure.
+  const required = ConfigBodyV1.parse(await config({ REPORT_ATTESTATION: "required", ...APP_ATTEST }).then((r) => r.json()));
+  assert.equal(required.reports.attestation, "appAttest");
+  assert.equal(required.schemaVersions.report, ATTESTED_REPORT_SCHEMA_VERSION);
+  assert.equal(required.minimumSupportedSchemaVersions.report, ATTESTED_REPORT_SCHEMA_VERSION);
+  assert.equal(required.reports.maxBodyBytes, REPORT_BODY_MAX_BYTES);
+  assert.equal(required.reports.maxSubmissionBytes, REPORT_SUBMISSION_MAX_BYTES);
+
+  // And the endpoint refuses the other version explicitly, whichever mode it is in.
+  for (const [env, other] of [[{}, ATTESTED_REPORT_SCHEMA_VERSION], [{ REPORT_ATTESTATION: "required", ...APP_ATTEST }, REPORT_SCHEMA_VERSION]] as const) {
+    const res = await app.request("/v1/reports", { method: "POST", body: JSON.stringify({ schemaVersion: other }) }, env as any);
+    assert.equal(res.status, 400);
+    assert.equal((await res.json() as any).error, "reportSchemaUnsupported");
   }
 });
 
@@ -102,6 +145,12 @@ test("/v1/config exposes no secret or environment value", async () => {
     REPORT_ATTESTATION: "disabled",
     REPORT_SUBMITTER_PEPPER: "test-pepper-value-not-a-real-secret",
   }).then((r) => r.text());
+  // Nor the App Attest deployment values: the App ID prefix is usually the Team ID.
+  const attested = await config({ REPORT_ATTESTATION: "required", ...APP_ATTEST }).then((r) => r.text());
+  assert.equal(attested.includes("ABCDE12345"), false);
+  assert.equal(attested.includes("com.example.mannerpath"), false);
+  assert.equal(attested.includes("required"), false);
+  assert.equal(attested.includes("41,42"), false, "the accepted bundle versions are not advertised");
   assert.equal(raw.includes("test-pepper-value-not-a-real-secret"), false);
   assert.equal(raw.toLowerCase().includes("pepper"), false);
   // The configured attestation policy itself is not echoed, only the derived boolean.

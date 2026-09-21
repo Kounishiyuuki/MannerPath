@@ -89,9 +89,8 @@ test("invalid payloads are rejected and the error never echoes a submitted value
     ["observedOn with a 13th month", existsReport({ observedOn: "2026-13-01" })],
     ["observedOn without zero padding", existsReport({ observedOn: "2026-9-1" })],
     ["malformed spot id", existsReport({ spotId: "sp_not-an-id" })],
-    ["a future schema version", existsReport({ schemaVersion: 2 })],
     ["a non-object body", "[]"],
-    // App Attest is deferred: v1 accepts no attestation material at all (ADR-0007 §6).
+    // v1 is the unattested version: it accepts no attestation material at all (ADR-0007 §6).
     ["attestation material", existsReport({ attestation: { keyId: "key-abc", assertion: "YXNz", challenge: "chal-123" } })],
   ];
   for (const [name, payload] of cases) {
@@ -104,6 +103,13 @@ test("invalid payloads are rejected and the error never echoes a submitted value
     assert.equal(body.detail.includes("smokedHere"), false, name);
   }
   assert.equal(one(db, "SELECT count(*) AS n FROM reports").n, 0, "no invalid report was stored");
+
+  // A disabled deployment speaks schema 1 only; the attested schema 2 is a distinct, explicit
+  // refusal rather than a schema error, so a client can tell "wrong protocol" from "bad report".
+  const v2 = await post(db, existsReport({ schemaVersion: 2 }));
+  assert.equal(v2.status, 400);
+  assert.equal((await v2.json() as Row).error, "reportSchemaUnsupported");
+  assert.equal(one(db, "SELECT count(*) AS n FROM reports").n, 0);
 });
 
 test("a real calendar date is accepted, including a leap day", async () => {
@@ -161,10 +167,10 @@ test("the per-install hourly budget refuses further reports with Retry-After and
   for (const w of windows) assert.match(w.submitter_hash, /^[0-9a-f]{64}$/);
 });
 
-test("attestation is deferred: every configured mode fails closed and nothing is stored", async () => {
+test("an incomplete or unrecognised attestation policy fails closed and nothing is stored", async () => {
   const db = new SqliteD1();
 
-  // "required" is honest intent, but the challenge/request-binding protocol does not exist yet, so
+  // "required" without the App ID and environment it verifies against cannot verify anything, so
   // the endpoint refuses to run rather than storing unverifiable device claims.
   const required = await post(db, existsReport(), { REPORT_ATTESTATION: "required" });
   assert.equal(required.status, 503);

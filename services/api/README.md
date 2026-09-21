@@ -75,11 +75,17 @@ npm run local:reports -- queue rp_... queued                  # accepted reports
 npm run local:reports -- retain                               # minimize reports past 90 days, purge rate counters
 ```
 
-App Attest is deferred (ADR-0007 §6, Issue #37): v1 accepts no attestation material, and
-`REPORT_ATTESTATION` set to `required` — or to any unrecognised value — makes the endpoint answer
-`503` before reading the body, so a typo cannot silently disable attestation. Unset or `disabled`
-is the local/test default; the committed `staging` and `production` environments set `required`, so
-a deployed environment accepts no reports until #37 lands.
+App Attest (ADR-0007 §6, Issue #37) lives in `src/attest/`: a minimal CBOR and DER/X.509 reader,
+Apple's attestation and assertion checks, the `clientDataHash` binding, and the D1 challenge/key
+store (migration `0007_app_attest.sql`). No dependency was added: WebCrypto (ECDSA P-256/P-384)
+verifies every signature, and the two parsers accept only what App Attest uses. `REPORT_ATTESTATION`
+unset or `disabled` is the local/test default — report schema 1, unattested. `required` enforces
+App Attest (schema 2) only when `REPORT_APP_ATTEST_APP_ID`, `REPORT_APP_ATTEST_ENVIRONMENT` and
+`REPORT_APP_ATTEST_BUNDLE_VERSIONS` (exact accepted `CFBundleVersion` values, comma-separated) are
+set; without them, or with any unrecognised value, every report and App Attest endpoint answers
+`503`. The committed `staging` and `production` environments set `required` and none of those values, so a
+deployed environment accepts no reports until a maintainer configures it (`docs/OPERATIONS.md`).
 
 Deployment settings this repository deliberately does not contain: `REPORT_SUBMITTER_PEPPER`
-(hashed abuse key pepper) and the edge rate-limit rule. No Apple key or pepper value is committed.
+(hashed abuse key pepper), `REPORT_APP_ATTEST_APP_ID` (its App ID prefix is usually the Team ID),
+`REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS` and the edge rate-limit rule. No Apple key or pepper value is committed.
