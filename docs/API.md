@@ -176,6 +176,11 @@ a later human decision, and even an accepted report becomes canonical evidence o
 separate reconciliation step (ADR-0006, ADR-0007 §2). The response therefore never reports
 anything but `pending`.
 
+**A deployment accepts exactly one report schema version**, published by `/v1/config`:
+schemaVersion 1 (unattested) where `reports.attestation` is `"none"`, schemaVersion 2 (App Attest)
+where it is `"appAttest"`. The other version is refused with `400 reportSchemaUnsupported` before
+any other check, so a client can tell "wrong protocol" from "bad report" (ADR-0007 §6).
+
 ### schemaVersion 1 (implemented, Issue #29)
 
 Privacy and retention: `docs/adr/0007-report-privacy-and-retention.md`. Implementation:
@@ -212,9 +217,8 @@ server responses, while the report body is the server's minimization boundary.)
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
   IDFV, IDFA, a DeviceCheck value or any other system identifier.
-- `attestation`: **not accepted in schemaVersion 1.** App Attest is deferred until the server-issued
-  one-time challenge, request binding and replay protection exist (ADR-0007 §6, Issue #37), so
-  sending attestation material is a `400 invalidReport` rather than a claim the server cannot check.
+- `attestation`: **not accepted in schemaVersion 1**, which is the unattested version: sending
+  attestation material is a `400 invalidReport`. Attested reports use schemaVersion 2 below.
 - Nothing else is accepted: no account, no email, no device position, no position sequence, no
   client-supplied timestamp finer than a day.
 
@@ -235,7 +239,8 @@ Responses:
 | Body over 4 KiB | `413` | `{"error":"reportTooLarge","detail":…}` |
 | Body is not JSON | `400` | `{"error":"invalidJson","detail":…}` |
 | Schema violation (unknown field, wrong type for the report type, oversized note, …) | `400` | `{"error":"invalidReport","detail":…}` — JSON paths and issue codes only, never the submitted values |
-| Server configured with `REPORT_ATTESTATION=required`, or with any unrecognised value | `503` | `{"error":"attestationUnavailable","detail":…}` — checked before the body is read; fails closed, and a typo never silently disables attestation |
+| `schemaVersion` is a number other than the one this deployment accepts | `400` | `{"error":"reportSchemaUnsupported","detail":…}` |
+| Attestation policy unrecognised or incomplete (see ADR-0007 §6) | `503` | `{"error":"attestationUnavailable","detail":…}` — checked before the body is read; fails closed, and a typo never silently disables attestation |
 | Per-install rate limit exceeded (10/hour, 50/day) | `429` | `{"error":"reportRateLimited","detail":…}`; `Retry-After` seconds |
 
 **An unknown, unpublished or merged-away `spotId` is accepted exactly like a known one**, with an
@@ -251,6 +256,147 @@ it. See ADR-0007 §4.
 
 Moderation is not reconciliation: an accepted report may be `queued` or `discarded`, and the
 `applied` state is unreachable until the reconciliation step exists (ADR-0007 §2).
+
+### schemaVersion 2 — attested (implemented, Issue #37)
+
+Accepted only where `/v1/config` says `reports.attestation: "appAttest"`. The report fields are
+exactly schemaVersion 1's, with `"schemaVersion": 2`; they travel as **exact bytes** inside an
+envelope that also carries the App Attest assertion over those bytes. Implementation:
+`services/api/src/attest/`, `services/api/src/reports/dto.ts` (`ReportSubmissionV2`,
+`ReportPayloadV2`), migration `0007_app_attest.sql`.
+
+```json
+{
+  "schemaVersion": 2,
+  "payload": "eyJzY2hlbWFWZXJzaW9uIjoyLCJ0eXBlIjoiZXhpc3RzIiwic3BvdElkIjoic3BfMDFWNjROTjMxRzcyRTVLSko1VzIyVzFBMUoiLCJpbnN0YWxsSWQiOiI4ZjFjNGQyZS0wYTNiLTRjNWQtOGU5Zi0wYTFiMmMzZDRlNWYifQ==",
+  "attestation": {
+    "keyId": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
+    "challenge": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "assertion": "omlzaWduYXR1cmVYRzBFAiEA…"
+  }
+}
+```
+
+- `payload`: standard padded base64 of the UTF-8 JSON bytes of the report (a schemaVersion 1 body
+  with `"schemaVersion": 2`, same strict rules). At most `reports.maxBodyBytes` (4096) bytes once
+  decoded. The server verifies the assertion over **these bytes** and then parses them; it never
+  re-serializes JSON, so the client may encode however it likes but must sign what it sends.
+- `attestation.keyId`: the registered App Attest key ID (base64, 32 bytes), as `DCAppAttestService`
+  returns it.
+- `attestation.challenge`: a `report` challenge issued to that key (see below).
+- `attestation.assertion`: the `generateAssertion` output, base64, over the report `clientDataHash`
+  defined in "App Attest client data".
+- The whole envelope is at most `reports.maxSubmissionBytes` (8192) bytes. All base64 is standard,
+  padded and canonical; anything else is `400 invalidReport`.
+
+Response (`201`): `{ "schemaVersion": 2, "reportId": "rp_…", "state": "pending", "receivedAt": "…" }`.
+The report is stored with `attestation_status = 'verified'` and no reference to the key.
+
+Order of checks (each ends the request): envelope shape (`400`) → **challenge consumed** (`403
+challengeInvalid`) → payload bytes and report schema (`400`/`413`) → key and assertion (`403`) →
+rate limit (`429`) → counter advance and report insert in one transaction (`201`, or `403
+counterNotIncreasing` if a concurrent request won). Every `403` carries
+`{"error":"attestationRejected","reason":…,"detail":…}` and is **definite: no report was stored and
+no counter moved.**
+
+| `reason` | Meaning | Client action |
+|---|---|---|
+| `challengeInvalid` | unknown, expired, already consumed, wrong purpose or wrong key (`detail` says which) | fetch a new report challenge, sign again |
+| `keyNotRegistered` | the server holds no such key | generate a new key and register it |
+| `assertionInvalid` | signature, App ID, environment, launch category or encoding failed (`detail`) | treat the key as unusable: generate and register a new one |
+| `counterNotIncreasing` | a newer assertion from this key was already accepted | fetch a new challenge, sign again (submit one report at a time per key) |
+
+Any other failure — a timeout, a dropped connection, a `5xx` — is **transport-ambiguous**; see
+"Ambiguous delivery".
+
+## App Attest (implemented, Issue #37)
+
+Reachable only where `reports.attestation` is `"appAttest"`; elsewhere every endpoint here answers
+`503 attestationUnavailable`. Design and threat model: ADR-0007 §6. The client flow is:
+
+1. Once per key: `generateKey` → `POST /app-attest/challenges {purpose:"registration"}` →
+   `attestKey(keyId, registration clientDataHash)` → `POST /app-attest/keys`.
+2. Per report: `POST /app-attest/challenges {purpose:"report", keyId}` → build the payload bytes →
+   `generateAssertion(keyId, report clientDataHash)` → `POST /reports` (schemaVersion 2).
+
+The App Attest key ID and the report `installId` are different identifiers and are never derived
+from each other.
+
+### POST `/app-attest/challenges`
+
+```json
+{ "schemaVersion": 1, "purpose": "registration" }
+{ "schemaVersion": 1, "purpose": "report", "keyId": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=" }
+```
+
+Response (`201`, `Cache-Control: no-store`):
+
+```json
+{ "schemaVersion": 1, "challenge": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", "purpose": "report", "expiresAt": "2026-09-21T09:35:00Z" }
+```
+
+- `challenge`: 32 random bytes, standard base64. Valid for 5 minutes, for its purpose only (and,
+  for `report`, only for that key), and **exactly once** — the first request that names it consumes
+  it, whether or not that request succeeds.
+
+| Case | Status | Body |
+|---|---|---|
+| Issued | `201` | as above |
+| Schema violation | `400` | `invalidChallengeRequest` |
+| `report` for an unregistered key | `403` | `attestationRejected`, `reason: keyNotRegistered` |
+| Too many outstanding challenges (1000 registration challenges per deployment, 3 report challenges per key) | `429` | `challengeLimited`; `Retry-After: 300` |
+
+### POST `/app-attest/keys`
+
+```json
+{ "schemaVersion": 1, "keyId": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=", "challenge": "…registration challenge…", "attestationObject": "o2NmbXRvYXBwbGUtYXBwYXR0ZXN0…" }
+```
+
+Response (`201`): `{ "schemaVersion": 1, "keyId": "…", "registeredAt": "2026-09-21T09:30:00Z" }`.
+The key is stored only after every check in ADR-0007 §6 passed; the attestation object is not
+stored. Body limit 16 KiB (`413 requestTooLarge`).
+
+| Case | Status | Body |
+|---|---|---|
+| Registered | `201` | as above |
+| Schema violation, or a value that is not canonical base64 / 32 bytes | `400` | `invalidKeyRegistration` |
+| Challenge unknown, expired, consumed or not a registration challenge | `403` | `attestationRejected`, `reason: challengeInvalid` |
+| Attestation failed verification | `403` | `attestationRejected`, `reason: attestationInvalid`, `detail` one of `malformed`, `untrustedChain`, `nonceMismatch`, `keyIdMismatch`, `appIdMismatch`, `environmentMismatch`, `counterNotZero`, `validationCategory` |
+| Key already registered | `409` | `keyAlreadyRegistered` — the key is usable as is |
+
+### App Attest client data
+
+The one byte-level binding between a signature and what it authorizes. With
+`frame(x) = uint32 big-endian byte length of x ‖ x`:
+
+```
+registration clientData = frame("mannerpath.app-attest.registration.v1") ‖ frame(challenge) ‖ frame(keyId)
+report       clientData = frame("mannerpath.app-attest.report.v1")       ‖ frame(challenge) ‖ frame(keyId) ‖ frame(payload)
+clientDataHash          = SHA-256(clientData)      — passed to attestKey / generateAssertion
+```
+
+- The domain strings are ASCII; `challenge` and `keyId` are their **decoded 32 raw bytes**, not
+  their base64 text; `payload` is exactly the bytes whose base64 is sent as `payload`.
+- Every part is length-prefixed, so no two different inputs frame to the same bytes; the domain
+  keeps a registration signature from ever authorizing a report.
+- The server then checks Apple's `nonce = SHA-256(authenticatorData ‖ clientDataHash)` itself.
+- **Test vectors** (independently generated, frozen):
+  `contracts/app-attest/client-data-vectors.v1.json`. For example, challenge bytes `00 01 … 1f`,
+  keyId `zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=` and payload
+  `{"schemaVersion":2,"type":"exists","spotId":"sp_01V64NN31G72E5KJJ5W22W1A1J","installId":"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f"}`
+  give `clientDataHash` `7ac2808aefe7c61d09d8486d9ea0ec308aa1abe7cff7f86dd3c8cd88fbcb2805`; the same
+  report with its first two keys swapped gives `67a40c23…a44235` — different bytes, different hash.
+
+### Ambiguous delivery
+
+A verified assertion does not prove the client received the response. When the final `POST
+/reports` times out or its response is lost, the server is still consistent: either nothing was
+committed, or the report is stored **and** its challenge consumed **and** the key's counter
+advanced — all in one transaction. Resending the identical request is then refused
+(`challengeInvalid`) and can never store a second copy, but that refusal says nothing about the
+first request. The client therefore keeps treating the original as possibly accepted and offers an
+explicit, duplicate-aware retry (a new challenge, a new assertion); it never retries a report
+automatically (#30, #46).
 
 ## GET `/config`
 
@@ -274,9 +420,13 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
   "dataTileZoom": 14,
   "schemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
   "minimumSupportedSchemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
-  "reports": { "available": true, "maxBodyBytes": 4096, "noteMaxLength": 280 }
+  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280 }
 }
 ```
+
+On a deployment that requires App Attest, the report entries read
+`"schemaVersions": {…, "report": 2}`, `"minimumSupportedSchemaVersions": {…, "report": 2}` and
+`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280 }`.
 
 - `schemaVersion`: the schema version of *this* body.
 - `apiVersion`: the base path this document describes (`v1`).
@@ -295,11 +445,19 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
   - A resource added to `/v1` later appears in both objects; clients ignore resources they do not
     know.
 - `reports.available`: whether `POST /reports` accepts submissions on this deployment. It is
-  `false` whenever the attestation policy is enforcing or unrecognised, because the endpoint then
-  fails closed with `503` (ADR-0007 §6, Issue #37). A client hides the report entry point instead of
-  walking the user into a guaranteed failure. The configured policy value itself is never exposed.
-- `reports.maxBodyBytes` / `reports.noteMaxLength`: the limits the endpoint enforces, so a client
-  can validate before submitting. They are the same constants `POST /reports` uses.
+  `false` exactly when the attestation policy is unrecognised or incomplete, because the endpoint
+  then fails closed with `503` (ADR-0007 §6). A client hides the report entry point instead of
+  walking the user into a guaranteed failure. The configured values themselves (policy, App ID,
+  environment) are never exposed.
+- `reports.attestation`: the report protocol — `"none"` (schemaVersion 1, no attestation) or
+  `"appAttest"` (schemaVersion 2 with App Attest registration, challenge and assertion). For
+  `report`, `schemaVersions` and `minimumSupportedSchemaVersions` are always equal: a deployment
+  accepts one version. A client that cannot produce the advertised protocol (an old binary, or a
+  device without App Attest) must present reporting as unavailable, never fall back to the other.
+- `reports.maxBodyBytes` / `reports.noteMaxLength`: the report limits the endpoint enforces — the
+  schemaVersion 1 body, or the decoded schemaVersion 2 `payload` — so a client can validate before
+  submitting. `reports.maxSubmissionBytes`: the whole request body limit (equal to `maxBodyBytes`
+  for schemaVersion 1, the envelope limit for 2). They are the same constants `POST /reports` uses.
 - Clients ignore unknown fields here as everywhere else; a value added later is additive.
 
 Responses:

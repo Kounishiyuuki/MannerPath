@@ -72,8 +72,9 @@ Then set the one secret the service needs:
 npx wrangler secret put REPORT_SUBMITTER_PEPPER --env staging   # 32+ random bytes, never committed
 ```
 
-`REPORT_ATTESTATION` is **`required`** in the committed `staging` and `production` environments,
-which makes the report endpoint fail closed until Issue #37 (see below). Leave it that way. No other
+`REPORT_ATTESTATION` is **`required`** in the committed `staging` and `production` environments.
+On its own that makes the report endpoint fail closed; it starts enforcing App Attest only once the
+two App Attest values are set (see "Report attestation" below). Leave `required` as it is. No other
 secret exists.
 
 ### 2. Migrate
@@ -191,7 +192,7 @@ It prints one line per check and exits non-zero if any fails:
 | `tileNotPublished 404` | A valid z14 tile with no snapshot → `404 {"error":"tileNotPublished"}` |
 | `spot detail` | `GET /v1/spots/{id}` for a spot in that tile → `200`, valid, same ID, `schemaVersion` inside the advertised spot-detail range |
 | `attribution` | Every source behind a published spot has non-empty `attributionText`, and the detail endpoint's source entry is byte-identical to the tile's |
-| `report endpoint configuration` | The report gate agrees with `/v1/config`: `400 invalidReport` when `reports.available` is true, `503 attestationUnavailable` when it is false. Never `201`. On staging/production `reports.available` is `false` and `503` is the expected pass (Issue #37) |
+| `report endpoint configuration` | The report gate agrees with `/v1/config`: `400 invalidReport` when `reports.available` is true, `503 attestationUnavailable` when it is false. Never `201`. On staging/production `reports.available` stays `false` (and `503` is the expected pass) until the App Attest values are configured |
 
 The attribution check is a licence check, not a cosmetic one: publishing a spot without its source's
 approved attribution violates the source licence (`DATA_POLICY.md`).
@@ -256,12 +257,15 @@ Notes:
   does not touch the green database.
 - The cut-over is not atomic across the two databases, but each tile is: clients revalidate with
   `ETag` and replace a tile wholesale, so a client sees the old tile or the new one, never a mix.
-- User reports live in the database being replaced. In beta, remote report acceptance is closed
-  (`REPORT_ATTESTATION=required`, Issue #37), so a green database starts with no reports to carry
-  and nothing is lost. **This stops being true the moment #37 lands**: a blue/green switch would
-  then drop the reports written to the blue database since the bundle was built, and that issue must
-  define how reports are carried across (or replace this model) before reports are accepted
-  remotely.
+- User reports and registered App Attest keys live in the database being replaced. While the App
+  Attest values are unset, remote report acceptance is closed, so a green database starts with no
+  reports or keys to carry and nothing is lost. **This stops being true the moment a remote
+  environment is configured to accept attested reports**: a blue/green switch would then drop the
+  reports and keys written to the blue database since the bundle was built. Dropped keys are
+  recoverable (clients get `keyNotRegistered` and register again); dropped reports are not. How
+  reports are carried across — or a replacement for this model — must be decided before the App
+  Attest values are set on any remote environment. Issue #37 implements the protocol only; it does
+  not decide that.
 
 ### 7. Rollback / disable
 
@@ -282,8 +286,11 @@ Notes:
   This works only while the previous database still exists, which is why step 6 keeps it.
 - **Bad code:** `npx wrangler rollback --env staging` (previous deployment), or redeploy the
   previous commit.
-- **Stop accepting reports:** already the committed state remotely (`REPORT_ATTESTATION=required`
-  fails closed). There is no separate kill-switch var, and one would be a second, weaker gate.
+- **Stop accepting reports:** remove `REPORT_APP_ATTEST_APP_ID` from the environment
+  (`npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>`): `required` without it fails
+  closed and `/v1/config` reports `available: false`. There is no separate kill-switch var, and one
+  would be a second, weaker gate. Never switch to `disabled` to do this — that accepts unattested
+  reports.
 - **Take the environment down:** `npx wrangler delete --env staging`. Deleting the Worker does not
   delete the D1 database; `npx wrangler d1 delete` is a separate, destructive decision.
 - A rollback never edits canonical data by hand, in either database. Canonical rows change only
@@ -339,6 +346,8 @@ Invariants for anything added later:
 - **No spot or report request payload logging.** Not the note, not `proposedLocation`, not
   `observedOn`, not `installId`, not the hashed submitter key, not a validation error carrying a
   submitted value. Report validation errors are JSON paths and issue codes only (ADR-0007 §7).
+- **No attestation material in logs.** Not a key ID, challenge, assertion, attestation object,
+  certificate or receipt, and not the configured App ID.
 - **No client IP, device ID or account ID** in anything the service records.
 - Alert on error rate and `503` volume from the aggregate metrics. A `503` wave on `/v1/reports` is
   `REPORT_ATTESTATION` doing its job, not an incident to silence.
@@ -359,28 +368,43 @@ The iPhone app already takes the origin as a build setting; no app code changes 
 - A beta build should call `GET /v1/config` at launch, take `dataTileZoom` from it rather than
   hard-coding `14`, and compare each resource's advertised range with the schema versions it can
   decode — tiles, spot detail and reports separately, since they version independently. It should
-  also hide the report entry point when `reports.available` is `false`, which is the state of every
-  remote-like environment until Issue #37.
+  also hide the report entry point when `reports.available` is `false`, and speak the report
+  protocol `reports.attestation` names (`"appAttest"` needs the #46 client).
 
-## Issue #37 — report attestation stays fail-closed
+## Report attestation (App Attest, Issue #37)
 
-App Attest is deferred (ADR-0007 §6, Issue #37). This runbook does not implement it and must not be
-used to work around it.
+The protocol is implemented (ADR-0007 §6, `docs/API.md` "App Attest"). What a deployment does is
+decided by three values; the committed environments carry only the first.
 
-- **Remote report acceptance is deferred.** The committed `staging` and `production` environments
-  set `REPORT_ATTESTATION=required`, so a freshly deployed remote-like environment accepts no
-  reports at all: `POST /v1/reports` answers `503 attestationUnavailable` before reading the body,
-  and `/v1/config` reports `reports.available: false`. That is the intended state until #37, and the
-  smoke check treats it as a pass.
-- Local and test keep `REPORT_ATTESTATION=disabled`, so the endpoint stays exercisable where no real
-  user data exists.
-- Setting `required` does **not** enable attestation — the protocol does not exist. Any unrecognised
-  value fails closed the same way, so a typo cannot silently disable attestation.
-- Do not switch a remote environment to `disabled` to "turn reports on". That would accept
-  unattested reports in a production-like environment, which is exactly what this setting prevents;
-  the way to accept reports remotely is to implement #37.
-- Do not add an env var, header or client flag that accepts attestation material in the meantime:
-  a stored verdict nobody verified would look like evidence of device integrity.
-- Unattested reports in beta are therefore protected only by the hashed-submitter rate limit and
-  moderation. Treat that as beta-grade abuse resistance, not device integrity, and add the
-  IP-keyed edge rate-limit rule before any wider release (ADR-0007 §5).
+| Value | Where it lives | Committed? |
+|---|---|---|
+| `REPORT_ATTESTATION` | `vars` in `wrangler.jsonc` — `disabled` locally, `required` on staging/production | yes |
+| `REPORT_APP_ATTEST_APP_ID` | `<Team ID>.<bundle identifier>`, the App Attest RP ID. It carries the Team ID, so it is set per environment, never committed: `npx wrangler secret put REPORT_APP_ATTEST_APP_ID --env <env>` | **no** |
+| `REPORT_APP_ATTEST_ENVIRONMENT` | `production` for TestFlight and App Store builds, `development` for builds signed with a development identity; a key attested in one is refused by the other. Set it the same way | **no** |
+
+- **Remote environments fail closed until a maintainer configures them.** With `required` and
+  either value missing or malformed, `POST /v1/reports` and the App Attest endpoints answer
+  `503 attestationUnavailable` and `/v1/config` reports `reports.available: false`. The smoke check
+  treats that as a pass. `test/deploy-config.test.ts` fails if either value appears in the
+  committed configuration.
+- **Once both are set**, the deployment speaks report schemaVersion 2 only: `/v1/config` advertises
+  `reports.attestation: "appAttest"` and `report` version 2, schema-1 reports are refused with
+  `400 reportSchemaUnsupported`, and a report is stored only after its assertion verified
+  (`attestation_status = 'verified'`). Before setting them on any remote environment, settle the
+  blue/green carry-over question in step 6 and confirm #35 on a physical device.
+- Local and test keep `REPORT_ATTESTATION=disabled`: schema 1, unattested, `notProvided`. Do not
+  switch a remote environment to `disabled` to "turn reports on" — that accepts unattested reports.
+  Any unrecognised value fails closed, so a typo cannot silently disable attestation.
+- **Trust anchor.** The Apple App Attestation Root CA is pinned in
+  `services/api/src/attest/apple-root.ts` (valid to 2045-03-15; a test checks its fingerprint).
+  There is no configuration that replaces it. If Apple rotates it, that is a reviewed code change.
+- **Retention.** The retention pass (`npm run local:reports -- retain`) also deletes expired App
+  Attest challenges, consumed or not; a challenge lives 5 minutes. Registered keys (key ID, public
+  key, environment, counter, registration time) are kept indefinitely and are not linked to
+  reports. Nothing else from an attestation is stored.
+- **Abuse.** Outstanding challenges are capped (1000 for registration per deployment, 3 per key for
+  reports; over the cap is `429 challengeLimited`). Registration-challenge flooding from many
+  clients is bounded only by that cap and by the IP-keyed edge rate-limit rule (ADR-0007 §5), which
+  must cover `/v1/app-attest/*` as well as `/v1/reports` before any wider release.
+- Physical-device verification of registration and assertion is Issue #35; the iPhone client is
+  Issue #46.

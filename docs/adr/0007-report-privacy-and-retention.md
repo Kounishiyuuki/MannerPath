@@ -2,7 +2,9 @@
 
 Status: Accepted (2026-09, Issue #29). Amended 2026-09 by the PR #36 review: App Attest deferred
 (§6), moderation notes replaced by a bounded reason vocabulary (§4), reconciliation transitions
-narrowed to the ones this slice can honestly make (§2).
+narrowed to the ones this slice can honestly make (§2). Amended 2026-09 by Issue #37: App Attest
+implemented as a server-issued challenge / key registration / request-bound assertion protocol
+(§6), report request schema 2.
 
 Prerequisite for the report API. ADR-0006 ends with "Report privacy/retention requires a separate
 ADR before the report API ships"; this is that ADR. It governs `POST /v1/reports`
@@ -77,7 +79,7 @@ Zod schema (`services/api/src/reports/dto.ts`); anything else is rejected, not i
 | `observedOn` | when the submitter saw it | a real calendar date at day precision, `YYYY-MM-DD` (`z.iso.date()`), with a matching database CHECK; no time of day, so a report cannot place someone at a place at an hour. No future-date restriction |
 | `note` | free-text detail a moderator needs | optional, ≤ 280 characters |
 | `installId` | abuse control only | client-generated UUID, never stored as sent (§5) |
-| ~~`attestation`~~ | — | **not accepted in v1**; App Attest is deferred (§6) |
+| ~~`attestation`~~ | — | **never part of the report payload**. Schema 1 accepts none; schema 2 carries it in the envelope beside the signed payload, and only a verdict is stored (§6) |
 
 Explicitly **not** accepted and never stored: the device's own position, any trajectory, bearing,
 accuracy or sensor data, a sequence of positions, a user account, an email address, an IP address,
@@ -126,38 +128,93 @@ a client obligation.
   front of the Worker, keyed on IP, is a deployment-level pre-launch requirement and is recorded as
   such rather than implemented in application code where it would need to store IPs.
 
-### 6. App Attest / DeviceCheck: deferred, and fail-closed
+### 6. App Attest: one-time challenge, registration, request-bound assertion
 
-App Attest is **not implemented in v1, and v1 does not pretend otherwise.** A correct assertion
-check needs all three of:
+A correct assertion check needs all three of: a one-time, server-issued challenge consumed exactly
+once; a `clientDataHash` binding that challenge to the exact report payload; and server-side replay
+protection with a strictly increasing per-key counter. A client-supplied challenge satisfies none of
+them, so a verdict derived from one would look like evidence of device integrity while being none.
+Issue #37 implements all three (`services/api/src/attest/`, migration `0007_app_attest.sql`); the
+wire contract is `docs/API.md` "App Attest".
 
-1. a one-time, server-issued challenge, stored and consumed exactly once;
-2. a `clientDataHash` binding that challenge to the exact report payload being submitted;
-3. server-side replay protection, including the strictly increasing per-key assertion counter.
+**Two report protocols, one per deployment.** Report request schema 1 is unchanged — it still
+accepts no attestation material — and is accepted only where attestation is disabled. Schema 2 is
+the attested submission and is accepted only where it is required. `/v1/config` publishes the one
+version a deployment accepts (`schemaVersions.report` = `minimumSupportedSchemaVersions.report`) and
+`reports.attestation: "none" | "appAttest"`, so a client never infers the protocol from failures and
+an old schema-1 client on a required deployment is told to update rather than silently refused.
+v1 semantics were not mutated.
 
-A client-supplied challenge satisfies none of them — it is replayable and bound to nothing — so a
-verdict derived from it would be worse than no verdict: it would look like evidence of device
-integrity. Therefore:
+**Protocol.**
 
-- the v1 request schema accepts **no attestation material**; sending any is a `400 invalidReport`;
-- every report is stored with `attestation_status = 'notProvided'`. The `verified`/`unverified`
-  values stay in the column for the protocol slice that will set them;
-- no `AttestationVerifier` interface is exposed, because a verifier without §6.1–§6.3 cannot be
-  correct, and a plausible-looking hook invites exactly that mistake;
-- the follow-up work is Issue #37.
+1. *Challenge.* `POST /v1/app-attest/challenges` issues 32 CSPRNG bytes with an explicit purpose
+   (`registration` or `report`, the latter bound to one registered key) and a 5-minute expiry,
+   stored in `app_attest_challenges`. The server never accepts a challenge it did not issue.
+2. *Registration.* `POST /v1/app-attest/keys` with the key ID, a registration challenge and the
+   attestation object. The server runs every step of Apple's "Validating apps that connect to your
+   server": the `x5c` chain to the pinned Apple App Attestation Root CA (signatures, validity,
+   name linkage, CA flags); nonce = SHA-256(authData ‖ clientDataHash) equals the credential
+   certificate's `1.2.840.113635.100.8.2` extension; SHA-256(public key) equals the key ID; RP ID
+   hash equals SHA-256(App ID); counter 0; aaguid matches the deployment environment; credentialId
+   equals the key ID and the COSE key equals the certified key; and, when the device reports them,
+   the launch validation category (production: TestFlight 2 / App Store 4; development: 3) and
+   bundle version. Only then is the key stored.
+3. *Report.* The client fetches a report challenge for its key, signs
+   `clientDataHash = SHA-256(frame("mannerpath.app-attest.report.v1") ‖ frame(challenge) ‖ frame(keyId) ‖ frame(payload bytes))`
+   with `frame(x) = uint32_be(len(x)) ‖ x`, and sends the payload bytes base64-encoded beside the
+   assertion. The server hashes the bytes it received — never a re-serialization — so key order,
+   whitespace and escaping cannot make client and server disagree. Registration uses the same
+   framing with domain `mannerpath.app-attest.registration.v1` over challenge and key ID. Test
+   vectors: `contracts/app-attest/client-data-vectors.v1.json`.
 
-`REPORT_ATTESTATION` parsing is exhaustive and fails closed:
+**Replay and concurrency.** A challenge is consumed by `UPDATE … WHERE consumed_at IS NULL
+RETURNING` *before* any verification, so exactly one request can use it and a failed, replayed or
+raced request burns it. Purpose, key and expiry are checked on the consumed row. The counter advance
+and the report insert commit in one D1 batch, and a trigger on `app_attest_keys` aborts any update
+that does not strictly increase `sign_count`: of two requests carrying the same (or an older)
+counter, one commits and the other stores nothing and moves nothing. The counter is never updated
+unless the assertion verified.
 
-| Value | Behaviour |
+**What is stored.** Per key: key ID, the P-256 public key, the environment, the last accepted
+counter and the registration time. The attestation object, its certificates and its receipt are
+verified and discarded (the receipt exists for Apple's fraud-risk metric, which this service does
+not use). A report stores only the verdict — `attestation_status = 'verified'` for schema 2,
+`'notProvided'` for schema 1 — and no reference to the key, so a report is not linkable to the key
+or install that signed it. `'unverified'` stays unused: a rejected assertion stores no report.
+Challenges are not personal content; the retention pass deletes them once expired. Registered keys
+are kept indefinitely (maintainer decision, Issue #37): they are pseudonymous per-install material
+with no link to reports, and deleting them would only force re-registration.
+
+**Ambiguous delivery.** A successful assertion does not prove the response reached the client. If
+the final POST is lost after the server committed, the report is stored, the challenge is consumed
+and the counter advanced; resending the same request is refused (`challengeInvalid`) and cannot
+store a second copy. That refusal says nothing about the earlier request, so the client keeps
+treating it as possibly accepted and offers an explicit, duplicate-aware retry (#30/#46) — never an
+automatic one.
+
+**Abuse boundary.** Issuing a challenge writes a D1 row for an unauthenticated caller, so
+outstanding registration challenges are capped deployment-wide (1000) and report challenges per key
+(3), each with a single count-and-insert statement; over the cap is `429`. The per-install report
+rate limit (§5) still applies, after verification, so an unverified request cannot spend a budget.
+The IP-keyed edge rule (§5) remains a deployment requirement; it is what bounds registration-challenge
+flooding.
+
+**Policy parsing fails closed.**
+
+| `REPORT_ATTESTATION` | Behaviour |
 |---|---|
-| unset | disabled — the documented local and test default; reports are accepted |
-| `disabled` | disabled — same, stated explicitly |
-| `required` | `503 attestationUnavailable`; no report is stored until Issue #37 lands |
-| anything else (typo, `true`, `enabled`, whitespace, …) | `503 attestationUnavailable` — a misconfiguration never silently disables attestation |
+| unset / `disabled` | local/test default: schema 1, stored `notProvided`; the App Attest endpoints answer `503` |
+| `required` with valid `REPORT_APP_ATTEST_APP_ID` and `REPORT_APP_ATTEST_ENVIRONMENT` | schema 2 only; stored `verified` only after the assertion verified |
+| `required` without them, or malformed | `503 attestationUnavailable` everywhere — nothing to verify against |
+| anything else (typo, `true`, `enabled`, whitespace, …) | `503 attestationUnavailable` — a typo never silently disables attestation |
 
-The check runs before the request body is read, so an enforcing or misspelled policy cannot store
-a single report. No Apple private key, team ID or bundle secret is committed to this repository at
-any point; they are deployment configuration for Issue #37.
+The App ID carries the Team ID and, with the environment, is deployment configuration that is
+never committed; neither is any Apple key. The trust anchor is the pinned Apple root in code; only
+tests can substitute one (through `createApp`), and no binding, header or client field can.
+
+**Still unverified until #35.** Apple publishes a sample attestation (used as a test vector) but no
+sample assertion; assertion verification follows Apple's text and is exercised with a synthetic
+device. A real signed iPhone must confirm registration and assertion end to end (Issue #35).
 
 ### 7. Logging
 
@@ -183,8 +240,11 @@ only `queued` and `discarded`.
   not depend on anyone doing moderation work.
 - Reports cannot improve data on their own. Until the reconciliation step exists, their value is
   a reviewed queue, and that is deliberate.
-- Reports are unattested in v1. That is a known, stated gap: the abuse boundary is the hashed
-  submitter key plus rate limiting, and moderation assumes nothing about device integrity.
-- Before public launch: set `REPORT_SUBMITTER_PEPPER`, land Issue #37 and then turn on
-  `REPORT_ATTESTATION=required`, add the edge rate-limit rule, and schedule the retention pass.
-  None of these may be substituted by application-level guesses.
+- Schema-1 reports are unattested; only local/test deployments accept them. A required deployment
+  stores only reports whose App Attest assertion verified. Even then, `verified` means "a genuine
+  instance of the app on a genuine device signed these bytes", not that the claim is true:
+  moderation still judges the claim.
+- Before public launch: set `REPORT_SUBMITTER_PEPPER`, configure `REPORT_APP_ATTEST_APP_ID` and
+  `REPORT_APP_ATTEST_ENVIRONMENT` so `required` enforces, verify on a physical device (#35), add the
+  edge rate-limit rule, and schedule the retention pass. None of these may be substituted by
+  application-level guesses.
