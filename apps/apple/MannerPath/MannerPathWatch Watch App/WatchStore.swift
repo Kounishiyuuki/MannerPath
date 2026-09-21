@@ -27,12 +27,13 @@ nonisolated struct WatchStore {
     @discardableResult
     func acceptSnapshot(_ data: Data) throws -> WatchSnapshot? {
         let incoming = try WatchCodec.snapshot(data)
-        if let previous = snapshot(),
-           incoming.generatedAt < previous.generatedAt ||
-            (incoming.generatedAt == previous.generatedAt && incoming.snapshotID != previous.snapshotID) {
-            return nil
+        if let previous = snapshot() {
+            if incoming.revision < previous.revision { return nil }
+            if incoming.revision == previous.revision {
+                guard incoming == previous else { throw WatchPayloadError.invalid }
+                return nil
+            }
         }
-        if snapshot()?.snapshotID == incoming.snapshotID { return nil }
         try data.write(to: snapshotURL, options: .atomic)
         return incoming
     }

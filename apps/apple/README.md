@@ -22,16 +22,21 @@ application context (`snapshotV1`, `preferencesV1`). Dates are numeric seconds s
 the Unix epoch. Optional keys are omitted when nil. The Watch stores each as an
 atomic file in Application Support.
 
-`snapshotV1` has `schemaVersion: 1`, `generatedAt`, `snapshotID` (UUID), `spots`,
+`snapshotV1` has `schemaVersion: 1`, `revision` (positive UInt64), `generatedAt`,
+`snapshotID` (UUID), `spots`,
 and `sources`. Each spot has `id`, nullable `name`, `latitude`, `longitude`,
 `spotType`, `accessType`, `supportsPaper`, `supportsHeated`, `lifecycle`, nullable
 `evidenceQuality`, nullable `evidenceQualityVersion`, nullable `lastVerifiedAt`,
 nullable `openingHours`, and `sourceIDs`. `openingHours` has `status`, nullable
 `kind`, nullable `version`, nullable `opens` and `closes`, and `timeZone`.
 Each source has `id`, `displayName`, nullable `licenseName`, `licenseURL`, and
-`attributionText`. The iPhone takes up to 500 unfiltered, published Domain
-candidates from its cached tile neighborhood, sorted by iPhone proximity. The
-Watch filters and reranks the corpus using its own current location. A literal
+`attributionText`. Several distinct source entries may share a canonical `id`
+when cached tile revisions carry different attribution wording. Each spot's
+`sourceIDs` references canonical IDs; the Watch shows every distinct matching
+variant. Identical variants are stored once. The iPhone takes up to 500
+unfiltered, published Domain candidates from its cached tile neighborhood,
+sorted by iPhone proximity. The Watch filters and reranks the corpus using its
+own current location. A literal
 `spotType: "unknown"` stays eligible; unsupported types and non-active lifecycle
 values are excluded. The snapshot contains observation time, never precomputed
 freshness.
@@ -45,9 +50,13 @@ public access, physical type, open now, official listing, and verification age.
 Unknown tobacco/access values are excluded only when confirmation
 is required. An unknown opening state never counts as open now.
 
-Only schema version 1 is accepted. A valid snapshot replaces the cache when its
-`generatedAt` is later; the same `snapshotID` is idempotent. A different ID at
-the same timestamp, an earlier timestamp, malformed data, or an unsupported
-version leaves the prior file untouched. Preferences have their own timestamp
+Only schema version 1 is accepted. The iPhone atomically persists the last
+produced payload and increments its revision only when the candidate spots or
+source variants change. The Watch replaces its cache only for a higher valid
+revision, regardless of `generatedAt`. A lower revision is ignored; an equal
+revision with identical identity and content is idempotent, while a conflicting
+equal revision is rejected. Malformed data or an unsupported version leaves the
+prior file untouched. `generatedAt` is metadata, not ordering authority.
+Preferences have their own timestamp
 and replacement path. The Watch reads both files before attempting phone sync,
 and it never contacts the MannerPath API.

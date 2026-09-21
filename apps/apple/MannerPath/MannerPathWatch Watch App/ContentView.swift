@@ -124,7 +124,7 @@ struct ContentView: View {
                 Text("Access: \(access(result.spot.accessType))")
             }
             Section("Source") {
-                ForEach(model.snapshot?.sources.filter { result.spot.sourceIDs.contains($0.id) } ?? [], id: \.id) { source in
+                ForEach(model.snapshot?.sources(for: result.spot) ?? [], id: \.self) { source in
                     Text(source.displayName)
                     if let attribution = source.attributionText { Text(attribution).font(.footnote) }
                     if let license = source.licenseName { Text(license).font(.footnote) }

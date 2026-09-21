@@ -6,9 +6,12 @@ enum WatchSnapshotBuilder {
                       at now: Date = Date()) -> WatchSnapshot {
         // Selection is unfiltered by preferences. The Watch may change its quick filters offline.
         let candidates = NearbySearch.rank(spots, from: origin, at: now).prefix(500).map(\.spot)
+        let allSources = Set(sources + candidates.flatMap { $0.verification.sources ?? [] })
+            .filter { !$0.id.isEmpty }
         let referenced = Set(candidates.flatMap { $0.verification.sources?.map(\.id) ?? [] })
         return WatchSnapshot(
-            schemaVersion: WatchSnapshot.schemaVersion, generatedAt: now, snapshotID: UUID(),
+            schemaVersion: WatchSnapshot.schemaVersion, revision: 1,
+            generatedAt: now, snapshotID: UUID(),
             spots: candidates.map { spot in
                 WatchSpot(
                     id: spot.id, name: spot.name, latitude: spot.latitude, longitude: spot.longitude,
@@ -22,14 +25,69 @@ enum WatchSnapshotBuilder {
                         WatchHours(status: $0.status.rawValue, kind: $0.parsed?.kind.rawValue,
                                    version: $0.parsed?.version, opens: $0.parsed?.opens,
                                    closes: $0.parsed?.closes, timeZone: $0.timeZone)
-                    }, sourceIDs: spot.verification.sources?.map(\.id) ?? []
+                    }, sourceIDs: Array(Set(spot.verification.sources?.map(\.id) ?? [])
+                        .intersection(Set(allSources.map(\.id)))).sorted()
                 )
             },
-            sources: sources.filter { referenced.contains($0.id) }.map {
+            sources: allSources.filter { referenced.contains($0.id) }.sorted {
+                if $0.id != $1.id { return $0.id < $1.id }
+                if $0.displayName != $1.displayName { return $0.displayName < $1.displayName }
+                if $0.licenseName != $1.licenseName { return optionalLess($0.licenseName, $1.licenseName) }
+                if $0.licenseURL != $1.licenseURL { return optionalLess($0.licenseURL, $1.licenseURL) }
+                return optionalLess($0.attributionText, $1.attributionText)
+            }.map {
                 WatchSource(id: $0.id, displayName: $0.displayName, licenseName: $0.licenseName,
                             licenseURL: $0.licenseURL, attributionText: $0.attributionText)
             }
         )
+    }
+
+    private static func optionalLess(_ lhs: String?, _ rhs: String?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, .some): true
+        case (.some, nil): false
+        case let (.some(left), .some(right)): left < right
+        case (nil, nil): false
+        }
+    }
+}
+
+// The last produced payload is also the revision journal. Saving the entire compact
+// payload keeps both content identity and the counter across iPhone process restarts.
+nonisolated struct PhoneWatchSnapshotStore {
+    let directory: URL
+
+    static func applicationSupport() throws -> Self {
+        Self(directory: try FileManager.default.url(for: .applicationSupportDirectory,
+                                                     in: .userDomainMask, appropriateFor: nil, create: true))
+    }
+
+    private var url: URL { directory.appendingPathComponent("outgoing-watch-v1.json") }
+
+    func snapshot() -> WatchSnapshot? {
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? WatchCodec.snapshot(data)
+    }
+
+    func prepare(_ candidate: WatchSnapshot, recovered: WatchSnapshot? = nil) throws -> WatchSnapshot {
+        let local = snapshot()
+        let previous = if let recovered, recovered.revision > (local?.revision ?? 0) {
+            recovered
+        } else { local }
+        if let previous, previous.revision > (local?.revision ?? 0) {
+            try WatchCodec.encode(previous).write(to: url, options: .atomic)
+        }
+        if let previous, previous.spots == candidate.spots && previous.sources == candidate.sources {
+            return previous
+        }
+        guard (previous?.revision ?? 0) < UInt64.max else { throw WatchPayloadError.invalid }
+        let next = WatchSnapshot(schemaVersion: WatchSnapshot.schemaVersion,
+                                 revision: (previous?.revision ?? 0) + 1,
+                                 generatedAt: candidate.generatedAt, snapshotID: candidate.snapshotID,
+                                 spots: candidate.spots, sources: candidate.sources)
+        try next.validated()
+        try WatchCodec.encode(next).write(to: url, options: .atomic)
+        return next
     }
 }
 
@@ -75,6 +133,7 @@ enum WatchPreferenceStore {
 @MainActor
 final class PhoneWatchSync: NSObject, WCSessionDelegate {
     static let shared = PhoneWatchSync()
+    private let producerStore = try? PhoneWatchSnapshotStore.applicationSupport()
     private var snapshotData: Data?
     private var preferenceData: Data?
 
@@ -86,8 +145,14 @@ final class PhoneWatchSync: NSObject, WCSessionDelegate {
         }
     }
 
-    func publish(snapshot: WatchSnapshot) {
-        guard (try? snapshot.validated()) != nil else { return }
+    func publish(spots: [Spot], sources: [SpotSource], near origin: SpotCoordinate) {
+        guard let producerStore else { return }
+        let candidate = WatchSnapshotBuilder.build(spots: spots, sources: sources, near: origin)
+        let recovered: WatchSnapshot? = if WCSession.isSupported(),
+            let data = WCSession.default.applicationContext["snapshotV1"] as? Data {
+            try? WatchCodec.snapshot(data)
+        } else { nil }
+        guard let snapshot = try? producerStore.prepare(candidate, recovered: recovered) else { return }
         snapshotData = try? WatchCodec.encode(snapshot)
         send()
     }

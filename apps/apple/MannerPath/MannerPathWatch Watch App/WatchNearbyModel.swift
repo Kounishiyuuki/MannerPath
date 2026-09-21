@@ -22,14 +22,18 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
                                      preferences: preferences, at: now)
     }
 
-    override init() {
-        store = try? WatchStore.applicationSupport()
+    override convenience init() {
+        self.init(store: try? WatchStore.applicationSupport(), activateConnectivity: true)
+    }
+
+    init(store: WatchStore?, activateConnectivity: Bool) {
+        self.store = store
         super.init()
         snapshot = store?.snapshot()
         preferences = store?.preferences() ?? .defaults()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        if WCSession.isSupported() {
+        if activateConnectivity && WCSession.isSupported() {
             WCSession.default.delegate = self
             WCSession.default.activate()
         }
@@ -71,9 +75,19 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
            let accepted = try? store?.acceptPreferences(data) { preferences = accepted }
     }
 
-    func setTobacco(_ value: String?) { edit { $0.tobaccoType = value } }
+    func setTobacco(_ value: String?) {
+        edit {
+            $0.tobaccoType = value
+            if value == nil { $0.requireConfirmedTobaccoSupport = false }
+        }
+    }
     func setConfirmedTobacco(_ value: Bool) { edit { $0.requireConfirmedTobaccoSupport = value } }
-    func setPublicOnly(_ value: Bool) { edit { $0.publicAccessOnly = value } }
+    func setPublicOnly(_ value: Bool) {
+        edit {
+            $0.publicAccessOnly = value
+            if !value { $0.requireConfirmedPublicAccess = false }
+        }
+    }
     func setConfirmedPublic(_ value: Bool) { edit { $0.requireConfirmedPublicAccess = value } }
     func setVerifiedDays(_ value: Int?) { edit { $0.verifiedWithinDays = value } }
     func setSpotType(_ value: String?) { edit { $0.spotTypes = value.map { [$0] } } }

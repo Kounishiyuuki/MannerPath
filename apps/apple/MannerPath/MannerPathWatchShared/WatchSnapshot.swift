@@ -2,33 +2,39 @@ import Foundation
 
 // Wire and disk contract shared by the iPhone producer and Watch consumer. Values stay
 // as strings so a later enum case never acquires an accidental confirmed meaning.
-nonisolated struct WatchSnapshot: Codable, Sendable {
+nonisolated struct WatchSnapshot: Codable, Sendable, Equatable {
     static let schemaVersion = 1
     let schemaVersion: Int
+    let revision: UInt64
     let generatedAt: Date
     let snapshotID: UUID
     let spots: [WatchSpot]
     let sources: [WatchSource]
 
     func validated() throws -> Self {
-        guard schemaVersion == Self.schemaVersion,
+        guard schemaVersion == Self.schemaVersion, revision > 0,
               generatedAt.timeIntervalSince1970.isFinite,
-              spots.count <= 500,
-              sources.count <= 500 else { throw WatchPayloadError.invalid }
+              spots.count <= 500 else { throw WatchPayloadError.invalid }
         var ids = Set<String>()
         let sourceIDs = Set(sources.map(\.id))
-        guard sourceIDs.count == sources.count else { throw WatchPayloadError.invalid }
+        guard sources.allSatisfy({ !$0.id.isEmpty }),
+              Set(sources).count == sources.count else { throw WatchPayloadError.invalid }
         for spot in spots {
             guard !spot.id.isEmpty, ids.insert(spot.id).inserted,
                   spot.latitude.isFinite, (-90...90).contains(spot.latitude),
                   spot.longitude.isFinite, (-180...180).contains(spot.longitude),
-                  Set(spot.sourceIDs).isSubset(of: sourceIDs) else { throw WatchPayloadError.invalid }
+                  spot.sourceIDs.allSatisfy({ !$0.isEmpty && sourceIDs.contains($0) }),
+                  Set(spot.sourceIDs).count == spot.sourceIDs.count else { throw WatchPayloadError.invalid }
         }
         return self
     }
+
+    func sources(for spot: WatchSpot) -> [WatchSource] {
+        sources.filter { spot.sourceIDs.contains($0.id) }
+    }
 }
 
-nonisolated struct WatchSpot: Codable, Sendable {
+nonisolated struct WatchSpot: Codable, Sendable, Equatable {
     let id: String
     let name: String?
     let latitude: Double
@@ -45,7 +51,7 @@ nonisolated struct WatchSpot: Codable, Sendable {
     let sourceIDs: [String]
 }
 
-nonisolated struct WatchHours: Codable, Sendable {
+nonisolated struct WatchHours: Codable, Sendable, Equatable {
     let status: String
     let kind: String?
     let version: Int?
@@ -54,7 +60,7 @@ nonisolated struct WatchHours: Codable, Sendable {
     let timeZone: String
 }
 
-nonisolated struct WatchSource: Codable, Sendable {
+nonisolated struct WatchSource: Codable, Sendable, Hashable {
     let id: String
     let displayName: String
     let licenseName: String?

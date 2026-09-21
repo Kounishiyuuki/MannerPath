@@ -15,8 +15,10 @@ struct MannerPathWatch_Watch_AppTests {
                   lastVerifiedAt: verified, openingHours: nil, sourceIDs: ["source"])
     }
 
-    private func snapshot(_ spots: [WatchSpot], at date: Date? = nil) -> WatchSnapshot {
-        WatchSnapshot(schemaVersion: 1, generatedAt: date ?? now, snapshotID: UUID(), spots: spots,
+    private func snapshot(_ spots: [WatchSpot], revision: UInt64 = 1,
+                          at date: Date? = nil) -> WatchSnapshot {
+        WatchSnapshot(schemaVersion: 1, revision: revision, generatedAt: date ?? now,
+                      snapshotID: UUID(), spots: spots,
                       sources: [WatchSource(id: "source", displayName: "Publisher",
                                             licenseName: "CC BY", licenseURL: "https://example.org",
                                             attributionText: "Publisher attribution")])
@@ -43,6 +45,7 @@ struct MannerPathWatch_Watch_AppTests {
         let original = snapshot([spot("a", type: "unknown", access: "unknown", paper: "unknown")])
         let decoded = try WatchCodec.snapshot(WatchCodec.encode(original))
         #expect(decoded.snapshotID == original.snapshotID)
+        #expect(decoded.revision == original.revision)
         #expect(decoded.spots[0].spotType == "unknown")
         #expect(decoded.spots[0].supportsPaper == "unknown")
         #expect(decoded.sources[0].attributionText == "Publisher attribution")
@@ -59,20 +62,68 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(visible.map(\.spot.id) == ["unknown-type"])
     }
 
-    @Test func staleDuplicateAndMalformedTransfersPreserveCache() throws {
+    @Test func revisionOrdersSnapshotsIndependentlyOfGeneratedTime() throws {
         let cache = try store()
         defer { try? FileManager.default.removeItem(at: cache.directory) }
-        let first = snapshot([spot("first")])
-        let newer = snapshot([spot("newer")], at: now.addingTimeInterval(10))
+        let first = snapshot([spot("first")], revision: 10, at: now)
+        let newer = snapshot([spot("newer")], revision: 11, at: now.addingTimeInterval(-10))
         #expect(try cache.acceptSnapshot(WatchCodec.encode(first)) != nil)
         #expect(try cache.acceptSnapshot(WatchCodec.encode(newer)) != nil)
-        #expect(try cache.acceptSnapshot(WatchCodec.encode(first)) == nil)
-        #expect(try cache.acceptSnapshot(WatchCodec.encode(newer)) == nil)
-        #expect(throws: Error.self) { try cache.acceptSnapshot(Data("broken".utf8)) }
-        let unsupported = WatchSnapshot(schemaVersion: 2, generatedAt: now.addingTimeInterval(20),
-                                        snapshotID: UUID(), spots: [spot("unsupported")], sources: newer.sources)
-        #expect(throws: Error.self) { try cache.acceptSnapshot(WatchCodec.encode(unsupported)) }
         #expect(cache.snapshot()?.spots.map(\.id) == ["newer"])
+        let stale = snapshot([spot("stale")], revision: 9, at: now.addingTimeInterval(100))
+        #expect(try cache.acceptSnapshot(WatchCodec.encode(stale)) == nil)
+        #expect(try cache.acceptSnapshot(WatchCodec.encode(newer)) == nil)
+        let conflict = snapshot([spot("conflict")], revision: 11, at: newer.generatedAt)
+        #expect(throws: Error.self) { try cache.acceptSnapshot(WatchCodec.encode(conflict)) }
+        let reusedIdentity = WatchSnapshot(schemaVersion: 1, revision: 11,
+                                           generatedAt: newer.generatedAt,
+                                           snapshotID: newer.snapshotID,
+                                           spots: [spot("changed-under-same-id")], sources: newer.sources)
+        #expect(throws: Error.self) { try cache.acceptSnapshot(WatchCodec.encode(reusedIdentity)) }
+        #expect(cache.snapshot() == newer)
+    }
+
+    @Test func malformedAndUnsupportedTransfersPreserveCache() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        let valid = snapshot([spot("valid")], revision: 5)
+        try cache.acceptSnapshot(WatchCodec.encode(valid))
+        #expect(throws: Error.self) { try cache.acceptSnapshot(Data("broken".utf8)) }
+        let unsupported = WatchSnapshot(schemaVersion: 2, revision: 6,
+                                        generatedAt: now.addingTimeInterval(20), snapshotID: UUID(),
+                                        spots: [spot("unsupported")], sources: valid.sources)
+        #expect(throws: Error.self) { try cache.acceptSnapshot(WatchCodec.encode(unsupported)) }
+        #expect(cache.snapshot() == valid)
+    }
+
+    @Test func attributionVariantsSurviveOfflineCodecAndCache() throws {
+        let first = WatchSource(id: "source", displayName: "Publisher", licenseName: "CC BY",
+                                licenseURL: nil, attributionText: "Attribution A")
+        let second = WatchSource(id: "source", displayName: "Publisher", licenseName: "CC BY",
+                                 licenseURL: nil, attributionText: "Attribution B")
+        let original = WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: now,
+                                     snapshotID: UUID(), spots: [spot("a")], sources: [first, second])
+        let data = try WatchCodec.encode(original)
+        let decoded = try WatchCodec.snapshot(data)
+        #expect(decoded.sources(for: decoded.spots[0]).map(\.attributionText) ==
+                ["Attribution A", "Attribution B"])
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(data)
+        let offline = try #require(WatchStore(directory: cache.directory).snapshot())
+        #expect(offline.sources(for: offline.spots[0]).map(\.attributionText) ==
+                ["Attribution A", "Attribution B"])
+    }
+
+    @Test func malformedSourceReferenceIsRejected() throws {
+        let invalidSpot = WatchSpot(id: "a", name: "a", latitude: 0, longitude: 0,
+                                    spotType: "ashtray", accessType: "public", supportsPaper: "yes",
+                                    supportsHeated: "unknown", lifecycle: "active",
+                                    evidenceQuality: nil, evidenceQualityVersion: nil,
+                                    lastVerifiedAt: nil, openingHours: nil, sourceIDs: ["missing"])
+        #expect(throws: Error.self) {
+            try WatchCodec.snapshot(WatchCodec.encode(snapshot([invalidSpot])))
+        }
     }
 
     @Test func cachedLaunchAndPreferencesNeedNoPhone() throws {
@@ -135,6 +186,41 @@ struct MannerPathWatch_Watch_AppTests {
                                                preferences: preferences(tobacco: "paper", confirmed: true), at: now)
         #expect(noLocation.map(\.spot.id) == ["yes"])
         #expect(noLocation[0].distanceMeters.isNaN)
+    }
+
+    @Test @MainActor func changingTobaccoToAnyClearsConfirmedSupport() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(WatchCodec.encode(snapshot([
+            spot("unknown", paper: "unknown"), spot("no", longitude: 0.001, paper: "no")
+        ])))
+        let model = WatchNearbyModel(store: cache, activateConnectivity: false)
+        model.setTobacco("paper")
+        model.setConfirmedTobacco(true)
+        #expect(model.results.map(\.spot.id).isEmpty)
+        model.setTobacco(nil)
+        #expect(model.preferences.tobaccoType == nil)
+        #expect(model.preferences.requireConfirmedTobaccoSupport == false)
+        #expect(model.results.map(\.spot.id) == ["unknown", "no"])
+        #expect(WatchStore(directory: cache.directory).preferences().requireConfirmedTobaccoSupport == false)
+    }
+
+    @Test @MainActor func turningPublicOffClearsConfirmedPublic() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(WatchCodec.encode(snapshot([
+            spot("unknown", access: "unknown"),
+            spot("customer", longitude: 0.001, access: "customerOnly")
+        ])))
+        let model = WatchNearbyModel(store: cache, activateConnectivity: false)
+        model.setPublicOnly(true)
+        model.setConfirmedPublic(true)
+        #expect(model.results.map(\.spot.id).isEmpty)
+        model.setPublicOnly(false)
+        #expect(model.preferences.publicAccessOnly == false)
+        #expect(model.preferences.requireConfirmedPublicAccess == false)
+        #expect(model.results.map(\.spot.id) == ["unknown", "customer"])
+        #expect(WatchStore(directory: cache.directory).preferences().requireConfirmedPublicAccess == false)
     }
 
     @Test func freshnessUsesCurrentTimeAndUnknownHoursAreNotOpen() {

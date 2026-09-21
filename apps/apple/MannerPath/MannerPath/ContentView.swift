@@ -61,9 +61,7 @@ struct ContentView: View {
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active {
                 model.onCachedCorpusChange = { spots, sources, origin in
-                    PhoneWatchSync.shared.publish(snapshot: WatchSnapshotBuilder.build(
-                        spots: spots, sources: sources, near: origin
-                    ))
+                    PhoneWatchSync.shared.publish(spots: spots, sources: sources, near: origin)
                 }
                 model.publishCachedCorpusForWatch()
                 model.setFilters(filters)
