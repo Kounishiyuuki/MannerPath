@@ -82,6 +82,11 @@
 			path = "MannerPathWatch Watch App";
 			sourceTree = "<group>";
 		};
+		000000000000000000000320 /* MannerPathWatchShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MannerPathWatchShared;
+			sourceTree = "<group>";
+		};
 		3F1AF78D305EFE5300984937 /* MannerPathWatch Watch AppTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "MannerPathWatch Watch AppTests";
@@ -131,6 +136,7 @@
 				000000000000000000000220 /* MannerPathTests */,
 				000000000000000000000300 /* slippy-xyz-vectors.v1.json */,
 				3F1AF77F305EFE5100984937 /* MannerPathWatch Watch App */,
+				000000000000000000000320 /* MannerPathWatchShared */,
 				3F1AF78D305EFE5300984937 /* MannerPathWatch Watch AppTests */,
 				3F1AF797305EFE5300984937 /* MannerPathWatch Watch AppUITests */,
 				000000000000000000000020 /* Products */,
@@ -168,6 +174,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* MannerPath */,
+				000000000000000000000320 /* MannerPathWatchShared */,
 			);
 			name = MannerPath;
 			packageProductDependencies = (
@@ -210,6 +217,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				3F1AF77F305EFE5100984937 /* MannerPathWatch Watch App */,
+				000000000000000000000320 /* MannerPathWatchShared */,
 			);
 			name = "MannerPathWatch Watch App";
 			productName = "MannerPathWatch Watch App";
@@ -671,6 +679,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MannerPathWatch;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your Watch location ranks saved permitted places and calculates straight-line distance and bearing on this device.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.kounishiyuuki.MannerPath;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -704,6 +713,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MannerPathWatch;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your Watch location ranks saved permitted places and calculates straight-line distance and bearing on this device.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.kounishiyuuki.MannerPath;
 				LD_RUNPATH_SEARCH_PATHS = (

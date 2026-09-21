@@ -14,3 +14,49 @@ Initial capabilities should be minimal. Add location usage descriptions only whe
 ## Nearby tile API configuration
 
 The iPhone app stores tile snapshots in its Application Support directory. It reads that cache before any network refresh. To enable refreshes, set the `MANNERPATH_API_BASE_URL` Xcode build setting to the API origin (for example through a local, uncommitted `.xcconfig` or an `xcodebuild` build-setting override). The generated Info.plist passes it to the app as `MannerPathAPIBaseURL`. The value is optional; when absent or invalid, Nearby works from the local cache only. Use an HTTPS origin for device builds unless App Transport Security has been configured for a development server.
+
+## Watch snapshot v1
+
+The iPhone sends two independent Codable JSON payloads through WatchConnectivity
+application context (`snapshotV1`, `preferencesV1`). Dates are numeric seconds since
+the Unix epoch. Optional keys are omitted when nil. The Watch stores each as an
+atomic file in Application Support.
+
+`snapshotV1` has `schemaVersion: 1`, `revision` (positive UInt64), `generatedAt`,
+`snapshotID` (UUID), `spots`,
+and `sources`. Each spot has `id`, nullable `name`, `latitude`, `longitude`,
+`spotType`, `accessType`, `supportsPaper`, `supportsHeated`, `lifecycle`, nullable
+`evidenceQuality`, nullable `evidenceQualityVersion`, nullable `lastVerifiedAt`,
+nullable `openingHours`, and `sourceIDs`. `openingHours` has `status`, nullable
+`kind`, nullable `version`, nullable `opens` and `closes`, and `timeZone`.
+Each source has `id`, `displayName`, nullable `licenseName`, `licenseURL`, and
+`attributionText`. Several distinct source entries may share a canonical `id`
+when cached tile revisions carry different attribution wording. Each spot's
+`sourceIDs` references canonical IDs; the Watch shows every distinct matching
+variant. Identical variants are stored once. The iPhone takes up to 500
+unfiltered, published Domain candidates from its cached tile neighborhood,
+sorted by iPhone proximity. The Watch filters and reranks the corpus using its
+own current location. A literal
+`spotType: "unknown"` stays eligible; unsupported types and non-active lifecycle
+values are excluded. The snapshot contains observation time, never precomputed
+freshness.
+
+`preferencesV1` has `schemaVersion: 1`, `generatedAt`, nullable `tobaccoType`
+(`paper` or `heated`), `requireConfirmedTobaccoSupport`, `publicAccessOnly`,
+`requireConfirmedPublicAccess`, nullable `spotTypes`, `openNowOnly`,
+`officialEvidenceOnly`, and nullable `verifiedWithinDays`. The Watch provides
+local quick controls for tobacco, confirmed support, public access, confirmed
+public access, physical type, open now, official listing, and verification age.
+Unknown tobacco/access values are excluded only when confirmation
+is required. An unknown opening state never counts as open now.
+
+Only schema version 1 is accepted. The iPhone atomically persists the last
+produced payload and increments its revision only when the candidate spots or
+source variants change. The Watch replaces its cache only for a higher valid
+revision, regardless of `generatedAt`. A lower revision is ignored; an equal
+revision with identical identity and content is idempotent, while a conflicting
+equal revision is rejected. Malformed data or an unsupported version leaves the
+prior file untouched. `generatedAt` is metadata, not ordering authority.
+Preferences have their own timestamp
+and replacement path. The Watch reads both files before attempting phone sync,
+and it never contacts the MannerPath API.

@@ -155,9 +155,12 @@ Watch receives:
 
 Watch snapshot contract (Codable file):
 
-- `schemaVersion` and `generatedAt`;
+- `schemaVersion`, monotonic producer `revision`, and informational `generatedAt`;
 - per spot: id, coordinates, spotType, accessType, tri-state tobacco fields (`yes | no | unknown`), lifecycle, evidence quality, `lastVerifiedAt`;
-- a compact attribution summary (source display names) sufficient to show provenance offline.
+- compact source attribution summaries; distinct cached variants may share one canonical source ID.
+
+The iPhone persists the last produced Watch snapshot, increments its revision when
+its candidate content changes, and the Watch orders replacement by revision.
 
 Freshness is computed on the Watch from `lastVerifiedAt`, never stored as a precomputed value. Unknown enum values are tolerated, not fatal.
 
