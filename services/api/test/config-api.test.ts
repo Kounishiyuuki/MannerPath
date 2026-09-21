@@ -80,7 +80,7 @@ test("a body whose minimum outruns the version it serves is not a valid config",
   assert.equal(ConfigBodyV1.safeParse(broken).success, false);
 });
 
-const APP_ATTEST = { REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production" };
+const APP_ATTEST = { REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42" };
 
 test("/v1/config reports the report endpoint as unavailable exactly when it fails closed", async () => {
   for (const [env, available] of [
@@ -92,10 +92,21 @@ test("/v1/config reports the report endpoint as unavailable exactly when it fail
     [{ REPORT_ATTESTATION: "required" }, false],
     [{ REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production" }, false],
     [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_ENVIRONMENT: "prod" }, false],
+    // The bundle-version allowlist is required too: absent, empty or malformed fails closed rather
+    // than silently skipping bundle-version validation.
+    [{ REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ATTEST.REPORT_APP_ATTEST_APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production" }, false],
+    ...["", ",", "41,", ",41", "41, 42", " 41", "41,41", "1.0.0.0", "v41", "41;42", "*"].map((v) => [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_BUNDLE_VERSIONS: v }, false] as const),
+    // One or several exact versions are a usable allowlist.
+    [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_BUNDLE_VERSIONS: "7" }, true],
+    [{ REPORT_ATTESTATION: "required", ...APP_ATTEST, REPORT_APP_ATTEST_BUNDLE_VERSIONS: "1.2.3,1.2.4,100" }, true],
     [{ REPORT_ATTESTATION: "REQUIRED", ...APP_ATTEST }, false],
     [{ REPORT_ATTESTATION: "off" }, false],
   ] as const) {
     const label = JSON.stringify(env);
+    // The App Attest endpoints answer exactly when the deployment advertises App Attest.
+    const attested = ConfigBodyV1.parse(await config(env).then((r) => r.json())).reports;
+    const challenge = await app.request("/v1/app-attest/challenges", { method: "POST", body: "{}" }, env as any);
+    assert.equal(challenge.status === 503, !(attested.available && attested.attestation === "appAttest"), `challenges ${label}`);
     const body = ConfigBodyV1.parse(await config(env).then((r) => r.json()));
     assert.equal(body.reports.available, available, label);
 
@@ -134,11 +145,12 @@ test("/v1/config exposes no secret or environment value", async () => {
     REPORT_ATTESTATION: "disabled",
     REPORT_SUBMITTER_PEPPER: "test-pepper-value-not-a-real-secret",
   }).then((r) => r.text());
-  // Nor the App Attest deployment values: the App ID carries the Team ID.
+  // Nor the App Attest deployment values: the App ID prefix is usually the Team ID.
   const attested = await config({ REPORT_ATTESTATION: "required", ...APP_ATTEST }).then((r) => r.text());
   assert.equal(attested.includes("ABCDE12345"), false);
   assert.equal(attested.includes("com.example.mannerpath"), false);
   assert.equal(attested.includes("required"), false);
+  assert.equal(attested.includes("41,42"), false, "the accepted bundle versions are not advertised");
   assert.equal(raw.includes("test-pepper-value-not-a-real-secret"), false);
   assert.equal(raw.toLowerCase().includes("pepper"), false);
   // The configured attestation policy itself is not echoed, only the derived boolean.

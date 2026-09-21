@@ -286,7 +286,7 @@ Notes:
   This works only while the previous database still exists, which is why step 6 keeps it.
 - **Bad code:** `npx wrangler rollback --env staging` (previous deployment), or redeploy the
   previous commit.
-- **Stop accepting reports:** remove `REPORT_APP_ATTEST_APP_ID` from the environment
+- **Stop accepting reports:** remove `REPORT_APP_ATTEST_APP_ID` (or the bundle-version list) from the environment
   (`npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>`): `required` without it fails
   closed and `/v1/config` reports `available: false`. There is no separate kill-switch var, and one
   would be a second, weaker gate. Never switch to `disabled` to do this — that accepts unattested
@@ -347,7 +347,7 @@ Invariants for anything added later:
   `observedOn`, not `installId`, not the hashed submitter key, not a validation error carrying a
   submitted value. Report validation errors are JSON paths and issue codes only (ADR-0007 §7).
 - **No attestation material in logs.** Not a key ID, challenge, assertion, attestation object,
-  certificate or receipt, and not the configured App ID.
+  certificate or receipt, and not the configured App ID or bundle versions.
 - **No client IP, device ID or account ID** in anything the service records.
 - Alert on error rate and `503` volume from the aggregate metrics. A `503` wave on `/v1/reports` is
   `REPORT_ATTESTATION` doing its job, not an incident to silence.
@@ -374,23 +374,26 @@ The iPhone app already takes the origin as a build setting; no app code changes 
 ## Report attestation (App Attest, Issue #37)
 
 The protocol is implemented (ADR-0007 §6, `docs/API.md` "App Attest"). What a deployment does is
-decided by three values; the committed environments carry only the first.
+decided by four values; the committed environments carry only the first.
 
 | Value | Where it lives | Committed? |
 |---|---|---|
 | `REPORT_ATTESTATION` | `vars` in `wrangler.jsonc` — `disabled` locally, `required` on staging/production | yes |
-| `REPORT_APP_ATTEST_APP_ID` | `<Team ID>.<bundle identifier>`, the App Attest RP ID. It carries the Team ID, so it is set per environment, never committed: `npx wrangler secret put REPORT_APP_ATTEST_APP_ID --env <env>` | **no** |
+| `REPORT_APP_ATTEST_APP_ID` | `<App ID prefix>.<bundle identifier>`, the App Attest RP ID; the App ID prefix is usually the Team ID. Set per environment, never committed: `npx wrangler secret put REPORT_APP_ATTEST_APP_ID --env <env>` | **no** |
 | `REPORT_APP_ATTEST_ENVIRONMENT` | `production` for TestFlight and App Store builds, `development` for builds signed with a development identity; a key attested in one is refused by the other. Set it the same way | **no** |
+| `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | The exact `CFBundleVersion` values accepted in `apple_bundle_version_01`, comma-separated with no spaces, e.g. `41,42` or `1.4.0,1.4.1`. Each entry is one to three period-separated integers; entries are compared as exact strings; duplicates, empty entries or whitespace make the whole value invalid. List every build that may be in users' hands — during a rolling TestFlight/App Store release, both the old and the new build — and remove a build to stop accepting it. Set it the same way | **no** |
 
 - **Remote environments fail closed until a maintainer configures them.** With `required` and
-  either value missing or malformed, `POST /v1/reports` and the App Attest endpoints answer
+  any of the three values missing, empty or malformed, `POST /v1/reports` and the App Attest endpoints answer
   `503 attestationUnavailable` and `/v1/config` reports `reports.available: false`. The smoke check
-  treats that as a pass. `test/deploy-config.test.ts` fails if either value appears in the
+  treats that as a pass. `test/deploy-config.test.ts` fails if any of them appears in the
   committed configuration.
-- **Once both are set**, the deployment speaks report schemaVersion 2 only: `/v1/config` advertises
+- **Once all three are set**, the deployment speaks report schemaVersion 2 only: `/v1/config` advertises
   `reports.attestation: "appAttest"` and `report` version 2, schema-1 reports are refused with
   `400 reportSchemaUnsupported`, and a report is stored only after its assertion verified
-  (`attestation_status = 'verified'`). Before setting them on any remote environment, settle the
+  (`attestation_status = 'verified'`). A device that reports a build not in
+  `REPORT_APP_ATTEST_BUNDLE_VERSIONS` is refused with `detail: bundleVersion`, so add a new build's
+  `CFBundleVersion` before it reaches testers. Before setting them on any remote environment, settle the
   blue/green carry-over question in step 6 and confirm #35 on a physical device.
 - Local and test keep `REPORT_ATTESTATION=disabled`: schema 1, unattested, `notProvided`. Do not
   switch a remote environment to `disabled` to "turn reports on" — that accepts unattested reports.

@@ -8,8 +8,9 @@
 // `wrangler secret put` per environment and are not committed.
 //
 // Remote reports require App Attest: staging and production set REPORT_ATTESTATION=required, which
-// fails closed until a maintainer sets REPORT_APP_ATTEST_APP_ID (carries the Team ID) and
-// REPORT_APP_ATTEST_ENVIRONMENT per environment. Neither is ever committed (docs/OPERATIONS.md).
+// fails closed until a maintainer sets REPORT_APP_ATTEST_APP_ID (App ID prefix, usually the Team ID,
+// plus bundle ID), REPORT_APP_ATTEST_ENVIRONMENT and REPORT_APP_ATTEST_BUNDLE_VERSIONS per
+// environment. None is ever committed (docs/OPERATIONS.md).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mannerpath-api",
@@ -39,8 +40,8 @@
     "staging": {
       "name": "mannerpath-api-staging",
       "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
-      // App Attest required. Until REPORT_APP_ATTEST_APP_ID and REPORT_APP_ATTEST_ENVIRONMENT are
-      // set for this environment (never here), it answers 503 attestationUnavailable and
+      // App Attest required. Until REPORT_APP_ATTEST_APP_ID, REPORT_APP_ATTEST_ENVIRONMENT and
+      // REPORT_APP_ATTEST_BUNDLE_VERSIONS are set for this environment (never here), it answers 503 attestationUnavailable and
       // /v1/config reports reports.available = false. A remote environment must never accept
       // unattested reports. Do not change this here.
       "vars": { "REPORT_ATTESTATION": "required" },

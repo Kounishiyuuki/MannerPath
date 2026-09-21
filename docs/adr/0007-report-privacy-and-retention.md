@@ -158,7 +158,12 @@ v1 semantics were not mutated.
    hash equals SHA-256(App ID); counter 0; aaguid matches the deployment environment; credentialId
    equals the key ID and the COSE key equals the certified key; and, when the device reports them,
    the launch validation category (production: TestFlight 2 / App Store 4; development: 3) and
-   bundle version. Only then is the key stored.
+   the bundle version, which must be a non-empty string exactly equal to one of the deployment's
+   accepted `CFBundleVersion` values (`REPORT_APP_ATTEST_BUNDLE_VERSIONS`). Only then is the key
+   stored. Every assertion is held to the same two extension rules against the same allowlist.
+   Either extension may be absent — devices and OS versions that do not provide these newer
+   extensions send none — and absence is accepted when every other check passes; it is not taken
+   as evidence of an older OS or of anything else. The bundle version is checked, never stored.
 3. *Report.* The client fetches a report challenge for its key, signs
    `clientDataHash = SHA-256(frame("mannerpath.app-attest.report.v1") ‖ frame(challenge) ‖ frame(keyId) ‖ frame(payload bytes))`
    with `frame(x) = uint32_be(len(x)) ‖ x`, and sends the payload bytes base64-encoded beside the
@@ -204,12 +209,14 @@ flooding.
 | `REPORT_ATTESTATION` | Behaviour |
 |---|---|
 | unset / `disabled` | local/test default: schema 1, stored `notProvided`; the App Attest endpoints answer `503` |
-| `required` with valid `REPORT_APP_ATTEST_APP_ID` and `REPORT_APP_ATTEST_ENVIRONMENT` | schema 2 only; stored `verified` only after the assertion verified |
-| `required` without them, or malformed | `503 attestationUnavailable` everywhere — nothing to verify against |
+| `required` with valid `REPORT_APP_ATTEST_APP_ID`, `REPORT_APP_ATTEST_ENVIRONMENT` and `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | schema 2 only; stored `verified` only after the assertion verified |
+| `required` with any of them absent, empty or malformed | `503 attestationUnavailable` everywhere and `reports.available: false` — an unusable allowlist disables reporting, never bundle-version validation |
 | anything else (typo, `true`, `enabled`, whitespace, …) | `503 attestationUnavailable` — a typo never silently disables attestation |
 
-The App ID carries the Team ID and, with the environment, is deployment configuration that is
-never committed; neither is any Apple key. The trust anchor is the pinned Apple root in code; only
+The App ID is `<App ID prefix>.<bundle identifier>`, where the App ID prefix is usually the Team
+ID; with the environment and the accepted bundle versions it is deployment configuration that is
+never committed, and no build number is hard-coded in verification code. No Apple key is committed
+either. The trust anchor is the pinned Apple root in code; only
 tests can substitute one (through `createApp`), and no binding, header or client field can.
 
 **Still unverified until #35.** Apple publishes a sample attestation (used as a test vector) but no
@@ -244,7 +251,7 @@ only `queued` and `discarded`.
   stores only reports whose App Attest assertion verified. Even then, `verified` means "a genuine
   instance of the app on a genuine device signed these bytes", not that the claim is true:
   moderation still judges the claim.
-- Before public launch: set `REPORT_SUBMITTER_PEPPER`, configure `REPORT_APP_ATTEST_APP_ID` and
-  `REPORT_APP_ATTEST_ENVIRONMENT` so `required` enforces, verify on a physical device (#35), add the
+- Before public launch: set `REPORT_SUBMITTER_PEPPER`, configure `REPORT_APP_ATTEST_APP_ID`,
+  `REPORT_APP_ATTEST_ENVIRONMENT` and `REPORT_APP_ATTEST_BUNDLE_VERSIONS` so `required` enforces, verify on a physical device (#35), add the
   edge rate-limit rule, and schedule the retention pass. None of these may be substituted by
   application-level guesses.

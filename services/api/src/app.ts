@@ -34,15 +34,17 @@ export interface Env {
   DB: Db;
   /**
    * "disabled" or unset (the documented local/test default): report schema 1, unattested.
-   * "required": report schema 2 only, App Attest verified — and only when the two bindings below are
+   * "required": report schema 2 only, App Attest verified — and only when the three bindings below are
    * valid too. Any other value is a misconfiguration and fails closed with 503, so a typo can never
    * silently disable attestation (ADR-0007 §6).
    */
   REPORT_ATTESTATION?: string;
-  /** `<Team ID>.<bundle identifier>`, the App Attest RP ID. Deployment configuration, not committed. */
+  /** `<App ID prefix (usually the Team ID)>.<bundle identifier>`, the App Attest RP ID. Not committed. */
   REPORT_APP_ATTEST_APP_ID?: string;
   /** `development` or `production` — the App Attest aaguid this deployment accepts. */
   REPORT_APP_ATTEST_ENVIRONMENT?: string;
+  /** Comma-separated exact CFBundleVersion values accepted in `apple_bundle_version_01`. Not committed. */
+  REPORT_APP_ATTEST_BUNDLE_VERSIONS?: string;
   /** Pepper for the hashed report submitter key. No value is committed (ADR-0007 §5). */
   REPORT_SUBMITTER_PEPPER?: string;
 }
@@ -281,7 +283,7 @@ export function createApp(options: AppOptions = {}) {
   }
 
   function context(db: Db, attestation: Extract<AttestationConfig, { kind: "appAttest" }>, now: Date): AppAttestContext {
-    return { db, appId: attestation.appId, environment: attestation.environment, trustAnchor, now };
+    return { db, appId: attestation.appId, environment: attestation.environment, bundleVersions: attestation.bundleVersions, trustAnchor, now };
   }
 
   app.notFound(() => problem(404, "notFound", "no such endpoint"));

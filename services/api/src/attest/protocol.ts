@@ -53,6 +53,8 @@ export interface AppAttestContext {
   db: Db;
   appId: string;
   environment: AppAttestEnvironment;
+  /** The deployment's accepted CFBundleVersion values, for both attestation and assertion. */
+  bundleVersions: readonly string[];
   trustAnchor: Uint8Array;
   now: Date;
 }
@@ -91,6 +93,7 @@ export async function registerAppAttestKey(
     environment: ctx.environment,
     now: ctx.now,
     trustAnchor: ctx.trustAnchor,
+    acceptedBundleVersions: ctx.bundleVersions,
   });
   if (!verdict.ok) return { ok: false, reason: "attestationInvalid", detail: verdict.reason satisfies AttestationFailure };
 
@@ -124,6 +127,7 @@ export async function verifyReportAssertion(
     appId: ctx.appId,
     environment: ctx.environment,
     previousCounter: key.signCount,
+    acceptedBundleVersions: ctx.bundleVersions,
   });
   if (!verdict.ok) {
     const reason: RejectionReason = verdict.reason === "counterNotIncreasing" ? "counterNotIncreasing" : "assertionInvalid";

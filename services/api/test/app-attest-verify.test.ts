@@ -33,6 +33,8 @@ const appleInput = (overrides: Partial<Parameters<typeof verifyAttestation>[0]> 
   // The sample reports category 1 (an OS executable), which a real MannerPath build never does;
   // widen the policy for this vector only, and check separately that the default refuses it.
   acceptedValidationCategories: [1],
+  // The sample reports apple_bundle_version_01 = "1".
+  acceptedBundleVersions: ["1"],
   ...overrides,
 });
 
@@ -61,6 +63,7 @@ test("Apple's sample is refused on every binding it does not satisfy", async () 
     ["an expired credential certificate", { now: new Date("2026-04-24T00:00:00Z") }, "untrustedChain"],
     ["a not-yet-valid credential certificate", { now: new Date("2026-04-19T00:00:00Z") }, "untrustedChain"],
     ["the default launch-category policy (1 is an OS executable)", { acceptedValidationCategories: undefined }, "validationCategory"],
+    ["a bundle version this deployment does not accept", { acceptedBundleVersions: ["2", "1.0"] }, "bundleVersion"],
   ];
   for (const [name, overrides, reason] of cases) {
     const result = await verifyAttestation(appleInput(overrides));
@@ -79,7 +82,7 @@ test("a chain that does not end at the pinned root is untrusted", async () => {
   const forged = await attest(device, cdh, { appId: APPLE_APP_ID, pki: other });
   const result = await verifyAttestation({
     attestationObject: forged, keyId: device.keyId, clientDataHash: cdh, appId: APPLE_APP_ID,
-    environment: "production", now: new Date(), trustAnchor: APPLE_APP_ATTEST_ROOT_DER,
+    environment: "production", now: new Date(), trustAnchor: APPLE_APP_ATTEST_ROOT_DER, acceptedBundleVersions: ["41"],
   });
   assert.deepEqual(result, { ok: false, reason: "untrustedChain" });
 });
@@ -130,7 +133,7 @@ test("attestation: each Apple check rejects its own violation (synthetic PKI)", 
     const device = await testDevice();
     const result = await verifyAttestation({
       attestationObject: await build(device), keyId: keyId ?? device.keyId, clientDataHash: cdh, appId,
-      environment: "production", now: new Date(), trustAnchor: pki.root,
+      environment: "production", now: new Date(), trustAnchor: pki.root, acceptedBundleVersions: ["41"],
     });
     assert.deepEqual(result, { ok: false, reason }, name);
   };
@@ -138,7 +141,7 @@ test("attestation: each Apple check rejects its own violation (synthetic PKI)", 
   const good = await testDevice();
   const ok = await verifyAttestation({
     attestationObject: await attest(good, cdh, { appId, pki }), keyId: good.keyId, clientDataHash: cdh, appId,
-    environment: "production", now: new Date(), trustAnchor: pki.root,
+    environment: "production", now: new Date(), trustAnchor: pki.root, acceptedBundleVersions: ["41"],
   });
   assert.equal(ok.ok, true, JSON.stringify(ok));
 
@@ -158,8 +161,8 @@ test("attestation: each Apple check rejects its own violation (synthetic PKI)", 
   for (const category of ACCEPTED_VALIDATION_CATEGORIES.production) {
     const device = await testDevice();
     const result = await verifyAttestation({
-      attestationObject: await attest(device, cdh, { appId, pki, extensions: new Map([["apple_validation_category_01", Uint8Array.from([category, 0, 0, 0])], ["apple_bundle_version_01", "1.0"]]) }),
-      keyId: device.keyId, clientDataHash: cdh, appId, environment: "production", now: new Date(), trustAnchor: pki.root,
+      attestationObject: await attest(device, cdh, { appId, pki, extensions: new Map([["apple_validation_category_01", Uint8Array.from([category, 0, 0, 0])], ["apple_bundle_version_01", "41"]]) }),
+      keyId: device.keyId, clientDataHash: cdh, appId, environment: "production", now: new Date(), trustAnchor: pki.root, acceptedBundleVersions: ["41"],
     });
     assert.equal(result.ok && result.validationCategory, category);
   }
@@ -169,7 +172,7 @@ test("assertion: signature, RP ID and strictly increasing counter", async () => 
   const appId = "ABCDE12345.com.example.mannerpath";
   const device = await testDevice();
   const cdh = await sha256(utf8("report client data"));
-  const base = { clientDataHash: cdh, publicKey: device.publicKey, appId, environment: "production" as const };
+  const base = { clientDataHash: cdh, publicKey: device.publicKey, appId, environment: "production" as const, acceptedBundleVersions: ["41"] };
 
   const first = await makeAssertion(device, cdh, { appId });
   assert.deepEqual(await verifyAssertion({ ...base, assertion: first, previousCounter: 0 }), { ok: true, counter: 1 });
@@ -198,4 +201,58 @@ test("assertion: signature, RP ID and strictly increasing counter", async () => 
     const result = await verifyAssertion({ ...base, assertion: bytes, previousCounter: 0 });
     assert.equal(result.ok, false);
   }
+});
+
+test("apple_bundle_version_01 must be exactly one of the deployment's accepted versions, when present", async () => {
+  const pki = await testPki();
+  const appId = "ABCDE12345.com.example.mannerpath";
+  const cdh = await sha256(utf8("registration client data"));
+  const accepted = ["41", "42", "1.2.3"];
+  const register = async (extensions?: Map<string, any>, acceptedBundleVersions: readonly string[] = accepted) => {
+    const device = await testDevice();
+    return verifyAttestation({
+      attestationObject: await attest(device, cdh, { appId, pki, extensions }), keyId: device.keyId, clientDataHash: cdh, appId,
+      environment: "production", now: new Date(), trustAnchor: pki.root, acceptedBundleVersions,
+    });
+  };
+  const withVersion = (v: unknown) => new Map<string, any>([["apple_validation_category_01", Uint8Array.from([4, 0, 0, 0])], ["apple_bundle_version_01", v]]);
+
+  // Absent extensions (or an extensions map without the version) are accepted when every older
+  // requirement passes — absence proves nothing about the OS, it is just not a check we can make.
+  assert.equal((await register()).ok, true, "no extensions at all");
+  assert.equal((await register(new Map([["apple_validation_category_01", Uint8Array.from([4, 0, 0, 0])]]))).ok, true, "category only");
+  // Every listed version works, so rolling TestFlight/App Store builds can overlap.
+  for (const v of accepted) assert.equal((await register(withVersion(v))).ok, true, `listed ${v}`);
+  // Exact string membership: no numeric equivalence, prefix, whitespace or case games.
+  for (const v of ["43", "041", "41.0", "41 ", "1.2", "1.2.3.4", "4"]) {
+    assert.deepEqual(await register(withVersion(v)), { ok: false, reason: "bundleVersion" }, `unlisted ${JSON.stringify(v)}`);
+  }
+  // Malformed extension values.
+  for (const v of ["", 41, utf8("41"), [ "41" ]]) {
+    assert.deepEqual(await register(withVersion(v)), { ok: false, reason: "malformed" }, `malformed ${JSON.stringify(v)}`);
+  }
+  // An empty allowlist accepts no reported version (config parsing never produces one; defence in depth).
+  assert.deepEqual(await register(withVersion("41"), []), { ok: false, reason: "bundleVersion" });
+  // Categories stay enforced alongside an accepted version.
+  assert.deepEqual(
+    await register(new Map<string, any>([["apple_validation_category_01", Uint8Array.from([5, 0, 0, 0])], ["apple_bundle_version_01", "41"]])),
+    { ok: false, reason: "validationCategory" },
+  );
+
+  // The same rule on assertions.
+  const device = await testDevice();
+  const base = { clientDataHash: cdh, publicKey: device.publicKey, appId, environment: "production" as const, acceptedBundleVersions: accepted };
+  const assertWith = async (extensions?: Map<string, any>) => {
+    const previousCounter = device.counter;
+    return verifyAssertion({ ...base, assertion: await makeAssertion(device, cdh, { appId, extensions }), previousCounter });
+  };
+  assert.equal((await assertWith()).ok, true, "assertion without extensions");
+  assert.equal((await assertWith(withVersion("42"))).ok, true, "assertion with a listed version");
+  assert.deepEqual(await assertWith(withVersion("40")), { ok: false, reason: "bundleVersion" });
+  assert.deepEqual(await assertWith(withVersion("")), { ok: false, reason: "malformed" });
+  assert.deepEqual(await assertWith(withVersion(42)), { ok: false, reason: "malformed" });
+  assert.deepEqual(
+    await assertWith(new Map<string, any>([["apple_validation_category_01", Uint8Array.from([10, 0, 0, 0])], ["apple_bundle_version_01", "42"]])),
+    { ok: false, reason: "validationCategory" },
+  );
 });

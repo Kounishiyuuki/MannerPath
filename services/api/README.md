@@ -80,11 +80,12 @@ Apple's attestation and assertion checks, the `clientDataHash` binding, and the 
 store (migration `0007_app_attest.sql`). No dependency was added: WebCrypto (ECDSA P-256/P-384)
 verifies every signature, and the two parsers accept only what App Attest uses. `REPORT_ATTESTATION`
 unset or `disabled` is the local/test default — report schema 1, unattested. `required` enforces
-App Attest (schema 2) only when `REPORT_APP_ATTEST_APP_ID` and `REPORT_APP_ATTEST_ENVIRONMENT` are
+App Attest (schema 2) only when `REPORT_APP_ATTEST_APP_ID`, `REPORT_APP_ATTEST_ENVIRONMENT` and
+`REPORT_APP_ATTEST_BUNDLE_VERSIONS` (exact accepted `CFBundleVersion` values, comma-separated) are
 set; without them, or with any unrecognised value, every report and App Attest endpoint answers
-`503`. The committed `staging` and `production` environments set `required` and neither value, so a
+`503`. The committed `staging` and `production` environments set `required` and none of those values, so a
 deployed environment accepts no reports until a maintainer configures it (`docs/OPERATIONS.md`).
 
 Deployment settings this repository deliberately does not contain: `REPORT_SUBMITTER_PEPPER`
-(hashed abuse key pepper), `REPORT_APP_ATTEST_APP_ID` (carries the Team ID),
-`REPORT_APP_ATTEST_ENVIRONMENT` and the edge rate-limit rule. No Apple key or pepper value is committed.
+(hashed abuse key pepper), `REPORT_APP_ATTEST_APP_ID` (its App ID prefix is usually the Team ID),
+`REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS` and the edge rate-limit rule. No Apple key or pepper value is committed.

@@ -303,7 +303,7 @@ no counter moved.**
 |---|---|---|
 | `challengeInvalid` | unknown, expired, already consumed, wrong purpose or wrong key (`detail` says which) | fetch a new report challenge, sign again |
 | `keyNotRegistered` | the server holds no such key | generate a new key and register it |
-| `assertionInvalid` | signature, App ID, environment, launch category or encoding failed (`detail`) | treat the key as unusable: generate and register a new one |
+| `assertionInvalid` | signature, App ID, environment, launch category, bundle version or encoding failed (`detail`) | `detail: bundleVersion` — this build is not accepted by the deployment: the user must update the app. Otherwise treat the key as unusable: generate and register a new one |
 | `counterNotIncreasing` | a newer assertion from this key was already accepted | fetch a new challenge, sign again (submit one report at a time per key) |
 
 Any other failure — a timeout, a dropped connection, a `5xx` — is **transport-ambiguous**; see
@@ -354,14 +354,17 @@ Response (`201`, `Cache-Control: no-store`):
 
 Response (`201`): `{ "schemaVersion": 1, "keyId": "…", "registeredAt": "2026-09-21T09:30:00Z" }`.
 The key is stored only after every check in ADR-0007 §6 passed; the attestation object is not
-stored. Body limit 16 KiB (`413 requestTooLarge`).
+stored. When the device reports `apple_bundle_version_01` — in the attestation or in any later
+assertion — it must be exactly one of the deployment's accepted `CFBundleVersion` values, or the
+request is refused with `detail: bundleVersion`; a device that reports no such extension is not
+refused for that. The accepted set is deployment configuration and is not published. Body limit 16 KiB (`413 requestTooLarge`).
 
 | Case | Status | Body |
 |---|---|---|
 | Registered | `201` | as above |
 | Schema violation, or a value that is not canonical base64 / 32 bytes | `400` | `invalidKeyRegistration` |
 | Challenge unknown, expired, consumed or not a registration challenge | `403` | `attestationRejected`, `reason: challengeInvalid` |
-| Attestation failed verification | `403` | `attestationRejected`, `reason: attestationInvalid`, `detail` one of `malformed`, `untrustedChain`, `nonceMismatch`, `keyIdMismatch`, `appIdMismatch`, `environmentMismatch`, `counterNotZero`, `validationCategory` |
+| Attestation failed verification | `403` | `attestationRejected`, `reason: attestationInvalid`, `detail` one of `malformed`, `untrustedChain`, `nonceMismatch`, `keyIdMismatch`, `appIdMismatch`, `environmentMismatch`, `counterNotZero`, `validationCategory`, `bundleVersion` |
 | Key already registered | `409` | `keyAlreadyRegistered` — the key is usable as is |
 
 ### App Attest client data
@@ -445,10 +448,11 @@ On a deployment that requires App Attest, the report entries read
   - A resource added to `/v1` later appears in both objects; clients ignore resources they do not
     know.
 - `reports.available`: whether `POST /reports` accepts submissions on this deployment. It is
-  `false` exactly when the attestation policy is unrecognised or incomplete, because the endpoint
+  `false` exactly when the attestation policy is unrecognised or incomplete (for `required`: App
+  ID, App Attest environment and accepted bundle versions must all be valid), because the endpoint
   then fails closed with `503` (ADR-0007 §6). A client hides the report entry point instead of
   walking the user into a guaranteed failure. The configured values themselves (policy, App ID,
-  environment) are never exposed.
+  environment, accepted bundle versions) are never exposed.
 - `reports.attestation`: the report protocol — `"none"` (schemaVersion 1, no attestation) or
   `"appAttest"` (schemaVersion 2 with App Attest registration, challenge and assertion). For
   `report`, `schemaVersions` and `minimumSupportedSchemaVersions` are always equal: a deployment

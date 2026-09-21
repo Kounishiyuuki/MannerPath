@@ -33,9 +33,9 @@ export const ACCEPTED_VALIDATION_CATEGORIES: Record<AppAttestEnvironment, readon
 
 export type AttestationFailure =
   | "malformed" | "untrustedChain" | "nonceMismatch" | "keyIdMismatch" | "appIdMismatch"
-  | "environmentMismatch" | "counterNotZero" | "validationCategory";
+  | "environmentMismatch" | "counterNotZero" | "validationCategory" | "bundleVersion";
 
-export type AssertionFailure = "malformed" | "signature" | "appIdMismatch" | "counterNotIncreasing" | "validationCategory";
+export type AssertionFailure = "malformed" | "signature" | "appIdMismatch" | "counterNotIncreasing" | "validationCategory" | "bundleVersion";
 
 export interface AttestationInput {
   attestationObject: Uint8Array;
@@ -49,6 +49,11 @@ export interface AttestationInput {
   /** DER of the trust anchor. Production passes the pinned Apple root (src/attest/apple-root.ts). */
   trustAnchor: Uint8Array;
   acceptedValidationCategories?: readonly number[];
+  /**
+   * Exact CFBundleVersion strings this deployment accepts (REPORT_APP_ATTEST_BUNDLE_VERSIONS),
+   * checked against `apple_bundle_version_01` whenever the device reports it.
+   */
+  acceptedBundleVersions: readonly string[];
 }
 
 export type AttestationResult =
@@ -65,6 +70,11 @@ export interface AssertionInput {
   /** The last accepted counter for this key (0 right after registration). */
   previousCounter: number;
   acceptedValidationCategories?: readonly number[];
+  /**
+   * Exact CFBundleVersion strings this deployment accepts (REPORT_APP_ATTEST_BUNDLE_VERSIONS),
+   * checked against `apple_bundle_version_01` whenever the device reports it.
+   */
+  acceptedBundleVersions: readonly string[];
 }
 
 export type AssertionResult = { ok: true; counter: number } | { ok: false; reason: AssertionFailure };
@@ -177,21 +187,30 @@ function coseKeyPoint(value: CborValue): Uint8Array {
 }
 
 /**
- * Steps 10–11 (attestation) and 7–8 (assertion). Absent extensions are accepted — devices that
- * predate them do not send any — but a present category must be one we accept, and a present
- * bundle version must be a non-empty string.
+ * Steps 10–11 (attestation) and 7–8 (assertion). Each extension is optional: devices and OS
+ * versions that do not provide these newer extensions send none, so absence is accepted — but it
+ * proves nothing about the device, and every other Apple check still applies. A present category
+ * must be one we accept; a present bundle version must be a non-empty string that is exactly one
+ * of the deployment's accepted CFBundleVersion values. Nothing here is stored.
  */
-function validationCategory(extensions: CborValue | null, accepted: readonly number[]): number | null {
+function checkLaunchExtensions(
+  extensions: CborValue | null,
+  acceptedCategories: readonly number[],
+  acceptedBundleVersions: readonly string[],
+): number | null {
   if (extensions === null || !isMap(extensions)) return null;
   const version = extensions.get("apple_bundle_version_01");
-  if (version !== undefined && (typeof version !== "string" || version.length === 0)) reject("malformed");
+  if (version !== undefined) {
+    if (typeof version !== "string" || version.length === 0) reject("malformed");
+    if (!acceptedBundleVersions.includes(version)) reject("bundleVersion");
+  }
   const raw = extensions.get("apple_validation_category_01");
   if (raw === undefined) return null;
   let category: number;
   if (typeof raw === "number" && Number.isInteger(raw) && raw >= 0 && raw <= 0xffff_ffff) category = raw;
   else if (raw instanceof Uint8Array && raw.length === 4) category = new DataView(raw.buffer, raw.byteOffset, 4).getUint32(0, true);
   else reject("malformed");
-  if (!accepted.includes(category)) reject("validationCategory");
+  if (!acceptedCategories.includes(category)) reject("validationCategory");
   return category;
 }
 
@@ -226,7 +245,11 @@ export async function verifyAttestation(input: AttestationInput): Promise<Attest
     if (!bytesEqual(parsed.attested!.credentialId, input.keyId)) reject("keyIdMismatch");
     if (!bytesEqual(coseKeyPoint(parsed.attested!.coseKey), leaf.publicKey)) reject("keyIdMismatch");
     // 10–11. Launch validation category and bundle version, when reported.
-    const category = validationCategory(parsed.extensions, input.acceptedValidationCategories ?? ACCEPTED_VALIDATION_CATEGORIES[input.environment]);
+    const category = checkLaunchExtensions(
+      parsed.extensions,
+      input.acceptedValidationCategories ?? ACCEPTED_VALIDATION_CATEGORIES[input.environment],
+      input.acceptedBundleVersions,
+    );
 
     return { ok: true, publicKey: leaf.publicKey, validationCategory: category };
   } catch (e) {
@@ -254,7 +277,11 @@ export async function verifyAssertion(input: AssertionInput): Promise<AssertionR
     if (parsed.counter <= input.previousCounter) reject("counterNotIncreasing");
     // 6 (challenge) is the caller's: it is inside clientDataHash, which it derived from a challenge
     // it consumed. 7–8. Launch validation category and bundle version, when reported.
-    validationCategory(parsed.extensions, input.acceptedValidationCategories ?? ACCEPTED_VALIDATION_CATEGORIES[input.environment]);
+    checkLaunchExtensions(
+      parsed.extensions,
+      input.acceptedValidationCategories ?? ACCEPTED_VALIDATION_CATEGORIES[input.environment],
+      input.acceptedBundleVersions,
+    );
 
     return { ok: true, counter: parsed.counter };
   } catch (e) {

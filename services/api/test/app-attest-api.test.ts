@@ -17,7 +17,8 @@ import { SqliteD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const APP_ID = "ABCDE12345.com.example.mannerpath";
-const ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production" };
+const BUNDLE_VERSIONS = "41,42";
+const ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: BUNDLE_VERSIONS };
 const INSTALL = "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f";
 const SPOT = "sp_01V64NN31G72E5KJJ5W22W1A1J";
 
@@ -406,6 +407,58 @@ test("required mode stores only verified submissions and refuses unattested v1 r
   assert.equal(count(h.db, "reports"), 0);
   const statuses = new Set((h.db.raw.prepare("SELECT attestation_status FROM reports").all() as Row[]).map((r) => r.attestation_status));
   assert.equal(statuses.has("notProvided"), false);
+});
+
+test("the deployment's bundle-version allowlist governs registration and reports end to end", async () => {
+  const h = await harness();
+  const versioned = (v: string) => new Map<string, any>([["apple_validation_category_01", Uint8Array.from([4, 0, 0, 0])], ["apple_bundle_version_01", v]]);
+
+  // Registration from an unlisted build is refused and stores no key; a listed build registers.
+  const old = await testDevice();
+  const refused = await rejection(await register(h, old, { extensions: versioned("40") }));
+  assert.equal(refused.reason, "attestationInvalid");
+  assert.equal(refused.detail, "bundleVersion");
+  const device = await testDevice();
+  assert.equal((await register(h, device, { extensions: versioned("42") })).status, 201);
+  assert.equal(count(h.db, "app_attest_keys"), 1);
+
+  // A report asserted by an unlisted build is refused, stores nothing, and moves no counter.
+  const report = async (v: string | undefined) => {
+    const ch = await challenge(h, { purpose: "report", keyId: device.keyIdBase64 });
+    const payload = reportPayload();
+    const cdh = await sha256(reportClientData(base64Decode(ch)!, device.keyId, payload));
+    const assertion = await makeAssertion(device, cdh, { appId: APP_ID, extensions: v === undefined ? undefined : versioned(v) });
+    return h.post("/v1/reports", { schemaVersion: 2, payload: base64Encode(payload), attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) } });
+  };
+  const unlisted = await rejection(await report("43"));
+  assert.equal(unlisted.reason, "assertionInvalid");
+  assert.equal(unlisted.detail, "bundleVersion");
+  assert.equal(count(h.db, "reports"), 0);
+  assert.equal((h.db.raw.prepare("SELECT sign_count FROM app_attest_keys").get() as Row).sign_count, 0);
+  // Both listed builds, and a device that reports no extensions, are accepted.
+  assert.equal((await report("41")).status, 201);
+  assert.equal((await report("42")).status, 201);
+  assert.equal((await report(undefined)).status, 201);
+  // Nothing about the build is stored.
+  const stored = JSON.stringify([...h.db.raw.prepare("SELECT * FROM reports").all(), ...h.db.raw.prepare("SELECT * FROM app_attest_keys").all()]);
+  assert.equal(/"4[123]"/.test(stored), false);
+});
+
+test("required mode without a usable bundle-version allowlist fails closed everywhere", async () => {
+  const h = await harness();
+  const { REPORT_APP_ATTEST_BUNDLE_VERSIONS: _omit, ...withoutVersions } = ENV;
+  for (const env of [withoutVersions, { ...ENV, REPORT_APP_ATTEST_BUNDLE_VERSIONS: "" }, { ...ENV, REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41, 42" }]) {
+    for (const [path, body] of [
+      ["/v1/app-attest/challenges", { schemaVersion: 1, purpose: "registration" }],
+      ["/v1/app-attest/keys", { schemaVersion: 1 }],
+      ["/v1/reports", { schemaVersion: 2 }],
+    ] as const) {
+      const res = await h.post(path, body, env as any);
+      assert.equal(res.status, 503, `${path} ${JSON.stringify(env)}`);
+      assert.equal((await res.json() as Row).error, "attestationUnavailable");
+    }
+  }
+  assert.equal(count(h.db, "app_attest_challenges"), 0);
 });
 
 test("App Attest endpoints are unavailable outside required mode, and a bad policy still fails closed", async () => {
