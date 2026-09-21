@@ -30,6 +30,10 @@ function provenance(db: SqliteD1, spotId: string): Map<string, Row> {
   return new Map(all(db, "SELECT * FROM spot_field_provenance WHERE spot_id = ?", spotId).map((r) => [r.field, r]));
 }
 
+// CSV records whose hours the ward's other current publication contradicts or qualifies
+// (services/api/src/pipeline/taito-list-page.ts). #22 was already unparsed from its own CSV note.
+const HOURS_CONFLICT_REFS = ["10", "12", "15", "16", "18", "22", "30"];
+
 test("CSV reader rejects malformed input instead of guessing", () => {
   assert.throws(() => parseCsv('a,b\n1,"x'), /unterminated/);
   assert.throws(() => parseCsv('a,b\n1,"x"y\n'), /after closing quote/);
@@ -191,12 +195,16 @@ test("provenance: every resolved field points at its own raw record, columns and
   for (let ref = 1; ref <= 34; ref++) {
     const s = spotByRef(db, String(ref));
     const p = provenance(db, s.spot_id);
+    // The Issue #42 reconciliation replaces a field's rule where the ward's other current
+    // publication contradicts it, so the weakening is visible in provenance rather than implicit.
+    const conflicted = (refs: string[], base: string, rule: string) => (refs.includes(String(ref)) ? rule : base);
     for (const [field, rule, columns] of [
       ["existence", "taito.listed.v1", []],
-      ["lifecycle", "taito.listed.v1", []],
-      ["location", "taito.coordinates.v1", ["緯度", "経度"]],
+      ["lifecycle", conflicted(["18"], "taito.listed.v1", "taito.lifecycle.listPageTemporaryClosure.v1"), []],
+      ["location", conflicted(["29"], "taito.coordinates.v1", "taito.coordinates.listPageRelocation.v1"), ["緯度", "経度"]],
       ["name", "taito.name.v1", ["名称"]],
-      ["openingHours", "taito.hours.v1", ["利用開始時間", "利用終了時間", "特記事項"]],
+      ["openingHours", conflicted(HOURS_CONFLICT_REFS, "taito.hours.v1", "taito.hours.listPageConflict.v1"),
+        ["利用開始時間", "利用終了時間", "特記事項"]],
     ] as const) {
       assert.equal(p.get(field)?.rule, rule, `#${ref} ${field}`);
       assert.deepEqual(JSON.parse(p.get(field)!.source_columns_json), columns);
@@ -229,7 +237,8 @@ test("unknown stays unknown: no type, host, access, environment or tobacco value
     assert.equal(s.fee_type, null);
     assert.equal(s.floor, null);
     assert.equal(s.entrance_note, null);
-    assert.equal(s.lifecycle, "active");
+    assert.equal(s.lifecycle, s.name === "ファミリーマート　台東一丁目店" ? "temporarilyClosed" : "active");
+    assert.equal(s.publication_hold, s.name === "中小企業振興センター駐車場内" ? "locationSuperseded" : null);
     assert.equal(s.evidence_quality, OFFICIAL_LISTING);
     assert.equal(s.evidence_quality_version, EVIDENCE_QUALITY_VERSION);
     assert.equal(s.last_verified_at, "2026-08-18", "observation date of the release, not fetch/import time");
@@ -266,18 +275,22 @@ test("hours: free-text notes keep openNow unknown; only plain all-day or H:MM ra
     const s = spotByRef(db, ref);
     return { status: s.opening_hours_status, raw: s.opening_hours_raw, parsed: s.opening_hours_json && JSON.parse(s.opening_hours_json) };
   };
-  for (const ref of ["17", "22", "23", "24", "26", "32", "34"]) {
+  for (const ref of ["17", "22", "23", "24", "26", "32", "34", ...HOURS_CONFLICT_REFS]) {
     const h = hours(ref);
-    assert.equal(h.status, "unparsed", `#${ref} has a closure note`);
+    assert.equal(h.status, "unparsed", `#${ref} has a closure note or a list-page conflict`);
     assert.equal(h.parsed, null);
   }
   assert.deepEqual(hours("32"), { status: "unparsed", raw: "7:00-20:00\n土日祝日、年末年始は休業\n※加熱式たばこ専用", parsed: null });
   assert.deepEqual(hours("26"), { status: "unparsed", raw: "10:30-19:30\n12月を除く毎月第3水曜日は休業", parsed: null });
   assert.deepEqual(hours("1"), { status: "parsed", raw: "終日利用可能", parsed: { v: 1, kind: "allDay" } });
-  assert.deepEqual(hours("10"), { status: "parsed", raw: "8:00-19:00", parsed: { v: 1, kind: "daily", opens: "08:00", closes: "19:00" } });
-  assert.deepEqual(hours("30"), { status: "parsed", raw: "7:00-0:00", parsed: { v: 1, kind: "daily", opens: "07:00", closes: "24:00" } });
+  assert.deepEqual(hours("14"), { status: "parsed", raw: "7:00-18:00", parsed: { v: 1, kind: "daily", opens: "07:00", closes: "18:00" } });
+  // #10 and #30 parse cleanly from the CSV alone; the reconciliation is what keeps them unparsed,
+  // and the CSV's own raw text is left exactly as the source wrote it.
+  assert.deepEqual(hours("10"), { status: "unparsed", raw: "8:00-19:00", parsed: null });
+  assert.deepEqual(hours("30"), { status: "unparsed", raw: "7:00-0:00", parsed: null });
   const statuses = all(db, "SELECT opening_hours_status AS s, count(*) AS n FROM spots GROUP BY 1 ORDER BY 1");
-  assert.deepEqual(statuses.map((r) => [r.s, r.n]), [["parsed", 27], ["unparsed", 7]]);
+  // 27/7 from the CSV alone; six records lose their parsed hours to the Issue #42 reconciliation.
+  assert.deepEqual(statuses.map((r) => [r.s, r.n]), [["parsed", 21], ["unparsed", 13]]);
 });
 
 test("hour rules: anything unrecognised is unparsed rather than guessed", () => {

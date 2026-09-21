@@ -38,7 +38,7 @@ Response shape:
 ```
 
 - `revision` is monotonic per tile.
-- `spots` contains only published spots (publication gate, ADR-0006). A spot absent from the snapshot must be removed from the client's cache for that tile; the client replaces the tile atomically.
+- `spots` contains only published spots (publication gate, ADR-0006). A spot absent from the snapshot must be removed from the client's cache for that tile; the client replaces the tile atomically. A place a source lists is not necessarily published: since the ADR-0006 Issue #42 amendment a spot is also withheld when it is `temporarilyClosed` or under a server-side publication hold (for example, its published coordinate is known to be superseded). Withheld spots are absent from tiles and answer `404` from `GET /spots/{id}`; there is no client-visible marker for them, and none is needed — the client renders what it is given.
 - `sources` is a compact attribution summary for the spots in the tile, so attribution can be shown offline.
 - Freshness is not precomputed; each spot carries `lastVerifiedAt` (evidence observation time) and a stable evidence quality.
 

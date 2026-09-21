@@ -2,6 +2,14 @@
 // field-resolution rules of resolver `taito-resolver.v1`. Every rule is conservative: a value is
 // resolved only when the source states it; everything else stays unknown and gets no provenance row.
 
+import {
+  HOLD_LOCATION_SUPERSEDED,
+  TAITO_HOURS_CONFLICT_RULE,
+  TAITO_RELOCATION_RULE,
+  TAITO_TEMPORARY_CLOSURE_RULE,
+  listPageConflictFor,
+} from "./taito-list-page.ts";
+
 export const TAITO_SOURCE_ID = "taito-public-smoking-areas";
 export const TAITO_PARSER_VERSION = "taito-csv.v1";
 export const TAITO_RESOLVER_VERSION = "taito-resolver.v1";
@@ -17,6 +25,10 @@ export const TAITO_EXISTENCE_RULE = "taito.listed.v1";
  * a spot's type or access explicitly resolves it, with provenance, and is right to.
  */
 export const TAITO_UNRESOLVED_FIELDS = ["spotType", "hostType", "accessType", "environment"] as const;
+
+// sha256 of the committed fixture bytes. The raw CSV evidence is never rewritten by reconciliation,
+// and test/taito-reconciliation.test.ts holds this constant to that.
+export const TAITO_FIXTURE_SHA256 = "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74";
 
 // Catalog/dataset metadata: the landing page that lists the releases. It is NOT the attribution's
 // original-data URL — 台東区's display example asks for 元データ, the data itself (docs/SOURCES.md).
@@ -76,6 +88,9 @@ export interface FieldProvenance {
   rule: string;
 }
 
+export type Lifecycle = "active" | "temporarilyClosed" | "removed";
+export type PublicationHold = typeof HOLD_LOCATION_SUPERSEDED;
+
 export interface ResolvedTaitoRecord {
   name: string | null;
   latitude: number;
@@ -85,6 +100,9 @@ export interface ResolvedTaitoRecord {
   openingHours:
     | { status: "parsed"; raw: string; parsed: OpeningHoursV1 }
     | { status: "unparsed"; raw: string; parsed: null };
+  lifecycle: Lifecycle;
+  /** Non-null withholds the spot from publication without claiming it ceased to exist (ADR-0006). */
+  publicationHold: PublicationHold | null;
   provenance: FieldProvenance[];
 }
 
@@ -132,6 +150,13 @@ function coordinate(value: string, column: string, row: string): number {
  *   the hours unparsed, so openNow stays unknown.
  * Not resolved (unknown, no provenance): spotType, hostType, accessType, environment, feeType, floor,
  * entranceNote. 設置位置 / 方書 / 名称カナ stay in raw evidence only.
+ *
+ * A final, subtractive step then applies the ward's *other* current publication (see
+ * ./taito-list-page.ts and the ADR-0006 Issue #42 amendment). Where that page contradicts or
+ * qualifies this record, the resolved value is weakened — hours to `unparsed`, lifecycle to
+ * `temporarilyClosed`, or the spot to a publication hold — and the affected field's provenance rule
+ * names the reconciliation. Nothing from that page is ever written into a value, and the raw
+ * evidence and the CSV's own `raw` hours text are unchanged.
  */
 export function resolveTaitoRecord(values: string[]): ResolvedTaitoRecord {
   if (values.length !== TAITO_HEADER.length) {
@@ -165,13 +190,40 @@ export function resolveTaitoRecord(values: string[]): ResolvedTaitoRecord {
   const parsed = note.trim() === "" ? parseHours(start, end) : null;
   provenance.push({ field: "openingHours", columns: ["利用開始時間", "利用終了時間", "特記事項"], rule: "taito.hours.v1" });
 
+  const conflict = name === null ? undefined : listPageConflictFor(name);
+  const effects = conflict?.effects ?? [];
+  const hoursUnknown = effects.includes("hoursUnknown");
+  const rule = (field: ProvenanceField, conflicted: string) => {
+    const row = provenance.find((p) => p.field === field);
+    if (row) row.rule = conflicted;
+  };
+  if (hoursUnknown) rule("openingHours", TAITO_HOURS_CONFLICT_RULE);
+
+  let lifecycle: Lifecycle = "active";
+  if (effects.includes("temporarilyClosed")) {
+    lifecycle = "temporarilyClosed";
+    rule("lifecycle", TAITO_TEMPORARY_CLOSURE_RULE);
+  }
+
+  let publicationHold: PublicationHold | null = null;
+  if (effects.includes("withholdFromPublication")) {
+    // The place is not claimed to have closed or moved permanently — the ward says it exists
+    // elsewhere for now — so lifecycle stays `active` and the coordinate stays the CSV's own.
+    // The hold is what keeps that coordinate out of published, navigable results.
+    publicationHold = HOLD_LOCATION_SUPERSEDED;
+    rule("location", TAITO_RELOCATION_RULE);
+  }
+
+  const effective = hoursUnknown ? null : parsed;
   return {
     name,
     latitude: coordinate(v["緯度"], "緯度", v["#"]),
     longitude: coordinate(v["経度"], "経度", v["#"]),
     supportsPaper,
     supportsHeated,
-    openingHours: parsed ? { status: "parsed", raw, parsed } : { status: "unparsed", raw, parsed: null },
+    openingHours: effective ? { status: "parsed", raw, parsed: effective } : { status: "unparsed", raw, parsed: null },
+    lifecycle,
+    publicationHold,
     provenance,
   };
 }

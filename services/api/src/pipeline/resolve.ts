@@ -6,7 +6,8 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
-import { TAITO_PARSER_VERSION, TAITO_RESOLVER_VERSION, resolveTaitoRecord } from "./taito.ts";
+import { assertListPageConflictsMatch } from "./taito-list-page.ts";
+import { TAITO_HEADER, TAITO_PARSER_VERSION, TAITO_RESOLVER_VERSION, resolveTaitoRecord } from "./taito.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
 // Evidence-quality vocabulary v1 has one value: listed in the current applied release of an
@@ -53,6 +54,12 @@ export async function resolveFirstRelease(db: Db, releaseId: number, opts: Resol
   ).bind(releaseId).all<{ record_id: number; raw_values_json: string }>();
   if (records.length === 0) throw new Error(`resolve: release ${releaseId} has no records`);
 
+  // The reviewed list-page attestations (ADR-0006 Issue #42 amendment) must still describe this
+  // release. A record they no longer match means the ward re-published and the contradictions need
+  // re-checking; failing here is what stops an effect from being silently dropped.
+  const nameColumn = TAITO_HEADER.indexOf("名称");
+  assertListPageConflictsMatch(records.map((r) => JSON.parse(r.raw_values_json)[nameColumn] as string));
+
   const now = opts.now;
   const statements = [];
   const spotIds: string[] = [];
@@ -73,12 +80,13 @@ export async function resolveFirstRelease(db: Db, releaseId: number, opts: Resol
       db.prepare(
         `INSERT INTO spots (spot_id, name, latitude, longitude, tile_z, tile_x, tile_y, tile_id, spot_type,
            supports_paper, supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status,
-           lifecycle, evidence_quality, evidence_quality_version, last_verified_at, resolver_version, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'unknown', ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)`,
+           lifecycle, publication_hold, evidence_quality, evidence_quality_version, last_verified_at,
+           resolver_version, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'unknown', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(spotId, r.name, r.latitude, r.longitude, tile.z, tile.x, tile.y, formatTileId(tile),
         r.supportsPaper, r.supportsHeated, r.openingHours.raw,
         r.openingHours.parsed ? JSON.stringify(r.openingHours.parsed) : null, r.openingHours.status,
-        OFFICIAL_LISTING, EVIDENCE_QUALITY_VERSION, release.observed_on, TAITO_RESOLVER_VERSION, now, now),
+        r.lifecycle, r.publicationHold, OFFICIAL_LISTING, EVIDENCE_QUALITY_VERSION, release.observed_on, TAITO_RESOLVER_VERSION, now, now),
       db.prepare(
         `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
          VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,

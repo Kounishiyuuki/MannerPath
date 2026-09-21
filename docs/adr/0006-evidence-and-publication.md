@@ -1,6 +1,6 @@
 # ADR-0006 — Evidence, resolution and publication
 
-Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment; spot detail read added by the 2026-09 Issue #16 amendment; the reviewed-source registry mechanism and the Taito publication approval added by the 2026-09 Issue #22 amendment
+Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment; spot detail read added by the 2026-09 Issue #16 amendment; the reviewed-source registry mechanism and the Taito publication approval added by the 2026-09 Issue #22 amendment; second-publication reconciliation and the publication hold added by the 2026-09 Issue #42 amendment
 
 ## Context
 
@@ -20,8 +20,9 @@ The product's core claim — "smoking is permitted / an ashtray exists here" —
 
 A spot is published (included in tile data) only if:
 
-1. its lifecycle is `active`, and
-2. it has accepted **existence evidence** from an approved source or verification process.
+1. its lifecycle is `active`,
+2. it has accepted **existence evidence** from an approved source or verification process, and
+3. it is under no **publication hold** (added by the Issue #42 amendment below).
 
 A host such as a convenience store never creates a published smoking spot by itself. An `ashtray` tag attached to an arbitrary feature is not by itself accepted existence evidence (see `DATA_POLICY.md`).
 
@@ -196,3 +197,94 @@ This amendment records the operational mechanism by which a reviewed source reac
 - Everything listed under the Issue #12 amendment except the Taito publication approval and attribution wording.
 - OSM publication (ODbL obligations), any further source, and cross-release matching for Taito.
 - A remote D1 database: the upgrade path is local-only, as is every other operation in this repository.
+
+## Amendment 2026-09 — reconciling a second official publication, and the publication hold (Issue #42)
+
+Code: `services/api/src/pipeline/taito-list-page.ts` (the attestations), `src/pipeline/taito.ts`
+(the subtractive step in `taito-resolver.v1`), `src/pipeline/resolve.ts`, `src/tiles/publish.ts`,
+`src/spots/detail.ts`, `src/quality/analyze.ts`. Migration: `migrations/0004_publication_hold.sql`.
+Tests: `services/api/test/taito-reconciliation.test.ts`, plus the updated expectations in
+`pipeline.test.ts`, `publish-api.test.ts`, `promotion.test.ts`, `data-quality.test.ts`.
+Registry and policy: `docs/SOURCES.md`, `docs/DATA_POLICY.md` §"Contradicting official
+publications". Measurement: `docs/BETA_DATA_QUALITY.md`.
+
+### Context
+
+台東区 publishes its public smoking locations twice: the CC BY 4.0 open-data CSV this repository
+imports, and 公衆喫煙所ウェブマップ・一覧, an ordinary ward web page. Issue #33 measured eight
+material disagreements between them — three different closing times, four qualifiers the CSV does
+not carry (weekday-only opening, holiday exclusions, a temporary renovation closure, contradictory
+weekend hours), and one location the page says is temporarily relocated while the CSV carries the
+permanent coordinate. Re-checked live on 2026-09-21: all eight still stand, and the release file is
+still byte-identical to the committed fixture.
+
+The consequence is a core-behaviour failure, not a completeness gap: MannerPath could tell a user a
+place is open while the ward's own other page says it is closed, or route a user to a coordinate
+the ward says is no longer the active location.
+
+### Decisions
+
+1. **The second publication is a conflict reference, not a source.** The list page carries no reuse
+   license (`©台東区`, outside the open-data catalog, re-read 2026-09-21), so it is not registered in
+   `docs/SOURCES.md` and no value from it is ever stored or served. Its participation in the
+   evidence model is **subtractive only**: it may cause MannerPath to withdraw a claim, never to
+   make or change one. That is also the only use its terms support — withholding a claim requires no
+   redistribution right. The generalised rule is in `docs/DATA_POLICY.md`; the source approval and
+   publication gates of the Issue #22 amendment are untouched.
+2. **Conflicts are dated, reviewed attestations in code.** `TAITO_LIST_PAGE_CONFLICTS`
+   (`taito-list-page-conflicts.v1`) holds one entry per contradiction: the CSV 名称 it concerns, the
+   effects it licenses, and a written observation of what the other publication states — a factual
+   summary for a reviewer, never a copy of the page's prose and never a replacement value. The
+   constant carries the URL and the instant the live page was read, and the observations are
+   reproducible with `services/data-pipeline/research/beta-data-quality/spot-check.mjs`. This is why
+   the reconciliation is not an unexplained constant: nothing here encodes a corrected time.
+3. **Only three effects exist, all weakening.** `hoursUnknown` forces `opening_hours_status =
+   'unparsed'` and drops the machine-readable hours, so `openNow` stays unknown; `temporarilyClosed`
+   sets that lifecycle, which the existing publication invariant already excludes; and
+   `withholdFromPublication` sets a publication hold. The CSV's own `opening_hours_raw` text is
+   untouched, so the qualifier is not lost to a reader — it is the *confident* reading that is
+   withdrawn. **No calendar parser was added.** Representing 「平日開庁日のみ」 or a Bon-holiday
+   exclusion faithfully would need one; `unparsed` is the honest answer until there is.
+4. **`spots.publication_hold` is a new axis, and deliberately not lifecycle.** The relocated place
+   has not closed and has not been removed — the ward says it exists, elsewhere — so calling it
+   `temporarilyClosed` or `removed` would be a false statement about the world, and inventing a
+   coordinate for its current position is forbidden. The hold says something about *us*: this
+   canonical row, as it stands, must not be published. The row keeps the source's own coordinate and
+   stays `active`; it is simply absent from tiles, and therefore from Nearby and from
+   `GET /spots/{id}`, which reads through the same gate. Migration 0004 adds the column and
+   recreates the two publication triggers to read it, so the database refuses to publish a held spot
+   and refuses to hold a spot that is still in a snapshot (decision 11's unpublish-first obligation).
+   Vocabulary v1 has one value, `locationSuperseded`.
+5. **Every reconciliation is visible in provenance.** The weakened field's
+   `spot_field_provenance.rule` names the reconciliation instead of the plain CSV rule:
+   `taito.hours.listPageConflict.v1`, `taito.lifecycle.listPageTemporaryClosure.v1`,
+   `taito.coordinates.listPageRelocation.v1`. `rule` is already part of the public provenance
+   boundary (Issue #16 amendment decision 4), so a client and a reviewer can both see that a value
+   was withdrawn and why. No new provenance field name and no DTO change were needed, so the
+   `schemaVersion` 1 contracts are unchanged.
+6. **The attestations must keep matching the data.** `resolveFirstRelease` asserts that every
+   attestation matches exactly one record of the release before it writes anything. A re-released
+   or renamed record therefore fails the import loudly rather than silently losing an effect — which
+   is correct, because a new release means the contradictions must be re-checked against the live
+   page anyway.
+7. **The quality analysis enforces it.** Two checks were added:
+   `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` (every attested conflict
+   is resolved subtractively, with its named provenance rule) and `published-spots-are-active-and-unheld`.
+   A reconciled record that regains parsed hours fails the analysis (tested).
+
+### What did not change
+
+The publication invariant's existing conditions, the complete-snapshot publish step, the tile and
+spot-detail DTOs, `docs/API.md`, the source approval mechanism, the evidence-quality vocabulary,
+and every unknown / heated-only / existence rule of `taito-resolver.v1`. A convenience store's name
+or host still contributes nothing: `taito.listed.v1` remains the existence evidence for all 34
+records, including the one now withheld for the ward's stated closure (tested).
+
+### Still unresolved
+
+- Structured representation of conditional hours (weekday-only, holiday and seasonal exclusions,
+  irregular closures). Until then those records publish no machine-readable hours at all.
+- Whether the temporary closure and the temporary relocation have ended. Both are re-checked by
+  re-running `spot-check.mjs` and re-reviewing the attestations; nothing expires automatically, and
+  deliberately so — a time-dependent resolver would make tiles irreproducible.
+- Cross-release matching for Taito, and everything else still listed under the earlier amendments.

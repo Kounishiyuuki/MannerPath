@@ -12,6 +12,13 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
+import {
+  TAITO_HOURS_CONFLICT_RULE,
+  TAITO_LIST_PAGE_ATTESTATION_VERSION,
+  TAITO_LIST_PAGE_CHECKED_AT,
+  TAITO_LIST_PAGE_CONFLICTS,
+  TAITO_LIST_PAGE_URL,
+} from "../pipeline/taito-list-page.ts";
 import { TAITO_EXISTENCE_RULE, TAITO_SOURCE_ID, TAITO_UNRESOLVED_FIELDS } from "../pipeline/taito.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
 
@@ -188,6 +195,46 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     || r.environment !== "unknown" || r.typed_fields !== null);
   const taitoHostEvidence = taitoSpots.filter((r) => r.existence_rule !== TAITO_EXISTENCE_RULE);
 
+  // Issue #42 reconciliation: every record the ward's *other* current publication contradicts must
+  // have ended up conservative — hours that cannot yield a confirmed openNow, or no publication at
+  // all — and the weakening must be visible in provenance, not implicit in a value.
+  const { results: reconciled } = await db.prepare(
+    `SELECT s.name, s.opening_hours_status, s.lifecycle, s.publication_hold,
+            (SELECT q.rule FROM spot_field_provenance q WHERE q.spot_id = s.spot_id AND q.field = 'openingHours') AS hours_rule,
+            (SELECT q.rule FROM spot_field_provenance q WHERE q.spot_id = s.spot_id AND q.field = 'lifecycle') AS lifecycle_rule,
+            (SELECT q.rule FROM spot_field_provenance q WHERE q.spot_id = s.spot_id AND q.field = 'location') AS location_rule,
+            EXISTS (SELECT 1 FROM tile_snapshot_spots t WHERE t.spot_id = s.spot_id) AS published
+     FROM spots s
+     JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
+     JOIN source_records r ON r.record_id = p.record_id
+     JOIN source_releases rel ON rel.release_id = r.release_id
+     WHERE rel.source_id = ? ORDER BY s.spot_id`,
+  ).bind(TAITO_SOURCE_ID).all<{
+    name: string | null; opening_hours_status: string; lifecycle: string; publication_hold: string | null;
+    hours_rule: string | null; lifecycle_rule: string | null; location_rule: string | null; published: number;
+  }>();
+  const byName = new Map(reconciled.map((r) => [r.name ?? "", r]));
+
+  // A database with no Taito spots at all (a fixture of another source) has nothing to check.
+  const unresolvedConflicts = reconciled.length === 0 ? [] : TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => {
+    const row = byName.get(c.csvName);
+    if (!row) return [`${c.csvName}: no canonical spot`];
+    const problems: string[] = [];
+    if (c.effects.includes("hoursUnknown")) {
+      if (row.opening_hours_status === "parsed") problems.push("hours still parsed");
+      if (row.hours_rule !== TAITO_HOURS_CONFLICT_RULE) problems.push(`hours provenance is ${row.hours_rule ?? "(none)"}`);
+    }
+    if (c.effects.includes("temporarilyClosed") && (row.lifecycle !== "temporarilyClosed" || row.published === 1)) {
+      problems.push(`lifecycle ${row.lifecycle}, published ${row.published === 1}`);
+    }
+    if (c.effects.includes("withholdFromPublication") && (row.publication_hold === null || row.published === 1)) {
+      problems.push(`hold ${row.publication_hold ?? "(none)"}, published ${row.published === 1}`);
+    }
+    return problems.length === 0 ? [] : [`${c.csvName}: ${problems.join("; ")}`];
+  });
+
+  const heldButPublished = reconciled.filter((r) => r.published === 1 && (r.publication_hold !== null || r.lifecycle !== "active"));
+
   const checks: Check[] = [];
   const check = (id: string, ok: boolean, detail: string) => checks.push({ id, status: ok ? "pass" : "fail", detail });
 
@@ -246,6 +293,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     taitoHostEvidence.length === 0
       ? `all ${taitoSpots.length} Taito-derived spots cite ${TAITO_EXISTENCE_RULE} for existence — the ward listing, never the convenience store or venue that hosts the spot`
       : `Taito-derived spots citing another existence rule: ${taitoHostEvidence.map((r) => `${r.spot_id} (${r.existence_rule})`).join(", ")}`);
+
+  check(`${TAITO_SOURCE_ID}-list-page-conflicts-resolved-conservatively`, unresolvedConflicts.length === 0,
+    unresolvedConflicts.length === 0
+      ? `all ${TAITO_LIST_PAGE_CONFLICTS.length} reviewed contradictions with ${TAITO_LIST_PAGE_URL} (${TAITO_LIST_PAGE_ATTESTATION_VERSION}, checked ${TAITO_LIST_PAGE_CHECKED_AT}) are resolved subtractively, each with a named provenance rule`
+      : `contradictions not conservatively resolved: ${unresolvedConflicts.join(" | ")}`);
+
+  check("published-spots-are-active-and-unheld", heldButPublished.length === 0,
+    heldButPublished.length === 0
+      ? "no published spot is temporarilyClosed, removed or under a publication hold"
+      : `published despite a lifecycle or hold: ${heldButPublished.map((r) => r.name ?? "(unnamed)").join(", ")}`);
 
   const wrongZoom = tiles.filter((t) => t.z !== DATA_TILE_ZOOM);
   check("tiles-at-data-tile-zoom", wrongZoom.length === 0,
@@ -320,6 +377,20 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       oldest: verified[0] ?? null,
       newest: verified[verified.length - 1] ?? null,
       oldestDaysAgo: verified.length === 0 ? null : days(`${verified[0]}T00:00:00Z`, opts.now),
+    },
+    reconciliation: {
+      attestationVersion: TAITO_LIST_PAGE_ATTESTATION_VERSION,
+      secondPublicationUrl: TAITO_LIST_PAGE_URL,
+      checkedAt: TAITO_LIST_PAGE_CHECKED_AT,
+      conflicts: TAITO_LIST_PAGE_CONFLICTS.length,
+      effects: tally(TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => [...c.effects])),
+      canonicalButWithheld: reconciled.filter((r) => r.published === 0).map((r) => ({
+        name: r.name,
+        lifecycle: r.lifecycle,
+        publicationHold: r.publication_hold,
+        reason: r.lifecycle !== "active" ? r.lifecycle_rule : r.location_rule,
+      })),
+      unresolved: unresolvedConflicts,
     },
     evidenceQuality: tally(spots.map((s) => `${s.evidenceQualityVersion}:${s.evidenceQuality}`)),
     openingHoursStatus: openingHours,

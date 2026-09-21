@@ -1,16 +1,18 @@
-# Beta data quality gate (Issue #33)
+# Beta data quality gate (Issue #33, re-measured after Issue #42)
 
-Measurement timestamp: **2026-09-21T00:00:00Z** (analysis) / **2026-09-20T17:59Z** (official-source
-spot check). Status: result document. It answers one question — *where is the current real-data
-corpus trustworthy enough to put in front of beta users* — and nothing about an App Store launch.
+Measurement timestamp: **2026-09-21T00:00:00Z** (analysis) / **2026-09-21T01:49Z** (official-source
+re-check, superseding the 2026-09-20T17:59Z check). Status: result document. It answers one question
+— *where is the current real-data corpus trustworthy enough to put in front of beta users* — and
+nothing about an App Store launch.
 
 Every number below comes from the local publication state or from the ward's own pages on the dates
 above. Claims are tagged **[measured]** (output of the commands in §1), **[verified]** (read from the
-publisher's own page or file on 2026-09-20) or **[judgement]**.
+publisher's own page or file on 2026-09-21) or **[judgement]**.
 
-**Result in one line:** the corpus is usable for internal development and device testing, bounded to
-台東区 and never called Tokyo coverage; the **external real-data beta is blocked on Issue #42**
-(§5a). `DATA_TILE_ZOOM = 14` is unchanged.
+**Result in one line:** after the Issue #42 reconciliation the corpus publishes **32 spots**, no
+longer asserts anything the ward's own other publication contradicts, and the **external real-data
+beta data blocker is cleared** — bounded to 台東区 and never called Tokyo coverage (§5a).
+`DATA_TILE_ZOOM = 14` is unchanged.
 
 ## 1. How to reproduce
 
@@ -21,7 +23,8 @@ npm run local:pipeline                          # ingest -> resolve -> publish t
 npm run local:quality -- --now 2026-09-21T00:00:00Z
 ```
 
-`npm run local:quality` is a read-only analysis of the local database
+`npm run local:pipeline` now also applies the Issue #42 reconciliation, which is part of the
+resolver. `npm run local:quality` is a read-only analysis of the local database
 (`services/api/src/quality/analyze.ts`, covered by `services/api/test/data-quality.test.ts`). It
 prints the JSON report and exits non-zero if any check in §4 fails. The report committed with this
 document is `services/data-pipeline/research/beta-data-quality/2026-09-21.json`.
@@ -39,28 +42,33 @@ Its committed output is `services/data-pipeline/research/beta-data-quality/2026-
 | Metric | Value |
 |---|---|
 | Approved sources | 1 of 1 registered (`taito-public-smoking-areas`) |
-| Published spots | 34 (equal to the active spots in the database — nothing is withheld or extra) |
+| Published spots | **32** of 34 canonical records. Two are deliberately withheld by the Issue #42 reconciliation (§3a); nothing else is withheld and nothing is extra |
 | Published tiles | 5, all z14, all non-empty (0 empty snapshots) |
 | Spots per occupied tile | min 1 / p50 9 / p90 11 / max 11 |
 | Bounding box | 35.69849–35.727847 N, 139.76573–139.805037 E (≈3.3 km N–S × 3.6 km E–W) |
 | Nearest-neighbour spacing | min 56 m / p50 209 m / p90 695 m / max 1,112 m (`corpus.nearestNeighbourMeters`, haversine, whole metres) |
 | Applied releases | 1 (`observedOn` 2026-08-18, 34 records, sha256 `5123ee41…c6c74`) |
-| Verification dates | 2026-08-18 for all 34 spots (dataset-level 時点 date; 34 days old at measurement) |
-| Evidence quality | `evidence-quality.v1:officialListing` for all 34 |
+| Verification dates | 2026-08-18 for all 32 published spots (dataset-level 時点 date; 34 days old at measurement) |
+| Evidence quality | `evidence-quality.v1:officialListing` for all 32 |
 
 Unknown rates — what the source does not state and the resolver therefore refuses to guess:
 
 | Field | Unknown | Rate |
 |---|---|---|
-| `spotType` | 34 / 34 | 100 % |
-| `accessType` | 34 / 34 | 100 % |
-| `environment` | 34 / 34 | 100 % |
-| `supportsPaper` | 33 / 34 | 97.1 % |
-| `supportsHeated` | 33 / 34 | 97.1 % |
-| opening hours not usable for `openNow` | 7 / 34 | 20.6 % (`parsed` 27, `unparsed` 7) |
+| `spotType` | 32 / 32 | 100 % |
+| `accessType` | 32 / 32 | 100 % |
+| `environment` | 32 / 32 | 100 % |
+| `supportsPaper` | 31 / 32 | 96.9 % |
+| `supportsHeated` | 31 / 32 | 96.9 % |
+| opening hours not usable for `openNow` | 12 / 32 | **37.5 %** (`parsed` 20, `unparsed` 12) |
 
-Largest tile **[measured]**: `14/14553/6449` with 11 spots; `14/14553/6450` is the largest payload at
-6,689 raw bytes / 1,593 gzip bytes. The corpus occupies exactly 5 z14 tiles — one contiguous 3×2
+The hours-unknown rate rose from 20.6 % to 37.5 % on purpose: six records that parsed cleanly from
+the CSV alone lost their machine-readable hours because the ward's other current publication
+contradicts or qualifies them (§3a). A higher unknown rate is the correct outcome — the alternative
+was a confident `openNow` the publisher itself contradicts.
+
+Largest tile **[measured]**: `14/14553/6449` with 11 spots, which is also the largest payload at
+6,490 raw bytes / 1,472 gzip bytes. The corpus occupies exactly 5 z14 tiles — one contiguous 3×2
 block minus one cell — and none of the 5 is empty. They are not uniformly dense: `14/14552/6449`
 holds a **single** spot and `14/14554/6450` holds two, against 9–11 in the other three.
 
@@ -75,14 +83,14 @@ the next one.
 |---|---|---|
 | The ward's live release file **is** the committed fixture, byte for byte | `spot-check.mjs` (`fixture.identicalToLiveRelease: true`) | the whole file, including coordinates |
 | Canonical spot fields are derived from that fixture, by the pinned resolver rules | `services/api/test/pipeline.test.ts`, `schema.test.ts`, `migration-0002.test.ts` and the field-provenance rows | name, coordinates, hours, tobacco semantics, provenance |
-| The published corpus is what those spots became in the tiles | `npm run local:quality` (reads `tile_snapshots`; `publishedSpots` equals `activeSpotsInDatabase`) | every published value and the tile payloads |
-| A second official publication agrees, on the fields it exposes | `spot-check.mjs` census against the ward's list page | number, name, hours — **not** coordinates |
+| The published corpus is what those spots became in the tiles | `npm run local:quality` (reads `tile_snapshots`) | every published value and the tile payloads |
+| Where a second official publication disagrees, MannerPath publishes nothing rather than a contradicted claim | `spot-check.mjs` census against the ward's list page, plus `test/taito-reconciliation.test.ts` and the `list-page-conflicts-resolved-conservatively` check | number, name, hours — **not** coordinates |
 
 So the coordinates are traced to the ward's own bytes and to the resolver, **not** independently
 confirmed: the ward's list page publishes addresses, not coordinates, and `spot-check.mjs` reads
 neither the local database nor the tile snapshots. Nothing here is a physical check of any location.
 
-- Date checked: **2026-09-20** (UTC).
+- Date checked: **2026-09-21T01:49Z** (UTC), re-running the same script that produced the 2026-09-20 check.
 - Source checked: the release file `shisethutizujouhou.files/20260818_koshukitsuenjo.csv` served by
   台東区 right now, its catalog page, and — as independent material — the ward's
   **公衆喫煙所ウェブマップ・一覧** page (`/kenchiku/machibika/kosyu/webmap.html`, 更新日 2026年9月4日,
@@ -98,24 +106,33 @@ Results **[verified]**:
   `5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74`, 7,266 bytes,
   `Last-Modified: Fri, 11 Sep 2026 07:48:17 GMT`). The source still exists and has not been re-released.
 - The catalog page still labels the file 「公衆喫煙所（令和8年8月18日時点）」 and still states CC BY 4.0.
-- All 34 published spots reproduce their CSV record exactly: name, coordinates, hours status and the
-  heated-only semantics. **No discrepancy between the CSV and what MannerPath publishes.** This link
-  is the pipeline and provenance tests plus the corpus measurement, not `spot-check.mjs`.
+- The list page is unchanged since the 2026-09-20 check: all 21 findings, including every conflict
+  below, reproduce identically (only the `checkedAt` timestamp differs). **The 2026-09-20
+  observations are still current** — including the renovation closure and the temporary relocation.
+- The list page itself carries **no reuse license**: no CC BY notice, no license link, footer
+  `©台東区`. It is therefore not a registered source; `docs/SOURCES.md` records what it may be used
+  for instead.
+- All 32 published spots reproduce their CSV record exactly on name, coordinates and the heated-only
+  semantics. **No value published anywhere differs from the CSV.** Where the second publication
+  contradicts the CSV, MannerPath now publishes *less* (§3a) — never a different value. This link is
+  the pipeline and provenance tests plus the corpus measurement, not `spot-check.mjs`.
 
-Discrepancies **between the two official publications of the same list** (the CSV we publish and the
-ward's list page) — these are the ones that matter for a beta:
+Discrepancies **between the two official publications of the same list** (the CSV we import and the
+ward's list page), and what MannerPath now does about each (§3a):
 
-| # | Place | CSV (published) | Ward list page | Effect |
-|---|---|---|---|---|
-| 12 | 清川清掃車庫(内) | 7:00–19:00, parsed | 8:00–20:00 | **`openNow` can be wrong by an hour at each end** |
-| 15 | 金竜公園内 | 7:00–19:00, parsed | 7:00–19:30 + 「クレーン作業に伴い一時的に閉鎖することがあります」 | wrong closing time; unannounced closures |
-| 16 | 隅田公園内 | 7:00–19:00, parsed | 7:00–19:30 | closing time 30 min early |
-| 10 | 本庁舎駐車場出口横 | 8:00–19:00, parsed | 8:00–19:00 **（平日開庁日のみ）** | published as open on weekends/holidays |
-| 30 | 佐竹公衆喫煙所 | 7:00–0:00, parsed | 7:00–24:00（年末年始・5月連休・お盆休みを除く） | times agree; the exception days are not published |
-| 18 | ファミリーマート 台東一丁目店 | 終日, parsed | 終日 ※2026-09-06〜09-22 店舗内改修のため閉鎖 | **currently closed, published as open all day** |
-| 22 | smokers peace in ミマツ書房 | 8:00–21:00 + 「日祝日・元旦は休業」 → unparsed | 平日・土 8:00–21:00、日・祝 9:00–17:00 | the two official sources contradict each other; MannerPath claims nothing (correct) |
-| 29 | 中小企業振興センター駐車場内 | name and coordinates of the centre | 「(小島公園北側隣接)※小島公園内へ仮移転中」 | **the published coordinate may not be where the ashtray currently is** |
-| 14/15/16 | — | CSV row order | page row order | `#` is not a stable identifier, now confirmed against a second publication (research §7) |
+| # | Place | Conflict as of 2026-09-21 | MannerPath now publishes |
+|---|---|---|---|
+| 12 | 清川清掃車庫(内) | the page states a one-hour-later opening and closing than the CSV | hours **unknown** (`unparsed`); no `openNow` |
+| 15 | 金竜公園内 | the page closes 30 min later and warns of temporary crane-work closures | hours **unknown** |
+| 16 | 隅田公園内 | the page closes 30 min later | hours **unknown** |
+| 10 | 本庁舎駐車場出口横 | the page restricts the same range to 平日開庁日のみ | hours **unknown** |
+| 30 | 佐竹公衆喫煙所 | times agree; the page excludes 年末年始・5月連休・お盆休み | hours **unknown** |
+| 18 | ファミリーマート 台東一丁目店 | the page states an in-store refurbishment closure 2026-09-06 → 2026-09-22 (予定) | **not published at all** — lifecycle `temporarilyClosed` |
+| 22 | smokers peace in ミマツ書房 | the two publications disagree on Sunday/holiday hours | hours **unknown** (already was, now recorded as a conflict) |
+| 29 | 中小企業振興センター駐車場内 | the page states the location is temporarily relocated into the neighbouring park | **not published at all** — `publication_hold = locationSuperseded` |
+| 14/15/16 | — | CSV row order differs from page row order | unchanged: `#` is not used as an identifier (research §7) |
+
+Nothing in the table is corrected *to* the page's values: every resolution removes a claim. See §3a.
 
 Typographic-only differences (not material): ①→（1）, セブン-イレブン→セブンイレブン,
 paspa 上野→paspa上野, full-width/half-width digits and spaces. All are listed in the committed
@@ -125,9 +142,41 @@ Not independently verified: whether any listed place physically exists or curren
 That needs a site visit or a third non-ward source; neither was used. Nothing here is a ground-truth
 check — it is a check of one official publication against another.
 
+## 3a. How the conflicts are resolved (Issue #42) **[measured]**
+
+The full decision is ADR-0006's 2026-09 Issue #42 amendment; the short version:
+
+- The ward's list page is **not a source**. It carries no reuse license (footer `©台東区`, outside the
+  open-data catalog, re-read 2026-09-21), so it is not registered in `docs/SOURCES.md` and none of
+  its text, times or names is stored or served. Its only role is to make MannerPath **withdraw** a
+  claim — which needs no redistribution right, unlike publishing its content.
+- Each conflict is a dated attestation in `services/api/src/pipeline/taito-list-page.ts`
+  (`taito-list-page-conflicts.v1`, checked 2026-09-21T01:37Z), naming the CSV record, the effects it
+  licenses and a written observation. **No corrected time is encoded anywhere** — a test fails the
+  build if an attestation contains a clock time.
+- The three permitted effects are all subtractive: hours → `unparsed`, lifecycle →
+  `temporarilyClosed`, or a new `spots.publication_hold` (migration 0004). The CSV's own raw hours
+  text is kept, so a human reader still sees what the source said; only the confident machine
+  reading is withdrawn.
+- Every weakened field says so in provenance: `taito.hours.listPageConflict.v1`,
+  `taito.lifecycle.listPageTemporaryClosure.v1`, `taito.coordinates.listPageRelocation.v1`. `rule`
+  is already part of the public provenance boundary, so this is visible to a client, not internal.
+- **No calendar parser was written.** 「平日開庁日のみ」 and the Bon/new-year exclusions cannot be
+  represented faithfully by `openingHours.v1`, so those records publish no machine-readable hours at
+  all. That is the deliberate trade: less precision, no false precision.
+- The relocated spot (#29) is **not** called closed or removed — the ward says it exists, elsewhere —
+  and no coordinate is invented for it. It keeps the source's coordinate, stays `active`, and is held
+  out of publication, so it is absent from tiles, from Nearby and from `GET /spots/{id}`. It is
+  therefore **not a navigable destination**.
+- Nothing about source approval, the publication gate, OSM's block or the convenience-store rule was
+  loosened. All 34 records still cite `taito.listed.v1` for existence — including the withheld ones.
+
+Remaining unresolved conflicts: **none of the eight**. What remains open is not a conflict but a
+modelling gap and a freshness obligation, both in §5.
+
 ## 4. License, attribution and registry validation **[measured]**
 
-All ten checks in the analysis pass (`failedChecks: 0`):
+All twelve checks in the analysis pass (`failedChecks: 0`):
 
 | Check | Result |
 |---|---|
@@ -139,10 +188,12 @@ All ten checks in the analysis pass (`failedChecks: 0`):
 | `osm-blocked` | no `kind = 'osm'` source is approved or published |
 | `taito-public-smoking-areas-unstated-fields-stay-unknown` | all 34 Taito-derived spots leave `spotType`, `hostType`, `accessType` and `environment` unknown/null with no provenance row, **because 台東区's file states none of them**. This is a per-source expectation, not a repository invariant: a future reviewed source that states a type resolves it with provenance and is untouched by this check (`test/data-quality.test.ts`) |
 | `taito-public-smoking-areas-existence-evidence-is-the-municipal-listing` | all 34 cite `taito.listed.v1` for existence — the ward listing, never the convenience store or venue that hosts the spot |
+| `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` | all 8 attested contradictions with the ward's list page are resolved subtractively, each with a named provenance rule. It **fails** if a reconciled record regains parsed hours or gets published (tested) |
+| `published-spots-are-active-and-unheld` | no published spot is `temporarilyClosed`, `removed` or under a publication hold |
 | `tiles-at-data-tile-zoom` | every tile is z14 |
-| `tile-zoom-thresholds` | max 11 spots/tile and 1,593 gzip bytes/tile |
+| `tile-zoom-thresholds` | max 11 spots/tile and 1,472 gzip bytes/tile |
 
-Coherence, re-read on 2026-09-20 **[verified]**: the license name (CC BY 4.0), the license URL
+Coherence, re-read on 2026-09-21 **[verified]**: the license name (CC BY 4.0), the license URL
 (`creativecommons.org/licenses/by/4.0/legalcode.ja`) and the 元データ URL inside the attribution text
 all still match the ward's own page, and the 元データ URL is the exact file that was imported.
 
@@ -152,7 +203,8 @@ all still match the ward's own page, and the 元データ URL is the exact file 
 35.6985–35.7279 N, 139.7657–139.8051 E.**
 
 This is not "Tokyo coverage" and must never be described as such. Taito is 1 of Tokyo's 23 special
-wards, about 10 km² of a 627 km² 23-ward area; 34 spots is what one ward's own list contains.
+wards, about 10 km² of a 627 km² 23-ward area; 32 published spots is what one ward's own list
+contains once the records its other publication contradicts are withheld (§3a).
 
 Covered:
 
@@ -177,13 +229,19 @@ Known limitations to state in the beta UI:
    There is no per-record verification date and the ward states no update cadence, so `lastVerifiedAt`
    is the *list's* date, not a site check.
 2. **Semantics**: `spotType`, `accessType` and `environment` are 100 % unknown, and
-   paper/heated support is unknown for 33 of 34. The UI must render unknown as unknown.
-3. **Hours**: 27 of 34 are parsed, but §3 shows at least 3 of those parsed values disagree with the
-   ward's own list page and 3 more omit qualifiers it states. **`openNow` from this corpus is
-   indicative, not authoritative** — and one place (#18) is closed for renovation until 2026-09-22
-   while publishing 終日.
-4. **Location meaning**: coordinates are the ward's values, datum unstated (assumed JGD2011 ≈ WGS84),
-   and #29 is temporarily relocated in a way the CSV does not express.
+   paper/heated support is unknown for 31 of 32. The UI must render unknown as unknown.
+3. **Hours**: 20 of 32 are parsed and **12 are unknown**. No published parsed value now disagrees
+   with the ward's other publication (§3a) — but the price is that conditional hours (weekday-only,
+   holiday and seasonal exclusions) are published as *no hours at all*, because `openingHours.v1`
+   cannot express them. The UI must show "hours unknown", never "open".
+4. **Location meaning**: coordinates are the ward's values, datum unstated (assumed JGD2011 ≈ WGS84).
+   The temporarily relocated place (#29) is withheld rather than shown at its old point.
+5. **Two listed places are not in the corpus at all** (#18, #29). The map is 32 of the ward's 34
+   listed locations, by design; a user standing at either will find nothing there.
+6. **The withheld records need re-checking, and nothing expires on its own.** #18's closure was
+   announced to end 2026-09-22 (予定) and #29's relocation has no stated end. Both stay withheld
+   until someone re-runs `spot-check.mjs` and re-reviews the attestations. A time-dependent resolver
+   was deliberately not built: it would make tile bodies irreproducible.
 
 ## 5a. Beta gate verdict **[judgement]**
 
@@ -194,24 +252,25 @@ answered separately:
 |---|---|
 | Internal development and on-device testing | **Usable now.** The corpus is small, fully attributed, from one approved official source, and every unknown is published as unknown. |
 | Bounded geography, whenever this corpus is used | **台東区 only.** Never described as Tokyo coverage. |
-| External real-data beta | **BLOCKED on Issue #42** — *"Taito data reconciliation: conservative hours and temporary-location handling"*. |
+| External real-data beta — **data** blocker | **CLEARED by Issue #42.** Every known contradiction that could produce a false `openNow` or a stale navigation destination is now resolved conservatively (§3a), enforced by the database, the publisher, the resolver and two quality checks, and covered by regression tests. |
 
-The block is not about coverage; it is about the corpus asserting things the ward's own other
-publication contradicts (§3):
+Why the data blocker is cleared, precisely: of the eight contradictions between the ward's two
+current publications, **zero** remain capable of producing a confident claim the ward contradicts.
+Six records publish no machine-readable hours instead of contradicted ones; one is not published
+because the ward says it is closed; one is not published because the ward says it has moved and no
+authoritative replacement coordinate exists. Nothing is corrected to the unlicensed page's values.
 
-- parsed hours can produce a confirmed `openNow` that a second official Taito publication contradicts
-  (清川清掃車庫, 金竜公園内, 隅田公園内);
-- temporary-closure and restricted-day qualifiers the ward states are absent from what we publish
-  (本庁舎 「平日開庁日のみ」, 佐竹's exception days, ファミリーマート台東一丁目店's renovation closure);
-- one location is documented as temporarily relocated while the published coordinate is still the
-  permanent one (中小企業振興センター駐車場内).
+What this verdict does **not** say:
 
-Telling an external user a place is open when the ward says it is closed is a core-behaviour failure,
-not a data-completeness gap, so it gates the external beta rather than being listed as a caveat.
-
-**No correction is hard-coded here.** Issue #33 is a measurement and decision gate; the reconciliation
-belongs to #42 and is deliberately not implemented in this change. **After #42 lands, rerun this gate**
-(§1) and re-decide external readiness against the regenerated artifacts.
+- It is not a statement that the corpus is complete, or that any listed place physically exists or
+  currently has an ashtray. Neither was ever verified (§3), and Issue #42 did not change that.
+- It is not permission to describe the corpus as Tokyo coverage, or to ship it outside 台東区.
+- It does not cover any non-data beta gate (app readiness, support, privacy review, store rules).
+  Those are decided elsewhere; this document only answers the data question.
+- It expires with the check date. If `spot-check.mjs` returns different findings — a new release, an
+  edited list page, a closure that ended — the attestations must be re-reviewed before the corpus is
+  put in front of external users again. The importer already refuses a release whose records no
+  longer match the attestations.
 
 ## 6. Candidate next sources — research only **[verified 2026-09-20]**
 
@@ -239,14 +298,15 @@ record key, research §7) and reconciling the hours against the ward's list page
 
 ## 7. Tile zoom threshold check **[measured]**
 
-`DATA_TILE_ZOOM = 14` remains correct. ADR-0005 says to re-evaluate if any tile exceeds ~250 spots or
+`DATA_TILE_ZOOM = 14` remains correct, and publication did change (34 → 32 spots), so these were
+re-measured. ADR-0005 says to re-evaluate if any tile exceeds ~250 spots or
 ~16 KB gzip:
 
 | Measure | Current maximum | Re-evaluation trigger | Headroom |
 |---|---|---|---|
 | Spots per tile | 11 (`14/14553/6449`) | 250 | 23× |
-| gzip bytes per tile | 1,593 (`14/14553/6450`) | 16,384 | 10× |
-| Raw bytes per tile | 6,689 | — | — |
+| gzip bytes per tile | 1,472 (`14/14553/6449`) | 16,384 | 11× |
+| Raw bytes per tile | 6,490 | — | — |
 
 The corpus is three orders of magnitude below the density at which the zoom decision changes, and the
 whole corpus fits in one 3×3 fetch. **No zoom change is justified by these measurements**, and the
@@ -254,11 +314,11 @@ analysis fails its `tile-zoom-thresholds` check automatically if a future corpus
 
 ## 8. Recommended next source work **[judgement]**
 
-1. **Issue #42 — the external-beta blocker.** Reconcile published hours against the ward's
-   公衆喫煙所ウェブマップ・一覧 page (§3) and decide the temporary-location handling: whether the list
-   page becomes a second evidence input, or whether the CSV's parsed hours are downgraded to
-   `unparsed` wherever the page adds a qualifier. Three records currently publish a closing time the
-   ward's other page contradicts, and one publishes a location the ward says is temporarily vacated.
+1. ~~Issue #42 — the external-beta blocker.~~ Done (§3a): the list page is a conflict reference, not
+   a source, and every contradiction is resolved subtractively. The follow-on work it leaves is a
+   structured model for conditional hours (weekday-only, holiday and seasonal exclusions), which
+   would return machine-readable hours to six records without asserting anything unsupported, and a
+   re-check of the two withheld records.
 2. Import a second Taito release when one appears, and settle the stable source record key. The row
    order already differs between the two publications of the same 時点, so `#` is confirmed unusable.
 3. Only then survey a second municipality. The catalog census (§6) says the supply of machine-readable

@@ -29,7 +29,7 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
      JOIN source_records r ON r.record_id = p.record_id
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
-     WHERE ts.spot_id = ? AND s.lifecycle = 'active' AND s.merged_into IS NULL
+     WHERE ts.spot_id = ? AND s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND rel.status = 'applied' AND src.publication_status = 'approved'`,
   ).bind(targetId).first<DetailRow>();
   if (row === null) return null;

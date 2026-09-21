@@ -30,7 +30,7 @@ test("the bundle carries the whole evidence-to-publication chain for the current
   assert.equal(manifest.sourceId, TAITO_SOURCE_ID);
   assert.equal(manifest.releaseId, 1);
   assert.equal(manifest.tiles.length, 5);
-  assert.equal(manifest.tiles.reduce((n, t) => n + t.spotCount, 0), 34);
+  assert.equal(manifest.tiles.reduce((n, t) => n + t.spotCount, 0), 32);
   assert.deepEqual(manifest.rows, {
     sources: 1,
     source_releases: 1,
@@ -40,13 +40,15 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     source_record_match_keys: 0,
     source_entities: 34,
     source_record_entities: 34,
-    spots: 34,
-    spot_source_entities: 34,
+    // The bundle carries the published corpus: the two spots withheld by the Issue #42
+    // reconciliation have canonical rows here but are not exported, while the whole raw release is.
+    spots: 32,
+    spot_source_entities: 32,
     spot_field_provenance: manifest.rows.spot_field_provenance,
     tile_snapshots: 5,
-    tile_snapshot_spots: 34,
+    tile_snapshot_spots: 32,
   });
-  assert.equal(manifest.rows.spot_field_provenance > 34, true, "every spot has at least existence provenance");
+  assert.equal(manifest.rows.spot_field_provenance > 32, true, "every spot has at least existence provenance");
 
   // Foreign-key-safe order: a parent table's inserts precede every child that references it.
   const order = ["sources", "source_releases", "source_records", "source_record_match_keys",
@@ -113,11 +115,16 @@ test("the bundle applies to a freshly migrated database and reproduces the publi
   target.exec(sql);
 
   const count = (db: any, q: string) => (db.prepare(q).get() as any).n;
+  // The bundle is a *publication* bundle: it carries the canonical rows behind the published tiles,
+  // not the source database's unpublished ones (since Issue #42 the two differ, because a
+  // contradicted record keeps a canonical row while being withheld). So the published state is
+  // compared on both sides, restricted to what is published.
+  const PUBLISHED = "WHERE spot_id IN (SELECT spot_id FROM tile_snapshot_spots)";
   for (const q of [
     "SELECT count(*) n FROM tile_snapshots",
     "SELECT count(*) n FROM tile_snapshot_spots",
-    "SELECT count(*) n FROM spots",
-    "SELECT count(*) n FROM spot_field_provenance",
+    `SELECT count(*) n FROM spots ${PUBLISHED}`,
+    `SELECT count(*) n FROM spot_field_provenance ${PUBLISHED}`,
     "SELECT count(*) n FROM sources WHERE publication_status = 'approved'",
   ]) {
     assert.equal(count(target, q), count(source.raw, q), q);

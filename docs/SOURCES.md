@@ -60,6 +60,28 @@ Research and evidence: `docs/research/2026-09-launch-dataset-and-tile-zoom.md`. 
 | Reviewed by / date | Claude Code (AI-assisted research), 2026-09-20; terms and display example re-verified against the official pages 2026-09-20 (Issue #22). Approved by the maintainer's merge of the Issue #22 PR |
 | Publication status | approved |
 
+### 台東区 公衆喫煙所ウェブマップ・一覧 — **not a registered source** (conflict reference only)
+
+台東区 publishes the same list a second time as an ordinary ward web page,
+`https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html` (更新日 2026年9月4日, labelled
+令和8年8月18日現在). It is **not** registered above and never will be under these terms.
+
+| Field | Value |
+|---|---|
+| License name | **none found**. The page sits outside the ward's open-data catalog, carries no CC BY notice and no link to a license; its footer states only `©台東区` |
+| Redistribution to clients allowed | unreviewed — assume no |
+| Modification/derivation allowed | unreviewed — assume no |
+| Checked | 2026-09-21 (Issue #42), against the live page |
+| Publication status | **not a source**: no value from this page is ever stored as canonical data or served to a client |
+
+How it is used instead (ADR-0006, 2026-09 Issue #42 amendment): the page is a **conflict
+reference**. Where it contradicts or qualifies the CC BY release we import, that contradiction is
+recorded as a dated attestation in `services/api/src/pipeline/taito-list-page.ts`, and its only
+permitted effect is **subtractive** — downgrade hours to `unparsed`, mark a spot
+`temporarilyClosed`, or withhold a spot from publication. It can never add, raise or correct a
+canonical value. Knowing that MannerPath must *not* assert something requires no redistribution
+right; publishing the page's own wording or times would, and is not done.
+
 Registry mechanics (ADR-0006, 2026-09 Issue #22 amendment): this entry is mirrored in code as a
 reviewed registry constant (`services/api/src/pipeline/registry.ts`). A fresh or local database gets
 the row with this status and attribution; a database that still holds the older `blocked` row is

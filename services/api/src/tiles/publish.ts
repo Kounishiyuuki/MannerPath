@@ -1,7 +1,7 @@
 // Publish step (ADR-0005/0006): rebuilds the complete snapshot of every tile whose published content
-// changed and writes all of them in one batch. A spot is published only if it is active, unmerged
-// and its existence evidence comes from an applied release of an approved source; the
-// tile_snapshot_spots trigger re-checks exactly that on insert. Spots from blocked sources are
+// changed and writes all of them in one batch. A spot is published only if it is active, unmerged,
+// under no publication hold, and its existence evidence comes from an applied release of an
+// approved source; the tile_snapshot_spots trigger re-checks exactly that on insert. Spots from blocked sources are
 // reported as excluded, never published.
 
 import { type Db, sha256Hex } from "../db.ts";
@@ -90,7 +90,8 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
      JOIN source_records r ON r.record_id = p.record_id
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
-     WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND rel.status = 'applied'
+     WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
+       AND rel.status = 'applied'
      ORDER BY s.spot_id`,
   ).all<CandidateRow>();
 
