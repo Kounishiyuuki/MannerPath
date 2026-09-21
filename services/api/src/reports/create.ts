@@ -1,9 +1,9 @@
 // Storing a report (ADR-0007). A report is an append-only proposal: this module writes the event
 // and its pending moderation row in one batch, and touches no canonical or published table.
 
-import { type Db, isoSeconds, sha256Hex } from "../db.ts";
+import { type Db, type DbStatement, isoSeconds, sha256Hex } from "../db.ts";
 import type { AttestationStatus } from "./attestation.ts";
-import { REPORT_SCHEMA_VERSION, type ReportAcceptedV1, type ReportRequestV1, quantizeCoordinate } from "./dto.ts";
+import { type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate } from "./dto.ts";
 import { newReportId } from "./report-id.ts";
 
 /** Personal content is minimized this long after arrival, whatever the moderation state. */
@@ -27,18 +27,25 @@ export interface CreateReportOptions {
   attestationStatus: AttestationStatus;
   submitterHash: string;
   newReportId?: () => string;
+  /**
+   * Statements that must commit together with the report, or not at all — the App Attest counter
+   * advance (src/attest/store.ts). They run first in the same batch, so an abort there stores no
+   * report.
+   */
+  guards?: DbStatement[];
 }
 
 export async function createReport(
   db: Db,
-  request: ReportRequestV1,
+  request: ReportRequestV1 | ReportPayloadV2,
   opts: CreateReportOptions,
-): Promise<ReportAcceptedV1> {
+): Promise<ReportAcceptedV1 | ReportAcceptedV2> {
   const reportId = (opts.newReportId ?? newReportId)();
   const receivedAt = isoSeconds(opts.now);
   const location = request.proposedLocation;
 
   await db.batch([
+    ...(opts.guards ?? []),
     db.prepare(
       `INSERT INTO reports (
          report_id, schema_version, report_type, subject_spot_id,
@@ -47,7 +54,7 @@ export async function createReport(
        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
     ).bind(
       reportId,
-      REPORT_SCHEMA_VERSION,
+      request.schemaVersion,
       request.type,
       request.spotId ?? null,
       location === undefined ? null : quantizeCoordinate(location.latitude),
@@ -65,5 +72,5 @@ export async function createReport(
     ).bind(reportId, receivedAt),
   ]);
 
-  return { schemaVersion: REPORT_SCHEMA_VERSION, reportId, state: "pending", receivedAt };
+  return { schemaVersion: request.schemaVersion, reportId, state: "pending", receivedAt };
 }

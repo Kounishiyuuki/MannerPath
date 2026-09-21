@@ -2,11 +2,13 @@
 // must not become a way to keep personal content indefinitely. What survives is the non-personal
 // skeleton -- id, type, subject, attestation verdict, timestamps -- so counts stay honest.
 
+import { purgeExpiredChallengesStatement } from "../attest/store.ts";
 import { type Db, isoSeconds } from "../db.ts";
 
 export interface RetentionResult {
   redactedReports: number;
   purgedRateWindows: number;
+  purgedAttestChallenges: number;
 }
 
 export async function applyReportRetention(db: Db, opts: { now: Date }): Promise<RetentionResult> {
@@ -20,6 +22,10 @@ export async function applyReportRetention(db: Db, opts: { now: Date }): Promise
     "SELECT count(*) AS n FROM report_rate_windows WHERE expires_at <= ?",
   ).bind(now).first<{ n: number }>();
 
+  const expiredChallenges = await db.prepare(
+    "SELECT count(*) AS n FROM app_attest_challenges WHERE expires_at <= ?",
+  ).bind(now).first<{ n: number }>();
+
   // One statement per report, so the immutability trigger checks each redaction individually.
   const statements = due.results.map((row) => db.prepare(
     `UPDATE reports
@@ -28,7 +34,14 @@ export async function applyReportRetention(db: Db, opts: { now: Date }): Promise
       WHERE report_id = ? AND redacted_at IS NULL`,
   ).bind(now, row.report_id));
   statements.push(db.prepare("DELETE FROM report_rate_windows WHERE expires_at <= ?").bind(now));
+  // App Attest challenges are not personal content, but an expired one is useless, consumed or not
+  // (ADR-0007 §6). Registered keys are kept: they are what verifies the next assertion.
+  statements.push(purgeExpiredChallengesStatement(db, opts.now));
 
   await db.batch(statements);
-  return { redactedReports: due.results.length, purgedRateWindows: expired?.n ?? 0 };
+  return {
+    redactedReports: due.results.length,
+    purgedRateWindows: expired?.n ?? 0,
+    purgedAttestChallenges: expiredChallenges?.n ?? 0,
+  };
 }

@@ -7,8 +7,9 @@
 // enforces it. Secrets (REPORT_SUBMITTER_PEPPER) are never `vars`; they are set with
 // `wrangler secret put` per environment and are not committed.
 //
-// Remote report acceptance is deferred: staging and production set REPORT_ATTESTATION=required,
-// which fails closed until Issue #37 implements App Attest.
+// Remote reports require App Attest: staging and production set REPORT_ATTESTATION=required, which
+// fails closed until a maintainer sets REPORT_APP_ATTEST_APP_ID (carries the Team ID) and
+// REPORT_APP_ATTEST_ENVIRONMENT per environment. Neither is ever committed (docs/OPERATIONS.md).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mannerpath-api",
@@ -21,8 +22,8 @@
   // diagnostic line (which must carry no request payload or position) is still visible; platform
   // metrics are aggregate and unaffected. Policy: `../../docs/OPERATIONS.md`.
   "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
-  // LOCAL/TEST ONLY. Reports are accepted here because the local default is `disabled`; the remote
-  // environments below deliberately fail closed until Issue #37 (ADR-0007 §6).
+  // LOCAL/TEST ONLY. Unattested (schema 1) reports are accepted here because the local default is
+  // `disabled`; the remote environments below require App Attest (ADR-0007 §6).
   "vars": { "REPORT_ATTESTATION": "disabled" },
   "d1_databases": [
     {
@@ -38,9 +39,10 @@
     "staging": {
       "name": "mannerpath-api-staging",
       "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
-      // Fail closed: App Attest is not implemented (Issue #37), so a deployed environment answers
-      // 503 attestationUnavailable and /v1/config reports reports.available = false. A remote
-      // environment must never accept unattested reports by default. Do not change this here.
+      // App Attest required. Until REPORT_APP_ATTEST_APP_ID and REPORT_APP_ATTEST_ENVIRONMENT are
+      // set for this environment (never here), it answers 503 attestationUnavailable and
+      // /v1/config reports reports.available = false. A remote environment must never accept
+      // unattested reports. Do not change this here.
       "vars": { "REPORT_ATTESTATION": "required" },
       "d1_databases": [
         {
@@ -54,7 +56,7 @@
     "production": {
       "name": "mannerpath-api-production",
       "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
-      // Fail closed until Issue #37, exactly as staging.
+      // App Attest required, exactly as staging.
       "vars": { "REPORT_ATTESTATION": "required" },
       "d1_databases": [
         {

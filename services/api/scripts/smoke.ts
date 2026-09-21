@@ -130,7 +130,7 @@ const agrees = available === null ? false : available
   : reportRes.status === 503 && reportBody.error === "attestationUnavailable";
 check("report endpoint configuration", agrees && reportRes.status !== 201,
   `configReportsAvailable=${available} status=${reportRes.status} error=${reportBody.error ?? "-"}`
-  + (available === false ? " (fail-closed until Issue #37; expected when attestation is enforcing)" : ""));
+  + (available === false ? " (fail-closed; expected until the App Attest values are configured)" : ""));
 
 const failed = checks.filter((c) => !c.ok);
 console.log(`\n${checks.length - failed.length}/${checks.length} checks passed`);

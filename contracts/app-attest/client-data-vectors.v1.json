@@ -1,0 +1,70 @@
+{
+  "contract": "mannerpath-app-attest-client-data-vectors",
+  "version": 1,
+  "rules": [
+    "frame(x) = uint32 big-endian byte length of x, followed by x.",
+    "clientData = frame(domain UTF-8) || frame(challenge, 32 raw bytes) || frame(keyId, 32 raw bytes) [|| frame(payload bytes)].",
+    "Registration: domain mannerpath.app-attest.registration.v1, no payload. Report: domain mannerpath.app-attest.report.v1, payload = the exact bytes sent base64-encoded in the submission's payload field.",
+    "clientDataHash = SHA-256(clientData); pass it to DCAppAttestService attestKey / generateAssertion.",
+    "challenge and keyId travel as standard padded base64 and are framed as their decoded 32 bytes, never as text."
+  ],
+  "cases": [
+    {
+      "name": "registration",
+      "domain": "mannerpath.app-attest.registration.v1",
+      "challengeBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      "keyIdBase64": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
+      "clientDataHex": "000000256d616e6e6572706174682e6170702d6174746573742e726567697374726174696f6e2e763100000020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000020ce0498f58483fbb4da0d7b2c63a5a538f552d4adcb9a4fa916195c49613e655d",
+      "clientDataHashHex": "508fa97d7da2ce5b9f339a121c91b16e4d861a3a95cb652a04cb04b61b452bd4",
+      "clientDataHashBase64": "UI+pfX2izlufM5oSHJGxbk2GGjqVy2UqBMsEthtFK9Q=",
+      "note": "attestKey clientDataHash for POST /v1/app-attest/keys"
+    },
+    {
+      "name": "report exists",
+      "domain": "mannerpath.app-attest.report.v1",
+      "challengeBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      "keyIdBase64": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
+      "payloadUtf8": "{\"schemaVersion\":2,\"type\":\"exists\",\"spotId\":\"sp_01V64NN31G72E5KJJ5W22W1A1J\",\"installId\":\"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f\"}",
+      "payloadBase64": "eyJzY2hlbWFWZXJzaW9uIjoyLCJ0eXBlIjoiZXhpc3RzIiwic3BvdElkIjoic3BfMDFWNjROTjMxRzcyRTVLSko1VzIyVzFBMUoiLCJpbnN0YWxsSWQiOiI4ZjFjNGQyZS0wYTNiLTRjNWQtOGU5Zi0wYTFiMmMzZDRlNWYifQ==",
+      "clientDataHex": "0000001f6d616e6e6572706174682e6170702d6174746573742e7265706f72742e763100000020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000020ce0498f58483fbb4da0d7b2c63a5a538f552d4adcb9a4fa916195c49613e655d0000007f7b22736368656d6156657273696f6e223a322c2274797065223a22657869737473222c2273706f744964223a2273705f30315636344e4e333147373245354b4a4a35573232573141314a222c22696e7374616c6c4964223a2238663163346432652d306133622d346335642d386539662d306131623263336434653566227d",
+      "clientDataHashHex": "7ac2808aefe7c61d09d8486d9ea0ec308aa1abe7cff7f86dd3c8cd88fbcb2805",
+      "clientDataHashBase64": "esKAiu/nxh0J2EhtnqDsMIqhq+fP9/ht08jNiPvLKAU="
+    },
+    {
+      "name": "report moved with a non-ASCII note",
+      "domain": "mannerpath.app-attest.report.v1",
+      "challengeBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      "keyIdBase64": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
+      "payloadUtf8": "{\"schemaVersion\":2,\"type\":\"moved\",\"spotId\":\"sp_01V64NN31G72E5KJJ5W22W1A1J\",\"proposedLocation\":{\"latitude\":35.7112,\"longitude\":139.77377},\"observedOn\":\"2026-09-19\",\"note\":\"10mほど北に移設されていました\",\"installId\":\"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f\"}",
+      "payloadBase64": "eyJzY2hlbWFWZXJzaW9uIjoyLCJ0eXBlIjoibW92ZWQiLCJzcG90SWQiOiJzcF8wMVY2NE5OMzFHNzJFNUtKSjVXMjJXMUExSiIsInByb3Bvc2VkTG9jYXRpb24iOnsibGF0aXR1ZGUiOjM1LjcxMTIsImxvbmdpdHVkZSI6MTM5Ljc3Mzc3fSwib2JzZXJ2ZWRPbiI6IjIwMjYtMDktMTkiLCJub3RlIjoiMTBt44G744Gp5YyX44Gr56e76Kit44GV44KM44Gm44GE44G+44GX44GfIiwiaW5zdGFsbElkIjoiOGYxYzRkMmUtMGEzYi00YzVkLThlOWYtMGExYjJjM2Q0ZTVmIn0=",
+      "clientDataHex": "0000001f6d616e6e6572706174682e6170702d6174746573742e7265706f72742e763100000020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000020ce0498f58483fbb4da0d7b2c63a5a538f552d4adcb9a4fa916195c49613e655d0000010a7b22736368656d6156657273696f6e223a322c2274797065223a226d6f766564222c2273706f744964223a2273705f30315636344e4e333147373245354b4a4a35573232573141314a222c2270726f706f7365644c6f636174696f6e223a7b226c61746974756465223a33352e373131322c226c6f6e676974756465223a3133392e37373337377d2c226f627365727665644f6e223a22323032362d30392d3139222c226e6f7465223a2231306de381bbe381a9e58c97e381abe7a7bbe8a8ade38195e3828ce381a6e38184e381bee38197e3819f222c22696e7374616c6c4964223a2238663163346432652d306133622d346335642d386539662d306131623263336434653566227d",
+      "clientDataHashHex": "0ee92c149f32575752b027b1721f5d3a5baf9fcbf77ef61231d264beb20fe248",
+      "clientDataHashBase64": "DuksFJ8yV1dSsCexch9dOluvn8v3fvYSMdJkvrIP4kg=",
+      "note": "the payload is framed as its UTF-8 bytes, not as characters or UTF-16 units"
+    },
+    {
+      "name": "report exists, keys reordered",
+      "domain": "mannerpath.app-attest.report.v1",
+      "challengeBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      "keyIdBase64": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
+      "payloadUtf8": "{\"type\":\"exists\",\"schemaVersion\":2,\"spotId\":\"sp_01V64NN31G72E5KJJ5W22W1A1J\",\"installId\":\"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f\"}",
+      "payloadBase64": "eyJ0eXBlIjoiZXhpc3RzIiwic2NoZW1hVmVyc2lvbiI6Miwic3BvdElkIjoic3BfMDFWNjROTjMxRzcyRTVLSko1VzIyVzFBMUoiLCJpbnN0YWxsSWQiOiI4ZjFjNGQyZS0wYTNiLTRjNWQtOGU5Zi0wYTFiMmMzZDRlNWYifQ==",
+      "clientDataHex": "0000001f6d616e6e6572706174682e6170702d6174746573742e7265706f72742e763100000020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000020ce0498f58483fbb4da0d7b2c63a5a538f552d4adcb9a4fa916195c49613e655d0000007f7b2274797065223a22657869737473222c22736368656d6156657273696f6e223a322c2273706f744964223a2273705f30315636344e4e333147373245354b4a4a35573232573141314a222c22696e7374616c6c4964223a2238663163346432652d306133622d346335642d386539662d306131623263336434653566227d",
+      "clientDataHashHex": "67a40c23967d4b57071294b5b9dcded5670b0285890d6f4491f57de572a44235",
+      "clientDataHashBase64": "Z6QMI5Z9S1cHEpS1udze1WcLAoWJDW9EkfV95XKkQjU=",
+      "note": "the same report with a different key order is different bytes and a different hash: bytes, not meaning, are bound"
+    },
+    {
+      "name": "report exists, trailing newline",
+      "domain": "mannerpath.app-attest.report.v1",
+      "challengeBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      "keyIdBase64": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
+      "payloadUtf8": "{\"schemaVersion\":2,\"type\":\"exists\",\"spotId\":\"sp_01V64NN31G72E5KJJ5W22W1A1J\",\"installId\":\"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f\"}\n",
+      "payloadBase64": "eyJzY2hlbWFWZXJzaW9uIjoyLCJ0eXBlIjoiZXhpc3RzIiwic3BvdElkIjoic3BfMDFWNjROTjMxRzcyRTVLSko1VzIyVzFBMUoiLCJpbnN0YWxsSWQiOiI4ZjFjNGQyZS0wYTNiLTRjNWQtOGU5Zi0wYTFiMmMzZDRlNWYifQo=",
+      "clientDataHex": "0000001f6d616e6e6572706174682e6170702d6174746573742e7265706f72742e763100000020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000020ce0498f58483fbb4da0d7b2c63a5a538f552d4adcb9a4fa916195c49613e655d000000807b22736368656d6156657273696f6e223a322c2274797065223a22657869737473222c2273706f744964223a2273705f30315636344e4e333147373245354b4a4a35573232573141314a222c22696e7374616c6c4964223a2238663163346432652d306133622d346335642d386539662d306131623263336434653566227d0a",
+      "clientDataHashHex": "5345743290c2ff389bf5d30d1265a63158a070eb8e1aa8aba1520ae17417198c",
+      "clientDataHashBase64": "U0V0MpDC/zib9dMNEmWmMVigcOuOGqiroVIK4XQXGYw=",
+      "note": "one extra byte is a different hash; the server hashes exactly the bytes it receives"
+    }
+  ]
+}

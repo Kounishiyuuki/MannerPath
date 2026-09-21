@@ -11,8 +11,8 @@
 
 import { z } from "zod";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
-import { attestationConfig } from "../reports/attestation.ts";
-import { MINIMUM_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION } from "../reports/dto.ts";
+import { type AttestationBindings, attestationConfig } from "../reports/attestation.ts";
+import { REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SUBMISSION_MAX_BYTES, reportSchemaRange } from "../reports/dto.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../tiles/dto.ts";
 
@@ -37,12 +37,20 @@ export const ConfigBodyV1 = z.object({
   // older than that resource's minimum must ask the user to update — for that resource only.
   minimumSupportedSchemaVersions: schemaVersionsByResource,
   reports: z.object({
-    // Whether POST /v1/reports accepts submissions on this deployment. It is false whenever the
-    // attestation policy is enforcing or unrecognised, because the endpoint then fails closed with
-    // 503 (ADR-0007 §6, Issue #37) — a client reads this to hide the report entry point instead of
+    // Whether POST /v1/reports accepts submissions on this deployment. It is false exactly when the
+    // attestation configuration is unrecognised or incomplete, because the endpoint then fails
+    // closed with 503 (ADR-0007 §6) — a client reads this to hide the report entry point instead of
     // walking the user into a guaranteed failure.
     available: z.boolean(),
+    // Which report protocol this deployment speaks, so a client never infers it from failures:
+    // "none" — schema 1, no attestation; "appAttest" — schema 2, App Attest key + one-time
+    // challenge + request-bound assertion (docs/API.md). Not a feature flag: it is the same
+    // derivation the report handler uses.
+    attestation: z.enum(["none", "appAttest"]),
+    // The report JSON limit: the v1 body, or the decoded v2 payload.
     maxBodyBytes: z.number().int().min(1),
+    // The whole v2 envelope limit (base64 payload + assertion).
+    maxSubmissionBytes: z.number().int().min(1),
     noteMaxLength: z.number().int().min(1),
   }).strict(),
 }).strict().refine(
@@ -53,10 +61,13 @@ export const ConfigBodyV1 = z.object({
 export type ConfigBodyV1 = z.infer<typeof ConfigBodyV1>;
 
 /**
- * Builds the body from the canonical constants. `reportAttestation` is the raw REPORT_ATTESTATION
- * binding; only the derived availability boolean is exposed, never the configured value itself.
+ * Builds the body from the canonical constants and the attestation bindings. Only derived values
+ * are exposed — availability, protocol and schema range — never a configured value (the App ID
+ * and environment in particular stay server-side).
  */
-export function configBody(reportAttestation: string | undefined): ConfigBodyV1 {
+export function configBody(env: AttestationBindings): ConfigBodyV1 {
+  const attestation = attestationConfig(env);
+  const report = reportSchemaRange(attestation);
   return {
     schemaVersion: CONFIG_SCHEMA_VERSION,
     apiVersion: "v1",
@@ -64,16 +75,18 @@ export function configBody(reportAttestation: string | undefined): ConfigBodyV1 
     schemaVersions: {
       tile: TILE_SCHEMA_VERSION,
       spotDetail: SPOT_DETAIL_SCHEMA_VERSION,
-      report: REPORT_SCHEMA_VERSION,
+      report: report.current,
     },
     minimumSupportedSchemaVersions: {
       tile: MINIMUM_TILE_SCHEMA_VERSION,
       spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
-      report: MINIMUM_REPORT_SCHEMA_VERSION,
+      report: report.minimum,
     },
     reports: {
-      available: attestationConfig(reportAttestation).kind === "disabled",
+      available: attestation.kind !== "unsupported",
+      attestation: attestation.kind === "disabled" ? "none" : "appAttest",
       maxBodyBytes: REPORT_BODY_MAX_BYTES,
+      maxSubmissionBytes: attestation.kind === "disabled" ? REPORT_BODY_MAX_BYTES : REPORT_SUBMISSION_MAX_BYTES,
       noteMaxLength: REPORT_NOTE_MAX,
     },
   };
