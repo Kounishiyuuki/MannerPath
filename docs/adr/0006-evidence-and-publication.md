@@ -1,6 +1,6 @@
 # ADR-0006 — Evidence, resolution and publication
 
-Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment; spot detail read added by the 2026-09 Issue #16 amendment; the reviewed-source registry mechanism and the Taito publication approval added by the 2026-09 Issue #22 amendment; second-publication reconciliation and the publication hold added by the 2026-09 Issue #42 amendment
+Status: Accepted. Physical schema added by the 2026-09 amendment below (Issue #8); first vertical slice decisions added by the 2026-09 Issue #12 amendment; spot detail read added by the 2026-09 Issue #16 amendment; the reviewed-source registry mechanism and the Taito publication approval added by the 2026-09 Issue #22 amendment; second-publication reconciliation, the publication hold and field attenuations added by the 2026-09 Issue #42 amendment
 
 ## Context
 
@@ -133,7 +133,7 @@ This amendment settles only what the slice needs. Of the items under "Unresolved
 2. **Evidence quality, vocabulary `evidence-quality.v1`.** It has one value, `officialListing`: the spot's existence evidence is a listing in an applied release of a `municipal` source. The resolver refuses other source kinds. Further values arrive with the sources and workflows that need them, and adding one bumps the version.
 3. **`spotType = unknown` (migration `0002_spot_type_unknown.sql`).** The Taito list does not say whether a place is an outdoor area, a room or an ashtray. A physical type must not be guessed from a name, so `unknown` is added to the `spot_type` CHECK. SQLite cannot alter a CHECK, so 0002 rebuilds `spots` with identical indexes and triggers. It also drops and recreates `tile_snapshot_spots_publication_invariant`, the one trigger on another table that reads `spots`. The rebuild is valid only while `spots` is empty: dropping a referenced parent leaves deferred foreign-key violations, and D1 cannot turn foreign keys off. A guard table aborts 0002 when spots exist (tested). A later change to `spots` constraints needs a different procedure. **Meaning:** `unknown` is a supported canonical value, not a verification state. Verification stays on its own axis (evidence quality, publication gate), so a published `unknown` spot is a normal result. The literal `unknown` is also distinct from an *unsupported* future enum value that an older client receives, which follows the forward-compatibility rule in `docs/API.md`.
 4. **First-release reconciliation (`first-release.v1`).** When a source has no applied release, each record gets a new `source_entity`, a `source_record_entities` decision with `method = 'new'`, and a new spot linked with `method = 'created'`. No match keys are derived. When the source already has an applied release, the resolver **refuses** and writes nothing. Cross-release matching stays unimplemented until a matcher is validated against two real releases. The Taito `#` is stored only as the release-scoped `upstream_row_ref`. Reconciliation, spot creation, provenance and the release's `applied`/`is_current` switch happen in one batch. Resolving an already-applied release is a no-op.
-5. **Taito field rules (`taito-resolver.v1`).** Raw values are never rewritten. Each resolved field has a `spot_field_provenance` row naming the record, columns and rule. A field with no row is unresolved.
+5. **Taito field rules (`taito-resolver.v1`; the CSV rules below are unchanged, but the version moved to `taito-resolver.v2` in the Issue #42 amendment).** Raw values are never rewritten. Each resolved field has a `spot_field_provenance` row naming the record, columns and rule. A field with no row is unresolved.
 
    | Field | Rule | Source columns | Result |
    |---|---|---|---|
@@ -198,15 +198,17 @@ This amendment records the operational mechanism by which a reviewed source reac
 - OSM publication (ODbL obligations), any further source, and cross-release matching for Taito.
 - A remote D1 database: the upgrade path is local-only, as is every other operation in this repository.
 
-## Amendment 2026-09 — reconciling a second official publication, and the publication hold (Issue #42)
+## Amendment 2026-09 — reconciling a second official publication: attenuations, the publication hold, and `taito-resolver.v2` (Issue #42)
 
-Code: `services/api/src/pipeline/taito-list-page.ts` (the attestations), `src/pipeline/taito.ts`
-(the subtractive step in `taito-resolver.v1`), `src/pipeline/resolve.ts`, `src/tiles/publish.ts`,
-`src/spots/detail.ts`, `src/quality/analyze.ts`. Migration: `migrations/0004_publication_hold.sql`.
+Code: `services/api/src/pipeline/taito-list-page.ts` (the attestations and the release binding),
+`src/pipeline/taito.ts` (`taito-resolver.v2`), `src/pipeline/resolve.ts`, `src/pipeline/promotion.ts`,
+`src/tiles/publish.ts`, `src/spots/detail.ts`, `src/quality/analyze.ts`. Migrations:
+`migrations/0004_publication_hold.sql`, `migrations/0005_spot_field_attenuations.sql`.
 Tests: `services/api/test/taito-reconciliation.test.ts`, plus the updated expectations in
 `pipeline.test.ts`, `publish-api.test.ts`, `promotion.test.ts`, `data-quality.test.ts`.
-Registry and policy: `docs/SOURCES.md`, `docs/DATA_POLICY.md` §"Contradicting official
-publications". Measurement: `docs/BETA_DATA_QUALITY.md`.
+Contract: `docs/API.md` (`GET /spots/{id}` provenance). Registry and policy: `docs/SOURCES.md`,
+`docs/DATA_POLICY.md` §"Contradicting official publications". Measurement:
+`docs/BETA_DATA_QUALITY.md`.
 
 ### Context
 
@@ -215,8 +217,8 @@ imports, and 公衆喫煙所ウェブマップ・一覧, an ordinary ward web pa
 material disagreements between them — three different closing times, four qualifiers the CSV does
 not carry (weekday-only opening, holiday exclusions, a temporary renovation closure, contradictory
 weekend hours), and one location the page says is temporarily relocated while the CSV carries the
-permanent coordinate. Re-checked live on 2026-09-21: all eight still stand, and the release file is
-still byte-identical to the committed fixture.
+permanent coordinate. Re-checked live on 2026-09-21 (03:01Z, after the 01:37Z review): all eight
+still stand, and the release file is still byte-identical to the committed fixture.
 
 The consequence is a core-behaviour failure, not a completeness gap: MannerPath could tell a user a
 place is open while the ward's own other page says it is closed, or route a user to a coordinate
@@ -224,28 +226,59 @@ the ward says is no longer the active location.
 
 ### Decisions
 
-1. **The second publication is a conflict reference, not a source.** The list page carries no reuse
-   license (`©台東区`, outside the open-data catalog, re-read 2026-09-21), so it is not registered in
-   `docs/SOURCES.md` and no value from it is ever stored or served. Its participation in the
-   evidence model is **subtractive only**: it may cause MannerPath to withdraw a claim, never to
-   make or change one. That is also the only use its terms support — withholding a claim requires no
-   redistribution right. The generalised rule is in `docs/DATA_POLICY.md`; the source approval and
-   publication gates of the Issue #22 amendment are untouched.
+1. **The second publication is a conflict reference, not a source.** No reviewed redistribution
+   permission was found for the list page: it sits outside the ward's open-data catalog, carries no
+   CC BY notice or license link, and its footer states only `©台東区` (re-read 2026-09-21). Under
+   `docs/DATA_POLICY.md` an unreviewed reference is not published, so MannerPath does not
+   redistribute content from this page, does not register it in `docs/SOURCES.md`, and uses it only
+   as a reviewed conflict reference. This amendment draws no conclusion about what that page's terms
+   permit — that review has not been done, which is the reason for the conservative path. The
+   reference's participation in the evidence model is **subtractive only**: it may cause MannerPath
+   to withdraw a claim, never to make or change one. The source approval and publication gates of
+   the Issue #22 amendment are untouched.
 2. **Conflicts are dated, reviewed attestations in code.** `TAITO_LIST_PAGE_CONFLICTS`
    (`taito-list-page-conflicts.v1`) holds one entry per contradiction: the CSV 名称 it concerns, the
    effects it licenses, and a written observation of what the other publication states — a factual
    summary for a reviewer, never a copy of the page's prose and never a replacement value. The
-   constant carries the URL and the instant the live page was read, and the observations are
+   observation is not stored in the database and never reaches a client. The observations are
    reproducible with `services/data-pipeline/research/beta-data-quality/spot-check.mjs`. This is why
    the reconciliation is not an unexplained constant: nothing here encodes a corrected time.
-3. **Only three effects exist, all weakening.** `hoursUnknown` forces `opening_hours_status =
+3. **The attestations are bound to one exact release, and fail closed.** They were established by
+   comparing *one* release's records with the page, so they describe no other release. Before
+   applying any effect the resolver checks the release's `content_sha256`, `observed_on` and
+   `source_url` against `TAITO_REVIEWED_RELEASE` and **refuses to resolve** on any difference. The
+   record names matching is not sufficient and is checked separately, after: the same eight names in
+   a different file prove nothing about that file's hours or locations, so reusing the decisions
+   would either attenuate the wrong records or silently miss new conflicts. Recovery is a deliberate
+   repository change — re-read the page, re-review, and bump the attestation version and the
+   reviewed release together — never a runtime fallback.
+4. **Only three effects exist, all weakening.** `hoursUnknown` forces `opening_hours_status =
    'unparsed'` and drops the machine-readable hours, so `openNow` stays unknown; `temporarilyClosed`
    sets that lifecycle, which the existing publication invariant already excludes; and
-   `withholdFromPublication` sets a publication hold. The CSV's own `opening_hours_raw` text is
-   untouched, so the qualifier is not lost to a reader — it is the *confident* reading that is
-   withdrawn. **No calendar parser was added.** Representing 「平日開庁日のみ」 or a Bon-holiday
-   exclusion faithfully would need one; `unparsed` is the honest answer until there is.
-4. **`spots.publication_hold` is a new axis, and deliberately not lifecycle.** The relocated place
+   `withholdFromPublication` sets a publication hold. **No calendar parser was added.** Representing
+   「平日開庁日のみ」 or a Bon-holiday exclusion faithfully would need one; `unparsed` is the honest
+   answer until there is one.
+
+   What is preserved is not the page's wording — that is neither stored nor published, and the CSV's
+   own `opening_hours_raw` never contained it. What is preserved is the **reviewed attestation that
+   a conflict or qualifier exists**, as repository-controlled evidence and as a
+   `spot_field_attenuations` row. The canonical claim is weakened conservatively, so `openNow`
+   cannot confidently contradict the ward's other publication.
+5. **Attenuations are their own table; field provenance stays honest.** A weakening is **not**
+   recorded by rewriting the affected `spot_field_provenance.rule`. That row points at a CSV record
+   and its release's `observed_on`; renaming its rule made the public provenance in
+   `GET /spots/{id}` imply the 2026-08-18 CSV had itself observed a conflict published later on a
+   different page, and it destroyed the record of what the CSV actually stated. Migration 0005 adds
+   `spot_field_attenuations`, one row per `(spot, field, effect)`, holding the attestation version,
+   the reference kind and URL, the `checked_at` instant, and the reviewed release fingerprint
+   (`release_id`, `release_content_sha256`, `release_observed_on`, `release_source_url`). It holds
+   no prose, no hours, no coordinate and no replacement value of any kind. Rows are never deleted;
+   a correction is a new attestation version and a re-resolve.
+
+   Neither table alone explains an attenuated value. `spot_field_provenance` says what the source
+   record stated and by which rule — still true. `spot_field_attenuations` says the claim was then
+   weakened, and on what reviewed evidence. The pair is the whole story.
+6. **`spots.publication_hold` is a new axis, and deliberately not lifecycle.** The relocated place
    has not closed and has not been removed — the ward says it exists, elsewhere — so calling it
    `temporarilyClosed` or `removed` would be a false statement about the world, and inventing a
    coordinate for its current position is forbidden. The hold says something about *us*: this
@@ -255,35 +288,48 @@ the ward says is no longer the active location.
    recreates the two publication triggers to read it, so the database refuses to publish a held spot
    and refuses to hold a spot that is still in a snapshot (decision 11's unpublish-first obligation).
    Vocabulary v1 has one value, `locationSuperseded`.
-5. **Every reconciliation is visible in provenance.** The weakened field's
-   `spot_field_provenance.rule` names the reconciliation instead of the plain CSV rule:
-   `taito.hours.listPageConflict.v1`, `taito.lifecycle.listPageTemporaryClosure.v1`,
-   `taito.coordinates.listPageRelocation.v1`. `rule` is already part of the public provenance
-   boundary (Issue #16 amendment decision 4), so a client and a reviewer can both see that a value
-   was withdrawn and why. No new provenance field name and no DTO change were needed, so the
-   `schemaVersion` 1 contracts are unchanged.
-6. **The attestations must keep matching the data.** `resolveFirstRelease` asserts that every
-   attestation matches exactly one record of the release before it writes anything. A re-released
-   or renamed record therefore fails the import loudly rather than silently losing an effect — which
-   is correct, because a new release means the contradictions must be re-checked against the live
-   page anyway.
-7. **The quality analysis enforces it.** Two checks were added:
-   `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` (every attested conflict
-   is resolved subtractively, with its named provenance rule) and `published-spots-are-active-and-unheld`.
-   A reconciled record that regains parsed hours fails the analysis (tested).
+7. **An attenuated field publishes no provenance in schemaVersion 1.** `GET /spots/{id}` omits the
+   field entirely rather than emitting its CSV provenance. Emitting it would tell a client that
+   `taito-public-smoking-areas`, observed on 2026-08-18, is the evidence for the value it sees —
+   precisely what it is not. Inventing a synthetic source or rule for the conflict reference was
+   rejected too: it is not a source, and its content is not redistributable. schemaVersion 1 has no
+   shape for "value withdrawn, on other evidence", so the honest option is silence:
+   `openingHours.status: "unparsed"` already tells the client it cannot compute `openNow`, and a
+   withheld spot is not readable at all. `docs/API.md` states this; a future schema version may add
+   an explicit attenuation shape.
+8. **The resolver version moved to `taito-resolver.v2`.** Resolution semantics changed — the same
+   record can now yield `unparsed` hours, a non-`active` lifecycle or a publication hold — so the two
+   algorithms do not share a version. `taito-resolver.v1` is the pre-#42 algorithm and is no longer
+   produced; spots, provenance rows and attenuation rows written by this code all carry v2.
+9. **The attestations must keep matching the data.** After the release check, `resolveFirstRelease`
+   asserts that every attestation matches exactly one record of the release before it writes
+   anything, so a renamed record fails the import loudly rather than silently losing an effect.
+10. **The quality analysis enforces it.** Three checks now cover this:
+    `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` (every attested conflict
+    is resolved subtractively **and** backed by an attenuation row whose attestation version,
+    reference, `checked_at` and release fingerprint all match the reviewed constants),
+    `taito-public-smoking-areas-attenuations-are-attested` (the converse: nothing is weakened that
+    the attestations do not call for), and `published-spots-are-active-and-unheld`. A reconciled
+    record that regains parsed hours, or loses its attestation row, fails the analysis (tested).
+11. **Promotion bundles carry the attenuations.** Otherwise the receiving database would hold the
+    weakened value with no recorded evidence, and its `GET /spots/{id}` would publish the attenuated
+    field's CSV provenance as if it were the evidence.
 
 ### What did not change
 
 The publication invariant's existing conditions, the complete-snapshot publish step, the tile and
-spot-detail DTOs, `docs/API.md`, the source approval mechanism, the evidence-quality vocabulary,
-and every unknown / heated-only / existence rule of `taito-resolver.v1`. A convenience store's name
-or host still contributes nothing: `taito.listed.v1` remains the existence evidence for all 34
-records, including the one now withheld for the ward's stated closure (tested).
+spot-detail DTO **shapes**, the source approval mechanism, the evidence-quality vocabulary, and
+every unknown / heated-only / existence field rule the Taito resolver applies to the CSV. A
+convenience store's name or host still contributes nothing: `taito.listed.v1` remains the existence
+evidence for all 34 records, including the two now withheld (tested).
 
 ### Still unresolved
 
 - Structured representation of conditional hours (weekday-only, holiday and seasonal exclusions,
-  irregular closures). Until then those records publish no machine-readable hours at all.
+  irregular closures). Until then those records publish no machine-readable hours at all, and no
+  public provenance for that field.
+- A schemaVersion that can say "this field's claim was withdrawn, on evidence outside the source".
+  v1 omits the field instead.
 - Whether the temporary closure and the temporary relocation have ended. Both are re-checked by
   re-running `spot-check.mjs` and re-reviewing the attestations; nothing expires automatically, and
   deliberately so — a time-dependent resolver would make tiles irreproducible.

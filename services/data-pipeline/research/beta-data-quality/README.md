@@ -16,4 +16,5 @@ point: a difference is the signal that the corpus needs re-reviewing.
 Since Issue #42 that signal has teeth: the findings here are the evidence behind the attestations in
 `services/api/src/pipeline/taito-list-page.ts`, which decide what the pipeline refuses to publish.
 A finding that appears, changes or disappears means those attestations must be re-reviewed — and the
-importer refuses a release whose records no longer match them.
+importer refuses a release whose records no longer match them, or whose `content_sha256`,
+`observed_on` or `source_url` differs from the release the attestations were reviewed against.

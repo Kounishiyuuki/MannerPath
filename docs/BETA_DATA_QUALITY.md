@@ -68,7 +68,7 @@ contradicts or qualifies them (§3a). A higher unknown rate is the correct outco
 was a confident `openNow` the publisher itself contradicts.
 
 Largest tile **[measured]**: `14/14553/6449` with 11 spots, which is also the largest payload at
-6,490 raw bytes / 1,472 gzip bytes. The corpus occupies exactly 5 z14 tiles — one contiguous 3×2
+6,490 raw bytes / 1,481 gzip bytes. The corpus occupies exactly 5 z14 tiles — one contiguous 3×2
 block minus one cell — and none of the 5 is empty. They are not uniformly dense: `14/14552/6449`
 holds a **single** spot and `14/14554/6450` holds two, against 9–11 in the other three.
 
@@ -109,9 +109,12 @@ Results **[verified]**:
 - The list page is unchanged since the 2026-09-20 check: all 21 findings, including every conflict
   below, reproduce identically (only the `checkedAt` timestamp differs). **The 2026-09-20
   observations are still current** — including the renovation closure and the temporary relocation.
-- The list page itself carries **no reuse license**: no CC BY notice, no license link, footer
-  `©台東区`. It is therefore not a registered source; `docs/SOURCES.md` records what it may be used
-  for instead.
+- The list page carries **no reviewed reuse permission**: no CC BY notice, no license link, footer
+  `©台東区`. Nothing here concludes what its terms permit; under `docs/DATA_POLICY.md` an unreviewed
+  reference is not published, so it is not a registered source and its content is not redistributed.
+  `docs/SOURCES.md` records what it is used for instead.
+- Reconfirmed at **2026-09-21T03:01Z**, after the attestation review: the release fingerprint
+  (sha256, `Last-Modified`) and all 21 findings are unchanged from the 01:49Z run.
 - All 32 published spots reproduce their CSV record exactly on name, coordinates and the heated-only
   semantics. **No value published anywhere differs from the CSV.** Where the second publication
   contradicts the CSV, MannerPath now publishes *less* (§3a) — never a different value. This link is
@@ -146,21 +149,37 @@ check — it is a check of one official publication against another.
 
 The full decision is ADR-0006's 2026-09 Issue #42 amendment; the short version:
 
-- The ward's list page is **not a source**. It carries no reuse license (footer `©台東区`, outside the
-  open-data catalog, re-read 2026-09-21), so it is not registered in `docs/SOURCES.md` and none of
-  its text, times or names is stored or served. Its only role is to make MannerPath **withdraw** a
-  claim — which needs no redistribution right, unlike publishing its content.
+- The ward's list page is **not a source**. No reviewed reuse permission was found for it (footer
+  `©台東区`, outside the open-data catalog, re-read 2026-09-21), so it is not registered in
+  `docs/SOURCES.md`, its content is not redistributed, and none of its text, times or names is
+  stored or served. Its only role is to make MannerPath **withdraw** a claim.
 - Each conflict is a dated attestation in `services/api/src/pipeline/taito-list-page.ts`
   (`taito-list-page-conflicts.v1`, checked 2026-09-21T01:37Z), naming the CSV record, the effects it
   licenses and a written observation. **No corrected time is encoded anywhere** — a test fails the
   build if an attestation contains a clock time.
+- **The attestations are bound to one exact release.** Before applying any effect the resolver
+  checks the release's `content_sha256`, `observed_on` and `source_url` against the reviewed
+  constants and refuses to resolve on any difference, because the review compared the page against
+  those exact bytes. Matching record names is not sufficient and is checked separately, after.
 - The three permitted effects are all subtractive: hours → `unparsed`, lifecycle →
-  `temporarilyClosed`, or a new `spots.publication_hold` (migration 0004). The CSV's own raw hours
-  text is kept, so a human reader still sees what the source said; only the confident machine
-  reading is withdrawn.
-- Every weakened field says so in provenance: `taito.hours.listPageConflict.v1`,
-  `taito.lifecycle.listPageTemporaryClosure.v1`, `taito.coordinates.listPageRelocation.v1`. `rule`
-  is already part of the public provenance boundary, so this is visible to a client, not internal.
+  `temporarilyClosed`, or `spots.publication_hold` (migration 0004).
+- **What is preserved is the reviewed attestation, not the page's words.** The qualifiers live on the
+  ward's page; the CSV's `opening_hours_raw` never contained them and still does not. What this
+  repository retains is the reviewed record *that* a conflict or qualifier exists — as a
+  repository-controlled attestation and a `spot_field_attenuations` row (migration 0005) — while the
+  page's replacement value and wording are neither stored nor published. The canonical claim is
+  weakened instead, so `openNow` cannot confidently contradict the official publication.
+- **Field provenance stays honest.** A weakening is *not* recorded by renaming the CSV field's
+  provenance rule: that row points at the 2026-08-18 CSV record, and renaming it made the public API
+  imply the CSV had observed a conflict published later elsewhere. `spot_field_provenance` keeps
+  saying what the CSV stated; `spot_field_attenuations` records the weakening, the attestation
+  version, the reference and check date, and the reviewed release fingerprint. Rows there carry no
+  prose, hours or coordinates.
+- **`GET /v1/spots/{id}` omits an attenuated field's provenance** rather than presenting the CSV as
+  the evidence for it, or inventing a synthetic source (`docs/API.md`). `openingHours.status:
+  "unparsed"` already tells a client it cannot compute `openNow`.
+- The resolver version moved to **`taito-resolver.v2`**: the same record can now resolve to different
+  canonical values, so the two algorithms do not share a version.
 - **No calendar parser was written.** 「平日開庁日のみ」 and the Bon/new-year exclusions cannot be
   represented faithfully by `openingHours.v1`, so those records publish no machine-readable hours at
   all. That is the deliberate trade: less precision, no false precision.
@@ -171,12 +190,13 @@ The full decision is ADR-0006's 2026-09 Issue #42 amendment; the short version:
 - Nothing about source approval, the publication gate, OSM's block or the convenience-store rule was
   loosened. All 34 records still cite `taito.listed.v1` for existence — including the withheld ones.
 
-Remaining unresolved conflicts: **none of the eight**. What remains open is not a conflict but a
-modelling gap and a freshness obligation, both in §5.
+Remaining unresolved conflicts: **none of the eight**, and all 9 applied effects carry an attestation
+row (`reconciliation.attestedFieldAttenuations: 9`, `unresolved: []`). What remains open is not a
+conflict but a modelling gap and a freshness obligation, both in §5.
 
 ## 4. License, attribution and registry validation **[measured]**
 
-All twelve checks in the analysis pass (`failedChecks: 0`):
+All thirteen checks in the analysis pass (`failedChecks: 0`):
 
 | Check | Result |
 |---|---|
@@ -188,10 +208,11 @@ All twelve checks in the analysis pass (`failedChecks: 0`):
 | `osm-blocked` | no `kind = 'osm'` source is approved or published |
 | `taito-public-smoking-areas-unstated-fields-stay-unknown` | all 34 Taito-derived spots leave `spotType`, `hostType`, `accessType` and `environment` unknown/null with no provenance row, **because 台東区's file states none of them**. This is a per-source expectation, not a repository invariant: a future reviewed source that states a type resolves it with provenance and is untouched by this check (`test/data-quality.test.ts`) |
 | `taito-public-smoking-areas-existence-evidence-is-the-municipal-listing` | all 34 cite `taito.listed.v1` for existence — the ward listing, never the convenience store or venue that hosts the spot |
-| `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` | all 8 attested contradictions with the ward's list page are resolved subtractively, each with a named provenance rule. It **fails** if a reconciled record regains parsed hours or gets published (tested) |
+| `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` | all 8 attested contradictions with the ward's list page are resolved subtractively **and** backed by a `spot_field_attenuations` row whose attestation version, reference, check date and release fingerprint match the reviewed constants. It **fails** if a reconciled record regains parsed hours, gets published, or loses its attestation row (all tested) |
+| `taito-public-smoking-areas-attenuations-are-attested` | the converse: no field is weakened that the reviewed attestations do not call for |
 | `published-spots-are-active-and-unheld` | no published spot is `temporarilyClosed`, `removed` or under a publication hold |
 | `tiles-at-data-tile-zoom` | every tile is z14 |
-| `tile-zoom-thresholds` | max 11 spots/tile and 1,472 gzip bytes/tile |
+| `tile-zoom-thresholds` | max 11 spots/tile and 1,481 gzip bytes/tile |
 
 Coherence, re-read on 2026-09-21 **[verified]**: the license name (CC BY 4.0), the license URL
 (`creativecommons.org/licenses/by/4.0/legalcode.ja`) and the 元データ URL inside the attribution text
@@ -233,7 +254,8 @@ Known limitations to state in the beta UI:
 3. **Hours**: 20 of 32 are parsed and **12 are unknown**. No published parsed value now disagrees
    with the ward's other publication (§3a) — but the price is that conditional hours (weekday-only,
    holiday and seasonal exclusions) are published as *no hours at all*, because `openingHours.v1`
-   cannot express them. The UI must show "hours unknown", never "open".
+   cannot express them, and those spots also publish no `openingHours` provenance. The UI must show
+   "hours unknown", never "open", and must not read provenance absence as a missing value.
 4. **Location meaning**: coordinates are the ward's values, datum unstated (assumed JGD2011 ≈ WGS84).
    The temporarily relocated place (#29) is withheld rather than shown at its old point.
 5. **Two listed places are not in the corpus at all** (#18, #29). The map is 32 of the ward's 34
@@ -305,7 +327,7 @@ re-measured. ADR-0005 says to re-evaluate if any tile exceeds ~250 spots or
 | Measure | Current maximum | Re-evaluation trigger | Headroom |
 |---|---|---|---|
 | Spots per tile | 11 (`14/14553/6449`) | 250 | 23× |
-| gzip bytes per tile | 1,472 (`14/14553/6449`) | 16,384 | 11× |
+| gzip bytes per tile | 1,481 (`14/14553/6449`) | 16,384 | 11× |
 | Raw bytes per tile | 6,490 | — | — |
 
 The corpus is three orders of magnitude below the density at which the zoom decision changes, and the

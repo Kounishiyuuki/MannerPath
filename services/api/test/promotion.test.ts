@@ -45,6 +45,9 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     spots: 32,
     spot_source_entities: 32,
     spot_field_provenance: manifest.rows.spot_field_provenance,
+    // Six of the nine reviewed attenuations belong to published spots; the other three belong to
+    // the two spots the reconciliation withholds, which the bundle does not carry.
+    spot_field_attenuations: 6,
     tile_snapshots: 5,
     tile_snapshot_spots: 32,
   });
@@ -53,7 +56,7 @@ test("the bundle carries the whole evidence-to-publication chain for the current
   // Foreign-key-safe order: a parent table's inserts precede every child that references it.
   const order = ["sources", "source_releases", "source_records", "source_record_match_keys",
     "source_entities", "source_record_entities", "spots", "spot_source_entities",
-    "spot_field_provenance", "tile_snapshots", "tile_snapshot_spots"];
+    "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"];
   // source_record_match_keys is empty on a first release, so it contributes no statement block.
   const nonEmpty = order.filter((t) => manifest.rows[t] > 0);
   assert.equal(nonEmpty.length, order.length - 1);

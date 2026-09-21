@@ -68,19 +68,24 @@ Research and evidence: `docs/research/2026-09-launch-dataset-and-tile-zoom.md`. 
 
 | Field | Value |
 |---|---|
-| License name | **none found**. The page sits outside the ward's open-data catalog, carries no CC BY notice and no link to a license; its footer states only `©台東区` |
-| Redistribution to clients allowed | unreviewed — assume no |
-| Modification/derivation allowed | unreviewed — assume no |
+| License name | **no reviewed reuse permission found**. The page sits outside the ward's open-data catalog, carries no CC BY notice and no link to a license; its footer states only `©台東区` |
+| Redistribution to clients allowed | unreviewed |
+| Modification/derivation allowed | unreviewed |
 | Checked | 2026-09-21 (Issue #42), against the live page |
-| Publication status | **not a source**: no value from this page is ever stored as canonical data or served to a client |
+| Publication status | **not a source**: no value from this page is stored as canonical data or served to a client |
 
-How it is used instead (ADR-0006, 2026-09 Issue #42 amendment): the page is a **conflict
+This repository draws no conclusion about what this page's terms permit; that review has not been
+done. Under the rule above ("a source with any `unreviewed` license field is not published") and
+`docs/DATA_POLICY.md`, MannerPath therefore does not redistribute content from this page.
+
+How it is used instead (ADR-0006, 2026-09 Issue #42 amendment): the page is a reviewed **conflict
 reference**. Where it contradicts or qualifies the CC BY release we import, that contradiction is
-recorded as a dated attestation in `services/api/src/pipeline/taito-list-page.ts`, and its only
-permitted effect is **subtractive** — downgrade hours to `unparsed`, mark a spot
-`temporarilyClosed`, or withhold a spot from publication. It can never add, raise or correct a
-canonical value. Knowing that MannerPath must *not* assert something requires no redistribution
-right; publishing the page's own wording or times would, and is not done.
+recorded as a dated attestation in `services/api/src/pipeline/taito-list-page.ts`, bound to one
+exact release fingerprint, and its only permitted effect is **subtractive** — downgrade hours to
+`unparsed`, mark a spot `temporarilyClosed`, or withhold a spot from publication. It can never add,
+raise or correct a canonical value, and the page's own wording, times and coordinates are neither
+stored nor published. Each applied weakening is recorded in `spot_field_attenuations` with the
+attestation version, the reference, the check date and the reviewed release fingerprint.
 
 Registry mechanics (ADR-0006, 2026-09 Issue #22 amendment): this entry is mirrored in code as a
 reviewed registry constant (`services/api/src/pipeline/registry.ts`). A fresh or local database gets

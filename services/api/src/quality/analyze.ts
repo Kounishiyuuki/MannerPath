@@ -13,11 +13,13 @@ import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
 import {
-  TAITO_HOURS_CONFLICT_RULE,
+  ATTENUATED_FIELD,
   TAITO_LIST_PAGE_ATTESTATION_VERSION,
   TAITO_LIST_PAGE_CHECKED_AT,
   TAITO_LIST_PAGE_CONFLICTS,
+  TAITO_LIST_PAGE_REFERENCE_KIND,
   TAITO_LIST_PAGE_URL,
+  TAITO_REVIEWED_RELEASE,
 } from "../pipeline/taito-list-page.ts";
 import { TAITO_EXISTENCE_RULE, TAITO_SOURCE_ID, TAITO_UNRESOLVED_FIELDS } from "../pipeline/taito.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
@@ -197,12 +199,10 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
 
   // Issue #42 reconciliation: every record the ward's *other* current publication contradicts must
   // have ended up conservative — hours that cannot yield a confirmed openNow, or no publication at
-  // all — and the weakening must be visible in provenance, not implicit in a value.
+  // all — and every weakening must be backed by an explicit attestation row carrying the reference,
+  // the check date and the exact release it was reviewed against.
   const { results: reconciled } = await db.prepare(
-    `SELECT s.name, s.opening_hours_status, s.lifecycle, s.publication_hold,
-            (SELECT q.rule FROM spot_field_provenance q WHERE q.spot_id = s.spot_id AND q.field = 'openingHours') AS hours_rule,
-            (SELECT q.rule FROM spot_field_provenance q WHERE q.spot_id = s.spot_id AND q.field = 'lifecycle') AS lifecycle_rule,
-            (SELECT q.rule FROM spot_field_provenance q WHERE q.spot_id = s.spot_id AND q.field = 'location') AS location_rule,
+    `SELECT s.spot_id, s.name, s.opening_hours_status, s.lifecycle, s.publication_hold,
             EXISTS (SELECT 1 FROM tile_snapshot_spots t WHERE t.spot_id = s.spot_id) AS published
      FROM spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
@@ -210,19 +210,29 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
      JOIN source_releases rel ON rel.release_id = r.release_id
      WHERE rel.source_id = ? ORDER BY s.spot_id`,
   ).bind(TAITO_SOURCE_ID).all<{
-    name: string | null; opening_hours_status: string; lifecycle: string; publication_hold: string | null;
-    hours_rule: string | null; lifecycle_rule: string | null; location_rule: string | null; published: number;
+    spot_id: string; name: string | null; opening_hours_status: string; lifecycle: string;
+    publication_hold: string | null; published: number;
   }>();
   const byName = new Map(reconciled.map((r) => [r.name ?? "", r]));
+
+  const { results: attenuations } = await db.prepare(
+    `SELECT a.spot_id, s.name, a.field, a.effect, a.attestation_version, a.reference_kind, a.reference_url,
+            a.checked_at, a.release_content_sha256, a.release_observed_on, a.release_source_url, a.resolver_version
+     FROM spot_field_attenuations a JOIN spots s ON s.spot_id = a.spot_id ORDER BY a.spot_id, a.field, a.effect`,
+  ).all<{
+    spot_id: string; name: string | null; field: string; effect: string; attestation_version: string;
+    reference_kind: string; reference_url: string; checked_at: string; release_content_sha256: string;
+    release_observed_on: string | null; release_source_url: string; resolver_version: string;
+  }>();
+  const attenuationAt = new Map(attenuations.map((a) => [`${a.spot_id}\u0000${a.effect}`, a]));
 
   // A database with no Taito spots at all (a fixture of another source) has nothing to check.
   const unresolvedConflicts = reconciled.length === 0 ? [] : TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => {
     const row = byName.get(c.csvName);
     if (!row) return [`${c.csvName}: no canonical spot`];
     const problems: string[] = [];
-    if (c.effects.includes("hoursUnknown")) {
-      if (row.opening_hours_status === "parsed") problems.push("hours still parsed");
-      if (row.hours_rule !== TAITO_HOURS_CONFLICT_RULE) problems.push(`hours provenance is ${row.hours_rule ?? "(none)"}`);
+    if (c.effects.includes("hoursUnknown") && row.opening_hours_status === "parsed") {
+      problems.push("hours still parsed");
     }
     if (c.effects.includes("temporarilyClosed") && (row.lifecycle !== "temporarilyClosed" || row.published === 1)) {
       problems.push(`lifecycle ${row.lifecycle}, published ${row.published === 1}`);
@@ -230,8 +240,29 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     if (c.effects.includes("withholdFromPublication") && (row.publication_hold === null || row.published === 1)) {
       problems.push(`hold ${row.publication_hold ?? "(none)"}, published ${row.published === 1}`);
     }
+    // The attenuation row is the evidence. Without it the value is weakened for no recorded reason,
+    // which is the failure mode this check exists to catch.
+    for (const effect of c.effects) {
+      const a = attenuationAt.get(`${row.spot_id}\u0000${effect}`);
+      if (!a) { problems.push(`${effect}: no attestation row`); continue; }
+      if (a.field !== ATTENUATED_FIELD[effect]) problems.push(`${effect}: attests field ${a.field}`);
+      if (a.attestation_version !== TAITO_LIST_PAGE_ATTESTATION_VERSION) problems.push(`${effect}: attestation ${a.attestation_version}`);
+      if (a.reference_kind !== TAITO_LIST_PAGE_REFERENCE_KIND || a.reference_url !== TAITO_LIST_PAGE_URL) {
+        problems.push(`${effect}: reference ${a.reference_kind} ${a.reference_url}`);
+      }
+      if (a.checked_at !== TAITO_LIST_PAGE_CHECKED_AT) problems.push(`${effect}: checked_at ${a.checked_at}`);
+      if (a.release_content_sha256 !== TAITO_REVIEWED_RELEASE.contentSha256
+        || a.release_observed_on !== TAITO_REVIEWED_RELEASE.observedOn
+        || a.release_source_url !== TAITO_REVIEWED_RELEASE.sourceUrl) {
+        problems.push(`${effect}: attested against another release (${a.release_content_sha256.slice(0, 12)}…, ${a.release_observed_on ?? "(null)"})`);
+      }
+    }
     return problems.length === 0 ? [] : [`${c.csvName}: ${problems.join("; ")}`];
   });
+
+  // The converse: nothing may be attenuated that the reviewed attestations do not call for.
+  const attested = new Set(TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => c.effects.map((e) => `${c.csvName}\u0000${e}`)));
+  const unattested = attenuations.filter((a) => !attested.has(`${a.name ?? ""}\u0000${a.effect}`));
 
   const heldButPublished = reconciled.filter((r) => r.published === 1 && (r.publication_hold !== null || r.lifecycle !== "active"));
 
@@ -298,6 +329,11 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     unresolvedConflicts.length === 0
       ? `all ${TAITO_LIST_PAGE_CONFLICTS.length} reviewed contradictions with ${TAITO_LIST_PAGE_URL} (${TAITO_LIST_PAGE_ATTESTATION_VERSION}, checked ${TAITO_LIST_PAGE_CHECKED_AT}) are resolved subtractively, each with a named provenance rule`
       : `contradictions not conservatively resolved: ${unresolvedConflicts.join(" | ")}`);
+
+  check(`${TAITO_SOURCE_ID}-attenuations-are-attested`, unattested.length === 0,
+    unattested.length === 0
+      ? `every attenuation in spot_field_attenuations (${attenuations.length}) is called for by ${TAITO_LIST_PAGE_ATTESTATION_VERSION}`
+      : `attenuations with no reviewed attestation: ${unattested.map((a) => `${a.name ?? a.spot_id} (${a.effect})`).join(", ")}`);
 
   check("published-spots-are-active-and-unheld", heldButPublished.length === 0,
     heldButPublished.length === 0
@@ -382,13 +418,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       attestationVersion: TAITO_LIST_PAGE_ATTESTATION_VERSION,
       secondPublicationUrl: TAITO_LIST_PAGE_URL,
       checkedAt: TAITO_LIST_PAGE_CHECKED_AT,
+      referenceKind: TAITO_LIST_PAGE_REFERENCE_KIND,
+      reviewedRelease: TAITO_REVIEWED_RELEASE,
       conflicts: TAITO_LIST_PAGE_CONFLICTS.length,
       effects: tally(TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => [...c.effects])),
+      attestedFieldAttenuations: attenuations.length,
       canonicalButWithheld: reconciled.filter((r) => r.published === 0).map((r) => ({
         name: r.name,
         lifecycle: r.lifecycle,
         publicationHold: r.publication_hold,
-        reason: r.lifecycle !== "active" ? r.lifecycle_rule : r.location_rule,
+        effects: attenuations.filter((a) => a.spot_id === r.spot_id).map((a) => a.effect).sort(),
       })),
       unresolved: unresolvedConflicts,
     },

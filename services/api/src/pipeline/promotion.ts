@@ -136,6 +136,15 @@ const TABLES: readonly TableSpec[] = [
     sql: `SELECT * FROM spot_field_provenance WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, field`,
   },
   {
+    // The Issue #42 attenuations behind a published spot's weakened fields. Without them the
+    // receiving database would hold the weakened value with no recorded evidence for it, and
+    // GET /spots/{id} there would publish the attenuated field's CSV provenance as if it were the
+    // evidence — exactly the misleading output the attenuation model exists to prevent.
+    table: "spot_field_attenuations",
+    columns: ["spot_id", "field", "effect", "attestation_version", "reference_kind", "reference_url", "checked_at", "release_id", "release_content_sha256", "release_observed_on", "release_source_url", "resolver_version", "applied_at"],
+    sql: `SELECT * FROM spot_field_attenuations WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, field, effect`,
+  },
+  {
     table: "tile_snapshots",
     columns: ["tile_id", "z", "x", "y", "revision", "schema_version", "content_sha256", "spot_count", "body_json", "published_at"],
     sql: "SELECT * FROM tile_snapshots ORDER BY tile_id",

@@ -6,7 +6,14 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
-import { assertListPageConflictsMatch } from "./taito-list-page.ts";
+import {
+  TAITO_LIST_PAGE_ATTESTATION_VERSION,
+  TAITO_LIST_PAGE_CHECKED_AT,
+  TAITO_LIST_PAGE_REFERENCE_KIND,
+  TAITO_LIST_PAGE_URL,
+  assertListPageConflictsMatch,
+  assertReviewedReleaseForAttenuation,
+} from "./taito-list-page.ts";
 import { TAITO_HEADER, TAITO_PARSER_VERSION, TAITO_RESOLVER_VERSION, resolveTaitoRecord } from "./taito.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
@@ -27,9 +34,12 @@ export type ResolveResult =
 export async function resolveFirstRelease(db: Db, releaseId: number, opts: ResolveOptions): Promise<ResolveResult> {
   const newSpotId = opts.newSpotId ?? defaultNewSpotId;
   const release = await db.prepare(
-    `SELECT r.source_id, r.observed_on, r.status, r.parser_version, s.kind
+    `SELECT r.source_id, r.observed_on, r.status, r.parser_version, r.content_sha256, r.source_url, s.kind
      FROM source_releases r JOIN sources s ON s.source_id = r.source_id WHERE r.release_id = ?`,
-  ).bind(releaseId).first<{ source_id: string; observed_on: string | null; status: string; parser_version: string; kind: string }>();
+  ).bind(releaseId).first<{
+    source_id: string; observed_on: string | null; status: string; parser_version: string;
+    content_sha256: string; source_url: string; kind: string;
+  }>();
   if (!release) throw new Error(`resolve: release ${releaseId} does not exist`);
   if (release.status === "applied") return { status: "alreadyApplied" };
   if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
@@ -54,9 +64,15 @@ export async function resolveFirstRelease(db: Db, releaseId: number, opts: Resol
   ).bind(releaseId).all<{ record_id: number; raw_values_json: string }>();
   if (records.length === 0) throw new Error(`resolve: release ${releaseId} has no records`);
 
-  // The reviewed list-page attestations (ADR-0006 Issue #42 amendment) must still describe this
-  // release. A record they no longer match means the ward re-published and the contradictions need
-  // re-checking; failing here is what stops an effect from being silently dropped.
+  // The reviewed list-page attestations (ADR-0006 Issue #42 amendment) describe one exact release.
+  // Both checks fail closed, in this order: the release fingerprint first, because matching record
+  // names in a different file prove nothing about that file's hours or locations; then the record
+  // names, so a re-review that forgot a renamed record cannot silently drop an effect.
+  assertReviewedReleaseForAttenuation({
+    contentSha256: release.content_sha256,
+    observedOn: release.observed_on,
+    sourceUrl: release.source_url,
+  });
   const nameColumn = TAITO_HEADER.indexOf("名称");
   assertListPageConflictsMatch(records.map((r) => JSON.parse(r.raw_values_json)[nameColumn] as string));
 
@@ -96,6 +112,19 @@ export async function resolveFirstRelease(db: Db, releaseId: number, opts: Resol
           `INSERT INTO spot_field_provenance (spot_id, field, record_id, source_columns_json, rule, resolver_version, resolved_at)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
         ).bind(spotId, p.field, record.record_id, JSON.stringify(p.columns), p.rule, TAITO_RESOLVER_VERSION, now),
+      ),
+      // The weakening itself, with the evidence for it. It never edits the provenance row above,
+      // which keeps describing what the CSV stated; and it carries the reviewed release fingerprint,
+      // so a later reader can tell which file the decision was reviewed against.
+      ...r.attenuations.map((a) =>
+        db.prepare(
+          `INSERT INTO spot_field_attenuations (spot_id, field, effect, attestation_version, reference_kind,
+             reference_url, checked_at, release_id, release_content_sha256, release_observed_on,
+             release_source_url, resolver_version, applied_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).bind(spotId, a.field, a.effect, TAITO_LIST_PAGE_ATTESTATION_VERSION, TAITO_LIST_PAGE_REFERENCE_KIND,
+          TAITO_LIST_PAGE_URL, TAITO_LIST_PAGE_CHECKED_AT, releaseId, release.content_sha256,
+          release.observed_on, release.source_url, TAITO_RESOLVER_VERSION, now),
       ),
     );
   }

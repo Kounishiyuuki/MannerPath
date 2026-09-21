@@ -38,6 +38,15 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
   // allowlist. The column's own CHECK constraint is not the public vocabulary, so the allowlist is
   // applied in SQL: a provenance field added later is withheld by default. Only the source, the
   // named rule and the observation date are public; raw records and internal IDs never leave here.
+  //
+  // An **attenuated** field is omitted entirely (Issue #42). Its provenance row is still true about
+  // the source record, but on its own it would read as "this source, observed on this date, is the
+  // evidence for the value you see" — and for an attenuated field that is exactly what it is not:
+  // the value was weakened later, on a reviewed conflict reference that is not a source and whose
+  // content must not be redistributed. schemaVersion 1 has no shape for "value withdrawn, on other
+  // evidence", so the honest answer is to publish no provenance for that field rather than a
+  // misleading one. `openingHours.status: "unparsed"` already tells a client it cannot compute
+  // openNow; a withheld spot is not readable here at all.
   const fields = PUBLIC_PROVENANCE_FIELDS;
   const { results: provenance } = await db.prepare(
     `SELECT p.field, rel.source_id, p.rule, rel.observed_on
@@ -47,6 +56,8 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
      JOIN sources src ON src.source_id = rel.source_id
      WHERE p.spot_id = ? AND rel.status = 'applied' AND src.publication_status = 'approved'
        AND p.field IN (${fields.map(() => "?").join(", ")})
+       AND NOT EXISTS (SELECT 1 FROM spot_field_attenuations a
+                       WHERE a.spot_id = p.spot_id AND a.field = p.field)
      ORDER BY p.field`,
   ).bind(targetId, ...fields).all<{ field: SpotProvenanceV1["field"]; source_id: string; rule: string; observed_on: string | null }>();
 

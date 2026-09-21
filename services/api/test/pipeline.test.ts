@@ -32,6 +32,7 @@ function provenance(db: SqliteD1, spotId: string): Map<string, Row> {
 
 // CSV records whose hours the ward's other current publication contradicts or qualifies
 // (services/api/src/pipeline/taito-list-page.ts). #22 was already unparsed from its own CSV note.
+// The attenuation itself is covered by test/taito-reconciliation.test.ts.
 const HOURS_CONFLICT_REFS = ["10", "12", "15", "16", "18", "22", "30"];
 
 test("CSV reader rejects malformed input instead of guessing", () => {
@@ -195,21 +196,20 @@ test("provenance: every resolved field points at its own raw record, columns and
   for (let ref = 1; ref <= 34; ref++) {
     const s = spotByRef(db, String(ref));
     const p = provenance(db, s.spot_id);
-    // The Issue #42 reconciliation replaces a field's rule where the ward's other current
-    // publication contradicts it, so the weakening is visible in provenance rather than implicit.
-    const conflicted = (refs: string[], base: string, rule: string) => (refs.includes(String(ref)) ? rule : base);
+    // Field provenance describes the CSV only, for every record. The Issue #42 reconciliation never
+    // edits these rows: a weakened field records its weakening in spot_field_attenuations instead,
+    // so this row keeps saying what the source stated and by which rule (test/taito-reconciliation).
     for (const [field, rule, columns] of [
       ["existence", "taito.listed.v1", []],
-      ["lifecycle", conflicted(["18"], "taito.listed.v1", "taito.lifecycle.listPageTemporaryClosure.v1"), []],
-      ["location", conflicted(["29"], "taito.coordinates.v1", "taito.coordinates.listPageRelocation.v1"), ["緯度", "経度"]],
+      ["lifecycle", "taito.listed.v1", []],
+      ["location", "taito.coordinates.v1", ["緯度", "経度"]],
       ["name", "taito.name.v1", ["名称"]],
-      ["openingHours", conflicted(HOURS_CONFLICT_REFS, "taito.hours.v1", "taito.hours.listPageConflict.v1"),
-        ["利用開始時間", "利用終了時間", "特記事項"]],
+      ["openingHours", "taito.hours.v1", ["利用開始時間", "利用終了時間", "特記事項"]],
     ] as const) {
       assert.equal(p.get(field)?.rule, rule, `#${ref} ${field}`);
       assert.deepEqual(JSON.parse(p.get(field)!.source_columns_json), columns);
       assert.equal(p.get(field)!.record_id, s.record_id);
-      assert.equal(p.get(field)!.resolver_version, "taito-resolver.v1");
+      assert.equal(p.get(field)!.resolver_version, "taito-resolver.v2");
     }
     for (const unresolved of ["spotType", "hostType", "accessType", "environment", "feeType", "floor", "entranceNote"]) {
       assert.equal(p.has(unresolved), false, `#${ref} ${unresolved} has no evidence`);

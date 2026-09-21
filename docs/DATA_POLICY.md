@@ -50,13 +50,17 @@ qualifier to data MannerPath publishes, the contradiction is resolved **conserva
 subtractively**: MannerPath withdraws the affected claim (hours become unknown, or the spot is
 withheld from publication) rather than adopting the other publication's values.
 
-This holds regardless of the second publication's license, and it is the only use permitted for one
-whose reuse terms have not been reviewed: withholding a claim requires no redistribution right,
-while publishing that publication's content does. A second publication becomes a *source* of values
-only by the ordinary route — a reviewed entry in `docs/SOURCES.md` with its license established.
+This holds regardless of the second publication's license. Where no reviewed reuse permission has
+been found for it, this is also the *only* use this project makes of it: MannerPath does not
+redistribute its content, and treats it solely as a reviewed conflict reference under the
+conservative default above. That is an engineering policy, not a legal conclusion about the
+publication's terms. A second publication becomes a *source* of values only by the ordinary route —
+a reviewed entry in `docs/SOURCES.md` with its license established.
 
-Every such withdrawal is explicit and reviewable: a dated attestation naming what was observed, and
-field-level provenance on the canonical record naming the rule that weakened it (ADR-0006).
+Every such withdrawal is explicit and reviewable, and is recorded separately from the source's own
+field provenance so that neither is misrepresented as the other: a dated attestation naming what was
+observed and the exact source release it was reviewed against, and a field attenuation row on the
+canonical record (ADR-0006). The source's provenance row keeps describing what the source stated.
 
 ## Confidence
 

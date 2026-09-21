@@ -75,24 +75,36 @@
     "attestationVersion": "taito-list-page-conflicts.v1",
     "secondPublicationUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
     "checkedAt": "2026-09-21T01:37:19Z",
+    "referenceKind": "publisherWebPage",
+    "reviewedRelease": {
+      "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+      "observedOn": "2026-08-18",
+      "sourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+    },
     "conflicts": 8,
     "effects": {
       "hoursUnknown": 7,
       "temporarilyClosed": 1,
       "withholdFromPublication": 1
     },
+    "attestedFieldAttenuations": 9,
     "canonicalButWithheld": [
-      {
-        "name": "中小企業振興センター駐車場内",
-        "lifecycle": "active",
-        "publicationHold": "locationSuperseded",
-        "reason": "taito.coordinates.listPageRelocation.v1"
-      },
       {
         "name": "ファミリーマート　台東一丁目店",
         "lifecycle": "temporarilyClosed",
         "publicationHold": null,
-        "reason": "taito.lifecycle.listPageTemporaryClosure.v1"
+        "effects": [
+          "hoursUnknown",
+          "temporarilyClosed"
+        ]
+      },
+      {
+        "name": "中小企業振興センター駐車場内",
+        "lifecycle": "active",
+        "publicationHold": "locationSuperseded",
+        "effects": [
+          "withholdFromPublication"
+        ]
       }
     ],
     "unresolved": []
@@ -152,7 +164,7 @@
       "revision": 1,
       "spotCount": 11,
       "rawBytes": 6490,
-      "gzipBytes": 1472,
+      "gzipBytes": 1481,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -162,7 +174,7 @@
       "revision": 1,
       "spotCount": 9,
       "rawBytes": 5512,
-      "gzipBytes": 1433,
+      "gzipBytes": 1437,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -172,7 +184,7 @@
       "revision": 1,
       "spotCount": 9,
       "rawBytes": 5435,
-      "gzipBytes": 1371,
+      "gzipBytes": 1377,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -194,7 +206,7 @@
       "revision": 1,
       "spotCount": 11,
       "rawBytes": 6490,
-      "gzipBytes": 1472,
+      "gzipBytes": 1481,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -204,7 +216,7 @@
       "revision": 1,
       "spotCount": 11,
       "rawBytes": 6490,
-      "gzipBytes": 1472,
+      "gzipBytes": 1481,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -214,7 +226,7 @@
     "dataTileZoom": 14,
     "maxSpotsPerTile": 11,
     "maxRawBytesPerTile": 6490,
-    "maxGzipBytesPerTile": 1472,
+    "maxGzipBytesPerTile": 1481,
     "reevaluateAboveSpots": 250,
     "reevaluateAboveGzipBytes": 16384,
     "withinThresholds": true
@@ -266,6 +278,11 @@
       "detail": "all 8 reviewed contradictions with https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html (taito-list-page-conflicts.v1, checked 2026-09-21T01:37:19Z) are resolved subtractively, each with a named provenance rule"
     },
     {
+      "id": "taito-public-smoking-areas-attenuations-are-attested",
+      "status": "pass",
+      "detail": "every attenuation in spot_field_attenuations (9) is called for by taito-list-page-conflicts.v1"
+    },
+    {
       "id": "published-spots-are-active-and-unheld",
       "status": "pass",
       "detail": "no published spot is temporarilyClosed, removed or under a publication hold"
@@ -278,7 +295,7 @@
     {
       "id": "tile-zoom-thresholds",
       "status": "pass",
-      "detail": "max 11 spots/tile (trigger 250), max 1472 gzip bytes/tile (trigger 16384)"
+      "detail": "max 11 spots/tile (trigger 250), max 1481 gzip bytes/tile (trigger 16384)"
     }
   ],
   "failedChecks": 0
