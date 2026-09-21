@@ -65,6 +65,30 @@ private struct FixedInstallID: InstallIDProviding {
     func installID() -> UUID { UUID(uuidString: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f")! }
 }
 
+private final class FailingDeleteDraftStore: ReportDraftStoring, @unchecked Sendable {
+    let underlying: FileReportDraftStore
+    private let lock = NSLock()
+    private var shouldFailDelete = true
+    private var shouldFailAcceptedMarker = false
+
+    init(directory: URL) { underlying = FileReportDraftStore(directory: directory) }
+    func allowDelete() { lock.withLock { shouldFailDelete = false } }
+    func failAcceptedMarker() { lock.withLock { shouldFailAcceptedMarker = true } }
+    func load() throws -> ReportDraft? { try underlying.load() }
+    func save(_ draft: ReportDraft) throws { try underlying.save(draft) }
+    func delete() throws {
+        if lock.withLock({ shouldFailDelete }) { throw URLError(.cannotRemoveFile) }
+        try underlying.delete()
+    }
+    func submissionMarker() throws -> ReportSubmissionMarker? { try underlying.submissionMarker() }
+    func markSubmissionAttempt() throws { try underlying.markSubmissionAttempt() }
+    func markAcceptedForCleanup() throws {
+        if lock.withLock({ shouldFailAcceptedMarker }) { throw URLError(.cannotWriteToFile) }
+        try underlying.markAcceptedForCleanup()
+    }
+    func clearAcceptedCleanupMarker() throws { try underlying.clearAcceptedCleanupMarker() }
+}
+
 struct ReportFlowTests {
     let limits = ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096)
     let pin = ReportCoordinate(latitude: 35.71123456, longitude: 139.77377654)
@@ -108,6 +132,32 @@ struct ReportFlowTests {
         }
     }
 
+    @Test func noteLimitCountsUTF16CodeUnits() throws {
+        let twoEmoji = "😀😀"
+        #expect(twoEmoji.count == 2)
+        #expect(twoEmoji.utf16.count == 4)
+        let draft = ReportDraft(type: .exists, spotId: "sp_123", note: twoEmoji)
+        #expect(throws: ReportValidationError.noteTooLong) {
+            try ReportRequest.encoded(draft: draft, installId: FixedInstallID().installID(),
+                                      limits: .init(noteMaxLength: 3, maxBodyBytes: 4096))
+        }
+        _ = try ReportRequest.encoded(draft: draft, installId: FixedInstallID().installID(),
+                                      limits: .init(noteMaxLength: 4, maxBodyBytes: 4096))
+    }
+
+    @Test @MainActor func confirmedPinPersistsAtAPIPrecision() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let store = FileReportDraftStore(directory: directory)
+        let model = ReportModel(configClient: StaticConfig(value: .available(limits)),
+                                reportClient: MockSubmitter(.failure(URLError(.notConnectedToInternet))),
+                                store: store, installIDs: FixedInstallID())
+        model.saveDraft(ReportDraft(type: .missing, proposedLocation: pin))
+        let saved = try #require(try store.load())
+        #expect(saved.proposedLocation?.latitude == 35.71123)
+        #expect(saved.proposedLocation?.longitude == 139.77378)
+        #expect(model.draft?.proposedLocation == saved.proposedLocation)
+    }
+
     @Test func observedOnAcceptsOnlyRealCalendarDays() throws {
         let valid = ReportDraft(type: .exists, spotId: "sp_123", observedOn: "2024-02-29")
         let body = try ReportRequest.encoded(draft: valid, installId: FixedInstallID().installID(), limits: limits)
@@ -135,16 +185,18 @@ struct ReportFlowTests {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let store = FileReportDraftStore(directory: directory)
         let saved = ReportDraft(type: .missing, proposedLocation: pin, observedOn: "2024-02-29", note: "Saved note")
+        var expected = saved
+        expected.proposedLocation = pin.quantized
         try store.save(saved)
         let submitter = MockSubmitter(.failure(URLError(.badServerResponse)))
         let model = ReportModel(configClient: FailingConfig(), reportClient: submitter,
                                 store: store, installIDs: FixedInstallID())
         await model.refreshAvailability()
         #expect(model.availability == .unknown)
-        #expect(model.draft == saved)
+        #expect(model.draft == expected)
         await model.submit()
         #expect(await submitter.calls() == 0)
-        #expect(try store.load() == saved)
+        #expect(try store.load() == expected)
     }
 
     @Test func draftAndInstallIDPersistThenDelete() throws {
@@ -246,7 +298,9 @@ extension ReportFlowTests {
     }
 
     @Test func rateLimitReadsRetryAfter() async throws {
-        let transport = MockReportTransport([ReportHTTPResponse(statusCode: 429, body: Data(), retryAfter: "61")])
+        let transport = MockReportTransport([ReportHTTPResponse(statusCode: 429,
+                                                                body: Data(#"{"error":"reportRateLimited"}"#.utf8),
+                                                                retryAfter: "61")])
         let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: transport)
         do {
             _ = try await client.submit(Data())
@@ -254,5 +308,150 @@ extension ReportFlowTests {
         } catch let error as ReportAPIError {
             #expect(error == .rateLimited(61))
         }
+    }
+
+    @Test func serverResponsesClassifyByProvenPreStoreCodes() async throws {
+        let cases: [(Int, String, ReportAPIError)] = [
+            (400, #"{"error":"invalidJson"}"#, .rejected(400, "invalidJson")),
+            (400, #"{"error":"invalidReport"}"#, .rejected(400, "invalidReport")),
+            (413, #"{"error":"reportTooLarge"}"#, .rejected(413, "reportTooLarge")),
+            (503, #"{"error":"attestationUnavailable"}"#, .rejected(503, "attestationUnavailable")),
+            (429, #"{"error":"unexpected"}"#, .incompatibleResponse),
+            (429, "not JSON", .incompatibleResponse),
+            (400, #"{"error":"unexpected"}"#, .incompatibleResponse),
+            (413, #"{"error":"unexpected"}"#, .incompatibleResponse),
+            (503, #"{"error":"upstreamError"}"#, .incompatibleResponse),
+            (503, "not JSON", .incompatibleResponse),
+            (500, #"{"error":"serverError"}"#, .incompatibleResponse),
+            (502, "", .incompatibleResponse),
+            (504, "", .incompatibleResponse),
+            (200, "", .incompatibleResponse),
+            (201, #"{"schemaVersion":1,"state":"pending"}"#, .incompatibleResponse)
+        ]
+        for (status, body, expected) in cases {
+            let response = ReportHTTPResponse(statusCode: status, body: Data(body.utf8), retryAfter: nil)
+            let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!,
+                                         transport: MockReportTransport([response]))
+            do {
+                _ = try await client.submit(Data())
+                Issue.record("Expected failure for HTTP \(status): \(body)")
+            } catch let error as ReportAPIError {
+                #expect(error == expected)
+            }
+        }
+    }
+
+    @Test func onlyContractValid201ProvesAcceptance() async throws {
+        let validID = "rp_01V64NN31G72E5KJJ5W22W1A1J"
+        let cases: [(String, Bool)] = [
+            (#"{"schemaVersion":1,"reportId":"rp_01V64NN31G72E5KJJ5W22W1A1J","state":"pending","receivedAt":"2026-09-20T09:30:00.000Z"}"#, true),
+            (#"{"schemaVersion":1,"reportId":"rp_123","state":"pending","receivedAt":"2026-09-20T09:30:00Z"}"#, false),
+            (#"{"schemaVersion":1,"reportId":"rp_01V64NN31G72E5KJJ5W22W1A1J","state":"pending","receivedAt":"yesterday"}"#, false),
+            (#"{"schemaVersion":1,"reportId":"rp_01V64NN31G72E5KJJ5W22W1A1J","state":"pending","receivedAt":"2026-09-20T18:30:00+09:00"}"#, false)
+        ]
+        for (body, shouldAccept) in cases {
+            let response = ReportHTTPResponse(statusCode: 201, body: Data(body.utf8), retryAfter: nil)
+            let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!,
+                                         transport: MockReportTransport([response]))
+            if shouldAccept {
+                #expect(try await client.submit(Data()).reportId == validID)
+            } else {
+                do {
+                    _ = try await client.submit(Data())
+                    Issue.record("Malformed 201 should be ambiguous")
+                } catch let error as ReportAPIError {
+                    #expect(error == .incompatibleResponse)
+                }
+            }
+        }
+    }
+
+    @Test @MainActor func acceptedDraftCannotResurrectWhenDeletionFails() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let store = FailingDeleteDraftStore(directory: directory)
+        let receipt = AcceptedReport(schemaVersion: 1, reportId: "rp_123", state: "pending",
+                                     receivedAt: "2026-09-20T09:30:00Z")
+        let submitter = MockSubmitter(.success(receipt))
+        let first = ReportModel(configClient: StaticConfig(value: .available(limits)), reportClient: submitter,
+                                store: store, installIDs: FixedInstallID())
+        await first.refreshAvailability()
+        first.start(type: .exists, spotId: "sp_123")
+        #expect(try store.load() != nil)
+        await first.submit()
+        #expect(first.submission == .accepted(receipt))
+        #expect(try store.submissionMarker() == .accepted)
+        #expect(try store.load() != nil)
+
+        let relaunched = ReportModel(configClient: StaticConfig(value: .available(limits)), reportClient: submitter,
+                                     store: store, installIDs: FixedInstallID())
+        await relaunched.refreshAvailability()
+        #expect(relaunched.draft == nil)
+        relaunched.start(type: .exists, spotId: "sp_123")
+        #expect(relaunched.draft == nil)
+        await relaunched.submit()
+        #expect(await submitter.calls() == 1)
+
+        store.allowDelete()
+        relaunched.retryAcceptedCleanup()
+        #expect(try store.load() == nil)
+        #expect(try store.submissionMarker() == nil)
+    }
+
+    @Test @MainActor func failedAcceptedMarkerTransitionCannotResubmitAfterRelaunch() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let store = FailingDeleteDraftStore(directory: directory)
+        store.failAcceptedMarker()
+        let receipt = AcceptedReport(schemaVersion: 1, reportId: "rp_123", state: "pending",
+                                     receivedAt: "2026-09-20T09:30:00Z")
+        let submitter = MockSubmitter(.success(receipt))
+        let first = ReportModel(configClient: StaticConfig(value: .available(limits)), reportClient: submitter,
+                                store: store, installIDs: FixedInstallID())
+        await first.refreshAvailability()
+        first.start(type: .exists, spotId: "sp_123")
+        await first.submit()
+        #expect(first.submission == .accepted(receipt))
+        #expect(try store.submissionMarker() == .attempted)
+        #expect(try store.load() != nil)
+
+        let relaunched = ReportModel(configClient: StaticConfig(value: .available(limits)), reportClient: submitter,
+                                     store: store, installIDs: FixedInstallID())
+        await relaunched.refreshAvailability()
+        #expect(relaunched.submission == .ambiguous)
+        #expect(!relaunched.canRetryAmbiguous)
+        await relaunched.submit()
+        await relaunched.retryAmbiguous()
+        #expect(await submitter.calls() == 1)
+    }
+
+    @Test @MainActor func ambiguousGatewayResponseNeedsExplicitRetry() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let response = ReportHTTPResponse(statusCode: 502, body: Data(), retryAfter: nil)
+        let transport = MockReportTransport([response, response])
+        let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: transport)
+        let model = ReportModel(configClient: StaticConfig(value: .available(limits)), reportClient: client,
+                                store: FileReportDraftStore(directory: directory), installIDs: FixedInstallID())
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: "sp_123")
+        await model.submit()
+        #expect(model.submission == .ambiguous)
+        await model.submit()
+        #expect(await transport.count() == 1)
+        #expect(model.draft != nil)
+    }
+
+    @Test @MainActor func attestationUnavailableResponseDisablesAvailability() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let response = ReportHTTPResponse(statusCode: 503,
+                                          body: Data(#"{"error":"attestationUnavailable"}"#.utf8), retryAfter: nil)
+        let transport = MockReportTransport([response])
+        let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: transport)
+        let model = ReportModel(configClient: StaticConfig(value: .available(limits)), reportClient: client,
+                                store: FileReportDraftStore(directory: directory), installIDs: FixedInstallID())
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: "sp_123")
+        await model.submit()
+        #expect(model.availability == .unavailable)
+        #expect(model.draft != nil)
+        #expect(await transport.count() == 1)
     }
 }

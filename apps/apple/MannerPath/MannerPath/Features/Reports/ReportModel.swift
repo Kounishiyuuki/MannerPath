@@ -18,11 +18,14 @@ final class ReportModel {
     private let store: any ReportDraftStoring
     private let installIDs: any InstallIDProviding
     private var retryAllowedAt: Date?
+    private var acceptedCleanupPending = false
+    private var recoveredSubmissionAttempt = false
 
     private(set) var availability: ReportAvailability = .unknown
     private(set) var draft: ReportDraft?
     private(set) var submission: ReportSubmissionState = .idle
     private(set) var cleanupError: String?
+    var canRetryAmbiguous: Bool { submission == .ambiguous && !recoveredSubmissionAttempt }
 
     var retryAfterSecondsRemaining: Int? {
         guard let retryAllowedAt else { return nil }
@@ -35,8 +38,33 @@ final class ReportModel {
         self.reportClient = reportClient
         self.store = store
         self.installIDs = installIDs
-        do { draft = try store.load() }
-        catch { submission = .failed("Saved report could not be read.") }
+        do {
+            switch try store.submissionMarker() {
+            case .accepted:
+                acceptedCleanupPending = true
+                retryAcceptedCleanup()
+            case .attempted:
+                recoveredSubmissionAttempt = true
+                draft = try store.load()
+                if draft == nil {
+                    try store.clearAcceptedCleanupMarker()
+                    recoveredSubmissionAttempt = false
+                } else {
+                    submission = .ambiguous
+                }
+            case nil:
+                if var saved = try store.load() {
+                    if let pin = saved.proposedLocation, pin != pin.quantized {
+                        saved.proposedLocation = pin.quantized
+                        try store.save(saved)
+                    }
+                    draft = saved
+                }
+            }
+        } catch {
+            recoveredSubmissionAttempt = true
+            submission = .failed("Saved report could not be read safely.")
+        }
     }
 
     func refreshAvailability() async {
@@ -45,13 +73,17 @@ final class ReportModel {
     }
 
     func start(type: ReportType, spotId: String?) {
-        guard submission != .submitting, draft == nil else { return }
+        guard !acceptedCleanupPending, !recoveredSubmissionAttempt,
+              submission != .submitting, draft == nil else { return }
         let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId)
         saveDraft(newDraft)
     }
 
     func saveDraft(_ updated: ReportDraft) {
-        guard submission != .submitting else { return }
+        guard !acceptedCleanupPending, !recoveredSubmissionAttempt,
+              submission != .submitting else { return }
+        var updated = updated
+        updated.proposedLocation = updated.proposedLocation?.quantized
         do {
             try store.save(updated)
             draft = updated
@@ -62,16 +94,19 @@ final class ReportModel {
     }
 
     func cancel() {
-        guard submission != .submitting else { return }
+        guard !acceptedCleanupPending, submission != .submitting else { return }
         do {
             try store.delete()
+            try store.clearAcceptedCleanupMarker()
             draft = nil
+            recoveredSubmissionAttempt = false
             submission = .idle
         } catch { submission = .failed("Saved report could not be removed.") }
     }
 
     func submit() async {
-        guard submission != .submitting, submission != .ambiguous,
+        guard !acceptedCleanupPending, !recoveredSubmissionAttempt,
+              submission != .submitting, submission != .ambiguous,
               (retryAfterSecondsRemaining ?? 0) == 0,
               case .available(let limits) = availability, let draft else { return }
         let body: Data
@@ -83,19 +118,28 @@ final class ReportModel {
             submission = .failed("Report could not be prepared.")
             return
         }
+        do { try store.markSubmissionAttempt() }
+        catch {
+            submission = .failed("Report could not be safely prepared on this device.")
+            return
+        }
         submission = .submitting
         do {
             let accepted = try await reportClient.submit(body)
             self.draft = nil
             submission = .accepted(accepted)
-            do { try store.delete(); cleanupError = nil }
+            acceptedCleanupPending = true
+            do { try store.markAcceptedForCleanup() }
             catch { cleanupError = "Report was received, but its local draft could not be removed." }
+            retryAcceptedCleanup()
         } catch let error as ReportAPIError {
             switch error {
             case .rejected(let status, let code):
-                if status == 503 { availability = .unavailable }
+                guard clearDefiniteAttempt() else { return }
+                if status == 503 && code == "attestationUnavailable" { availability = .unavailable }
                 submission = .rejected(code.map { "\(status): \($0)" } ?? "Server rejected the report (\(status)).")
             case .rateLimited(let seconds):
+                guard clearDefiniteAttempt() else { return }
                 retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
                 submission = .rateLimited(seconds)
             case .incompatibleResponse: submission = .ambiguous
@@ -107,9 +151,32 @@ final class ReportModel {
     }
 
     func retryAmbiguous() async {
-        guard submission == .ambiguous else { return }
+        guard canRetryAmbiguous else { return }
         submission = .idle
         await submit()
+    }
+
+    private func clearDefiniteAttempt() -> Bool {
+        do {
+            try store.clearAcceptedCleanupMarker()
+            return true
+        } catch {
+            recoveredSubmissionAttempt = true
+            submission = .ambiguous
+            return false
+        }
+    }
+
+    func retryAcceptedCleanup() {
+        guard acceptedCleanupPending else { return }
+        do {
+            try store.delete()
+            try store.clearAcceptedCleanupMarker()
+            acceptedCleanupPending = false
+            cleanupError = nil
+        } catch {
+            cleanupError = "Report was received, but its local draft could not be removed."
+        }
     }
 
     private static func validationMessage(_ error: ReportValidationError) -> String {

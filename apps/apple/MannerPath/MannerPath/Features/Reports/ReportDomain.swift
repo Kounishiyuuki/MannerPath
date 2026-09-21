@@ -97,7 +97,7 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         }
         if let note = draft.note {
             guard !note.isEmpty else { throw ReportValidationError.emptyNote }
-            guard note.count <= limits.noteMaxLength else { throw ReportValidationError.noteTooLong }
+            guard note.utf16.count <= limits.noteMaxLength else { throw ReportValidationError.noteTooLong }
         }
         let request = Self(type: draft.type, spotId: draft.spotId,
                            proposedLocation: draft.proposedLocation?.quantized,

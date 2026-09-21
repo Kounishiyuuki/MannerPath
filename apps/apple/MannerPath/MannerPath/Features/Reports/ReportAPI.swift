@@ -89,15 +89,37 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting {
         switch response.statusCode {
         case 201:
             guard let accepted = try? JSONDecoder().decode(AcceptedReport.self, from: response.body),
-                  accepted.schemaVersion == 1, accepted.state == "pending", !accepted.reportId.isEmpty,
-                  !accepted.receivedAt.isEmpty else { throw ReportAPIError.incompatibleResponse }
+                  accepted.schemaVersion == 1, accepted.state == "pending",
+                  Self.isValidReportID(accepted.reportId), Self.isValidReceivedAt(accepted.receivedAt)
+            else { throw ReportAPIError.incompatibleResponse }
             return accepted
         case 429:
+            guard (try? JSONDecoder().decode(ReportProblem.self, from: response.body).error) == "reportRateLimited"
+            else { throw ReportAPIError.incompatibleResponse }
             let seconds = response.retryAfter.flatMap(Int.init)
             throw ReportAPIError.rateLimited(seconds)
-        default:
+        case 400, 413, 503:
             let code = try? JSONDecoder().decode(ReportProblem.self, from: response.body).error
+            let isDefinite = (response.statusCode == 400 && (code == "invalidJson" || code == "invalidReport"))
+                || (response.statusCode == 413 && code == "reportTooLarge")
+                || (response.statusCode == 503 && code == "attestationUnavailable")
+            guard isDefinite else { throw ReportAPIError.incompatibleResponse }
             throw ReportAPIError.rejected(response.statusCode, code)
+        default:
+            throw ReportAPIError.incompatibleResponse
         }
+    }
+
+    private static func isValidReportID(_ value: String) -> Bool {
+        value.range(of: #"^rp_[0-9A-HJKMNP-TV-Z]{26}$"#, options: .regularExpression) != nil
+    }
+
+    private static func isValidReceivedAt(_ value: String) -> Bool {
+        guard value.range(of: #"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$"#,
+                          options: .regularExpression) != nil else { return false }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = value.contains(".") ? [.withInternetDateTime, .withFractionalSeconds]
+                                                   : [.withInternetDateTime]
+        return formatter.date(from: value) != nil
     }
 }

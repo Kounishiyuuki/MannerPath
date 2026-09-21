@@ -80,7 +80,7 @@ struct ReportFormView: View {
                         ))
                         .frame(minHeight: 100)
                         if case .available(let limits) = model.availability {
-                            Text("\(draft.note?.count ?? 0) / \(limits.noteMaxLength) characters")
+                            Text("\(draft.note?.utf16.count ?? 0) / \(limits.noteMaxLength) text units (emoji may count as two)")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                     }
@@ -92,7 +92,7 @@ struct ReportFormView: View {
                                     .disabled(isSubmitting || isAccepted || isAmbiguous ||
                                               (model.retryAfterSecondsRemaining ?? 0) > 0)
                             }
-                            if isAmbiguous {
+                            if model.canRetryAmbiguous {
                                 Button("Submit again despite possible duplicate") {
                                     confirmingRetry = true
                                 }
@@ -123,7 +123,7 @@ struct ReportFormView: View {
             }
             .sheet(isPresented: $choosingPin) {
                 ReportPinPicker(center: visualCenter, initial: model.draft?.proposedLocation) { pin in
-                    editDraft { $0.proposedLocation = pin }
+                    editDraft { $0.proposedLocation = pin.quantized }
                 }
             }
             .confirmationDialog("The server may already have received this report. Submitting again may create a duplicate.",
@@ -173,7 +173,9 @@ struct ReportFormView: View {
             Text(model.retryAfterSecondsRemaining.map { "Too many reports. Try again in about \($0) seconds." } ??
                  "Too many reports. Please try again later.")
         case .ambiguous:
-            Text("Delivery could not be confirmed. The server may already have received this report. Submitting again could create a duplicate.")
+            Text(model.canRetryAmbiguous
+                 ? "Delivery could not be confirmed. The server may already have received this report. Submitting again could create a duplicate."
+                 : "A previous delivery could not be resolved after the app restarted. This saved draft cannot be submitted again; discard it when you are ready.")
         case .failed(let message):
             Text(message)
         }
