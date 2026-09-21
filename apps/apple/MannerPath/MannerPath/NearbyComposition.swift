@@ -28,7 +28,7 @@ enum NearbyComposition {
         )
     }
 
-    private static var apiBaseURL: URL? {
+    static var apiBaseURL: URL? {
         guard let value = Bundle.main.object(forInfoDictionaryKey: "MannerPathAPIBaseURL") as? String,
               let url = URL(string: value),
               ["https", "http"].contains(url.scheme?.lowercased() ?? ""),
