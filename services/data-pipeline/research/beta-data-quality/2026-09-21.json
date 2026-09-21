@@ -39,8 +39,8 @@
     }
   ],
   "corpus": {
-    "publishedSpots": 34,
-    "activeSpotsInDatabase": 34,
+    "publishedSpots": 32,
+    "activeSpotsInDatabase": 33,
     "publishedTiles": 5,
     "occupiedTiles": 5,
     "emptyTiles": 0,
@@ -65,49 +65,87 @@
   },
   "freshness": {
     "lastVerifiedAt": {
-      "2026-08-18": 34
+      "2026-08-18": 32
     },
     "oldest": "2026-08-18",
     "newest": "2026-08-18",
     "oldestDaysAgo": 34
   },
+  "reconciliation": {
+    "attestationVersion": "taito-list-page-conflicts.v1",
+    "secondPublicationUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+    "checkedAt": "2026-09-21T01:37:19Z",
+    "referenceKind": "publisherWebPage",
+    "reviewedRelease": {
+      "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+      "observedOn": "2026-08-18",
+      "sourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+    },
+    "conflicts": 8,
+    "effects": {
+      "hoursUnknown": 7,
+      "temporarilyClosed": 1,
+      "withholdFromPublication": 1
+    },
+    "attestedFieldAttenuations": 9,
+    "canonicalButWithheld": [
+      {
+        "name": "ファミリーマート　台東一丁目店",
+        "lifecycle": "temporarilyClosed",
+        "publicationHold": null,
+        "effects": [
+          "hoursUnknown",
+          "temporarilyClosed"
+        ]
+      },
+      {
+        "name": "中小企業振興センター駐車場内",
+        "lifecycle": "active",
+        "publicationHold": "locationSuperseded",
+        "effects": [
+          "withholdFromPublication"
+        ]
+      }
+    ],
+    "unresolved": []
+  },
   "evidenceQuality": {
-    "evidence-quality.v1:officialListing": 34
+    "evidence-quality.v1:officialListing": 32
   },
   "openingHoursStatus": {
-    "parsed": 27,
-    "unparsed": 7
+    "parsed": 20,
+    "unparsed": 12
   },
   "unknownRates": {
     "spotType": {
-      "unknown": 34,
-      "total": 34,
+      "unknown": 32,
+      "total": 32,
       "rate": 1
     },
     "accessType": {
-      "unknown": 34,
-      "total": 34,
+      "unknown": 32,
+      "total": 32,
       "rate": 1
     },
     "environment": {
-      "unknown": 34,
-      "total": 34,
+      "unknown": 32,
+      "total": 32,
       "rate": 1
     },
     "supportsPaper": {
-      "unknown": 33,
-      "total": 34,
-      "rate": 0.9706
+      "unknown": 31,
+      "total": 32,
+      "rate": 0.9688
     },
     "supportsHeated": {
-      "unknown": 33,
-      "total": 34,
-      "rate": 0.9706
+      "unknown": 31,
+      "total": 32,
+      "rate": 0.9688
     },
     "openingHours": {
-      "unknown": 7,
-      "total": 34,
-      "rate": 0.2059
+      "unknown": 12,
+      "total": 32,
+      "rate": 0.375
     }
   },
   "tiles": [
@@ -125,8 +163,8 @@
       "tileId": "14/14553/6449",
       "revision": 1,
       "spotCount": 11,
-      "rawBytes": 6588,
-      "gzipBytes": 1472,
+      "rawBytes": 6490,
+      "gzipBytes": 1481,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -134,9 +172,9 @@
     {
       "tileId": "14/14553/6450",
       "revision": 1,
-      "spotCount": 11,
-      "rawBytes": 6689,
-      "gzipBytes": 1593,
+      "spotCount": 9,
+      "rawBytes": 5512,
+      "gzipBytes": 1437,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -145,8 +183,8 @@
       "tileId": "14/14554/6449",
       "revision": 1,
       "spotCount": 9,
-      "rawBytes": 5533,
-      "gzipBytes": 1370,
+      "rawBytes": 5435,
+      "gzipBytes": 1377,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -156,7 +194,7 @@
       "revision": 1,
       "spotCount": 2,
       "rawBytes": 1662,
-      "gzipBytes": 881,
+      "gzipBytes": 882,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -167,18 +205,18 @@
       "tileId": "14/14553/6449",
       "revision": 1,
       "spotCount": 11,
-      "rawBytes": 6588,
-      "gzipBytes": 1472,
+      "rawBytes": 6490,
+      "gzipBytes": 1481,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
     },
     "byRawBytes": {
-      "tileId": "14/14553/6450",
+      "tileId": "14/14553/6449",
       "revision": 1,
       "spotCount": 11,
-      "rawBytes": 6689,
-      "gzipBytes": 1593,
+      "rawBytes": 6490,
+      "gzipBytes": 1481,
       "sourceIds": [
         "taito-public-smoking-areas"
       ]
@@ -187,8 +225,8 @@
   "thresholds": {
     "dataTileZoom": 14,
     "maxSpotsPerTile": 11,
-    "maxRawBytesPerTile": 6689,
-    "maxGzipBytesPerTile": 1593,
+    "maxRawBytesPerTile": 6490,
+    "maxGzipBytesPerTile": 1481,
     "reevaluateAboveSpots": 250,
     "reevaluateAboveGzipBytes": 16384,
     "withinThresholds": true
@@ -235,6 +273,21 @@
       "detail": "all 34 Taito-derived spots cite taito.listed.v1 for existence — the ward listing, never the convenience store or venue that hosts the spot"
     },
     {
+      "id": "taito-public-smoking-areas-list-page-conflicts-resolved-conservatively",
+      "status": "pass",
+      "detail": "all 8 reviewed contradictions with https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html are resolved subtractively, and each weakening is backed by a spot_field_attenuations row citing taito-list-page-conflicts.v1, checked 2026-09-21T01:37:19Z, against the reviewed release 5123ee41251b… observed 2026-08-18"
+    },
+    {
+      "id": "taito-public-smoking-areas-attenuations-are-attested",
+      "status": "pass",
+      "detail": "every attenuation in spot_field_attenuations (9) is called for by taito-list-page-conflicts.v1"
+    },
+    {
+      "id": "published-spots-are-active-and-unheld",
+      "status": "pass",
+      "detail": "no published spot is temporarilyClosed, removed or under a publication hold"
+    },
+    {
       "id": "tiles-at-data-tile-zoom",
       "status": "pass",
       "detail": "every tile is z14"
@@ -242,7 +295,7 @@
     {
       "id": "tile-zoom-thresholds",
       "status": "pass",
-      "detail": "max 11 spots/tile (trigger 250), max 1593 gzip bytes/tile (trigger 16384)"
+      "detail": "max 11 spots/tile (trigger 250), max 1481 gzip bytes/tile (trigger 16384)"
     }
   ],
   "failedChecks": 0

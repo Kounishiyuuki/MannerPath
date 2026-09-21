@@ -122,7 +122,7 @@ const TABLES: readonly TableSpec[] = [
   },
   {
     table: "spots",
-    columns: ["spot_id", "merged_into", "name", "latitude", "longitude", "tile_z", "tile_x", "tile_y", "tile_id", "spot_type", "host_type", "access_type", "environment", "supports_paper", "supports_heated", "opening_hours_raw", "opening_hours_json", "opening_hours_status", "time_zone", "fee_type", "floor", "entrance_note", "lifecycle", "evidence_quality", "evidence_quality_version", "last_verified_at", "resolver_version", "created_at", "updated_at"],
+    columns: ["spot_id", "merged_into", "name", "latitude", "longitude", "tile_z", "tile_x", "tile_y", "tile_id", "spot_type", "host_type", "access_type", "environment", "supports_paper", "supports_heated", "opening_hours_raw", "opening_hours_json", "opening_hours_status", "time_zone", "fee_type", "floor", "entrance_note", "lifecycle", "publication_hold", "evidence_quality", "evidence_quality_version", "last_verified_at", "resolver_version", "created_at", "updated_at"],
     sql: `SELECT * FROM spots WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id`,
   },
   {
@@ -134,6 +134,15 @@ const TABLES: readonly TableSpec[] = [
     table: "spot_field_provenance",
     columns: ["spot_id", "field", "record_id", "source_columns_json", "rule", "resolver_version", "resolved_at"],
     sql: `SELECT * FROM spot_field_provenance WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, field`,
+  },
+  {
+    // The Issue #42 attenuations behind a published spot's weakened fields. Without them the
+    // receiving database would hold the weakened value with no recorded evidence for it, and
+    // GET /spots/{id} there would publish the attenuated field's CSV provenance as if it were the
+    // evidence — exactly the misleading output the attenuation model exists to prevent.
+    table: "spot_field_attenuations",
+    columns: ["spot_id", "field", "effect", "attestation_version", "reference_kind", "reference_url", "checked_at", "release_id", "release_content_sha256", "release_observed_on", "release_source_url", "resolver_version", "applied_at"],
+    sql: `SELECT * FROM spot_field_attenuations WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, field, effect`,
   },
   {
     table: "tile_snapshots",
@@ -222,6 +231,7 @@ async function validatePublishedState(db: Db, releaseId: number, rows: Map<strin
     if (spot === undefined) fail(`published spot ${String(member.spot_id)} has no canonical row`);
     if (spot.merged_into !== null) fail(`published spot ${String(spot.spot_id)} is merged`);
     if (spot.lifecycle !== "active") fail(`published spot ${String(spot.spot_id)} is ${String(spot.lifecycle)}`);
+    if (spot.publication_hold !== null) fail(`published spot ${String(spot.spot_id)} is held: ${String(spot.publication_hold)}`);
     if (spot.tile_id !== member.tile_id) fail(`published spot ${String(spot.spot_id)} is not in tile ${String(member.tile_id)}`);
   }
 

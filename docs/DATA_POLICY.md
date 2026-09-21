@@ -42,6 +42,26 @@ A convenience store POI alone is never enough.
 
 A store is surfaced as a smoking result only when there is evidence of an ashtray/permitted smoking location from an approved source or sufficiently trusted verification workflow. This is enforced by the publication gate in ADR-0006.
 
+## Contradicting official publications
+
+A publisher may publish the same facts twice — an open-data release and an ordinary web page, say —
+and the two may disagree. When a second publication from the same authority contradicts or adds a
+qualifier to data MannerPath publishes, the contradiction is resolved **conservatively and
+subtractively**: MannerPath withdraws the affected claim (hours become unknown, or the spot is
+withheld from publication) rather than adopting the other publication's values.
+
+This holds regardless of the second publication's license. Where no reviewed reuse permission has
+been found for it, this is also the *only* use this project makes of it: MannerPath does not
+redistribute its content, and treats it solely as a reviewed conflict reference under the
+conservative default above. That is an engineering policy, not a legal conclusion about the
+publication's terms. A second publication becomes a *source* of values only by the ordinary route —
+a reviewed entry in `docs/SOURCES.md` with its license established.
+
+Every such withdrawal is explicit and reviewable, and is recorded separately from the source's own
+field provenance so that neither is misrepresented as the other: a dated attestation naming what was
+observed and the exact source release it was reviewed against, and a field attenuation row on the
+canonical record (ADR-0006). The source's provenance row keeps describing what the source stated.
+
 ## Confidence
 
 Confidence is derived from evidence quality and recency, not popularity alone. Evidence quality is stable and computed server-side; recency (freshness) is computed client-side from `lastVerifiedAt`, which is evidence observation time, never import/fetch time (ADR-0006).

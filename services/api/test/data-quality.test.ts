@@ -20,17 +20,19 @@ async function publishedDb(): Promise<SqliteD1> {
 test("measures the published corpus, not the spots table", async () => {
   const db = await publishedDb();
   const r = await analyze(db);
-  assert.equal(r.corpus.publishedSpots, 34);
-  assert.equal(r.corpus.publishedSpots, r.corpus.activeSpotsInDatabase);
+  // 32, not 34: the Issue #42 reconciliation withholds two records the ward's other current
+  // publication contradicts (one temporarily closed, one temporarily relocated).
+  assert.equal(r.corpus.publishedSpots, 32);
+  assert.equal(r.corpus.activeSpotsInDatabase, 33, "the relocated spot stays active but held; the closed one is not active");
   assert.equal(r.corpus.publishedTiles, 5);
   assert.equal(r.corpus.emptyTiles, 0);
   assert.equal(r.sources.publishedSourceIds.join(), TAITO_SOURCE_ID);
-  assert.equal(r.evidenceQuality["evidence-quality.v1:officialListing"], 34);
+  assert.equal(r.evidenceQuality["evidence-quality.v1:officialListing"], 32);
   // Every value the source does not state stays unknown; the analysis must show that, not hide it.
   assert.equal(r.unknownRates.spotType.rate, 1);
   assert.equal(r.unknownRates.accessType.rate, 1);
   assert.equal(r.unknownRates.environment.rate, 1);
-  assert.equal(r.freshness.lastVerifiedAt["2026-08-18"], 34);
+  assert.equal(r.freshness.lastVerifiedAt["2026-08-18"], 32);
   assert.equal(r.failedChecks, 0);
 });
 
@@ -136,8 +138,8 @@ test("a reviewed source that states a spot's type, access and environment is not
   const status = (id: string) => r.checks.find((c) => c.id === id)!.status;
   assert.equal(status(`${TAITO_SOURCE_ID}-unstated-fields-stay-unknown`), "pass");
   assert.equal(status(`${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`), "pass");
-  assert.equal(r.corpus.publishedSpots, 35);
-  assert.equal(r.unknownRates.spotType.unknown, 34);
+  assert.equal(r.corpus.publishedSpots, 33);
+  assert.equal(r.unknownRates.spotType.unknown, 32);
   // Only the separate registry invariant objects, because this source was never reviewed in a PR.
   assert.deepEqual(r.checks.filter((c) => c.status === "fail").map((c) => c.id),
     ["published-sources-reviewed", "registry-row-matches-reviewed-entry"]);

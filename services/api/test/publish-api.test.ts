@@ -34,7 +34,7 @@ test("an unapproved source publishes nothing, and bypassing the publisher is rej
   await importTaito(db, { sourceId: TEST_BLOCKED_SOURCE });
   const report = await publishTiles(db, { now: NOW });
   assert.deepEqual(report.published, []);
-  assert.deepEqual(report.excluded, [{ sourceId: TEST_BLOCKED_SOURCE, publicationStatus: "blocked", spotCount: 34 }]);
+  assert.deepEqual(report.excluded, [{ sourceId: TEST_BLOCKED_SOURCE, publicationStatus: "blocked", spotCount: 32 }]);
   assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshots").n, 0);
 
   // Bypassing the publisher does not help: the database trigger rejects the unpublishable spot.
@@ -58,9 +58,12 @@ test("the approved Taito source publishes complete z14 snapshots; the unapproved
     `SELECT s.* FROM spots s JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id
      WHERE rel.source_id = ?`, TAITO_SOURCE_ID);
+  // 34 canonical Taito spots, 32 published: the two the ward's other current publication
+  // contradicts are withheld by the Issue #42 reconciliation (lifecycle / publication hold).
   assert.equal(approvedSpots.length, 34);
-  assert.equal(published.length, 34);
-  assert.deepEqual(new Set(published.map((p) => p.spot_id)), new Set(approvedSpots.map((s) => s.spot_id)));
+  assert.equal(published.length, 32);
+  const publishable = approvedSpots.filter((s) => s.lifecycle === "active" && s.publication_hold === null);
+  assert.deepEqual(new Set(published.map((p) => p.spot_id)), new Set(publishable.map((s) => s.spot_id)));
   assert.ok(published.every((p) => !p.spot_id.startsWith("sp_9")), "no spot of the unapproved source is published");
 
   const bodySpotIds: string[] = [];
@@ -84,9 +87,9 @@ test("the approved Taito source publishes complete z14 snapshots; the unapproved
     assert.deepEqual(all(db, "SELECT spot_id FROM tile_snapshot_spots WHERE tile_id = ? ORDER BY spot_id", t.tile_id).map((r) => r.spot_id),
       body.spots.map((s) => s.id));
   }
-  assert.equal(bodySpotIds.length, 34);
-  assert.equal(new Set(bodySpotIds).size, 34);
-  // Research §5 measured 34 Taito spots in 5 occupied z14 tiles.
+  assert.equal(bodySpotIds.length, 32);
+  assert.equal(new Set(bodySpotIds).size, 32);
+  // Research §5 measured 34 Taito spots in 5 occupied z14 tiles; 32 of them survive reconciliation.
   assert.equal(tiles.length, 5);
 });
 
