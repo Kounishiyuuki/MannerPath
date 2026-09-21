@@ -7,6 +7,9 @@ struct SpotDetailView: View {
     let estimateFromPreviousLocation: Bool
     let routeOrigin: SpotCoordinate?
     let nearbySources: [SpotSource]
+    let reportAvailability: ReportAvailability
+    let hasSavedReport: Bool
+    let onReport: () -> Void
 
     @State private var previewRouter = MapKitWalkingRouter()
     @State private var previewRoute: WalkingRoute?
@@ -100,6 +103,26 @@ struct SpotDetailView: View {
                                ? "All nearby cached source attributions"
                                : "Source and legal attribution") {
                     NearbyAttributionView(sources: spot.verification.sources ?? nearbySources)
+                }
+            }
+
+            Section("Suggest a correction") {
+                switch reportAvailability {
+                case .available:
+                    Button(hasSavedReport ? "Continue saved report" : "Report information about this place", action: onReport)
+                    if hasSavedReport {
+                        Text("The saved report may concern another place. Review its details before submitting.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                case .unknown:
+                    Text("Report availability could not be checked. Try again when connected.")
+                        .foregroundStyle(.secondary)
+                case .unavailable:
+                    Text("Reports are currently unavailable on this server.")
+                        .foregroundStyle(.secondary)
+                case .incompatible:
+                    Text("Update the app to submit reports to this server.")
+                        .foregroundStyle(.secondary)
                 }
             }
         }

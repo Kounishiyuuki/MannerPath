@@ -4,6 +4,8 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var model = NearbyComposition.makeModel()
+    @State private var reportModel = ReportComposition.makeModel()
+    @State private var showingReport = false
     @State private var path: [String] = []
     @State private var mapPosition: MapCameraPosition = .automatic
     @State private var selectedSnapshot: DetailSelection?
@@ -19,6 +21,8 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
 
                     locationSection
+
+                    reportSection
 
                     if model.displayLocation != nil {
                         dataStatus
@@ -51,7 +55,13 @@ struct ContentView: View {
                             model.displayLocation?.isLastKnown == false &&
                             selection.location.coordinate == model.displayLocation?.coordinate
                             ? selection.location.coordinate : nil,
-                        nearbySources: selection.nearbySources
+                        nearbySources: selection.nearbySources,
+                        reportAvailability: reportModel.availability,
+                        hasSavedReport: reportModel.draft != nil,
+                        onReport: {
+                            reportModel.start(type: .exists, spotId: selection.result.spot.id)
+                            showingReport = true
+                        }
                     )
                 } else {
                     ContentUnavailableView("Place no longer in nearby results", systemImage: "mappin.slash")
@@ -67,7 +77,11 @@ struct ContentView: View {
                 model.setFilters(filters)
                 PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.load())
                 model.start()
+                Task { await reportModel.refreshAvailability() }
             }
+        }
+        .sheet(isPresented: $showingReport) {
+            ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate)
         }
         .onChange(of: mapCenter, initial: true) { _, _ in
             if !mapPosition.positionedByUser { recenterMap() }
@@ -86,6 +100,39 @@ struct ContentView: View {
 
     private var mapCenter: SpotCoordinate? {
         (model.resultsLocation ?? model.displayLocation)?.coordinate
+    }
+
+    @ViewBuilder
+    private var reportSection: some View {
+        if reportModel.draft != nil {
+            Button("Continue saved report") { showingReport = true }
+                .buttonStyle(.bordered)
+            Text("Review or discard your saved proposal. It stays on this device until submitted or discarded.")
+                .font(.footnote).foregroundStyle(.secondary)
+        }
+        switch reportModel.availability {
+        case .available:
+            if reportModel.draft == nil {
+                Button("Suggest missing place") {
+                    reportModel.start(type: .missing, spotId: nil)
+                    showingReport = true
+                }
+                .buttonStyle(.bordered)
+            }
+        case .unknown:
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Reporting availability is unknown. Your saved draft remains on this device.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                Button("Check reporting again") { Task { await reportModel.refreshAvailability() } }
+                    .buttonStyle(.bordered)
+            }
+        case .unavailable:
+            Text("Reports are currently unavailable on this server.")
+                .font(.footnote).foregroundStyle(.secondary)
+        case .incompatible:
+            Text("Update the app to submit reports to this server.")
+                .font(.footnote).foregroundStyle(.secondary)
+        }
     }
 
     private var resultCoordinates: [SpotCoordinate] {
