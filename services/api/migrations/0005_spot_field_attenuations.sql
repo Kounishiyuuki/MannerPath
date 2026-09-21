@@ -53,7 +53,8 @@ CREATE TABLE spot_field_attenuations (
 CREATE INDEX spot_field_attenuations_spot ON spot_field_attenuations (spot_id);
 
 -- Attenuations are evidence about a published decision, not scratch state: they are never deleted,
--- and correcting one means a new attestation version and a re-resolve.
+-- and correcting one means a new attestation version and a re-resolve. Migration 0006 adds the
+-- matching UPDATE guard, which makes the rows append-only.
 CREATE TRIGGER spot_field_attenuations_no_delete
 BEFORE DELETE ON spot_field_attenuations
 BEGIN

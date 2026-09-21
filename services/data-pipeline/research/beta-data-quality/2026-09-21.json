@@ -275,7 +275,7 @@
     {
       "id": "taito-public-smoking-areas-list-page-conflicts-resolved-conservatively",
       "status": "pass",
-      "detail": "all 8 reviewed contradictions with https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html (taito-list-page-conflicts.v1, checked 2026-09-21T01:37:19Z) are resolved subtractively, each with a named provenance rule"
+      "detail": "all 8 reviewed contradictions with https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html are resolved subtractively, and each weakening is backed by a spot_field_attenuations row citing taito-list-page-conflicts.v1, checked 2026-09-21T01:37:19Z, against the reviewed release 5123ee41251b… observed 2026-08-18"
     },
     {
       "id": "taito-public-smoking-areas-attenuations-are-attested",

@@ -125,11 +125,22 @@ The bundle is deterministic SQL (`services/api/src/pipeline/promotion.ts`):
   identifiable by one value;
 - `INSERT` statements in foreign-key-safe order for `sources`, `source_releases`, `source_records`,
   `source_record_match_keys`, `source_entities`, `source_record_entities`, `spots`,
-  `spot_source_entities`, `spot_field_provenance`, `tile_snapshots`, `tile_snapshot_spots` — fixed
-  table, column and row order and fixed literal formatting, so two runs over the same state produce
-  byte-identical files and two bundles can be diffed;
+  `spot_source_entities`, `spot_field_provenance`, `spot_field_attenuations`, `tile_snapshots`,
+  `tile_snapshot_spots` — fixed table, column and row order and fixed literal formatting, so two
+  runs over the same state produce byte-identical files and two bundles can be diffed;
 - opaque spot IDs, tile revisions, content hashes, attribution and field provenance verbatim: the
   receiving database gets the same published bytes, not a re-derivation.
+
+`spot_field_attenuations` carries the rows behind every **weakened** field of a published spot
+(ADR-0006, Issue #42): which field was attenuated and how, under which attestation version, from
+which reviewed conflict reference, when that reference was read, and the fingerprint of the source
+release the decision was reviewed against. It travels with the bundle because the weakened canonical
+value travels with it. Without those rows the receiving database would hold a value that is weaker
+than its source record with nothing recording why, its `GET /spots/{id}` would publish the attenuated
+field's source provenance as if that were the evidence for the value, and its
+`npm run local:quality` would fail the `…-list-page-conflicts-resolved-conservatively` check. Like
+the published spots, only the attenuations of **published** spots are carried: a spot the
+reconciliation withholds is not in the bundle at all.
 
 It carries **no report data** (`reports*` tables never leave a database this way, ADR-0007), no
 secret, and no `d1_migrations` rows — the receiver runs the real migrations first.

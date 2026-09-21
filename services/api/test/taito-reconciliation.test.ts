@@ -179,6 +179,37 @@ test("the database refuses to publish a held or temporarily closed spot, whateve
   assert.throws(() => db.raw.prepare("DELETE FROM spot_field_attenuations").run(), /never deleted/);
 });
 
+test("attenuation rows are append-only: neither UPDATE nor DELETE is possible", async () => {
+  const db = await publishedDb();
+  const a = one(db, "SELECT * FROM spot_field_attenuations LIMIT 1");
+  // Repointing an applied weakening at another attestation, reference or release fingerprint is the
+  // provenance laundering the separate table exists to prevent, so every UPDATE aborts — including
+  // one that changes nothing.
+  for (const [column, value] of [
+    ["attestation_version", "taito-list-page-conflicts.v99"],
+    ["reference_url", "https://example.invalid/other"],
+    ["checked_at", "2027-01-01T00:00:00Z"],
+    ["release_content_sha256", "0".repeat(64)],
+    ["release_observed_on", "2027-01-01"],
+    ["effect", "temporarilyClosed"],
+    ["attestation_version", a.attestation_version],
+  ] as const) {
+    assert.throws(
+      () => db.raw.prepare(`UPDATE spot_field_attenuations SET ${column} = ? WHERE spot_id = ? AND field = ? AND effect = ?`)
+        .run(value, a.spot_id, a.field, a.effect),
+      /immutable/,
+      `UPDATE of ${column}`,
+    );
+  }
+  assert.throws(
+    () => db.raw.prepare("DELETE FROM spot_field_attenuations WHERE spot_id = ?").run(a.spot_id),
+    /never deleted/,
+  );
+  // The row is exactly as it was written.
+  assert.deepEqual(one(db, "SELECT * FROM spot_field_attenuations WHERE spot_id = ? AND field = ? AND effect = ?",
+    a.spot_id, a.field, a.effect), a);
+});
+
 test("records the second publication does not contradict are unchanged", async () => {
   const db = await publishedDb();
   const contradicted = new Set(TAITO_LIST_PAGE_CONFLICTS.map((c) => c.csvName));

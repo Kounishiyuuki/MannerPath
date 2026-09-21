@@ -327,7 +327,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
 
   check(`${TAITO_SOURCE_ID}-list-page-conflicts-resolved-conservatively`, unresolvedConflicts.length === 0,
     unresolvedConflicts.length === 0
-      ? `all ${TAITO_LIST_PAGE_CONFLICTS.length} reviewed contradictions with ${TAITO_LIST_PAGE_URL} (${TAITO_LIST_PAGE_ATTESTATION_VERSION}, checked ${TAITO_LIST_PAGE_CHECKED_AT}) are resolved subtractively, each with a named provenance rule`
+      ? `all ${TAITO_LIST_PAGE_CONFLICTS.length} reviewed contradictions with ${TAITO_LIST_PAGE_URL} are resolved subtractively, and each weakening is backed by a spot_field_attenuations row citing ${TAITO_LIST_PAGE_ATTESTATION_VERSION}, checked ${TAITO_LIST_PAGE_CHECKED_AT}, against the reviewed release ${TAITO_REVIEWED_RELEASE.contentSha256.slice(0, 12)}… observed ${TAITO_REVIEWED_RELEASE.observedOn}`
       : `contradictions not conservatively resolved: ${unresolvedConflicts.join(" | ")}`);
 
   check(`${TAITO_SOURCE_ID}-attenuations-are-attested`, unattested.length === 0,
