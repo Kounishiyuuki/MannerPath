@@ -97,6 +97,9 @@ struct ReportFormView: View {
                                     confirmingRetry = true
                                 }
                             }
+                        } else if case .attestationUnsupported = model.availability {
+                            Text("This device cannot meet this server's security requirement for reports. Your draft remains saved on this device.")
+                                .font(.footnote)
                         } else {
                             Text("Submission is unavailable until this server confirms reporting is supported. Your draft remains saved.")
                                 .font(.footnote)
@@ -140,10 +143,7 @@ struct ReportFormView: View {
         }
     }
 
-    private var isSubmitting: Bool {
-        if case .submitting = model.submission { return true }
-        return false
-    }
+    private var isSubmitting: Bool { model.isBusy }
 
     private var isAccepted: Bool {
         if case .accepted = model.submission { return true }
@@ -160,8 +160,12 @@ struct ReportFormView: View {
         switch model.submission {
         case .idle:
             EmptyView()
+        case .preparingSecureSubmission:
+            ProgressView("Preparing secure submission…")
         case .submitting:
             ProgressView("Submitting…")
+        case .authorizationFailed(let message):
+            Text(message)
         case .accepted(let receipt):
             VStack(alignment: .leading) {
                 Text("Report \(receipt.reportId) was received for review. The listing has not changed.")

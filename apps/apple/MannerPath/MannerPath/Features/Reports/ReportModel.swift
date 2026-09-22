@@ -3,7 +3,12 @@ import Observation
 
 nonisolated enum ReportSubmissionState: Equatable, Sendable {
     case idle
+    /// Registering a key, fetching a challenge and signing: nothing has been sent to POST /reports.
+    case preparingSecureSubmission
     case submitting
+    /// A definite App Attest refusal, or a local failure to obtain authorization. No report was
+    /// stored; submitting again obtains fresh authorization.
+    case authorizationFailed(String)
     case accepted(AcceptedReport)
     case rejected(String)
     case rateLimited(Int?)
@@ -17,6 +22,8 @@ final class ReportModel {
     private let reportClient: any ReportSubmitting
     private let store: any ReportDraftStoring
     private let installIDs: any InstallIDProviding
+    private let attestedClient: (any AttestedReportSubmitting)?
+    private let authorizer: (any ReportAuthorizing)?
     private var retryAllowedAt: Date?
     private var acceptedCleanupPending = false
     private var recoveredSubmissionAttempt = false
@@ -26,6 +33,8 @@ final class ReportModel {
     private(set) var submission: ReportSubmissionState = .idle
     private(set) var cleanupError: String?
     var canRetryAmbiguous: Bool { submission == .ambiguous && !recoveredSubmissionAttempt }
+    /// A submission is in progress: preparing authorization counts, the draft must not change.
+    var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission }
 
     var retryAfterSecondsRemaining: Int? {
         guard let retryAllowedAt else { return nil }
@@ -33,11 +42,15 @@ final class ReportModel {
     }
 
     init(configClient: any ReportConfigFetching, reportClient: any ReportSubmitting,
-         store: any ReportDraftStoring, installIDs: any InstallIDProviding) {
+         store: any ReportDraftStoring, installIDs: any InstallIDProviding,
+         attestedClient: (any AttestedReportSubmitting)? = nil,
+         authorizer: (any ReportAuthorizing)? = nil) {
         self.configClient = configClient
         self.reportClient = reportClient
         self.store = store
         self.installIDs = installIDs
+        self.attestedClient = attestedClient
+        self.authorizer = authorizer
         do {
             switch try store.submissionMarker() {
             case .accepted:
@@ -67,21 +80,29 @@ final class ReportModel {
         }
     }
 
+    /// The protocol comes from /v1/config alone. A deployment that requires App Attest on a device
+    /// that cannot produce it is unavailable — never downgraded to the unattested version.
     func refreshAvailability() async {
-        do { availability = try await configClient.fetchAvailability() }
-        catch { availability = .unknown }
+        do {
+            let fetched = try await configClient.fetchAvailability()
+            if case .available(let limits) = fetched, limits.submissionProtocol == .appAttest {
+                guard let authorizer, attestedClient != nil, await authorizer.isSupported() else {
+                    availability = .attestationUnsupported
+                    return
+                }
+            }
+            availability = fetched
+        } catch { availability = .unknown }
     }
 
     func start(type: ReportType, spotId: String?) {
-        guard !acceptedCleanupPending, !recoveredSubmissionAttempt,
-              submission != .submitting, draft == nil else { return }
+        guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy, draft == nil else { return }
         let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId)
         saveDraft(newDraft)
     }
 
     func saveDraft(_ updated: ReportDraft) {
-        guard !acceptedCleanupPending, !recoveredSubmissionAttempt,
-              submission != .submitting else { return }
+        guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy else { return }
         var updated = updated
         updated.proposedLocation = updated.proposedLocation?.quantized
         do {
@@ -94,7 +115,7 @@ final class ReportModel {
     }
 
     func cancel() {
-        guard !acceptedCleanupPending, submission != .submitting else { return }
+        guard !acceptedCleanupPending, !isBusy else { return }
         do {
             try store.delete()
             try store.clearAcceptedCleanupMarker()
@@ -105,12 +126,14 @@ final class ReportModel {
     }
 
     func submit() async {
-        guard !acceptedCleanupPending, !recoveredSubmissionAttempt,
-              submission != .submitting, submission != .ambiguous,
+        guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy,
+              submission != .ambiguous,
               (retryAfterSecondsRemaining ?? 0) == 0,
               case .available(let limits) = availability, let draft else { return }
-        let body: Data
-        do { body = try ReportRequest.encoded(draft: draft, installId: installIDs.installID(), limits: limits) }
+        // One encoding, one immutable payload: these exact bytes are both hashed into the
+        // assertion and base64-encoded into the envelope.
+        let payload: Data
+        do { payload = try ReportRequest.encoded(draft: draft, installId: installIDs.installID(), limits: limits) }
         catch let error as ReportValidationError {
             submission = .failed(Self.validationMessage(error))
             return
@@ -118,6 +141,36 @@ final class ReportModel {
             submission = .failed("Report could not be prepared.")
             return
         }
+
+        var body = payload
+        var authorizedKeyID: String?
+        if limits.submissionProtocol == .appAttest {
+            guard let authorizer, attestedClient != nil else {
+                availability = .attestationUnsupported
+                return
+            }
+            submission = .preparingSecureSubmission
+            let authorization: ReportAuthorization
+            do { authorization = try await authorizer.authorize(payload: payload) }
+            catch let error as ReportAuthorizationError {
+                applyAuthorizationFailure(error)
+                return
+            } catch {
+                submission = .authorizationFailed("This report could not be secured. Try again later.")
+                return
+            }
+            authorizedKeyID = authorization.keyId
+            do { body = try AttestedReportEnvelope.encoded(payload: payload, authorization: authorization) }
+            catch {
+                submission = .authorizationFailed("This report could not be secured. Try again later.")
+                return
+            }
+            guard body.count <= (limits.maxSubmissionBytes ?? limits.maxBodyBytes) else {
+                submission = .failed(Self.validationMessage(.bodyTooLarge))
+                return
+            }
+        }
+
         do { try store.markSubmissionAttempt() }
         catch {
             submission = .failed("Report could not be safely prepared on this device.")
@@ -125,7 +178,9 @@ final class ReportModel {
         }
         submission = .submitting
         do {
-            let accepted = try await reportClient.submit(body)
+            let accepted = limits.submissionProtocol == .appAttest
+                ? try await attestedClient!.submitAttested(body)
+                : try await reportClient.submit(body)
             self.draft = nil
             submission = .accepted(accepted)
             acceptedCleanupPending = true
@@ -139,6 +194,17 @@ final class ReportModel {
                 if status == 503 && code == "attestationUnavailable" { availability = .unavailable }
                 submission = .rejected(code.map { "\(status): \($0)" } ?? "Server rejected the report (\(status)).")
             case .rateLimited(let seconds):
+                guard clearDefiniteAttempt() else { return }
+                retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
+                submission = .rateLimited(seconds)
+            case .attestationRejected(let rejection):
+                // Definite (docs/API.md): nothing stored, no counter moved. Never resubmitted here.
+                guard clearDefiniteAttempt() else { return }
+                if let authorizedKeyID, let authorizer {
+                    await authorizer.handleRejection(rejection, keyId: authorizedKeyID)
+                }
+                submission = .authorizationFailed(Self.rejectionMessage(rejection))
+            case .challengeLimited(let seconds):
                 guard clearDefiniteAttempt() else { return }
                 retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
                 submission = .rateLimited(seconds)
@@ -179,6 +245,32 @@ final class ReportModel {
         }
     }
 
+    /// Nothing was sent to POST /reports, so the draft stays submittable and no marker was written.
+    private func applyAuthorizationFailure(_ error: ReportAuthorizationError) {
+        submission = .idle
+        switch error {
+        case .unsupported:
+            availability = .attestationUnsupported
+        case .serviceUnavailable:
+            availability = .unavailable
+        case .challengeLimited(let seconds):
+            retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
+            submission = .rateLimited(seconds)
+        case .updateRequired:
+            availability = .incompatible
+        case .registrationFailed:
+            submission = .authorizationFailed("This device could not be registered for secure reporting. Try again later.")
+        case .temporarilyUnavailable, .busy:
+            submission = .authorizationFailed("Secure submission is temporarily unavailable. Try again later.")
+        }
+    }
+
+    private static func rejectionMessage(_ rejection: AttestationRejection) -> String {
+        rejection.requiresAppUpdate
+            ? "Update the app to submit reports to this server."
+            : "The security check for this report did not pass. Nothing was submitted; you can try again."
+    }
+
     private static func validationMessage(_ error: ReportValidationError) -> String {
         switch error {
         case .missingSpotID: "Choose an existing place before submitting."
@@ -212,8 +304,14 @@ enum ReportComposition {
                                                        in: .userDomainMask, appropriateFor: nil,
                                                        create: true))
             ?? URL(fileURLWithPath: NSHomeDirectory()).appending(path: "Library/Application Support", directoryHint: .isDirectory)
+        let authorizer = (client as? ReportAPIClient).map {
+            AppAttestReportAuthorizer(device: SystemAppAttestDevice(), server: $0,
+                                      store: FileAppAttestKeyStore(directory: directory.appending(path: "AppAttest", directoryHint: .isDirectory)))
+        }
         return ReportModel(configClient: client, reportClient: client,
                            store: FileReportDraftStore(directory: directory.appending(path: "Reports", directoryHint: .isDirectory)),
-                           installIDs: UserDefaultsInstallID())
+                           installIDs: UserDefaultsInstallID(),
+                           attestedClient: client as? ReportAPIClient,
+                           authorizer: authorizer)
     }
 }
