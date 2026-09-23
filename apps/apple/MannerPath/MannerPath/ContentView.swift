@@ -228,7 +228,8 @@ struct ContentView: View {
     }
 
     private func detailSelection(id: String) -> DetailSelection? {
-        if let result = model.result(id: id), let location = model.resultsLocation {
+        if let result = model.result(id: id) ?? model.cachedResult(id: id),
+           let location = model.resultsLocation {
             return DetailSelection(result: result, location: location, nearbySources: model.sources)
         }
         guard model.displayLocation != nil, selectedSnapshot?.result.spot.id == id else { return nil }

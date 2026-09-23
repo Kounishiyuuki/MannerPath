@@ -44,19 +44,19 @@ struct WatchNearbyWidget: Widget {
                     case .unavailable:
                         Text("Open iPhone app to sync")
                     case .stale:
+                        if let spot = entry.snapshot?.spots.first {
+                            if let name = spot.name { Text(name).lineLimit(1) }
+                            else { Text("Saved place") }
+                        }
                         Text("Saved data is old")
                     case .empty:
                         Text("No saved places")
                     case .saved:
                         if let spot = entry.snapshot?.spots.first {
-                            Text(spot.name ?? "Saved place").lineLimit(1)
+                            if let name = spot.name { Text(name).lineLimit(1) }
+                            else { Text("Saved place") }
                             Text("From iPhone").font(.caption2)
-                            if let verified = spot.lastVerifiedAt, entry.date >= verified {
-                                Text("Verified \(Int(entry.date.timeIntervalSince(verified) / 86_400)) days ago")
-                                    .font(.caption2)
-                            } else {
-                                Text("Verification date unknown").font(.caption2)
-                            }
+                            Text(verification(spot.lastVerifiedAt, at: entry.date)).font(.caption2)
                         }
                     }
                 }
@@ -66,7 +66,14 @@ struct WatchNearbyWidget: Widget {
         }
         .configurationDisplayName("Nearby")
         .description("Saved nearby places from iPhone.")
-        .supportedFamilies([.accessoryRectangular, .accessoryCircular])
+        .supportedFamilies([.accessoryRectangular])
+    }
+
+    private func verification(_ date: Date?, at now: Date) -> String {
+        guard let date, now >= date else { return String(localized: "Verification date unknown") }
+        let ageDays = now.timeIntervalSince(date) / 86_400
+        guard ageDays.isFinite, ageDays < Double(Int.max) else { return String(localized: "Verification date unknown") }
+        return String(localized: "Verified \(Int(ageDays)) days ago")
     }
 }
 

@@ -13,6 +13,7 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
 
     func validated() throws -> Self {
         guard version == Self.version, computedAt.timeIntervalSince1970.isFinite, locationObservedAt.timeIntervalSince1970.isFinite,
+              lastVerifiedAt == nil || lastVerifiedAt!.timeIntervalSince1970.isFinite,
               (spotID == nil) == (name == nil && distanceMeters == nil && lastVerifiedAt == nil),
               spotID == nil || (!spotID!.isEmpty && name != nil && distanceMeters != nil &&
                                 distanceMeters!.isFinite && distanceMeters! >= 0) else {
@@ -31,7 +32,9 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
 
     static func spotID(from url: URL) -> String?? {
         guard let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              parts.scheme == "mannerpath", parts.host == "nearby", parts.path.isEmpty else { return nil }
+              parts.scheme == "mannerpath", parts.host == "nearby", parts.path.isEmpty,
+              parts.user == nil, parts.password == nil, parts.port == nil,
+              parts.fragment == nil else { return nil }
         let items = parts.queryItems ?? []
         guard items.count <= 1 else { return nil }
         if items.isEmpty { return .some(nil) }

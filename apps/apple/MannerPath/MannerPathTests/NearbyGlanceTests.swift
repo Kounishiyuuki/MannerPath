@@ -52,5 +52,8 @@ struct NearbyGlanceTests {
         #expect(NearbyGlance.spotID(from: value.deepLink) == .some("sp_a?b"))
         #expect(NearbyGlance.spotID(from: URL(string: "mannerpath://nearby")!) == .some(nil))
         #expect(NearbyGlance.spotID(from: URL(string: "https://nearby")!) == nil)
+        #expect(NearbyGlance.spotID(from: URL(string: "mannerpath://user@nearby")!) == nil)
+        #expect(NearbyGlance.spotID(from: URL(string: "mannerpath://nearby:123")!) == nil)
+        #expect(NearbyGlance.spotID(from: URL(string: "mannerpath://nearby#fragment")!) == nil)
     }
 }

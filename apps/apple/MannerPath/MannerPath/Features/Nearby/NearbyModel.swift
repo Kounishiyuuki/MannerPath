@@ -66,6 +66,12 @@ final class NearbyModel {
         results.first { $0.spot.id == id }
     }
 
+    // Widget links use the unfiltered corpus, while ordinary Nearby results keep user filters.
+    func cachedResult(id: String) -> NearbyResult? {
+        guard let origin = resultsLocation?.coordinate else { return nil }
+        return NearbySearch.rank(cachedSpots, from: origin, at: Date()).first { $0.spot.id == id }
+    }
+
     var hasUnfilteredResults: Bool {
         guard let origin = resultsLocation?.coordinate else { return false }
         return !NearbySearch.rank(cachedSpots, from: origin, at: Date()).isEmpty

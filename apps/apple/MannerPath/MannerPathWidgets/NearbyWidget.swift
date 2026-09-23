@@ -45,16 +45,21 @@ struct NearbyWidgetView: View {
             switch state {
             case .fresh:
                 if let glance = entry.glance {
-                    Text(glance.name ?? "Nearby place").lineLimit(2)
+                    if let name = glance.name { Text(name).lineLimit(2) }
+                    else { Text("Nearby place") }
                     if let distance = glance.distanceMeters {
-                        Text(distance < 1_000 ? "\(Int(distance.rounded())) m away" :
-                             "\((distance / 1_000).formatted(.number.precision(.fractionLength(1)))) km away")
+                        if distance < 1_000 {
+                            Text("\(Int(distance.rounded())) m away")
+                        } else {
+                            Text("\((distance / 1_000).formatted(.number.precision(.fractionLength(1)))) km away")
+                        }
                     }
                     Text(verification(glance.lastVerifiedAt, now: entry.date))
                         .font(.caption2).foregroundStyle(.secondary)
                 }
             case .stale:
-                Text(entry.glance?.name ?? "Saved nearby data is old").lineLimit(2)
+                if let name = entry.glance?.name { Text(name).lineLimit(2) }
+                else { Text("Saved nearby data is old") }
                 Text("Nearby data is old · Open app to refresh")
                     .font(.caption2).foregroundStyle(.secondary)
             case .empty:
@@ -73,9 +78,11 @@ struct NearbyWidgetView: View {
     }
 
     private func verification(_ date: Date?, now: Date) -> String {
-        guard let date, now >= date else { return "Verification date unknown" }
-        let days = Int(now.timeIntervalSince(date) / 86_400)
-        return days == 0 ? "Verified today" : "Verified \(days) days ago"
+        guard let date, now >= date else { return String(localized: "Verification date unknown") }
+        let ageDays = now.timeIntervalSince(date) / 86_400
+        guard ageDays.isFinite, ageDays < Double(Int.max) else { return String(localized: "Verification date unknown") }
+        let days = Int(ageDays)
+        return days == 0 ? String(localized: "Verified today") : String(localized: "Verified \(days) days ago")
     }
 }
 

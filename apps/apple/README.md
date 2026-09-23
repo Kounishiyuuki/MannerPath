@@ -120,8 +120,10 @@ was last-known, and opens the app for a fresh view. A partial cache read does no
 replace the previous glance; it becomes stale. Unknown verification dates stay unknown. The Watch widget
 reads the existing Watch snapshot contract and opens the Watch app. The Watch app
 and Watch extension also require the App Group to share that file across process
-containers. `WatchStore` copies the old private snapshot and preferences on first
-launch after update, then writes to the group container; WatchConnectivity remains
+containers. `WatchStore` migrates the old private snapshot and preferences on first
+launch after update, keeping the higher valid revision and newer preferences when both
+containers have data. The Watch app can read its private cache if the group is temporarily
+unavailable; the widget shows unavailable in that case. WatchConnectivity remains
 the only way data arrives on Watch.
 Neither widget requests location or network access. Their timelines refresh hourly, and
 new iPhone snapshots explicitly reload the iPhone widget. Timeline entries also

@@ -3,37 +3,68 @@ import Foundation
 // Two independent files: a malformed preference transfer cannot disturb spot data.
 nonisolated struct WatchStore {
     let directory: URL
+    let fallbackDirectory: URL?
+
+    init(directory: URL, fallbackDirectory: URL? = nil) {
+        self.directory = directory
+        self.fallbackDirectory = fallbackDirectory
+    }
 
     static func applicationSupport() throws -> Self {
-        guard let directory = FileManager.default.containerURL(
+        let privateDirectory = try FileManager.default.url(for: .applicationSupportDirectory,
+                                                           in: .userDomainMask, appropriateFor: nil, create: true)
+        let groupDirectory = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: "group.com.kounishiyuuki.MannerPath"
-        ) else { throw WatchPayloadError.invalid }
-        // Move the existing private Watch cache once so previously synced data stays offline.
-        let old = try FileManager.default.url(for: .applicationSupportDirectory,
-                                              in: .userDomainMask, appropriateFor: nil, create: true)
-        for name in ["nearby-watch-v1.json", "preferences-watch-v1.json"] {
-            let destination = directory.appendingPathComponent(name)
-            let source = old.appendingPathComponent(name)
-            if !FileManager.default.fileExists(atPath: destination.path),
-               FileManager.default.fileExists(atPath: source.path) {
-                try? FileManager.default.copyItem(at: source, to: destination)
+        )
+        return migrate(privateDirectory: privateDirectory, groupDirectory: groupDirectory)
+    }
+
+    // The Watch app can keep using its private cache if the group container is unavailable.
+    // The widget then shows an unavailable state until sharing is restored.
+    static func migrate(privateDirectory: URL, groupDirectory: URL?) -> Self {
+        guard let groupDirectory else { return Self(directory: privateDirectory) }
+        let privateSnapshotURL = privateDirectory.appendingPathComponent("nearby-watch-v1.json")
+        let groupSnapshotURL = groupDirectory.appendingPathComponent("nearby-watch-v1.json")
+        if let data = try? Data(contentsOf: privateSnapshotURL),
+           let old = try? WatchCodec.snapshot(data) {
+            let shared = (try? Data(contentsOf: groupSnapshotURL)).flatMap { try? WatchCodec.snapshot($0) }
+            if old.revision > (shared?.revision ?? 0) {
+                try? data.write(to: groupSnapshotURL, options: .atomic)
             }
         }
-        return Self(directory: directory)
+        let privatePreferencesURL = privateDirectory.appendingPathComponent("preferences-watch-v1.json")
+        let groupPreferencesURL = groupDirectory.appendingPathComponent("preferences-watch-v1.json")
+        if let data = try? Data(contentsOf: privatePreferencesURL),
+           let old = try? WatchCodec.preferences(data) {
+            let shared = (try? Data(contentsOf: groupPreferencesURL)).flatMap { try? WatchCodec.preferences($0) }
+            if old.generatedAt > (shared?.generatedAt ?? .distantPast) {
+                try? data.write(to: groupPreferencesURL, options: .atomic)
+            }
+        }
+        return Self(directory: groupDirectory, fallbackDirectory: privateDirectory)
     }
 
     private var snapshotURL: URL { directory.appendingPathComponent("nearby-watch-v1.json") }
     private var preferencesURL: URL { directory.appendingPathComponent("preferences-watch-v1.json") }
 
     func snapshot() -> WatchSnapshot? {
-        guard let data = try? Data(contentsOf: snapshotURL) else { return nil }
-        return try? WatchCodec.snapshot(data)
+        let shared = (try? Data(contentsOf: snapshotURL)).flatMap { try? WatchCodec.snapshot($0) }
+        let old = fallbackDirectory.flatMap {
+            (try? Data(contentsOf: $0.appendingPathComponent("nearby-watch-v1.json")))
+                .flatMap { try? WatchCodec.snapshot($0) }
+        }
+        if let old, old.revision > (shared?.revision ?? 0) { return old }
+        return shared ?? old
     }
 
     func preferences() -> WatchPreferences {
-        guard let data = try? Data(contentsOf: preferencesURL),
-              let value = try? WatchCodec.preferences(data) else { return .defaults() }
-        return value
+        let shared = (try? Data(contentsOf: preferencesURL)).flatMap { try? WatchCodec.preferences($0) }
+        let old = fallbackDirectory.flatMap {
+            (try? Data(contentsOf: $0.appendingPathComponent("preferences-watch-v1.json")))
+                .flatMap { try? WatchCodec.preferences($0) }
+        }
+        if let old, old.generatedAt > (shared?.generatedAt ?? .distantPast) { return old }
+        return shared ?? old ?? .defaults()
     }
 
     @discardableResult

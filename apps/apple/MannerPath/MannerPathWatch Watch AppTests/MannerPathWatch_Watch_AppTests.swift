@@ -49,6 +49,87 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(WatchWidgetState.evaluate(snapshot([spot("a")], at: now.addingTimeInterval(1)), at: now) == .stale)
     }
 
+    @Test func groupMigrationKeepsNewestStateAndSurvivesMissingOrCorruptOldFiles() throws {
+        let privateStore = try store()
+        let groupStore = try store()
+        defer {
+            try? FileManager.default.removeItem(at: privateStore.directory)
+            try? FileManager.default.removeItem(at: groupStore.directory)
+        }
+        let oldSnapshot = snapshot([spot("old")], revision: 1)
+        let newSnapshot = snapshot([spot("new")], revision: 2)
+        try WatchCodec.encode(oldSnapshot).write(
+            to: privateStore.directory.appendingPathComponent("nearby-watch-v1.json"))
+        let oldPreferences = preferences(tobacco: "paper")
+        try WatchCodec.encode(oldPreferences).write(
+            to: privateStore.directory.appendingPathComponent("preferences-watch-v1.json"))
+
+        let privateFallback = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                                 groupDirectory: nil)
+        #expect(privateFallback.snapshot() == oldSnapshot)
+        #expect(privateFallback.preferences() == oldPreferences)
+        let migrated = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                          groupDirectory: groupStore.directory)
+        #expect(migrated.snapshot() == oldSnapshot)
+        #expect(migrated.preferences() == oldPreferences)
+
+        try Data("corrupt".utf8).write(
+            to: groupStore.directory.appendingPathComponent("preferences-watch-v1.json"), options: .atomic)
+        #expect(WatchStore.migrate(privateDirectory: privateStore.directory,
+                                   groupDirectory: groupStore.directory).preferences() == oldPreferences)
+        try WatchCodec.encode(oldPreferences).write(
+            to: groupStore.directory.appendingPathComponent("preferences-watch-v1.json"), options: .atomic)
+        try WatchCodec.encode(newSnapshot).write(
+            to: groupStore.directory.appendingPathComponent("nearby-watch-v1.json"), options: .atomic)
+        try Data("corrupt".utf8).write(
+            to: privateStore.directory.appendingPathComponent("preferences-watch-v1.json"), options: .atomic)
+        let repeated = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                          groupDirectory: groupStore.directory)
+        #expect(repeated.snapshot() == newSnapshot)
+        #expect(repeated.preferences() == oldPreferences)
+
+        try FileManager.default.removeItem(at: groupStore.directory.appendingPathComponent("preferences-watch-v1.json"))
+        let partial = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                         groupDirectory: groupStore.directory)
+        #expect(partial.snapshot() == newSnapshot)
+        #expect(partial.preferences() == .defaults())
+    }
+
+    @Test func migrationReconcilesNewerPrivateSnapshotAndPreferences() throws {
+        let privateStore = try store()
+        let groupStore = try store()
+        defer {
+            try? FileManager.default.removeItem(at: privateStore.directory)
+            try? FileManager.default.removeItem(at: groupStore.directory)
+        }
+        let newer = snapshot([spot("newer")], revision: 3)
+        let older = snapshot([spot("older")], revision: 2)
+        try WatchCodec.encode(newer).write(
+            to: privateStore.directory.appendingPathComponent("nearby-watch-v1.json"))
+        try WatchCodec.encode(older).write(
+            to: groupStore.directory.appendingPathComponent("nearby-watch-v1.json"))
+        let newerPreferences = preferences(tobacco: "heated")
+        let olderPreferences = WatchPreferences.defaults()
+        try WatchCodec.encode(newerPreferences).write(
+            to: privateStore.directory.appendingPathComponent("preferences-watch-v1.json"))
+        try WatchCodec.encode(olderPreferences).write(
+            to: groupStore.directory.appendingPathComponent("preferences-watch-v1.json"))
+
+        let reconciled = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                            groupDirectory: groupStore.directory)
+        #expect(reconciled.snapshot() == newer)
+        #expect(reconciled.preferences() == newerPreferences)
+        #expect(groupStore.snapshot() == newer)
+        #expect(groupStore.preferences() == newerPreferences)
+
+        try WatchCodec.encode(olderPreferences).write(
+            to: privateStore.directory.appendingPathComponent("preferences-watch-v1.json"), options: .atomic)
+        let stillNewer = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                            groupDirectory: groupStore.directory)
+        #expect(stillNewer.preferences() == newerPreferences)
+        #expect(groupStore.preferences() == newerPreferences)
+    }
+
     @Test func codecRoundTripRetainsUnknownAndAttribution() throws {
         let original = snapshot([spot("a", type: "unknown", access: "unknown", paper: "unknown")])
         let decoded = try WatchCodec.snapshot(WatchCodec.encode(original))
