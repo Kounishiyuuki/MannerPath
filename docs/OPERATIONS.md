@@ -38,6 +38,7 @@ target; `local:pipeline`, `local:registry` and `local:export` open their binding
 | `npx wrangler deploy --env staging` | Needs a real `database_id` |
 | `node --experimental-strip-types --no-warnings scripts/smoke.ts --base-url https://… --remote` | Refuses a non-loopback target without `--remote`, and refuses non-HTTPS |
 | `npx wrangler delete --env staging` | Typed by hand; the disable step |
+| `npm run e2e:config -- --suffix <s> --database-id <uuid>` | Writes a git-ignored config only; runs nothing remote. See "Disposable App Attest E2E environment" |
 
 `scripts/smoke.ts` defaults to `http://127.0.0.1:8787` and **refuses** any non-loopback host unless
 both `--base-url` and `--remote` are given. It sends only GETs plus one deliberately invalid
@@ -264,8 +265,9 @@ Notes:
   reports and keys written to the blue database since the bundle was built. Dropped keys are
   recoverable (clients get `keyNotRegistered` and register again); dropped reports are not. How
   reports are carried across — or a replacement for this model — must be decided before the App
-  Attest values are set on any remote environment. Issue #37 implements the protocol only; it does
-  not decide that.
+  Attest values are set on any long-lived remote environment. Issue #37 implements the protocol
+  only; it does not decide that. The disposable E2E environment (end of this document) is exempt
+  because it is never switched onto or promoted from.
 
 ### 7. Rollback / disable
 
@@ -393,8 +395,9 @@ decided by four values; the committed environments carry only the first.
   `400 reportSchemaUnsupported`, and a report is stored only after its assertion verified
   (`attestation_status = 'verified'`). A device that reports a build not in
   `REPORT_APP_ATTEST_BUNDLE_VERSIONS` is refused with `detail: bundleVersion`, so add a new build's
-  `CFBundleVersion` before it reaches testers. Before setting them on any remote environment, settle the
-  blue/green carry-over question in step 6 and confirm #35 on a physical device.
+  `CFBundleVersion` before it reaches testers. Before setting them on any long-lived remote environment, settle the
+  blue/green carry-over question in step 6 and confirm #35 on a physical device. The one exception
+  is the disposable E2E environment below, which exists to run that physical-device check.
 - Local and test keep `REPORT_ATTESTATION=disabled`: schema 1, unattested, `notProvided`. Do not
   switch a remote environment to `disabled` to "turn reports on" — that accepts unattested reports.
   Any unrecognised value fails closed, so a typo cannot silently disable attestation.
@@ -411,3 +414,79 @@ decided by four values; the committed environments carry only the first.
   must cover `/v1/app-attest/*` as well as `/v1/reports` before any wider release.
 - Physical-device verification of registration and assertion is Issue #35; the iPhone client is
   Issue #46.
+
+## Disposable App Attest E2E environment (Issue #55)
+
+#35 P21/P23 need a remote deployment with the App Attest values set, and step 6 forbids setting them
+on a long-lived staging/production database until the blue/green report/key carry-over is decided.
+This environment breaks that loop: a throwaway Worker on a throwaway D1 database, bootstrapped by the
+same migrations and reviewed promotion bundle, used for the physical-device run and then deleted.
+Its reports and keys are the maintainer's own test data and are deleted with it; it is never promoted
+from, and staging/production are never switched onto it, so there is nothing to carry over.
+
+**Why a generated config.** `npm run e2e:config` writes `services/api/.wrangler/e2e/<s>.json`
+(git-ignored) from the committed `wrangler.jsonc`: one Worker `mannerpath-api-e2e-<s>`, one `DB`
+binding to `mannerpath-e2e-<s>`, `REPORT_ATTESTATION=required`, and the committed `observability`
+block (`invocation_logs: false`). It has **no `env` block**, so a command run with `--config` on that
+file can resolve `DB` only to the disposable database — there is no staging or production binding in
+it to fall back to. Never add `--env` to these commands. The generator refuses a placeholder or
+malformed ID, any `database_id` committed in `wrangler.jsonc`, and a name that collides with a
+committed Worker or database (`test/disposable-env.test.ts`). The committed file keeps its placeholder
+IDs; the real disposable ID only ever exists in the ignored file.
+
+All commands run from `services/api`. `<s>` is a short suffix such as `p21`; `C=.wrangler/e2e/<s>.json`.
+
+```sh
+C=.wrangler/e2e/<s>.json    # every command below needs it; an unset $C must not reach wrangler
+
+# 1. Fresh database, then the config bound to it (nothing else is written).
+npx wrangler d1 create mannerpath-e2e-<s>
+npm run e2e:config -- --suffix <s> --database-id <uuid printed above>
+
+# 2. Migrate and promote real published data through the reviewed path (steps 2 and 4).
+#    Build and read the bundle first: npm run local:pipeline && npm run local:export -- --out promotion.sql
+npx wrangler d1 migrations apply DB --config $C --remote
+npx wrangler d1 migrations list DB --config $C --remote     # expect: no pending migrations
+npx wrangler d1 execute DB --config $C --remote --file promotion.sql
+
+# 3. Deploy, set the pepper, and prove it fails closed before any App Attest value exists.
+npx wrangler deploy --config $C
+npx wrangler secret put REPORT_SUBMITTER_PEPPER --config $C
+node --experimental-strip-types --no-warnings scripts/smoke.ts \
+  --base-url https://<e2e-host> --remote --tile <a published tile> --expect-reports unavailable
+
+# 4. Configure App Attest on THIS Worker only (values typed interactively, never committed).
+npx wrangler secret put REPORT_APP_ATTEST_APP_ID --config $C          # <App ID prefix>.<bundle identifier>
+npx wrangler secret put REPORT_APP_ATTEST_ENVIRONMENT --config $C     # development for a development-signed build
+npx wrangler secret put REPORT_APP_ATTEST_BUNDLE_VERSIONS --config $C # the installed build's CFBundleVersion
+node --experimental-strip-types --no-warnings scripts/smoke.ts \
+  --base-url https://<e2e-host> --remote --tile <a published tile> --expect-reports appAttest
+```
+
+`--expect-reports unavailable` passes only while `/v1/config` says `reports.available: false` (the
+report check then sees `503 attestationUnavailable`); `--expect-reports appAttest` passes only once
+all three values are valid and `/v1/config` advertises `reports.attestation: "appAttest"` with report
+schema `2..2`. Smoke never submits a valid report.
+
+**CFBundleVersion.** `REPORT_APP_ATTEST_BUNDLE_VERSIONS` must contain, as an exact string, the
+`CFBundleVersion` (`CURRENT_PROJECT_VERSION`) of the build installed on the iPhone. Read it from the
+built app: `/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' <App>.app/Info.plist`. A rebuild with
+a new build number means updating the secret before the next report.
+
+**#35 P21 / P23 on a physical iPhone.** Build a development-signed app with
+`MANNERPATH_API_BASE_URL=https://<e2e-host>` ("Apple beta build → API base URL"), install it, then:
+
+- **P21** — submit a report: the app registers its key, fetches a challenge and submits an asserted
+  schema-2 report; expect `201`. Record the evidence in `BETA_E2E_CHECKLIST.md`.
+- **P23** — set `REPORT_APP_ATTEST_BUNDLE_VERSIONS` to a valid value that is *not* the installed
+  build (e.g. `9999`) and submit a report: expect "Update the app" (`detail: bundleVersion`) with the
+  key kept. Restore the build's value and confirm the next report succeeds without re-registering.
+
+**Cleanup.** Once the run is recorded, remove both disposable resources. Each command names only the
+`e2e` Worker or database; none resolves staging or production.
+
+```sh
+npx wrangler delete --config $C                 # the mannerpath-api-e2e-<s> Worker and its secrets
+npx wrangler d1 delete mannerpath-e2e-<s>       # the disposable database, reports and keys included
+rm $C
+```

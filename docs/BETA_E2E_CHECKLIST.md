@@ -219,9 +219,8 @@ signing identifiers. A group missing from one identifier fails only on device, n
    confirm the built `Info.plist` holds it) and a development
    signing identity whose four identifiers have the App Group (S1–S4). For P21/P23, set
    `REPORT_APP_ATTEST_ENVIRONMENT=development` and
-   list the build's `CFBundleVersion` — but `OPERATIONS.md` requires the blue/green report carry-over
-   decision before App Attest values are set on any remote environment, so use a disposable
-   environment or settle that decision first.
+   list the build's `CFBundleVersion` on the disposable E2E environment (`OPERATIONS.md`
+   "Disposable App Attest E2E environment", #55), never on the long-lived staging database.
 3. On a device that still has the previous beta, run P2 (upgrade) and WG5 (Watch migration). Then
    delete the app and walk P1, P3–P24, G1–G9, W1–W10, WG1–WG6, S1–S4 and A1–A3 in order,
    standing inside the published Taito area
@@ -240,5 +239,6 @@ signing identifiers. A group missing from one identifier fails only on device, n
 - **L4** No offline turn-by-turn routing (ADR-0004): offline users get straight-line distance and bearing.
 - **L5** Remote report acceptance stays closed until the App Attest values are set, which
   `OPERATIONS.md` step 6 makes conditional on deciding how reports survive a blue/green switch.
+  P21/P23 run on the disposable E2E environment (#55) instead, so they do not wait for that decision.
 - **L6** Widgets (#32) show only the single nearest cached place and refresh hourly at best; they
   never fetch or locate on their own, so they go stale until the app is opened.

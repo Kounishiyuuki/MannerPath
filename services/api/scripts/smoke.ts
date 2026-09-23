@@ -12,8 +12,13 @@
 //   npm run local:smoke
 //   npm run local:smoke -- --tile 14/14553/6450
 //   node --experimental-strip-types scripts/smoke.ts --base-url https://staging.example --remote
+//
+// `--expect-reports unavailable|appAttest` additionally pins which report configuration the target
+// must advertise, so the disposable App Attest environment (docs/OPERATIONS.md) can prove it failed
+// closed before its App Attest values were set and speaks schema 2 after.
 import { DATA_TILE_ZOOM, parseTileId } from "../src/geo/tile.ts";
 import { CONFIG_RESOURCES, ConfigBodyV1 } from "../src/config/dto.ts";
+import { ATTESTED_REPORT_SCHEMA_VERSION } from "../src/reports/dto.ts";
 import { SpotDetailBodyV1 } from "../src/spots/dto.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 
@@ -24,13 +29,14 @@ const EMPTY_TILE = `${DATA_TILE_ZOOM}/0/0`;
 const DEFAULT_TILE = `${DATA_TILE_ZOOM}/14553/6450`;
 
 function parseArgs(argv: string[]) {
-  const args = { baseUrl: LOCAL_BASE_URL, tile: "", remote: false };
+  const args = { baseUrl: LOCAL_BASE_URL, tile: "", remote: false, expectReports: "" };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--remote") args.remote = true;
     else if (arg === "--base-url") args.baseUrl = argv[++i] ?? "";
     else if (arg === "--tile") args.tile = argv[++i] ?? "";
-    else throw new Error(`unknown argument: ${arg}. Usage: smoke.ts [--base-url <url> --remote] [--tile z/x/y]`);
+    else if (arg === "--expect-reports") args.expectReports = argv[++i] ?? "";
+    else throw new Error(`unknown argument: ${arg}. Usage: smoke.ts [--base-url <url> --remote] [--tile z/x/y] [--expect-reports unavailable|appAttest]`);
   }
   const url = new URL(args.baseUrl);
   const loopback = url.hostname === "127.0.0.1" || url.hostname === "localhost" || url.hostname === "[::1]";
@@ -38,6 +44,9 @@ function parseArgs(argv: string[]) {
     throw new Error(`refusing to reach ${url.origin}: a non-loopback target needs an explicit --remote`);
   }
   if (!loopback && url.protocol !== "https:") throw new Error(`refusing a non-https remote target: ${url.origin}`);
+  if (!["", "unavailable", "appAttest"].includes(args.expectReports)) {
+    throw new Error(`--expect-reports must be unavailable or appAttest, got ${args.expectReports}`);
+  }
   if (args.tile !== "" && parseTileId(args.tile) === null) throw new Error(`--tile must be a canonical z/x/y id, got ${args.tile}`);
   return { ...args, baseUrl: url.origin, loopback };
 }
@@ -131,6 +140,18 @@ const agrees = available === null ? false : available
 check("report endpoint configuration", agrees && reportRes.status !== 201,
   `configReportsAvailable=${available} status=${reportRes.status} error=${reportBody.error ?? "-"}`
   + (available === false ? " (fail-closed; expected until the App Attest values are configured)" : ""));
+
+// 8. Optional: the report configuration the operator expects at this point of the E2E sequence.
+if (args.expectReports !== "") {
+  const reports = config.success ? config.data.reports : null;
+  const ok = reports !== null && (args.expectReports === "unavailable"
+    ? !reports.available
+    : reports.available && reports.attestation === "appAttest"
+      && config.success && config.data.schemaVersions.report === ATTESTED_REPORT_SCHEMA_VERSION
+      && config.data.minimumSupportedSchemaVersions.report === ATTESTED_REPORT_SCHEMA_VERSION);
+  check(`reports ${args.expectReports}`, ok,
+    `available=${reports?.available} attestation=${reports?.attestation ?? "-"} report=${config.success ? `${config.data.minimumSupportedSchemaVersions.report}..${config.data.schemaVersions.report}` : "?"}`);
+}
 
 const failed = checks.filter((c) => !c.ok);
 console.log(`\n${checks.length - failed.length}/${checks.length} checks passed`);
