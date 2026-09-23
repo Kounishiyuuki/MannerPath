@@ -77,6 +77,11 @@ struct ContentView: View {
                 }
             }
         }
+        .onOpenURL { url in
+            guard let parsed = NearbyGlance.spotID(from: url) else { return }
+            path = []
+            if let id = parsed { path.append(id) }
+        }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active && eligibilityNoticeAccepted { activateNearby() }
         }
@@ -124,6 +129,9 @@ struct ContentView: View {
     private func activateNearby() {
         model.onCachedCorpusChange = { spots, sources, origin in
             PhoneWatchSync.shared.publish(spots: spots, sources: sources, near: origin)
+        }
+        model.onCachedGlanceChange = { spots, location in
+            PhoneGlancePublisher.publish(spots: spots, near: location)
         }
         model.publishCachedCorpusForWatch()
         model.setFilters(filters)

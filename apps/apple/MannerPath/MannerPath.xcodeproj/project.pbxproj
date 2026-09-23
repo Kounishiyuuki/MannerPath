@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        A00000000000000000000101 /* iPhone widget in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A00000000000000000000102 /* MannerPathWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+        A00000000000000000000201 /* Watch widget in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A00000000000000000000202 /* MannerPathWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		000000000000000000000150 /* MannerPathWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		000000000000000000000310 /* slippy-xyz-vectors.v1.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000300 /* slippy-xyz-vectors.v1.json */; };
 		000000000000000000000311 /* client-data-vectors.v1.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000301 /* client-data-vectors.v1.json */; };
@@ -45,6 +47,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+        A00000000000000000000103 /* Embed iPhone widgets */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (A00000000000000000000101,); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0; };
+        A00000000000000000000203 /* Embed Watch widgets */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (A00000000000000000000201,); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0; };
 		000000000000000000000170 /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -59,6 +63,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        A00000000000000000000102 /* MannerPathWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MannerPathWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+        A00000000000000000000202 /* MannerPathWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MannerPathWatchWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000120 /* MannerPath.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MannerPath.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000210 /* MannerPathTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MannerPathTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000300 /* slippy-xyz-vectors.v1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ../../../contracts/tiles/slippy-xyz-vectors.v1.json; sourceTree = SOURCE_ROOT; };
@@ -70,6 +76,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+        A00000000000000000000104 = {isa = PBXFileSystemSynchronizedRootGroup; path = MannerPathWidgets; sourceTree = "<group>"; };
+        A00000000000000000000204 = {isa = PBXFileSystemSynchronizedRootGroup; path = MannerPathWatchWidgets; sourceTree = "<group>"; };
+        A00000000000000000000304 = {isa = PBXFileSystemSynchronizedRootGroup; path = MannerPathGlanceShared; sourceTree = "<group>"; };
 		000000000000000000000010 /* MannerPath */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = MannerPath;
@@ -103,6 +112,8 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+        A00000000000000000000108 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        A00000000000000000000208 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
@@ -136,6 +147,9 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* MannerPath */,
+                A00000000000000000000104,
+                A00000000000000000000204,
+                A00000000000000000000304,
 				000000000000000000000220 /* MannerPathTests */,
 				000000000000000000000300 /* slippy-xyz-vectors.v1.json */,
 				000000000000000000000301 /* client-data-vectors.v1.json */,
@@ -152,6 +166,8 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* MannerPath.app */,
+                A00000000000000000000102,
+                A00000000000000000000202,
 				000000000000000000000210 /* MannerPathTests.xctest */,
 				3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */,
 				3F1AF78A305EFE5200984937 /* MannerPathWatch Watch AppTests.xctest */,
@@ -163,11 +179,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+        A00000000000000000000105 /* MannerPathWidgets */ = {isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000106; buildPhases = (A00000000000000000000107,A00000000000000000000108,A00000000000000000000109,); buildRules = (); dependencies = (); fileSystemSynchronizedGroups = (A00000000000000000000104,A00000000000000000000304,); name = MannerPathWidgets; productName = MannerPathWidgets; productReference = A00000000000000000000102; productType = "com.apple.product-type.app-extension"; };
+        A00000000000000000000205 /* MannerPathWatchWidgets */ = {isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000206; buildPhases = (A00000000000000000000207,A00000000000000000000208,A00000000000000000000209,); buildRules = (); dependencies = (); fileSystemSynchronizedGroups = (A00000000000000000000204,000000000000000000000320,); name = MannerPathWatchWidgets; productName = MannerPathWatchWidgets; productReference = A00000000000000000000202; productType = "com.apple.product-type.app-extension"; };
 		000000000000000100000000 /* MannerPath */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 000000000000000110000000 /* Build configuration list for PBXNativeTarget "MannerPath" */;
 			buildPhases = (
 				000000000000000120000000 /* Sources */,
+                A00000000000000000000103,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
 				000000000000000000000170 /* Embed Watch Content */,
@@ -180,6 +199,7 @@
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* MannerPath */,
 				000000000000000000000320 /* MannerPathWatchShared */,
+                A00000000000000000000304,
 			);
 			name = MannerPath;
 			packageProductDependencies = (
@@ -215,6 +235,7 @@
 			buildConfigurationList = 3F1AF7A3305EFE5300984937 /* Build configuration list for PBXNativeTarget "MannerPathWatch Watch App" */;
 			buildPhases = (
 				3F1AF777305EFE5100984937 /* Sources */,
+                A00000000000000000000203,
 				3F1AF778305EFE5100984937 /* Frameworks */,
 				3F1AF779305EFE5100984937 /* Resources */,
 			);
@@ -322,6 +343,8 @@
 				000000000000000100000000 /* MannerPath */,
 				000000000000000000000230 /* MannerPathTests */,
 				3F1AF77A305EFE5100984937 /* MannerPathWatch Watch App */,
+                A00000000000000000000105,
+                A00000000000000000000205,
 				3F1AF789305EFE5200984937 /* MannerPathWatch Watch AppTests */,
 				3F1AF793305EFE5300984937 /* MannerPathWatch Watch AppUITests */,
 			);
@@ -329,6 +352,8 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+        A00000000000000000000109 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        A00000000000000000000209 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		000000000000000140000000 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
@@ -359,6 +384,8 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+        A00000000000000000000107 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        A00000000000000000000207 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		000000000000000120000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
@@ -410,6 +437,10 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+        A00000000000000000000111 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+        A00000000000000000000112 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+        A00000000000000000000211 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Debug; };
+        A00000000000000000000212 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Release; };
 		000000000000000011000000 /* Debug configuration for PBXProject "MannerPath" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -553,6 +584,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_FILE = MannerPath-Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MannerPath;
 				INFOPLIST_KEY_MannerPathAPIBaseURL = "$(MANNERPATH_API_BASE_URL)";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location ranks nearby permitted smoking locations by straight-line distance on this device.";
@@ -597,6 +629,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_FILE = MannerPath-Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MannerPath;
 				INFOPLIST_KEY_MannerPathAPIBaseURL = "$(MANNERPATH_API_BASE_URL)";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location ranks nearby permitted smoking locations by straight-line distance on this device.";
@@ -696,7 +729,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp;
+				CODE_SIGN_ENTITLEMENTS = "MannerPathWatch Watch App/MannerPathWatch.entitlements"; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -730,7 +763,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp;
+				CODE_SIGN_ENTITLEMENTS = "MannerPathWatch Watch App/MannerPathWatch.entitlements"; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -837,6 +870,8 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+        A00000000000000000000106 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000111,A00000000000000000000112,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+        A00000000000000000000206 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000211,A00000000000000000000212,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		000000000000000010000000 /* Build configuration list for PBXProject "MannerPath" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

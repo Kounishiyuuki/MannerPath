@@ -5,8 +5,20 @@ nonisolated struct WatchStore {
     let directory: URL
 
     static func applicationSupport() throws -> Self {
-        let directory = try FileManager.default.url(for: .applicationSupportDirectory,
-                                                    in: .userDomainMask, appropriateFor: nil, create: true)
+        guard let directory = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.com.kounishiyuuki.MannerPath"
+        ) else { throw WatchPayloadError.invalid }
+        // Move the existing private Watch cache once so previously synced data stays offline.
+        let old = try FileManager.default.url(for: .applicationSupportDirectory,
+                                              in: .userDomainMask, appropriateFor: nil, create: true)
+        for name in ["nearby-watch-v1.json", "preferences-watch-v1.json"] {
+            let destination = directory.appendingPathComponent(name)
+            let source = old.appendingPathComponent(name)
+            if !FileManager.default.fileExists(atPath: destination.path),
+               FileManager.default.fileExists(atPath: source.path) {
+                try? FileManager.default.copyItem(at: source, to: destination)
+            }
+        }
         return Self(directory: directory)
     }
 

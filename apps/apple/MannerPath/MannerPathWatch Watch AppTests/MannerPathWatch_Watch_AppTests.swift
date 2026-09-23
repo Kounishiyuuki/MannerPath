@@ -41,6 +41,14 @@ struct MannerPathWatch_Watch_AppTests {
         return WatchStore(directory: url)
     }
 
+    @Test func widgetStatesUseSavedSnapshotOnly() {
+        #expect(WatchWidgetState.evaluate(nil, at: now) == .unavailable)
+        #expect(WatchWidgetState.evaluate(snapshot([]), at: now) == .empty)
+        #expect(WatchWidgetState.evaluate(snapshot([spot("a")]), at: now) == .saved)
+        #expect(WatchWidgetState.evaluate(snapshot([spot("a")]), at: now.addingTimeInterval(3_601)) == .stale)
+        #expect(WatchWidgetState.evaluate(snapshot([spot("a")], at: now.addingTimeInterval(1)), at: now) == .stale)
+    }
+
     @Test func codecRoundTripRetainsUnknownAndAttribution() throws {
         let original = snapshot([spot("a", type: "unknown", access: "unknown", paper: "unknown")])
         let decoded = try WatchCodec.snapshot(WatchCodec.encode(original))

@@ -1,6 +1,7 @@
 import CoreLocation
 import Foundation
 import Observation
+import WidgetKit
 import WatchConnectivity
 
 @Observable
@@ -80,7 +81,10 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
 
     func receive(snapshotData: Data?, preferenceData: Data?) {
         if let data = snapshotData,
-           let accepted = try? store?.acceptSnapshot(data) { snapshot = accepted }
+           let accepted = try? store?.acceptSnapshot(data) {
+            snapshot = accepted
+            WidgetCenter.shared.reloadTimelines(ofKind: "WatchNearby")
+        }
         if let data = preferenceData,
            let accepted = try? store?.acceptPreferences(data) { preferences = accepted }
     }
