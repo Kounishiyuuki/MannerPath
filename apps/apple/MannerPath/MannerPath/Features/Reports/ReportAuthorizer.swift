@@ -88,6 +88,10 @@ actor AppAttestReportAuthorizer: ReportAuthorizing {
         switch rejection.reason {
         case .challengeInvalid, .counterNotIncreasing:
             return // The key is fine; the next explicit submit fetches a new challenge.
+        case .assertionInvalid where rejection.requiresAppUpdate:
+            // The deployment does not accept this build. The key itself verified fine and stays
+            // usable after the user updates the app; discarding it would only churn keys.
+            return
         case .keyNotRegistered, .assertionInvalid, .attestationInvalid:
             // Apple refuses to attest a key twice, so a key the server does not hold or no longer
             // accepts cannot be re-registered: the next explicit submit generates a new one.
@@ -96,9 +100,10 @@ actor AppAttestReportAuthorizer: ReportAuthorizing {
     }
 
     /// Advances the persisted key state until a key is registered. Each step persists before the
-    /// next remote call, so an interrupted registration resumes with the same key.
+    /// next remote call, so an interrupted registration resumes with the same key — and, after
+    /// Apple's `serverUnavailable`, with the same key and the same clientDataHash.
     private func registeredKey() async throws -> String {
-        for _ in 0..<4 {
+        for _ in 0..<5 {
             let state: AppAttestKeyState?
             do { state = try store.load() } catch {
                 try discardKey()
@@ -116,43 +121,66 @@ actor AppAttestReportAuthorizer: ReportAuthorizing {
                 guard let keyId = Self.canonicalKeyID(generated) else { throw ReportAuthorizationError.registrationFailed }
                 try persist(.generated(keyId: keyId))
             case .generated(let keyId):
-                let challenge = try await registrationChallenge()
+                // Take the challenge and persist it BEFORE attestKey, so the exact same binding can
+                // be retried; the hash is only ever derived from the persisted challenge.
+                try persist(.prepared(keyId: keyId, challenge: try await registrationChallenge()))
+            case .prepared(let keyId, let challenge):
                 guard let keyBytes = Data(base64Encoded: keyId), let challengeBytes = Data(base64Encoded: challenge) else {
+                    try discardKey()
                     throw ReportAuthorizationError.registrationFailed
                 }
                 let hash = AppAttestBinding.registrationClientDataHash(challenge: challengeBytes, keyId: keyBytes)
                 let attestation: Data
                 do { attestation = try await device.attestKey(keyId, clientDataHash: hash) }
                 catch AppAttestDeviceError.serverUnavailable {
-                    throw ReportAuthorizationError.temporarilyUnavailable // Apple: retry later, same key.
+                    // Apple: retry attestation later with the same key and the same client data
+                    // hash. The `.prepared` state is kept untouched so the next attempt does exactly
+                    // that instead of taking a new challenge.
+                    throw ReportAuthorizationError.temporarilyUnavailable
                 } catch {
                     try discardKey() // Apple: for any other error, discard the key identifier.
                     throw ReportAuthorizationError.registrationFailed
                 }
                 try persist(.attested(keyId: keyId, attestationObject: attestation))
-                try await register(keyId: keyId, challenge: challenge, attestation: attestation)
+                if try await register(keyId: keyId, challenge: challenge, attestation: attestation) {
+                    return keyId
+                }
             case .attested(let keyId, let attestation):
-                // An earlier registration answer was lost or refused as challengeInvalid. Present
-                // the same attestation with a NEW challenge: 409 means it was registered; otherwise
-                // verification fails (nonceMismatch) and the key is discarded.
-                try await register(keyId: keyId, challenge: try await registrationChallenge(), attestation: attestation)
+                // Reconciliation only: an earlier registration answer was lost, so the server may
+                // already hold this key. Re-presenting it under a NEW challenge can only succeed as
+                // 409 keyAlreadyRegistered, which the server answers before verifying anything; if
+                // the key was never stored, verification fails and the key is discarded below.
+                if try await register(keyId: keyId, challenge: try await registrationChallenge(),
+                                      attestation: attestation) {
+                    return keyId
+                }
             }
         }
         throw ReportAuthorizationError.registrationFailed
     }
 
-    private func register(keyId: String, challenge: String, attestation: Data) async throws {
+    /// Returns true when the key is registered. Returns false only when the caller should continue
+    /// the state machine (a replacement key), and throws for everything that ends this attempt.
+    private func register(keyId: String, challenge: String, attestation: Data) async throws -> Bool {
         do {
             try await server.registerKey(keyId: keyId, challenge: challenge, attestationObject: attestation)
             try persist(.registered(keyId: keyId))
+            return true
         } catch ReportAPIError.attestationRejected(let rejection) {
             switch rejection.reason {
             case .challengeInvalid:
-                return // Nothing was stored; the loop reconciles with a fresh challenge.
-            default:
+                // Definite: the server did NOT register the key, and this attestation object is
+                // bound to the challenge it was created with, so it can never satisfy another one.
+                // Apple will not attest the same key twice either, so the key is spent.
                 try discardKey()
-                if rejection.requiresAppUpdate { throw ReportAuthorizationError.updateRequired }
-                // attestationInvalid: the loop may generate one replacement key within this call.
+                throw ReportAuthorizationError.registrationFailed
+            case .attestationInvalid where rejection.requiresAppUpdate:
+                try discardKey()
+                throw ReportAuthorizationError.updateRequired
+            default:
+                // Including the reconciliation of a key the server never stored (nonceMismatch).
+                try discardKey()
+                return false
             }
         } catch ReportAPIError.rejected(503, _) {
             throw ReportAuthorizationError.serviceUnavailable

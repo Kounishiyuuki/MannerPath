@@ -203,6 +203,9 @@ final class ReportModel {
                 if let authorizedKeyID, let authorizer {
                     await authorizer.handleRejection(rejection, keyId: authorizedKeyID)
                 }
+                // `detail: bundleVersion` is about the build, not the key: reporting is closed
+                // until the app is updated, so no further submit can churn a new key.
+                if rejection.requiresAppUpdate { availability = .incompatible }
                 submission = .authorizationFailed(Self.rejectionMessage(rejection))
             case .challengeLimited(let seconds):
                 guard clearDefiniteAttempt() else { return }

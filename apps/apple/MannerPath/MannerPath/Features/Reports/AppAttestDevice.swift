@@ -50,17 +50,23 @@ nonisolated struct SystemAppAttestDevice: AppAttestDevice {
 /// The locally persisted App Attest key, which is not the report installId and is never derived
 /// from or sent with it.
 nonisolated enum AppAttestKeyState: Codable, Equatable, Sendable {
-    /// generateKey succeeded; attestKey has not (yet) produced an attestation object.
+    /// generateKey succeeded; no registration challenge has been taken for it yet.
     case generated(keyId: String)
+    /// A registration challenge was issued and attestKey has not succeeded yet. The challenge is
+    /// persisted because Apple requires a retry after `serverUnavailable` to use the same key AND
+    /// the same clientDataHash: the hash is recomputed from this very challenge, never a new one.
+    case prepared(keyId: String, challenge: String)
     /// attestKey succeeded but the server's registration answer was not seen. Apple refuses to
     /// attest a key twice, so the attestation object is kept to reconcile with a fresh challenge:
-    /// the server answers 409 for an already-registered key before it verifies anything.
+    /// the server answers 409 for an already-registered key before it verifies anything. If the key
+    /// was not stored, that reconciliation fails verification and the key is discarded.
     case attested(keyId: String, attestationObject: Data)
     case registered(keyId: String)
 
     var keyId: String {
         switch self {
-        case .generated(let keyId), .attested(let keyId, _), .registered(let keyId): keyId
+        case .generated(let keyId), .prepared(let keyId, _), .attested(let keyId, _),
+             .registered(let keyId): keyId
         }
     }
 }

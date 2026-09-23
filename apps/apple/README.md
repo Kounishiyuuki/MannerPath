@@ -39,9 +39,27 @@ The App Attest key identifier lives in a single protected file, `Application Sup
 confirmed registration, the attestation object needed to reconcile a lost registration response. It
 is not the report `installId`, is never derived from it, and never enters a report payload or a
 saved draft. Apple's keys survive app updates but not reinstallation, migration or restore; the file
-is excluded from backup so a restored copy cannot name a key that no longer exists, and any
-`invalidKey` answer or definite `keyNotRegistered`/`assertionInvalid` verdict discards the local key
-so the next explicit submission registers a new one.
+is excluded from backup so a restored copy cannot name a key that no longer exists.
+
+Registration is a persisted state machine — `generated` → `prepared` → `attested` → `registered` —
+because Apple constrains what a retry may do:
+
+- the registration challenge is taken and persisted (`prepared`) **before** `attestKey`, and the
+  `clientDataHash` is always derived from that persisted challenge. After `DCError.serverUnavailable`
+  the state is kept untouched, so the retry uses the same key *and* the same hash, as Apple requires;
+  no new challenge is taken first.
+- `attestKey` cannot run twice on one key (`invalidKey`), so an attestation object is useful only for
+  the challenge it was built over. A lost registration answer keeps `attested` and is reconciled by
+  re-presenting it under a new challenge: `409 keyAlreadyRegistered` means the server already stored
+  it, and otherwise verification fails (`nonceMismatch`) and the key is discarded.
+- a definite `403 challengeInvalid` from registration says the key was **not** stored, so that
+  attestation object can never satisfy another challenge: the key is discarded and a later explicit
+  submission starts from a fresh one.
+
+A definite `keyNotRegistered`, or an `assertionInvalid` other than `detail: bundleVersion`, discards
+the local key so the next explicit submission registers a new one. `detail: bundleVersion` concerns
+the build rather than the key: reporting becomes update-required and the healthy key is kept for
+after the update.
 
 ## Watch snapshot v1
 

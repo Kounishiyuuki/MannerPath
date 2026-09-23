@@ -40,6 +40,7 @@ private actor FakeAppAttestDevice: AppAttestDevice {
     private(set) var generatedKeyCount = 0
     private(set) var assertionHashes: [Data] = []
     private(set) var attestationHashes: [Data] = []
+    private(set) var attestationKeyIDs: [String] = []
     var nextKeyIDs: [String]
     var generateKeyError: AppAttestDeviceError?
     var attestError: AppAttestDeviceError?
@@ -70,13 +71,17 @@ private actor FakeAppAttestDevice: AppAttestDevice {
     }
 
     func attestKey(_ keyId: String, clientDataHash: Data) async throws -> Data {
+        // Recorded before any failure, so a test can prove a retry used the identical hash.
+        attestationHashes.append(clientDataHash)
+        attestationKeyIDs.append(keyId)
         if let attestError { throw attestError }
         guard keys.contains(keyId), !attested.contains(keyId), !deadKeys.contains(keyId) else {
             throw AppAttestDeviceError.invalidKey // Apple refuses to attest a key twice.
         }
         attested.insert(keyId)
-        attestationHashes.append(clientDataHash)
-        return Data("attestation-\(keyId)".utf8)
+        // The real attestation object embeds the nonce over this exact clientDataHash; the fake
+        // server checks that binding, so no test can certify an impossible registration.
+        return Data("attestation|\(keyId)|\(clientDataHash.base64EncodedString())".utf8)
     }
 
     func generateAssertion(_ keyId: String, clientDataHash: Data) async throws -> Data {
@@ -120,17 +125,31 @@ private actor FakeAppAttestServer: AppAttestServer {
         return bytes.base64EncodedString()
     }
 
+    /// Mirrors the server's order of checks: the challenge is consumed, an already-registered key
+    /// answers 409 before any verification, and only then is the attestation verified against the
+    /// nonce it was built over (docs/API.md POST /app-attest/keys).
     func registerKey(keyId: String, challenge: String, attestationObject: Data) async throws {
         registrations.append(RegistrationCall(keyId: keyId, challenge: challenge, attestationObject: attestationObject))
         if !registrationResults.isEmpty {
             switch registrationResults.removeFirst() {
-            case .success: registeredKeys.insert(keyId)
+            case .success: break
             case .failure(let error): throw error
             }
-            return
+        }
+        if registeredKeys.contains(keyId) { return } // 409 keyAlreadyRegistered: usable as is.
+        guard let challengeBytes = Data(base64Encoded: challenge), let keyBytes = Data(base64Encoded: keyId) else {
+            throw ReportAPIError.rejected(400, "invalidKeyRegistration")
+        }
+        let expected = AppAttestBinding.registrationClientDataHash(challenge: challengeBytes, keyId: keyBytes)
+        let bound = "attestation|\(keyId)|\(expected.base64EncodedString())"
+        guard String(decoding: attestationObject, as: UTF8.self) == bound else {
+            throw ReportAPIError.attestationRejected(.init(reason: .attestationInvalid, detail: "nonceMismatch"))
         }
         registeredKeys.insert(keyId)
     }
+
+    /// Marks a key as stored server-side without the client having seen the answer.
+    func pretendStored(_ keyId: String) { registeredKeys.insert(keyId) }
 
     func challenges() -> [AppAttestChallengePurpose] { challengeRequests }
     func registrationCalls() -> [RegistrationCall] { registrations }
@@ -326,13 +345,15 @@ struct AppAttestAuthorizerTests {
         await #expect(throws: ReportAuthorizationError.temporarilyUnavailable) {
             try await authorizer.authorize(payload: payload)
         }
-        let attested = try #require(store.current)
-        #expect(attested == .attested(keyId: FakeAppAttestDevice.keyID(1),
-                                      attestationObject: Data("attestation-\(FakeAppAttestDevice.keyID(1))".utf8)))
+        guard case .attested(let attestedKeyID, _) = try #require(store.current) else {
+            Issue.record("An unanswered registration must keep the attested key")
+            return
+        }
+        #expect(attestedKeyID == FakeAppAttestDevice.keyID(1))
+        await server.pretendStored(attestedKeyID)
 
-        // A later attempt re-presents the SAME attestation with a NEW challenge; 409 means usable.
-        // (the fake models 201/409 alike: the client maps both to "this key is usable")
-        await server.set(registrationResults: [.success(())])
+        // A later attempt re-presents the SAME attestation with a NEW challenge. The server holds
+        // the key, so it answers 409 before verifying the (now unbindable) attestation.
         _ = try await authorizer.authorize(payload: payload)
         let registrations = await server.registrationCalls()
         #expect(registrations.count == 2)
@@ -343,20 +364,48 @@ struct AppAttestAuthorizerTests {
         #expect(store.current == .registered(keyId: FakeAppAttestDevice.keyID(1)))
     }
 
-    @Test func challengeInvalidDuringRegistrationRetriesWithAFreshChallengeAndSameKey() async throws {
+    @Test func definiteRegistrationChallengeInvalidDiscardsTheSpentAttestation() async throws {
         let device = FakeAppAttestDevice()
         let server = FakeAppAttestServer()
         let store = MemoryKeyStore()
         await server.set(registrationResults: [
-            .failure(ReportAPIError.attestationRejected(.init(reason: .challengeInvalid, detail: "challenge expired"))),
-            .success(())
+            .failure(ReportAPIError.attestationRejected(.init(reason: .challengeInvalid, detail: "challenge expired")))
         ])
-        _ = try await makeAuthorizer(device: device, server: server, store: store).authorize(payload: payload)
+        let authorizer = makeAuthorizer(device: device, server: server, store: store)
+        await #expect(throws: ReportAuthorizationError.registrationFailed) {
+            try await authorizer.authorize(payload: payload)
+        }
+        // Definite: the key was not registered, and the attestation object is bound to the
+        // challenge it was made over, so it can never satisfy a different one. The key is spent.
+        #expect(store.current == nil)
+        #expect(await server.registrationCalls().count == 1)
+        #expect(await device.counts().generated == 1)
+
+        // A later explicit attempt starts from a brand new key rather than reusing the old object.
+        _ = try await authorizer.authorize(payload: payload)
         let registrations = await server.registrationCalls()
         #expect(registrations.count == 2)
-        #expect(registrations[0].keyId == registrations[1].keyId)
-        #expect(registrations[0].challenge != registrations[1].challenge)
-        #expect(await device.counts().generated == 1)
+        #expect(registrations[0].keyId != registrations[1].keyId)
+        #expect(registrations[0].attestationObject != registrations[1].attestationObject)
+        #expect(store.current == .registered(keyId: FakeAppAttestDevice.keyID(2)))
+    }
+
+    @Test func reconcilingAKeyTheServerNeverStoredDiscardsItAndRegistersAReplacement() async throws {
+        let device = FakeAppAttestDevice()
+        let server = FakeAppAttestServer()
+        let store = MemoryKeyStore()
+        // The registration POST was lost before it reached the server: nothing was stored.
+        await server.set(registrationResults: [.failure(URLError(.timedOut))])
+        let authorizer = makeAuthorizer(device: device, server: server, store: store)
+        await #expect(throws: ReportAuthorizationError.temporarilyUnavailable) {
+            try await authorizer.authorize(payload: payload)
+        }
+        // Reconciliation under a new challenge cannot verify (nonceMismatch), so the key goes and
+        // exactly one replacement is registered.
+        let authorization = try await authorizer.authorize(payload: payload)
+        #expect(authorization.keyId == FakeAppAttestDevice.keyID(2))
+        #expect(await device.counts().generated == 2)
+        #expect(store.current == .registered(keyId: FakeAppAttestDevice.keyID(2)))
     }
 
     @Test func keyNotRegisteredAtChallengeRecoversWithANewKeyExactlyOnce() async throws {
@@ -386,7 +435,7 @@ struct AppAttestAuthorizerTests {
         #expect(store.current == .registered(keyId: FakeAppAttestDevice.keyID(2)))
     }
 
-    @Test func appleServerUnavailableKeepsTheSameUnattestedKey() async throws {
+    @Test func appleServerUnavailableRetriesWithTheSameKeyAndTheSameClientDataHash() async throws {
         let device = FakeAppAttestDevice()
         let server = FakeAppAttestServer()
         let store = MemoryKeyStore()
@@ -395,10 +444,29 @@ struct AppAttestAuthorizerTests {
         await #expect(throws: ReportAuthorizationError.temporarilyUnavailable) {
             try await authorizer.authorize(payload: payload)
         }
-        #expect(store.current == .generated(keyId: FakeAppAttestDevice.keyID(1)))
+        // The challenge taken before attestKey is persisted, so the exact binding can be repeated.
+        guard case .prepared(let keyId, let challenge) = try #require(store.current) else {
+            Issue.record("serverUnavailable must keep the prepared registration binding")
+            return
+        }
+        #expect(keyId == FakeAppAttestDevice.keyID(1))
+
         await device.set(attestError: nil)
         _ = try await authorizer.authorize(payload: payload)
-        #expect(await device.counts().generated == 1) // Apple: retry with the same key
+
+        // Apple requires the retry to use the same key AND the same client data hash.
+        let hashes = await device.attestationHashes
+        let keyIDs = await device.attestationKeyIDs
+        #expect(hashes.count == 2)
+        #expect(hashes[0] == hashes[1])
+        #expect(keyIDs == [FakeAppAttestDevice.keyID(1), FakeAppAttestDevice.keyID(1)])
+        let challengeBytes = try #require(Data(base64Encoded: challenge))
+        let keyBytes = try #require(Data(base64Encoded: keyId))
+        #expect(hashes[0] == AppAttestBinding.registrationClientDataHash(challenge: challengeBytes, keyId: keyBytes))
+        // No second registration challenge was taken before that retry.
+        let registrationChallenges = await server.challenges().filter { $0 == .registration }
+        #expect(registrationChallenges.count == 1)
+        #expect(await device.counts().generated == 1)
         #expect(store.current == .registered(keyId: FakeAppAttestDevice.keyID(1)))
     }
 
@@ -463,9 +531,17 @@ struct AppAttestAuthorizerTests {
         for reason in [AttestationRejection.Reason.keyNotRegistered, .assertionInvalid] {
             let store = MemoryKeyStore(.registered(keyId: keyId))
             let authorizer = makeAuthorizer(device: FakeAppAttestDevice(), server: FakeAppAttestServer(), store: store)
-            await authorizer.handleRejection(.init(reason: reason, detail: nil), keyId: keyId)
+            await authorizer.handleRejection(.init(reason: reason, detail: "malformed"), keyId: keyId)
             #expect(store.current == nil)
         }
+        // `detail: bundleVersion` is about the build, not the key: the key stays registered and is
+        // usable again once the user updates the app.
+        let bundleStore = MemoryKeyStore(.registered(keyId: keyId))
+        let bundleAuthorizer = makeAuthorizer(device: FakeAppAttestDevice(), server: FakeAppAttestServer(),
+                                              store: bundleStore)
+        await bundleAuthorizer.handleRejection(.init(reason: .assertionInvalid, detail: "bundleVersion"),
+                                               keyId: keyId)
+        #expect(bundleStore.current == .registered(keyId: keyId))
         // A rejection naming another key never touches the current one.
         let store = MemoryKeyStore(.registered(keyId: keyId))
         let authorizer = makeAuthorizer(device: FakeAppAttestDevice(), server: FakeAppAttestServer(), store: store)
@@ -678,6 +754,76 @@ struct AppAttestReportFlowTests {
         await model.submit()
         #expect(model.submission == .accepted(receiptV2))
         #expect(await device.counts().assertions == 2)
+    }
+
+    @Test @MainActor func bundleVersionAssertionRejectionKeepsTheKeyAndAsksForAnUpdate() async throws {
+        let device = FakeAppAttestDevice()
+        let server = FakeAppAttestServer()
+        let keyStore = MemoryKeyStore()
+        let authorizer = makeAuthorizer(device: device, server: server, store: keyStore)
+        let rejection = AttestationRejection(reason: .assertionInvalid, detail: "bundleVersion")
+        let submitter = RecordingAttestedSubmitter(results: [.failure(ReportAPIError.attestationRejected(rejection))])
+        let store = tempStore()
+        let model = model(availability: .available(appAttestLimits), authorizer: authorizer,
+                          submitter: submitter, store: store)
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: existsDraft.spotId)
+        await model.submit()
+
+        #expect(model.availability == .incompatible)
+        #expect(keyStore.current == .registered(keyId: FakeAppAttestDevice.keyID(1)))
+        #expect(model.draft != nil)
+        #expect(try store.load() != nil)
+        #expect(try store.submissionMarker() == nil) // definite: nothing was stored server-side
+        // Another tap cannot submit, so it cannot churn a replacement key either.
+        await model.submit()
+        #expect(await submitter.sent().count == 1)
+        #expect(await device.counts().generated == 1)
+    }
+
+    @Test @MainActor func nonBundleVersionAssertionRejectionRecoversWithANewKey() async throws {
+        let device = FakeAppAttestDevice()
+        let server = FakeAppAttestServer()
+        let keyStore = MemoryKeyStore()
+        let authorizer = makeAuthorizer(device: device, server: server, store: keyStore)
+        let rejection = AttestationRejection(reason: .assertionInvalid, detail: "signature")
+        let submitter = RecordingAttestedSubmitter(results: [.failure(ReportAPIError.attestationRejected(rejection)),
+                                                             .success(receiptV2)])
+        let model = model(availability: .available(appAttestLimits), authorizer: authorizer,
+                          submitter: submitter, store: tempStore())
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: existsDraft.spotId)
+        await model.submit()
+
+        if case .authorizationFailed = model.submission {} else { Issue.record("Expected a definite rejection") }
+        #expect(model.availability == .available(appAttestLimits)) // still reportable
+        #expect(keyStore.current == nil) // the documented key-unusable recovery
+        await model.submit()
+        #expect(model.submission == .accepted(receiptV2))
+        #expect(keyStore.current == .registered(keyId: FakeAppAttestDevice.keyID(2)))
+        #expect(await device.counts().generated == 2)
+    }
+
+    @Test @MainActor func challengeAndCounterRejectionsKeepTheRegisteredKey() async throws {
+        for reason in [AttestationRejection.Reason.challengeInvalid, .counterNotIncreasing] {
+            let device = FakeAppAttestDevice()
+            let keyStore = MemoryKeyStore()
+            let authorizer = makeAuthorizer(device: device, server: FakeAppAttestServer(), store: keyStore)
+            let submitter = RecordingAttestedSubmitter(results: [
+                .failure(ReportAPIError.attestationRejected(.init(reason: reason, detail: "d"))),
+                .success(receiptV2)
+            ])
+            let model = model(availability: .available(appAttestLimits), authorizer: authorizer,
+                              submitter: submitter, store: tempStore())
+            await model.refreshAvailability()
+            model.start(type: .exists, spotId: existsDraft.spotId)
+            await model.submit()
+            #expect(keyStore.current == .registered(keyId: FakeAppAttestDevice.keyID(1)), "\(reason)")
+            // A new challenge and a new assertion on the same key resolve it.
+            await model.submit()
+            #expect(model.submission == .accepted(receiptV2), "\(reason)")
+            #expect(await device.counts().generated == 1, "\(reason)")
+        }
     }
 
     @Test @MainActor func challengeLimitAndReportRateLimitBothBlockImmediateRetries() async throws {
