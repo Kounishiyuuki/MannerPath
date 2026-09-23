@@ -15,6 +15,52 @@ Initial capabilities should be minimal. Add location usage descriptions only whe
 
 The iPhone app stores tile snapshots in its Application Support directory. It reads that cache before any network refresh. To enable refreshes, set the `MANNERPATH_API_BASE_URL` Xcode build setting to the API origin (for example through a local, uncommitted `.xcconfig` or an `xcodebuild` build-setting override). The generated Info.plist passes it to the app as `MannerPathAPIBaseURL`. The value is optional; when absent or invalid, Nearby works from the local cache only. Use an HTTPS origin for device builds unless App Transport Security has been configured for a development server.
 
+## App Attest reporting (Issue #46)
+
+The iPhone target carries one capability, `com.apple.developer.devicecheck.appattest-environment`
+(`MannerPath.entitlements`), set to `development` for development builds and device debugging.
+TestFlight and App Store builds ignore that value and use Apple's production App Attest
+environment, so a deployment that verifies attestations must be configured for the environment its
+build actually runs in. The Watch target uses no App Attest API and has no such capability.
+
+The report protocol comes from `GET /v1/config` alone (`reports.attestation`, `schemaVersions.report`):
+`none` with report range 1..1 is the unattested schemaVersion 1 flow, `appAttest` with range 2..2 is
+the attested schemaVersion 2 flow. Anything else, a device without `DCAppAttestService.isSupported`,
+or an unusable key is presented as "reporting unavailable" or "update the app"; the client never
+falls back between protocols and never probes endpoints to infer one.
+
+The assertion binds exact bytes, so the schemaVersion 2 payload is encoded **once** per
+submission: those same `Data` bytes are hashed into the `clientDataHash` and base64-encoded into
+the envelope. `JSONEncoder` does not promise a stable key order — re-encoding the same report can
+produce different bytes — so a second encoding for transport would silently break verification.
+
+The App Attest key identifier lives in a single protected file, `Application Support/AppAttest/key-state.json`
+(complete file protection, excluded from backup), holding the key ID and, only until the server has
+confirmed registration, the attestation object needed to reconcile a lost registration response. It
+is not the report `installId`, is never derived from it, and never enters a report payload or a
+saved draft. Apple's keys survive app updates but not reinstallation, migration or restore; the file
+is excluded from backup so a restored copy cannot name a key that no longer exists.
+
+Registration is a persisted state machine — `generated` → `prepared` → `attested` → `registered` —
+because Apple constrains what a retry may do:
+
+- the registration challenge is taken and persisted (`prepared`) **before** `attestKey`, and the
+  `clientDataHash` is always derived from that persisted challenge. After `DCError.serverUnavailable`
+  the state is kept untouched, so the retry uses the same key *and* the same hash, as Apple requires;
+  no new challenge is taken first.
+- `attestKey` cannot run twice on one key (`invalidKey`), so an attestation object is useful only for
+  the challenge it was built over. A lost registration answer keeps `attested` and is reconciled by
+  re-presenting it under a new challenge: `409 keyAlreadyRegistered` means the server already stored
+  it, and otherwise verification fails (`nonceMismatch`) and the key is discarded.
+- a definite `403 challengeInvalid` from registration says the key was **not** stored, so that
+  attestation object can never satisfy another challenge: the key is discarded and a later explicit
+  submission starts from a fresh one.
+
+A definite `keyNotRegistered`, or an `assertionInvalid` other than `detail: bundleVersion`, discards
+the local key so the next explicit submission registers a new one. `detail: bundleVersion` concerns
+the build rather than the key: reporting becomes update-required and the healthy key is kept for
+after the update.
+
 ## Watch snapshot v1
 
 The iPhone sends two independent Codable JSON payloads through WatchConnectivity

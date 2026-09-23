@@ -50,15 +50,30 @@ nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     }
 }
 
+/// The one report protocol a deployment accepts, chosen from /v1/config and never inferred.
+nonisolated enum ReportProtocol: Equatable, Sendable {
+    /// schemaVersion 1, no attestation.
+    case unattested
+    /// schemaVersion 2: exact payload bytes plus an App Attest assertion over them.
+    case appAttest
+
+    var schemaVersion: Int { self == .unattested ? 1 : 2 }
+}
+
 nonisolated struct ReportLimits: Equatable, Sendable {
     let noteMaxLength: Int
     let maxBodyBytes: Int
+    var submissionProtocol: ReportProtocol = .unattested
+    /// The whole request body limit; for schemaVersion 1 it equals `maxBodyBytes`.
+    var maxSubmissionBytes: Int? = nil
 }
 
 nonisolated enum ReportAvailability: Equatable, Sendable {
     case unknown
     case unavailable
     case incompatible
+    /// The deployment requires App Attest and this device cannot produce it. Never downgraded.
+    case attestationUnsupported
     case available(ReportLimits)
 }
 
@@ -68,7 +83,7 @@ nonisolated enum ReportValidationError: Error, Equatable, Sendable {
 }
 
 nonisolated struct ReportRequest: Encodable, Sendable {
-    let schemaVersion = 1
+    let schemaVersion: Int
     let type: ReportType
     let spotId: String?
     let proposedLocation: ReportCoordinate?
@@ -80,6 +95,8 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId
     }
 
+    /// Encodes once. For schemaVersion 2 the returned bytes are the payload that is both hashed
+    /// into the assertion and base64-encoded into the envelope; never re-encode the draft.
     static func encoded(draft: ReportDraft, installId: UUID, limits: ReportLimits) throws -> Data {
         if draft.type == .missing {
             guard draft.spotId == nil else { throw ReportValidationError.unexpectedSpotID }
@@ -99,7 +116,7 @@ nonisolated struct ReportRequest: Encodable, Sendable {
             guard !note.isEmpty else { throw ReportValidationError.emptyNote }
             guard note.utf16.count <= limits.noteMaxLength else { throw ReportValidationError.noteTooLong }
         }
-        let request = Self(type: draft.type, spotId: draft.spotId,
+        let request = Self(schemaVersion: limits.submissionProtocol.schemaVersion, type: draft.type, spotId: draft.spotId,
                            proposedLocation: draft.proposedLocation?.quantized,
                            observedOn: draft.observedOn, note: draft.note, installId: installId)
         let data = try JSONEncoder().encode(request)
@@ -117,6 +134,31 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         formatter.isLenient = false
         guard let date = formatter.date(from: value) else { return false }
         return formatter.string(from: date) == value
+    }
+}
+
+/// POST /v1/reports schemaVersion 2 (docs/API.md). App Attest material exists only here, in memory,
+/// for one request; it is never written to the draft store.
+nonisolated struct AttestedReportEnvelope: Encodable, Sendable {
+    struct Attestation: Encodable, Sendable {
+        let keyId: String
+        let challenge: String
+        let assertion: String
+    }
+
+    let schemaVersion = 2
+    let payload: String
+    let attestation: Attestation
+
+    enum CodingKeys: String, CodingKey { case schemaVersion, payload, attestation }
+
+    static func encoded(payload: Data, authorization: ReportAuthorization) throws -> Data {
+        let envelope = Self(payload: payload.base64EncodedString(),
+                            attestation: .init(keyId: authorization.keyId, challenge: authorization.challenge,
+                                               assertion: authorization.assertion.base64EncodedString()))
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.withoutEscapingSlashes]
+        return try encoder.encode(envelope)
     }
 }
 

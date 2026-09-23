@@ -123,6 +123,9 @@ struct SpotDetailView: View {
                 case .incompatible:
                     Text("Update the app to submit reports to this server.")
                         .foregroundStyle(.secondary)
+                case .attestationUnsupported:
+                    Text("This device cannot meet this server's security requirement for reports.")
+                        .foregroundStyle(.secondary)
                 }
             }
         }
