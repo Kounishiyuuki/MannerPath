@@ -15,16 +15,20 @@ It is not an App Store submission checklist (Issue #25, "Explicitly deferred").
 | `iPhone` | Requires a physical iPhone |
 | `Watch` | Requires a physical Apple Watch paired with that iPhone |
 | `BACKEND` | Requires a deployed staging/production-like backend or maintainer action (`OPERATIONS.md`) |
-| `BLOCKED` | Cannot pass until the named issue is fixed |
+| `BLOCKED` | Cannot pass until the named issue is fixed (`BLOCKED (#52)` = the API base URL blocker) |
 
 A row may carry more than one status: `AUTO` coverage never replaces the physical check it lists.
 
-## Release blocker found by this checklist
+## Release blocker found by this checklist (#52)
+
+Tracked as **#52** (child of #35).
 
 **A build never receives an API base URL.** `INFOPLIST_KEY_MannerPathAPIBaseURL` is a custom key,
-and Xcode's generated Info.plist (`GENERATE_INFOPLIST_FILE = YES`, no `INFOPLIST_FILE`) ignores
-`INFOPLIST_KEY_*` settings it does not recognise. The build setting itself resolves correctly
-(`-showBuildSettings` prints `INFOPLIST_KEY_MannerPathAPIBaseURL = https://…`), both through a
+and Xcode's generated Info.plist (`GENERATE_INFOPLIST_FILE = YES`) ignores `INFOPLIST_KEY_*`
+settings it does not recognise. Since #32 the target also has an explicit
+`INFOPLIST_FILE = MannerPath-Info.plist`, but that file only declares the `mannerpath` URL scheme,
+so the key is still missing (re-checked on the rebased branch, see "Recorded run"). The build
+setting itself resolves correctly (`-showBuildSettings` prints `INFOPLIST_KEY_MannerPathAPIBaseURL = https://…`), both through a
 command-line override and through an uncommitted `.xcconfig` using the `https:/$()/` escape, yet
 the built app has no `MannerPathAPIBaseURL` key. `NearbyComposition.apiBaseURL` is the only reader
 of the origin, so:
@@ -46,9 +50,12 @@ plutil -p /tmp/mp-dd/Build/Products/Debug-iphonesimulator/MannerPath.app/Info.pl
 ```
 
 On a physical device this blocks **every row that needs published data**, not only the rows tagged
-`BLOCKED (base URL)`: P1–P2, P7–P11, P13–P15, P17 with data, P19–P23, and W2–W9 (the Watch snapshot
-comes from the iPhone's tile cache). The `BLOCKED` tag marks rows whose *automated or simulator*
-evidence cannot be completed either. The `SIM` backend rows were observed
+`BLOCKED (#52)`: P1–P2, P7–P11, P13–P15, P17 with data, P19–P23, W2–W9 (the Watch snapshot
+comes from the iPhone's tile cache), and every widget row that needs a saved place: G2–G4, G7, WG2, WG3 and S2–S4 (the glance
+and the Watch snapshot are derived from that cache). WG5 also needs a previous beta that actually
+holds a Watch snapshot; a previous build with the same blocker has none to migrate. G1, the
+"no snapshot" half of G5, G6, G8, G9, WG1, WG4, WG6 and S1 can run before #52 is fixed. The
+`BLOCKED` tag marks rows whose *automated or simulator* evidence cannot be completed either. The `SIM` backend rows were observed
 by adding the key to a scratch copy of the built app (`PlistBuddy -c "Add :MannerPathAPIBaseURL
 string http://127.0.0.1:8787"`, then ad-hoc re-signing) — a test-only workaround, never a build step.
 
@@ -69,6 +76,16 @@ remote deployment was used.
 | `npm run local:quality` | `"failedChecks": 0` |
 | `npm run local:smoke` (local env) | `7/7 checks passed`, report gate `400 invalidReport` (`disabled`) |
 | `local:smoke --base-url http://127.0.0.1:8788` against `wrangler dev --local --env staging` | `7/7 checks passed`, report gate `503 attestationUnavailable`, `/v1/config` `reports.available:false`, `report=2..2` |
+
+After rebasing onto `636641f` (origin/main with PR #51 / #32), same day and machine, only the
+Apple suites were re-run; the `SIM` rows and the backend commands above were not repeated.
+
+| Command | Result |
+| --- | --- |
+| `make apple-validate` | iOS `** TEST SUCCEEDED **` (121 passed, 0 failed); watchOS `** BUILD SUCCEEDED **` |
+| Watch tests (command below) | `** TEST SUCCEEDED **` (17 passed, 0 failed) |
+| `make contract` | `MannerPath contract files present.` |
+| #52 reproduction (below) | `** BUILD SUCCEEDED **`; built `Info.plist` has `mannerpath` URL scheme, no `MannerPathAPIBaseURL` |
 
 Watch tests are not part of `make apple-validate`; run them explicitly:
 
@@ -102,9 +119,9 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
 | P16 | Japanese localization | `SIM` · `iPhone` | Simulator (Japanese system language): eligibility notice, Nearby (loaded, empty, location denied), Watch first-use and location sections. Not observed: filters, detail, Data & Privacy, report form |
 | P17 | Dynamic Type / accessibility sizes | `SIM` · `iPhone` | Largest accessibility size: header row stacks vertically, no clipping at top. Scroll every screen on device |
 | P18 | Report draft save / resume / discard | `AUTO` · `iPhone` | `ReportFlowTests`; device: draft survives relaunch |
-| P19 | Report submission (unattested, local/`disabled`) | `AUTO` · `BLOCKED (base URL)` | `ReportFlowTests`; device needs a reachable origin |
+| P19 | Report submission (unattested, local/`disabled`) | `AUTO` · `BLOCKED (#52)` | `ReportFlowTests`; device needs a reachable origin |
 | P20 | Report failure / retry | `AUTO` · `iPhone` | Ambiguous POST keeps the draft and never resends by itself; rate limit blocks immediate retry |
-| P21 | App Attest: register → assert → `201` | `AUTO` · `iPhone` · `BACKEND` · `BLOCKED (base URL)` | Needs a signed device build, a deployment with the three App Attest values, and its `CFBundleVersion` listed |
+| P21 | App Attest: register → assert → `201` | `AUTO` · `iPhone` · `BACKEND` · `BLOCKED (#52)` | Needs a signed device build, a deployment with the three App Attest values, and its `CFBundleVersion` listed |
 | P22 | App Attest: unsupported device / unavailable config | `AUTO` · `iPhone` | `unsupportedDeviceNeverAttemptsAnything`, `appAttestDeploymentOnAnUnsupportedDeviceIsUnavailableNotDowngraded`, `unavailableConfigDisablesSubmission`. The simulator only showed the unrelated "availability unknown" state (config unreachable) |
 | P23 | App Attest: bundle version not listed | `AUTO` · `iPhone` · `BACKEND` | "Update the app"; key kept |
 | P24 | Launch / background / foreground | `iPhone` | Background 10+ min, return: location refresh, no duplicate requests, detail still open |
@@ -135,6 +152,51 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
 | W9 | Full scroll, Digital Crown | `Watch` | Every list and detail scrolls to its last row |
 | W10 | Large text | `Watch` | The watchOS simulator refuses content-size changes (`Runtime does not support dynamic text`) |
 
+## iPhone widget (#32)
+
+The widget reads only `nearby-glance-v1.json` from the App Group, written by the app when its
+Nearby cache callback runs. States come from `NearbyGlance.state(at:)`: *stale* after one hour, or
+when the location was last-known; *empty* when a fresh glance has no place; *unavailable* when
+there is no readable file.
+
+| # | Case | Status | Evidence / how to check on device |
+| --- | --- | --- | --- |
+| G1 | Widget can be added (small, medium, Lock Screen rectangular) | `iPhone` | Home Screen and Lock Screen gallery list "Nearby"; each family renders |
+| G2 | App Group snapshot is readable by the widget | `AUTO` · `iPhone` · `BLOCKED (#52)` | `freshStaleEmptyAndDecode`, `malformedAndUnavailable`. Device: after Nearby loads, the widget shows the same nearest place (not "Nearby data unavailable") — proves the signed group works for both processes |
+| G3 | Fresh state | `AUTO` · `iPhone` · `BLOCKED (#52)` | `freshStaleEmptyAndDecode`. Device: name, distance and "Verified …" / "Verification date unknown" match the app's first unfiltered result |
+| G4 | Stale state | `AUTO` · `iPhone` · `BLOCKED (#52)` | `freshStaleEmptyAndDecode`. Device: wait over an hour without opening the app (or use a last-known location); "Nearby data is old · Open app to refresh", no distance shown |
+| G5 | Empty / no snapshot | `AUTO` · `iPhone` | `freshStaleEmptyAndDecode`, `malformedAndUnavailable`. Device, fresh install before opening Nearby: "Nearby data unavailable". Outside the Taito area after a completed load (needs #52): "No saved nearby places" |
+| G6 | Tap opens the app | `iPhone` | Every state opens MannerPath at Nearby (`mannerpath://nearby`) |
+| G7 | Spot-specific deep link | `AUTO` · `iPhone` · `BLOCKED (#52)` | `deepLinks`, `widgetLinkCanResolveCachedSpotHiddenByFilters`. Device: tap a fresh widget; the spot's detail opens, including with a filter that hides it; a spot no longer nearby opens plain Nearby |
+| G8 | Widget does not request location or network | `iPhone` | Source: no `CoreLocation` / `URLSession` in `MannerPathWidgets`, `MannerPathGlanceShared`. Device: in airplane mode the widget still shows the saved state and reloads without a location prompt; Settings → Privacy → Location Services lists no separate widget entry |
+| G9 | App Intent "Open Nearby" | `AUTO` · `iPhone` | `appIntentOpensApp`; device: widget configuration shows it and it opens the app |
+
+## Watch widget / Smart Stack (#32)
+
+The Watch widget reads the existing Watch snapshot from the App Group. It is *stale* one hour after
+`generatedAt`, *unavailable* when there is no readable snapshot (including an unavailable group).
+
+| # | Case | Status | Evidence / how to check on device |
+| --- | --- | --- | --- |
+| WG1 | Entry can be added (Smart Stack / rectangular complication) | `Watch` | Smart Stack suggests or allows adding "Nearby"; a face with a rectangular slot accepts it |
+| WG2 | Existing Watch snapshot is shown | `AUTO` · `Watch` · `BLOCKED (#52)` | `widgetStatesUseSavedSnapshotOnly`. Device after W2: first place name, "From iPhone", verification age |
+| WG3 | Stale / offline state is honest | `AUTO` · `Watch` · `BLOCKED (#52)` | `widgetStatesUseSavedSnapshotOnly`. Device: iPhone off / out of range for over an hour; "Old data from iPhone", never presented as current. No snapshot: "Open iPhone app to sync" |
+| WG4 | Tap opens the Watch app | `Watch` | Tapping the entry launches MannerPath on Watch, which re-ranks with the Watch's location |
+| WG5 | Upgrade migration from the private Watch store | `AUTO` · `Watch` | `groupMigrationKeepsNewestStateAndSurvivesMissingOrCorruptOldFiles`, `migrationReconcilesNewerPrivateSnapshotAndPreferences`. Device: with the previous beta (pre-#32) holding a snapshot and changed Watch filters, install the new build over it **before** opening iPhone Nearby; the Watch shows the old places and keeps the filters, and the widget shows them too |
+| WG6 | Widget does not request location or network | `Watch` | Source: no `CoreLocation` / `URLSession` in `MannerPathWatchWidgets`, `MannerPathWatchShared`. Device: no location prompt from the widget |
+
+## App Group and signing (#32)
+
+`group.com.kounishiyuuki.MannerPath` must be registered in Apple Developer and enabled for all four
+signing identifiers. A group missing from one identifier fails only on device, not in the simulator.
+
+| # | Target | Status | How to check on device |
+| --- | --- | --- | --- |
+| S1 | iPhone app `com.kounishiyuuki.MannerPath` | `iPhone` · `BACKEND` | Development-signed install with the group entitlement succeeds (sharing itself is proved by S2) |
+| S2 | iPhone widget `com.kounishiyuuki.MannerPath.widgets` | `iPhone` · `BACKEND` | G2 passes (widget is not stuck on "Nearby data unavailable" after a load) |
+| S3 | Watch app `com.kounishiyuuki.MannerPath.watchkitapp` | `Watch` · `BACKEND` | W3 still works and WG2 shows the snapshot the Watch app saved |
+| S4 | Watch widget `com.kounishiyuuki.MannerPath.watchkitapp.widgets` | `Watch` · `BACKEND` | WG2 passes (not stuck on "Open iPhone app to sync" while the Watch app shows places) |
+
 ## Accessibility
 
 | # | Case | Status | Evidence |
@@ -146,13 +208,15 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
 ## Physical-device procedure
 
 1. Deploy a staging backend (`OPERATIONS.md` steps 1–5) and record the smoke output.
-2. Build the iPhone app with the staging HTTPS origin (after the base-URL blocker is fixed) and a
-   development signing identity. For P21/P23, set `REPORT_APP_ATTEST_ENVIRONMENT=development` and
+2. Build the iPhone app with the staging HTTPS origin (after #52 is fixed) and a development
+   signing identity whose four identifiers have the App Group (S1–S4). For P21/P23, set
+   `REPORT_APP_ATTEST_ENVIRONMENT=development` and
    list the build's `CFBundleVersion` — but `OPERATIONS.md` requires the blue/green report carry-over
    decision before App Attest values are set on any remote environment, so use a disposable
    environment or settle that decision first.
-3. On a device that still has the previous beta, run P2 (upgrade). Then delete the app and walk
-   P1, P3–P24, W1–W10 and A1–A3 in order, standing inside the published Taito area
+3. On a device that still has the previous beta, run P2 (upgrade) and WG5 (Watch migration). Then
+   delete the app and walk P1, P3–P24, G1–G9, W1–W10, WG1–WG6, S1–S4 and A1–A3 in order,
+   standing inside the published Taito area
    (tiles `14/14552–14554/6449–6450`).
 4. For each row record: pass/fail, device + OS version, build number, and a screenshot for failures.
 5. File every failure as its own issue referencing #35; do not widen #35.
@@ -168,4 +232,5 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
 - **L4** No offline turn-by-turn routing (ADR-0004): offline users get straight-line distance and bearing.
 - **L5** Remote report acceptance stays closed until the App Attest values are set, which
   `OPERATIONS.md` step 6 makes conditional on deciding how reports survive a blue/green switch.
-- **L6** Widgets / complications (#32) are outside this beta.
+- **L6** Widgets (#32) show only the single nearest cached place and refresh hourly at best; they
+  never fetch or locate on their own, so they go stale until the app is opened.
