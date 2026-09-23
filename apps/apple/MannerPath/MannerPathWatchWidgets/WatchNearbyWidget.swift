@@ -48,7 +48,7 @@ struct WatchNearbyWidget: Widget {
                             if let name = spot.name { Text(name).lineLimit(1) }
                             else { Text("Saved place") }
                         }
-                        Text("Saved data is old")
+                        Text("Old data from iPhone")
                     case .empty:
                         Text("No saved places")
                     case .saved:
