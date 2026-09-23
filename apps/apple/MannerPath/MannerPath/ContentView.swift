@@ -5,6 +5,7 @@ import UIKit
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @AppStorage("eligibilityNoticeAccepted") private var eligibilityNoticeAccepted = false
     @State private var model = NearbyComposition.makeModel()
     @State private var reportModel = ReportComposition.makeModel()
@@ -133,6 +134,12 @@ struct ContentView: View {
 
     private var mapCenter: SpotCoordinate? {
         (model.resultsLocation ?? model.displayLocation)?.coordinate
+    }
+
+    private var adaptiveRowLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(spacing: 8))
     }
 
     @ViewBuilder
@@ -354,7 +361,7 @@ struct ContentView: View {
     private var destinationSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Walking destination").font(.headline)
-            HStack {
+            adaptiveRowLayout {
                 TextField("Search a destination in Apple Maps", text: $destinationQuery)
                     .textFieldStyle(.roundedBorder)
                     .submitLabel(.search)
@@ -459,10 +466,10 @@ struct ContentView: View {
             }
         case .usable(let location):
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
+                adaptiveRowLayout {
                     Text(location.isLastKnown ? "Last device location" : "Device location")
                         .font(.subheadline.weight(.semibold))
-                    Spacer()
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                     Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
                         .buttonStyle(.bordered)
                 }
@@ -510,7 +517,7 @@ private struct NearbySpotRow: View {
                     Text("Walking detour unconfirmed · straight-line fallback")
                         .foregroundStyle(.secondary)
                 }
-                Text("Last verified: \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt)) · \(SpotPresentation.evidence(result.spot.verification.evidenceQuality))")
+                Text("Last verified: \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt)) · \(SpotPresentation.evidence(result.spot.verification.evidenceQuality, version: result.spot.verification.evidenceQualityVersion))")
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
@@ -535,12 +542,15 @@ private struct NearbySpotRow: View {
             SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters)
         ]
         if let detourSeconds {
-            parts.append(String(localized: "About \(Int((detourSeconds / 60).rounded())) minutes added walking time"))
+            let minutes = Int((detourSeconds / 60).rounded())
+            parts.append(minutes == 1 ? String(localized: "About 1 minute added walking time")
+                        : String(localized: "About \(minutes) minutes added walking time"))
         } else if routeMode {
             parts.append(String(localized: "Walking detour unconfirmed; straight-line fallback"))
         }
         parts.append(String(localized: "Last verified \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt))"))
-        parts.append(SpotPresentation.evidence(result.spot.verification.evidenceQuality))
+        parts.append(SpotPresentation.evidence(result.spot.verification.evidenceQuality,
+                                               version: result.spot.verification.evidenceQualityVersion))
         return parts.joined(separator: ", ")
     }
 }

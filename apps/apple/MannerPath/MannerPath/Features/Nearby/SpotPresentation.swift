@@ -51,9 +51,10 @@ enum SpotPresentation {
         }
     }
 
-    static func evidence(_ value: String?) -> String {
+    static func evidence(_ value: String?, version: String?) -> String {
         guard let value, !value.isEmpty else { return String(localized: "Unknown") }
-        return value == "officialListing" ? String(localized: "Official listing") : String(localized: "Evidence confidence unknown")
+        return value == "officialListing" && version == "evidence-quality.v1"
+            ? String(localized: "Official listing") : String(localized: "Evidence confidence unknown")
     }
 
     static func verificationDate(_ value: Date?) -> String {
@@ -69,6 +70,7 @@ enum SpotPresentation {
         guard let age = result.verificationAge else { return String(localized: "Unknown") }
         let days = Int(age / 86_400)
         if days == 0 { return String(localized: "Verified less than a day ago") }
+        if days == 1 { return String(localized: "Verified 1 day ago") }
         return String(localized: "Verified \(days) days ago")
     }
 
@@ -86,7 +88,13 @@ enum SpotPresentation {
     }
 
     static func sourceNames(_ spot: Spot) -> String {
-        let names = spot.verification.sourceDisplayNames
-        return names.isEmpty ? String(localized: "Unknown") : names.joined(separator: ", ")
+        sourceNames(spot.verification.sourceDisplayNames)
+    }
+
+    static func sourceNames(_ values: [String]) -> String {
+        let names = values.filter {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        return names.isEmpty ? String(localized: "Source name unavailable") : names.joined(separator: ", ")
     }
 }

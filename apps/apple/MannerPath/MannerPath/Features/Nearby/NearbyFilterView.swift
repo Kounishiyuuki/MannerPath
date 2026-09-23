@@ -18,7 +18,6 @@ struct NearbyFilterView: View {
                     Text("Paper").tag(TobaccoType?.some(.paper))
                     Text("Heated").tag(TobaccoType?.some(.heated))
                 }
-                .pickerStyle(.segmented)
                 Toggle("Confirmed tobacco support only", isOn: $filters.requireConfirmedTobaccoSupport)
                     .disabled(filters.tobaccoType == nil)
                 Text("Unknown support remains visible unless confirmation is required. Confirmed unsupported places are excluded.")
@@ -36,7 +35,7 @@ struct NearbyFilterView: View {
                                   systemImage: filters.spotTypes?.contains(type) == true ? "checkmark" : "")
                         }
                     }
-                } label: { Label("Physical type: \(filters.spotTypes == nil ? "Any" : "\(filters.spotTypes!.count) selected")", systemImage: "line.3.horizontal.decrease") }
+                } label: { Label("Physical type: \(selectionSummary(filters.spotTypes?.count))", systemImage: "line.3.horizontal.decrease") }
 
                 Toggle("Public access only", isOn: $filters.publicAccessOnly)
                 Toggle("Confirmed public access only", isOn: $filters.requireConfirmedPublicAccess)
@@ -54,7 +53,7 @@ struct NearbyFilterView: View {
                                   systemImage: filters.accessTypes?.contains(access) == true ? "checkmark" : "")
                         }
                     }
-                } label: { Label("Access type: \(filters.accessTypes == nil ? "Any" : "\(filters.accessTypes!.count) selected")", systemImage: "person.crop.circle") }
+                } label: { Label("Access type: \(selectionSummary(filters.accessTypes?.count))", systemImage: "person.crop.circle") }
 
                 Menu {
                     Button("Any environment") { filters.environments = nil }
@@ -68,7 +67,7 @@ struct NearbyFilterView: View {
                                   systemImage: filters.environments?.contains(environment) == true ? "checkmark" : "")
                         }
                     }
-                } label: { Label("Environment: \(filters.environments == nil ? "Any" : "\(filters.environments!.count) selected")", systemImage: "leaf") }
+                } label: { Label("Environment: \(selectionSummary(filters.environments?.count))", systemImage: "leaf") }
 
                 Toggle("Confirmed open now", isOn: $filters.openNowOnly)
                 Toggle("Official listing evidence", isOn: $filters.officialEvidenceOnly)
@@ -95,5 +94,10 @@ struct NearbyFilterView: View {
         .onChange(of: filters.publicAccessOnly) { _, value in
             if !value { filters.requireConfirmedPublicAccess = false }
         }
+    }
+
+    private func selectionSummary(_ count: Int?) -> String {
+        guard let count else { return String(localized: "Any") }
+        return String(localized: "\(count) selected")
     }
 }

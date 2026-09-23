@@ -95,7 +95,8 @@ struct SpotDetailView: View {
             }
 
             Section("Evidence and freshness") {
-                LabeledContent("Evidence quality", value: SpotPresentation.evidence(spot.verification.evidenceQuality))
+                LabeledContent("Evidence quality", value: SpotPresentation.evidence(spot.verification.evidenceQuality,
+                                                                                   version: spot.verification.evidenceQualityVersion))
                 LabeledContent("Last verified", value: SpotPresentation.verificationDate(spot.lastVerifiedAt))
                 LabeledContent("Freshness", value: SpotPresentation.freshness(result))
                 detailText("Sources", SpotPresentation.sourceNames(spot))

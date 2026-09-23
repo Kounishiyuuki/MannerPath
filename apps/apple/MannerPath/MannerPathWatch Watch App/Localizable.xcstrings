@@ -17,12 +17,27 @@
         }
       }
     },
-    "%@ straight-line": {},
+    "%@ straight-line": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離 %@"
+          }
+        }
+      }
+    },
     "%@ · %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
             "value": "%1$@ · %2$@"
           }
         }
@@ -60,10 +75,46 @@
         }
       }
     },
-    "1 year": {},
-    "30 days": {},
-    "90 days": {},
-    "Access: %@": {},
+    "1 year": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1年"
+          }
+        }
+      }
+    },
+    "30 days": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30日"
+          }
+        }
+      }
+    },
+    "90 days": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90日"
+          }
+        }
+      }
+    },
+    "Access: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件：%@"
+          }
+        }
+      }
+    },
     "Allow location while using the app to rank saved places by distance and direction.": {
       "localizations": {
         "ja": {
@@ -74,10 +125,46 @@
         }
       }
     },
-    "Any": {},
-    "Any date": {},
-    "Ashtray": {},
-    "Ashtray location": {},
+    "Any": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指定なし"
+          }
+        }
+      }
+    },
+    "Any date": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期間を指定しない"
+          }
+        }
+      }
+    },
+    "Ashtray": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "灰皿設置場所"
+          }
+        }
+      }
+    },
+    "Ashtray location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "灰皿設置場所"
+          }
+        }
+      }
+    },
     "Before you continue": {
       "localizations": {
         "ja": {
@@ -88,11 +175,56 @@
         }
       }
     },
-    "Clear Watch filters": {},
-    "Confirmed": {},
-    "Confirmed open now": {},
-    "Confirmed public": {},
-    "Confirmed support": {},
+    "Clear Watch filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watchの絞り込みを解除"
+          }
+        }
+      }
+    },
+    "Confirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed open now": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在営業中と確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed public": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般利用を確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed support": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応を確認済み"
+          }
+        }
+      }
+    },
     "Continue": {
       "localizations": {
         "ja": {
@@ -103,14 +235,86 @@
         }
       }
     },
-    "Customers only": {},
-    "Designated outdoor area": {},
-    "Direction uncertain within location accuracy": {},
-    "Distance and bearing need Watch location": {},
-    "Evidence confidence unknown": {},
-    "Facility only": {},
-    "Facility room": {},
-    "Facility smoking room": {},
+    "Customers only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用客のみ"
+          }
+        }
+      }
+    },
+    "Designated outdoor area": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指定屋外喫煙所"
+          }
+        }
+      }
+    },
+    "Direction uncertain within location accuracy": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地の精度では方角を特定できません"
+          }
+        }
+      }
+    },
+    "Distance and bearing need Watch location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距離と方角にはWatchの現在地が必要です"
+          }
+        }
+      }
+    },
+    "Evidence confidence unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "根拠の確かさは不明です"
+          }
+        }
+      }
+    },
+    "Facility only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設利用者のみ"
+          }
+        }
+      }
+    },
+    "Facility room": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設内喫煙室"
+          }
+        }
+      }
+    },
+    "Facility smoking room": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設内喫煙室"
+          }
+        }
+      }
+    },
     "Filters": {
       "localizations": {
         "ja": {
@@ -121,7 +325,16 @@
         }
       }
     },
-    "Finding Watch location. Saved places are shown first.": {},
+    "Finding Watch location. Saved places are shown first.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watchの現在地を取得中です。先に保存済みの場所を表示しています。"
+          }
+        }
+      }
+    },
     "Follow posted signs, on-site rules, and local law.": {
       "localizations": {
         "ja": {
@@ -142,7 +355,16 @@
         }
       }
     },
-    "For people legally permitted to smoke. Follow posted signs, on-site rules, and local law.": {},
+    "For people legally permitted to smoke. Follow posted signs, on-site rules, and local law.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "法律上喫煙が認められている方が対象です。現地の掲示、施設のルール、地域の法令に従ってください。"
+          }
+        }
+      }
+    },
     "For people legally permitted to smoke. Nearby results do not confirm that smoking is allowed.": {
       "localizations": {
         "ja": {
@@ -153,8 +375,26 @@
         }
       }
     },
-    "Heated": {},
-    "If Maps cannot route, use straight-line distance and bearing above.": {},
+    "Heated": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加熱式"
+          }
+        }
+      }
+    },
+    "If Maps cannot route, use straight-line distance and bearing above.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マップで経路を案内できない場合は、上の直線距離と方角を参考にしてください。"
+          }
+        }
+      }
+    },
     "In Japan, you must be at least 20 to smoke or enter a smoking area.": {
       "localizations": {
         "ja": {
@@ -165,7 +405,16 @@
         }
       }
     },
-    "Location": {},
+    "Location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地"
+          }
+        }
+      }
+    },
     "Nearby": {
       "localizations": {
         "ja": {
@@ -186,9 +435,36 @@
         }
       }
     },
-    "No saved places match these filters.": {},
-    "Not supported": {},
-    "Official listing": {},
+    "No saved places match these filters.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件に合う保存済みの場所はありません。"
+          }
+        }
+      }
+    },
+    "Not supported": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非対応と確認済み"
+          }
+        }
+      }
+    },
+    "Official listing": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公的機関の掲載情報"
+          }
+        }
+      }
+    },
     "Open MannerPath on iPhone once to send nearby data to this Watch.": {
       "localizations": {
         "ja": {
@@ -199,10 +475,46 @@
         }
       }
     },
-    "Open walking directions": {},
-    "Opens place details": {},
-    "Outdoor area": {},
-    "Paper": {},
+    "Open walking directions": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩経路を開く"
+          }
+        }
+      }
+    },
+    "Opens place details": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の詳細を開きます"
+          }
+        }
+      }
+    },
+    "Outdoor area": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋外喫煙所"
+          }
+        }
+      }
+    },
+    "Paper": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙巻き"
+          }
+        }
+      }
+    },
     "Paper: %@ · Heated: %@": {
       "localizations": {
         "en": {
@@ -210,24 +522,175 @@
             "state": "new",
             "value": "Paper: %1$@ · Heated: %2$@"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙巻き：%1$@ · 加熱式：%2$@"
+          }
         }
       }
     },
-    "Physical type": {},
-    "Public": {},
-    "Public access": {},
-    "Public room": {},
-    "Public smoking room": {},
-    "Quick filters": {},
-    "Refresh location": {},
-    "Saved selection": {},
-    "Smoking-permitted venue": {},
-    "Source": {},
-    "Source details unavailable": {},
-    "Tobacco": {},
-    "Unknown": {},
-    "Unknown physical type": {},
-    "Unknown type": {},
+    "Physical type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類"
+          }
+        }
+      }
+    },
+    "Public": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般利用可"
+          }
+        }
+      }
+    },
+    "Public access": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般利用可"
+          }
+        }
+      }
+    },
+    "Public room": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共喫煙室"
+          }
+        }
+      }
+    },
+    "Public smoking room": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共喫煙室"
+          }
+        }
+      }
+    },
+    "Quick filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "かんたん絞り込み"
+          }
+        }
+      }
+    },
+    "Refresh location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地を更新"
+          }
+        }
+      }
+    },
+    "Saved selection": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの設定"
+          }
+        }
+      }
+    },
+    "Smoking-permitted venue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙可能施設"
+          }
+        }
+      }
+    },
+    "Source": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源"
+          }
+        }
+      }
+    },
+    "Source details unavailable": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源の詳細を確認できません"
+          }
+        }
+      }
+    },
+    "Source name unavailable": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源の名称を確認できません"
+          }
+        }
+      }
+    },
+    "Tobacco": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "たばこの種類"
+          }
+        }
+      }
+    },
+    "Unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明"
+          }
+        }
+      }
+    },
+    "Unknown physical type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類は不明"
+          }
+        }
+      }
+    },
+    "Unknown type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "種類は不明"
+          }
+        }
+      }
+    },
     "Use Watch Location": {
       "localizations": {
         "ja": {
@@ -238,13 +701,86 @@
         }
       }
     },
-    "Venue": {},
-    "Verification date unknown": {},
-    "Verified %lld days ago": {},
-    "Verified less than a day ago": {},
-    "Verified within": {},
-    "Watch location is needed for straight-line distance and bearing.": {},
-    "Watch location is unavailable. Saved places remain available.": {}
+    "Venue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙可能施設"
+          }
+        }
+      }
+    },
+    "Verification date unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認日は不明"
+          }
+        }
+      }
+    },
+    "Verified %lld days ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld日前に確認"
+          }
+        }
+      }
+    },
+    "Verified 1 day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日前に確認"
+          }
+        }
+      }
+    },
+    "Verified less than a day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24時間以内に確認"
+          }
+        }
+      }
+    },
+    "Verified within": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認からの期間"
+          }
+        }
+      }
+    },
+    "Watch location is needed for straight-line distance and bearing.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離と方角の表示にはWatchの現在地が必要です。"
+          }
+        }
+      }
+    },
+    "Watch location is unavailable. Saved places remain available.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watchの現在地を取得できません。保存済みの場所は引き続き表示できます。"
+          }
+        }
+      }
+    }
   },
   "version": "1.0"
 }

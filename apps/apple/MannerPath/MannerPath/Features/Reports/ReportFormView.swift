@@ -178,8 +178,15 @@ struct ReportFormView: View {
         case .rejected(let message):
             Text("\(message) You can correct it and submit again.")
         case .rateLimited:
-            Text(model.retryAfterSecondsRemaining.map { "Too many reports. Try again in about \($0) seconds." } ??
-                 "Too many reports. Please try again later.")
+            if let seconds = model.retryAfterSecondsRemaining {
+                if seconds == 1 {
+                    Text("Too many reports. Try again in about 1 second.")
+                } else {
+                    Text("Too many reports. Try again in about \(seconds) seconds.")
+                }
+            } else {
+                Text("Too many reports. Please try again later.")
+            }
         case .ambiguous:
             Text(model.canRetryAmbiguous
                  ? "Delivery could not be confirmed. The report may already have been received. Submitting again could create a duplicate."
@@ -230,52 +237,53 @@ private struct ReportPinPicker: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
-                Text("Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning.")
-                    .font(.footnote)
-                    .padding(.horizontal)
-                MapReader { proxy in
-                    Map(position: $position) {
-                        if let candidate {
-                            Annotation("Proposed pin", coordinate: CLLocationCoordinate2D(
-                                latitude: candidate.latitude, longitude: candidate.longitude
-                            )) { Image(systemName: "mappin.circle.fill").font(.largeTitle).foregroundStyle(.red) }
-                        }
-                    }
-                    .onTapGesture { point in
-                        if let coordinate = proxy.convert(point, from: .local) {
-                            candidate = ReportCoordinate(latitude: coordinate.latitude,
-                                                         longitude: coordinate.longitude)
-                        }
-                    }
-                    .onMapCameraChange { context in
-                        cameraCenter = ReportCoordinate(latitude: context.region.center.latitude,
-                                                        longitude: context.region.center.longitude)
-                    }
-                    .accessibilityLabel("Map for choosing the proposed place")
-                    .accessibilityHint("Move the map, then use the map center button. Coordinate controls are available after selection.")
-                }
-                .frame(height: 280)
-                Button("Use map center") {
-                    if let cameraCenter { candidate = cameraCenter.quantized }
-                }
-                .buttonStyle(.bordered)
-                if let candidate {
-                    Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
+                    Text("Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning.")
                         .font(.footnote)
-                        .accessibilityValue("Latitude \(candidate.latitude.formatted()), longitude \(candidate.longitude.formatted())")
-                    Stepper("Latitude \(candidate.latitude.formatted(.number.precision(.fractionLength(5))))",
-                            value: candidateBinding(\.latitude), in: -90...90, step: 0.0001)
-                    Stepper("Longitude \(candidate.longitude.formatted(.number.precision(.fractionLength(5))))",
-                            value: candidateBinding(\.longitude), in: -180...180, step: 0.0001)
-                    Button("Confirm proposed pin") {
-                        onConfirm(candidate)
-                        dismiss()
+                        .padding(.horizontal)
+                    MapReader { proxy in
+                        Map(position: $position) {
+                            if let candidate {
+                                Annotation("Proposed pin", coordinate: CLLocationCoordinate2D(
+                                    latitude: candidate.latitude, longitude: candidate.longitude
+                                )) { Image(systemName: "mappin.circle.fill").font(.largeTitle).foregroundStyle(.red) }
+                            }
+                        }
+                        .onTapGesture { point in
+                            if let coordinate = proxy.convert(point, from: .local) {
+                                candidate = ReportCoordinate(latitude: coordinate.latitude,
+                                                             longitude: coordinate.longitude)
+                            }
+                        }
+                        .onMapCameraChange { context in
+                            cameraCenter = ReportCoordinate(latitude: context.region.center.latitude,
+                                                            longitude: context.region.center.longitude)
+                        }
+                        .accessibilityLabel("Map for choosing the proposed place")
+                        .accessibilityHint("Move the map, then use the map center button. Coordinate controls are available after selection.")
                     }
-                    .buttonStyle(.borderedProminent)
-                } else {
-                    Text("No pin selected")
-                        .foregroundStyle(.secondary)
-                }
+                    .frame(height: 280)
+                    Button("Use map center") {
+                        if let cameraCenter { candidate = cameraCenter.quantized }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(cameraCenter == nil)
+                    if let candidate {
+                        Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
+                            .font(.footnote)
+                            .accessibilityValue("Latitude \(candidate.latitude.formatted()), longitude \(candidate.longitude.formatted())")
+                        Stepper("Latitude \(candidate.latitude.formatted(.number.precision(.fractionLength(5))))",
+                                value: candidateBinding(\.latitude), in: -90...90, step: 0.0001)
+                        Stepper("Longitude \(candidate.longitude.formatted(.number.precision(.fractionLength(5))))",
+                                value: candidateBinding(\.longitude), in: -180...180, step: 0.0001)
+                        Button("Confirm proposed pin") {
+                            onConfirm(candidate)
+                            dismiss()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        Text("No pin selected")
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(.bottom)
             }

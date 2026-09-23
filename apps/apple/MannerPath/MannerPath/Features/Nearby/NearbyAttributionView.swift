@@ -14,7 +14,8 @@ struct NearbyAttributionView: View {
             } else {
                 ForEach(sources.indices, id: \.self) { index in
                     let source = sources[index]
-                    Section(source.displayName) {
+                    Section(source.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? String(localized: "Source name unavailable") : source.displayName) {
                         if let text = source.attributionText, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(text)
                                 .textSelection(.enabled)

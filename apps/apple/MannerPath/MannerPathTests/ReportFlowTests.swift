@@ -293,7 +293,7 @@ extension ReportFlowTests {
         model.start(type: .exists, spotId: "sp_123")
         await model.submit()
         if case .rejected(let message) = model.submission {
-            #expect(message == "Some report information needs to be corrected.")
+            #expect(message == String(localized: "Some report information needs to be corrected."))
             #expect(!message.contains("invalidReport"))
             #expect(!message.contains("400"))
         } else { Issue.record("Expected definite rejection") }
@@ -304,9 +304,9 @@ extension ReportFlowTests {
 
     @Test @MainActor func rejectionMessagesHideProtocolDetails() async throws {
         let cases: [(status: Int, code: String, expected: String, availability: ReportAvailability)] = [
-            (413, "reportTooLarge", "The report is too long. Shorten the additional detail and try again.", .available(limits)),
-            (503, "attestationUnavailable", "Reporting is temporarily unavailable. Your draft remains saved.", .unavailable),
-            (422, "unexpectedReportFailure", "The report could not be accepted. Your draft remains saved.", .available(limits))
+            (413, "reportTooLarge", String(localized: "The report is too long. Shorten the additional detail and try again."), .available(limits)),
+            (503, "attestationUnavailable", String(localized: "Reporting is temporarily unavailable. Your draft remains saved."), .unavailable),
+            (422, "unexpectedReportFailure", String(localized: "The report could not be accepted. Your draft remains saved."), .available(limits))
         ]
 
         for testCase in cases {

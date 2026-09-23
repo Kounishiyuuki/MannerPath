@@ -155,7 +155,8 @@ struct ContentView: View {
             }
             Section("Source") {
                 ForEach(model.snapshot?.sources(for: result.spot) ?? [], id: \.self) { source in
-                    Text(source.displayName)
+                    Text(source.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                         ? String(localized: "Source name unavailable") : source.displayName)
                     if let attribution = source.attributionText { Text(attribution).font(.footnote) }
                     if let license = source.licenseName { Text(license).font(.footnote) }
                 }
@@ -206,7 +207,9 @@ struct ContentView: View {
     }
     private func freshness(_ result: WatchRankedSpot) -> String {
         guard let days = result.verificationAgeDays else { return String(localized: "Verification date unknown") }
-        return days == 0 ? String(localized: "Verified less than a day ago") : String(localized: "Verified \(days) days ago")
+        if days == 0 { return String(localized: "Verified less than a day ago") }
+        if days == 1 { return String(localized: "Verified 1 day ago") }
+        return String(localized: "Verified \(days) days ago")
     }
     private func evidence(_ spot: WatchSpot) -> String {
         spot.evidenceQualityVersion == "evidence-quality.v1" && spot.evidenceQuality == "officialListing"
