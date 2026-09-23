@@ -50,6 +50,37 @@ def signed_entitlements(bundle):
         fail(f"{bundle}: code signature has no readable entitlements")
 
 
+def check_provisioning(bundle, identifier, entitlements):
+    profile_path = bundle / "embedded.mobileprovision"
+    if not profile_path.is_file():
+        fail(f"{bundle}: embedded.mobileprovision missing; use a provisioned device/archive build")
+    result = subprocess.run(["security", "cms", "-D", "-i", str(profile_path)],
+                            capture_output=True)
+    if result.returncode:
+        fail(f"{bundle}: embedded provisioning profile cannot be decoded")
+    try:
+        profile = plistlib.loads(result.stdout)
+    except plistlib.InvalidFileException:
+        fail(f"{bundle}: embedded provisioning profile is not a plist")
+    teams = profile.get("TeamIdentifier")
+    if not isinstance(teams, list) or len(teams) != 1:
+        fail(f"{bundle}: provisioning profile must have exactly one TeamIdentifier")
+    team = teams[0]
+    expected_app_id = f"{team}.{identifier}"
+    profile_ent = profile.get("Entitlements", {})
+    for name, actual, expected in (
+        ("signed team identifier", entitlements.get("com.apple.developer.team-identifier"), team),
+        ("signed application identifier", entitlements.get("application-identifier"), expected_app_id),
+        ("profile application identifier", profile_ent.get("application-identifier"), expected_app_id),
+        ("profile App Group", profile_ent.get("com.apple.security.application-groups"), [GROUP]),
+    ):
+        if actual != expected:
+            fail(f"{bundle}: {name} {actual!r}; expected {expected!r}")
+    if "com.apple.developer.devicecheck.appattest-environment" in profile_ent:
+        if profile_ent["com.apple.developer.devicecheck.appattest-environment"] != entitlements.get("com.apple.developer.devicecheck.appattest-environment"):
+            fail(f"{bundle}: profile and signed App Attest environments differ")
+
+
 def one(parent, pattern, label):
     matches = list(parent.glob(pattern))
     if len(matches) != 1:
@@ -84,6 +115,8 @@ def inspect(path, unsigned):
         groups = ent.get("com.apple.security.application-groups")
         if groups != [GROUP]:
             fail(f"{label}: application-groups {groups!r}; expected [{GROUP!r}]")
+        if not unsigned:
+            check_provisioning(bundle, IDS[label], ent)
         if label == "iPhone app":
             environment = ent.get("com.apple.developer.devicecheck.appattest-environment")
             if environment not in ("development", "production"):
@@ -91,7 +124,11 @@ def inspect(path, unsigned):
         print(f"{label}: {actual} | App Group: {GROUP}")
     origin = infos["iPhone app"].get("MannerPathAPIBaseURL")
     parsed = urlparse(origin) if isinstance(origin, str) else None
-    if not parsed or parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password or parsed.path not in ("", "/") or parsed.query or parsed.fragment:
+    try:
+        valid_authority = bool(parsed and parsed.hostname and parsed.port != 0)
+    except ValueError:
+        valid_authority = False
+    if not valid_authority or parsed.scheme != "https" or parsed.username or parsed.password or parsed.path not in ("", "/") or parsed.query or parsed.fragment:
         fail(f"iPhone app: MannerPathAPIBaseURL {origin!r}; set an HTTPS API origin for the beta build")
     version = infos["iPhone app"].get("CFBundleVersion")
     if not version:

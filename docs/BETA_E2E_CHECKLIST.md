@@ -224,7 +224,8 @@ set the Release `MANNERPATH_API_BASE_URL` to the staging HTTPS origin, then use 
 with the team's development signing setup. For that actual device/archive artifact,
 run `./scripts/apple-beta-preflight.sh /path/to/MannerPath.xcarchive` (or the signed
 `MannerPath.app`) and save that output too. The signed inspection reads entitlements from each
-embedded code signature; correct source entitlements alone do not prove provisioned App Groups.
+embedded code signature and checks each embedded provisioning profile's team, application ID,
+and App Group; correct source entitlements alone do not prove provisioned App Groups.
 Use the printed `CFBundleVersion` in the backend App Attest allowlist and match its effective
 development/production environment to the backend. Do not include certificates or profiles in
 the evidence. If archive creation or signed inspection fails, fix signing before P1/W1. A passing

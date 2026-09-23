@@ -2,6 +2,7 @@
 import importlib.util
 import pathlib
 import plistlib
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -61,6 +62,15 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
             self.check()
 
+    def test_malformed_https_authority_fails(self):
+        path = self.app / "Info.plist"
+        for origin in ("https://:443", "https://example.invalid:bad"):
+            info = plistlib.loads(path.read_bytes())
+            info["MannerPathAPIBaseURL"] = origin
+            path.write_bytes(plistlib.dumps(info))
+            with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
+                self.check()
+
     def test_app_group_mismatch_fails(self):
         wrong = pathlib.Path(self.temp.name) / "wrong.entitlements"
         wrong.write_bytes(plistlib.dumps({"com.apple.security.application-groups": ["group.wrong"]}))
@@ -82,6 +92,53 @@ class PreflightTests(unittest.TestCase):
         with patch.dict(preflight.SOURCE_ENTITLEMENTS, {"iPhone app": missing}):
             with self.assertRaisesRegex(ValueError, "App Attest environment"):
                 self.check()
+
+    def test_signed_archive_reads_all_four_signed_entitlements(self):
+        archive = pathlib.Path(self.temp.name) / "Beta.xcarchive"
+        applications = archive / "Products/Applications"
+        applications.mkdir(parents=True)
+        (applications / "MannerPath.app").symlink_to(self.app, target_is_directory=True)
+        for path in self.paths:
+            info_path = path / "Info.plist"
+            info = plistlib.loads(info_path.read_bytes())
+            info["DTPlatformName"] = "iphoneos" if path in self.paths[:2] else "watchos"
+            info_path.write_bytes(plistlib.dumps(info))
+            (path / "embedded.mobileprovision").write_bytes(b"fixture")
+
+        def codesign(command, **_):
+            if "--verify" in command:
+                return subprocess.CompletedProcess(command, 0, stdout=b"")
+            if command[0] == "security":
+                identifier = plistlib.loads((pathlib.Path(command[-1]).parent / "Info.plist").read_bytes())["CFBundleIdentifier"]
+                profile = {"TeamIdentifier": ["TEAM123"], "Entitlements": {
+                    "application-identifier": "TEAM123." + identifier,
+                    "com.apple.security.application-groups": [preflight.GROUP]}}
+                return subprocess.CompletedProcess(command, 0, stdout=plistlib.dumps(profile))
+            entitlements = {"com.apple.security.application-groups": [preflight.GROUP]}
+            identifier = plistlib.loads((pathlib.Path(command[-1]) / "Info.plist").read_bytes())["CFBundleIdentifier"]
+            entitlements["application-identifier"] = "TEAM123." + identifier
+            entitlements["com.apple.developer.team-identifier"] = "TEAM123"
+            if command[-1].endswith("/MannerPath.app"):
+                entitlements["com.apple.developer.devicecheck.appattest-environment"] = "development"
+            return subprocess.CompletedProcess(command, 0, stdout=plistlib.dumps(entitlements))
+
+        with patch.object(preflight.subprocess, "run", side_effect=codesign) as run:
+            with redirect_stdout(StringIO()) as output:
+                preflight.inspect(archive, False)
+        self.assertEqual(run.call_count, 12)
+        self.assertIn("signed artifact entitlements", output.getvalue())
+
+    def test_missing_profile_fails_signed_mode(self):
+        for path in self.paths:
+            info_path = path / "Info.plist"
+            info = plistlib.loads(info_path.read_bytes())
+            info["DTPlatformName"] = "iphoneos" if path in self.paths[:2] else "watchos"
+            info_path.write_bytes(plistlib.dumps(info))
+        entitlements = plistlib.dumps({"com.apple.security.application-groups": [preflight.GROUP],
+                                     "com.apple.developer.devicecheck.appattest-environment": "development"})
+        with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=entitlements)):
+            with self.assertRaisesRegex(ValueError, "embedded.mobileprovision missing"):
+                preflight.inspect(self.app, False)
 
 
 if __name__ == "__main__":
