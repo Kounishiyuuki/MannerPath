@@ -32,10 +32,12 @@ final class NearbyModel {
     private var routeGeneration = 0
     private var activeTileIDs: Set<String> = []
     private var cachedSpots: [Spot] = []
+    private var lastCacheReadFailed = false
     private var lastRouteKey: RouteRequestKey?
     private var lastDetours: [String: TimeInterval] = [:]
     private var lastRouteComputedAt: Date?
     var onCachedCorpusChange: (([Spot], [SpotSource], SpotCoordinate) -> Void)?
+    var onCachedGlanceChange: (([Spot], DeviceLocation) -> Void)?
 
     private(set) var filters = NearbyFilters()
     private(set) var destinationMatches: [PlaceDestination] = []
@@ -64,14 +66,21 @@ final class NearbyModel {
         results.first { $0.spot.id == id }
     }
 
+    // Widget links use the unfiltered corpus, while ordinary Nearby results keep user filters.
+    func cachedResult(id: String) -> NearbyResult? {
+        guard let origin = resultsLocation?.coordinate else { return nil }
+        return NearbySearch.rank(cachedSpots, from: origin, at: Date()).first { $0.spot.id == id }
+    }
+
     var hasUnfilteredResults: Bool {
         guard let origin = resultsLocation?.coordinate else { return false }
         return !NearbySearch.rank(cachedSpots, from: origin, at: Date()).isEmpty
     }
 
     func publishCachedCorpusForWatch() {
-        guard let origin = resultsLocation?.coordinate else { return }
-        onCachedCorpusChange?(cachedSpots, sources, origin)
+        guard let location = resultsLocation else { return }
+        onCachedCorpusChange?(cachedSpots, sources, location.coordinate)
+        if !lastCacheReadFailed { onCachedGlanceChange?(cachedSpots, location) }
     }
 
     func setFilters(_ updated: NearbyFilters) {
@@ -237,7 +246,8 @@ final class NearbyModel {
                 }
                 guard currentGeneration == generation else { return }
             }
-            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation, generation: currentGeneration)
+            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation,
+                    cacheReadFailed: cacheReadFailed, generation: currentGeneration)
 
             guard let refresher else {
                 dataState = cacheReadFailed ? .refreshFailed : .cacheOnly
@@ -270,7 +280,8 @@ final class NearbyModel {
                 }
                 guard currentGeneration == generation else { return }
             }
-            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation, generation: currentGeneration)
+            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation,
+                    cacheReadFailed: cacheReadFailed, generation: currentGeneration)
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
         }
     }
@@ -279,6 +290,7 @@ final class NearbyModel {
         _ cachedByTile: [String: [Spot]],
         sourcesByTile: [String: [SpotSource]],
         from deviceLocation: DeviceLocation,
+        cacheReadFailed: Bool,
         generation currentGeneration: Int
     ) {
         guard currentGeneration == generation else { return }
@@ -286,6 +298,7 @@ final class NearbyModel {
         let spots = cachedByTile.keys.sorted().flatMap { cachedByTile[$0] ?? [] }
             .filter { seenIDs.insert($0.id).inserted }
         cachedSpots = spots
+        lastCacheReadFailed = cacheReadFailed
         results = NearbySearch.rank(spots, from: deviceLocation.coordinate, filters: filters, at: Date())
         resultsLocation = deviceLocation
         var seenSources = Set<SpotSource>()
@@ -296,6 +309,7 @@ final class NearbyModel {
                 ($1.displayName, $1.id, $1.attributionText ?? "")
             }
         onCachedCorpusChange?(spots, sources, deviceLocation.coordinate)
+        if !cacheReadFailed { onCachedGlanceChange?(spots, deviceLocation) }
         updateRoutes()
     }
 

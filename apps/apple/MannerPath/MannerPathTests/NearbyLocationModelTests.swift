@@ -23,6 +23,23 @@ struct NearbyLocationModelTests {
         #expect(location.refreshCount == 2)
     }
 
+    @Test func widgetLinkCanResolveCachedSpotHiddenByFilters() async throws {
+        let tile = try tile(at: origin)
+        let store = FakeTileData(cached: [tile.id: [spot("saved", at: origin, tile: tile)]])
+        let model = NearbyModel(location: FakeLocationProvider(state: .usable(deviceLocation(at: origin))),
+                                repository: store, refresher: nil)
+        #expect(await waitUntil {
+            if case .cacheOnly = model.dataState { return true }
+            return false
+        })
+        var filters = NearbyFilters()
+        filters.spotTypes = [.publicSmokingRoom]
+        model.setFilters(filters)
+        #expect(model.result(id: "saved") == nil)
+        #expect(model.cachedResult(id: "saved")?.spot.id == "saved")
+        #expect(model.cachedResult(id: "removed") == nil)
+    }
+
     @Test func cachedResultsAppearBeforeNetworkAndRefreshReranks() async throws {
         let tile = try tile(at: origin)
         let old = spot("old", at: origin, tile: tile, longitudeOffset: 0.002)

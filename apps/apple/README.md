@@ -106,3 +106,30 @@ prior file untouched. `generatedAt` is metadata, not ordering authority.
 Preferences have their own timestamp
 and replacement path. The Watch reads both files before attempting phone sync,
 and it never contacts the MannerPath API.
+
+## WidgetKit nearby glance (Issue #32)
+
+The iPhone app alone computes the unfiltered nearest published result when its existing
+Nearby cache callback runs. It atomically writes a versioned, compact `nearby-glance-v1.json`
+into App Group `group.com.kounishiyuuki.MannerPath`. The iPhone widget requires that
+App Group entitlement on both host and extension because separate processes cannot read
+the app's private Application Support directory. This file is a derived display snapshot,
+not a canonical cache; there is no migration from the private Watch snapshot. The widget
+reads only this file, marks a ranking stale after one hour or when its location
+was last-known, and opens the app for a fresh view. A partial cache read does not
+replace the previous glance; it becomes stale. Unknown verification dates stay unknown. The Watch widget
+reads the existing Watch snapshot contract and opens the Watch app. The Watch app
+and Watch extension also require the App Group to share that file across process
+containers. `WatchStore` migrates the old private snapshot and preferences on first
+launch after update, keeping the higher valid revision and newer preferences when both
+containers have data. The Watch app can read its private cache if the group is temporarily
+unavailable; the widget shows unavailable in that case. WatchConnectivity remains
+the only way data arrives on Watch.
+Neither widget requests location or network access. Their timelines refresh hourly, and
+new iPhone snapshots explicitly reload the iPhone widget. Timeline entries also
+mark the one-hour boundary even if a periodic refresh is delayed. The Watch widget
+identifies its saved result as coming from the iPhone; opening the Watch app re-ranks
+with current Watch location. The iPhone `mannerpath://nearby`
+URL optionally carries an opaque spot ID; detail opens only if that spot is still in
+current nearby results. App Group creation in Apple Developer signing must match the
+entitlement before device distribution.
