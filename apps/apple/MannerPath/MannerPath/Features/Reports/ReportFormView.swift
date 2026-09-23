@@ -22,7 +22,7 @@ struct ReportFormView: View {
 
                 if let draft = model.draft {
                     Section("Report subject") {
-                        Text(draft.spotId.map { "Existing place: \($0)" } ?? "A place missing from the map")
+                        Text(reportSubject(draft))
                             .font(.footnote)
                     }
                     if !isMissing {
@@ -51,8 +51,9 @@ struct ReportFormView: View {
                                 choosingPin = true
                             }
                             if let pin = draft.proposedLocation {
-                                Text(String(format: "Chosen pin: %.5f, %.5f", pin.latitude, pin.longitude))
+                                Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
                                     .font(.footnote).foregroundStyle(.secondary)
+                                    .accessibilityValue("Latitude \(pin.latitude.formatted()), longitude \(pin.longitude.formatted())")
                             } else {
                                 Text("Tap a point on the map and confirm it. Your device location is never selected automatically.")
                                     .font(.footnote).foregroundStyle(.secondary)
@@ -79,6 +80,7 @@ struct ReportFormView: View {
                             set: { value in editDraft { $0.note = value.isEmpty ? nil : value } }
                         ))
                         .frame(minHeight: 100)
+                        .accessibilityLabel("Additional report detail")
                         if case .available(let limits) = model.availability {
                             Text("\(draft.note?.utf16.count ?? 0) / \(limits.noteMaxLength) text units (emoji may count as two)")
                                 .font(.footnote).foregroundStyle(.secondary)
@@ -98,10 +100,10 @@ struct ReportFormView: View {
                                 }
                             }
                         } else if case .attestationUnsupported = model.availability {
-                            Text("This device cannot meet this server's security requirement for reports. Your draft remains saved on this device.")
+                            Text("Secure reporting isn't supported on this device. Your draft remains saved.")
                                 .font(.footnote)
                         } else {
-                            Text("Submission is unavailable until this server confirms reporting is supported. Your draft remains saved.")
+                            Text("Submission is unavailable until reporting availability can be confirmed. Your draft remains saved.")
                                 .font(.footnote)
                         }
                     }
@@ -129,7 +131,7 @@ struct ReportFormView: View {
                     editDraft { $0.proposedLocation = pin.quantized }
                 }
             }
-            .confirmationDialog("The server may already have received this report. Submitting again may create a duplicate.",
+            .confirmationDialog("The report may already have been received. Submitting again may create a duplicate.",
                                 isPresented: $confirmingRetry) {
                 Button("Submit again") { Task { await model.retryAmbiguous() } }
             }
@@ -168,17 +170,26 @@ struct ReportFormView: View {
             Text(message)
         case .accepted(let receipt):
             VStack(alignment: .leading) {
-                Text("Report \(receipt.reportId) was received for review. The listing has not changed.")
+                Text("Your report was received for review. The listing has not changed.")
+                LabeledContent("Report reference", value: receipt.reportId)
+                    .textSelection(.enabled)
                 if let cleanupError = model.cleanupError { Text(cleanupError).foregroundStyle(.red) }
             }
         case .rejected(let message):
-            Text("The server rejected this report: \(message). You can correct it and submit again.")
+            Text("\(message) You can correct it and submit again.")
         case .rateLimited:
-            Text(model.retryAfterSecondsRemaining.map { "Too many reports. Try again in about \($0) seconds." } ??
-                 "Too many reports. Please try again later.")
+            if let seconds = model.retryAfterSecondsRemaining {
+                if seconds == 1 {
+                    Text("Too many reports. Try again in about 1 second.")
+                } else {
+                    Text("Too many reports. Try again in about \(seconds) seconds.")
+                }
+            } else {
+                Text("Too many reports. Please try again later.")
+            }
         case .ambiguous:
             Text(model.canRetryAmbiguous
-                 ? "Delivery could not be confirmed. The server may already have received this report. Submitting again could create a duplicate."
+                 ? "Delivery could not be confirmed. The report may already have been received. Submitting again could create a duplicate."
                  : "A previous delivery could not be resolved after the app restarted. This saved draft cannot be submitted again; discard it when you are ready.")
         case .failed(let message):
             Text(message)
@@ -189,6 +200,14 @@ struct ReportFormView: View {
         guard var draft = model.draft else { return }
         edit(&draft)
         model.saveDraft(draft)
+    }
+
+    private func reportSubject(_ draft: ReportDraft) -> String {
+        guard draft.spotId != nil else { return String(localized: "A place missing from the map") }
+        guard let name = draft.subjectName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
+            return String(localized: "Previously selected place (name unavailable)")
+        }
+        return name
     }
 
     private static var dayFormatter: DateFormatter {
@@ -212,40 +231,61 @@ private struct ReportPinPicker: View {
 
     @State private var position: MapCameraPosition = .automatic
     @State private var candidate: ReportCoordinate?
+    @State private var cameraCenter: ReportCoordinate?
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                Text("Tap the proposed place on the map, then confirm the pin. Centering the map does not select a place.")
-                    .font(.footnote)
-                    .padding(.horizontal)
-                MapReader { proxy in
-                    Map(position: $position) {
-                        if let candidate {
-                            Annotation("Proposed pin", coordinate: CLLocationCoordinate2D(
-                                latitude: candidate.latitude, longitude: candidate.longitude
-                            )) { Image(systemName: "mappin.circle.fill").font(.largeTitle).foregroundStyle(.red) }
-                        }
-                    }
-                    .onTapGesture { point in
-                        if let coordinate = proxy.convert(point, from: .local) {
-                            candidate = ReportCoordinate(latitude: coordinate.latitude,
-                                                         longitude: coordinate.longitude)
-                        }
-                    }
-                }
-                if let candidate {
-                    Text(String(format: "Selected: %.5f, %.5f", candidate.latitude, candidate.longitude))
+            ScrollView {
+                VStack(spacing: 12) {
+                    Text("Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning.")
                         .font(.footnote)
-                    Button("Confirm proposed pin") {
-                        onConfirm(candidate)
-                        dismiss()
+                        .padding(.horizontal)
+                    MapReader { proxy in
+                        Map(position: $position) {
+                            if let candidate {
+                                Annotation("Proposed pin", coordinate: CLLocationCoordinate2D(
+                                    latitude: candidate.latitude, longitude: candidate.longitude
+                                )) { Image(systemName: "mappin.circle.fill").font(.largeTitle).foregroundStyle(.red) }
+                            }
+                        }
+                        .onTapGesture { point in
+                            if let coordinate = proxy.convert(point, from: .local) {
+                                candidate = ReportCoordinate(latitude: coordinate.latitude,
+                                                             longitude: coordinate.longitude)
+                            }
+                        }
+                        .onMapCameraChange { context in
+                            cameraCenter = ReportCoordinate(latitude: context.region.center.latitude,
+                                                            longitude: context.region.center.longitude)
+                        }
+                        .accessibilityLabel("Map for choosing the proposed place")
+                        .accessibilityHint("Move the map, then use the map center button. Coordinate controls are available after selection.")
                     }
-                    .buttonStyle(.borderedProminent)
-                } else {
-                    Text("No pin selected")
-                        .foregroundStyle(.secondary)
+                    .frame(height: 280)
+                    Button("Use map center") {
+                        if let cameraCenter { candidate = cameraCenter.quantized }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(cameraCenter == nil)
+                    if let candidate {
+                        Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
+                            .font(.footnote)
+                            .accessibilityValue("Latitude \(candidate.latitude.formatted()), longitude \(candidate.longitude.formatted())")
+                        Stepper("Latitude \(candidate.latitude.formatted(.number.precision(.fractionLength(5))))",
+                                value: candidateBinding(\.latitude), in: -90...90, step: 0.0001)
+                        Stepper("Longitude \(candidate.longitude.formatted(.number.precision(.fractionLength(5))))",
+                                value: candidateBinding(\.longitude), in: -180...180, step: 0.0001)
+                        Button("Confirm proposed pin") {
+                            onConfirm(candidate)
+                            dismiss()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        Text("No pin selected")
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .padding(.bottom)
             }
             .navigationTitle("Choose proposed pin")
             .toolbar { Button("Close") { dismiss() } }
@@ -256,7 +296,23 @@ private struct ReportPinPicker: View {
                     center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
                     span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                 ))
+                cameraCenter = ReportCoordinate(latitude: latitude, longitude: longitude)
             }
         }
+    }
+
+    private func candidateBinding(_ keyPath: WritableKeyPath<ReportCoordinate, Double>) -> Binding<Double> {
+        Binding(
+            get: { candidate?[keyPath: keyPath] ?? 0 },
+            set: { value in
+                guard var updated = candidate else { return }
+                updated[keyPath: keyPath] = value
+                candidate = updated.quantized
+                position = .region(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: updated.latitude, longitude: updated.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                ))
+            }
+        )
     }
 }

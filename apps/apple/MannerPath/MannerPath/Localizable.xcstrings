@@ -1,0 +1,2944 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ You can correct it and submit again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 修正して再送信できます。"
+          }
+        }
+      }
+    },
+    "%@ km": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km"
+          }
+        }
+      }
+    },
+    "%@ straight-line": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離 %@"
+          }
+        }
+      }
+    },
+    "%@ straight-line · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ straight-line · %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離 %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%lld / %lld text units (emoji may count as two)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld / %2$lld text units (emoji may count as two)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld 文字（絵文字は2文字として数えられる場合があります）"
+          }
+        }
+      }
+    },
+    "%lld m": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld m"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld m"
+          }
+        }
+      }
+    },
+    "%lld selected": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld件選択中"
+          }
+        }
+      }
+    },
+    "%lld° clockwise from north": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld° clockwise from north"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北から時計回りに%lld°"
+          }
+        }
+      }
+    },
+    "1 km": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 km"
+          }
+        }
+      }
+    },
+    "1 year": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1年"
+          }
+        }
+      }
+    },
+    "2 km": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 km"
+          }
+        }
+      }
+    },
+    "30 days": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30日"
+          }
+        }
+      }
+    },
+    "5 km": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 km"
+          }
+        }
+      }
+    },
+    "500 m": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "500 m"
+          }
+        }
+      }
+    },
+    "90 days": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90日"
+          }
+        }
+      }
+    },
+    "A current device location is needed for a walking preview. The straight-line estimate remains available.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩ルートの確認には現在地が必要です。直線距離の目安は引き続き確認できます。"
+          }
+        }
+      }
+    },
+    "A current location is needed for walking detours. Showing straight-line distance and bearing.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩での寄り道を調べるには現在地が必要です。直線距離と方角を表示します。"
+          }
+        }
+      }
+    },
+    "A missing-place suggestion cannot include an existing place.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未掲載の場所を提案する場合、既存の場所は選べません。"
+          }
+        }
+      }
+    },
+    "A nearby result does not by itself confirm that smoking is legal at that moment.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くに表示されたことだけでは、その時点で喫煙が認められていることを保証しません。"
+          }
+        }
+      }
+    },
+    "A place missing from the map": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図にない場所"
+          }
+        }
+      }
+    },
+    "A previous delivery could not be resolved after the app restarted. This saved draft cannot be submitted again; discard it when you are ready.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリの再起動後、前回の送信結果を確認できませんでした。この保存済み下書きは再送信できません。確認後に破棄してください。"
+          }
+        }
+      }
+    },
+    "A saved draft stays on this device until it is submitted or discarded.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下書きは送信または破棄するまで、このデバイスに保存されます。"
+          }
+        }
+      }
+    },
+    "About %lld min added walking time": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩で約%lld分の寄り道"
+          }
+        }
+      }
+    },
+    "About %lld minutes added walking time": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩で約%lld分の寄り道"
+          }
+        }
+      }
+    },
+    "About 1 minute added walking time": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩で約1分の寄り道"
+          }
+        }
+      }
+    },
+    "Access": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件"
+          }
+        }
+      }
+    },
+    "Access changed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件が変わった"
+          }
+        }
+      }
+    },
+    "Access type: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件: %@"
+          }
+        }
+      }
+    },
+    "Add observation day": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認日を追加"
+          }
+        }
+      }
+    },
+    "Additional detail (optional)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "補足（任意）"
+          }
+        }
+      }
+    },
+    "Additional report detail": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の補足"
+          }
+        }
+      }
+    },
+    "Adjust nearby result filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所の絞り込みを調整"
+          }
+        }
+      }
+    },
+    "All nearby cached source attributions": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの近くの場所の情報源と出典"
+          }
+        }
+      }
+    },
+    "Any": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指定なし"
+          }
+        }
+      }
+    },
+    "Any access type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件を指定しない"
+          }
+        }
+      }
+    },
+    "Any date": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日付を指定しない"
+          }
+        }
+      }
+    },
+    "Any environment": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋内・屋外を指定しない"
+          }
+        }
+      }
+    },
+    "Any physical type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類を指定しない"
+          }
+        }
+      }
+    },
+    "Apple Watch": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Watch"
+          }
+        }
+      }
+    },
+    "Ashtray location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "灰皿のある場所"
+          }
+        }
+      }
+    },
+    "Attribution for sources stored with the nearby tile cache. This information remains available without a network connection. A source can appear more than once when saved tiles contain different wording.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所とともに保存された出典情報です。通信できないときも確認できます。保存された情報の表記が異なる場合、同じ情報源が複数回表示されることがあります。"
+          }
+        }
+      }
+    },
+    "Attribution text unavailable in cached data": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みデータに出典の説明がありません"
+          }
+        }
+      }
+    },
+    "Attribution: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出典: %@"
+          }
+        }
+      }
+    },
+    "Based on reported hours when available. Follow on-site rules and signs.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間の情報がある場合は、その情報に基づきます。現地のルールや掲示に従ってください。"
+          }
+        }
+      }
+    },
+    "Bearing": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方角"
+          }
+        }
+      }
+    },
+    "Before you continue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ご利用の前に"
+          }
+        }
+      }
+    },
+    "Cached nearby data remains available offline. Walking routes may require a network connection.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの近くの場所はオフラインでも確認できます。徒歩ルートには通信が必要な場合があります。"
+          }
+        }
+      }
+    },
+    "Change proposed pin": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案するピンを変更"
+          }
+        }
+      }
+    },
+    "Check posted signs and follow the location's rules and local law.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現地の掲示、施設のルール、地域の法令に従ってください。"
+          }
+        }
+      }
+    },
+    "Check reporting again": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告機能を再確認"
+          }
+        }
+      }
+    },
+    "Checking walking detours. Saved places remain available below.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩での寄り道を確認中です。保存済みの場所は以下で確認できます。"
+          }
+        }
+      }
+    },
+    "Choose a map pin": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図でピンを選ぶ"
+          }
+        }
+      }
+    },
+    "Choose a valid observation day.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有効な確認日を選んでください。"
+          }
+        }
+      }
+    },
+    "Choose a valid point on the map.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図上の有効な場所を選んでください。"
+          }
+        }
+      }
+    },
+    "Choose an existing place before submitting.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信前に既存の場所を選んでください。"
+          }
+        }
+      }
+    },
+    "Choose and confirm a proposed map pin.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案する場所のピンを選び、確定してください。"
+          }
+        }
+      }
+    },
+    "Choose proposed pin": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案するピンを選ぶ"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消去"
+          }
+        }
+      }
+    },
+    "Clear filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絞り込みを解除"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閉じる"
+          }
+        }
+      }
+    },
+    "Confirm proposed pin": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案するピンを確定"
+          }
+        }
+      }
+    },
+    "Confirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed not supported": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非対応と確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed open now": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在営業中と確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed public access only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般利用可能と確認済みの場所のみ"
+          }
+        }
+      }
+    },
+    "Confirmed tobacco support only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応するたばこの種類が確認済みの場所のみ"
+          }
+        }
+      }
+    },
+    "Continue saved report": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの報告を再開"
+          }
+        }
+      }
+    },
+    "Continues to nearby places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所へ進む"
+          }
+        }
+      }
+    },
+    "Could not load nearby data": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所の情報を読み込めませんでした"
+          }
+        }
+      }
+    },
+    "Covered": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋根あり"
+          }
+        }
+      }
+    },
+    "Customers only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者限定"
+          }
+        }
+      }
+    },
+    "Daily %@–%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Daily %1$@–%2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎日 %1$@〜%2$@"
+          }
+        }
+      }
+    },
+    "Daily schedule incomplete": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎日の営業時間の情報が不完全です"
+          }
+        }
+      }
+    },
+    "Data & Privacy": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データとプライバシー"
+          }
+        }
+      }
+    },
+    "Data quality": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報の品質"
+          }
+        }
+      }
+    },
+    "Day": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日"
+          }
+        }
+      }
+    },
+    "Delivery could not be confirmed. The report may already have been received. Submitting again could create a duplicate.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信結果を確認できませんでした。報告はすでに受信されている可能性があります。再送信すると重複する場合があります。"
+          }
+        }
+      }
+    },
+    "Designated outdoor area": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋外指定場所"
+          }
+        }
+      }
+    },
+    "Destination search stays in this screen and is never added to saved smoking places.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地の検索結果はこの画面内でのみ使用し、保存される喫煙可能場所には追加しません。"
+          }
+        }
+      }
+    },
+    "Destination search unavailable. Saved nearby places remain available.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地を検索できません。保存済みの近くの場所は引き続き確認できます。"
+          }
+        }
+      }
+    },
+    "Device location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスの現在地"
+          }
+        }
+      }
+    },
+    "Diagnostics": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "診断情報"
+          }
+        }
+      }
+    },
+    "Discard draft": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下書きを破棄"
+          }
+        }
+      }
+    },
+    "Distance and bearing are estimates from your device location, not a walking route.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距離と方角はデバイスの現在地からの目安で、徒歩ルートではありません。"
+          }
+        }
+      }
+    },
+    "Distance and bearing use a previous device location while nearby data updates. They are not a walking route.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所を更新中のため、距離と方角は前回の現在地に基づく目安です。徒歩ルートではありません。"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了"
+          }
+        }
+      }
+    },
+    "Eligibility and local rules": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用資格と地域のルール"
+          }
+        }
+      }
+    },
+    "Entrance note": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入口について"
+          }
+        }
+      }
+    },
+    "Environment": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋内・屋外"
+          }
+        }
+      }
+    },
+    "Environment: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋内・屋外: %@"
+          }
+        }
+      }
+    },
+    "Evidence and freshness": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "根拠と情報の新しさ"
+          }
+        }
+      }
+    },
+    "Evidence confidence unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "根拠の確かさは不明"
+          }
+        }
+      }
+    },
+    "Evidence quality": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "根拠の確かさ"
+          }
+        }
+      }
+    },
+    "Explore place pins or use the list below for full details": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図上のピンを選ぶか、下の一覧から詳しい情報を確認できます"
+          }
+        }
+      }
+    },
+    "Facility access only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設利用者限定"
+          }
+        }
+      }
+    },
+    "Facility smoking room": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設内喫煙室"
+          }
+        }
+      }
+    },
+    "Filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絞り込み"
+          }
+        }
+      }
+    },
+    "Filters active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters active"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絞り込み中"
+          }
+        }
+      }
+    },
+    "Find permitted smoking locations": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙可能場所を探す"
+          }
+        }
+      }
+    },
+    "Finding a pedestrian route…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩ルートを検索中…"
+          }
+        }
+      }
+    },
+    "Finding your location…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地を確認中…"
+          }
+        }
+      }
+    },
+    "Floor": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "階"
+          }
+        }
+      }
+    },
+    "For a missing or moved place, the proposed location is a map pin you choose. MannerPath does not automatically use your device position as that pin.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未掲載または移転した場所の提案には、自分で選んだ地図上のピンを使用します。デバイスの現在地が自動的にそのピンになることはありません。"
+          }
+        }
+      }
+    },
+    "Freshness": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報の新しさ"
+          }
+        }
+      }
+    },
+    "Heated": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加熱式"
+          }
+        }
+      }
+    },
+    "Heated tobacco": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加熱式たばこ"
+          }
+        }
+      }
+    },
+    "Hours changed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間が変わった"
+          }
+        }
+      }
+    },
+    "Hours state": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間の状態"
+          }
+        }
+      }
+    },
+    "I understand": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認しました"
+          }
+        }
+      }
+    },
+    "In Japan, you must be at least 20 to smoke or enter a smoking area.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本では、喫煙および喫煙エリアへの立入りは20歳以上の方に限られます。"
+          }
+        }
+      }
+    },
+    "Indoor": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋内"
+          }
+        }
+      }
+    },
+    "Last device location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回の現在地"
+          }
+        }
+      }
+    },
+    "Last location used for distances": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距離の計算に使用した前回の現在地"
+          }
+        }
+      }
+    },
+    "Last verified": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終確認日"
+          }
+        }
+      }
+    },
+    "Last verified %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終確認: %@"
+          }
+        }
+      }
+    },
+    "Last verified: %@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Last verified: %1$@ · %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終確認: %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Latitude %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緯度 %@"
+          }
+        }
+      }
+    },
+    "Latitude %@, longitude %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Latitude %1$@, longitude %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緯度 %1$@、経度 %2$@"
+          }
+        }
+      }
+    },
+    "Less than 1 m": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Less than 1 m"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 m未満"
+          }
+        }
+      }
+    },
+    "License": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライセンス"
+          }
+        }
+      }
+    },
+    "Live updates are unavailable.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新情報を取得できません。"
+          }
+        }
+      }
+    },
+    "Loading nearby places…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所を読み込み中…"
+          }
+        }
+      }
+    },
+    "Location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所"
+          }
+        }
+      }
+    },
+    "Location access is off. Allow While Using the App access in Settings to rank nearby places.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報の利用がオフです。近くの場所を距離順に表示するには、設定で「アプリの使用中」を許可してください。"
+          }
+        }
+      }
+    },
+    "Location access is restricted on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは位置情報の利用が制限されています。"
+          }
+        }
+      }
+    },
+    "Location could not be determined. Try again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地を確認できませんでした。もう一度お試しください。"
+          }
+        }
+      }
+    },
+    "Location is approximate; distances may be inaccurate.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報はおおよそです。距離が正確でない場合があります。"
+          }
+        }
+      }
+    },
+    "Longitude %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "経度 %@"
+          }
+        }
+      }
+    },
+    "MannerPath does not intentionally collect a history of your locations.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MannerPathは位置情報の履歴を意図的に収集しません。"
+          }
+        }
+      }
+    },
+    "MannerPath is a navigation aid for people who are legally permitted to smoke. It does not sell or promote tobacco.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MannerPathは、法律上喫煙が認められている方のための案内アプリです。たばこの販売や利用の促進は行いません。"
+          }
+        }
+      }
+    },
+    "MannerPath is for people who are legally permitted to smoke. A place appearing nearby does not guarantee that smoking is currently legal there. Follow posted signs, on-site rules, and local law.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MannerPathは、法律上喫煙が認められている方を対象としています。近くに表示された場所でも、現在そこで喫煙できるとは限りません。現地の掲示、施設のルール、地域の法令に従ってください。"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図"
+          }
+        }
+      }
+    },
+    "Map for choosing the proposed place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案する場所を選ぶ地図"
+          }
+        }
+      }
+    },
+    "Maximum straight-line distance": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離の上限"
+          }
+        }
+      }
+    },
+    "Move the map, then use the map center button. Coordinate controls are available after selection.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図を動かしてから、地図の中心を選ぶボタンを押してください。選択後は座標でも調整できます。"
+          }
+        }
+      }
+    },
+    "Nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所"
+          }
+        }
+      }
+    },
+    "Nearby data refreshed.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所の情報を更新しました。"
+          }
+        }
+      }
+    },
+    "Nearby places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所"
+          }
+        }
+      }
+    },
+    "Nearby places for your walk": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩ルート付近の場所"
+          }
+        }
+      }
+    },
+    "Nearby places map": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所の地図"
+          }
+        }
+      }
+    },
+    "No cached source attribution": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの出典情報はありません"
+          }
+        }
+      }
+    },
+    "No pin selected": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピンが選択されていません"
+          }
+        }
+      }
+    },
+    "No places match these filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件に合う場所はありません"
+          }
+        }
+      }
+    },
+    "No published spots in this nearby area": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この周辺に掲載中の場所はありません"
+          }
+        }
+      }
+    },
+    "No saved places are available. Published places may still exist nearby.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所はありません。近くに掲載中の場所がある可能性があります。"
+          }
+        }
+      }
+    },
+    "No saved places nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くに保存済みの場所はありません"
+          }
+        }
+      }
+    },
+    "Official listing": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公的機関の掲載情報"
+          }
+        }
+      }
+    },
+    "Official listing evidence": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公的機関の掲載情報による根拠"
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を開く"
+          }
+        }
+      }
+    },
+    "Open license information": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライセンス情報を開く"
+          }
+        }
+      }
+    },
+    "Open now": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在営業中"
+          }
+        }
+      }
+    },
+    "Open walking directions in Apple Maps": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appleマップで徒歩ルートを開く"
+          }
+        }
+      }
+    },
+    "Opening hours": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間"
+          }
+        }
+      }
+    },
+    "Opening hours, access, and supported tobacco types may be unknown or out of date.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間、利用条件、対応するたばこの種類は、不明または古い場合があります。"
+          }
+        }
+      }
+    },
+    "Opens place details": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の詳細を開きます"
+          }
+        }
+      }
+    },
+    "Other correction": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他の修正"
+          }
+        }
+      }
+    },
+    "Outdoor": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋外"
+          }
+        }
+      }
+    },
+    "Paper": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙巻き"
+          }
+        }
+      }
+    },
+    "Paper tobacco": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙巻きたばこ"
+          }
+        }
+      }
+    },
+    "Physical type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類"
+          }
+        }
+      }
+    },
+    "Physical type: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類: %@"
+          }
+        }
+      }
+    },
+    "Place details": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の詳細"
+          }
+        }
+      }
+    },
+    "Place no longer in nearby results": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所は現在、近くの検索結果にありません"
+          }
+        }
+      }
+    },
+    "Previously selected place (name unavailable)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以前選んだ場所（名前を取得できません）"
+          }
+        }
+      }
+    },
+    "Proposed map pin selected": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案する地図上のピンを選択済み"
+          }
+        }
+      }
+    },
+    "Proposed place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案する場所"
+          }
+        }
+      }
+    },
+    "Public": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般利用可"
+          }
+        }
+      }
+    },
+    "Public access only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般利用可能な場所のみ"
+          }
+        }
+      }
+    },
+    "Public smoking room": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共の喫煙室"
+          }
+        }
+      }
+    },
+    "Reading saved nearby places…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの近くの場所を読み込み中…"
+          }
+        }
+      }
+    },
+    "Recenter": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地に戻す"
+          }
+        }
+      }
+    },
+    "Refresh": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        }
+      }
+    },
+    "Remove the empty note or add some detail.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空のメモを削除するか、内容を入力してください。"
+          }
+        }
+      }
+    },
+    "Report availability could not be checked. Try again when connected.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告機能を利用できるか確認できませんでした。通信できる状態でもう一度お試しください。"
+          }
+        }
+      }
+    },
+    "Report could not be prepared.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告を準備できませんでした。"
+          }
+        }
+      }
+    },
+    "Report could not be safely prepared on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスで報告を安全に準備できませんでした。"
+          }
+        }
+      }
+    },
+    "Report could not be saved on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスに報告を保存できませんでした。"
+          }
+        }
+      }
+    },
+    "Report information about this place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所の情報を報告"
+          }
+        }
+      }
+    },
+    "Report place information": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の情報を報告"
+          }
+        }
+      }
+    },
+    "Report reference": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の参照番号"
+          }
+        }
+      }
+    },
+    "Report subject": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告する場所"
+          }
+        }
+      }
+    },
+    "Report type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の種類"
+          }
+        }
+      }
+    },
+    "Report was received, but its local draft could not be removed.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告は受信されましたが、このデバイスの下書きを削除できませんでした。"
+          }
+        }
+      }
+    },
+    "Reported all day": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終日営業との報告"
+          }
+        }
+      }
+    },
+    "Reported closed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "休業との報告"
+          }
+        }
+      }
+    },
+    "Reported open": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業中との報告"
+          }
+        }
+      }
+    },
+    "Reported schedule": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告された営業時間"
+          }
+        }
+      }
+    },
+    "Reporting availability is unknown. Your saved draft remains on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告機能を利用できるか不明です。保存済みの下書きはこのデバイスに残ります。"
+          }
+        }
+      }
+    },
+    "Reporting is temporarily unavailable. Your draft remains saved.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告機能を一時的に利用できません。下書きは保存されています。"
+          }
+        }
+      }
+    },
+    "Reports": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告"
+          }
+        }
+      }
+    },
+    "Reports are currently unavailable.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在、報告機能を利用できません。"
+          }
+        }
+      }
+    },
+    "Reports are proposals for review and do not immediately change a listing.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告は審査対象の提案です。掲載内容はすぐには変更されません。"
+          }
+        }
+      }
+    },
+    "Review or discard your saved proposal. It stays on this device until submitted or discarded.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの提案を確認するか、破棄してください。送信または破棄するまで、このデバイスに残ります。"
+          }
+        }
+      }
+    },
+    "Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ルート上の場所は徒歩で増える時間順に表示します。それ以外の近くの場所は直線距離順で、ルートから外れている場合があります。"
+          }
+        }
+      }
+    },
+    "Saved nearby data is unavailable on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは保存済みの近くの場所を利用できません。"
+          }
+        }
+      }
+    },
+    "Saved nearby data unavailable": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの近くの場所を利用できません"
+          }
+        }
+      }
+    },
+    "Saved report could not be read safely.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの報告を安全に読み込めませんでした。"
+          }
+        }
+      }
+    },
+    "Saved report could not be removed.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの報告を削除できませんでした。"
+          }
+        }
+      }
+    },
+    "Schedule unavailable": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間の情報を利用できません"
+          }
+        }
+      }
+    },
+    "Search": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索"
+          }
+        }
+      }
+    },
+    "Search a destination in Apple Maps": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appleマップで目的地を検索"
+          }
+        }
+      }
+    },
+    "Searching destinations…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地を検索中…"
+          }
+        }
+      }
+    },
+    "Secure reporting isn't supported on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは安全な報告機能を利用できません。"
+          }
+        }
+      }
+    },
+    "Secure reporting isn't supported on this device. Your draft remains saved.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは安全な報告機能を利用できません。下書きは保存されています。"
+          }
+        }
+      }
+    },
+    "Secure submission is temporarily unavailable. Try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の安全な送信は一時的に利用できません。後でもう一度お試しください。"
+          }
+        }
+      }
+    },
+    "Shorten the note and try again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモを短くして、もう一度お試しください。"
+          }
+        }
+      }
+    },
+    "Shorten the note to the character limit.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモを文字数制限内に短くしてください。"
+          }
+        }
+      }
+    },
+    "Show details for %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@の詳細を表示"
+          }
+        }
+      }
+    },
+    "Showing results from your last device location until this updates.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新が完了するまで、前回の現在地に基づく結果を表示します。"
+          }
+        }
+      }
+    },
+    "Showing saved nearby data. Live updates are unavailable.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの近くの場所を表示しています。最新情報は取得できません。"
+          }
+        }
+      }
+    },
+    "Showing saved places; refreshing…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所を表示しながら更新中…"
+          }
+        }
+      }
+    },
+    "Smoking is prohibited here": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ここでは喫煙禁止"
+          }
+        }
+      }
+    },
+    "Smoking-permitted venue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙が認められている施設"
+          }
+        }
+      }
+    },
+    "Some nearby data could not be loaded or refreshed. Saved results remain available where possible.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所の一部を読み込み、または更新できませんでした。利用可能な保存済みの結果を表示します。"
+          }
+        }
+      }
+    },
+    "Some report information needs to be corrected.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の内容を一部修正してください。"
+          }
+        }
+      }
+    },
+    "Source and legal attribution": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源と法的な出典表示"
+          }
+        }
+      }
+    },
+    "Source dates, opening hours, access, and supported tobacco types may be unknown or stale. Unknown does not mean open, closed, allowed, or prohibited.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源の日付、営業時間、利用条件、対応するたばこの種類は不明または古い場合があります。不明は、営業・休業、許可・禁止のいずれも意味しません。"
+          }
+        }
+      }
+    },
+    "Source name unavailable": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源の名前を取得できません"
+          }
+        }
+      }
+    },
+    "Source notes": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源の補足"
+          }
+        }
+      }
+    },
+    "Sources": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源"
+          }
+        }
+      }
+    },
+    "Sources and attribution": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源と出典"
+          }
+        }
+      }
+    },
+    "Straight-line distance": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離"
+          }
+        }
+      }
+    },
+    "Submission is unavailable until reporting availability can be confirmed. Your draft remains saved.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告機能を利用できると確認できるまで送信できません。下書きは保存されています。"
+          }
+        }
+      }
+    },
+    "Submit again": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再送信"
+          }
+        }
+      }
+    },
+    "Submit again despite possible duplicate": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重複の可能性を理解して再送信"
+          }
+        }
+      }
+    },
+    "Submit for review": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "審査用に送信"
+          }
+        }
+      }
+    },
+    "Submitting…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信中…"
+          }
+        }
+      }
+    },
+    "Suggest a correction": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修正を提案"
+          }
+        }
+      }
+    },
+    "Suggest a missing place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未掲載の場所を提案"
+          }
+        }
+      }
+    },
+    "Suggest missing place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未掲載の場所を提案"
+          }
+        }
+      }
+    },
+    "Supported tobacco types changed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応するたばこの種類が変わった"
+          }
+        }
+      }
+    },
+    "Tap a point on the map and confirm it. Your device location is never selected automatically.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図上の場所をタップして確定してください。デバイスの現在地が自動的に選択されることはありません。"
+          }
+        }
+      }
+    },
+    "Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図上の提案場所をタップするか、地図を移動して中心を選んでください。戻る前にピンを確定してください。"
+          }
+        }
+      }
+    },
+    "Tap the proposed place on the map, then confirm the pin. Centering the map does not select a place.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図上の提案場所をタップし、ピンを確定してください。地図を中心に合わせるだけでは場所は選択されません。"
+          }
+        }
+      }
+    },
+    "The iPhone sends the Watch a compact cached set of nearby places, source information, and filter preferences. The Watch uses its own current location for distance and direction.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneからApple Watchには、近くの場所、情報源、絞り込み設定の必要な情報を送ります。Apple Watchは距離と方角の計算に自身の現在地を使用します。"
+          }
+        }
+      }
+    },
+    "The report could not be accepted. Your draft remains saved.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告を受け付けられませんでした。下書きは保存されています。"
+          }
+        }
+      }
+    },
+    "The report is too long. Shorten the additional detail and try again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告が長すぎます。補足を短くして、もう一度お試しください。"
+          }
+        }
+      }
+    },
+    "The report may already have been received. Submitting again may create a duplicate.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告はすでに受信されている可能性があります。再送信すると重複する場合があります。"
+          }
+        }
+      }
+    },
+    "The saved report may concern another place. Review its details before submitting.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの報告は別の場所に関するものかもしれません。送信前に内容を確認してください。"
+          }
+        }
+      }
+    },
+    "The security check for this report did not pass. Nothing was submitted; you can try again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この報告の安全性を確認できませんでした。報告は送信されていません。もう一度お試しください。"
+          }
+        }
+      }
+    },
+    "This beta does not include third-party analytics, advertising trackers, or a crash-reporting SDK.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このベータ版には、外部の利用状況解析、広告用トラッカー、クラッシュ報告ツールは含まれていません。"
+          }
+        }
+      }
+    },
+    "This device could not be registered for secure reporting. Try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスを安全な報告用に登録できませんでした。後でもう一度お試しください。"
+          }
+        }
+      }
+    },
+    "This is a proposal for review. Submitting it does not immediately change the listing.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これは審査対象の提案です。送信しても掲載内容はすぐには変更されません。"
+          }
+        }
+      }
+    },
+    "This place exists": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所は存在する"
+          }
+        }
+      }
+    },
+    "This place moved": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所は移転した"
+          }
+        }
+      }
+    },
+    "This report could not be secured. Try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の安全な送信を準備できませんでした。後でもう一度お試しください。"
+          }
+        }
+      }
+    },
+    "This report type cannot include a proposed pin.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この種類の報告には、提案する場所のピンを含められません。"
+          }
+        }
+      }
+    },
+    "Time zone": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイムゾーン"
+          }
+        }
+      }
+    },
+    "Tobacco type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "たばこの種類"
+          }
+        }
+      }
+    },
+    "Too many reports. Please try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の回数が多すぎます。時間をおいてお試しください。"
+          }
+        }
+      }
+    },
+    "Too many reports. Try again in about %lld seconds.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の回数が多すぎます。約%lld秒後にもう一度お試しください。"
+          }
+        }
+      }
+    },
+    "Too many reports. Try again in about 1 second.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の回数が多すぎます。約1秒後にもう一度お試しください。"
+          }
+        }
+      }
+    },
+    "Try Again": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "もう一度試す"
+          }
+        }
+      }
+    },
+    "Uncertain within location accuracy": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報の精度の範囲内で不確か"
+          }
+        }
+      }
+    },
+    "Unconfirmed source text": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認されていない情報源の記載"
+          }
+        }
+      }
+    },
+    "Unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明"
+          }
+        }
+      }
+    },
+    "Unknown physical type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類は不明"
+          }
+        }
+      }
+    },
+    "Unknown support remains visible unless confirmation is required. Confirmed unsupported places are excluded.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応状況が不明な場所は、確認済みを必須にしない限り表示されます。非対応と確認された場所は除外されます。"
+          }
+        }
+      }
+    },
+    "Unsupported hours format": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応していない営業時間の形式"
+          }
+        }
+      }
+    },
+    "Unsupported physical type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応していない場所の種類"
+          }
+        }
+      }
+    },
+    "Unsupported schedule": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応していない営業時間の設定"
+          }
+        }
+      }
+    },
+    "Update the app to submit reports.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告を送信するにはアプリを更新してください。"
+          }
+        }
+      }
+    },
+    "Updated %@ · about %lld m accuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Updated %1$@ · about %2$lld m accuracy"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新: %1$@ · 精度約%2$lld m"
+          }
+        }
+      }
+    },
+    "Updating nearby places; distances use the previous device location…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所を更新中です。距離には前回の現在地を使用しています…"
+          }
+        }
+      }
+    },
+    "Use My Location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地を使用"
+          }
+        }
+      }
+    },
+    "Use and access": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件"
+          }
+        }
+      }
+    },
+    "Use map center": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図の中心を使用"
+          }
+        }
+      }
+    },
+    "Use your location to rank nearby permitted places by straight-line distance.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地を使い、近くの喫煙可能場所を直線距離順に表示します。"
+          }
+        }
+      }
+    },
+    "Verified %lld days ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld日前に確認"
+          }
+        }
+      }
+    },
+    "Verified 1 day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日前に確認"
+          }
+        }
+      }
+    },
+    "Verified less than a day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日以内に確認"
+          }
+        }
+      }
+    },
+    "Verified within": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認からの期間"
+          }
+        }
+      }
+    },
+    "Walking destination": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩の目的地"
+          }
+        }
+      }
+    },
+    "Walking detour unconfirmed · straight-line fallback": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩での寄り道は未確認 · 直線距離で表示"
+          }
+        }
+      }
+    },
+    "Walking detour unconfirmed; straight-line fallback": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩での寄り道は未確認です。直線距離で表示します。"
+          }
+        }
+      }
+    },
+    "Walking directions": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩ルート"
+          }
+        }
+      }
+    },
+    "Walking distance": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩距離"
+          }
+        }
+      }
+    },
+    "Walking route unavailable. The straight-line distance and bearing above remain available.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩ルートを利用できません。上の直線距離と方角は引き続き確認できます。"
+          }
+        }
+      }
+    },
+    "Walking routes unavailable. Showing saved places by straight-line distance and bearing.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩ルートを利用できません。保存済みの場所を直線距離と方角で表示します。"
+          }
+        }
+      }
+    },
+    "Walking time": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徒歩時間"
+          }
+        }
+      }
+    },
+    "What needs review?": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認が必要な内容"
+          }
+        }
+      }
+    },
+    "When did you observe this? (optional)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつ確認しましたか？（任意）"
+          }
+        }
+      }
+    },
+    "Your current location is used on this device to rank nearby places and calculate distance and direction.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地は、このデバイス上で近くの場所を並べ替え、距離と方角を計算するために使用されます。"
+          }
+        }
+      }
+    },
+    "Your location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地"
+          }
+        }
+      }
+    },
+    "Your report was received for review. The listing has not changed.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告を審査用に受け付けました。掲載内容はまだ変更されていません。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

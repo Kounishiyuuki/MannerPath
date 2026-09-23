@@ -250,7 +250,9 @@ struct MannerPathWatch_Watch_AppTests {
             #expect(URLComponents(url: url, resolvingAgainstBaseURL: false)?
                 .queryItems?.contains(URLQueryItem(name: "mode", value: "walking")) == true)
         }
-        #expect(WatchNavigation.fallback(hasLocation: true).contains("bearing"))
-        #expect(WatchNavigation.fallback(hasLocation: false).contains("needed"))
+        #expect(WatchNavigation.fallback(hasLocation: true) ==
+                String(localized: "If Maps cannot route, use straight-line distance and bearing above."))
+        #expect(WatchNavigation.fallback(hasLocation: false) ==
+                String(localized: "Watch location is needed for straight-line distance and bearing."))
     }
 }

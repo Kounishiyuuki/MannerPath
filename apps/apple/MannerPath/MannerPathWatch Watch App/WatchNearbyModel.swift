@@ -14,6 +14,7 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     private(set) var longitude: Double?
     private(set) var accuracyMeters: Double?
     private(set) var locationUnavailable = false
+    private(set) var locationAuthorizationUndetermined = false
     private(set) var now = Date()
 
     var results: [WatchRankedSpot] {
@@ -33,17 +34,22 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
         preferences = store?.preferences() ?? .defaults()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationAuthorizationUndetermined = locationManager.authorizationStatus == .notDetermined
         if activateConnectivity && WCSession.isSupported() {
             WCSession.default.delegate = self
             WCSession.default.activate()
         }
     }
 
-    func refreshLocation() {
+    func refreshLocation(requestAuthorization: Bool = true) {
         now = Date()
         switch locationManager.authorizationStatus {
-        case .notDetermined: locationManager.requestWhenInUseAuthorization()
-        case .authorizedAlways, .authorizedWhenInUse: locationManager.requestLocation()
+        case .notDetermined:
+            locationAuthorizationUndetermined = true
+            if requestAuthorization { locationManager.requestWhenInUseAuthorization() }
+        case .authorizedAlways, .authorizedWhenInUse:
+            locationUnavailable = false
+            locationManager.requestLocation()
         default: locationUnavailable = true
         }
     }
@@ -51,8 +57,12 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     func refreshClock() { now = Date() }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        locationAuthorizationUndetermined = manager.authorizationStatus == .notDetermined
         if manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways {
+            locationUnavailable = false
             manager.requestLocation()
+        } else if manager.authorizationStatus != .notDetermined {
+            locationUnavailable = true
         }
     }
 

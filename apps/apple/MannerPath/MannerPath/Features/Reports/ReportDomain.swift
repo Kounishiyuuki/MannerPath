@@ -5,14 +5,14 @@ nonisolated enum ReportType: String, CaseIterable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .exists: "This place exists"
-        case .missing: "Suggest a missing place"
-        case .moved: "This place moved"
-        case .hoursChanged: "Hours changed"
-        case .tobaccoTypeChanged: "Supported tobacco types changed"
-        case .accessChanged: "Access changed"
-        case .prohibited: "Smoking is prohibited here"
-        case .other: "Other correction"
+        case .exists: String(localized: "This place exists")
+        case .missing: String(localized: "Suggest a missing place")
+        case .moved: String(localized: "This place moved")
+        case .hoursChanged: String(localized: "Hours changed")
+        case .tobaccoTypeChanged: String(localized: "Supported tobacco types changed")
+        case .accessChanged: String(localized: "Access changed")
+        case .prohibited: String(localized: "Smoking is prohibited here")
+        case .other: String(localized: "Other correction")
         }
     }
 
@@ -36,14 +36,17 @@ nonisolated struct ReportCoordinate: Codable, Equatable, Sendable {
 nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var type: ReportType
     var spotId: String?
+    var subjectName: String?
     var proposedLocation: ReportCoordinate?
     var observedOn: String?
     var note: String?
 
-    init(type: ReportType, spotId: String? = nil, proposedLocation: ReportCoordinate? = nil,
+    init(type: ReportType, spotId: String? = nil, subjectName: String? = nil,
+         proposedLocation: ReportCoordinate? = nil,
          observedOn: String? = nil, note: String? = nil) {
         self.type = type
         self.spotId = spotId
+        self.subjectName = subjectName
         self.proposedLocation = proposedLocation
         self.observedOn = observedOn
         self.note = note

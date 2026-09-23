@@ -82,7 +82,7 @@ struct SpotDetailView: View {
                 TimelineView(.periodic(from: .now, by: 60)) { context in
                     LabeledContent("Open now", value: openNowText(at: context.date))
                 }
-                detailText("Raw source text", spot.openingHours?.raw ?? "Unknown")
+                detailText("Source notes", spot.openingHours?.raw ?? String(localized: "Unknown"))
                 if let hours = spot.openingHours, hours.status == .parsed,
                    let parsed = hours.parsed {
                     LabeledContent("Reported schedule", value: schedule(parsed))
@@ -95,7 +95,8 @@ struct SpotDetailView: View {
             }
 
             Section("Evidence and freshness") {
-                LabeledContent("Evidence quality", value: SpotPresentation.evidence(spot.verification.evidenceQuality))
+                LabeledContent("Evidence quality", value: SpotPresentation.evidence(spot.verification.evidenceQuality,
+                                                                                   version: spot.verification.evidenceQualityVersion))
                 LabeledContent("Last verified", value: SpotPresentation.verificationDate(spot.lastVerifiedAt))
                 LabeledContent("Freshness", value: SpotPresentation.freshness(result))
                 detailText("Sources", SpotPresentation.sourceNames(spot))
@@ -118,13 +119,13 @@ struct SpotDetailView: View {
                     Text("Report availability could not be checked. Try again when connected.")
                         .foregroundStyle(.secondary)
                 case .unavailable:
-                    Text("Reports are currently unavailable on this server.")
+                    Text("Reports are currently unavailable.")
                         .foregroundStyle(.secondary)
                 case .incompatible:
-                    Text("Update the app to submit reports to this server.")
+                    Text("Update the app to submit reports.")
                         .foregroundStyle(.secondary)
                 case .attestationUnsupported:
-                    Text("This device cannot meet this server's security requirement for reports.")
+                    Text("Secure reporting isn't supported on this device.")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -141,9 +142,9 @@ struct SpotDetailView: View {
 
     private func openNowText(at date: Date) -> String {
         switch NearbySearch.openNow(spot.openingHours, at: date) {
-        case .yes: "Reported open"
-        case .no: "Reported closed"
-        case .unknown: "Unknown"
+        case .yes: String(localized: "Reported open")
+        case .no: String(localized: "Reported closed")
+        case .unknown: String(localized: "Unknown")
         }
     }
 
@@ -172,18 +173,18 @@ struct SpotDetailView: View {
 
     private func schedule(_ parsed: SpotParsedOpeningHours) -> String {
         switch parsed.kind {
-        case .allDay: "Reported all day"
+        case .allDay: String(localized: "Reported all day")
         case .daily:
             if let opens = parsed.opens, let closes = parsed.closes {
-                "Daily \(opens)–\(closes)"
+                String(localized: "Daily \(opens)–\(closes)")
             } else {
-                "Daily schedule incomplete"
+                String(localized: "Daily schedule incomplete")
             }
-        case .unsupported: "Unsupported schedule"
+        case .unsupported: String(localized: "Unsupported schedule")
         }
     }
 
-    private func detailText(_ label: String, _ value: String) -> some View {
+    private func detailText(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.subheadline)
