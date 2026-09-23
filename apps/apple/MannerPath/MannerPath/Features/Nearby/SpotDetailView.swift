@@ -82,7 +82,7 @@ struct SpotDetailView: View {
                 TimelineView(.periodic(from: .now, by: 60)) { context in
                     LabeledContent("Open now", value: openNowText(at: context.date))
                 }
-                detailText("Source notes", spot.openingHours?.raw ?? "Unknown")
+                detailText("Source notes", spot.openingHours?.raw ?? String(localized: "Unknown"))
                 if let hours = spot.openingHours, hours.status == .parsed,
                    let parsed = hours.parsed {
                     LabeledContent("Reported schedule", value: schedule(parsed))
@@ -125,7 +125,7 @@ struct SpotDetailView: View {
                     Text("Update the app to submit reports.")
                         .foregroundStyle(.secondary)
                 case .attestationUnsupported:
-                    Text("This device cannot meet this server's security requirement for reports.")
+                    Text("Secure reporting isn't supported on this device.")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -184,7 +184,7 @@ struct SpotDetailView: View {
         }
     }
 
-    private func detailText(_ label: String, _ value: String) -> some View {
+    private func detailText(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.subheadline)

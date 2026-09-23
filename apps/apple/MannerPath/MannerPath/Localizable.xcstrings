@@ -2097,6 +2097,26 @@
         }
       }
     },
+    "Secure reporting isn't supported on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは安全な報告機能を利用できません。"
+          }
+        }
+      }
+    },
+    "Secure reporting isn't supported on this device. Your draft remains saved.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは安全な報告機能を利用できません。下書きは保存されています。"
+          }
+        }
+      }
+    },
     "Secure submission is temporarily unavailable. Try again later.": {
       "localizations": {
         "ja": {
@@ -2473,26 +2493,6 @@
         }
       }
     },
-    "This device cannot meet this server's security requirement for reports.": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "このデバイスでは、報告に必要な安全性の要件を満たせません。"
-          }
-        }
-      }
-    },
-    "This device cannot meet this server's security requirement for reports. Your draft remains saved on this device.": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "このデバイスでは、報告に必要な安全性の要件を満たせません。下書きはこのデバイスに保存されています。"
-          }
-        }
-      }
-    },
     "This device could not be registered for secure reporting. Try again later.": {
       "localizations": {
         "ja": {
@@ -2689,16 +2689,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "対応していない営業時間の設定"
-          }
-        }
-      }
-    },
-    "Update the app to submit reports to this server.": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "報告を送信するにはアプリを更新してください。"
           }
         }
       }

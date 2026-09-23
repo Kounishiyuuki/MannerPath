@@ -271,7 +271,7 @@ final class ReportModel {
 
     private static func rejectionMessage(_ rejection: AttestationRejection) -> String {
         rejection.requiresAppUpdate
-            ? String(localized: "Update the app to submit reports to this server.")
+            ? String(localized: "Update the app to submit reports.")
             : String(localized: "The security check for this report did not pass. Nothing was submitted; you can try again.")
     }
 

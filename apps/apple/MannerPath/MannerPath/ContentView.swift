@@ -173,7 +173,7 @@ struct ContentView: View {
             Text("Update the app to submit reports.")
                 .font(.footnote).foregroundStyle(.secondary)
         case .attestationUnsupported:
-            Text("This device cannot meet this server's security requirement for reports.")
+            Text("Secure reporting isn't supported on this device.")
                 .font(.footnote).foregroundStyle(.secondary)
         }
     }

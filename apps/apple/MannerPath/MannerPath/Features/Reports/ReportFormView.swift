@@ -100,7 +100,7 @@ struct ReportFormView: View {
                                 }
                             }
                         } else if case .attestationUnsupported = model.availability {
-                            Text("This device cannot meet this server's security requirement for reports. Your draft remains saved on this device.")
+                            Text("Secure reporting isn't supported on this device. Your draft remains saved.")
                                 .font(.footnote)
                         } else {
                             Text("Submission is unavailable until reporting availability can be confirmed. Your draft remains saved.")
