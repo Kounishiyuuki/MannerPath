@@ -13,7 +13,7 @@ Initial capabilities should be minimal. Add location usage descriptions only whe
 
 ## Nearby tile API configuration
 
-The iPhone app stores tile snapshots in its Application Support directory. It reads that cache before any network refresh. To enable refreshes, set the `MANNERPATH_API_BASE_URL` Xcode build setting to the API origin (for example through a local, uncommitted `.xcconfig` or an `xcodebuild` build-setting override). The generated Info.plist passes it to the app as `MannerPathAPIBaseURL`. The value is optional; when absent or invalid, Nearby works from the local cache only. Use an HTTPS origin for device builds unless App Transport Security has been configured for a development server.
+The iPhone app stores tile snapshots in its Application Support directory. It reads that cache before any network refresh. To enable refreshes, set the `MANNERPATH_API_BASE_URL` Xcode build setting to the API origin (for example through a local, uncommitted `.xcconfig` or an `xcodebuild` build-setting override). The iPhone Info.plist passes it to the app as `MannerPathAPIBaseURL`. The value is optional; when absent or invalid, Nearby works from the local cache only. Use an HTTPS origin for device builds unless App Transport Security has been configured for a development server. In an `.xcconfig`, `//` starts a comment, so spell an HTTPS URL as `https:/$()/example.invalid` to preserve both slashes; direct `xcodebuild` build-setting overrides accept `https://example.invalid`.
 
 ## App Attest reporting (Issue #46)
 
