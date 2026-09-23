@@ -28,3 +28,6 @@ xcodebuild build \
   -project "$project" \
   -scheme "MannerPathWatch Watch App" \
   -destination "$watch_destination"
+
+echo "==> iPhone built Info.plist API origin"
+./scripts/check-iphone-api-base-url.sh
