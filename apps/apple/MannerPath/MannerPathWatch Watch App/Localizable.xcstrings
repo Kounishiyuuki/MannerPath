@@ -1,0 +1,250 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ km": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km"
+          }
+        }
+      }
+    },
+    "%@ straight-line": {},
+    "%@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%lld m": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld m"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld m"
+          }
+        }
+      }
+    },
+    "%lld° clockwise from north": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld° clockwise from north"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北から時計回りに%lld°"
+          }
+        }
+      }
+    },
+    "1 year": {},
+    "30 days": {},
+    "90 days": {},
+    "Access: %@": {},
+    "Allow location while using the app to rank saved places by distance and direction.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所を距離と方角で並べるため、アプリの使用中に現在地へのアクセスを許可してください。"
+          }
+        }
+      }
+    },
+    "Any": {},
+    "Any date": {},
+    "Ashtray": {},
+    "Ashtray location": {},
+    "Before you continue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ご利用の前に"
+          }
+        }
+      }
+    },
+    "Clear Watch filters": {},
+    "Confirmed": {},
+    "Confirmed open now": {},
+    "Confirmed public": {},
+    "Confirmed support": {},
+    "Continue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続ける"
+          }
+        }
+      }
+    },
+    "Customers only": {},
+    "Designated outdoor area": {},
+    "Direction uncertain within location accuracy": {},
+    "Distance and bearing need Watch location": {},
+    "Evidence confidence unknown": {},
+    "Facility only": {},
+    "Facility room": {},
+    "Facility smoking room": {},
+    "Filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絞り込み"
+          }
+        }
+      }
+    },
+    "Finding Watch location. Saved places are shown first.": {},
+    "Follow posted signs, on-site rules, and local law.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現地の掲示、施設のルール、地域の法令に従ってください。"
+          }
+        }
+      }
+    },
+    "Follow posted signs, on-site rules, and local law. Unknown details are not confirmation.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現地の掲示、施設のルール、地域の法令に従ってください。不明な情報は確認済みを意味しません。"
+          }
+        }
+      }
+    },
+    "For people legally permitted to smoke. Follow posted signs, on-site rules, and local law.": {},
+    "For people legally permitted to smoke. Nearby results do not confirm that smoking is allowed.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "法律上喫煙が認められている方が対象です。近くに表示されたことだけでは、喫煙が認められていることを保証しません。"
+          }
+        }
+      }
+    },
+    "Heated": {},
+    "If Maps cannot route, use straight-line distance and bearing above.": {},
+    "In Japan, you must be at least 20 to smoke or enter a smoking area.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本では、喫煙および喫煙エリアへの立入りは20歳以上の方に限られます。"
+          }
+        }
+      }
+    },
+    "Location": {},
+    "Nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所"
+          }
+        }
+      }
+    },
+    "No saved places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所がありません"
+          }
+        }
+      }
+    },
+    "No saved places match these filters.": {},
+    "Not supported": {},
+    "Official listing": {},
+    "Open MannerPath on iPhone once to send nearby data to this Watch.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneでMannerPathを一度開くと、近くのデータがWatchに送られます。"
+          }
+        }
+      }
+    },
+    "Open walking directions": {},
+    "Opens place details": {},
+    "Outdoor area": {},
+    "Paper": {},
+    "Paper: %@ · Heated: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Paper: %1$@ · Heated: %2$@"
+          }
+        }
+      }
+    },
+    "Physical type": {},
+    "Public": {},
+    "Public access": {},
+    "Public room": {},
+    "Public smoking room": {},
+    "Quick filters": {},
+    "Refresh location": {},
+    "Saved selection": {},
+    "Smoking-permitted venue": {},
+    "Source": {},
+    "Source details unavailable": {},
+    "Tobacco": {},
+    "Unknown": {},
+    "Unknown physical type": {},
+    "Unknown type": {},
+    "Use Watch Location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watchの現在地を使用"
+          }
+        }
+      }
+    },
+    "Venue": {},
+    "Verification date unknown": {},
+    "Verified %lld days ago": {},
+    "Verified less than a day ago": {},
+    "Verified within": {},
+    "Watch location is needed for straight-line distance and bearing.": {},
+    "Watch location is unavailable. Saved places remain available.": {}
+  },
+  "version": "1.0"
+}

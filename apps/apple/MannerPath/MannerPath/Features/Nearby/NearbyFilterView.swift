@@ -11,7 +11,7 @@ struct NearbyFilterView: View {
     private let accessTypes: [AccessType] = [.public, .customerOnly, .facilityOnly, .unknown]
 
     var body: some View {
-        DisclosureGroup("Filters") {
+        Section("Filters") {
             VStack(alignment: .leading, spacing: 12) {
                 Picker("Tobacco type", selection: $filters.tobaccoType) {
                     Text("Any").tag(nil as TobaccoType?)

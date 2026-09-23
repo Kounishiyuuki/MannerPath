@@ -1,0 +1,539 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ You can correct it and submit again.": {},
+    "%@ km": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km"
+          }
+        }
+      }
+    },
+    "%@ straight-line": {},
+    "%@ straight-line · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ straight-line · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%lld / %lld text units (emoji may count as two)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld / %2$lld text units (emoji may count as two)"
+          }
+        }
+      }
+    },
+    "%lld m": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld m"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld m"
+          }
+        }
+      }
+    },
+    "%lld° clockwise from north": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld° clockwise from north"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北から時計回りに%lld°"
+          }
+        }
+      }
+    },
+    "1 km": {},
+    "1 year": {},
+    "2 km": {},
+    "30 days": {},
+    "5 km": {},
+    "500 m": {},
+    "90 days": {},
+    "A current device location is needed for a walking preview. The straight-line estimate remains available.": {},
+    "A current location is needed for walking detours. Showing straight-line distance and bearing.": {},
+    "A missing-place suggestion cannot include an existing place.": {},
+    "A nearby result does not by itself confirm that smoking is legal at that moment.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くに表示されたことだけでは、その時点で喫煙が認められていることを保証しません。"
+          }
+        }
+      }
+    },
+    "A place missing from the map": {},
+    "A previous delivery could not be resolved after the app restarted. This saved draft cannot be submitted again; discard it when you are ready.": {},
+    "A saved draft stays on this device until it is submitted or discarded.": {},
+    "About %lld min added walking time": {},
+    "About %lld minutes added walking time": {},
+    "Access": {},
+    "Access changed": {},
+    "Access type: %@": {},
+    "Add observation day": {},
+    "Additional detail (optional)": {},
+    "Additional report detail": {},
+    "Adjust nearby result filters": {},
+    "All nearby cached source attributions": {},
+    "Any": {},
+    "Any access type": {},
+    "Any date": {},
+    "Any environment": {},
+    "Any physical type": {},
+    "Apple Watch": {},
+    "Ashtray location": {},
+    "Attribution for sources stored with the nearby tile cache. This information remains available without a network connection. A source can appear more than once when saved tiles contain different wording.": {},
+    "Attribution text unavailable in cached data": {},
+    "Attribution: %@": {},
+    "Based on reported hours when available. Follow on-site rules and signs.": {},
+    "Before you continue": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ご利用の前に"
+          }
+        }
+      }
+    },
+    "Cached nearby data remains available offline. Walking routes may require a network connection.": {},
+    "Change proposed pin": {},
+    "Check posted signs and follow the location's rules and local law.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現地の掲示、施設のルール、地域の法令に従ってください。"
+          }
+        }
+      }
+    },
+    "Check reporting again": {},
+    "Checking walking detours. Saved places remain available below.": {},
+    "Choose a map pin": {},
+    "Choose a valid observation day.": {},
+    "Choose a valid point on the map.": {},
+    "Choose an existing place before submitting.": {},
+    "Choose and confirm a proposed map pin.": {},
+    "Choose proposed pin": {},
+    "Clear": {},
+    "Clear filters": {},
+    "Close": {},
+    "Confirm proposed pin": {},
+    "Confirmed": {},
+    "Confirmed not supported": {},
+    "Confirmed open now": {},
+    "Confirmed public access only": {},
+    "Confirmed tobacco support only": {},
+    "Continue saved report": {},
+    "Continues to nearby places": {},
+    "Could not load nearby data": {},
+    "Covered": {},
+    "Customers only": {},
+    "Daily %@–%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Daily %1$@–%2$@"
+          }
+        }
+      }
+    },
+    "Daily schedule incomplete": {},
+    "Data & Privacy": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データとプライバシー"
+          }
+        }
+      }
+    },
+    "Data quality": {},
+    "Day": {},
+    "Delivery could not be confirmed. The report may already have been received. Submitting again could create a duplicate.": {},
+    "Designated outdoor area": {},
+    "Destination search stays in this screen and is never added to saved smoking places.": {},
+    "Destination search unavailable. Saved nearby places remain available.": {},
+    "Device location": {},
+    "Diagnostics": {},
+    "Discard draft": {},
+    "Distance and bearing are estimates from your device location, not a walking route.": {},
+    "Distance and bearing use a previous device location while nearby data updates. They are not a walking route.": {},
+    "Done": {},
+    "Eligibility and local rules": {},
+    "Environment": {},
+    "Environment: %@": {},
+    "Evidence and freshness": {},
+    "Evidence confidence unknown": {},
+    "Evidence quality": {},
+    "Explore place pins or use the list below for full details": {},
+    "Facility access only": {},
+    "Facility smoking room": {},
+    "Filters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絞り込み"
+          }
+        }
+      }
+    },
+    "Filters active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters active"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絞り込み中"
+          }
+        }
+      }
+    },
+    "Find permitted smoking locations": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙可能場所を探す"
+          }
+        }
+      }
+    },
+    "Finding a pedestrian route…": {},
+    "Finding your location…": {},
+    "Floor": {},
+    "For a missing or moved place, the proposed location is a map pin you choose. MannerPath does not automatically use your device position as that pin.": {},
+    "Freshness": {},
+    "Heated": {},
+    "Heated tobacco": {},
+    "Hours changed": {},
+    "Hours state": {},
+    "I understand": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認しました"
+          }
+        }
+      }
+    },
+    "In Japan, you must be at least 20 to smoke or enter a smoking area.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本では、喫煙および喫煙エリアへの立入りは20歳以上の方に限られます。"
+          }
+        }
+      }
+    },
+    "Indoor": {},
+    "Last device location": {},
+    "Last location used for distances": {},
+    "Last verified": {},
+    "Last verified %@": {},
+    "Last verified: %@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Last verified: %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Latitude %@": {},
+    "Latitude %@, longitude %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Latitude %1$@, longitude %2$@"
+          }
+        }
+      }
+    },
+    "Less than 1 m": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Less than 1 m"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 m未満"
+          }
+        }
+      }
+    },
+    "License": {},
+    "Live updates are unavailable.": {},
+    "Loading nearby places…": {},
+    "Location": {},
+    "Location access is off. Allow While Using the App access in Settings to rank nearby places.": {},
+    "Location access is restricted on this device.": {},
+    "Location could not be determined. Try again.": {},
+    "Location is approximate; distances may be inaccurate.": {},
+    "Longitude %@": {},
+    "MannerPath does not intentionally collect a history of your locations.": {},
+    "MannerPath is a navigation aid for people who are legally permitted to smoke. It does not sell or promote tobacco.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MannerPathは、法律上喫煙が認められている方のための案内アプリです。たばこの販売や利用の促進は行いません。"
+          }
+        }
+      }
+    },
+    "MannerPath is for people who are legally permitted to smoke. A place appearing nearby does not guarantee that smoking is currently legal there. Follow posted signs, on-site rules, and local law.": {},
+    "Map": {},
+    "Map for choosing the proposed place": {},
+    "Maximum straight-line distance": {},
+    "Move the map, then use the map center button. Coordinate controls are available after selection.": {},
+    "Nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所"
+          }
+        }
+      }
+    },
+    "Nearby data refreshed.": {},
+    "Nearby places": {},
+    "Nearby places for your walk": {},
+    "Nearby places map": {},
+    "No cached source attribution": {},
+    "No pin selected": {},
+    "No places match these filters": {},
+    "No published spots in this nearby area": {},
+    "No saved places are available. Published places may still exist nearby.": {},
+    "No saved places nearby": {},
+    "Official listing": {},
+    "Official listing evidence": {},
+    "Open Settings": {},
+    "Open license information": {},
+    "Open now": {},
+    "Open walking directions in Apple Maps": {},
+    "Opening hours": {},
+    "Opening hours, access, and supported tobacco types may be unknown or out of date.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間、利用条件、対応するたばこの種類は、不明または古い場合があります。"
+          }
+        }
+      }
+    },
+    "Opens place details": {},
+    "Other correction": {},
+    "Outdoor": {},
+    "Paper": {},
+    "Paper tobacco": {},
+    "Physical type": {},
+    "Physical type: %@": {},
+    "Place details": {},
+    "Place no longer in nearby results": {},
+    "Previously selected place (name unavailable)": {},
+    "Proposed map pin selected": {},
+    "Proposed place": {},
+    "Public": {},
+    "Public access only": {},
+    "Public smoking room": {},
+    "Reading saved nearby places…": {},
+    "Recenter": {},
+    "Refresh": {},
+    "Remove the empty note or add some detail.": {},
+    "Report availability could not be checked. Try again when connected.": {},
+    "Report could not be prepared.": {},
+    "Report could not be safely prepared on this device.": {},
+    "Report could not be saved on this device.": {},
+    "Report information about this place": {},
+    "Report place information": {},
+    "Report reference": {},
+    "Report subject": {},
+    "Report type": {},
+    "Report was received, but its local draft could not be removed.": {},
+    "Reported all day": {},
+    "Reported closed": {},
+    "Reported open": {},
+    "Reported schedule": {},
+    "Reporting availability is unknown. Your saved draft remains on this device.": {},
+    "Reporting is temporarily unavailable. Your draft remains saved.": {},
+    "Reports": {},
+    "Reports are currently unavailable.": {},
+    "Reports are proposals for review and do not immediately change a listing.": {},
+    "Review or discard your saved proposal. It stays on this device until submitted or discarded.": {},
+    "Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.": {},
+    "Saved nearby data is unavailable on this device.": {},
+    "Saved nearby data unavailable": {},
+    "Saved report could not be read safely.": {},
+    "Saved report could not be removed.": {},
+    "Schedule unavailable": {},
+    "Search": {},
+    "Search a destination in Apple Maps": {},
+    "Searching destinations…": {},
+    "Shorten the note and try again.": {},
+    "Shorten the note to the character limit.": {},
+    "Show details for %@": {},
+    "Showing results from your last device location until this updates.": {},
+    "Showing saved nearby data. Live updates are unavailable.": {},
+    "Showing saved places; refreshing…": {},
+    "Smoking is prohibited here": {},
+    "Smoking-permitted venue": {},
+    "Some nearby data could not be loaded or refreshed. Saved results remain available where possible.": {},
+    "Some report information needs to be corrected.": {},
+    "Source and legal attribution": {},
+    "Source dates, opening hours, access, and supported tobacco types may be unknown or stale. Unknown does not mean open, closed, allowed, or prohibited.": {},
+    "Sources": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報源"
+          }
+        }
+      }
+    },
+    "Sources and attribution": {},
+    "Straight-line distance": {},
+    "Submission is unavailable until reporting availability can be confirmed. Your draft remains saved.": {},
+    "Submit again": {},
+    "Submit again despite possible duplicate": {},
+    "Submit for review": {},
+    "Submitting…": {},
+    "Suggest a correction": {},
+    "Suggest a missing place": {},
+    "Suggest missing place": {},
+    "Supported tobacco types changed": {},
+    "Tap a point on the map and confirm it. Your device location is never selected automatically.": {},
+    "Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図上の提案場所をタップするか、地図を移動して中心を選んでください。戻る前にピンを確定してください。"
+          }
+        }
+      }
+    },
+    "Tap the proposed place on the map, then confirm the pin. Centering the map does not select a place.": {},
+    "The iPhone sends the Watch a compact cached set of nearby places, source information, and filter preferences. The Watch uses its own current location for distance and direction.": {},
+    "The report could not be accepted. Your draft remains saved.": {},
+    "The report is too long. Shorten the additional detail and try again.": {},
+    "The report may already have been received. Submitting again may create a duplicate.": {},
+    "The saved report may concern another place. Review its details before submitting.": {},
+    "This beta does not include third-party analytics, advertising trackers, or a crash-reporting SDK.": {},
+    "This is a proposal for review. Submitting it does not immediately change the listing.": {},
+    "This place exists": {},
+    "This place moved": {},
+    "This report type cannot include a proposed pin.": {},
+    "Time zone": {},
+    "Tobacco type": {},
+    "Too many reports. Please try again later.": {},
+    "Too many reports. Try again in about %lld seconds.": {},
+    "Try Again": {},
+    "Uncertain within location accuracy": {},
+    "Unconfirmed source text": {},
+    "Unknown": {},
+    "Unknown physical type": {},
+    "Unknown support remains visible unless confirmation is required. Confirmed unsupported places are excluded.": {},
+    "Unsupported hours format": {},
+    "Unsupported physical type": {},
+    "Unsupported schedule": {},
+    "Update the app to submit reports.": {},
+    "Updated %@ · about %lld m accuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Updated %1$@ · about %2$lld m accuracy"
+          }
+        }
+      }
+    },
+    "Updating nearby places; distances use the previous device location…": {},
+    "Use My Location": {},
+    "Use and access": {},
+    "Use map center": {},
+    "Use your location to rank nearby permitted places by straight-line distance.": {},
+    "Verified %lld days ago": {},
+    "Verified less than a day ago": {},
+    "Verified within": {},
+    "Walking destination": {},
+    "Walking detour unconfirmed · straight-line fallback": {},
+    "Walking detour unconfirmed; straight-line fallback": {},
+    "Walking directions": {},
+    "Walking distance": {},
+    "Walking route unavailable. The straight-line distance and bearing above remain available.": {},
+    "Walking routes unavailable. Showing saved places by straight-line distance and bearing.": {},
+    "Walking time": {},
+    "What needs review?": {},
+    "When did you observe this? (optional)": {},
+    "Your current location is used on this device to rank nearby places and calculate distance and direction.": {},
+    "Your location": {},
+    "Your report was received for review. The listing has not changed.": {}
+  },
+  "version": "1.0"
+}

@@ -1,8 +1,11 @@
 import MapKit
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
+    @AppStorage("eligibilityNoticeAccepted") private var eligibilityNoticeAccepted = false
     @State private var model = NearbyComposition.makeModel()
     @State private var reportModel = ReportComposition.makeModel()
     @State private var showingReport = false
@@ -11,36 +14,40 @@ struct ContentView: View {
     @State private var selectedSnapshot: DetailSelection?
     @State private var filters = WatchPreferenceStore.filters(from: WatchPreferenceStore.load())
     @State private var destinationQuery = ""
+    @State private var showingEligibility = false
+    @State private var showingFilters = false
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("喫煙が認められる年齢の方のみご利用ください。現地のルールに従ってください。\nFor adults of legal smoking age. Follow local rules.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-
                     locationSection
-
-                    reportSection
 
                     if model.displayLocation != nil {
                         dataStatus
-                        NearbyFilterView(filters: $filters)
-                        destinationSection
                         if !model.results.isEmpty { mapSection }
                         listSection
+                        destinationSection
                     }
+
+                    reportSection
                 }
                 .padding()
             }
             .navigationTitle("Nearby")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(filters == NearbyFilters() ? "Filters" : "Filters active",
+                           systemImage: "line.3.horizontal.decrease") {
+                        showingFilters = true
+                    }
+                    .accessibilityHint("Adjust nearby result filters")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
-                        NearbyAttributionView(sources: model.sources)
+                        AboutPrivacyView(sources: model.sources)
                     } label: {
-                        Label("Sources", systemImage: "doc.text")
+                        Label("Data & Privacy", systemImage: "info.circle")
                     }
                 }
             }
@@ -59,7 +66,8 @@ struct ContentView: View {
                         reportAvailability: reportModel.availability,
                         hasSavedReport: reportModel.draft != nil,
                         onReport: {
-                            reportModel.start(type: .exists, spotId: selection.result.spot.id)
+                            reportModel.start(type: .exists, spotId: selection.result.spot.id,
+                                              subjectName: SpotPresentation.name(selection.result.spot))
                             showingReport = true
                         }
                     )
@@ -69,19 +77,33 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
-            if phase == .active {
-                model.onCachedCorpusChange = { spots, sources, origin in
-                    PhoneWatchSync.shared.publish(spots: spots, sources: sources, near: origin)
-                }
-                model.publishCachedCorpusForWatch()
-                model.setFilters(filters)
-                PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.load())
-                model.start()
-                Task { await reportModel.refreshAvailability() }
-            }
+            if phase == .active && eligibilityNoticeAccepted { activateNearby() }
         }
         .sheet(isPresented: $showingReport) {
             ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate)
+        }
+        .sheet(isPresented: $showingFilters) {
+            NavigationStack {
+                Form { NearbyFilterView(filters: $filters) }
+                    .navigationTitle("Filters")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingFilters = false }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+        }
+        .fullScreenCover(isPresented: $showingEligibility) {
+            EligibilityNoticeView {
+                eligibilityNoticeAccepted = true
+                showingEligibility = false
+                if scenePhase == .active { activateNearby() }
+            }
+        }
+        .task {
+            if !eligibilityNoticeAccepted { showingEligibility = true }
         }
         .onChange(of: mapCenter, initial: true) { _, _ in
             if !mapPosition.positionedByUser { recenterMap() }
@@ -96,6 +118,17 @@ struct ContentView: View {
             model.setFilters(updated)
             PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.save(updated))
         }
+    }
+
+    private func activateNearby() {
+        model.onCachedCorpusChange = { spots, sources, origin in
+            PhoneWatchSync.shared.publish(spots: spots, sources: sources, near: origin)
+        }
+        model.publishCachedCorpusForWatch()
+        model.setFilters(filters)
+        PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.load())
+        model.start()
+        Task { await reportModel.refreshAvailability() }
     }
 
     private var mapCenter: SpotCoordinate? {
@@ -127,10 +160,10 @@ struct ContentView: View {
                     .buttonStyle(.bordered)
             }
         case .unavailable:
-            Text("Reports are currently unavailable on this server.")
+            Text("Reports are currently unavailable.")
                 .font(.footnote).foregroundStyle(.secondary)
         case .incompatible:
-            Text("Update the app to submit reports to this server.")
+            Text("Update the app to submit reports.")
                 .font(.footnote).foregroundStyle(.secondary)
         case .attestationUnsupported:
             Text("This device cannot meet this server's security requirement for reports.")
@@ -246,6 +279,8 @@ struct ContentView: View {
                 }
             }
             .frame(height: 320)
+            .accessibilityLabel("Nearby places map")
+            .accessibilityHint("Explore place pins or use the list below for full details")
         }
     }
 
@@ -304,7 +339,7 @@ struct ContentView: View {
                                    description: Text("No saved places are available. Published places may still exist nearby."))
         case .cacheOnly:
             ContentUnavailableView("No saved places nearby", systemImage: "mappin.slash",
-                                   description: Text("Live updates are not configured."))
+                                   description: Text("Live updates are unavailable."))
         case .waitingForLocation:
             EmptyView()
         }
@@ -379,7 +414,7 @@ struct ContentView: View {
         case .refreshFailed:
             Text("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
         case .cacheOnly:
-            Text("Showing saved nearby data. Live updates are not configured.")
+            Text("Showing saved nearby data. Live updates are unavailable.")
         case .cacheUnavailable:
             Text("Saved nearby data is unavailable on this device.")
         }
@@ -407,7 +442,13 @@ struct ContentView: View {
                 }
             }
         case .denied:
-            locationMessage("Location access is off. Check Location Services and this app's While Using the App permission in Settings.")
+            VStack(alignment: .leading, spacing: 12) {
+                locationMessage("Location access is off. Allow While Using the App access in Settings to rank nearby places.")
+                Button("Open Settings", systemImage: "gear") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                }
+                .buttonStyle(.bordered)
+            }
         case .restricted:
             locationMessage("Location access is restricted on this device.")
         case .unavailable:
@@ -436,7 +477,7 @@ struct ContentView: View {
         }
     }
 
-    private func locationMessage(_ message: String) -> some View {
+    private func locationMessage(_ message: LocalizedStringKey) -> some View {
         Text(message)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -481,5 +522,25 @@ private struct NearbySpotRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(SpotPresentation.name(result.spot))
+        .accessibilityValue(accessibilitySummary)
+    }
+
+    private var accessibilitySummary: String {
+        var parts = [
+            SpotPresentation.type(result.spot.spotType),
+            SpotPresentation.access(result.spot.accessType),
+            String(localized: "\(SpotPresentation.distance(result.distanceMeters)) straight-line"),
+            SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters)
+        ]
+        if let detourSeconds {
+            parts.append(String(localized: "About \(Int((detourSeconds / 60).rounded())) minutes added walking time"))
+        } else if routeMode {
+            parts.append(String(localized: "Walking detour unconfirmed; straight-line fallback"))
+        }
+        parts.append(String(localized: "Last verified \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt))"))
+        parts.append(SpotPresentation.evidence(result.spot.verification.evidenceQuality))
+        return parts.joined(separator: ", ")
     }
 }

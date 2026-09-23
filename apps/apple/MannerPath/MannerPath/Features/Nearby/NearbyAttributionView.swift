@@ -23,24 +23,20 @@ struct NearbyAttributionView: View {
                             Text("Attribution text unavailable in cached data")
                                 .foregroundStyle(.secondary)
                         }
-                        LabeledContent("License", value: source.licenseName ?? "Unknown")
+                        LabeledContent("License", value: source.licenseName ?? String(localized: "Unknown"))
                         if let rawURL = source.licenseURL {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("License URL")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                Text(rawURL)
-                                    .textSelection(.enabled)
-                            }
-                            if let url = URL(string: rawURL) {
-                                Link("Open license", destination: url)
+                            if let url = URL(string: rawURL),
+                               ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
+                                Link("Open license information", destination: url)
+                            } else {
+                                Text(rawURL).textSelection(.enabled)
                             }
                         }
                     }
                 }
             }
         }
-        .navigationTitle("Sources and attribution")
+        .navigationTitle("Sources")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

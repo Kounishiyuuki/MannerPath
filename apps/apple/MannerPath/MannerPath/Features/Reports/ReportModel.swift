@@ -76,7 +76,7 @@ final class ReportModel {
             }
         } catch {
             recoveredSubmissionAttempt = true
-            submission = .failed("Saved report could not be read safely.")
+            submission = .failed(String(localized: "Saved report could not be read safely."))
         }
     }
 
@@ -95,9 +95,10 @@ final class ReportModel {
         } catch { availability = .unknown }
     }
 
-    func start(type: ReportType, spotId: String?) {
+    func start(type: ReportType, spotId: String?, subjectName: String? = nil) {
         guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy, draft == nil else { return }
-        let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId)
+        let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId,
+                                   subjectName: type == .missing ? nil : subjectName)
         saveDraft(newDraft)
     }
 
@@ -110,7 +111,7 @@ final class ReportModel {
             draft = updated
             if submission != .ambiguous { submission = .idle }
         } catch {
-            if submission != .ambiguous { submission = .failed("Report could not be saved on this device.") }
+            if submission != .ambiguous { submission = .failed(String(localized: "Report could not be saved on this device.")) }
         }
     }
 
@@ -122,7 +123,7 @@ final class ReportModel {
             draft = nil
             recoveredSubmissionAttempt = false
             submission = .idle
-        } catch { submission = .failed("Saved report could not be removed.") }
+        } catch { submission = .failed(String(localized: "Saved report could not be removed.")) }
     }
 
     func submit() async {
@@ -138,7 +139,7 @@ final class ReportModel {
             submission = .failed(Self.validationMessage(error))
             return
         } catch {
-            submission = .failed("Report could not be prepared.")
+            submission = .failed(String(localized: "Report could not be prepared."))
             return
         }
 
@@ -173,7 +174,7 @@ final class ReportModel {
 
         do { try store.markSubmissionAttempt() }
         catch {
-            submission = .failed("Report could not be safely prepared on this device.")
+            submission = .failed(String(localized: "Report could not be safely prepared on this device."))
             return
         }
         submission = .submitting
@@ -185,14 +186,14 @@ final class ReportModel {
             submission = .accepted(accepted)
             acceptedCleanupPending = true
             do { try store.markAcceptedForCleanup() }
-            catch { cleanupError = "Report was received, but its local draft could not be removed." }
+            catch { cleanupError = String(localized: "Report was received, but its local draft could not be removed.") }
             retryAcceptedCleanup()
         } catch let error as ReportAPIError {
             switch error {
             case .rejected(let status, let code):
                 guard clearDefiniteAttempt() else { return }
                 if status == 503 && code == "attestationUnavailable" { availability = .unavailable }
-                submission = .rejected(code.map { "\(status): \($0)" } ?? "Server rejected the report (\(status)).")
+                submission = .rejected(Self.rejectionMessage(status: status, code: code))
             case .rateLimited(let seconds):
                 guard clearDefiniteAttempt() else { return }
                 retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
@@ -244,7 +245,7 @@ final class ReportModel {
             acceptedCleanupPending = false
             cleanupError = nil
         } catch {
-            cleanupError = "Report was received, but its local draft could not be removed."
+            cleanupError = String(localized: "Report was received, but its local draft could not be removed.")
         }
     }
 
@@ -276,15 +277,28 @@ final class ReportModel {
 
     private static func validationMessage(_ error: ReportValidationError) -> String {
         switch error {
-        case .missingSpotID: "Choose an existing place before submitting."
-        case .unexpectedSpotID: "A missing-place suggestion cannot include an existing place."
-        case .missingProposedLocation: "Choose and confirm a proposed map pin."
-        case .unexpectedProposedLocation: "This report type cannot include a proposed pin."
-        case .invalidCoordinate: "Choose a valid point on the map."
-        case .invalidObservedDay: "Choose a valid observation day."
-        case .emptyNote: "Remove the empty note or add some detail."
-        case .noteTooLong: "Shorten the note to the server's character limit."
-        case .bodyTooLarge: "Shorten the note to fit the server's request size limit."
+        case .missingSpotID: String(localized: "Choose an existing place before submitting.")
+        case .unexpectedSpotID: String(localized: "A missing-place suggestion cannot include an existing place.")
+        case .missingProposedLocation: String(localized: "Choose and confirm a proposed map pin.")
+        case .unexpectedProposedLocation: String(localized: "This report type cannot include a proposed pin.")
+        case .invalidCoordinate: String(localized: "Choose a valid point on the map.")
+        case .invalidObservedDay: String(localized: "Choose a valid observation day.")
+        case .emptyNote: String(localized: "Remove the empty note or add some detail.")
+        case .noteTooLong: String(localized: "Shorten the note to the character limit.")
+        case .bodyTooLarge: String(localized: "Shorten the note and try again.")
+        }
+    }
+
+    private static func rejectionMessage(status: Int, code: String?) -> String {
+        switch (status, code) {
+        case (503, "attestationUnavailable"):
+            String(localized: "Reporting is temporarily unavailable. Your draft remains saved.")
+        case (400, _):
+            String(localized: "Some report information needs to be corrected.")
+        case (413, _):
+            String(localized: "The report is too long. Shorten the additional detail and try again.")
+        default:
+            String(localized: "The report could not be accepted. Your draft remains saved.")
         }
     }
 }

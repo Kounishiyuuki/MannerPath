@@ -2,17 +2,41 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("watchEligibilityNoticeAccepted") private var eligibilityNoticeAccepted = false
     @State private var model = WatchNearbyModel()
 
     var body: some View {
         NavigationStack {
             List {
-                if model.snapshot == nil {
-                    Text("Open MannerPath on iPhone once to save nearby places.")
-                } else {
-                    if model.latitude == nil {
-                        Text("Saved places · Watch location needed for distance and direction")
+                if !eligibilityNoticeAccepted {
+                    Section("Before you continue") {
+                        Text("For people legally permitted to smoke. Nearby results do not confirm that smoking is allowed.")
+                        Text("In Japan, you must be at least 20 to smoke or enter a smoking area.")
+                        Text("Follow posted signs, on-site rules, and local law.")
                             .font(.footnote).foregroundStyle(.secondary)
+                        Button("Continue") {
+                            eligibilityNoticeAccepted = true
+                            model.refreshLocation(requestAuthorization: false)
+                        }
+                    }
+                }
+                if eligibilityNoticeAccepted && model.locationAuthorizationUndetermined {
+                    Section("Location") {
+                        Text("Allow location while using the app to rank saved places by distance and direction.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        Button("Use Watch Location") { model.refreshLocation() }
+                    }
+                }
+                if eligibilityNoticeAccepted && model.snapshot == nil {
+                    ContentUnavailableView("No saved places", systemImage: "iphone.and.arrow.forward",
+                                           description: Text("Open MannerPath on iPhone once to send nearby data to this Watch."))
+                } else if eligibilityNoticeAccepted {
+                    if model.latitude == nil && !model.locationAuthorizationUndetermined {
+                        Label(model.locationUnavailable
+                              ? "Watch location is unavailable. Saved places remain available."
+                              : "Finding Watch location. Saved places are shown first.",
+                              systemImage: model.locationUnavailable ? "location.slash" : "location")
+                            .font(.footnote)
                     }
                     Section("Nearby") {
                         ForEach(model.results, id: \.spot.id) { result in
@@ -29,7 +53,9 @@ struct ContentView: View {
                                     Text("\(freshness(result)) · \(evidence(result.spot))")
                                         .font(.caption2).foregroundStyle(.secondary)
                                 }
+                                .accessibilityElement(children: .combine)
                             }
+                            .accessibilityHint("Opens place details")
                         }
                         if model.results.isEmpty { Text("No saved places match these filters.") }
                     }
@@ -38,13 +64,15 @@ struct ContentView: View {
             }
             .navigationTitle("Nearby")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Refresh location", systemImage: "location") { model.refreshLocation() }
+                if eligibilityNoticeAccepted {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Refresh location", systemImage: "location") { model.refreshLocation() }
+                    }
                 }
             }
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
-            if phase == .active { model.refreshLocation() }
+            if phase == .active && eligibilityNoticeAccepted { model.refreshLocation(requestAuthorization: false) }
         }
         .task {
             while !Task.isCancelled {
@@ -122,6 +150,8 @@ struct ContentView: View {
                 Text("\(freshness(result)) · \(evidence(result.spot))")
                 Text("Paper: \(support(result.spot.supportsPaper)) · Heated: \(support(result.spot.supportsHeated))")
                 Text("Access: \(access(result.spot.accessType))")
+                Text("Follow posted signs, on-site rules, and local law. Unknown details are not confirmation.")
+                    .font(.footnote).foregroundStyle(.secondary)
             }
             Section("Source") {
                 ForEach(model.snapshot?.sources(for: result.spot) ?? [], id: \.self) { source in
@@ -145,41 +175,41 @@ struct ContentView: View {
     private func name(_ spot: WatchSpot) -> String { spot.name ?? type(spot.spotType) }
     private func type(_ value: String) -> String {
         switch value {
-        case "designatedOutdoorArea": "Designated outdoor area"
-        case "publicSmokingRoom": "Public smoking room"
-        case "facilitySmokingRoom": "Facility smoking room"
-        case "ashtray": "Ashtray location"
-        case "smokingPermittedVenue": "Smoking-permitted venue"
-        default: "Unknown physical type"
+        case "designatedOutdoorArea": String(localized: "Designated outdoor area")
+        case "publicSmokingRoom": String(localized: "Public smoking room")
+        case "facilitySmokingRoom": String(localized: "Facility smoking room")
+        case "ashtray": String(localized: "Ashtray location")
+        case "smokingPermittedVenue": String(localized: "Smoking-permitted venue")
+        default: String(localized: "Unknown physical type")
         }
     }
     private func access(_ value: String) -> String {
         switch value {
-        case "public": "Public"
-        case "customerOnly": "Customers only"
-        case "facilityOnly": "Facility only"
-        default: "Unknown"
+        case "public": String(localized: "Public")
+        case "customerOnly": String(localized: "Customers only")
+        case "facilityOnly": String(localized: "Facility only")
+        default: String(localized: "Unknown")
         }
     }
     private func support(_ value: String) -> String {
-        value == "yes" ? "Confirmed" : value == "no" ? "Not supported" : "Unknown"
+        value == "yes" ? String(localized: "Confirmed") : value == "no" ? String(localized: "Not supported") : String(localized: "Unknown")
     }
     private func distance(_ meters: Double) -> String {
-        meters < 1_000 ? "\(Int(meters.rounded())) m" :
-            "\((meters / 1_000).formatted(.number.precision(.fractionLength(1)))) km"
+        meters < 1_000 ? String(localized: "\(Int(meters.rounded())) m") :
+            String(localized: "\((meters / 1_000).formatted(.number.precision(.fractionLength(1)))) km")
     }
     private func bearing(_ result: WatchRankedSpot) -> String {
         guard result.distanceMeters > max(model.accuracyMeters ?? 0, 1) else {
-            return "Direction uncertain within location accuracy"
+            return String(localized: "Direction uncertain within location accuracy")
         }
-        return "\(Int(result.bearingDegrees.rounded()))° clockwise from north"
+        return String(localized: "\(Int(result.bearingDegrees.rounded()))° clockwise from north")
     }
     private func freshness(_ result: WatchRankedSpot) -> String {
-        guard let days = result.verificationAgeDays else { return "Verification date unknown" }
-        return days == 0 ? "Verified <1 day ago" : "Verified \(days) days ago"
+        guard let days = result.verificationAgeDays else { return String(localized: "Verification date unknown") }
+        return days == 0 ? String(localized: "Verified less than a day ago") : String(localized: "Verified \(days) days ago")
     }
     private func evidence(_ spot: WatchSpot) -> String {
         spot.evidenceQualityVersion == "evidence-quality.v1" && spot.evidenceQuality == "officialListing"
-            ? "Official listing" : "Evidence confidence unknown"
+            ? String(localized: "Official listing") : String(localized: "Evidence confidence unknown")
     }
 }

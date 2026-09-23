@@ -12,7 +12,7 @@ nonisolated enum WatchNavigation {
     }
 
     static func fallback(hasLocation: Bool) -> String {
-        hasLocation ? "If Maps cannot route, use straight-line distance and bearing above." :
-            "Watch location is needed for straight-line distance and bearing."
+        hasLocation ? String(localized: "If Maps cannot route, use straight-line distance and bearing above.") :
+            String(localized: "Watch location is needed for straight-line distance and bearing.")
     }
 }

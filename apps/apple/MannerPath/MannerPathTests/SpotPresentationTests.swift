@@ -11,13 +11,14 @@ struct SpotPresentationTests {
         #expect(SpotPresentation.tobacco(.no) == "Confirmed not supported")
         #expect(SpotPresentation.hoursState(nil) == "Unknown")
         #expect(SpotPresentation.evidence(nil) == "Unknown")
+        #expect(SpotPresentation.evidence("futureEvidenceV2") == "Evidence confidence unknown")
         #expect(SpotPresentation.verificationDate(nil) == "Unknown")
     }
 
     @Test func unparsedHoursDoNotBecomeAnOpenStatus() {
         let hours = SpotOpeningHours(raw: "営業時間は現地確認", parsed: nil,
                                      status: .unparsed, timeZone: "Asia/Tokyo")
-        #expect(SpotPresentation.hoursState(hours) == "Unconfirmed; raw text only")
+        #expect(SpotPresentation.hoursState(hours) == "Unconfirmed source text")
     }
 
     @Test func verificationDayUsesUTCForDateOnlyEvidence() throws {
