@@ -2,6 +2,7 @@
 import importlib.util
 import pathlib
 import plistlib
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -46,6 +47,17 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Watch widget: expected exactly one"):
             self.check()
 
+    def test_missing_iphone_widget_fails(self):
+        (self.paths[1] / "Info.plist").unlink()
+        self.paths[1].rmdir()
+        with self.assertRaisesRegex(ValueError, "iPhone widget: expected exactly one"):
+            self.check()
+
+    def test_missing_watch_app_fails(self):
+        shutil.rmtree(self.paths[2])
+        with self.assertRaisesRegex(ValueError, "Watch app: expected exactly one"):
+            self.check()
+
     def test_wrong_identifier_fails(self):
         path = self.paths[1] / "Info.plist"
         info = plistlib.loads(path.read_bytes())
@@ -62,14 +74,34 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
             self.check()
 
+    def test_empty_origin_fails(self):
+        path = self.app / "Info.plist"
+        info = plistlib.loads(path.read_bytes())
+        info["MannerPathAPIBaseURL"] = ""
+        path.write_bytes(plistlib.dumps(info))
+        with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
+            self.check()
+
     def test_malformed_https_authority_fails(self):
         path = self.app / "Info.plist"
-        for origin in ("https://:443", "https://example.invalid:bad"):
+        for origin in ("https://:443", "https://example.invalid:bad", "https://example.invalid:", "https://[bad",
+                       "https://exa mple.invalid", "https://example.invalid ",
+                       "https://example\\.invalid", "https://%2F",
+                       "https://example.invalid\n"):
             info = plistlib.loads(path.read_bytes())
             info["MannerPathAPIBaseURL"] = origin
             path.write_bytes(plistlib.dumps(info))
             with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
                 self.check()
+
+    def test_invalid_origin_does_not_echo_credentials(self):
+        path = self.app / "Info.plist"
+        info = plistlib.loads(path.read_bytes())
+        info["MannerPathAPIBaseURL"] = "https://user:private-value@example.invalid"
+        path.write_bytes(plistlib.dumps(info))
+        with self.assertRaises(ValueError) as failure:
+            self.check()
+        self.assertNotIn("private-value", str(failure.exception))
 
     def test_app_group_mismatch_fails(self):
         wrong = pathlib.Path(self.temp.name) / "wrong.entitlements"
@@ -139,6 +171,20 @@ class PreflightTests(unittest.TestCase):
         with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=entitlements)):
             with self.assertRaisesRegex(ValueError, "embedded.mobileprovision missing"):
                 preflight.inspect(self.app, False)
+
+    def test_profile_mismatch_does_not_echo_team_identifier(self):
+        bundle = self.app
+        (bundle / "embedded.mobileprovision").write_bytes(b"fixture")
+        profile = {"TeamIdentifier": ["PRIVATE_TEAM"], "Entitlements": {
+            "application-identifier": "PRIVATE_TEAM." + preflight.IDS["iPhone app"],
+            "com.apple.security.application-groups": [preflight.GROUP]}}
+        signed = {"com.apple.developer.team-identifier": "WRONG_TEAM",
+                  "application-identifier": "WRONG_TEAM." + preflight.IDS["iPhone app"]}
+        with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=plistlib.dumps(profile))):
+            with self.assertRaises(ValueError) as failure:
+                preflight.check_provisioning(bundle, preflight.IDS["iPhone app"], signed)
+        self.assertNotIn("PRIVATE_TEAM", str(failure.exception))
+        self.assertNotIn("WRONG_TEAM", str(failure.exception))
 
 
 if __name__ == "__main__":

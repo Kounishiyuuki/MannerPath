@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Inspect an iPhone .app or .xcarchive before the physical beta matrix."""
 import argparse
+import ipaddress
 import pathlib
 import plistlib
+import re
 import subprocess
 import sys
 from urllib.parse import urlparse
@@ -75,7 +77,7 @@ def check_provisioning(bundle, identifier, entitlements):
         ("profile App Group", profile_ent.get("com.apple.security.application-groups"), [GROUP]),
     ):
         if actual != expected:
-            fail(f"{bundle}: {name} {actual!r}; expected {expected!r}")
+            fail(f"{bundle}: {name} does not match the expected bundle, team, or App Group")
     if "com.apple.developer.devicecheck.appattest-environment" in profile_ent:
         if profile_ent["com.apple.developer.devicecheck.appattest-environment"] != entitlements.get("com.apple.developer.devicecheck.appattest-environment"):
             fail(f"{bundle}: profile and signed App Attest environments differ")
@@ -86,6 +88,17 @@ def one(parent, pattern, label):
     if len(matches) != 1:
         fail(f"{label}: expected exactly one embedded bundle at {parent / pattern}; found {len(matches)}")
     return matches[0]
+
+
+def valid_host(host):
+    if ":" in host:
+        try:
+            ipaddress.IPv6Address(host)
+            return True
+        except ValueError:
+            return False
+    labels = host.rstrip(".").split(".")
+    return bool(labels) and all(re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", label) for label in labels)
 
 
 def inspect(path, unsigned):
@@ -123,13 +136,17 @@ def inspect(path, unsigned):
                 fail(f"iPhone app: App Attest environment {environment!r}; expected development or production")
         print(f"{label}: {actual} | App Group: {GROUP}")
     origin = infos["iPhone app"].get("MannerPathAPIBaseURL")
-    parsed = urlparse(origin) if isinstance(origin, str) else None
     try:
-        valid_authority = bool(parsed and parsed.hostname and parsed.port != 0)
+        parsed = urlparse(origin) if isinstance(origin, str) else None
+        valid_authority = bool(parsed and parsed.hostname and parsed.port != 0
+                               and not parsed.netloc.endswith(":")
+                               and not any(char.isspace() or char == "\\" for char in origin)
+                               and not any(char.isspace() or char in "\\%" for char in parsed.netloc)
+                               and valid_host(parsed.hostname))
     except ValueError:
         valid_authority = False
     if not valid_authority or parsed.scheme != "https" or parsed.username or parsed.password or parsed.path not in ("", "/") or parsed.query or parsed.fragment:
-        fail(f"iPhone app: MannerPathAPIBaseURL {origin!r}; set an HTTPS API origin for the beta build")
+        fail("iPhone app: MannerPathAPIBaseURL is missing or invalid; set an HTTPS API origin for the beta build")
     version = infos["iPhone app"].get("CFBundleVersion")
     if not version:
         fail("iPhone app: CFBundleVersion missing; App Attest server allowlisting needs it")
