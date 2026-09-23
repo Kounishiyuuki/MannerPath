@@ -157,13 +157,13 @@ final class ReportModel {
                 applyAuthorizationFailure(error)
                 return
             } catch {
-                submission = .authorizationFailed("This report could not be secured. Try again later.")
+                submission = .authorizationFailed(String(localized: "This report could not be secured. Try again later."))
                 return
             }
             authorizedKeyID = authorization.keyId
             do { body = try AttestedReportEnvelope.encoded(payload: payload, authorization: authorization) }
             catch {
-                submission = .authorizationFailed("This report could not be secured. Try again later.")
+                submission = .authorizationFailed(String(localized: "This report could not be secured. Try again later."))
                 return
             }
             guard body.count <= (limits.maxSubmissionBytes ?? limits.maxBodyBytes) else {
@@ -263,16 +263,16 @@ final class ReportModel {
         case .updateRequired:
             availability = .incompatible
         case .registrationFailed:
-            submission = .authorizationFailed("This device could not be registered for secure reporting. Try again later.")
+            submission = .authorizationFailed(String(localized: "This device could not be registered for secure reporting. Try again later."))
         case .temporarilyUnavailable, .busy:
-            submission = .authorizationFailed("Secure submission is temporarily unavailable. Try again later.")
+            submission = .authorizationFailed(String(localized: "Secure submission is temporarily unavailable. Try again later."))
         }
     }
 
     private static func rejectionMessage(_ rejection: AttestationRejection) -> String {
         rejection.requiresAppUpdate
-            ? "Update the app to submit reports to this server."
-            : "The security check for this report did not pass. Nothing was submitted; you can try again."
+            ? String(localized: "Update the app to submit reports to this server.")
+            : String(localized: "The security check for this report did not pass. Nothing was submitted; you can try again.")
     }
 
     private static func validationMessage(_ error: ReportValidationError) -> String {

@@ -2097,6 +2097,16 @@
         }
       }
     },
+    "Secure submission is temporarily unavailable. Try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の安全な送信は一時的に利用できません。後でもう一度お試しください。"
+          }
+        }
+      }
+    },
     "Shorten the note and try again.": {
       "localizations": {
         "ja": {
@@ -2443,12 +2453,52 @@
         }
       }
     },
+    "The security check for this report did not pass. Nothing was submitted; you can try again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この報告の安全性を確認できませんでした。報告は送信されていません。もう一度お試しください。"
+          }
+        }
+      }
+    },
     "This beta does not include third-party analytics, advertising trackers, or a crash-reporting SDK.": {
       "localizations": {
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "このベータ版には、外部の利用状況解析、広告用トラッカー、クラッシュ報告ツールは含まれていません。"
+          }
+        }
+      }
+    },
+    "This device cannot meet this server's security requirement for reports.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは、報告に必要な安全性の要件を満たせません。"
+          }
+        }
+      }
+    },
+    "This device cannot meet this server's security requirement for reports. Your draft remains saved on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは、報告に必要な安全性の要件を満たせません。下書きはこのデバイスに保存されています。"
+          }
+        }
+      }
+    },
+    "This device could not be registered for secure reporting. Try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスを安全な報告用に登録できませんでした。後でもう一度お試しください。"
           }
         }
       }
@@ -2479,6 +2529,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "この場所は移転した"
+          }
+        }
+      }
+    },
+    "This report could not be secured. Try again later.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告の安全な送信を準備できませんでした。後でもう一度お試しください。"
           }
         }
       }
@@ -2629,6 +2689,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "対応していない営業時間の設定"
+          }
+        }
+      }
+    },
+    "Update the app to submit reports to this server.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告を送信するにはアプリを更新してください。"
           }
         }
       }
