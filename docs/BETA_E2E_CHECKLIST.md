@@ -214,6 +214,22 @@ signing identifiers. A group missing from one identifier fails only on device, n
 
 ## Physical-device procedure
 
+### Beta artifact preflight (#54)
+
+Before the device matrix, run `MANNERPATH_API_BASE_URL=https://<staging-host> make apple-beta-preflight`.
+Save its output with the #35 evidence. This builds an unsigned Release **simulator** app and checks
+the four embedded bundle IDs, source App Group and iPhone App Attest entitlements, HTTPS origin,
+and build number. It cannot prove signing or device behavior. In Xcode, select a generic iOS device,
+set the Release `MANNERPATH_API_BASE_URL` to the staging HTTPS origin, then use Product → Archive
+with the team's development signing setup. For that actual device/archive artifact,
+run `./scripts/apple-beta-preflight.sh /path/to/MannerPath.xcarchive` (or the signed
+`MannerPath.app`) and save that output too. The signed inspection reads entitlements from each
+embedded code signature; correct source entitlements alone do not prove provisioned App Groups.
+Use the printed `CFBundleVersion` in the backend App Attest allowlist and match its effective
+development/production environment to the backend. Do not include certificates or profiles in
+the evidence. If archive creation or signed inspection fails, fix signing before P1/W1. A passing
+archive inspection still needs the physical S1–S4, P21–P23, widget, and Watch rows below.
+
 1. Deploy a staging backend (`OPERATIONS.md` steps 1–5) and record the smoke output.
 2. Build the iPhone app with the staging HTTPS origin (`MANNERPATH_API_BASE_URL`, fixed by #53;
    confirm the built `Info.plist` holds it) and a development
