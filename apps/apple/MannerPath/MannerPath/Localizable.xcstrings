@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ (%lld°)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@（%2$lld°）"
+          }
+        }
+      }
+    },
     "%@ You can correct it and submit again.": {
       "localizations": {
         "ja": {
@@ -69,6 +79,16 @@
         }
       }
     },
+    "%@ · Access: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · 利用条件: %2$@"
+          }
+        }
+      }
+    },
     "%lld / %lld text units (emoji may count as two)": {
       "localizations": {
         "en": {
@@ -107,22 +127,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld件選択中"
-          }
-        }
-      }
-    },
-    "%lld° clockwise from north": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld° clockwise from north"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "北から時計回りに%lld°"
           }
         }
       }
@@ -318,6 +322,16 @@
       }
     },
     "Access type: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件: %@"
+          }
+        }
+      }
+    },
+    "Access: %@": {
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -853,6 +867,16 @@
         }
       }
     },
+    "Destination: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地: %@"
+          }
+        }
+      }
+    },
     "Device location": {
       "localizations": {
         "ja": {
@@ -909,6 +933,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "完了"
+          }
+        }
+      }
+    },
+    "East": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "東"
           }
         }
       }
@@ -1302,7 +1336,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "場所"
+            "value": "位置情報"
           }
         }
       }
@@ -1533,6 +1567,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "近くに保存済みの場所はありません"
+          }
+        }
+      }
+    },
+    "North": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北"
+          }
+        }
+      }
+    },
+    "Northeast": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北東"
+          }
+        }
+      }
+    },
+    "Northwest": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北西"
           }
         }
       }
@@ -1947,6 +2011,16 @@
         }
       }
     },
+    "Reporting availability could not be checked. Try again when connected.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告機能を利用できるか確認できませんでした。通信できる状態でもう一度お試しください。"
+          }
+        }
+      }
+    },
     "Reporting availability is unknown. Your saved draft remains on this device.": {
       "localizations": {
         "ja": {
@@ -2283,6 +2357,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "情報源と出典"
+          }
+        }
+      }
+    },
+    "South": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "南"
+          }
+        }
+      }
+    },
+    "Southeast": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "南東"
+          }
+        }
+      }
+    },
+    "Southwest": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "南西"
           }
         }
       }
@@ -2885,6 +2989,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "徒歩時間"
+          }
+        }
+      }
+    },
+    "West": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西"
           }
         }
       }

@@ -41,4 +41,14 @@ struct SpotPresentationTests {
         #expect(SpotPresentation.verificationDate(date) == utc.string(from: date))
         #expect(SpotPresentation.verificationDate(date) != west.string(from: date))
     }
+
+    @Test func bearingNamesTheCompassDirection() {
+        #expect(SpotPresentation.compassDirection(0) == String(localized: "North"))
+        #expect(SpotPresentation.compassDirection(22.4) == String(localized: "North"))
+        #expect(SpotPresentation.compassDirection(22.5) == String(localized: "Northeast"))
+        #expect(SpotPresentation.compassDirection(238) == String(localized: "Southwest"))
+        #expect(SpotPresentation.compassDirection(337.5) == String(localized: "North"))
+        #expect(SpotPresentation.compassDirection(359.9) == String(localized: "North"))
+        #expect(SpotPresentation.compassDirection(-90) == String(localized: "West"))
+    }
 }

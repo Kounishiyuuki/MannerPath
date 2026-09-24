@@ -103,6 +103,29 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
   -only-testing:"MannerPathWatch Watch AppTests"
 ```
 
+## iPhone usability pass (2026-09-24)
+
+A simulator walk of the Japanese UI (fresh iOS 26.5 iPhone 17 simulator, local
+`wrangler dev --local` Worker with the published Taito fixture, a post-#53 build configured with
+`MANNERPATH_API_BASE_URL=http://127.0.0.1:8787`). Driven only with `simctl` (launch, `defaults`,
+`privacy grant location`, `location set`, `ui appearance/content_size`); this machine has no
+Simulator GUI or tap automation, so nothing was tapped.
+
+Observed (screenshots): eligibility notice; Nearby before location permission; Nearby loaded with
+live data; Nearby with the Worker stopped and a cache (partial-failure message, cached list);
+clean install with the Worker stopped (empty state distinct from "no published places").
+
+Fixed from those observations: the list row showed a bare "不明" for access, now labelled
+"利用条件: 不明"; the bearing "北から時計回りに238°" now reads "南西（238°）"; the map is 240 pt
+so the nearest result is visible without scrolling; the partial-failure banner no longer claims
+saved results when there are none; the report-availability note no longer mentions a saved draft
+that does not exist; the Data & Privacy "Location" section read "場所" and now reads "位置情報";
+the destination map annotation had no Japanese string.
+
+Not walked (require tapping): location allow/deny prompts, pin/row selection, detail, filters,
+destination search and route, report form, Data & Privacy, and a clean dark/largest-text check
+(a system "open in MannerPath?" dialog covered that screenshot). These stay as listed in the rows below.
+
 ## iPhone
 
 | # | Case | Status | Evidence / how to check on device |
