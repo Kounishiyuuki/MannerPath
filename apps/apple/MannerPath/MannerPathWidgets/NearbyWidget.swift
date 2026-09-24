@@ -37,16 +37,18 @@ struct NearbyWidget: Widget {
 }
 
 struct NearbyWidgetView: View {
+    @Environment(\.widgetFamily) private var family
     let entry: NearbyEntry
     var body: some View {
         let state = entry.glance?.state(at: entry.date) ?? .unavailable
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Nearby").font(.headline)
+        let compact = family == .accessoryRectangular
+        VStack(alignment: .leading, spacing: compact ? 1 : 4) {
             switch state {
             case .fresh:
                 if let glance = entry.glance {
-                    if let name = glance.name { Text(name).lineLimit(2) }
-                    else { Text("Nearby place") }
+                    if let name = glance.name {
+                        Text(name).font(compact ? .caption : .headline).lineLimit(compact ? 1 : 2)
+                    } else { Text("Nearby place").font(compact ? .caption : .headline) }
                     if let distance = glance.distanceMeters {
                         if distance < 1_000 {
                             Text("\(Int(distance.rounded())) m away")
@@ -58,18 +60,23 @@ struct NearbyWidgetView: View {
                         .font(.caption2).foregroundStyle(.secondary)
                 }
             case .stale:
-                if let name = entry.glance?.name { Text(name).lineLimit(2) }
-                else { Text("Saved nearby data is old") }
-                Text("Nearby data is old · Open app to refresh")
-                    .font(.caption2).foregroundStyle(.secondary)
+                if let name = entry.glance?.name {
+                    Text(name).font(compact ? .caption : .headline).lineLimit(compact ? 1 : 2)
+                } else { Text("Saved nearby data is old").font(compact ? .caption : .headline) }
+                if compact {
+                    Text("Old data · Open app").font(.caption2).foregroundStyle(.secondary)
+                } else {
+                    Text("Nearby data is old · Open app to refresh")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
             case .empty:
-                Text("No saved nearby places")
-                Text("Open app to check nearby")
-                    .font(.caption2).foregroundStyle(.secondary)
+                Text("No saved nearby places").font(compact ? .caption : .headline)
+                if compact { Text("Open app").font(.caption2).foregroundStyle(.secondary) }
+                else { Text("Open app to check nearby").font(.caption2).foregroundStyle(.secondary) }
             case .unavailable:
-                Text("Nearby data unavailable")
-                Text("Open app to check nearby")
-                    .font(.caption2).foregroundStyle(.secondary)
+                Text("Nearby data unavailable").font(compact ? .caption : .headline)
+                if compact { Text("Open app").font(.caption2).foregroundStyle(.secondary) }
+                else { Text("Open app to check nearby").font(.caption2).foregroundStyle(.secondary) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

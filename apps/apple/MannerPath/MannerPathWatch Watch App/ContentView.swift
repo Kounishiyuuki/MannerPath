@@ -20,25 +20,11 @@ struct ContentView: View {
                         }
                     }
                 }
-                if eligibilityNoticeAccepted && model.locationAuthorizationUndetermined {
-                    Section("Location") {
-                        Text("Allow location while using the app to rank saved places by distance and direction.")
-                            .font(.footnote).foregroundStyle(.secondary)
-                        Button("Use Watch Location") { model.refreshLocation() }
-                    }
-                }
                 if eligibilityNoticeAccepted && model.snapshot == nil {
                     ContentUnavailableView("No saved places", systemImage: "iphone.and.arrow.forward",
                                            description: Text("Open MannerPath on iPhone once to send nearby data to this Watch."))
                 } else if eligibilityNoticeAccepted {
-                    if model.latitude == nil && !model.locationAuthorizationUndetermined {
-                        Label(model.locationUnavailable
-                              ? "Watch location is unavailable. Saved places remain available."
-                              : "Finding Watch location. Saved places are shown first.",
-                              systemImage: model.locationUnavailable ? "location.slash" : "location")
-                            .font(.footnote)
-                    }
-                    Section("Nearby") {
+                    Section(model.snapshotIsOld ? "Saved places · old data" : "Saved nearby places") {
                         ForEach(model.results, id: \.spot.id) { result in
                             NavigationLink {
                                 detail(result)
@@ -46,18 +32,39 @@ struct ContentView: View {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(name(result.spot)).font(.headline)
                                     Text(type(result.spot.spotType)).font(.caption)
-                                    if result.distanceMeters.isFinite {
-                                        Text("\(distance(result.distanceMeters)) · \(bearing(result))")
-                                            .font(.caption)
-                                    }
-                                    Text("\(freshness(result)) · \(evidence(result.spot))")
+                                    Text(result.distanceMeters.isFinite
+                                         ? "\(distance(result.distanceMeters)) · current location"
+                                         : "Distance needs location")
+                                        .font(.caption)
+                                    Text(freshness(result))
                                         .font(.caption2).foregroundStyle(.secondary)
+                                    if result.spot.evidenceQualityVersion != "evidence-quality.v1" ||
+                                        result.spot.evidenceQuality != "officialListing" {
+                                        Text(evidence(result.spot))
+                                            .font(.caption2).foregroundStyle(.secondary)
+                                    }
                                 }
                                 .accessibilityElement(children: .combine)
                             }
                             .accessibilityHint("Opens place details")
                         }
-                        if model.results.isEmpty { Text("No saved places match these filters.") }
+                        if model.results.isEmpty {
+                            Text("No saved places match these filters.")
+                            Button("Clear Watch filters") { model.clearFilters() }
+                        }
+                    }
+                    if model.locationAuthorizationUndetermined {
+                        Section("Location") {
+                            Text("Use Watch location for distance and direction.")
+                                .font(.footnote).foregroundStyle(.secondary)
+                            Button("Use Watch Location") { model.refreshLocation() }
+                        }
+                    } else if model.latitude == nil {
+                        Label(model.locationUnavailable
+                              ? "Watch location is unavailable. Saved places remain available."
+                              : "Finding Watch location. Saved places are shown first.",
+                              systemImage: model.locationUnavailable ? "location.slash" : "location")
+                            .font(.footnote)
                     }
                     NavigationLink("Quick filters") { filters }
                 }
@@ -142,12 +149,23 @@ struct ContentView: View {
             Section {
                 Text(type(result.spot.spotType))
                 if result.distanceMeters.isFinite {
-                    Text("\(distance(result.distanceMeters)) straight-line")
+                    Text("\(distance(result.distanceMeters)) straight-line · current location")
                     Text(bearing(result))
                 } else {
                     Text("Distance and bearing need Watch location")
                 }
                 Text("\(freshness(result)) · \(evidence(result.spot))")
+                if model.snapshotIsOld {
+                    Text("Saved data is old. Open iPhone app to refresh.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                if #available(watchOS 11.4, *), let url = WatchNavigation.walkingURL(for: result.spot) {
+                    Link("Open walking directions", destination: url)
+                }
+                Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            Section("Details") {
                 Text("Paper: \(support(result.spot.supportsPaper)) · Heated: \(support(result.spot.supportsHeated))")
                 Text("Access: \(access(result.spot.accessType))")
                 Text("Follow posted signs, on-site rules, and local law. Unknown details are not confirmation.")
@@ -161,13 +179,6 @@ struct ContentView: View {
                     if let license = source.licenseName { Text(license).font(.footnote) }
                 }
                 if result.spot.sourceIDs.isEmpty { Text("Source details unavailable") }
-            }
-            Section {
-                if #available(watchOS 11.4, *), let url = WatchNavigation.walkingURL(for: result.spot) {
-                    Link("Open walking directions", destination: url)
-                }
-                Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))
-                    .font(.footnote).foregroundStyle(.secondary)
             }
         }
         .navigationTitle(name(result.spot))

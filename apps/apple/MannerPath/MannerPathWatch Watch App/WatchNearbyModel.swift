@@ -24,6 +24,11 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
                                      preferences: preferences, at: now)
     }
 
+    var snapshotIsOld: Bool {
+        guard let generatedAt = snapshot?.generatedAt else { return false }
+        return generatedAt > now || now.timeIntervalSince(generatedAt) > 3_600
+    }
+
     override convenience init() {
         self.init(store: try? WatchStore.applicationSupport(), activateConnectivity: true)
     }
@@ -50,8 +55,11 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
             if requestAuthorization { locationManager.requestWhenInUseAuthorization() }
         case .authorizedAlways, .authorizedWhenInUse:
             locationUnavailable = false
+            clearLocation()
             locationManager.requestLocation()
-        default: locationUnavailable = true
+        default:
+            clearLocation()
+            locationUnavailable = true
         }
     }
 
@@ -63,12 +71,18 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
             locationUnavailable = false
             manager.requestLocation()
         } else if manager.authorizationStatus != .notDetermined {
+            clearLocation()
             locationUnavailable = true
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last, location.horizontalAccuracy >= 0 else { return }
+        guard let location = locations.last, location.horizontalAccuracy >= 0,
+              (-5...60).contains(Date().timeIntervalSince(location.timestamp)) else {
+            clearLocation()
+            locationUnavailable = true
+            return
+        }
         latitude = location.coordinate.latitude
         longitude = location.coordinate.longitude
         accuracyMeters = location.horizontalAccuracy
@@ -76,7 +90,14 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        clearLocation()
         locationUnavailable = true
+    }
+
+    private func clearLocation() {
+        latitude = nil
+        longitude = nil
+        accuracyMeters = nil
     }
 
     func receive(snapshotData: Data?, preferenceData: Data?) {
