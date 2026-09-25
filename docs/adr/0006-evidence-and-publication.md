@@ -67,6 +67,7 @@ The schema follows the real Taito source shape (research §3): 12 CSV columns, a
 |---|---|---|
 | Registry | `sources` (mirror of `docs/SOURCES.md`; `publication_status` is the gate) | admin-edited |
 | Raw evidence | `source_releases` (one publisher observation of some content), `source_records` (one raw row) | records immutable and undeletable; release evidence metadata frozen once records exist (triggers) |
+| Normalized source mapping | `source_observations` (ADR-0008) | immutable, re-derivable rows per `(record_id, mapping_version)`; raw records remain the evidence |
 | Derived matcher input | `source_record_match_keys` | immutable rows per `key_version`; a new algorithm adds rows |
 | Cross-release identity | `source_entities`, `source_record_entities` | entity source immutable; one current decision per record, corrected only by a same-source `manual` update, never deleted (triggers) |
 | Canonical | `spots`, `spot_source_entities`, `spot_field_provenance` | written by the resolver |
