@@ -39,22 +39,23 @@ struct WatchNearbyWidget: Widget {
                                provider: WatchNearbyProvider()) { entry in
             Button(intent: OpenWatchNearbyIntent()) {
                 VStack(alignment: .leading) {
-                    Text("Nearby").font(.headline)
                     switch WatchWidgetState.evaluate(entry.snapshot, at: entry.date) {
                     case .unavailable:
+                        Text("No saved places").font(.headline)
                         Text("Open iPhone app to sync")
                     case .stale:
                         if let spot = entry.snapshot?.spots.first {
-                            if let name = spot.name { Text(name).lineLimit(1) }
-                            else { Text("Saved place") }
+                            if let name = spot.name { Text(name).font(.headline).lineLimit(1) }
+                            else { Text("Saved place").font(.headline) }
                         }
                         Text("Old data from iPhone")
                     case .empty:
-                        Text("No saved places")
+                        Text("No saved places").font(.headline)
+                        Text("Open iPhone app to check nearby")
                     case .saved:
                         if let spot = entry.snapshot?.spots.first {
-                            if let name = spot.name { Text(name).lineLimit(1) }
-                            else { Text("Saved place") }
+                            if let name = spot.name { Text(name).font(.headline).lineLimit(1) }
+                            else { Text("Saved place").font(.headline) }
                             Text("From iPhone").font(.caption2)
                             Text(verification(spot.lastVerifiedAt, at: entry.date)).font(.caption2)
                         }

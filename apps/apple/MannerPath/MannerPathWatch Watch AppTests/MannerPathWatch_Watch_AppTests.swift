@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 import Testing
 @testable import MannerPathWatch_Watch_App
 
@@ -343,5 +344,44 @@ struct MannerPathWatch_Watch_AppTests {
                 String(localized: "If Maps cannot route, use straight-line distance and bearing above."))
         #expect(WatchNavigation.fallback(hasLocation: false) ==
                 String(localized: "Watch location is needed for straight-line distance and bearing."))
+    }
+
+    @Test @MainActor func failedLocationRefreshRemovesOldDistance() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(WatchCodec.encode(snapshot([spot("nearby", longitude: 0.001)])))
+        let model = WatchNearbyModel(store: cache, activateConnectivity: false)
+        let manager = CLLocationManager()
+        model.locationManager(manager, didUpdateLocations: [
+            CLLocation(latitude: 0, longitude: 0)
+        ])
+        #expect(model.results[0].distanceMeters.isFinite)
+        model.locationManager(manager, didFailWithError: CLError(.locationUnknown))
+        #expect(model.locationUnavailable)
+        #expect(model.results[0].distanceMeters.isNaN)
+        #expect(model.accuracyMeters == nil)
+    }
+
+    @Test @MainActor func oldLocationFixCannotBecomeCurrentDistance() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(WatchCodec.encode(snapshot([spot("nearby", longitude: 0.001)])))
+        let model = WatchNearbyModel(store: cache, activateConnectivity: false)
+        let oldFix = CLLocation(coordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                                altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5,
+                                timestamp: .now.addingTimeInterval(-120))
+        model.locationManager(CLLocationManager(), didUpdateLocations: [oldFix])
+        #expect(model.locationUnavailable)
+        #expect(model.results[0].distanceMeters.isNaN)
+    }
+
+    @Test @MainActor func oldSnapshotIsMarkedBeforeShowingResults() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(WatchCodec.encode(snapshot([spot("saved")], at: .now.addingTimeInterval(-3_601))))
+        let model = WatchNearbyModel(store: cache, activateConnectivity: false)
+        #expect(model.snapshotIsOld)
+        #expect(model.results.count == 1)
+        #expect(model.results[0].distanceMeters.isNaN)
     }
 }

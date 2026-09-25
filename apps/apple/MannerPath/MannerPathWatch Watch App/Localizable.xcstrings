@@ -180,7 +180,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Watchの絞り込みを解除"
+            "value": "絞り込みを解除"
           }
         }
       }
@@ -270,7 +270,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "距離と方角にはWatchの現在地が必要です"
+            "value": "距離と方角には現在地が必要です。"
           }
         }
       }
@@ -330,7 +330,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Watchの現在地を取得中です。先に保存済みの場所を表示しています。"
+            "value": "現在地を取得中です。保存済みの場所を先に表示しています。"
           }
         }
       }
@@ -470,7 +470,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "iPhoneでMannerPathを一度開くと、近くのデータがWatchに送られます。"
+            "value": "iPhoneでMannerPathを開くと、近くの場所がこちらに保存されます。"
           }
         }
       }
@@ -696,7 +696,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Watchの現在地を使用"
+            "value": "現在地を使用"
           }
         }
       }
@@ -766,7 +766,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "直線距離と方角の表示にはWatchの現在地が必要です。"
+            "value": "直線距離と方角には現在地が必要です。"
           }
         }
       }
@@ -776,7 +776,87 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Watchの現在地を取得できません。保存済みの場所は引き続き表示できます。"
+            "value": "現在地を取得できません。保存済みの場所は表示できます。"
+          }
+        }
+      }
+    },
+    "Saved nearby places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの近くの場所"
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細"
+          }
+        }
+      }
+    },
+    "Use Watch location for distance and direction.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距離と方角の表示に現在地を使用します。"
+          }
+        }
+      }
+    },
+    "Saved places · old data": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所 · 古い情報"
+          }
+        }
+      }
+    },
+    "Distance needs location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距離: 現在地が必要"
+          }
+        }
+      }
+    },
+    "%@ · current location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 現在地から"
+          }
+        }
+      }
+    },
+    "%@ straight-line · current location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直線距離 %@ · 現在地から"
+          }
+        }
+      }
+    },
+    "Saved data is old. Open iPhone app to refresh.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの情報が古くなっています。iPhoneアプリを開いて更新してください。"
           }
         }
       }

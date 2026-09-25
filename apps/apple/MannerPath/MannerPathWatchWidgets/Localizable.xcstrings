@@ -1,0 +1,126 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "From iPhone": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneから保存"
+          }
+        }
+      }
+    },
+    "Nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くの場所"
+          }
+        }
+      }
+    },
+    "No saved places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所はありません"
+          }
+        }
+      }
+    },
+    "Old data from iPhone": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneからの古い情報"
+          }
+        }
+      }
+    },
+    "Open Watch Nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Watchで近くの場所を開く"
+          }
+        }
+      }
+    },
+    "Open iPhone app to check nearby": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneアプリで近くを確認"
+          }
+        }
+      }
+    },
+    "Open iPhone app to sync": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneアプリを開いて同期"
+          }
+        }
+      }
+    },
+    "Open saved nearby places on Watch.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Watchで保存済みの近くの場所を開きます。"
+          }
+        }
+      }
+    },
+    "Saved nearby places from iPhone.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhoneから保存された近くの場所"
+          }
+        }
+      }
+    },
+    "Saved place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの場所"
+          }
+        }
+      }
+    },
+    "Verification date unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認日は不明"
+          }
+        }
+      }
+    },
+    "Verified %lld days ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld日前に確認"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
