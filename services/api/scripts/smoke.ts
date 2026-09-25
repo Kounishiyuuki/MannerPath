@@ -16,6 +16,7 @@
 // `--expect-reports unavailable|appAttest` additionally pins which report configuration the target
 // must advertise, so the disposable App Attest environment (docs/OPERATIONS.md) can prove it failed
 // closed before its App Attest values were set and speaks schema 2 after.
+import { ifNoneMatchMatches } from "../src/app.ts";
 import { DATA_TILE_ZOOM, parseTileId } from "../src/geo/tile.ts";
 import { CONFIG_RESOURCES, ConfigBodyV1 } from "../src/config/dto.ts";
 import { ATTESTED_REPORT_SCHEMA_VERSION } from "../src/reports/dto.ts";
@@ -90,9 +91,10 @@ const tileVersionOk = tile?.success === true && config.success
 const tileOk = check("tile 200", tileRes.status === 200 && tile?.success === true && etag !== "" && tileVersionOk,
   `tile=${tileId} status=${tileRes.status} etag=${etag || "missing"} spots=${tile?.success ? tile.data.spots.length : "?"} schemaVersion=${tile?.success ? tile.data.schemaVersion : "?"}`);
 
-// 3. Conditional request on the same tile: 304 with the same ETag.
+// 3. Conditional request on the same tile: 304 with the same ETag. "Same" is RFC 9110 weak
+// comparison: a remote edge that gzips the 200 turns the tag weak (W/"…") but not the bodyless 304.
 const notModified = tileOk ? await get(`/v1/tiles/${tileId}`, { "If-None-Match": etag }) : null;
-check("tile 304", notModified?.status === 304 && notModified.headers.get("ETag") === etag,
+check("tile 304", notModified?.status === 304 && ifNoneMatchMatches(notModified.headers.get("ETag") ?? undefined, etag),
   `status=${notModified?.status} etag=${notModified?.headers.get("ETag") ?? "missing"}`);
 
 // 4. A valid z14 tile with nothing published: the documented 404 contract.
