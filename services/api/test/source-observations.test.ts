@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { ensureReleaseObservations } from "../src/pipeline/observations.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
+import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import type { NormalizedSourceObservation, SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
@@ -72,4 +73,21 @@ test("resolver source no longer reads raw source schema directly", async () => {
   assert.equal(resolved.status, "resolved");
   assert.equal(db.raw.prepare("SELECT count(*) AS n FROM source_observations").get()!.n, 34);
   assert.equal(db.raw.prepare("SELECT count(*) AS n FROM spots").get()!.n, 34);
+});
+
+
+test("already-applied legacy release backfills missing observations before returning alreadyApplied", async () => {
+  const db = new SqliteD1();
+  await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
+  const { releaseId } = await ingestRelease(db, TAITO_ADAPTER, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
+  db.raw.prepare(
+    "UPDATE source_releases SET status = 'applied', applied_at = ?, is_current = 1 WHERE release_id = ?",
+  ).run(NOW, releaseId);
+  assert.equal(db.raw.prepare("SELECT count(*) AS n FROM source_observations").get()!.n, 0);
+
+  assert.deepEqual(
+    await resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW }),
+    { status: "alreadyApplied" },
+  );
+  assert.equal(db.raw.prepare("SELECT count(*) AS n FROM source_observations").get()!.n, 34);
 });
