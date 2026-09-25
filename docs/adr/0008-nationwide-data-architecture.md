@@ -73,6 +73,11 @@ rewritten. Observation rows have no fetch/derived timestamp: they are determinis
 adapter output. Re-running the same mapping is a no-op; if code produces different output under the
 same mapping version, the pipeline fails closed and requires a version bump. The generic resolver
 reads these observations and no longer parses `raw_values_json` or knows source column layouts.
+An upgraded database may already contain an `applied` release from before migration 0008; resolving
+that release with the correct adapter deterministically backfills its missing observations before
+returning `alreadyApplied`, without rewriting canonical rows. Promotion bundle v1 intentionally
+remains unchanged in this issue; a freshly migrated promoted database can backfill observations from
+the raw records it already carries, while multi-source promotion is decided in decision 7.
 
 ### 3. Cross-release matching (boundary)
 
