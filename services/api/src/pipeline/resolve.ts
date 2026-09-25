@@ -39,14 +39,15 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     content_sha256: string; source_url: string; kind: string;
   }>();
   if (!release) throw new Error(`resolve: release ${releaseId} does not exist`);
-  if (release.status === "applied") return { status: "alreadyApplied" };
-  if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
   if (release.source_id !== adapter.registry.sourceId) {
     throw new Error(`resolve: release ${releaseId} belongs to ${release.source_id}, not to adapter source ${adapter.registry.sourceId}`);
   }
   if (release.parser_version !== adapter.parserVersion) {
     throw new Error(`resolve: release ${releaseId} was parsed by ${release.parser_version}, not ${adapter.parserVersion}`);
   }
+  // Identity is checked before status, so a wrong adapter is refused in every state, applied included.
+  if (release.status === "applied") return { status: "alreadyApplied" };
+  if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
   const resolverVersion = adapter.resolverVersion;
   const ref = adapter.attenuationReference;
   if (release.kind !== "municipal") {

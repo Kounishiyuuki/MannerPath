@@ -10,7 +10,7 @@ import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import {
-  NOW, TAITO_BYTES, TEST_BLOCKED_SOURCE, TEST_BLOCKED_TAITO_ADAPTER, addBlockedTestSource,
+  NOW, TAITO_BYTES, importTaito, TEST_BLOCKED_SOURCE, TEST_BLOCKED_TAITO_ADAPTER, addBlockedTestSource,
 } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 
@@ -87,4 +87,14 @@ test("resolve fails closed when the release was parsed by another parser than th
   await assert.rejects(resolveFirstRelease(db, TAITO_ADAPTER, release, { now: NOW }),
     new RegExp(`was parsed by unknown-csv\\.v1, not ${TAITO_ADAPTER.parserVersion.replace(".", "\\.")}`));
   assert.equal(count(db, "spots"), 0);
+});
+
+test("identity is checked before status: an applied Taito release is refused to another source's adapter", async () => {
+  const db = new SqliteD1();
+  addBlockedTestSource(db);
+  const { releaseId } = await importTaito(db);
+  await assert.rejects(resolveFirstRelease(db, TEST_BLOCKED_TAITO_ADAPTER, releaseId, { now: NOW }),
+    new RegExp(`belongs to ${TAITO_SOURCE_ID}, not to adapter source ${TEST_BLOCKED_SOURCE}`));
+  // The right adapter still sees the applied release as already applied.
+  assert.deepEqual(await resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW }), { status: "alreadyApplied" });
 });
