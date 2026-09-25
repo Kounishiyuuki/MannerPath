@@ -186,7 +186,7 @@ Report
 
 Accepted reports may become evidence (ADR-0006); they never edit canonical rows directly.
 
-Privacy and retention of report data (proposed location, attestation identifiers) are **unresolved** and require a dedicated ADR before the report API ships.
+Privacy and retention of report data (proposed location, attestation identifiers) are decided in ADR-0007 (`docs/adr/0007-report-privacy-and-retention.md`); the report API and its App Attest protocol are specified in `docs/API.md`.
 
 ## 8. Scaling boundaries
 

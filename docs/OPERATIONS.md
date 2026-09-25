@@ -360,18 +360,23 @@ Invariants for anything added later:
 
 The iPhone app already takes the origin as a build setting; no app code changes for this.
 
-- Xcode build setting `MANNERPATH_API_BASE_URL` → `INFOPLIST_KEY_MannerPathAPIBaseURL` →
-  Info.plist key `MannerPathAPIBaseURL`, read at composition time (`apps/apple/README.md`).
+- Xcode build setting `MANNERPATH_API_BASE_URL` → the explicit `MannerPath-Info.plist` entry
+  `<key>MannerPathAPIBaseURL</key><string>$(MANNERPATH_API_BASE_URL)</string>` → Info.plist key
+  `MannerPathAPIBaseURL`, read at composition time (`apps/apple/README.md`). A custom
+  `INFOPLIST_KEY_*` build setting is ignored by the generated Info.plist (#52, fixed by #53);
+  `scripts/check-iphone-api-base-url.sh` (run by `make apple-validate`) checks the built plist.
 - Supply it per configuration through a local, **uncommitted** `.xcconfig`, or as an `xcodebuild`
   build-setting override in the beta build job. The staging origin is not committed.
 - It must be an HTTPS origin for device builds (App Transport Security).
 - When absent or invalid, Nearby works from the local tile cache only — a beta build with no origin
   degrades to offline rather than failing.
-- A beta build should call `GET /v1/config` at launch, take `dataTileZoom` from it rather than
-  hard-coding `14`, and compare each resource's advertised range with the schema versions it can
-  decode — tiles, spot detail and reports separately, since they version independently. It should
-  also hide the report entry point when `reports.available` is `false`, and speak the report
-  protocol `reports.attestation` names (`"appAttest"` needs the #46 client).
+- What the current beta build reads from `GET /v1/config`: only the report block. It disables
+  report submission when `reports.available` is `false`, and speaks exactly the report protocol
+  `reports.attestation` names (`"none"` with report schema `1..1`, `"appAttest"` with `2..2`).
+  Tiles are still requested at a fixed zoom of `14`: the client does not yet read `dataTileZoom`
+  or the tile / spot-detail schema ranges (`BETA_E2E_CHECKLIST.md` limitation L3). That is safe
+  while the server stays at `DATA_TILE_ZOOM=14` and tile schema `1`; changing either requires the
+  client to adopt those `/v1/config` fields first (`docs/API.md` "GET /config").
 
 ## Report attestation (App Attest, Issue #37)
 

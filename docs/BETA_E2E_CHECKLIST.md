@@ -54,8 +54,9 @@ patched), so it has none to migrate. G1, the "no snapshot" half of G5, G6, G8, G
 
 The `SIM` backend rows below were observed **before** #53, by adding the key to a scratch copy of
 the built app (`PlistBuddy -c "Add :MannerPathAPIBaseURL string http://127.0.0.1:8787"`, then ad-hoc
-re-signing) — a test-only workaround, never a build step. They have not been repeated with a
-post-#53 build.
+re-signing) — a test-only workaround, never a build step. The iPhone usability pass below (#59,
+PR #60) used a post-#53 build configured with the local Worker origin and repeated the list/detail,
+map and Worker-stopped observations (P9a, P10); the 304 revalidation of P8/B1 was not repeated.
 
 ## Recorded run
 
@@ -152,29 +153,48 @@ fix, so it shows this label more often than a moving device would. The detail fo
 "while nearby data updates" in that case even when nothing was updating; it now just says the
 estimate is from a previous location.
 
+## Watch usability pass (#58, PR #61, 2026-09-25)
+
+Recorded from PR #61, not re-run here. The `MannerPathWatch Watch AppUITests` target (in the
+`MannerPathWatch Watch App` scheme) drives six product flows on an Apple Watch Series 10 (46mm)
+watchOS 11.5 simulator with a seeded snapshot and deterministic location scenarios, through a
+launch flag and environment keys that exist only in `#if DEBUG` builds: 6/6 passed; Watch unit tests
+20 passed. Flows: first use; saved results lead, top-three cap; stale detail keeps distance, bearing
+and Directions ahead of sources; quick filters empty and clear; location states never show an old
+distance as current; Japanese stale/no-location copy. Directions is verified reachable and
+enabled only: the Maps handoff, Digital Crown, VoiceOver, real phone-to-Watch transfer and rendered
+widgets (gallery, Smart Stack) are not covered and stay on the device rows below.
+
+```sh
+xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
+  -scheme "MannerPathWatch Watch App" \
+  -destination "platform=watchOS Simulator,name=Apple Watch Series 10 (46mm)" \
+  -only-testing:"MannerPathWatch Watch AppUITests"
+```
+
 ## iPhone
 
 | # | Case | Status | Evidence / how to check on device |
 | --- | --- | --- | --- |
 | P1 | Clean install, first launch | `SIM` · `iPhone` | Fresh simulator: eligibility notice shown first, in Japanese. On device: delete the app, install the beta build, launch |
 | P2 | Local-schema upgrade (install new build over the previous beta) | `iPhone` | Install previous beta, open Nearby once, install new build over it; cached places still appear before any refresh |
-| P3 | Eligibility notice | `SIM` · `iPhone` | Simulator: shown on first launch. Acceptance was simulated by writing `eligibilityNoticeAccepted`, not by tapping — tap "確認しました" on device and confirm it is not shown again |
+| P3 | Eligibility notice | `AUTO` · `SIM` · `iPhone` | UI test `testEligibilityNoticeLeadsToNearby` (phase `first-launch`, #60): fresh install, tap "確認しました", Nearby shown. Device: tap it and confirm it is not shown again after relaunch |
 | P4 | Location: not determined → allow While Using | `AUTO` · `iPhone` | `permissionIsRequestedOnlyByExplicitAction`. Device: prompt appears only after "現在地を使用" |
-| P5 | Location: denied | `SIM` · `iPhone` | Simulator: denial message and "設定を開く". Device: deny, confirm Settings opens the app's page, re-allow and return |
+| P5 | Location: denied | `AUTO` · `SIM` · `iPhone` | UI test phase `denied` (#60, permission revoked with `simctl`): denial message and "設定を開く". Device: deny, confirm Settings opens the app's page, re-allow and return |
 | P6 | Location: restricted (Screen Time) | `iPhone` | "Location access is restricted" message, no crash |
 | P7 | Approximate vs precise | `AUTO` · `iPhone` | `usableLocationRetainsAccuracyFlagsAndReranksWithinOneNeighborhood`. Device: turn off Precise Location; the approximate warning appears and results still load (see limitation L2) |
 | P8 | Cached-first startup | `AUTO` · `SIM` · `iPhone` | `cachedResultsAppearBeforeNetworkAndRefreshReranks`; simulator relaunch showed cached results and revalidated all five published tiles with `304` |
 | P9a | Server unreachable (network failure) | `AUTO` · `SIM` | `partialRefreshFailureKeepsUsableCachedResults`; simulator with the Worker stopped (the simulator itself stayed online): cached map, list, distance and bearing shown with the "could not be loaded or refreshed" message |
 | P9b | Airplane mode (no network at all) | `iPhone` | **Not verified.** P9a is not equivalent: it only makes one host unreachable. On device: load data, enable airplane mode, force-quit, relaunch |
-| P10 | Map / list / detail | `SIM` · `iPhone` | Map pins, ranked list rows (type, access, straight-line distance, bearing, last verified, evidence). Detail on device |
-| P11 | Filters | `AUTO` · `iPhone` | `NearbyDomainTests`; device: each filter, "Clear filters" on an empty result |
+| P10 | Map / list / detail | `AUTO` · `SIM` · `iPhone` | UI tests (#60, phases `light`/`dark`/`large-text`): map ≥ 200 pt with the first result visible, row → detail (type, distance, bearing, access, freshness, last verified, attribution, Maps handoff button, report) and map pin → detail. Device: the same with real location and data |
+| P11 | Filters | `AUTO` · `iPhone` | `NearbyDomainTests`; UI tests (#60): physical-type filter → empty state → "絞り込みを解除", paper filter keeps unknown support. Device: each filter |
 | P12 | Destination search | `iPhone` | Needs Apple Maps search; search failure message when offline |
 | P13 | Walking detour ranking | `AUTO` · `iPhone` | `RouteSearchTests`; device: pick a destination, detour minutes appear, unconfirmed rows say so |
 | P14 | Navigation handoff to Maps | `iPhone` | Detail → walking directions opens Apple Maps at the spot |
-| P15 | Attribution | `AUTO` · `iPhone` | `local:smoke` attribution check (server side). Not observed in the simulator: on device, check Data & Privacy lists the source and spot detail shows it |
-| P16 | Japanese localization | `SIM` · `iPhone` | Simulator (Japanese system language): eligibility notice, Nearby (loaded, empty, location denied), Watch first-use and location sections. Not observed: filters, detail, Data & Privacy, report form |
-| P17 | Dynamic Type / accessibility sizes | `SIM` · `iPhone` | Largest accessibility size: header row stacks vertically, no clipping at top. Scroll every screen on device |
-| P18 | Report draft save / resume / discard | `AUTO` · `iPhone` | `ReportFlowTests`; device: draft survives relaunch |
+| P15 | Attribution | `AUTO` · `iPhone` | `local:smoke` attribution check (server side); UI tests (#60): detail shows the attribution link and Data & Privacy lists the source and licence. Device: the same against the deployed backend |
+| P16 | Japanese localization | `AUTO` · `SIM` · `iPhone` | The #60 UI tests run in Japanese and drive eligibility, Nearby (loaded, empty, offline, denied), filters, detail, Data & Privacy and the report form by their Japanese labels; #61 `testJapaneseStaleAndLocationCopy` covers Watch stale/no-location copy. Device: read every screen |
+| P17 | Dynamic Type / accessibility sizes | `AUTO` · `SIM` · `iPhone` | UI test phase `large-text` (#60, `accessibility-extra-extra-extra-large`): first result reachable by scrolling, detail scrolls to the report action. Scroll every screen on device |
+| P18 | Report draft save / resume / discard | `AUTO` · `iPhone` | `ReportFlowTests`; UI test (#60): edit, close, resume keeps the draft, discard, never submitted. Device: draft survives relaunch |
 | P19 | Report submission (unattested, local/`disabled`) | `AUTO` · `iPhone` · `BACKEND` | `ReportFlowTests`; device: a build configured with a reachable origin (#53) against a backend in the unattested/`disabled` mode |
 | P20 | Report failure / retry | `AUTO` · `iPhone` | Ambiguous POST keeps the draft and never resends by itself; rate limit blocks immediate retry |
 | P21 | App Attest: register → assert → `201` | `AUTO` · `iPhone` · `BACKEND` | Needs a signed device build, a deployment with the three App Attest values, and its `CFBundleVersion` listed |
@@ -197,15 +217,15 @@ estimate is from a previous location.
 
 | # | Case | Status | Evidence / how to check on device |
 | --- | --- | --- | --- |
-| W1 | First-use notice | `SIM` · `Watch` | Fresh watch simulator: notice shown first, in Japanese. The location section was seen after acceptance was simulated by writing `watchEligibilityNoticeAccepted`; tap "Continue" on device |
+| W1 | First-use notice | `AUTO` · `SIM` · `Watch` | UI test `testFirstUseReachesNearby` (#61): notice shown, Continue tapped, no-snapshot instruction shown. Device: the same with a real paired iPhone |
 | W2 | Snapshot transfer from iPhone | `AUTO` · `Watch` | `WatchSyncTests`, codec tests. Device: open iPhone Nearby, then the Watch shows places |
 | W3 | Cached / offline launch | `AUTO` · `Watch` | `cachedLaunchAndPreferencesNeedNoPhone`; device: iPhone off / out of range |
-| W4 | Nearby results (top three) | `AUTO` · `Watch` | `watchLocationDeterminesTopThreeDistanceAndBearing` |
-| W5 | Freshness | `AUTO` · `Watch` | `freshnessUsesCurrentTimeAndUnknownHoursAreNotOpen` |
-| W6 | Filters | `AUTO` · `Watch` | quick-filter tests; device: each control, "Clear Watch filters" |
+| W4 | Nearby results (top three) | `AUTO` · `Watch` | `watchLocationDeterminesTopThreeDistanceAndBearing`; UI test `testSavedResultsLeadAndOnlyTopThreeAppear` (#61, seeded snapshot) |
+| W5 | Freshness | `AUTO` · `Watch` | `freshnessUsesCurrentTimeAndUnknownHoursAreNotOpen`; UI tests (#61): snapshot older than an hour is labelled old, and a failed, denied or old location fix never shows a distance as current |
+| W6 | Filters | `AUTO` · `Watch` | quick-filter tests; UI test `testQuickFiltersCanEmptyAndClearResults` (#61): no-results state and Clear filters. Device: each control |
 | W7 | Distance / bearing | `AUTO` · `Watch` | Walk and confirm the bearing turns |
 | W8 | Navigation handoff | `AUTO` · `Watch` | `navigationKeepsStraightLineFallback`; device: Maps opens (watchOS 11.4+) |
-| W9 | Full scroll, Digital Crown | `Watch` | Every list and detail scrolls to its last row |
+| W9 | Full scroll, Digital Crown | `SIM` · `Watch` | #61 UI tests reach the last list action and detail source content by simulator swipe; that proves scrollability, not the Digital Crown. Device: every list and detail scrolls to its last row with the Crown |
 | W10 | Large text | `Watch` | The watchOS simulator refuses content-size changes (`Runtime does not support dynamic text`) |
 
 ## iPhone widget (#32)
@@ -300,8 +320,9 @@ archive inspection still needs the physical S1–S4, P21–P23, widget, and Watc
   empty by design.
 - **L2** Approximate location can be kilometres off; the 3×3 z14 neighbourhood (~6 km across) may
   then miss the user's real surroundings. The app warns that the location is approximate.
-- **L3** The client uses a fixed data zoom of 14 and does not yet read `dataTileZoom` from
-  `/v1/config` (`OPERATIONS.md` "Apple beta build"). Safe while the server stays at 14.
+- **L3** The client reads only the report block of `/v1/config`. It uses a fixed data zoom of 14
+  and does not yet read `dataTileZoom` or the tile / spot-detail schema ranges (`OPERATIONS.md`
+  "Apple beta build → API base URL"). Safe while the server stays at zoom 14 and tile schema 1.
 - **L4** No offline turn-by-turn routing (ADR-0004): offline users get straight-line distance and bearing.
 - **L5** Remote report acceptance stays closed until the App Attest values are set, which
   `OPERATIONS.md` step 6 makes conditional on deciding how reports survive a blue/green switch.
