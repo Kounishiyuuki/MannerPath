@@ -69,7 +69,9 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     );
   }
 
-  const observations = await ensureReleaseObservations(db, adapter, releaseId);\n\n  const now = opts.now;
+  const observations = await ensureReleaseObservations(db, adapter, releaseId);
+
+  const now = opts.now;
   const statements = [];
   const spotIds: string[] = [];
   for (const observation of observations) {

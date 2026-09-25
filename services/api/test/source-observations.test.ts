@@ -90,4 +90,8 @@ test("already-applied legacy release backfills missing observations before retur
     { status: "alreadyApplied" },
   );
   assert.equal(db.raw.prepare("SELECT count(*) AS n FROM source_observations").get()!.n, 34);
+  // Only the derived observation layer is backfilled: no canonical row is (re)created.
+  for (const table of ["spots", "spot_source_entities", "spot_field_provenance", "spot_field_attenuations", "source_entities"]) {
+    assert.equal(db.raw.prepare(`SELECT count(*) AS n FROM ${table}`).get()!.n, 0, table);
+  }
 });
