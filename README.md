@@ -26,7 +26,7 @@ The product goal is not to promote smoking. It is to help adult users quickly lo
 - URLSession + Codable
 - Cloudflare Workers + TypeScript + Hono
 - Cloudflare D1
-- Open municipal data + OpenStreetMap + user verification
+- Reviewed official/open data + conditionally approved OSM path + reviewed user verification
 
 See [`docs/TECH_STACK.md`](docs/TECH_STACK.md) and [`docs/PRODUCT_REQUIREMENTS.md`](docs/PRODUCT_REQUIREMENTS.md).
 
@@ -43,4 +43,4 @@ AGENTS.md                  mandatory rules for AI coding agents
 
 ## Current phase
 
-**Foundation / v0.0.x** — architecture and product contracts are being fixed before feature implementation.
+**Nationwide product completion / pre-signing** — the current focus is nationwide data architecture and coverage plus final iPhone/Watch/widget product UI. Paid Apple signing and physical-device release E2E are deliberately deferred until the data, functionality and UI gates are complete.
