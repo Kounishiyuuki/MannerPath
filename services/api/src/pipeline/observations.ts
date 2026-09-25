@@ -55,11 +55,11 @@ function encodedObservation(
   sourceId: string,
   mappingVersion: string,
 ): ObservationComparable {
-  const openingHoursJson = mapped.openingHours.status === "parsed"
-    ? JSON.stringify(mapped.openingHours.parsed)
-    : null;
-  if (mapped.openingHours.status === "parsed" && openingHoursJson === undefined) {
-    throw new Error("observations: parsed opening hours must be JSON-serializable");
+  let openingHoursJson: string | null = null;
+  if (mapped.openingHours.status === "parsed") {
+    const encoded = JSON.stringify(mapped.openingHours.parsed);
+    if (encoded === undefined) throw new Error("observations: parsed opening hours must be JSON-serializable");
+    openingHoursJson = encoded;
   }
   return {
     record_id: record.record_id,

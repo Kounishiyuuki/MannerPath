@@ -47,7 +47,12 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     throw new Error(`resolve: release ${releaseId} was parsed by ${release.parser_version}, not ${adapter.parserVersion}`);
   }
   // Identity is checked before status, so a wrong adapter is refused in every state, applied included.
-  if (release.status === "applied") return { status: "alreadyApplied" };
+  // An upgraded database may already have canonical rows but no migration-0008 observations. Backfill
+  // only that deterministic derived layer before preserving the existing alreadyApplied result.
+  if (release.status === "applied") {
+    await ensureReleaseObservations(db, adapter, releaseId);
+    return { status: "alreadyApplied" };
+  }
   if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
   const resolverVersion = adapter.resolverVersion;
   const ref = adapter.attenuationReference;
