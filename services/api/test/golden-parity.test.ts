@@ -6,11 +6,15 @@
 // The golden was generated from main before the SourceAdapter extraction. A refactor must not change
 // it; an intended output change regenerates it (GOLDEN_UPDATE=1) and justifies the diff in its PR.
 // Issue #73 added only `tables.source_observations`; every other byte was unchanged.
+//
+// Compressed tile sizes depend on the zlib build (Issue #76), so the golden's quality analysis runs
+// with a deterministic stand-in sizer instead of node:zlib. Its `gzipBytes` figures are therefore
+// synthetic; the gate those figures feed is tested against TILE_REEVALUATION_GZIP_BYTES in
+// data-quality.test.ts. Raw tile bytes, hashes and ETags stay pinned here.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { gzipSync } from "node:zlib";
 import { app } from "../src/app.ts";
 import { buildPromotionBundle } from "../src/pipeline/promotion.ts";
 import { analyzeCorpus } from "../src/quality/analyze.ts";
@@ -20,6 +24,7 @@ import { SqliteD1 } from "./support/sqlite-d1.ts";
 
 const GOLDEN = new URL("./golden/taito-pipeline.golden.json", import.meta.url);
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
+const portableGzipSize = (body: string) => Math.ceil(Buffer.byteLength(body) / 4);
 
 function dumpTables(db: SqliteD1): Record<string, unknown[]> {
   const tables = db.raw.prepare(
@@ -47,7 +52,7 @@ async function pipelineOutputs() {
     tiles.push({ tileId, status: res.status, etag: res.headers.get("ETag"), bodySha256: sha256(body), body });
   }
   const promotion = await buildPromotionBundle(db);
-  const quality = await analyzeCorpus(db, { now: NOW, gzip: (b) => gzipSync(b).byteLength });
+  const quality = await analyzeCorpus(db, { now: NOW, gzip: portableGzipSize });
   return {
     imported,
     publish,

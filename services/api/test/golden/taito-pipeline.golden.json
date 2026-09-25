@@ -328,7 +328,7 @@
         "revision": 1,
         "spotCount": 1,
         "rawBytes": 1095,
-        "gzipBytes": 741,
+        "gzipBytes": 274,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -338,7 +338,7 @@
         "revision": 1,
         "spotCount": 11,
         "rawBytes": 6490,
-        "gzipBytes": 1232,
+        "gzipBytes": 1623,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -348,7 +348,7 @@
         "revision": 1,
         "spotCount": 9,
         "rawBytes": 5512,
-        "gzipBytes": 1237,
+        "gzipBytes": 1378,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -358,7 +358,7 @@
         "revision": 1,
         "spotCount": 9,
         "rawBytes": 5435,
-        "gzipBytes": 1165,
+        "gzipBytes": 1359,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -368,7 +368,7 @@
         "revision": 1,
         "spotCount": 2,
         "rawBytes": 1662,
-        "gzipBytes": 838,
+        "gzipBytes": 416,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -380,7 +380,7 @@
         "revision": 1,
         "spotCount": 11,
         "rawBytes": 6490,
-        "gzipBytes": 1232,
+        "gzipBytes": 1623,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -390,7 +390,7 @@
         "revision": 1,
         "spotCount": 11,
         "rawBytes": 6490,
-        "gzipBytes": 1232,
+        "gzipBytes": 1623,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -400,7 +400,7 @@
       "dataTileZoom": 14,
       "maxSpotsPerTile": 11,
       "maxRawBytesPerTile": 6490,
-      "maxGzipBytesPerTile": 1237,
+      "maxGzipBytesPerTile": 1623,
       "reevaluateAboveSpots": 250,
       "reevaluateAboveGzipBytes": 16384,
       "withinThresholds": true
@@ -469,7 +469,7 @@
       {
         "id": "tile-zoom-thresholds",
         "status": "pass",
-        "detail": "max 11 spots/tile (trigger 250), max 1237 gzip bytes/tile (trigger 16384)"
+        "detail": "max 11 spots/tile (trigger 250), max 1623 gzip bytes/tile (trigger 16384)"
       }
     ],
     "failedChecks": 0
