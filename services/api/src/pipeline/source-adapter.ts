@@ -86,4 +86,10 @@ export interface SourceAdapter {
   /** Weakenings the adapter's reviewed attenuation reference applies to one observation. */
   attenuate(observation: SourceObservation): readonly FieldAttenuation[];
   attenuationReference: AttenuationReference;
+  /**
+   * Whether a later release of this source may be applied by the cross-release matcher
+   * (./match.ts). True only once the matcher is validated on two real releases of this source
+   * (ADR-0008 decision 3); until then a second release is refused before anything is written.
+   */
+  crossReleaseValidated: boolean;
 }
