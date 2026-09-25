@@ -13,16 +13,18 @@ CREATE TABLE source_observations (
   longitude            REAL NOT NULL CHECK (longitude >= -180 AND longitude <= 180),
   supports_paper       TEXT NOT NULL CHECK (supports_paper IN ('yes', 'no', 'unknown')),
   supports_heated      TEXT NOT NULL CHECK (supports_heated IN ('yes', 'no', 'unknown')),
-  opening_hours_raw    TEXT NOT NULL,
+  opening_hours_raw    TEXT,
   opening_hours_json   TEXT CHECK (opening_hours_json IS NULL OR json_valid(opening_hours_json)),
-  opening_hours_status TEXT NOT NULL CHECK (opening_hours_status IN ('parsed', 'unparsed')),
+  opening_hours_status TEXT NOT NULL CHECK (opening_hours_status IN ('none', 'parsed', 'unparsed')),
   lifecycle            TEXT NOT NULL CHECK (lifecycle IN ('active', 'temporarilyClosed', 'removed')),
   publication_hold     TEXT CHECK (publication_hold IS NULL OR publication_hold IN ('locationSuperseded')),
   provenance_json      TEXT NOT NULL CHECK (json_valid(provenance_json) AND json_type(provenance_json) = 'array'),
   attenuations_json    TEXT NOT NULL CHECK (json_valid(attenuations_json) AND json_type(attenuations_json) = 'array'),
   UNIQUE (record_id, mapping_version),
   FOREIGN KEY (record_id, release_id) REFERENCES source_records (record_id, release_id),
-  CHECK ((opening_hours_status = 'parsed') = (opening_hours_json IS NOT NULL))
+  CHECK ((opening_hours_status = 'parsed') = (opening_hours_json IS NOT NULL)),
+  CHECK (opening_hours_status = 'none' OR opening_hours_raw IS NOT NULL),
+  CHECK (opening_hours_status <> 'none' OR opening_hours_raw IS NULL)
 );
 
 CREATE INDEX source_observations_release

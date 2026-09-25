@@ -30,9 +30,9 @@ interface ObservationDbRow {
   longitude: number;
   supports_paper: "yes" | "no" | "unknown";
   supports_heated: "yes" | "no" | "unknown";
-  opening_hours_raw: string;
+  opening_hours_raw: string | null;
   opening_hours_json: string | null;
-  opening_hours_status: "parsed" | "unparsed";
+  opening_hours_status: "none" | "parsed" | "unparsed";
   lifecycle: "active" | "temporarilyClosed" | "removed";
   publication_hold: string | null;
   provenance_json: string;
@@ -106,8 +106,10 @@ function decode(row: ObservationDbRow): StoredSourceObservation {
     supportsPaper: row.supports_paper,
     supportsHeated: row.supports_heated,
     openingHours: row.opening_hours_status === "parsed"
-      ? { status: "parsed", raw: row.opening_hours_raw, parsed: JSON.parse(row.opening_hours_json as string) }
-      : { status: "unparsed", raw: row.opening_hours_raw, parsed: null },
+      ? { status: "parsed", raw: row.opening_hours_raw as string, parsed: JSON.parse(row.opening_hours_json as string) }
+      : row.opening_hours_status === "unparsed"
+        ? { status: "unparsed", raw: row.opening_hours_raw as string, parsed: null }
+        : { status: "none", raw: null, parsed: null },
     lifecycle: row.lifecycle,
     publicationHold: row.publication_hold,
     provenance: JSON.parse(row.provenance_json) as { field: string; columns: string[]; rule: string }[],

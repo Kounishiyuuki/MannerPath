@@ -12,6 +12,7 @@ export interface NormalizedSourceObservation {
   supportsPaper: TriState;
   supportsHeated: TriState;
   openingHours:
+    | { status: "none"; raw: null; parsed: null }
     | { status: "parsed"; raw: string; parsed: unknown }
     | { status: "unparsed"; raw: string; parsed: null };
   lifecycle: "active" | "temporarilyClosed" | "removed";
