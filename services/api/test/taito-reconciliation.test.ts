@@ -10,7 +10,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { app } from "../src/app.ts";
-import { ingestTaitoCsv } from "../src/pipeline/ingest.ts";
+import { ingestRelease } from "../src/pipeline/ingest.ts";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import {
@@ -317,8 +318,8 @@ test("a convenience store's name and host are still not smoking evidence", async
 async function importRelease(bytes: Uint8Array, meta: typeof TAITO_FIXTURE_RELEASE) {
   const db = new SqliteD1();
   await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
-  const { releaseId } = await ingestTaitoCsv(db, TAITO_SOURCE_ID, bytes, meta);
-  return resolveFirstRelease(db, releaseId, { now: NOW, newSpotId: sequentialSpotIds() });
+  const { releaseId } = await ingestRelease(db, TAITO_ADAPTER, bytes, meta);
+  return resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW, newSpotId: sequentialSpotIds() });
 }
 
 test("the exact reviewed release resolves", async () => {

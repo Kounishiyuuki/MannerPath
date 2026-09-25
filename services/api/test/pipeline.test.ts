@@ -3,7 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { parseCsv } from "../src/pipeline/csv.ts";
-import { ingestTaitoCsv } from "../src/pipeline/ingest.ts";
+import { ingestRelease } from "../src/pipeline/ingest.ts";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { applyReviewedSourceRegistry, ensureReviewedSource, reviewedSource } from "../src/pipeline/registry.ts";
 import { EVIDENCE_QUALITY_VERSION, FIRST_RELEASE_MATCHER_VERSION, OFFICIAL_LISTING, resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { TAITO_ATTRIBUTION_TEXT, TAITO_DATASET_URL, TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_ORIGINAL_DATA_URL, TAITO_SOURCE_ID, resolveTaitoRecord } from "../src/pipeline/taito.ts";
@@ -45,7 +46,7 @@ test("CSV reader rejects malformed input instead of guessing", () => {
 test("ingest: all 34 Taito records stored with all 12 raw columns verbatim, including the multi-line field", async () => {
   const db = new SqliteD1();
   await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
-  const { releaseId, created } = await ingestTaitoCsv(db, TAITO_SOURCE_ID, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
+  const { releaseId, created } = await ingestRelease(db, TAITO_ADAPTER, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
   assert.equal(created, true);
 
   const rel = one(db, "SELECT * FROM source_releases WHERE release_id = ?", releaseId);
@@ -73,7 +74,7 @@ test("ingest: all 34 Taito records stored with all 12 raw columns verbatim, incl
   assert.equal(r32[11], "土日祝日、年末年始は休業\n※加熱式たばこ専用");
   assert.equal(JSON.parse(records[22].raw_values_json)[5], "台東区上野７丁目４番３号  ", "trailing spaces are kept");
 
-  const again = await ingestTaitoCsv(db, TAITO_SOURCE_ID, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
+  const again = await ingestRelease(db, TAITO_ADAPTER, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
   assert.deepEqual(again, { releaseId, created: false });
   assert.equal(one(db, "SELECT count(*) AS n FROM source_records").n, 34);
 });
@@ -82,7 +83,7 @@ test("ingest rejects a file whose header is not the Taito format", async () => {
   const db = new SqliteD1();
   await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
   const bytes = new TextEncoder().encode("#,名称\n1,x\n");
-  await assert.rejects(ingestTaitoCsv(db, TAITO_SOURCE_ID, bytes, TAITO_FIXTURE_RELEASE), /unexpected header/);
+  await assert.rejects(ingestRelease(db, TAITO_ADAPTER, bytes, TAITO_FIXTURE_RELEASE), /unexpected header/);
   assert.equal(one(db, "SELECT count(*) AS n FROM source_releases").n, 0);
 });
 
@@ -176,15 +177,15 @@ test("identity: spot IDs are random, not derived from the row, and resolution is
   assert.ok(idsA.every((id) => !idsB.has(id)), "same input rows must not reproduce the same IDs");
 
   const releaseId = one(a, "SELECT release_id FROM source_releases").release_id;
-  assert.deepEqual(await resolveFirstRelease(a, releaseId, { now: NOW }), { status: "alreadyApplied" });
+  assert.deepEqual(await resolveFirstRelease(a, TAITO_ADAPTER, releaseId, { now: NOW }), { status: "alreadyApplied" });
   assert.deepEqual(all(a, "SELECT spot_id FROM spots").map((r) => r.spot_id), idsA);
 });
 
 test("identity: a second Taito release is refused, because '#' and natural keys are not a validated cross-release identity", async () => {
   const db = new SqliteD1();
   await importTaito(db);
-  const { releaseId } = await ingestTaitoCsv(db, TAITO_SOURCE_ID, TAITO_BYTES, { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-10-01" });
-  await assert.rejects(resolveFirstRelease(db, releaseId, { now: NOW }), /cross-release reconciliation is not implemented/);
+  const { releaseId } = await ingestRelease(db, TAITO_ADAPTER, TAITO_BYTES, { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-10-01" });
+  await assert.rejects(resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW }), /cross-release reconciliation is not implemented/);
   assert.equal(one(db, "SELECT count(*) AS n FROM spots").n, 34);
   assert.equal(one(db, "SELECT count(*) AS n FROM source_record_entities").n, 34);
   assert.equal(one(db, "SELECT status FROM source_releases WHERE release_id = ?", releaseId).status, "ingested");

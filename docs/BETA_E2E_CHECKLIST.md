@@ -316,7 +316,7 @@ archive inspection still needs the physical S1–S4, P21–P23, widget, and Watc
 
 ## Known limitations for the beta
 
-- **L1** Launch geography is the Taito fixture only: 34 spots in 5 z14 tiles. Elsewhere Nearby is
+- **L1** Launch geography is the Taito fixture only: 32 published spots (of 34 canonical) in 5 z14 tiles. Elsewhere Nearby is
   empty by design.
 - **L2** Approximate location can be kilometres off; the 3×3 z14 neighbourhood (~6 km across) may
   then miss the user's real surroundings. The app warns that the location is approximate.

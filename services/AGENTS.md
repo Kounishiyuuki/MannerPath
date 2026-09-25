@@ -18,6 +18,7 @@ it touches ingest or reconciliation.
 | tile generation, tile publication, or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
 | evidence, reconciliation, or publication gating | ADR-0006 |
 | ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
+| source adapters, multi-source/multi-release matching, nationwide pipeline boundaries | ADR-0008 |
 | adding, approving, or changing a data source | `docs/SOURCES.md`, `docs/DATA_POLICY.md` |
 | the beta corpus's coverage, freshness, or measured quality | `docs/BETA_DATA_QUALITY.md` |
 
