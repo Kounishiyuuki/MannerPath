@@ -17,6 +17,9 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     private(set) var locationUnavailable = false
     private(set) var locationAuthorizationUndetermined = false
     private(set) var now = Date()
+    #if DEBUG
+    private var uiTestFixtureActive = false
+    #endif
 
     var results: [WatchRankedSpot] {
         guard let snapshot else { return [] }
@@ -30,6 +33,16 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     }
 
     override convenience init() {
+        #if DEBUG
+        let process = ProcessInfo.processInfo
+        if process.arguments.contains("--mannerpath-watch-ui-test"),
+           let scenario = process.environment["MANNERPATH_WATCH_UI_TEST_SCENARIO"],
+           scenario == "empty" || scenario == "snapshot" {
+            self.init(store: nil, activateConnectivity: false)
+            configureUITestFixture(scenario: scenario, environment: process.environment)
+            return
+        }
+        #endif
         self.init(store: try? WatchStore.applicationSupport(), activateConnectivity: true)
     }
 
@@ -48,6 +61,9 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     }
 
     func refreshLocation(requestAuthorization: Bool = true) {
+        #if DEBUG
+        if uiTestFixtureActive { return }
+        #endif
         now = Date()
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -66,6 +82,9 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     func refreshClock() { now = Date() }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        #if DEBUG
+        if uiTestFixtureActive { return }
+        #endif
         locationAuthorizationUndetermined = manager.authorizationStatus == .notDetermined
         if manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways {
             locationUnavailable = false
@@ -99,6 +118,37 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
         longitude = nil
         accuracyMeters = nil
     }
+
+    #if DEBUG
+    private func configureUITestFixture(scenario: String, environment: [String: String]) {
+        uiTestFixtureActive = true
+        locationAuthorizationUndetermined = false
+        if scenario == "snapshot",
+           let encoded = environment["MANNERPATH_WATCH_UI_TEST_SNAPSHOT"],
+           let data = Data(base64Encoded: encoded) {
+            snapshot = try? WatchCodec.snapshot(data)
+        }
+        let manager = CLLocationManager()
+        switch environment["MANNERPATH_WATCH_UI_TEST_LOCATION"] {
+        case "current":
+            locationManager(manager, didUpdateLocations: [
+                CLLocation(coordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                           altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5,
+                           timestamp: .now)
+            ])
+        case "old":
+            locationManager(manager, didUpdateLocations: [
+                CLLocation(coordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                           altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5,
+                           timestamp: .now.addingTimeInterval(-120))
+            ])
+        case "failed":
+            locationManager(manager, didFailWithError: CLError(.locationUnknown))
+        default:
+            break
+        }
+    }
+    #endif
 
     func receive(snapshotData: Data?, preferenceData: Data?) {
         if let data = snapshotData,

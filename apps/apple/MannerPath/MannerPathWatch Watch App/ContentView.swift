@@ -18,6 +18,7 @@ struct ContentView: View {
                             eligibilityNoticeAccepted = true
                             model.refreshLocation(requestAuthorization: false)
                         }
+                        .accessibilityIdentifier("watch-eligibility-continue")
                     }
                 }
                 if eligibilityNoticeAccepted && model.snapshot == nil {
@@ -47,10 +48,12 @@ struct ContentView: View {
                                 .accessibilityElement(children: .combine)
                             }
                             .accessibilityHint("Opens place details")
+                            .accessibilityIdentifier("watch-spot-\(result.spot.id)")
                         }
                         if model.results.isEmpty {
                             Text("No saved places match these filters.")
                             Button("Clear Watch filters") { model.clearFilters() }
+                                .accessibilityIdentifier("watch-clear-empty-filters")
                         }
                     }
                     if model.locationAuthorizationUndetermined {
@@ -67,6 +70,7 @@ struct ContentView: View {
                             .font(.footnote)
                     }
                     NavigationLink("Quick filters") { filters }
+                        .accessibilityIdentifier("watch-quick-filters")
                 }
             }
             .navigationTitle("Nearby")
@@ -99,10 +103,12 @@ struct ContentView: View {
                 Text("Paper").tag("paper")
                 Text("Heated").tag("heated")
             }
+            .accessibilityIdentifier("watch-tobacco-filter")
             Toggle("Confirmed support", isOn: Binding(
                 get: { model.preferences.requireConfirmedTobaccoSupport },
                 set: { model.setConfirmedTobacco($0) }
             )).disabled(model.preferences.tobaccoType == nil)
+                .accessibilityIdentifier("watch-confirmed-support-filter")
             Toggle("Public access", isOn: Binding(
                 get: { model.preferences.publicAccessOnly }, set: { model.setPublicOnly($0) }
             ))
@@ -126,7 +132,7 @@ struct ContentView: View {
             }
             Toggle("Confirmed open now", isOn: Binding(
                 get: { model.preferences.openNowOnly }, set: { model.setOpenNow($0) }
-            ))
+            )).accessibilityIdentifier("watch-open-now-filter")
             Toggle("Official listing", isOn: Binding(
                 get: { model.preferences.officialEvidenceOnly }, set: { model.setOfficialOnly($0) }
             ))
@@ -140,6 +146,7 @@ struct ContentView: View {
                 Text("1 year").tag(365)
             }
             Button("Clear Watch filters") { model.clearFilters() }
+                .accessibilityIdentifier("watch-clear-filters")
         }
         .navigationTitle("Filters")
     }
@@ -161,6 +168,7 @@ struct ContentView: View {
                 }
                 if #available(watchOS 11.4, *), let url = WatchNavigation.walkingURL(for: result.spot) {
                     Link("Open walking directions", destination: url)
+                        .accessibilityIdentifier("watch-directions")
                 }
                 Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))
                     .font(.footnote).foregroundStyle(.secondary)
