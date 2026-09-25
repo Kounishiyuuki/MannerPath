@@ -297,6 +297,7 @@ struct ContentView: View {
                 }
             }
             .frame(height: 240)
+            .accessibilityIdentifier("nearbyMap")
             .accessibilityLabel("Nearby places map")
             .accessibilityHint("Explore place pins or use the list below for full details")
         }
@@ -336,6 +337,7 @@ struct ContentView: View {
                                       locationAccuracyMeters: location.horizontalAccuracyMeters)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("nearbyResultRow")
                     .accessibilityHint("Opens place details")
                 }
             }

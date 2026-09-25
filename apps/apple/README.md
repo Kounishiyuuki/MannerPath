@@ -133,3 +133,12 @@ with current Watch location. The iPhone `mannerpath://nearby`
 URL optionally carries an opaque spot ID; detail opens only if that spot is still in
 current nearby results. App Group creation in Apple Developer signing must match the
 entitlement before device distribution.
+
+## iPhone UI tests
+
+`MannerPathUITests` (scheme `MannerPathUITests`) drives the real app with XCUITest. It is not
+part of `make apple-validate` because it needs a running local Worker. Run
+`./scripts/run-iphone-ui-tests.sh`: it creates and deletes its own simulator, prepares the local
+data, starts and stops the Worker, and sets location, permission, appearance and text size with
+`simctl`. No signing team or device is needed. The app has no test-only code paths; the tests
+use accessibility labels plus two identifiers (`nearbyMap`, `nearbyResultRow`).

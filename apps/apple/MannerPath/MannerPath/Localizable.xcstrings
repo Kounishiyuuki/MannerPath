@@ -907,22 +907,22 @@
         }
       }
     },
+    "Distance and bearing are estimates from a previous device location, not a walking route.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距離と方角は前回確認した現在地からの目安で、徒歩ルートではありません。"
+          }
+        }
+      }
+    },
     "Distance and bearing are estimates from your device location, not a walking route.": {
       "localizations": {
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "距離と方角はデバイスの現在地からの目安で、徒歩ルートではありません。"
-          }
-        }
-      }
-    },
-    "Distance and bearing use a previous device location while nearby data updates. They are not a walking route.": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "近くの場所を更新中のため、距離と方角は前回の現在地に基づく目安です。徒歩ルートではありません。"
           }
         }
       }

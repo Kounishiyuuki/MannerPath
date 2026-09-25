@@ -44,6 +44,13 @@
 			remoteGlobalIDString = 3F1AF77A305EFE5100984937;
 			remoteInfo = "MannerPathWatch Watch App";
 		};
+		5B0000000000000000000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000100000000;
+			remoteInfo = MannerPath;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -73,6 +80,7 @@
 		3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MannerPathWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F1AF78A305EFE5200984937 /* MannerPathWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MannerPathWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F1AF794305EFE5300984937 /* MannerPathWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MannerPathWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B0000000000000000000002 /* MannerPathUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MannerPathUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -109,6 +117,11 @@
 			path = "MannerPathWatch Watch AppUITests";
 			sourceTree = "<group>";
 		};
+		5B0000000000000000000003 /* MannerPathUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MannerPathUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +153,11 @@
 			files = (
 			);
 		};
+		5B0000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -158,6 +176,7 @@
 				000000000000000000000320 /* MannerPathWatchShared */,
 				3F1AF78D305EFE5300984937 /* MannerPathWatch Watch AppTests */,
 				3F1AF797305EFE5300984937 /* MannerPathWatch Watch AppUITests */,
+				5B0000000000000000000003 /* MannerPathUITests */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -172,6 +191,7 @@
 				3F1AF77B305EFE5100984937 /* MannerPathWatch Watch App.app */,
 				3F1AF78A305EFE5200984937 /* MannerPathWatch Watch AppTests.xctest */,
 				3F1AF794305EFE5300984937 /* MannerPathWatch Watch AppUITests.xctest */,
+				5B0000000000000000000002 /* MannerPathUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -292,6 +312,27 @@
 			productReference = 3F1AF794305EFE5300984937 /* MannerPathWatch Watch AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		5B0000000000000000000001 /* MannerPathUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B000000000000000000000B /* Build configuration list for PBXNativeTarget "MannerPathUITests" */;
+			buildPhases = (
+				5B0000000000000000000004 /* Sources */,
+				5B0000000000000000000005 /* Frameworks */,
+				5B0000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5B0000000000000000000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5B0000000000000000000003 /* MannerPathUITests */,
+			);
+			name = MannerPathUITests;
+			productName = MannerPathUITests;
+			productReference = 5B0000000000000000000002 /* MannerPathUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -347,6 +388,7 @@
                 A00000000000000000000205,
 				3F1AF789305EFE5200984937 /* MannerPathWatch Watch AppTests */,
 				3F1AF793305EFE5300984937 /* MannerPathWatch Watch AppUITests */,
+				5B0000000000000000000001 /* MannerPathUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -381,6 +423,11 @@
 			files = (
 			);
 		};
+		5B0000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -411,6 +458,11 @@
 			files = (
 			);
 		};
+		5B0000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -433,6 +485,11 @@
 			isa = PBXTargetDependency;
 			target = 3F1AF77A305EFE5100984937 /* MannerPathWatch Watch App */;
 			targetProxy = 3F1AF795305EFE5300984937 /* PBXContainerItemProxy */;
+		};
+		5B0000000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000100000000 /* MannerPath */;
+			targetProxy = 5B0000000000000000000007 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -865,6 +922,49 @@
 			};
 			name = Release;
 		};
+		5B0000000000000000000009 /* Debug configuration for PBXNativeTarget "MannerPathUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPathUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = MannerPath;
+			};
+			name = Debug;
+		};
+		5B000000000000000000000A /* Release configuration for PBXNativeTarget "MannerPathUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPathUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = MannerPath;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -916,6 +1016,14 @@
 			buildConfigurations = (
 				3F1AF7A1305EFE5300984937 /* Debug configuration for PBXNativeTarget "MannerPathWatch Watch AppUITests" */,
 				3F1AF7A2305EFE5300984937 /* Release configuration for PBXNativeTarget "MannerPathWatch Watch AppUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		5B000000000000000000000B /* Build configuration list for PBXNativeTarget "MannerPathUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B0000000000000000000009 /* Debug configuration for PBXNativeTarget "MannerPathUITests" */,
+				5B000000000000000000000A /* Release configuration for PBXNativeTarget "MannerPathUITests" */,
 			);
 			defaultConfigurationName = Release;
 		};

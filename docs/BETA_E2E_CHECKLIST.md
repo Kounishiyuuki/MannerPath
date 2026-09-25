@@ -122,9 +122,35 @@ saved results when there are none; the report-availability note no longer mentio
 that does not exist; the Data & Privacy "Location" section read "場所" and now reads "位置情報";
 the destination map annotation had no Japanese string.
 
-Not walked (require tapping): location allow/deny prompts, pin/row selection, detail, filters,
-destination search and route, report form, Data & Privacy, and a clean dark/largest-text check
-(a system "open in MannerPath?" dialog covered that screenshot). These stay as listed in the rows below.
+The first walk could not tap. The flows it missed are now driven by the iPhone UI-test target
+`MannerPathUITests` (2026-09-25), run by `./scripts/run-iphone-ui-tests.sh`. The script makes a
+fresh iOS 26.5 iPhone 17 simulator in Japanese at a fixed Taito location, starts the local Worker
+with the published fixture, and runs 8 phases, each with the state set by `simctl` rather than
+by app code. Result: `All iPhone UI test phases passed.`, 18 tests, 0 failed:
+
+| Phase | Tests | What is driven |
+| --- | --- | --- |
+| `first-launch` (fresh install) | 1 | eligibility notice → "確認しました" → Nearby |
+| `not-determined` | 1 | "現在地を使用" shown, no results, no prompt without the tap |
+| `light` (Worker up, location granted) | 9 | map ≥ 200 pt and first result visible without scrolling; row → detail (type, distance, bearing, access, freshness, last verified, attribution link, Maps handoff, report) → back; map pin → detail; physical-type filter → empty state → "絞り込みを解除" → results return, reopen shows cleared state; paper filter hides only the heated-only booth (unknown stays); Data & Privacy "位置情報" → sources/licence → back; report: change type to moved, type a note, close, resume keeps the draft, discard, never submitted; destination search can be typed and submitted; icon-only toolbar actions have labels |
+| `dark` | 2 | Nearby loaded, row → detail scrolled to the end |
+| `large-text` (`accessibility-extra-extra-extra-large`) | 2 | same; first result reachable by scrolling, detail scrolls to the report action |
+| `offline-cached` (Worker stopped) | 1 | cached rows stay, partial-failure message shown |
+| `clean-offline` (reinstall, Worker stopped) | 1 | "読み込めませんでした" empty state; not "no published places"; no claim of saved results or drafts |
+| `denied` (`simctl privacy revoke`) | 1 | denial message and "設定を開く" |
+
+Screenshots are XCTest attachments in each phase's `.xcresult` (not committed). Not covered:
+the system permission dialog itself (permission is set with `simctl`), the destination result
+list and walking-detour ranking (live MapKit search is not deterministic here, so any honest
+outcome is accepted), Apple Maps handoff, VoiceOver reading order, and everything that needs a
+physical device or paid signing in the rows below.
+
+"前回の現在地" in the simulator is the intended last-known fallback (`DeviceLocationService`):
+it is shown when Core Location's fix is over 60 s old or a new fix is pending or failed, always
+with the fix's own timestamp. A simulator with a fixed location keeps returning the same old
+fix, so it shows this label more often than a moving device would. The detail footer claimed
+"while nearby data updates" in that case even when nothing was updating; it now just says the
+estimate is from a previous location.
 
 ## iPhone
 
