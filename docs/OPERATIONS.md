@@ -133,6 +133,9 @@ The bundle is deterministic SQL (`services/api/src/pipeline/promotion.ts`):
 - opaque spot IDs, tile revisions, content hashes, attribution and field provenance verbatim: the
   receiving database gets the same published bytes, not a re-derivation.
 
+`source_observations` (ADR-0008 decision 2) is not in the bundle: it is derived data, re-derivable
+from the `source_records` that are, and the canonical rows it produced travel as themselves.
+
 `spot_field_attenuations` carries the rows behind every **weakened** field of a published spot
 (ADR-0006, Issue #42): which field was attenuated and how, under which attestation version, from
 which reviewed conflict reference, when that reference was read, and the fingerprint of the source

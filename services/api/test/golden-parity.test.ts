@@ -5,6 +5,7 @@
 //
 // The golden was generated from main before the SourceAdapter extraction. A refactor must not change
 // it; an intended output change regenerates it (GOLDEN_UPDATE=1) and justifies the diff in its PR.
+// Issue #73 added only `tables.source_observations`; every other byte was unchanged.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";

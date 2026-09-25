@@ -9,8 +9,21 @@ import type { ReviewedSource } from "./registry.ts";
 
 export type TriState = "yes" | "no" | "unknown";
 
-/** What a source resolves one raw record to. Unknown stays unknown; nothing here is a default. */
-export interface ResolvedRecord {
+export type Lifecycle = "active" | "temporarilyClosed" | "removed";
+
+/** Which raw columns, read by which named rule, a normalized field came from. */
+export interface FieldProvenance {
+  field: string;
+  columns: readonly string[];
+  rule: string;
+}
+
+/**
+ * What one raw record states, normalized by the adapter's mapping (ADR-0008 decision 2). Stored in
+ * `source_observations`; everything downstream of the adapter reads this, never the raw columns.
+ * Unknown stays unknown; nothing here is a default, and nothing here comes from outside the record.
+ */
+export interface SourceObservation {
   name: string | null;
   latitude: number;
   longitude: number;
@@ -18,13 +31,21 @@ export interface ResolvedRecord {
   supportsHeated: TriState;
   openingHours:
     | { status: "parsed"; raw: string; parsed: unknown }
-    | { status: "unparsed"; raw: string; parsed: null };
-  lifecycle: "active" | "temporarilyClosed" | "removed";
-  /** Non-null withholds the spot from publication without claiming it ceased to exist (ADR-0006). */
-  publicationHold: string | null;
-  provenance: readonly { field: string; columns: readonly string[]; rule: string }[];
-  /** Weakenings backed by the adapter's attenuation reference; never edits of provenance. */
-  attenuations: readonly { field: string; effect: string }[];
+    | { status: "unparsed"; raw: string; parsed: null }
+    // The source states no hours at all (a column it does not have, or an empty value it defines as
+    // absent). Not the same as unparsed text, and never read as "open".
+    | { status: "none"; raw: null; parsed: null };
+  /** The source's own claim. The canonical lifecycle may be weaker after attenuation. */
+  lifecycle: Lifecycle;
+  provenance: readonly FieldProvenance[];
+}
+
+export type AttenuationEffect = "hoursUnknown" | "temporarilyClosed" | "withholdFromPublication";
+
+/** A weakening backed by the adapter's attenuation reference; never an edit of provenance. */
+export interface FieldAttenuation {
+  field: "openingHours" | "lifecycle" | "location";
+  effect: AttenuationEffect;
 }
 
 /** Identifies one exact release file, for decisions that were reviewed against that file only. */
@@ -49,6 +70,8 @@ export interface SourceAdapter {
   parserVersion: string;
   /** Stored on every spot, provenance and attenuation row this adapter resolves. */
   resolverVersion: string;
+  /** Stored on every observation `observe` produces. Changing `observe` means a new version. */
+  mappingVersion: string;
   /** Decodes release bytes into header + rows, failing loudly on an unexpected shape. */
   parse(bytes: Uint8Array): { header: string[]; rows: string[][] };
   /** The publisher's own row identifier, or null when the row has none. */
@@ -57,7 +80,10 @@ export interface SourceAdapter {
    * Fail-closed checks run before a release is resolved and before anything is written — e.g. that
    * reviewed per-release decisions were reviewed against exactly this file.
    */
-  assertResolvable(release: ReleaseFingerprint, records: readonly string[][]): void;
-  resolveRecord(values: string[]): ResolvedRecord;
+  assertResolvable(release: ReleaseFingerprint, observations: readonly SourceObservation[]): void;
+  /** The field mapping: one raw record (values in header order) -> its normalized observation. */
+  observe(values: readonly string[]): SourceObservation;
+  /** Weakenings the adapter's reviewed attenuation reference applies to one observation. */
+  attenuate(observation: SourceObservation): readonly FieldAttenuation[];
   attenuationReference: AttenuationReference;
 }
