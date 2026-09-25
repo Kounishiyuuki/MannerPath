@@ -1,6 +1,26 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "About %lld min": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "約%lld分"
+          }
+        }
+      }
+    },
+    "Less than 1 min": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1分未満"
+          }
+        }
+      }
+    },
     "%@ (%lld°)": {
       "localizations": {
         "ja": {

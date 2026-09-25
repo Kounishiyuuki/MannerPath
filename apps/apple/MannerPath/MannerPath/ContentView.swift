@@ -306,7 +306,8 @@ struct ContentView: View {
     private var listSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(model.destination == nil ? "Nearby places" : "Nearby places for your walk")
-                .font(.headline)
+                .font(.title3.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
             if model.destination != nil {
                 switch model.routeState {
                 case .idle: EmptyView()
@@ -373,7 +374,8 @@ struct ContentView: View {
 
     private var destinationSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Walking destination").font(.headline)
+            Text("Walking destination").font(.title3.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
             adaptiveRowLayout {
                 TextField("Search a destination in Apple Maps", text: $destinationQuery)
                     .textFieldStyle(.roundedBorder)
@@ -403,7 +405,7 @@ struct ContentView: View {
                         Spacer()
                     }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
             }
             if let destination = model.destination {
                 HStack {
@@ -537,14 +539,15 @@ private struct NearbySpotRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            Image(systemName: "chevron.right")
+            Image(systemName: "chevron.forward")
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
         }
         .font(.subheadline)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(SpotPresentation.name(result.spot))
         .accessibilityValue(accessibilitySummary)

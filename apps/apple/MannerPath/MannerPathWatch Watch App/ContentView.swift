@@ -95,55 +95,61 @@ struct ContentView: View {
 
     private var filters: some View {
         List {
-            Picker("Tobacco", selection: Binding(
-                get: { model.preferences.tobaccoType ?? "any" },
-                set: { model.setTobacco($0 == "any" ? nil : $0) }
-            )) {
-                Text("Any").tag("any")
-                Text("Paper").tag("paper")
-                Text("Heated").tag("heated")
+            Section("Tobacco") {
+                Picker("Tobacco", selection: Binding(
+                    get: { model.preferences.tobaccoType ?? "any" },
+                    set: { model.setTobacco($0 == "any" ? nil : $0) }
+                )) {
+                    Text("Any").tag("any")
+                    Text("Paper").tag("paper")
+                    Text("Heated").tag("heated")
+                }
+                .accessibilityIdentifier("watch-tobacco-filter")
+                Toggle("Confirmed support", isOn: Binding(
+                    get: { model.preferences.requireConfirmedTobaccoSupport },
+                    set: { model.setConfirmedTobacco($0) }
+                )).disabled(model.preferences.tobaccoType == nil)
+                    .accessibilityIdentifier("watch-confirmed-support-filter")
             }
-            .accessibilityIdentifier("watch-tobacco-filter")
-            Toggle("Confirmed support", isOn: Binding(
-                get: { model.preferences.requireConfirmedTobaccoSupport },
-                set: { model.setConfirmedTobacco($0) }
-            )).disabled(model.preferences.tobaccoType == nil)
-                .accessibilityIdentifier("watch-confirmed-support-filter")
-            Toggle("Public access", isOn: Binding(
-                get: { model.preferences.publicAccessOnly }, set: { model.setPublicOnly($0) }
-            ))
-            Toggle("Confirmed public", isOn: Binding(
-                get: { model.preferences.requireConfirmedPublicAccess },
-                set: { model.setConfirmedPublic($0) }
-            )).disabled(!model.preferences.publicAccessOnly)
-            Picker("Physical type", selection: Binding(
-                get: { model.preferences.spotTypes?.count == 1 ? model.preferences.spotTypes![0] :
-                    model.preferences.spotTypes == nil ? "any" : "saved" },
-                set: { if $0 != "saved" { model.setSpotType($0 == "any" ? nil : $0) } }
-            )) {
-                Text("Any").tag("any")
-                Text("Saved selection").tag("saved")
-                Text("Outdoor area").tag("designatedOutdoorArea")
-                Text("Public room").tag("publicSmokingRoom")
-                Text("Facility room").tag("facilitySmokingRoom")
-                Text("Ashtray").tag("ashtray")
-                Text("Venue").tag("smokingPermittedVenue")
-                Text("Unknown type").tag("unknown")
+            Section("Place and access") {
+                Toggle("Public access", isOn: Binding(
+                    get: { model.preferences.publicAccessOnly }, set: { model.setPublicOnly($0) }
+                ))
+                Toggle("Confirmed public", isOn: Binding(
+                    get: { model.preferences.requireConfirmedPublicAccess },
+                    set: { model.setConfirmedPublic($0) }
+                )).disabled(!model.preferences.publicAccessOnly)
+                Picker("Physical type", selection: Binding(
+                    get: { model.preferences.spotTypes?.count == 1 ? model.preferences.spotTypes![0] :
+                        model.preferences.spotTypes == nil ? "any" : "saved" },
+                    set: { if $0 != "saved" { model.setSpotType($0 == "any" ? nil : $0) } }
+                )) {
+                    Text("Any").tag("any")
+                    Text("Saved selection").tag("saved")
+                    Text("Outdoor area").tag("designatedOutdoorArea")
+                    Text("Public room").tag("publicSmokingRoom")
+                    Text("Facility room").tag("facilitySmokingRoom")
+                    Text("Ashtray").tag("ashtray")
+                    Text("Venue").tag("smokingPermittedVenue")
+                    Text("Unknown type").tag("unknown")
+                }
             }
-            Toggle("Confirmed open now", isOn: Binding(
-                get: { model.preferences.openNowOnly }, set: { model.setOpenNow($0) }
-            )).accessibilityIdentifier("watch-open-now-filter")
-            Toggle("Official listing", isOn: Binding(
-                get: { model.preferences.officialEvidenceOnly }, set: { model.setOfficialOnly($0) }
-            ))
-            Picker("Verified within", selection: Binding(
-                get: { model.preferences.verifiedWithinDays ?? 0 },
-                set: { model.setVerifiedDays($0 == 0 ? nil : $0) }
-            )) {
-                Text("Any date").tag(0)
-                Text("30 days").tag(30)
-                Text("90 days").tag(90)
-                Text("1 year").tag(365)
+            Section("Data") {
+                Toggle("Confirmed open now", isOn: Binding(
+                    get: { model.preferences.openNowOnly }, set: { model.setOpenNow($0) }
+                )).accessibilityIdentifier("watch-open-now-filter")
+                Toggle("Official listing", isOn: Binding(
+                    get: { model.preferences.officialEvidenceOnly }, set: { model.setOfficialOnly($0) }
+                ))
+                Picker("Verified within", selection: Binding(
+                    get: { model.preferences.verifiedWithinDays ?? 0 },
+                    set: { model.setVerifiedDays($0 == 0 ? nil : $0) }
+                )) {
+                    Text("Any date").tag(0)
+                    Text("30 days").tag(30)
+                    Text("90 days").tag(90)
+                    Text("1 year").tag(365)
+                }
             }
             Button("Clear Watch filters") { model.clearFilters() }
                 .accessibilityIdentifier("watch-clear-filters")
