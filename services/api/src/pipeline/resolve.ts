@@ -30,7 +30,8 @@ export function resolveObservation(o: SourceObservation, attenuations: readonly 
   const effects = new Set(attenuations.map((a) => a.effect));
   return {
     ...o,
-    openingHours: effects.has("hoursUnknown")
+    // Only parsed hours can be weakened; unparsed or absent hours already claim nothing.
+    openingHours: effects.has("hoursUnknown") && o.openingHours.status === "parsed"
       ? { status: "unparsed" as const, raw: o.openingHours.raw, parsed: null }
       : o.openingHours,
     lifecycle: effects.has("temporarilyClosed") && o.lifecycle === "active" ? "temporarilyClosed" as const : o.lifecycle,
@@ -70,7 +71,14 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     throw new Error(`resolve: release ${releaseId} was parsed by ${release.parser_version}, not ${adapter.parserVersion}`);
   }
   // Identity is checked before status, so a wrong adapter is refused in every state, applied included.
-  if (release.status === "applied") return { status: "alreadyApplied" };
+  if (release.status === "applied") {
+    // A release applied before migration 0008 has no observations; cross-release matching will need
+    // them. Backfilling is only the deterministic raw -> observation mapping: it touches no canonical
+    // row and needs no re-review of the adapter's external attestations (assertResolvable), which
+    // describe the web page as reviewed then, not now.
+    await observeRelease(db, adapter, releaseId);
+    return { status: "alreadyApplied" };
+  }
   if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
   const resolverVersion = adapter.resolverVersion;
   const ref = adapter.attenuationReference;

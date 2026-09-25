@@ -19,9 +19,9 @@ interface ObservationRow {
   longitude: number;
   supports_paper: SourceObservation["supportsPaper"];
   supports_heated: SourceObservation["supportsHeated"];
-  opening_hours_raw: string;
+  opening_hours_raw: string | null;
   opening_hours_json: string | null;
-  opening_hours_status: "parsed" | "unparsed";
+  opening_hours_status: "none" | "parsed" | "unparsed";
   lifecycle_claim: SourceObservation["lifecycle"];
   field_provenance_json: string;
 }
@@ -41,9 +41,11 @@ function fromRow(row: ObservationRow): SourceObservation {
     longitude: row.longitude,
     supportsPaper: row.supports_paper,
     supportsHeated: row.supports_heated,
-    openingHours: row.opening_hours_status === "parsed"
-      ? { status: "parsed", raw: row.opening_hours_raw, parsed: JSON.parse(row.opening_hours_json!) }
-      : { status: "unparsed", raw: row.opening_hours_raw, parsed: null },
+    openingHours: row.opening_hours_status === "none"
+      ? { status: "none", raw: null, parsed: null }
+      : row.opening_hours_status === "parsed"
+        ? { status: "parsed", raw: row.opening_hours_raw!, parsed: JSON.parse(row.opening_hours_json!) }
+        : { status: "unparsed", raw: row.opening_hours_raw!, parsed: null },
     lifecycle: row.lifecycle_claim,
     provenance: JSON.parse(row.field_provenance_json),
   };

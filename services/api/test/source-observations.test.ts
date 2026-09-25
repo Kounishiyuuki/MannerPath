@@ -7,14 +7,16 @@ import { readFileSync } from "node:fs";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { observeRelease } from "../src/pipeline/observe.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
-import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import { resolveFirstRelease, resolveObservation } from "../src/pipeline/resolve.ts";
+import { app } from "../src/app.ts";
+import { publishTiles } from "../src/tiles/publish.ts";
 import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_MAPPING_VERSION, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import {
   NOW, TAITO_BYTES, TEST_BLOCKED_SOURCE, TEST_BLOCKED_TAITO_ADAPTER, addBlockedTestSource, importTaito, sequentialSpotIds,
 } from "./support/fixture.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyMigration, migratedSqlite } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).all(...p) as Row[];
@@ -163,4 +165,91 @@ test("a release refused by the adapter's reviewed checks keeps only its observat
     assert.equal(count(db, table), 0, table);
   }
   assert.equal(all(db, "SELECT status FROM source_releases")[0].status, "ingested");
+});
+
+test("hours the source does not state are 'none': raw and parsed stay NULL, matching the schema", async () => {
+  const db = new SqliteD1();
+  addBlockedTestSource(db);
+  // TEST ONLY: a source with no hours column, shaped as Taito rows under the unapproved test source.
+  const noHours: SourceAdapter = {
+    ...TEST_BLOCKED_TAITO_ADAPTER,
+    mappingVersion: "test-no-hours.v1",
+    observe: (v) => ({ ...TAITO_ADAPTER.observe(v), openingHours: { status: "none", raw: null, parsed: null } }),
+  };
+  const { releaseId } = await ingestRelease(db, noHours, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
+  const observed = await observeRelease(db, noHours, releaseId);
+  assert.deepEqual(observed[0].observation.openingHours, { status: "none", raw: null, parsed: null });
+  assert.deepEqual(all(db, "SELECT DISTINCT opening_hours_status s, opening_hours_raw r, opening_hours_json j FROM source_observations").map((r) => ({ ...r })),
+    [{ s: "none", r: null, j: null }]);
+  // Re-derivation of a stored 'none' row is identical, so it is not a drift.
+  assert.deepEqual(await observeRelease(db, noHours, releaseId), observed);
+  // An attenuation cannot turn absent hours into unparsed text.
+  assert.deepEqual(resolveObservation(observed[0].observation, [{ field: "openingHours", effect: "hoursUnknown" }]).openingHours,
+    { status: "none", raw: null, parsed: null });
+
+  // The CHECKs are the same three shapes: none = raw NULL + json NULL, parsed = both, unparsed = raw only.
+  const record = all(db, "SELECT record_id FROM source_records WHERE release_id = ? LIMIT 1", releaseId)[0].record_id;
+  const insert = (status: string, raw: string | null, json: string | null) => db.raw.prepare(
+    `INSERT INTO source_observations (record_id, release_id, source_id, mapping_version, latitude, longitude,
+       supports_paper, supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status, lifecycle_claim, field_provenance_json)
+     VALUES (?, ?, ?, ?, 35, 139, 'unknown', 'unknown', ?, ?, ?, 'active', '[]')`,
+  ).run(record, releaseId, TEST_BLOCKED_SOURCE, `shape-${status}-${raw}-${json}`, raw, json, status);
+  const JSON1 = '{"v":1,"kind":"allDay"}';
+  insert("none", null, null);
+  insert("parsed", "x", JSON1);
+  insert("unparsed", "x", null);
+  assert.throws(() => insert("none", null, JSON1), /CHECK/);
+  assert.throws(() => insert("parsed", null, JSON1), /CHECK/);
+  assert.throws(() => insert("parsed", "x", null), /CHECK/);
+  assert.throws(() => insert("unparsed", null, null), /CHECK/);
+  assert.throws(() => insert("unparsed", "x", JSON1), /CHECK/);
+});
+
+test("upgrade: a release applied before migration 0008 is backfilled on resolve, with no canonical change", async () => {
+  // The pre-0008 state: the Taito pipeline's rows (identical to main's, test/golden-parity.test.ts)
+  // in a database migrated only through 0007, so source_observations does not exist yet.
+  const built = new SqliteD1();
+  await importTaito(built, { newSpotId: sequentialSpotIds() });
+  await publishTiles(built, { now: NOW });
+  const legacy = migratedSqlite("0007_app_attest.sql");
+  assert.equal(legacy.prepare("SELECT count(*) n FROM sqlite_master WHERE name = 'source_observations'").get()!.n, 0);
+  for (const table of ["sources", "source_releases", "source_records", "source_entities", "source_record_entities", "spots",
+    "spot_source_entities", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"]) {
+    for (const row of built.raw.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all() as Row[]) {
+      const cols = Object.keys(row);
+      legacy.prepare(`INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`).run(...cols.map((c) => row[c]));
+    }
+  }
+  const db = new SqliteD1(legacy);
+  const snapshot = () => Object.fromEntries(["spots", "source_entities", "source_record_entities", "spot_source_entities",
+    "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots", "source_releases"]
+    .map((t) => [t, all(db, `SELECT * FROM ${t} ORDER BY rowid`).map((r) => ({ ...r }))]));
+  const before = snapshot();
+  assert.equal(before.spots.length, 34);
+  assert.equal(before.tile_snapshot_spots.length, 32);
+  assert.deepEqual(before.tile_snapshots.map((t) => t.revision), [1, 1, 1, 1, 1]);
+  const tile = before.tile_snapshots[0].tile_id;
+  const tileBefore = await app.request(`/v1/tiles/${tile}`, {}, { DB: db });
+  const bodyBefore = await tileBefore.text();
+
+  // The real migration, then the new code.
+  applyMigration(legacy, readFileSync(new URL("../migrations/0008_source_observations.sql", import.meta.url), "utf8"));
+  assert.equal(count(db, "source_observations"), 0);
+  // The external attestation re-review is not part of a backfill: it would fail here, and must not run.
+  const noReReview: SourceAdapter = { ...TAITO_ADAPTER, assertResolvable: () => { throw new Error("re-review requested"); } };
+  const releaseId = before.source_releases[0].release_id;
+  assert.deepEqual(await resolveFirstRelease(db, noReReview, releaseId, { now: "2027-01-01T00:00:00Z" }), { status: "alreadyApplied" });
+  assert.equal(count(db, "source_observations"), 34);
+  assert.deepEqual(snapshot(), before, "no canonical, provenance, attenuation, tile or release row changed");
+  // Idempotent, and the published tile bytes and ETag are unchanged.
+  assert.deepEqual(await resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW }), { status: "alreadyApplied" });
+  assert.equal(count(db, "source_observations"), 34);
+  const tileAfter = await app.request(`/v1/tiles/${tile}`, {}, { DB: db });
+  assert.equal(await tileAfter.text(), bodyBefore);
+  assert.equal(tileAfter.headers.get("ETag"), tileBefore.headers.get("ETag"));
+  // The backfill is the same mapping a fresh import stores.
+  assert.deepEqual(all(db, "SELECT * FROM source_observations ORDER BY observation_id").map((r) => ({ ...r })),
+    all(built, "SELECT * FROM source_observations ORDER BY observation_id").map((r) => ({ ...r })));
+  // A wrong adapter is still refused on an applied release, before any backfill.
+  await assert.rejects(resolveFirstRelease(db, TEST_BLOCKED_TAITO_ADAPTER, releaseId, { now: NOW }), /not to adapter source/);
 });

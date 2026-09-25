@@ -84,7 +84,8 @@ As implemented (migration `0008_source_observations.sql`, `src/pipeline/observe.
   writes nothing; it re-derives and refuses a difference, so a mapping change without a new
   `mappingVersion` fails loudly. A new version adds a generation beside the old one.
 - An observation holds only what the record states: name, coordinate, tobacco support, hours
-  (raw / parsed / status), the source's lifecycle claim and each field's source columns + rule.
+  (`none` = no hours stated, raw and parsed NULL; `unparsed` = raw text only; `parsed` = raw text +
+  parsed JSON — the same three shapes the schema CHECKs), the source's lifecycle claim and each field's source columns + rule.
   Attenuations and publication holds are not observations — they come from reviewed evidence
   outside the record — and stay in `spots.publication_hold` / `spot_field_attenuations`.
 - The resolver reads the observations, runs the adapter's `assertResolvable` over them, applies
@@ -92,6 +93,11 @@ As implemented (migration `0008_source_observations.sql`, `src/pipeline/observe.
   provenance into `spot_field_provenance`, still citing the raw `record_id` and its columns.
   Observations are written before `assertResolvable`, so a refused release keeps its
   observations and nothing canonical.
+- A release applied before migration 0008 has no observations. `resolveFirstRelease` with the
+  release's own adapter backfills them (identity checked first) and returns `alreadyApplied`
+  without touching any canonical, provenance, attenuation or tile row. The backfill is only the raw
+  → observation mapping, so it never re-runs `assertResolvable`: a past release does not need
+  today's external attestations to gain its observations.
 - Canonical rows carry `resolver_version`, not the mapping version: an adapter pairs exactly one
   `resolverVersion` with one `mappingVersion`, so a mapping change must bump both.
 - The promotion bundle does not carry observations; they are re-derivable from the records it does

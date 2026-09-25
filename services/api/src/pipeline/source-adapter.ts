@@ -31,7 +31,10 @@ export interface SourceObservation {
   supportsHeated: TriState;
   openingHours:
     | { status: "parsed"; raw: string; parsed: unknown }
-    | { status: "unparsed"; raw: string; parsed: null };
+    | { status: "unparsed"; raw: string; parsed: null }
+    // The source states no hours at all (a column it does not have, or an empty value it defines as
+    // absent). Not the same as unparsed text, and never read as "open".
+    | { status: "none"; raw: null; parsed: null };
   /** The source's own claim. The canonical lifecycle may be weaker after attenuation. */
   lifecycle: Lifecycle;
   provenance: readonly FieldProvenance[];
