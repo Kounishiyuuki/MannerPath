@@ -1,5 +1,5 @@
-// First-release reconciliation + resolution for a release of any reviewed source adapter
-// (ADR-0008; chosen by the release's parser_version), as one batch:
+// First-release reconciliation + resolution of a release by its source's adapter (ADR-0008), as one
+// batch:
 // source entity + 'new' decision per record, one canonical spot per entity, field provenance, and
 // the release marked applied/current. A second release of the same source is refused: matching
 // records across releases needs a matcher validated on two real releases (ADR-0006, research §7).
@@ -7,7 +7,7 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
-import { adapterForParserVersion } from "./adapters.ts";
+import type { SourceAdapter } from "./source-adapter.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
 // Evidence-quality vocabulary v1 has one value: listed in the current applied release of an
@@ -24,7 +24,12 @@ export type ResolveResult =
   | { status: "resolved"; spotIds: string[] }
   | { status: "alreadyApplied" };
 
-export async function resolveFirstRelease(db: Db, releaseId: number, opts: ResolveOptions): Promise<ResolveResult> {
+/**
+ * Resolves `releaseId` with `adapter`. Fails closed before any write unless the release belongs to
+ * the adapter's source and was parsed by the adapter's parser: a release filed under another source
+ * (by an older ingest or by hand) is never resolved with rules reviewed for a different source.
+ */
+export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releaseId: number, opts: ResolveOptions): Promise<ResolveResult> {
   const newSpotId = opts.newSpotId ?? defaultNewSpotId;
   const release = await db.prepare(
     `SELECT r.source_id, r.observed_on, r.status, r.parser_version, r.content_sha256, r.source_url, s.kind
@@ -36,7 +41,12 @@ export async function resolveFirstRelease(db: Db, releaseId: number, opts: Resol
   if (!release) throw new Error(`resolve: release ${releaseId} does not exist`);
   if (release.status === "applied") return { status: "alreadyApplied" };
   if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
-  const adapter = adapterForParserVersion(release.parser_version);
+  if (release.source_id !== adapter.registry.sourceId) {
+    throw new Error(`resolve: release ${releaseId} belongs to ${release.source_id}, not to adapter source ${adapter.registry.sourceId}`);
+  }
+  if (release.parser_version !== adapter.parserVersion) {
+    throw new Error(`resolve: release ${releaseId} was parsed by ${release.parser_version}, not ${adapter.parserVersion}`);
+  }
   const resolverVersion = adapter.resolverVersion;
   const ref = adapter.attenuationReference;
   if (release.kind !== "municipal") {

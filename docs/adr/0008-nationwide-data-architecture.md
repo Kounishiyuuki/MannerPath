@@ -27,10 +27,15 @@ A reviewed source enters the pipeline only through a `SourceAdapter`
 
 - `registry` — its reviewed `docs/SOURCES.md` entry (source id, kind, license, attribution,
   publication status). `REVIEWED_SOURCES` is derived from the adapters, so a source has code-side
-  approval only if it has an adapter;
-- `parserVersion` / `resolverVersion` — stamped on releases and on resolved rows; resolve selects
-  the adapter by the release's stored `parser_version`, so a release is always resolved by the
-  rules that parsed it;
+  approval only if it has an adapter. `registry.sourceId` is the **only** source identity:
+  `ingestRelease(db, adapter, bytes, meta)` takes no source id and files the release under the
+  adapter's source, and `resolveFirstRelease(db, adapter, releaseId, …)` fails closed before any
+  write unless the release's `source_id` and `parser_version` are the adapter's (a mismatched
+  release from an older ingest or hand-written SQL is never resolved). Tests that need Taito-shaped
+  data under another source use a test-only adapter with its own `registry.sourceId`, never a
+  production override;
+- `parserVersion` / `resolverVersion` — stamped on releases and on resolved rows, so a release is
+  always resolved by the rules that parsed it;
 - `parse` — bytes → header + rows, including schema/header validation (fail loudly; a header
   change stops automatic application);
 - `upstreamRowRef` — the publisher's row identifier;

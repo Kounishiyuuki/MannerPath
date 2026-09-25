@@ -318,8 +318,8 @@ test("a convenience store's name and host are still not smoking evidence", async
 async function importRelease(bytes: Uint8Array, meta: typeof TAITO_FIXTURE_RELEASE) {
   const db = new SqliteD1();
   await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
-  const { releaseId } = await ingestRelease(db, TAITO_ADAPTER, TAITO_SOURCE_ID, bytes, meta);
-  return resolveFirstRelease(db, releaseId, { now: NOW, newSpotId: sequentialSpotIds() });
+  const { releaseId } = await ingestRelease(db, TAITO_ADAPTER, bytes, meta);
+  return resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW, newSpotId: sequentialSpotIds() });
 }
 
 test("the exact reviewed release resolves", async () => {

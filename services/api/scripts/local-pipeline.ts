@@ -24,9 +24,9 @@ try {
   const db = proxy.env.DB;
   const now = isoSeconds(new Date());
   console.log("registry", await ensureReviewedSource(db, TAITO_SOURCE_ID, now));
-  const ingest = await ingestRelease(db, TAITO_ADAPTER, TAITO_SOURCE_ID, new Uint8Array(readFileSync(FIXTURE)), TAITO_FIXTURE_RELEASE);
+  const ingest = await ingestRelease(db, TAITO_ADAPTER, new Uint8Array(readFileSync(FIXTURE)), TAITO_FIXTURE_RELEASE);
   console.log("ingest", ingest);
-  console.log("resolve", await resolveFirstRelease(db, ingest.releaseId, { now }).then((r) =>
+  console.log("resolve", await resolveFirstRelease(db, TAITO_ADAPTER, ingest.releaseId, { now }).then((r) =>
     r.status === "resolved" ? { status: r.status, spots: r.spotIds.length } : r));
   console.log("publish", JSON.stringify(await publishTiles(db, { now }), null, 2));
 } finally {

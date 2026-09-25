@@ -14,17 +14,18 @@ export interface ReleaseMetadata {
 }
 
 /**
- * Stores a file in `adapter`'s format as a release of `sourceId` (the adapter's registered source in
- * production; tests may pass an isolated source). Re-ingesting the same bytes for the same
- * observation returns the existing release.
+ * Stores a file in `adapter`'s format as a release of the adapter's own source. The source identity
+ * is `adapter.registry.sourceId` and nothing else (ADR-0008): a caller cannot file one source's
+ * bytes under another. Re-ingesting the same bytes for the same observation returns the existing
+ * release.
  */
 export async function ingestRelease(
   db: Db,
   adapter: SourceAdapter,
-  sourceId: string,
   bytes: Uint8Array,
   meta: ReleaseMetadata,
 ): Promise<{ releaseId: number; created: boolean }> {
+  const sourceId = adapter.registry.sourceId;
   const contentSha = await sha256Hex(bytes);
   const existing = await db.prepare(
     "SELECT release_id FROM source_releases WHERE source_id = ? AND content_sha256 = ? AND observed_on IS ?",
