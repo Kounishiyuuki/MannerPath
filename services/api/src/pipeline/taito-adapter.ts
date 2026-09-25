@@ -26,6 +26,7 @@ const NAME_COLUMN = TAITO_HEADER.indexOf("名称");
 export const TAITO_ADAPTER: SourceAdapter = {
   registry: TAITO_REGISTRY,
   parserVersion: TAITO_PARSER_VERSION,
+  mappingVersion: "taito-observation.v1",
   resolverVersion: TAITO_RESOLVER_VERSION,
   parse(bytes) {
     const text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes);
@@ -41,7 +42,7 @@ export const TAITO_ADAPTER: SourceAdapter = {
     assertReviewedReleaseForAttenuation(release);
     assertListPageConflictsMatch(records.map((values) => values[NAME_COLUMN]));
   },
-  resolveRecord: resolveTaitoRecord,
+  mapRecord: resolveTaitoRecord,
   attenuationReference: {
     attestationVersion: TAITO_LIST_PAGE_ATTESTATION_VERSION,
     referenceKind: TAITO_LIST_PAGE_REFERENCE_KIND,

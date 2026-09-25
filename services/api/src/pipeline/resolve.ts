@@ -7,6 +7,7 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
+import { ensureReleaseObservations } from "./observations.ts";
 import type { SourceAdapter } from "./source-adapter.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
@@ -63,23 +64,11 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     );
   }
 
-  const { results: records } = await db.prepare(
-    "SELECT record_id, raw_values_json FROM source_records WHERE release_id = ? ORDER BY ordinal",
-  ).bind(releaseId).all<{ record_id: number; raw_values_json: string }>();
-  if (records.length === 0) throw new Error(`resolve: release ${releaseId} has no records`);
-
-  // Reviewed per-release decisions (for Taito, the ADR-0006 Issue #42 list-page attestations)
-  // describe one exact release; the adapter fails closed before anything is written.
-  adapter.assertResolvable(
-    { contentSha256: release.content_sha256, observedOn: release.observed_on, sourceUrl: release.source_url },
-    records.map((r) => JSON.parse(r.raw_values_json) as string[]),
-  );
-
-  const now = opts.now;
+  const observations = await ensureReleaseObservations(db, adapter, releaseId);\n\n  const now = opts.now;
   const statements = [];
   const spotIds: string[] = [];
-  for (const record of records) {
-    const r = adapter.resolveRecord(JSON.parse(record.raw_values_json));
+  for (const observation of observations) {
+    const r = observation;
     const tile = tileForCoordinate(r.latitude, r.longitude, DATA_TILE_ZOOM);
     const spotId = newSpotId();
     spotIds.push(spotId);
@@ -91,7 +80,7 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
       db.prepare(
         `INSERT INTO source_record_entities (record_id, release_id, source_entity_id, method, matcher_version, decided_at, note)
          VALUES (?, ?, (SELECT MAX(source_entity_id) FROM source_entities), 'new', ?, ?, ?)`,
-      ).bind(record.record_id, releaseId, FIRST_RELEASE_MATCHER_VERSION, now, "first known release of this source; no cross-release match attempted"),
+      ).bind(observation.recordId, releaseId, FIRST_RELEASE_MATCHER_VERSION, now, "first known release of this source; no cross-release match attempted"),
       db.prepare(
         `INSERT INTO spots (spot_id, name, latitude, longitude, tile_z, tile_x, tile_y, tile_id, spot_type,
            supports_paper, supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status,
@@ -105,12 +94,12 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
       db.prepare(
         `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
          VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,
-      ).bind(record.record_id, spotId, now, resolverVersion),
+      ).bind(observation.recordId, spotId, now, resolverVersion),
       ...r.provenance.map((p) =>
         db.prepare(
           `INSERT INTO spot_field_provenance (spot_id, field, record_id, source_columns_json, rule, resolver_version, resolved_at)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ).bind(spotId, p.field, record.record_id, JSON.stringify(p.columns), p.rule, resolverVersion, now),
+        ).bind(spotId, p.field, observation.recordId, JSON.stringify(p.columns), p.rule, resolverVersion, now),
       ),
       // The weakening itself, with the evidence for it. It never edits the provenance row above,
       // which keeps describing what the CSV stated; and it carries the reviewed release fingerprint,

@@ -1,8 +1,7 @@
 # ADR-0008 — Nationwide data architecture
 
-Status: Accepted (2026-09, Issue #68, tracker #67). Only decision 1 (the SourceAdapter boundary)
-is implemented by this ADR's PR; every other decision fixes a boundary that later issues implement
-and may not silently change.
+Status: Accepted (2026-09, tracker #67). Decisions 1 and 2 are implemented (#68 and #72); every
+later decision fixes a boundary that subsequent issues implement and may not silently change.
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
 ADR-0002 (canonical data), ADR-0005 (tiles) and ADR-0006 (evidence and publication) and replaces
@@ -34,12 +33,14 @@ A reviewed source enters the pipeline only through a `SourceAdapter`
   release from an older ingest or hand-written SQL is never resolved). Tests that need Taito-shaped
   data under another source use a test-only adapter with its own `registry.sourceId`, never a
   production override;
-- `parserVersion` / `resolverVersion` — stamped on releases and on resolved rows, so a release is
-  always resolved by the rules that parsed it;
+- `parserVersion` — stamped on releases; `mappingVersion` — stamped on immutable normalized
+  observations and bumped when raw-to-normalized mapping changes; `resolverVersion` — stamped on
+  canonical/provenance/attenuation rows;
 - `parse` — bytes → header + rows, including schema/header validation (fail loudly; a header
   change stops automatic application);
 - `upstreamRowRef` — the publisher's row identifier;
-- `resolveRecord` — the field mapping and resolver rules, with provenance and attenuations;
+- `mapRecord` — source-specific raw schema to normalized observation mapping, including the raw
+  column/rule provenance and subtractive attenuation effects the generic resolver later applies;
 - `assertResolvable` — fail-closed per-release checks (for Taito, the Issue #42 list-page
   attestations are bound to one release fingerprint);
 - `attenuationReference` — the reviewed evidence every attenuation row of this adapter cites.
@@ -62,14 +63,16 @@ the golden in the same PR and justifies the diff.
 reconciliation section in its output. It is generalized with nationwide quality metrics (strategy
 §10 step 8), not in the adapter extraction, so the quality report's shape does not move twice.
 
-### 2. Normalized source observation layer (boundary)
+### 2. Normalized source observation layer (implemented)
 
-Between raw records and the resolver sits an immutable, versioned `source_observations` layer:
-one row per raw record per adapter mapping version, carrying normalized fields (name, coordinate,
-tobacco support, hours raw/parsed, lifecycle claims) plus the mapping version. The resolver then
-reads observations, never raw source schemas. Raw records remain the evidence and are never
-rewritten; observations are re-derivable from them. It lands as a new migration; until then
-`resolveRecord` is the mapping.
+Between raw records and the resolver sits the immutable, versioned `source_observations` layer
+(migration 0008): one row per `(record_id, mapping_version)`, carrying normalized name/coordinate,
+tobacco support, hours, lifecycle/publication-hold claim, and the mapping output needed to preserve
+raw-column provenance and attenuation effects. Raw `source_records` remain the evidence and are never
+rewritten. Observation rows have no fetch/derived timestamp: they are deterministic, re-derivable
+adapter output. Re-running the same mapping is a no-op; if code produces different output under the
+same mapping version, the pipeline fails closed and requires a version bump. The generic resolver
+reads these observations and no longer parses `raw_values_json` or knows source column layouts.
 
 ### 3. Cross-release matching (boundary)
 

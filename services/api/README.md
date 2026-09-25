@@ -6,7 +6,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 
 ## Contents
 
-- `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables.
+- `migrations/`: D1 schema. `0001` is the initial schema; later migrations add unknown spot type, reports/App Attest, publication attenuation/holds, and `0008` adds immutable normalized `source_observations` (ADR-0008).
 - `src/pipeline/`: source-agnostic ingest (raw evidence) and first-release reconciliation behind the `SourceAdapter` boundary (`source-adapter.ts`, `adapters.ts`, ADR-0008); Taito is the first adapter (`taito-adapter.ts`, field rules in `taito.ts`); the reviewed source registry is `registry.ts`.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
 - `src/app.ts`: `GET /v1/config`, `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`, `GET /v1/spots/{id}` and `POST /v1/reports`.

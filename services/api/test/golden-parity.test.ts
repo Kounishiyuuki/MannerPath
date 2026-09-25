@@ -1,4 +1,4 @@
-// Golden parity for the committed Taito fixture (Issue #68, ADR-0008). The whole pipeline —
+// Golden parity for the committed Taito fixture (Issues #68/#72, ADR-0008). The whole pipeline —
 // ingest -> resolve -> publish -> promotion bundle -> quality analysis — runs with deterministic
 // spot IDs and clock, and every row of every table plus every derived output (tile bodies, hashes,
 // ETags, promotion manifest/SQL, quality report) must equal the committed golden byte-for-byte.
@@ -70,6 +70,8 @@ test("Taito fixture pipeline output is byte-identical to the committed golden", 
 test("the golden itself pins the documented Taito publication: 34 canonical, 32 published, 5 tiles", () => {
   const golden = JSON.parse(readFileSync(GOLDEN, "utf8"));
   assert.equal(golden.tables.spots.length, 34);
+  assert.equal(golden.tables.source_observations.length, 34);
+  assert.deepEqual([...new Set(golden.tables.source_observations.map((o: { mapping_version: string }) => o.mapping_version))], ["taito-observation.v1"]);
   assert.equal(golden.publishedSpotCount, 32);
   assert.equal(golden.tiles.length, 5);
   assert.ok(golden.tiles.every((t: { status: number; etag: string | null }) => t.status === 200 && t.etag));
