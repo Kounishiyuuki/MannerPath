@@ -1,6 +1,6 @@
 # Product Requirements — MannerPath
 
-Status: **Baseline v1**
+Status: **Product completion baseline v2 — nationwide**
 
 ## 1. Product statement
 
@@ -172,6 +172,45 @@ The app must visibly distinguish route unavailable from spot unavailable.
 - Avoid celebratory language such as rewards, streaks, “一服しよう”, or consumption encouragement.
 - App Review notes must clearly describe the compliance/navigation purpose and absence of tobacco sales/promotion.
 
-## 10. Initial launch geography
+## 10. Geography and nationwide completion requirement
 
-Start with a bounded area where data quality can be verified. Tokyo wards with public datasets are suitable for the first production-quality dataset. Expansion is a data-quality milestone, not merely an import-volume milestone.
+A bounded, reviewable geography may be used during development and source onboarding, but **MannerPath is not product-complete while its real-data coverage is limited to one municipality or one launch region**.
+
+The product-completion target is practical nationwide discovery in Japan:
+
+- the client and backend search/sync path must function anywhere in Japan;
+- published spots must come only from approved evidence; lack of data never authorizes invention or host-based inference;
+- all 47 prefectures must be represented by reviewed coverage before the nationwide release gate can pass;
+- prefectural capitals, Tokyo 23 wards, ordinance-designated cities and major station areas must be covered to the quantitative gate defined in `NATIONWIDE_DATA_STRATEGY.md`;
+- freshness, unresolved-conflict and evidence-quality gates apply nationwide, not only to the original Taito fixture;
+- a location with no approved nearby spot must show an honest empty/coverage state rather than a fabricated result.
+
+Nationwide rollout is a data-quality milestone, not an import-volume milestone. Development may proceed in stages (N1 → N2 → N3), but the app is not considered finished merely because a single-region beta works.
+
+## 11. Product UI and Apple-platform quality requirement
+
+The finished product must use a coherent, current Apple-platform UI across iPhone, Apple Watch and widgets.
+
+Requirements:
+
+- prefer standard SwiftUI navigation, toolbar, search, sheet, button, list, scroll and widget components;
+- adopt the current system Liquid Glass appearance through standard controls where the SDK provides it;
+- use custom glass effects only when a standard component cannot express the required control; decorative glass must not reduce map/data readability;
+- preserve clear separation between content and navigation/control chrome;
+- support light/dark appearance, Dynamic Type, VoiceOver, Reduce Motion and Reduce Transparency;
+- keep Japanese copy readable at accessibility sizes and keep user-facing terminology neutral and compliance-oriented;
+- Watch and Widget surfaces follow their platform interaction model rather than duplicating the iPhone layout.
+
+Visual completion means the primary flows are coherent and usable in loaded, empty, error, offline, stale and approximate-location states, not merely that a Liquid Glass effect is present.
+
+## 12. Product completion and release sequencing
+
+The implementation order is intentional:
+
+1. complete nationwide-capable data architecture and source onboarding;
+2. reach the nationwide quality/coverage gate;
+3. finish functional product behavior across iPhone, Watch and widgets;
+4. finish the Apple-platform UI/accessibility pass;
+5. only then perform the paid Apple Developer Program signing/provisioning gate, App Groups/App Attest device verification, physical-device E2E, TestFlight and App Store release work.
+
+Apple Developer Program membership is therefore a **final release dependency**, not a prerequisite for continuing product/data/UI implementation. Capabilities or security requirements must never be removed merely to make a Personal Team build succeed.

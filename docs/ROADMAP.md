@@ -62,13 +62,76 @@ Exit: real launch-region data flows from source to device.
 - moderation/reconciliation workflow;
 - last-verified/confidence updates.
 
-## Phase 6 — App Store readiness
+## Phase 6 — Nationwide data architecture
 
-- privacy manifest/labels;
-- age/eligibility flow;
+- write the nationwide data architecture ADR;
+- extract a source-adapter boundary without changing current Taito output;
+- add a normalized source-observation layer;
+- support cross-release matching, removals and relocations;
+- generalize attenuation/conflict handling;
+- make promotion and quality analysis multi-source/multi-release;
+- preserve byte-for-byte tile/ETag behavior for the existing approved source with golden tests.
+
+Exit: adding a second reviewed source no longer requires a Taito-specific pipeline rewrite.
+
+## Phase 7 — Source discovery and nationwide ingestion
+
+- review official municipal/government/open-data sources and their original terms;
+- keep every unreviewed candidate unpublished;
+- add reviewed sources through declarative adapters where practical;
+- decide OSM/ODbL adoption in a dedicated ADR before any OSM-derived production publication;
+- add raw release retention/fingerprinting and repeatable freshness checks;
+- add cross-source duplicate/review workflow.
+
+Rollout stages:
+
+- N1: Tokyo 23 wards + Osaka;
+- N2: ordinance-designated cities + prefectural capitals;
+- N3: nationwide gate.
+
+## Phase 8 — Nationwide quality and coverage gate
+
+- calculate station-area and population-weighted coverage;
+- measure nearest-spot distance distributions;
+- require evidence for every published spot;
+- require zero unresolved publication conflicts and zero unreviewed published sources;
+- enforce freshness reporting and per-source unknown-rate reporting;
+- validate tile density/payload thresholds at nationwide scale.
+
+Exit: the quantitative gate in `NATIONWIDE_DATA_STRATEGY.md` passes.
+
+## Phase 9 — Final product and UI completion
+
+- complete all iPhone, Watch and widget product flows against nationwide/multi-source data;
+- re-audit current Apple HIG and SDK behavior;
+- prefer system navigation/control components and system Liquid Glass;
+- add custom glass only where a standard component is insufficient;
+- finish light/dark, Dynamic Type, VoiceOver, Reduce Motion/Transparency and Japanese layout checks;
+- finish empty/offline/stale/coverage/unknown states;
+- remove remaining debug/development wording.
+
+Exit: the product is functionally and visually complete without relying on paid signing.
+
+## Phase 10 — Final signing and physical-device gate
+
+Only after Phases 6–9:
+
+- join/use an Apple Developer Program paid team;
+- provision all four Apple targets with the required App Group;
+- provision App Attest for the iPhone app;
+- build and inspect a signed archive;
+- run physical iPhone/Watch/widget E2E;
+- run real App Attest register/assert/report flows;
+- close any device-only defects.
+
+Capabilities are never removed to work around Personal Team limitations.
+
+## Phase 11 — TestFlight and App Store release
+
+- privacy manifest/labels final review;
 - App Review notes;
-- accessibility pass;
-- crash/analytics policy;
-- TestFlight data-quality validation;
-- legal attribution screens;
-- production monitoring.
+- TestFlight distribution and final data-quality validation;
+- legal attribution review;
+- crash/diagnostics policy;
+- production monitoring and rollout;
+- listing/screenshots/marketing only after the product gate is satisfied.

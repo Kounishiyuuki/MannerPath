@@ -2,12 +2,14 @@
 
 ## Source priority
 
-1. Municipal / government open data and official public facility lists.
-2. Other official facility/operator information with compatible usage terms.
-3. OpenStreetMap data, preserving ODbL attribution/provenance requirements.
-4. User verification and correction reports.
+1. Municipal / government open data and official public facility lists whose original reuse terms have been reviewed.
+2. Other official facility/operator information with compatible, reviewed usage terms.
+3. OpenStreetMap **only if a dedicated ODbL architecture/legal ADR explicitly approves production publication**.
+4. Reviewed user-verification/community evidence under the publication workflow.
 
-No single source is assumed complete.
+No single source is assumed complete. A catalog entry, search-result snippet or third-party description of a license is not sufficient to approve a source; the publisher's applicable original terms must be reviewed.
+
+Nationwide coverage does not weaken the evidence gate. A host POI, business category, convenience-store presence or geographic guess never creates a smoking spot.
 
 ## Apple Maps data
 
@@ -30,7 +32,7 @@ Do not treat an `ashtray` tag attached to an arbitrary feature as automatic lega
 
 Public Overpass endpoints are ingestion sources, not production client APIs.
 
-The importer architecture may support OSM. **Production publication of OSM-derived canonical records is gated** until ODbL attribution and redistribution/share-alike obligations for MannerPath's combined dataset are reviewed and documented. This document makes no legal conclusion on that question.
+The importer architecture may support OSM. **Production publication of OSM-derived canonical records remains blocked** until a dedicated ADR reviews ODbL attribution, database-combination, redistribution/share-alike and API/tile-distribution obligations and explicitly chooses an architecture. Nationwide coverage pressure by itself is not permission to unblock OSM. This document makes no legal conclusion on that question.
 
 ## Source registry
 
@@ -75,3 +77,18 @@ Suggested evidence order:
 - stale/uncorroborated evidence.
 
 The UI must expose uncertainty when relevant.
+
+## Nationwide source onboarding
+
+Nationwide expansion follows the same publication invariant as the first municipal source:
+
+- discovery creates a candidate, not an approved source;
+- review records the publisher, original terms, attribution, geographic scope, completeness and update behavior;
+- every fetched release is fingerprinted and immutable;
+- source-specific parsing maps into a normalized observation layer before canonical resolution;
+- disappearance can imply removal only for a source explicitly reviewed as complete for that scope;
+- ambiguous matches, large coordinate moves, schema changes and material record-count drops are review events rather than silent automatic publication;
+- cross-source conflicts weaken or hold claims unless a reviewed evidence rule clearly resolves them;
+- user reports do not publish directly.
+
+The nationwide architecture and quantitative release gate are defined in `docs/NATIONWIDE_DATA_STRATEGY.md`.
