@@ -84,7 +84,23 @@ enum SpotPresentation {
         guard result.distanceMeters > max(accuracyMeters, 1) else {
             return String(localized: "Uncertain within location accuracy")
         }
-        return String(localized: "\(Int(result.bearingDegrees.rounded()))° clockwise from north")
+        let degrees = Int(result.bearingDegrees.rounded()) % 360
+        return String(localized: "\(compassDirection(result.bearingDegrees)) (\(degrees)°)")
+    }
+
+    // A named direction reads faster than raw degrees; the degrees stay for precision.
+    static func compassDirection(_ degrees: Double) -> String {
+        let normalized = (degrees.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)
+        switch Int(((normalized + 22.5) / 45).rounded(.down)) % 8 {
+        case 0: return String(localized: "North")
+        case 1: return String(localized: "Northeast")
+        case 2: return String(localized: "East")
+        case 3: return String(localized: "Southeast")
+        case 4: return String(localized: "South")
+        case 5: return String(localized: "Southwest")
+        case 6: return String(localized: "West")
+        default: return String(localized: "Northwest")
+        }
     }
 
     static func sourceNames(_ spot: Spot) -> String {

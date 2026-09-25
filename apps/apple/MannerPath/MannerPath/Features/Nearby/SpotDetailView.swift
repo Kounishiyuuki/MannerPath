@@ -29,7 +29,7 @@ struct SpotDetailView: View {
                 detailText("Bearing", SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))
             } footer: {
                 Text(estimateFromPreviousLocation
-                     ? "Distance and bearing use a previous device location while nearby data updates. They are not a walking route."
+                     ? "Distance and bearing are estimates from a previous device location, not a walking route."
                      : "Distance and bearing are estimates from your device location, not a walking route.")
             }
 

@@ -169,7 +169,9 @@ struct ContentView: View {
             }
         case .unknown:
             VStack(alignment: .leading, spacing: 8) {
-                Text("Reporting availability is unknown. Your saved draft remains on this device.")
+                Text(reportModel.draft == nil
+                     ? "Reporting availability could not be checked. Try again when connected."
+                     : "Reporting availability is unknown. Your saved draft remains on this device.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Button("Check reporting again") { Task { await reportModel.refreshAvailability() } }
                     .buttonStyle(.bordered)
@@ -294,7 +296,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .frame(height: 320)
+            .frame(height: 240)
+            .accessibilityIdentifier("nearbyMap")
             .accessibilityLabel("Nearby places map")
             .accessibilityHint("Explore place pins or use the list below for full details")
         }
@@ -334,6 +337,7 @@ struct ContentView: View {
                                       locationAccuracyMeters: location.horizontalAccuracyMeters)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("nearbyResultRow")
                     .accessibilityHint("Opens place details")
                 }
             }
@@ -428,7 +432,10 @@ struct ContentView: View {
         case .refreshed:
             Text("Nearby data refreshed.")
         case .refreshFailed:
-            Text("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
+            // The empty state below already explains a failure with nothing saved.
+            if !model.results.isEmpty || model.hasUnfilteredResults {
+                Text("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
+            }
         case .cacheOnly:
             Text("Showing saved nearby data. Live updates are unavailable.")
         case .cacheUnavailable:
@@ -516,7 +523,7 @@ private struct NearbySpotRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(SpotPresentation.name(result.spot))
                     .font(.headline)
-                Text("\(SpotPresentation.type(result.spot.spotType)) · \(SpotPresentation.access(result.spot.accessType))")
+                Text("\(SpotPresentation.type(result.spot.spotType)) · Access: \(SpotPresentation.access(result.spot.accessType))")
                 Text("\(SpotPresentation.distance(result.distanceMeters)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
                     .fontWeight(.medium)
                 if let detourSeconds {
@@ -546,7 +553,7 @@ private struct NearbySpotRow: View {
     private var accessibilitySummary: String {
         var parts = [
             SpotPresentation.type(result.spot.spotType),
-            SpotPresentation.access(result.spot.accessType),
+            String(localized: "Access: \(SpotPresentation.access(result.spot.accessType))"),
             String(localized: "\(SpotPresentation.distance(result.distanceMeters)) straight-line"),
             SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters)
         ]

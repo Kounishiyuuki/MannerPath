@@ -103,6 +103,55 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
   -only-testing:"MannerPathWatch Watch AppTests"
 ```
 
+## iPhone usability pass (2026-09-24)
+
+A simulator walk of the Japanese UI (fresh iOS 26.5 iPhone 17 simulator, local
+`wrangler dev --local` Worker with the published Taito fixture, a post-#53 build configured with
+`MANNERPATH_API_BASE_URL=http://127.0.0.1:8787`). Driven only with `simctl` (launch, `defaults`,
+`privacy grant location`, `location set`, `ui appearance/content_size`); this machine has no
+Simulator GUI or tap automation, so nothing was tapped.
+
+Observed (screenshots): eligibility notice; Nearby before location permission; Nearby loaded with
+live data; Nearby with the Worker stopped and a cache (partial-failure message, cached list);
+clean install with the Worker stopped (empty state distinct from "no published places").
+
+Fixed from those observations: the list row showed a bare "不明" for access, now labelled
+"利用条件: 不明"; the bearing "北から時計回りに238°" now reads "南西（238°）"; the map is 240 pt
+so the nearest result is visible without scrolling; the partial-failure banner no longer claims
+saved results when there are none; the report-availability note no longer mentions a saved draft
+that does not exist; the Data & Privacy "Location" section read "場所" and now reads "位置情報";
+the destination map annotation had no Japanese string.
+
+The first walk could not tap. The flows it missed are now driven by the iPhone UI-test target
+`MannerPathUITests` (2026-09-25), run by `./scripts/run-iphone-ui-tests.sh`. The script makes a
+fresh iOS 26.5 iPhone 17 simulator in Japanese at a fixed Taito location, starts the local Worker
+with the published fixture, and runs 8 phases, each with the state set by `simctl` rather than
+by app code. Result: `All iPhone UI test phases passed.`, 18 tests, 0 failed:
+
+| Phase | Tests | What is driven |
+| --- | --- | --- |
+| `first-launch` (fresh install) | 1 | eligibility notice → "確認しました" → Nearby |
+| `not-determined` | 1 | "現在地を使用" shown, no results, no prompt without the tap |
+| `light` (Worker up, location granted) | 9 | map ≥ 200 pt and first result visible without scrolling; row → detail (type, distance, bearing, access, freshness, last verified, attribution link, Maps handoff, report) → back; map pin → detail; physical-type filter → empty state → "絞り込みを解除" → results return, reopen shows cleared state; paper filter hides only the heated-only booth (unknown stays); Data & Privacy "位置情報" → sources/licence → back; report: change type to moved, type a note, close, resume keeps the draft, discard, never submitted; destination search can be typed and submitted; icon-only toolbar actions have labels |
+| `dark` | 2 | Nearby loaded, row → detail scrolled to the end |
+| `large-text` (`accessibility-extra-extra-extra-large`) | 2 | same; first result reachable by scrolling, detail scrolls to the report action |
+| `offline-cached` (Worker stopped) | 1 | cached rows stay, partial-failure message shown |
+| `clean-offline` (reinstall, Worker stopped) | 1 | "読み込めませんでした" empty state; not "no published places"; no claim of saved results or drafts |
+| `denied` (`simctl privacy revoke`) | 1 | denial message and "設定を開く" |
+
+Screenshots are XCTest attachments in each phase's `.xcresult` (not committed). Not covered:
+the system permission dialog itself (permission is set with `simctl`), the destination result
+list and walking-detour ranking (live MapKit search is not deterministic here, so any honest
+outcome is accepted), Apple Maps handoff, VoiceOver reading order, and everything that needs a
+physical device or paid signing in the rows below.
+
+"前回の現在地" in the simulator is the intended last-known fallback (`DeviceLocationService`):
+it is shown when Core Location's fix is over 60 s old or a new fix is pending or failed, always
+with the fix's own timestamp. A simulator with a fixed location keeps returning the same old
+fix, so it shows this label more often than a moving device would. The detail footer claimed
+"while nearby data updates" in that case even when nothing was updating; it now just says the
+estimate is from a previous location.
+
 ## iPhone
 
 | # | Case | Status | Evidence / how to check on device |
