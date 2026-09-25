@@ -10,7 +10,8 @@
 import { readFileSync } from "node:fs";
 import { getPlatformProxy } from "wrangler";
 import { type Db, isoSeconds } from "../src/db.ts";
-import { ingestTaitoCsv } from "../src/pipeline/ingest.ts";
+import { ingestRelease } from "../src/pipeline/ingest.ts";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
@@ -23,7 +24,7 @@ try {
   const db = proxy.env.DB;
   const now = isoSeconds(new Date());
   console.log("registry", await ensureReviewedSource(db, TAITO_SOURCE_ID, now));
-  const ingest = await ingestTaitoCsv(db, TAITO_SOURCE_ID, new Uint8Array(readFileSync(FIXTURE)), TAITO_FIXTURE_RELEASE);
+  const ingest = await ingestRelease(db, TAITO_ADAPTER, TAITO_SOURCE_ID, new Uint8Array(readFileSync(FIXTURE)), TAITO_FIXTURE_RELEASE);
   console.log("ingest", ingest);
   console.log("resolve", await resolveFirstRelease(db, ingest.releaseId, { now }).then((r) =>
     r.status === "resolved" ? { status: r.status, spots: r.spotIds.length } : r));

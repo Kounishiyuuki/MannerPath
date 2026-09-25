@@ -9,7 +9,7 @@
 // repository change (docs/SOURCES.md + this list), reviewed in a PR.
 
 import { type Db } from "../db.ts";
-import { TAITO_REGISTRY } from "./taito.ts";
+import { SOURCE_ADAPTERS } from "./adapters.ts";
 
 export interface ReviewedSource {
   sourceId: string;
@@ -23,12 +23,13 @@ export interface ReviewedSource {
 }
 
 /**
- * Sources whose license and attribution have been reviewed in docs/SOURCES.md. A source that is
- * not here has no registry entry in code: it is blocked by absence, not by a status field.
+ * Sources whose license and attribution have been reviewed in docs/SOURCES.md, one per reviewed
+ * source adapter (ADR-0008). A source that is not here has no registry entry in code: it is
+ * blocked by absence, not by a status field.
  * OSM is deliberately absent (ODbL obligations unreviewed, docs/DATA_POLICY.md); the schema also
  * refuses `kind = 'osm'` with `publication_status = 'approved'`.
  */
-export const REVIEWED_SOURCES: readonly ReviewedSource[] = [TAITO_REGISTRY];
+export const REVIEWED_SOURCES: readonly ReviewedSource[] = SOURCE_ADAPTERS.map((a) => a.registry);
 
 const bySourceId = new Map(REVIEWED_SOURCES.map((s) => [s.sourceId, s]));
 

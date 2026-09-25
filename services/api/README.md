@@ -7,7 +7,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 ## Contents
 
 - `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables.
-- `src/pipeline/`: Taito ingest (raw evidence), first-release reconciliation, the field rules in `taito.ts`, and the reviewed source registry in `registry.ts`.
+- `src/pipeline/`: source-agnostic ingest (raw evidence) and first-release reconciliation behind the `SourceAdapter` boundary (`source-adapter.ts`, `adapters.ts`, ADR-0008); Taito is the first adapter (`taito-adapter.ts`, field rules in `taito.ts`); the reviewed source registry is `registry.ts`.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
 - `src/app.ts`: `GET /v1/config`, `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`, `GET /v1/spots/{id}` and `POST /v1/reports`.
 - `src/config/`: the `GET /v1/config` compatibility body, built from the canonical constants the rest of the code enforces.
@@ -49,7 +49,7 @@ Standing up and verifying a staging / production-like environment is `../../docs
 nothing in this repository deploys or migrates a remote database.
 
 Only local D1 is configured. `wrangler.jsonc` also carries the `staging` and `production` environment shapes, but every one of them keeps the all-zero placeholder `database_id`, so nothing here can target a remote database (`test/deploy-config.test.ts` enforces it).
-The Taito source is `approved` in the registry (`docs/SOURCES.md`), so `local:pipeline` resolves all 34 records and publishes them into 5 z14 tile snapshots with the approved attribution text. Sources that are not approved are excluded and listed under `excluded` in the publish report, and the D1 publication trigger rejects them even if the publisher is bypassed.
+The Taito source is `approved` in the registry (`docs/SOURCES.md`), so `local:pipeline` resolves all 34 records into canonical spots and publishes 32 of them into 5 z14 tile snapshots with the approved attribution text; the other 2 are withheld by the Issue #42 reconciliation (`docs/BETA_DATA_QUALITY.md` §3a). Sources that are not approved are excluded and listed under `excluded` in the publish report, and the D1 publication trigger rejects them even if the publisher is bypassed.
 
 `local:pipeline` creates the Taito registry row from the reviewed entry in `src/pipeline/registry.ts` only when it is missing, and never rewrites an existing row. A local database created before the approval still holds the older `blocked` Taito row; upgrade it deliberately with:
 

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { ingestTaitoCsv } from "../../src/pipeline/ingest.ts";
+import { ingestRelease } from "../../src/pipeline/ingest.ts";
+import { TAITO_ADAPTER } from "../../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../../src/pipeline/resolve.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../../src/pipeline/taito.ts";
@@ -31,7 +32,7 @@ export function sequentialSpotIds(prefix = "0"): () => string {
 export async function importTaito(db: SqliteD1, opts: { sourceId?: string; newSpotId?: () => string } = {}) {
   const sourceId = opts.sourceId ?? TAITO_SOURCE_ID;
   if (sourceId === TAITO_SOURCE_ID) await ensureReviewedSource(db, TAITO_SOURCE_ID, NOW);
-  const { releaseId } = await ingestTaitoCsv(db, sourceId, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
+  const { releaseId } = await ingestRelease(db, TAITO_ADAPTER, sourceId, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
   const resolved = await resolveFirstRelease(db, releaseId, { now: NOW, newSpotId: opts.newSpotId });
   return { releaseId, resolved };
 }
