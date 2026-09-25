@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { app } from "../src/app.ts";
+import { app, ifNoneMatchMatches } from "../src/app.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../src/geo/tile.ts";
 import { TAITO_ATTRIBUTION_TEXT, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { TileBodyV1, tileEtag } from "../src/tiles/dto.ts";
@@ -173,6 +173,9 @@ test("If-None-Match returns 304 for a current tag and 200 otherwise", async () =
     assert.equal(res.headers.get("ETag"), etag);
     assert.equal(await res.text(), "");
   }
+  // The smoke check compares a 304's tag with the 200's this way; a gzipping edge weakens only the 200's.
+  assert.equal(ifNoneMatchMatches(etag, `W/${etag}`), true);
+  assert.equal(ifNoneMatchMatches(`W/"0-${t.content_sha256}"`, etag), false);
   for (const inm of ['"other"', `"0-${t.content_sha256}"`]) {
     const res = await get(db, `/v1/tiles/${t.tile_id}`, { "If-None-Match": inm });
     assert.equal(res.status, 200, inm);
