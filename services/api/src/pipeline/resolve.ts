@@ -1,5 +1,6 @@
-// First-release reconciliation + resolution of a release by its source's adapter (ADR-0008), as one
-// batch:
+// First-release reconciliation + resolution of a release by its source's adapter (ADR-0008). The
+// resolver reads the release's normalized observations (./observe.ts), never raw source columns, and
+// writes, as one batch:
 // source entity + 'new' decision per record, one canonical spot per entity, field provenance, and
 // the release marked applied/current. A second release of the same source is refused: matching
 // records across releases needs a matcher validated on two real releases (ADR-0006, research §7).
@@ -7,13 +8,36 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
-import type { SourceAdapter } from "./source-adapter.ts";
+import { observeRelease } from "./observe.ts";
+import type { FieldAttenuation, SourceAdapter, SourceObservation } from "./source-adapter.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
 // Evidence-quality vocabulary v1 has one value: listed in the current applied release of an
 // official (municipal/government) source. Other values arrive with the sources that need them.
 export const EVIDENCE_QUALITY_VERSION = "evidence-quality.v1";
 export const OFFICIAL_LISTING = "officialListing";
+
+// The only publication hold the schema knows (migration 0004). A new hold reason arrives with its
+// own migration and attenuation effect.
+const HOLD_FOR_WITHHELD = "locationSuperseded";
+
+/**
+ * The canonical values of one observation after the adapter's attenuations. Subtractive only: an
+ * effect can turn parsed hours unparsed, an active lifecycle temporarilyClosed, or add a hold; it
+ * never writes a value. The observation's raw hours text is kept either way.
+ */
+export function resolveObservation(o: SourceObservation, attenuations: readonly FieldAttenuation[]) {
+  const effects = new Set(attenuations.map((a) => a.effect));
+  return {
+    ...o,
+    openingHours: effects.has("hoursUnknown")
+      ? { status: "unparsed" as const, raw: o.openingHours.raw, parsed: null }
+      : o.openingHours,
+    lifecycle: effects.has("temporarilyClosed") && o.lifecycle === "active" ? "temporarilyClosed" as const : o.lifecycle,
+    publicationHold: effects.has("withholdFromPublication") ? HOLD_FOR_WITHHELD : null,
+    attenuations,
+  };
+}
 
 export interface ResolveOptions {
   now: string;
@@ -63,23 +87,23 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     );
   }
 
-  const { results: records } = await db.prepare(
-    "SELECT record_id, raw_values_json FROM source_records WHERE release_id = ? ORDER BY ordinal",
-  ).bind(releaseId).all<{ record_id: number; raw_values_json: string }>();
-  if (records.length === 0) throw new Error(`resolve: release ${releaseId} has no records`);
+  // Observations are derived and re-derivable, so writing them is not a canonical effect: a release
+  // refused below keeps its observations and nothing else.
+  const observations = await observeRelease(db, adapter, releaseId);
+  if (observations.length === 0) throw new Error(`resolve: release ${releaseId} has no records`);
 
   // Reviewed per-release decisions (for Taito, the ADR-0006 Issue #42 list-page attestations)
-  // describe one exact release; the adapter fails closed before anything is written.
+  // describe one exact release; the adapter fails closed before anything canonical is written.
   adapter.assertResolvable(
     { contentSha256: release.content_sha256, observedOn: release.observed_on, sourceUrl: release.source_url },
-    records.map((r) => JSON.parse(r.raw_values_json) as string[]),
+    observations.map((o) => o.observation),
   );
 
   const now = opts.now;
   const statements = [];
   const spotIds: string[] = [];
-  for (const record of records) {
-    const r = adapter.resolveRecord(JSON.parse(record.raw_values_json));
+  for (const record of observations) {
+    const r = resolveObservation(record.observation, adapter.attenuate(record.observation));
     const tile = tileForCoordinate(r.latitude, r.longitude, DATA_TILE_ZOOM);
     const spotId = newSpotId();
     spotIds.push(spotId);
@@ -91,7 +115,7 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
       db.prepare(
         `INSERT INTO source_record_entities (record_id, release_id, source_entity_id, method, matcher_version, decided_at, note)
          VALUES (?, ?, (SELECT MAX(source_entity_id) FROM source_entities), 'new', ?, ?, ?)`,
-      ).bind(record.record_id, releaseId, FIRST_RELEASE_MATCHER_VERSION, now, "first known release of this source; no cross-release match attempted"),
+      ).bind(record.recordId, releaseId, FIRST_RELEASE_MATCHER_VERSION, now, "first known release of this source; no cross-release match attempted"),
       db.prepare(
         `INSERT INTO spots (spot_id, name, latitude, longitude, tile_z, tile_x, tile_y, tile_id, spot_type,
            supports_paper, supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status,
@@ -105,12 +129,14 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
       db.prepare(
         `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
          VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,
-      ).bind(record.record_id, spotId, now, resolverVersion),
+      ).bind(record.recordId, spotId, now, resolverVersion),
+      // Copied from the observation, still citing the raw record and its columns: the observation
+      // is how the values were normalized, the record is what was stated.
       ...r.provenance.map((p) =>
         db.prepare(
           `INSERT INTO spot_field_provenance (spot_id, field, record_id, source_columns_json, rule, resolver_version, resolved_at)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ).bind(spotId, p.field, record.record_id, JSON.stringify(p.columns), p.rule, resolverVersion, now),
+        ).bind(spotId, p.field, record.recordId, JSON.stringify(p.columns), p.rule, resolverVersion, now),
       ),
       // The weakening itself, with the evidence for it. It never edits the provenance row above,
       // which keeps describing what the CSV stated; and it carries the reviewed release fingerprint,

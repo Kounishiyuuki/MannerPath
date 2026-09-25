@@ -13,20 +13,20 @@ import {
   assertReviewedReleaseForAttenuation,
 } from "./taito-list-page.ts";
 import {
-  TAITO_HEADER,
+  TAITO_MAPPING_VERSION,
   TAITO_PARSER_VERSION,
   TAITO_REGISTRY,
   TAITO_RESOLVER_VERSION,
   assertTaitoHeader,
-  resolveTaitoRecord,
+  observeTaitoRecord,
+  taitoAttenuations,
 } from "./taito.ts";
-
-const NAME_COLUMN = TAITO_HEADER.indexOf("名称");
 
 export const TAITO_ADAPTER: SourceAdapter = {
   registry: TAITO_REGISTRY,
   parserVersion: TAITO_PARSER_VERSION,
   resolverVersion: TAITO_RESOLVER_VERSION,
+  mappingVersion: TAITO_MAPPING_VERSION,
   parse(bytes) {
     const text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes);
     const parsed = parseCsv(text);
@@ -37,11 +37,13 @@ export const TAITO_ADAPTER: SourceAdapter = {
   // Both checks fail closed, in this order: the release fingerprint first, because matching record
   // names in a different file prove nothing about that file's hours or locations; then the record
   // names, so a re-review that forgot a renamed record cannot silently drop an effect.
-  assertResolvable(release, records) {
+  // An observation's name is 名称 verbatim, or null for an empty 名称, which no attestation names.
+  assertResolvable(release, observations) {
     assertReviewedReleaseForAttenuation(release);
-    assertListPageConflictsMatch(records.map((values) => values[NAME_COLUMN]));
+    assertListPageConflictsMatch(observations.map((o) => o.name ?? ""));
   },
-  resolveRecord: resolveTaitoRecord,
+  observe: observeTaitoRecord,
+  attenuate: taitoAttenuations,
   attenuationReference: {
     attestationVersion: TAITO_LIST_PAGE_ATTESTATION_VERSION,
     referenceKind: TAITO_LIST_PAGE_REFERENCE_KIND,

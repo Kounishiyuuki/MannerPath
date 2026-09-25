@@ -13,7 +13,7 @@ import { app } from "../src/app.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
-import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import { resolveFirstRelease, resolveObservation } from "../src/pipeline/resolve.ts";
 import {
   ATTENUATED_FIELD,
   HOLD_LOCATION_SUPERSEDED,
@@ -27,7 +27,7 @@ import {
 } from "../src/pipeline/taito-list-page.ts";
 import {
   TAITO_EXISTENCE_RULE, TAITO_FIXTURE_RELEASE, TAITO_FIXTURE_SHA256, TAITO_HEADER, TAITO_RESOLVER_VERSION,
-  TAITO_SOURCE_ID, resolveTaitoRecord,
+  TAITO_SOURCE_ID, observeTaitoRecord, taitoAttenuations,
 } from "../src/pipeline/taito.ts";
 import { analyzeCorpus } from "../src/quality/analyze.ts";
 import { SpotDetailBodyV1 } from "../src/spots/dto.ts";
@@ -38,6 +38,11 @@ import { SqliteD1 } from "./support/sqlite-d1.ts";
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).all(...p) as Row[];
 const one = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).get(...p) as Row;
+// One raw row through the Taito mapping and attenuations and the generic resolver, as resolve does.
+const resolveTaitoRecord = (values: string[]) => {
+  const observation = observeTaitoRecord(values);
+  return resolveObservation(observation, taitoAttenuations(observation));
+};
 
 const CLOSED = "ファミリーマート　台東一丁目店";
 const RELOCATED = "中小企業振興センター駐車場内";

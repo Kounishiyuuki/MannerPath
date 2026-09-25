@@ -7,7 +7,7 @@ import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { applyReviewedSourceRegistry, ensureReviewedSource, reviewedSource } from "../src/pipeline/registry.ts";
 import { EVIDENCE_QUALITY_VERSION, FIRST_RELEASE_MATCHER_VERSION, OFFICIAL_LISTING, resolveFirstRelease } from "../src/pipeline/resolve.ts";
-import { TAITO_ATTRIBUTION_TEXT, TAITO_DATASET_URL, TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_ORIGINAL_DATA_URL, TAITO_SOURCE_ID, resolveTaitoRecord } from "../src/pipeline/taito.ts";
+import { TAITO_ATTRIBUTION_TEXT, TAITO_DATASET_URL, TAITO_FIXTURE_RELEASE, TAITO_HEADER, TAITO_ORIGINAL_DATA_URL, TAITO_SOURCE_ID, observeTaitoRecord } from "../src/pipeline/taito.ts";
 import { SPOT_ID } from "../src/spot-id.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../src/geo/tile.ts";
 import { NOW, TAITO_BYTES, importTaito } from "./support/fixture.ts";
@@ -297,10 +297,10 @@ test("hours: free-text notes keep openNow unknown; only plain all-day or H:MM ra
 test("hour rules: anything unrecognised is unparsed rather than guessed", () => {
   const row = (start: string, end: string, note = "") =>
     ["1", "131067", "台東区", "x", "x", "x", "", start, end, "35.7", "139.7", note];
-  assert.equal(resolveTaitoRecord(row("終日利用可能", "19:00")).openingHours.status, "unparsed");
-  assert.equal(resolveTaitoRecord(row("7時", "19:00")).openingHours.status, "unparsed");
-  assert.equal(resolveTaitoRecord(row("20:00", "7:00")).openingHours.status, "unparsed");
-  assert.equal(resolveTaitoRecord(row("7:00", "19:00", "臨時休業あり")).openingHours.status, "unparsed");
-  assert.equal(resolveTaitoRecord(row("7:00", "19:00", "※加熱式たばこ専用")).openingHours.status, "unparsed");
-  assert.throws(() => resolveTaitoRecord(["1", "", "", "x", "", "", "", "", "", "35,7", "139.7", ""]), /non-decimal 緯度/);
+  assert.equal(observeTaitoRecord(row("終日利用可能", "19:00")).openingHours.status, "unparsed");
+  assert.equal(observeTaitoRecord(row("7時", "19:00")).openingHours.status, "unparsed");
+  assert.equal(observeTaitoRecord(row("20:00", "7:00")).openingHours.status, "unparsed");
+  assert.equal(observeTaitoRecord(row("7:00", "19:00", "臨時休業あり")).openingHours.status, "unparsed");
+  assert.equal(observeTaitoRecord(row("7:00", "19:00", "※加熱式たばこ専用")).openingHours.status, "unparsed");
+  assert.throws(() => observeTaitoRecord(["1", "", "", "x", "", "", "", "", "", "35,7", "139.7", ""]), /non-decimal 緯度/);
 });

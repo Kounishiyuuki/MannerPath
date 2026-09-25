@@ -1,7 +1,7 @@
 # ADR-0008 — Nationwide data architecture
 
-Status: Accepted (2026-09, Issue #68, tracker #67). Only decision 1 (the SourceAdapter boundary)
-is implemented by this ADR's PR; every other decision fixes a boundary that later issues implement
+Status: Accepted (2026-09, Issue #68, tracker #67). Decision 1 (the SourceAdapter boundary) is
+implemented by this ADR's PR and decision 2 (source observations) by Issue #73; every other decision fixes a boundary that later issues implement
 and may not silently change.
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
@@ -39,7 +39,10 @@ A reviewed source enters the pipeline only through a `SourceAdapter`
 - `parse` — bytes → header + rows, including schema/header validation (fail loudly; a header
   change stops automatic application);
 - `upstreamRowRef` — the publisher's row identifier;
-- `resolveRecord` — the field mapping and resolver rules, with provenance and attenuations;
+- `mappingVersion` / `observe` — the field mapping: one raw record → its normalized observation,
+  with per-field source columns and rule (decision 2);
+- `attenuate` — the weakenings the adapter's reviewed attenuation reference applies to one
+  observation (for Taito, the Issue #42 list-page conflicts);
 - `assertResolvable` — fail-closed per-release checks (for Taito, the Issue #42 list-page
   attestations are bound to one release fingerprint);
 - `attenuationReference` — the reviewed evidence every attenuation row of this adapter cites.
@@ -62,14 +65,37 @@ the golden in the same PR and justifies the diff.
 reconciliation section in its output. It is generalized with nationwide quality metrics (strategy
 §10 step 8), not in the adapter extraction, so the quality report's shape does not move twice.
 
-### 2. Normalized source observation layer (boundary)
+### 2. Normalized source observation layer (implemented, Issue #73)
 
 Between raw records and the resolver sits an immutable, versioned `source_observations` layer:
 one row per raw record per adapter mapping version, carrying normalized fields (name, coordinate,
 tobacco support, hours raw/parsed, lifecycle claims) plus the mapping version. The resolver then
 reads observations, never raw source schemas. Raw records remain the evidence and are never
-rewritten; observations are re-derivable from them. It lands as a new migration; until then
-`resolveRecord` is the mapping.
+rewritten; observations are re-derivable from them.
+
+As implemented (migration `0008_source_observations.sql`, `src/pipeline/observe.ts`):
+
+- `observeRelease(db, adapter, releaseId)` is, with ingest, the only step that reads
+  `raw_values_json`. It fails closed before any write unless the release's `source_id` and
+  `parser_version` are the adapter's; a trigger also refuses an observation whose `source_id` is not
+  its record's release's, and `(record_id, release_id)` references the raw record.
+- One row per `(record_id, mapping_version)`, immutable (no UPDATE/DELETE), with no derivation
+  timestamp, so the rows are a pure function of the raw record and the mapping. Deriving again
+  writes nothing; it re-derives and refuses a difference, so a mapping change without a new
+  `mappingVersion` fails loudly. A new version adds a generation beside the old one.
+- An observation holds only what the record states: name, coordinate, tobacco support, hours
+  (raw / parsed / status), the source's lifecycle claim and each field's source columns + rule.
+  Attenuations and publication holds are not observations — they come from reviewed evidence
+  outside the record — and stay in `spots.publication_hold` / `spot_field_attenuations`.
+- The resolver reads the observations, runs the adapter's `assertResolvable` over them, applies
+  the adapter's `attenuate` effects generically (subtractive only) and copies each field's
+  provenance into `spot_field_provenance`, still citing the raw `record_id` and its columns.
+  Observations are written before `assertResolvable`, so a refused release keeps its
+  observations and nothing canonical.
+- Canonical rows carry `resolver_version`, not the mapping version: an adapter pairs exactly one
+  `resolverVersion` with one `mappingVersion`, so a mapping change must bump both.
+- The promotion bundle does not carry observations; they are re-derivable from the records it does
+  carry. Adding them was a behavior-preserving change: the golden differs only by the new table.
 
 ### 3. Cross-release matching (boundary)
 
