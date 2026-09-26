@@ -482,6 +482,7 @@
     "reports": [],
     "review_decisions": [],
     "review_items": [],
+    "review_match_applications": [],
     "review_removal_applications": [],
     "source_entities": [
       {

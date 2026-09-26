@@ -11,6 +11,7 @@ import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
 import { CROSS_RELEASE_MATCHER_VERSION, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
 import { type StoredObservation, observeRelease } from "./observe.ts";
 import { crossReleaseCandidates, persistReviewItems } from "./review-queue.ts";
+import { type AmbiguousReview, REVIEW_MATCH_APPLICATION_VERSION, ReviewedMatchError, planReviewedMatch } from "./reviewed-match.ts";
 import { type FieldAttenuation, type SourceAdapter, type SourceObservation, sourceCompleteness } from "./source-adapter.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
@@ -190,14 +191,18 @@ function newSpotStatements(
 
 /**
  * Applies a later release of a source whose previous applied release is current, through the
- * cross-release matcher. Nothing canonical is written unless every record is raw_identical or new
- * and every previous entity is matched: otherwise ambiguous records and unmatched previous entities
+ * cross-release matcher and the latest review decisions on its ambiguousMatch items (the effective
+ * reviewed plan, ./reviewed-match.ts). Nothing canonical is written unless every record is
+ * raw_identical, new, reviewed matchedToEntity or reviewed confirmedNew, and every previous entity is
+ * continued by a record: otherwise the open ambiguous records and unresolved previous entities
  * (disappearance candidates; removal candidates only for a complete source, decision 5) are stored
  * in the review queue (ADR-0008 decision 8) and the release stays ingested.
  *
  * A matched record keeps its entity and its spot: the spot id, created_at and link never change.
- * Its values are identical by construction (same raw values, same mapping), so only the evidence
- * moves to the new record: provenance cites it and last_verified_at becomes its observed_on.
+ * Only the evidence moves to the new record: provenance cites it and last_verified_at becomes its
+ * observed_on. For raw_identical the values are identical by construction; a reviewed match is
+ * applied only when they are too (a reviewed same entity is not an approved field update), and every
+ * applied review decision is recorded in review_match_applications in the same batch.
  */
 async function resolveNextRelease(
   db: Db, adapter: SourceAdapter, releaseId: number, release: ReleaseRow, opts: ResolveOptions,
@@ -229,15 +234,29 @@ async function resolveNextRelease(
     throw new Error(`resolve: current release ${current.release_id} has records without an entity and spot`);
   }
   const plan = planCrossReleaseMatch(previous, next);
-  if (plan.ambiguous.length > 0 || plan.unmatchedPreviousEntityIds.length > 0) {
-    // Candidates are review state, not canonical effect: no spot, link, provenance, hold, match key or
-    // release status is written, and a disappearance is removal evidence only for a complete source.
-    const completeness = sourceCompleteness(adapter);
-    const reviewItemIds = await persistReviewItems(db, {
-      sourceId: release.source_id, releaseId, releaseContentSha256: release.content_sha256,
-      previousReleaseId: current.release_id, matcherVersion: CROSS_RELEASE_MATCHER_VERSION, completeness,
-    }, crossReleaseCandidates(plan.ambiguous, plan.unmatchedPreviousEntityIds, previous, completeness), now);
-    return { status: "needsReview", reviewItemIds };
+  // Candidates are review state, not canonical effect: no spot, link, provenance, hold, match key or
+  // release status is written, and a disappearance is removal evidence only for a complete source.
+  const completeness = sourceCompleteness(adapter);
+  const ctx = {
+    sourceId: release.source_id, releaseId, releaseContentSha256: release.content_sha256,
+    previousReleaseId: current.release_id, matcherVersion: CROSS_RELEASE_MATCHER_VERSION, completeness,
+  };
+  const candidateIds = plan.ambiguous.length > 0 || plan.unmatchedPreviousEntityIds.length > 0
+    ? await persistReviewItems(db, ctx, crossReleaseCandidates(plan.ambiguous, plan.unmatchedPreviousEntityIds, previous, completeness), now)
+    : [];
+  // Items are read by this exact comparison, so an item raised against another previous release
+  // (the current release changed since) is never used: its record is simply open here.
+  const effective = planReviewedMatch(plan, previous, next, await readAmbiguousReviews(db, candidateIds.slice(0, plan.ambiguous.length)));
+  if (effective.openReviewItemIds.length > 0 || effective.unresolvedPreviousEntityIds.length > 0) {
+    // A previous entity left over once every ambiguity is decided (e.g. after confirmedNew) is a
+    // disappearance candidate like any other; the same identity yields the same item.
+    const residualIds = effective.unresolvedPreviousEntityIds.length > 0
+      ? await persistReviewItems(db, ctx, crossReleaseCandidates([], effective.unresolvedPreviousEntityIds, previous, completeness), now)
+      : [];
+    return { status: "needsReview", reviewItemIds: [...effective.openReviewItemIds, ...residualIds] };
+  }
+  if (effective.decisions.some((d) => d.method === "reviewed_match" || d.method === "reviewed_new")) {
+    await assertNoCompetingRelease(db, release.source_id, releaseId, current);
   }
 
   const previousByRecord = new Map(previous.map((p) => [p.recordId, p]));
@@ -245,24 +264,39 @@ async function resolveNextRelease(
   const observationByRecord = new Map(observations.map((o) => [o.recordId, o]));
   const statements = [...matchKeyStatements(db, [...previous, ...next].map((r) => r.recordId), now)];
   const spotIds: string[] = [];
-  for (const decision of plan.decisions) {
+  // Written before the decision it audits: its trigger re-checks, inside the batch, that the decision
+  // is still the item's latest and the comparison still current, and a manual decision needs it.
+  const application = (d: { recordId: number; reviewItemId: number; reviewDecisionId: number }, decision: string, entityId: number | null) =>
+    db.prepare(
+      `INSERT INTO review_match_applications (review_item_id, review_decision_id, decision, record_id, release_id,
+         source_entity_id, executor_version, applied_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(d.reviewItemId, d.reviewDecisionId, decision, d.recordId, releaseId, entityId, REVIEW_MATCH_APPLICATION_VERSION, now);
+  for (const decision of effective.decisions) {
     const record = observationByRecord.get(decision.recordId)!;
-    if (decision.method === "new") {
+    if (decision.method === "new" || decision.method === "reviewed_new") {
       const spotId = newSpotId();
       spotIds.push(spotId);
+      if (decision.method === "reviewed_new") statements.push(application(decision, "confirmedNew", null));
       statements.push(...newSpotStatements(db, adapter, releaseId, release, record, spotId, now, CROSS_RELEASE_MATCHER_VERSION,
-        `no record of release ${current.release_id} matched, and every entity of it is matched by another record`));
+        decision.method === "new"
+          ? `no record of release ${current.release_id} matched, and every entity of it is matched by another record`
+          : `review decision ${decision.reviewDecisionId} (item ${decision.reviewItemId}): confirmedNew`));
       continue;
     }
     const prior = previousByRecord.get(decision.previousRecordId)!;
-    await assertEvidenceCanMove(db, adapter, prior.spotId, prior.recordId, record, previousObservationByRecord.get(prior.recordId));
+    const previousObservation = previousObservationByRecord.get(prior.recordId);
+    if (decision.method === "reviewed_match") await assertReviewedMatchKeepsValues(db, prior.spotId, record, previousObservation);
+    await assertEvidenceCanMove(db, adapter, prior.spotId, prior.recordId, record, previousObservation);
     spotIds.push(prior.spotId);
+    if (decision.method === "reviewed_match") statements.push(application(decision, "matchedToEntity", decision.sourceEntityId));
     statements.push(
       db.prepare(
         `INSERT INTO source_record_entities (record_id, release_id, source_entity_id, method, matcher_version, decided_at, note)
-         VALUES (?, ?, ?, 'raw_identical', ?, ?, ?)`,
-      ).bind(record.recordId, releaseId, decision.sourceEntityId, CROSS_RELEASE_MATCHER_VERSION, now,
-        `raw values identical to record ${prior.recordId} of release ${current.release_id}`),
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(record.recordId, releaseId, decision.sourceEntityId, decision.method === "raw_identical" ? "raw_identical" : "manual",
+        CROSS_RELEASE_MATCHER_VERSION, now, decision.method === "raw_identical"
+          ? `raw values identical to record ${prior.recordId} of release ${current.release_id}`
+          : `review decision ${decision.reviewDecisionId} (item ${decision.reviewItemId}): matchedToEntity, continuing record ${prior.recordId} of release ${current.release_id}`),
       db.prepare(
         "UPDATE spot_field_provenance SET record_id = ?, resolver_version = ?, resolved_at = ? WHERE spot_id = ? AND record_id = ?",
       ).bind(record.recordId, adapter.resolverVersion, now, prior.spotId, prior.recordId),
@@ -278,6 +312,69 @@ async function resolveNextRelease(
   );
   await db.batch(statements);
   return { status: "resolved", spotIds };
+}
+
+/** The stored ambiguousMatch items `ids` with their latest decision (largest review_decision_id). */
+async function readAmbiguousReviews(db: Db, ids: readonly number[]): Promise<AmbiguousReview[]> {
+  const reviews: AmbiguousReview[] = [];
+  for (const id of ids) {
+    const row = await db.prepare(
+      `SELECT i.kind, i.record_id, i.details_json, d.review_decision_id, d.decision, d.decision_version, d.source_entity_id
+       FROM review_items i
+       LEFT JOIN review_decisions d ON d.review_decision_id =
+         (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id)
+       WHERE i.review_item_id = ?`,
+    ).bind(id).first<{
+      kind: string; record_id: number; details_json: string; review_decision_id: number | null;
+      decision: string | null; decision_version: string | null; source_entity_id: number | null;
+    }>();
+    if (!row || row.kind !== "ambiguousMatch") throw new ReviewedMatchError(`resolve: review item ${id} is not an ambiguousMatch item`);
+    reviews.push({
+      reviewItemId: id, recordId: row.record_id,
+      candidateEntityIds: (JSON.parse(row.details_json) as { candidateEntityIds: number[] }).candidateEntityIds,
+      latest: row.review_decision_id === null ? null : {
+        reviewDecisionId: row.review_decision_id, decision: row.decision!, decisionVersion: row.decision_version!,
+        sourceEntityId: row.source_entity_id,
+      },
+    });
+  }
+  return reviews;
+}
+
+/**
+ * A review decision answers one comparison (this release against the current one). Another
+ * unrejected release of the source newer than the current one, or not comparable with it, makes
+ * that comparison stale; the review_match_applications trigger checks the same inside the batch.
+ */
+async function assertNoCompetingRelease(db: Db, sourceId: string, releaseId: number, current: { release_id: number; observed_on: string | null }) {
+  const other = await db.prepare(
+    `SELECT release_id FROM source_releases WHERE source_id = ? AND release_id NOT IN (?, ?) AND status <> 'rejected'
+       AND (observed_on IS NULL OR ? IS NULL OR observed_on > ?) ORDER BY release_id LIMIT 1`,
+  ).bind(sourceId, releaseId, current.release_id, current.observed_on, current.observed_on).first<{ release_id: number }>();
+  if (other) {
+    throw new ReviewedMatchError(`resolve: release ${other.release_id} of ${sourceId} competes with release ${releaseId}; its review decisions are stale`);
+  }
+}
+
+/**
+ * A reviewed match says the record continues the entity; it does not approve new values. Only a
+ * match whose observation is unchanged moves evidence. A changed coordinate is a relocation, and any
+ * other changed value needs a value update policy; neither exists yet, so both are refused. A removed
+ * or merged spot is never revived by a match.
+ */
+async function assertReviewedMatchKeepsValues(db: Db, spotId: string, record: StoredObservation, previous: SourceObservation | undefined) {
+  const spot = await db.prepare("SELECT lifecycle, merged_into FROM spots WHERE spot_id = ?")
+    .bind(spotId).first<{ lifecycle: string; merged_into: string | null }>();
+  if (!spot || spot.lifecycle === "removed" || spot.merged_into !== null) {
+    throw new ReviewedMatchError(`resolve: record ${record.recordId} is reviewed as spot ${spotId}, which is removed or merged; restoring a spot is not implemented`);
+  }
+  if (!previous) throw new ReviewedMatchError(`resolve: spot ${spotId}'s previous record has no observation`);
+  if (previous.latitude !== record.observation.latitude || previous.longitude !== record.observation.longitude) {
+    throw new ReviewedMatchError(`resolve: record ${record.recordId} is reviewed as spot ${spotId} at another coordinate; relocation is not implemented`);
+  }
+  if (JSON.stringify(previous) !== JSON.stringify(record.observation)) {
+    throw new ReviewedMatchError(`resolve: record ${record.recordId} is reviewed as spot ${spotId} with changed values; a value update policy is not implemented`);
+  }
 }
 
 /**
