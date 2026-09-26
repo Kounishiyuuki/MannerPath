@@ -324,3 +324,33 @@ test("a manual source_record_entities decision requires its application row", as
      VALUES (?, ?, ?, 'manual', 'x', ?)`).run(recordOf(db, secondId, 1), secondId, entityOf(db, recordOf(db, firstId, 1)).source_entity_id, LATER),
   /requires a review_match_application/);
 });
+
+test("schema: a matchedToEntity application needs the chosen entity still linked to an active, unmerged spot", async () => {
+  const insert = (db: SqliteD1, itemId: number, decisionId: number, recordId: number, releaseId: number, entityId: number) => db.raw.prepare(
+    `INSERT INTO review_match_applications (review_item_id, review_decision_id, decision, record_id, release_id, source_entity_id, executor_version, applied_at)
+     VALUES (?, ?, 'matchedToEntity', ?, ?, ?, ?, ?)`).run(itemId, decisionId, recordId, releaseId, entityId, REVIEW_MATCH_APPLICATION_VERSION, LATER);
+  const prepared = async (breakLink?: (db: SqliteD1, spotId: string) => void) => {
+    const { db, firstId, secondId, itemIds: [itemId] } = await setup(REF_CHANGED);
+    const prior = entityOf(db, recordOf(db, firstId, 1));
+    const decisionId = await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
+    breakLink?.(db, prior.spot_id);
+    return () => insert(db, itemId, decisionId, recordOf(db, secondId, 1), secondId, prior.source_entity_id);
+  };
+  const refused = /review_match_applications: not the latest/;
+
+  // Missing link: the old NOT EXISTS(bad spot) form accepted this.
+  assert.throws(await prepared((db, spotId) => db.raw.prepare("DELETE FROM spot_source_entities WHERE spot_id = ?").run(spotId)), refused);
+  // Merged spot.
+  assert.throws(await prepared((db, spotId) => {
+    db.raw.prepare("DELETE FROM tile_snapshot_spots WHERE spot_id = ?").run(spotId);
+    const target = one(db, "SELECT spot_id FROM spots WHERE spot_id <> ? ORDER BY spot_id LIMIT 1", spotId).spot_id;
+    db.raw.prepare("UPDATE spots SET merged_into = ? WHERE spot_id = ?").run(target, spotId);
+  }), refused);
+  // Not active (temporarilyClosed stands in for any non-active lifecycle; removed is covered above).
+  assert.throws(await prepared((db, spotId) => {
+    db.raw.prepare("DELETE FROM tile_snapshot_spots WHERE spot_id = ?").run(spotId);
+    db.raw.prepare("UPDATE spots SET lifecycle = 'temporarilyClosed' WHERE spot_id = ?").run(spotId);
+  }), refused);
+  // Active, unmerged, linked: accepted.
+  (await prepared())();
+});

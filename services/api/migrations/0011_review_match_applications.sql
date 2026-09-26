@@ -46,14 +46,15 @@ WHEN NOT EXISTS (
     AND d.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id)
     AND NEW.executor_version = 'review-match-application.v1'
     -- A chosen entity is one of the item's candidates (0009 checks the decision; checked again here)
-    -- recorded by the previous release, and its spot is active and unmerged: a removed spot is never
-    -- revived by a match (restoring one is its own reviewed step).
+    -- recorded by the previous release, and still linked (spot_source_entities: one link per entity)
+    -- to an active, unmerged spot: a removed spot is never revived by a match (restoring one is its
+    -- own reviewed step). The link is required, so a missing link is refused too.
     AND (NEW.source_entity_id IS NULL OR (
       NEW.source_entity_id IN (SELECT value FROM json_each(i.details_json, '$.candidateEntityIds'))
       AND EXISTS (SELECT 1 FROM source_record_entities e WHERE e.source_entity_id = NEW.source_entity_id
         AND e.release_id = i.previous_release_id)
-      AND NOT EXISTS (SELECT 1 FROM spot_source_entities l JOIN spots s ON s.spot_id = l.spot_id
-        WHERE l.source_entity_id = NEW.source_entity_id AND (s.lifecycle = 'removed' OR s.merged_into IS NOT NULL))))
+      AND EXISTS (SELECT 1 FROM spot_source_entities l JOIN spots s ON s.spot_id = l.spot_id
+        WHERE l.source_entity_id = NEW.source_entity_id AND s.lifecycle = 'active' AND s.merged_into IS NULL)))
     -- Stale evidence, as in 0010: the compared release is still the source's current applied release,
     -- the release that raised the item is still under review, and no other unrejected release of the
     -- source is newer than that current release (an unknown observed_on is not comparable: refused).
