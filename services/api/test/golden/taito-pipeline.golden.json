@@ -628,6 +628,7 @@
     "review_items": [],
     "review_match_applications": [],
     "review_removal_applications": [],
+    "review_removal_resolutions": [],
     "source_entities": [
       {
         "source_entity_id": 1,

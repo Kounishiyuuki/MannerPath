@@ -11,7 +11,10 @@ import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
 import { CROSS_RELEASE_MATCHER_VERSION, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
 import { type StoredObservation, observeRelease } from "./observe.ts";
 import { crossReleaseCandidates, persistReviewItems } from "./review-queue.ts";
-import { type AmbiguousReview, REVIEW_MATCH_APPLICATION_VERSION, ReviewedMatchError, planReviewedMatch } from "./reviewed-match.ts";
+import {
+  type AmbiguousReview, REVIEW_MATCH_APPLICATION_VERSION, REVIEW_REMOVAL_RESOLUTION_VERSION, type RemovalReview, type ResolvedPreviousEntities,
+  ReviewedMatchError, planReviewedMatch, resolvePreviousEntities,
+} from "./reviewed-match.ts";
 import { type FieldAttenuation, type SourceAdapter, type SourceObservation, sourceCompleteness } from "./source-adapter.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
@@ -194,7 +197,8 @@ function newSpotStatements(
  * cross-release matcher and the latest review decisions on its ambiguousMatch items (the effective
  * reviewed plan, ./reviewed-match.ts). Nothing canonical is written unless every record is
  * raw_identical, new, reviewed matchedToEntity or reviewed confirmedNew, and every previous entity is
- * continued by a record: otherwise the open ambiguous records and unresolved previous entities
+ * continued by a record or its spot was removed by an applied reviewed removal (audited in
+ * review_removal_resolutions in the same batch; the resolver itself never removes): otherwise the open ambiguous records and unresolved previous entities
  * (disappearance candidates; removal candidates only for a complete source, decision 5) are stored
  * in the review queue (ADR-0008 decision 8) and the release stays ingested.
  *
@@ -247,15 +251,20 @@ async function resolveNextRelease(
   // Items are read by this exact comparison, so an item raised against another previous release
   // (the current release changed since) is never used: its record is simply open here.
   const effective = planReviewedMatch(plan, previous, next, await readAmbiguousReviews(db, candidateIds.slice(0, plan.ambiguous.length)));
-  if (effective.openReviewItemIds.length > 0 || effective.unresolvedPreviousEntityIds.length > 0) {
-    // A previous entity left over once every ambiguity is decided (e.g. after confirmedNew) is a
-    // disappearance candidate like any other; the same identity yields the same item.
-    const residualIds = effective.unresolvedPreviousEntityIds.length > 0
-      ? await persistReviewItems(db, ctx, crossReleaseCandidates([], effective.unresolvedPreviousEntityIds, previous, completeness), now)
-      : [];
-    return { status: "needsReview", reviewItemIds: [...effective.openReviewItemIds, ...residualIds] };
+  // A previous entity left over once every ambiguity is decided (e.g. after confirmedNew) is a
+  // disappearance candidate like any other; the same identity yields the same item. It is resolved
+  // only by a reviewed removal already applied to its spot (Issue #89).
+  const residualIds = effective.unresolvedPreviousEntityIds.length > 0
+    ? await persistReviewItems(db, ctx, crossReleaseCandidates([], effective.unresolvedPreviousEntityIds, previous, completeness), now)
+    : [];
+  const removalReviews = await readRemovalReviews(db, residualIds);
+  const previousEntities: ResolvedPreviousEntities = resolvePreviousEntities(effective, removalReviews);
+  if (effective.openReviewItemIds.length > 0 || previousEntities.unresolved.length > 0) {
+    const unresolvedItemIds = removalReviews.filter((r) => previousEntities.unresolved.includes(r.sourceEntityId)).map((r) => r.reviewItemId);
+    return { status: "needsReview", reviewItemIds: [...effective.openReviewItemIds, ...unresolvedItemIds] };
   }
-  if (effective.decisions.some((d) => d.method === "reviewed_match" || d.method === "reviewed_new")) {
+  if (effective.decisions.some((d) => d.method === "reviewed_match" || d.method === "reviewed_new")
+    || previousEntities.resolvedByReviewedRemoval.length > 0) {
     await assertNoCompetingRelease(db, release.source_id, releaseId, current);
   }
 
@@ -305,6 +314,15 @@ async function resolveNextRelease(
       ).bind(release.observed_on, adapter.resolverVersion, now, prior.spotId),
     );
   }
+  // The removed entity has no record in this release, so it gets no record decision: only the audit
+  // of the applied removal it rests on, whose trigger re-checks that removal inside the batch.
+  for (const r of previousEntities.resolvedByReviewedRemoval) {
+    statements.push(db.prepare(
+      `INSERT INTO review_removal_resolutions (release_id, previous_release_id, review_item_id, review_decision_id,
+         review_removal_application_id, source_entity_id, spot_id, resolver_version, applied_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(releaseId, current.release_id, r.reviewItemId, r.reviewDecisionId, r.reviewRemovalApplicationId, r.sourceEntityId, r.spotId,
+      REVIEW_REMOVAL_RESOLUTION_VERSION, now));
+  }
   statements.push(
     // The one-current index needs the old flag cleared first; the old release stays applied evidence.
     db.prepare("UPDATE source_releases SET is_current = 0 WHERE release_id = ?").bind(current.release_id),
@@ -336,6 +354,44 @@ async function readAmbiguousReviews(db: Db, ids: readonly number[]): Promise<Amb
         reviewDecisionId: row.review_decision_id, decision: row.decision!, decisionVersion: row.decision_version!,
         sourceEntityId: row.source_entity_id,
       },
+    });
+  }
+  return reviews;
+}
+
+/** The stored disappearance/removal items `ids` with their latest decision, their spot's removal application and links. */
+async function readRemovalReviews(db: Db, ids: readonly number[]): Promise<RemovalReview[]> {
+  const reviews: RemovalReview[] = [];
+  for (const id of ids) {
+    const row = await db.prepare(
+      `SELECT i.kind, i.source_completeness, i.source_entity_id, i.spot_id, d.review_decision_id, d.decision, d.decision_version,
+         s.lifecycle, s.merged_into, a.review_removal_application_id, a.review_item_id AS application_item_id,
+         a.review_decision_id AS application_decision_id
+       FROM review_items i
+       JOIN spots s ON s.spot_id = i.spot_id
+       LEFT JOIN review_decisions d ON d.review_decision_id =
+         (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id)
+       LEFT JOIN review_removal_applications a ON a.spot_id = i.spot_id
+       WHERE i.review_item_id = ?`,
+    ).bind(id).first<{
+      kind: string; source_completeness: string; source_entity_id: number; spot_id: string;
+      review_decision_id: number | null; decision: string | null; decision_version: string | null;
+      lifecycle: string; merged_into: string | null; review_removal_application_id: number | null;
+      application_item_id: number | null; application_decision_id: number | null;
+    }>();
+    if (!row) throw new Error(`resolve: review item ${id} is not a disappearance/removal item with a spot`);
+    const { results: links } = await db.prepare("SELECT source_entity_id FROM spot_source_entities WHERE spot_id = ? ORDER BY source_entity_id")
+      .bind(row.spot_id).all<{ source_entity_id: number }>();
+    reviews.push({
+      reviewItemId: id, kind: row.kind, sourceCompleteness: row.source_completeness, sourceEntityId: row.source_entity_id, spotId: row.spot_id,
+      latest: row.review_decision_id === null ? null
+        : { reviewDecisionId: row.review_decision_id, decision: row.decision!, decisionVersion: row.decision_version! },
+      application: row.review_removal_application_id === null ? null : {
+        reviewRemovalApplicationId: row.review_removal_application_id, reviewItemId: row.application_item_id!,
+        reviewDecisionId: row.application_decision_id!,
+      },
+      spot: { lifecycle: row.lifecycle, mergedInto: row.merged_into },
+      linkedEntityIds: links.map((l) => l.source_entity_id),
     });
   }
   return reviews;

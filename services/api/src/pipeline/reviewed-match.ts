@@ -12,6 +12,8 @@ import { REVIEW_DECISION_VERSION } from "./review-queue.ts";
 
 /** Stored in `review_match_applications.executor_version`. */
 export const REVIEW_MATCH_APPLICATION_VERSION = "review-match-application.v1";
+/** Stored in `review_removal_resolutions.resolver_version`. */
+export const REVIEW_REMOVAL_RESOLUTION_VERSION = "review-removal-resolution.v1";
 
 /** One stored ambiguousMatch item of the release under reconciliation, with its latest decision. */
 export interface AmbiguousReview {
@@ -36,6 +38,8 @@ export interface EffectivePlan {
 }
 
 export class ReviewedMatchError extends Error {}
+/** An applied reviewed removal whose premise no longer holds: the release is not applied. */
+export class ReviewedRemovalResolutionError extends Error {}
 
 const sameIds = (a: readonly number[], b: readonly number[]) =>
   JSON.stringify([...a].sort((x, y) => x - y)) === JSON.stringify([...b].sort((x, y) => x - y));
@@ -103,4 +107,68 @@ export function planReviewedMatch(
     openReviewItemIds: open,
     unresolvedPreviousEntityIds: open.length + unstored > 0 ? [] : [...new Set(previous.map((p) => p.sourceEntityId))].filter((id) => !claimed.has(id)),
   };
+}
+
+/** The stored disappearance/removal item of one unresolved previous entity, as the resolver read it. */
+export interface RemovalReview {
+  reviewItemId: number;
+  kind: string;
+  sourceCompleteness: string;
+  sourceEntityId: number;
+  spotId: string;
+  latest: null | { reviewDecisionId: number; decision: string; decisionVersion: string };
+  /** The review_removal_applications row of the item's spot, whichever item and decision it names. */
+  application: null | { reviewRemovalApplicationId: number; reviewItemId: number; reviewDecisionId: number };
+  spot: { lifecycle: string; mergedInto: string | null };
+  /** Every entity linked to the spot (spot_source_entities). */
+  linkedEntityIds: readonly number[];
+}
+
+export interface ReviewedRemovalResolution {
+  sourceEntityId: number; spotId: string; reviewItemId: number; reviewDecisionId: number; reviewRemovalApplicationId: number;
+}
+
+/** What became of each previous entity; record decisions stay in EffectivePlan.decisions. */
+export interface ResolvedPreviousEntities {
+  continuedByRecord: number[];
+  resolvedByReviewedRemoval: ReviewedRemovalResolution[];
+  unresolved: number[];
+}
+
+/**
+ * Splits `plan`'s unresolved previous entities by `reviews` (their stored items). An entity is
+ * resolved only when its complete-source removalCandidate's latest review-decision.v1 decision is
+ * removalConfirmed AND that exact decision was applied (review_removal_applications) to the item's
+ * spot, which is removed, unmerged and linked to that entity alone. No application is unresolved, so a
+ * decision alone never resolves. An application whose premise has changed since (another latest
+ * decision, another item, the spot not removed, link drift) fails closed rather than staying open:
+ * the removal is final (0010), so no later review of this comparison could resolve it.
+ */
+export function resolvePreviousEntities(plan: EffectivePlan, reviews: readonly RemovalReview[]): ResolvedPreviousEntities {
+  const reviewByEntity = new Map(reviews.map((r) => [r.sourceEntityId, r]));
+  const resolved: ReviewedRemovalResolution[] = [];
+  const unresolved: number[] = [];
+  for (const entityId of plan.unresolvedPreviousEntityIds) {
+    const r = reviewByEntity.get(entityId);
+    if (!r?.application) {
+      unresolved.push(entityId);
+      continue;
+    }
+    const a = r.application;
+    const fail = (why: string) => new ReviewedRemovalResolutionError(
+      `reviewed removal: entity ${entityId}'s spot ${r.spotId} was removed on decision ${a.reviewDecisionId} (item ${a.reviewItemId}), but ${why}`);
+    if (r.kind !== "removalCandidate" || r.sourceCompleteness !== "complete") throw fail(`item ${r.reviewItemId} is a ${r.sourceCompleteness} ${r.kind}`);
+    if (a.reviewItemId !== r.reviewItemId) throw fail(`this comparison's item is ${r.reviewItemId}`);
+    const latest = r.latest;
+    if (latest === null || latest.reviewDecisionId !== a.reviewDecisionId) throw fail(`item ${r.reviewItemId}'s latest decision is ${latest?.reviewDecisionId ?? "none"}`);
+    if (latest.decision !== "removalConfirmed" || latest.decisionVersion !== REVIEW_DECISION_VERSION) {
+      throw fail(`that decision is ${latest.decisionVersion} ${latest.decision}`);
+    }
+    if (r.spot.lifecycle !== "removed" || r.spot.mergedInto !== null) throw fail(`the spot is ${r.spot.lifecycle}${r.spot.mergedInto === null ? "" : ", merged"}`);
+    if (!sameIds(r.linkedEntityIds, [entityId])) throw fail(`the spot is now linked to entities ${[...r.linkedEntityIds].join(",") || "none"}`);
+    resolved.push({ sourceEntityId: entityId, spotId: r.spotId, reviewItemId: r.reviewItemId, reviewDecisionId: a.reviewDecisionId,
+      reviewRemovalApplicationId: a.reviewRemovalApplicationId });
+  }
+  const continued = new Set(plan.decisions.flatMap((d) => "sourceEntityId" in d ? [d.sourceEntityId] : []));
+  return { continuedByRecord: [...continued].sort((x, y) => x - y), resolvedByReviewedRemoval: resolved, unresolved };
 }
