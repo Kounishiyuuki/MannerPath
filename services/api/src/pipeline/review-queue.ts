@@ -81,6 +81,29 @@ export function crossReleaseCandidates(
  * computed, the same input no longer yields the same item, and that is refused loudly.
  */
 export async function persistReviewItems(db: Db, ctx: CandidateContext, items: readonly ReviewItemRow[], now: string): Promise<number[]> {
+  return persistItems(db, ctx, items, now, (stored, computed) => stored === JSON.stringify(computed));
+}
+
+/**
+ * persistReviewItems for relocationCandidate items, whose identity decision may be re-recorded: a later
+ * matchedToEntity choosing the same entity keeps the same item. The stored item stays exactly as it was
+ * written, including identity.reviewDecisionId (the decision it was first raised from); every other
+ * detail must still be what this run computed. Whether the item is still actionable (the identity
+ * item's latest decision chooses its entity) is re-checked by migration 0013 on every insert attempt.
+ */
+export async function persistRelocationItems(db: Db, ctx: CandidateContext, items: readonly ReviewItemRow[], now: string): Promise<number[]> {
+  if (items.some((i) => i.kind !== "relocationCandidate")) throw new Error("review queue: persistRelocationItems stores relocationCandidate items only");
+  return persistItems(db, ctx, items, now, (stored, computed) => {
+    const parsed = JSON.parse(stored) as { identity?: { reviewDecisionId?: unknown } };
+    const identity = computed.identity as Record<string, unknown>;
+    return stored === JSON.stringify({ ...computed, identity: { ...identity, reviewDecisionId: parsed.identity?.reviewDecisionId } });
+  });
+}
+
+async function persistItems(
+  db: Db, ctx: CandidateContext, items: readonly ReviewItemRow[], now: string,
+  sameDetails: (stored: string, computed: Record<string, unknown>) => boolean,
+): Promise<number[]> {
   await db.batch(items.map((item) => db.prepare(
     `INSERT INTO review_items (source_id, release_id, release_content_sha256, previous_release_id, kind, matcher_version,
        source_completeness, candidate_key, record_id, source_entity_id, spot_id, details_json, created_at)
@@ -97,7 +120,7 @@ export async function persistReviewItems(db: Db, ctx: CandidateContext, items: r
     ).bind(ctx.sourceId, ctx.releaseId, ctx.previousReleaseId, ctx.matcherVersion, item.kind, item.candidateKey)
       .first<{ review_item_id: number; source_completeness: string; record_id: number | null; source_entity_id: number | null; spot_id: string | null; details_json: string }>();
     if (!row) throw new Error(`review queue: item ${item.kind} ${item.candidateKey} of release ${ctx.releaseId} was not stored`);
-    if (row.details_json !== JSON.stringify(item.details) || row.source_completeness !== ctx.completeness
+    if (!sameDetails(row.details_json, item.details) || row.source_completeness !== ctx.completeness
       || row.record_id !== item.recordId || row.source_entity_id !== item.sourceEntityId || row.spot_id !== item.spotId) {
       throw new Error(`review queue: stored item ${row.review_item_id} (${item.kind} ${item.candidateKey}) differs from this run's candidate`);
     }

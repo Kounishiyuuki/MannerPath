@@ -17,7 +17,7 @@ import { ReviewedMatchError } from "../src/pipeline/reviewed-match.ts";
 import { type SourceAdapter, sourceCompleteness } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts";
-import { haversineMeters } from "../src/quality/analyze.ts";
+import { haversineMeters } from "../src/geo/distance.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -51,6 +51,9 @@ const SAME_NUMBER = row1((l) => l.replace(",35.7112,", ",35.711200,"));
 const MOVED = row1((l) => l.replace(",35.7112,", ",35.7113,"));
 const MOVED_AND_RENAMED = row1((l) => l.replace(",35.7112,", ",35.7113,").replace("上野公園前交番裏", "上野公園前交番裏（改）"));
 const RENAMED = row1((l) => l.replace("上野公園前交番裏", "上野公園前交番裏（改）"));
+const row1Of = (bytes: Uint8Array) => new TextDecoder().decode(bytes).split("\r\n")[1];
+const moveLatitude = (line: string) => line.split(",").map((v, i) => (i === 9 ? (Number(v) + 0.0001).toFixed(6) : v)).join(",");
+const MOVED_TWO = bytesOf([LINES[0], moveLatitude(LINES[1]), moveLatitude(LINES[2]), ...LINES.slice(3)]);
 const DROPPED = bytesOf([LINES[0], ...LINES.slice(2)]);
 const SECOND = { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-09-18", fetchedAt: "2026-09-25T00:00:00Z" };
 const THIRD = { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-09-20", fetchedAt: "2026-09-26T00:00:00Z" };
@@ -88,6 +91,8 @@ const recordOf = (db: SqliteD1, releaseId: number, ordinal: number) =>
 const entityOf = (db: SqliteD1, recordId: number) =>
   one(db, `SELECT e.source_entity_id, l.spot_id FROM source_record_entities e
     JOIN spot_source_entities l ON l.source_entity_id = e.source_entity_id WHERE e.record_id = ?`, recordId) as { source_entity_id: number; spot_id: string };
+const observationOf = (db: SqliteD1, recordId: number) => one(db,
+  "SELECT observation_id FROM source_observations WHERE record_id = ? AND mapping_version = ?", recordId, PARTIAL_ADAPTER.mappingVersion).observation_id as number;
 const relocations = (db: SqliteD1) => all(db, "SELECT * FROM review_items WHERE kind = 'relocationCandidate' ORDER BY review_item_id");
 
 /** MOVED, reviewed as the same entity, resolved once: one relocationCandidate. */
@@ -166,6 +171,9 @@ test("details_json: coordinates, previous record, identity, versions, fingerprin
   assert.deepEqual(JSON.parse(item.details_json), {
     reason: "a reviewer matched this record to the entity, and its observed coordinate differs from the previous record's; the move is pending relocation review and nothing canonical changed",
     previousRecordId: recordOf(db, firstId, 1),
+    mappingVersion: PARTIAL_ADAPTER.mappingVersion,
+    previousObservationId: observationOf(db, recordOf(db, firstId, 1)),
+    newObservationId: observationOf(db, item.record_id),
     previousCoordinate: previous,
     newCoordinate: next,
     distanceMetres: haversineMeters(previous, next),
@@ -326,9 +334,41 @@ test("schema: a relocationCandidate must name its identity ambiguousMatch item a
   // The unchanged row passes every trigger and meets only the UNIQUE identity.
   assert.throws(() => insertItem(db, item), /UNIQUE/);
 
-  // A newer identity decision (even the same choice) makes the stored decision stale.
+  assert.throws(() => insertItem(db, item, {}, { newObservationId: observationOf(db, recordOf(db, firstId, 1)) }), PREMISE, "another observation row");
+  assert.throws(() => insertItem(db, item, {}, { mappingVersion: "other-mapping.v1" }), PREMISE, "another mapping version");
+  // Re-recording the same choice keeps the premise (creation evidence may be an earlier decision); any
+  // other latest identity decision makes it fail.
   await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
-  assert.throws(() => insertItem(db, item), PREMISE, "stale identity decision");
+  assert.throws(() => insertItem(db, item), /UNIQUE/, "same entity re-decided: premise still holds");
+  await decide(db, itemId, "deferred");
+  assert.throws(() => insertItem(db, item), PREMISE, "identity no longer decided");
+});
+
+test("exact observation binding: an observation under another mapping version never satisfies the premise", async () => {
+  const { db, firstId, secondId, item } = await relocated();
+  const alternate = (recordId: number, latitude: number) => Number(db.raw.prepare(
+    `INSERT INTO source_observations (record_id, release_id, source_id, mapping_version, name, latitude, longitude, supports_paper,
+       supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status, lifecycle_claim, field_provenance_json)
+     SELECT record_id, release_id, source_id, 'alternate-mapping.v1', name, ?, longitude, supports_paper, supports_heated,
+       opening_hours_raw, opening_hours_json, opening_hours_status, lifecycle_claim, field_provenance_json
+     FROM source_observations WHERE observation_id = ?`).run(latitude, observationOf(db, recordId)).lastInsertRowid);
+  const altNew = alternate(recordOf(db, secondId, 1), 35.7199);
+  const altPrevious = alternate(recordOf(db, firstId, 1), 35.7188);
+  // The resolver keeps reading the adapter's mapping: the same accepted candidate, bound to its rows.
+  assert.deepEqual(await resolve(db, PARTIAL_ADAPTER, secondId, RERUN), { status: "needsReview", reviewItemIds: [item.review_item_id] });
+  const details = JSON.parse(relocations(db)[0].details_json);
+  assert.equal(details.mappingVersion, PARTIAL_ADAPTER.mappingVersion);
+  assert.equal(details.newObservationId, observationOf(db, item.record_id));
+  const newCoordinate = { latitude: 35.7199, longitude: 139.77377 };
+  // Forgeries that only an alternate-mapping row matches.
+  assert.throws(() => insertItem(db, item, {}, { newCoordinate }), PREMISE, "alternate coordinate on the adapter's row");
+  assert.throws(() => insertItem(db, item, {}, { newObservationId: altNew, newCoordinate }), PREMISE, "alternate row under the adapter's mapping");
+  assert.throws(() => insertItem(db, item, {}, { mappingVersion: "alternate-mapping.v1", newObservationId: altNew, newCoordinate }), PREMISE,
+    "previous observation is not under the alternate mapping");
+  assert.throws(() => insertItem(db, item, {}, { mappingVersion: "alternate-mapping.v1", newObservationId: altNew, newCoordinate,
+    previousObservationId: altPrevious, previousCoordinate: { latitude: 35.7188, longitude: 139.77377 } }), PREMISE,
+    "both alternate rows: the spot does not hold that previous coordinate");
+  assert.throws(() => insertItem(db, item), /UNIQUE/, "the genuine candidate still passes every trigger");
 });
 
 test("identity re-decided after the candidate: v2 decisions refused against the stale premise; the resolver fails closed", async () => {
@@ -345,16 +385,84 @@ test("identity re-decided after the candidate: v2 decisions refused against the 
   assert.deepEqual(canonical(db), before);
 });
 
-test("identity re-decided to the same entity: the stored candidate no longer matches; refused, nothing written", async () => {
-  const { db, secondId, itemId, item, prior, before } = await relocated();
-  await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
-  await assert.rejects(decide(db, item.review_item_id, "relocationConfirmed"), NOT_VALID);
-  await assert.rejects(resolve(db, PARTIAL_ADAPTER, secondId, RERUN), /differs from this run's candidate/);
+test("identity re-decided to the same entity: the same candidate is kept, its evidence unchanged, v2 decisions still recordable", async () => {
+  const { db, secondId, itemId, item, prior, before, result, identityDecisionId } = await relocated();
+  const redecided = await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
+  assert.ok(redecided > identityDecisionId);
+  assert.deepEqual(await resolve(db, PARTIAL_ADAPTER, secondId, RERUN), result, "same id, no differs error");
+  assert.deepEqual(relocations(db), [item], "no duplicate; the stored item is unchanged");
+  assert.equal(JSON.parse(relocations(db)[0].details_json).identity.reviewDecisionId, identityDecisionId, "creation evidence kept");
+  await decide(db, item.review_item_id, "relocationConfirmed");
+  assert.deepEqual(await resolve(db, PARTIAL_ADAPTER, secondId, RERUN), result, "still not applied");
   assert.deepEqual(canonical(db), before);
-  assert.equal(relocations(db).length, 1);
 });
 
-test("race: a newer identity decision between the resolver's read and the candidate insert aborts the insert", async () => {
+test("identity re-decided as deferred: the old candidate is not actionable; the open ambiguity comes first", async () => {
+  const { db, secondId, itemId, item, before } = await relocated();
+  await decide(db, itemId, "deferred");
+  await assert.rejects(decide(db, item.review_item_id, "relocationConfirmed"), NOT_VALID);
+  assert.deepEqual(await resolve(db, PARTIAL_ADAPTER, secondId, RERUN), { status: "needsReview", reviewItemIds: [itemId] });
+  assert.deepEqual(canonical(db), before);
+});
+
+test("identity re-decided to another entity: old candidates not actionable; the resolver follows the latest identity", async () => {
+  const { db, firstId, secondId, itemIds } = await setup(MOVED_TWO);
+  const [e1, e2] = [1, 2].map((n) => entityOf(db, recordOf(db, firstId, n)).source_entity_id);
+  await decide(db, itemIds[0], "matchedToEntity", e1);
+  await decide(db, itemIds[1], "matchedToEntity", e2);
+  const before = canonical(db);
+  const first = await resolve(db, PARTIAL_ADAPTER, secondId);
+  const old = relocations(db).map((r) => r.review_item_id);
+  assert.deepEqual(first, { status: "needsReview", reviewItemIds: old });
+  await decide(db, itemIds[0], "matchedToEntity", e2);
+  await decide(db, itemIds[1], "matchedToEntity", e1);
+  for (const id of old) await assert.rejects(decide(db, id, "relocationConfirmed"), NOT_VALID);
+  const second = await resolve(db, PARTIAL_ADAPTER, secondId);
+  const fresh = relocations(db).filter((r) => !old.includes(r.review_item_id));
+  assert.deepEqual(second, { status: "needsReview", reviewItemIds: fresh.map((r) => r.review_item_id) });
+  assert.deepEqual(fresh.map((r) => [r.record_id, r.source_entity_id]), [[recordOf(db, secondId, 1), e2], [recordOf(db, secondId, 2), e1]]);
+  assert.deepEqual(canonical(db), before);
+});
+
+test("ordering: an unresolved removal is reviewed before a same-coordinate value change is refused", async () => {
+  // Record 1 renamed (same coordinate, reviewed as its entity), record 2 dropped (complete source).
+  const { db, firstId, secondId, itemIds } = await setup(bytesOf([LINES[0], row1Of(RENAMED), ...LINES.slice(3)]), COMPLETE_ADAPTER);
+  const [e1] = [entityOf(db, recordOf(db, firstId, 1)).source_entity_id];
+  await decide(db, itemIds[0], "matchedToEntity", e1);
+  const before = canonical(db);
+  const result = await resolve(db, COMPLETE_ADAPTER, secondId);
+  const removal = one(db, "SELECT review_item_id FROM review_items WHERE kind = 'removalCandidate'").review_item_id;
+  assert.deepEqual(result, { status: "needsReview", reviewItemIds: [removal] }, "not stopped by the value-update refusal first");
+  assert.deepEqual(canonical(db), before);
+  await decide(db, removal, "removalConfirmed");
+  assert.equal((await applyReviewedRemoval(db, removal, { now: LATER })).status, "applied");
+  await assert.rejects(resolve(db, COMPLETE_ADAPTER, secondId, RERUN), /value update policy is not implemented/);
+  assert.deepEqual(relocations(db), []);
+});
+
+test("race: re-recording the same identity choice between read and insert is safe", async () => {
+  const { db, secondId, itemId, prior } = await setup(MOVED);
+  const identityDecisionId = await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
+  const batch = db.batch.bind(db);
+  let raced = false;
+  db.batch = async (statements: DbStatement[]) => {
+    if (!raced && statements.some((s) => (s as unknown as { values: unknown[] }).values.includes("relocationCandidate"))) {
+      raced = true;
+      db.raw.prepare(`INSERT INTO review_decisions (review_item_id, decision, decision_version, source_entity_id, decided_by, decided_at)
+        VALUES (?, 'matchedToEntity', 'review-decision.v1', ?, ?, ?)`).run(itemId, prior.source_entity_id, REVIEWER, RERUN);
+    }
+    return batch(statements);
+  };
+  const result = await resolve(db, PARTIAL_ADAPTER, secondId);
+  assert.ok(raced);
+  const [item] = relocations(db);
+  assert.deepEqual(result, { status: "needsReview", reviewItemIds: [item.review_item_id] });
+  assert.equal(JSON.parse(item.details_json).identity.reviewDecisionId, identityDecisionId);
+  assert.deepEqual(await resolve(db, PARTIAL_ADAPTER, secondId, RERUN), result);
+  await decide(db, item.review_item_id, "relocationConfirmed");
+});
+
+test("race: an identity decision changing its meaning (deferred) between read and insert aborts the insert", async () => {
   const { db, secondId, itemId, prior } = await setup(MOVED);
   await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
   const before = canonical(db);

@@ -161,7 +161,8 @@ to the new coordinate.
 - The `relocationCandidate` item carries the full comparison in `details_json`. It holds identity
   inputs only, from which the stored `candidate_key` is derived:
   - previous record id, entity id, spot id, and new record id;
-  - old and new coordinate, as copied observation values;
+  - old and new coordinate, as copied observation values, with the exact observation ids and their
+    mapping version;
   - the computed distance in metres, informational only (decision 3);
   - how identity was established: `naturalKey` + `key_version`, or `reviewedMatch` + the
     `ambiguousMatch` item and decision ids;
@@ -271,9 +272,13 @@ Each step is its own issue and PR, and each builds on the previous one:
   `relocationCandidate`, v1 otherwise). Test-only source only.
   **Implemented** (Issue #93, `migrations/0013_relocation_review_candidates.sql`,
   `src/pipeline/relocation.ts`): the item is raised only after its `ambiguousMatch` is decided,
-  its insert trigger re-checks the identity item and its latest decision, the records' stored
-  coordinates, the active / unmerged / unheld spot and the stale comparison, and a v2 decision is
-  refused once the identity decision is superseded. No relocation decision is consumed yet: the
+  its insert trigger re-checks the identity item and its latest decision, the exact observation rows
+  compared (observation ids under one mapping version, so another mapping's row never counts) and
+  their coordinates, the active / unmerged / unheld spot still at the old coordinate, and the stale
+  comparison. `identity.reviewDecisionId` is creation evidence; the item is actionable (v2 decisions
+  accepted, rerun keeps the same item) only while the identity item's latest decision is a v1
+  `matchedToEntity` choosing the same entity, so re-recording that choice keeps the item and any
+  other latest decision makes it not actionable. No relocation decision is consumed yet: the
   release stays `needsReview` while the item exists.
 - **B. Relocation hold step** (0014). `holdRelocationCandidate`: unpublish, then hold, with a hold
   row. Stale-evidence triggers.

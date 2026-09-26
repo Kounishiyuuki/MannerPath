@@ -39,12 +39,18 @@ END;
 -- Re-reads, inside the insert, everything the resolver read to raise the candidate, so a decision
 -- recorded after that read, link or spot drift, or a stale comparison aborts the insert:
 --   identity   the details name an ambiguousMatch item of this exact comparison (source, release,
---              previous release, matcher version) for this record, and its decision: a
---              review-decision.v1 matchedToEntity choosing this entity among the item's candidates,
---              and still the item's latest;
+--              previous release, matcher version) for this record, and a review-decision.v1
+--              matchedToEntity decision of that item choosing this entity among its candidates. That
+--              decision id is creation evidence only: what makes the item actionable is that the
+--              item's LATEST decision is still a v1 matchedToEntity choosing this same entity. Re-recording
+--              the same choice keeps the item; any other latest decision (another entity, confirmedNew,
+--              deferred) makes it not actionable, and an insert racing with such a decision aborts;
 --   previous   the previous record is the entity's record in the previous release;
---   coordinate the copied coordinates are the two records' stored observation coordinates, and they
---              differ by exact numeric equality (no tolerance, ADR-0009 decision 3);
+--   coordinate the details name the exact observation rows the resolver compared (observation id,
+--              record, release, source and the one mapping version both were read under), their stored
+--              coordinates are the copied ones and differ by exact numeric equality (no tolerance,
+--              ADR-0009 decision 3), and the spot still holds the previous coordinate. An observation of
+--              the same record under another mapping version is never used;
 --   spot       the entity is linked to this spot, which is active, unmerged and not held (a held spot
 --              is not relocated in v1; its hold is never overwritten here);
 --   versions   relocation-policy.v1 with no threshold, the item's matcher version, and the previous
@@ -71,24 +77,36 @@ WHEN NEW.kind = 'relocationCandidate' AND NOT (
       AND NEW.source_entity_id IN (SELECT value FROM json_each(i.details_json, '$.candidateEntityIds'))
       AND d.decision = 'matchedToEntity' AND d.decision_version = 'review-decision.v1'
       AND d.source_entity_id = NEW.source_entity_id
-      AND d.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id))
+      AND EXISTS (SELECT 1 FROM review_decisions latest
+        WHERE latest.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id)
+          AND latest.decision = 'matchedToEntity' AND latest.decision_version = 'review-decision.v1'
+          AND latest.source_entity_id = NEW.source_entity_id))
   AND json_type(NEW.details_json, '$.previousRecordId') = 'integer'
   AND EXISTS (SELECT 1 FROM source_record_entities e
     WHERE e.record_id = json_extract(NEW.details_json, '$.previousRecordId')
       AND e.release_id = NEW.previous_release_id AND e.source_entity_id = NEW.source_entity_id)
+  AND json_type(NEW.details_json, '$.mappingVersion') = 'text'
+  AND json_type(NEW.details_json, '$.previousObservationId') = 'integer'
+  AND json_type(NEW.details_json, '$.newObservationId') = 'integer'
   AND EXISTS (SELECT 1 FROM source_observations o
-    WHERE o.record_id = json_extract(NEW.details_json, '$.previousRecordId') AND o.release_id = NEW.previous_release_id
+    WHERE o.observation_id = json_extract(NEW.details_json, '$.previousObservationId')
+      AND o.record_id = json_extract(NEW.details_json, '$.previousRecordId') AND o.release_id = NEW.previous_release_id
+      AND o.source_id = NEW.source_id AND o.mapping_version = json_extract(NEW.details_json, '$.mappingVersion')
       AND o.latitude = json_extract(NEW.details_json, '$.previousCoordinate.latitude')
       AND o.longitude = json_extract(NEW.details_json, '$.previousCoordinate.longitude'))
   AND EXISTS (SELECT 1 FROM source_observations o
-    WHERE o.record_id = NEW.record_id AND o.release_id = NEW.release_id
+    WHERE o.observation_id = json_extract(NEW.details_json, '$.newObservationId')
+      AND o.record_id = NEW.record_id AND o.release_id = NEW.release_id
+      AND o.source_id = NEW.source_id AND o.mapping_version = json_extract(NEW.details_json, '$.mappingVersion')
       AND o.latitude = json_extract(NEW.details_json, '$.newCoordinate.latitude')
       AND o.longitude = json_extract(NEW.details_json, '$.newCoordinate.longitude'))
   AND NOT (json_extract(NEW.details_json, '$.previousCoordinate.latitude') = json_extract(NEW.details_json, '$.newCoordinate.latitude')
     AND json_extract(NEW.details_json, '$.previousCoordinate.longitude') = json_extract(NEW.details_json, '$.newCoordinate.longitude'))
   AND EXISTS (SELECT 1 FROM spot_source_entities l JOIN spots s ON s.spot_id = l.spot_id
     WHERE l.source_entity_id = NEW.source_entity_id AND l.spot_id = NEW.spot_id
-      AND s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL)
+      AND s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
+      AND s.latitude = json_extract(NEW.details_json, '$.previousCoordinate.latitude')
+      AND s.longitude = json_extract(NEW.details_json, '$.previousCoordinate.longitude'))
   AND EXISTS (SELECT 1 FROM source_releases p WHERE p.release_id = NEW.previous_release_id
     AND p.source_id = NEW.source_id AND p.status = 'applied' AND p.is_current = 1
     AND p.content_sha256 IS json_extract(NEW.details_json, '$.previousReleaseContentSha256'))
@@ -106,8 +124,9 @@ END;
 
 DROP TRIGGER review_decisions_valid;
 
--- v1: exactly 0009's semantics, on the kinds 0009 knew. v2: only a relocationCandidate, only while
--- the identity decision it was raised from is still the latest decision of its ambiguousMatch item.
+-- v1: exactly 0009's semantics, on the kinds 0009 knew. v2: only a relocationCandidate, only while its
+-- identity ambiguousMatch item's latest decision is still a v1 matchedToEntity choosing the item's entity
+-- (the same meaning as when it was raised; the decision id may be a later re-recording of it).
 CREATE TRIGGER review_decisions_valid
 BEFORE INSERT ON review_decisions
 WHEN NOT EXISTS (
@@ -124,8 +143,11 @@ WHEN NOT EXISTS (
   ))
   OR (NEW.decision_version = 'review-decision.v2' AND i.kind = 'relocationCandidate'
     AND NEW.decision IN ('relocationConfirmed', 'relocationRejected', 'deferred') AND NEW.source_entity_id IS NULL
-    AND json_extract(i.details_json, '$.identity.reviewDecisionId') = (SELECT max(review_decision_id) FROM review_decisions
-      WHERE review_item_id = json_extract(i.details_json, '$.identity.reviewItemId'))))
+    AND EXISTS (SELECT 1 FROM review_decisions latest
+      WHERE latest.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions
+          WHERE review_item_id = json_extract(i.details_json, '$.identity.reviewItemId'))
+        AND latest.decision = 'matchedToEntity' AND latest.decision_version = 'review-decision.v1'
+        AND latest.source_entity_id = i.source_entity_id)))
 )
 BEGIN
   SELECT RAISE(ABORT, 'review_decisions: decision is not valid for this review item');
