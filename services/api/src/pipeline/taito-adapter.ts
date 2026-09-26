@@ -53,4 +53,7 @@ export const TAITO_ADAPTER: SourceAdapter = {
   // Only one real Taito release exists in the repository (20260818), so the matcher has not been
   // validated on two real releases of this source.
   crossReleaseValidated: false,
+  // docs/SOURCES.md reviews Taito's license and scope but not that its list is exhaustive for the
+  // ward, and DATA_POLICY assumes no source complete; so a Taito disappearance is never removal evidence.
+  completeness: "partial",
 };

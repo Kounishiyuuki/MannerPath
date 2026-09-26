@@ -2,7 +2,8 @@
 
 Status: Accepted (2026-09, Issue #68, tracker #67). Decision 1 (the SourceAdapter boundary) is
 implemented by this ADR's PR, decision 2 (source observations) by Issue #73 and the matcher engine of
-decision 3 by Issue #78 (its production gate stays closed); every other decision fixes a boundary that later issues implement
+decision 3 by Issue #78 (its production gate stays closed), and the review queue and completeness
+parts of decisions 5 and 8 by Issue #80 (no removal or relocation is applied yet); every other decision fixes a boundary that later issues implement
 and may not silently change.
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
@@ -54,11 +55,11 @@ first adapter (`src/pipeline/taito-adapter.ts`), wiring the unchanged rules in `
 `taito-list-page.ts`.
 
 **Completeness semantics** (whether a source is complete for its scope, so that disappearance is
-removal evidence) is part of an adapter's reviewed contract but is not an interface member yet:
-nothing consumes it until removal / relocation (decision 5). It is added there, per source; a
-missing or undeclared value means *partial* — disappearance from a partial source never implies
-removal, and nothing defaults to complete. Cross-release matching (decision 3, Issue #78) does not
-add it.
+removal evidence) is part of an adapter's reviewed contract: `SourceAdapter.completeness`,
+`partial` | `complete` (Issue #80). A missing or undeclared value means *partial* — disappearance
+from a partial source never implies removal, and nothing defaults to complete. `complete` is set
+only from reviewed publisher evidence that the list is exhaustive for the scope; Taito declares
+`partial`, because its review (`docs/SOURCES.md`) does not establish that.
 
 Parity rule: an adapter extraction or re-plumbing must keep the golden output
 (`services/api/test/golden-parity.test.ts`) byte-identical. An intended output change regenerates
@@ -134,16 +135,17 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
   coordinate-proximity threshold exists. It needs that threshold reviewed (ADR amendment/issue).
 - `new`: an unmatched record while no previous entity is left unmatched.
 - Ambiguous (duplicate keys on either side, or an unmatched record while previous entities remain
-  unmatched — an edit and an add + remove are indistinguishable without a natural key): the whole
-  release is refused with no canonical write; never guessed, never a silent new entity.
-- An unmatched previous entity (disappearance candidate) also refuses the release: nothing is
-  removed, moved or held here (decision 5). Carrying attenuations across releases is not
+  unmatched — an edit and an add + remove are indistinguishable without a natural key): the release
+  is not applied and gets no canonical write; never guessed, never a silent new entity. Since Issue
+  #80 each ambiguous record is stored as a review item and the resolver returns `needsReview`
+  (decision 8) instead of throwing.
+- An unmatched previous entity (disappearance candidate) likewise leaves the release unapplied, with
+  a review item: nothing is removed, moved or held here (decision 5). Carrying attenuations across releases is not
   implemented, so a matched spot that is attenuated, held or merged refuses the release too.
 - Gate: `SourceAdapter.crossReleaseValidated`. `TAITO_ADAPTER` keeps it `false` — the repository
   has one real Taito release; the tests' second releases are artificial fixtures under a test-only
   source and do not count as the two-real-release validation.
-- Completeness semantics is not an adapter member in this step (see decision 1): it arrives with
-  removal / relocation (decision 5), absent = *partial*.
+- Completeness semantics arrived with Issue #80 (see decision 1); the matcher itself does not read it.
 - The promotion bundle still carries one release per source; multi-release promotion is decision 7.
 
 ### 4. Cross-source matching (boundary)
@@ -160,6 +162,14 @@ records are not mixed until the OSM ADR (decision 11) decides how.
 - A large coordinate movement of a matched entity (threshold per adapter, reviewed) is a
   relocation candidate: the spot is held (`publication_hold`) until reviewed, never silently moved.
 - Large record-count drops and schema changes stop automatic application (strategy §7).
+
+As implemented (Issue #80): an unmatched previous entity becomes a review item of kind
+`disappearance` for a partial source (not removal evidence; the schema refuses a
+`removalConfirmed` decision on it) or `removalCandidate` for a complete one, citing the entity,
+its spot, both releases, the completeness and the matcher version. **Not implemented:** applying a
+removal (`lifecycle = removed`), relocation detection (needs a reviewed natural key and distance
+threshold) and relocation holds, and the record-count / schema-change stop. No candidate changes a
+spot, its lifecycle, coordinates, hold, provenance or the release state.
 
 ### 6. Generic attenuation (boundary, partly implemented)
 
@@ -182,6 +192,30 @@ Ambiguous cross-release matches, cross-source duplicate candidates, relocation c
 completeness-based removals and schema changes are written to an explicit review queue table and
 held from automatic effect until a reviewed decision is recorded (who/when/decision/version).
 Review decisions are evidence records, not edits of canonical rows.
+
+As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/review-queue.ts`):
+
+- `review_items` (append-only): source, release + `content_sha256`, previous release, kind,
+  matcher version, source completeness, involved record / entity / spot, `details_json`
+  (reason, candidate entity ids, previous record), `created_at`. The schema refuses involved
+  entities that the previous release did not record for this source, an empty, non-integer or
+  duplicated candidate list, and a spot that is not the entity's `spot_source_entities` link;
+  candidate spots are read from that table, not copied. Identity is
+  `(source, release, previous release, matcher version, kind, candidate_key)`, where the key is
+  derived from the involved ids only, so re-processing a release returns the same items; a stored
+  item whose details differ from a re-run is refused loudly. Kinds: `ambiguousMatch`,
+  `disappearance`, `removalCandidate`; relocation, cross-source duplicate and schema-change kinds
+  are added later by replacing the kind trigger, not by rebuilding the table.
+- `review_decisions` (append-only): item, decision, `decision_version` (`review-decision.v1`),
+  chosen entity for `matchedToEntity`, `decided_by`, `decided_at`, note. Decisions valid per kind
+  and the only known `decision_version` are enforced by the schema (a v2 replaces the trigger in its
+  migration). An item is open while it has no decision; its **latest decision is the one with the
+  largest `review_decision_id`** for that item. `decided_at` is evidence of when, never precedence.
+  `recordReviewDecision` returns its own row's id via `INSERT … RETURNING`.
+- The resolver stores the candidates and returns `{ status: "needsReview", reviewItemIds }`; the
+  release stays `ingested`, and no match key or canonical row is written.
+- **Not implemented:** an executor that applies decisions to canonical rows. Until it exists a
+  recorded decision has no effect, and a release under review stays unapplied.
 
 ### 9. Source fingerprint (boundary, partly implemented)
 

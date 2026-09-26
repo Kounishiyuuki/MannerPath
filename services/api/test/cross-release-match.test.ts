@@ -166,18 +166,20 @@ test("match key rows are immutable", async () => {
   assert.throws(() => db.raw.prepare("DELETE FROM source_record_match_keys").run(), /immutable/);
 });
 
-for (const [label, lines, pattern] of [
+for (const [label, lines, kind] of [
   // A changed name: an edit and an add + remove cannot be told apart without a reviewed natural key.
-  ["a changed record is ambiguous", [LINES[0], LINES[1].replace("上野公園前交番裏", "上野公園前交番裏（改）"), ...LINES.slice(2)], /ambiguous/],
+  ["a changed record is ambiguous", [LINES[0], LINES[1].replace("上野公園前交番裏", "上野公園前交番裏（改）"), ...LINES.slice(2)], "ambiguousMatch"],
   // A dropped record: disappearance is never applied without completeness and review.
-  ["a disappeared record is refused", [LINES[0], ...LINES.slice(2)], /unmatched .*disappearance is not applied/],
+  ["a disappeared record waits for review", [LINES[0], ...LINES.slice(2)], "disappearance"],
 ] as const) {
-  test(`${label}: fail closed, nothing canonical written, no new entity`, async () => {
+  test(`${label}: review item only, nothing canonical written, no new entity`, async () => {
     const db = freshDb();
     await applyFirst(db);
     const secondId = await ingestSecond(db, bytesOf([...lines]));
     const before = snapshot(db);
-    await assert.rejects(resolveSecond(db, secondId), pattern);
+    const result = await resolveSecond(db, secondId);
+    assert.equal(result.status, "needsReview");
+    assert.deepEqual(all(db, "SELECT kind FROM review_items"), [{ kind }]);
     const after = snapshot(db);
     assert.deepEqual(after, before);
     assert.equal(one(db, "SELECT status FROM source_releases WHERE release_id = ?", secondId).status, "ingested");

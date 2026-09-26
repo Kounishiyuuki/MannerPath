@@ -480,6 +480,8 @@
     "report_moderation": [],
     "report_rate_windows": [],
     "reports": [],
+    "review_decisions": [],
+    "review_items": [],
     "source_entities": [
       {
         "source_entity_id": 1,

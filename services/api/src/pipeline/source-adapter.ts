@@ -63,6 +63,12 @@ export interface AttenuationReference {
   checkedAt: string;
 }
 
+/**
+ * Whether the source lists every place in its scope (ADR-0008 decisions 1 and 5). Only a `complete`
+ * source's disappearance is removal evidence; `partial` is the default and never implies removal.
+ */
+export type SourceCompleteness = "partial" | "complete";
+
 export interface SourceAdapter {
   /** Reviewed registry entry (docs/SOURCES.md). The adapter's source id is `registry.sourceId`. */
   registry: ReviewedSource;
@@ -92,4 +98,13 @@ export interface SourceAdapter {
    * (ADR-0008 decision 3); until then a second release is refused before anything is written.
    */
   crossReleaseValidated: boolean;
+  /**
+   * Reviewed completeness for the registry entry's scope. Absent means `partial`; `complete` is set
+   * only from reviewed publisher evidence that the list is exhaustive, never inferred.
+   */
+  completeness?: SourceCompleteness;
+}
+
+export function sourceCompleteness(adapter: SourceAdapter): SourceCompleteness {
+  return adapter.completeness ?? "partial";
 }
