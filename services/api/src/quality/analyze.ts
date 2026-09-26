@@ -57,7 +57,7 @@ function rate(unknown: number, total: number): number | null {
 const EARTH_RADIUS_M = 6_371_008.8;
 
 /** Great-circle distance in metres (haversine). Deterministic; no projection, no datum shift. */
-function haversineMeters(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {
+export function haversineMeters(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {
   const toRad = Math.PI / 180;
   const dLat = (b.latitude - a.latitude) * toRad;
   const dLon = (b.longitude - a.longitude) * toRad;

@@ -6,10 +6,15 @@ import { type Db } from "../db.ts";
 import type { AmbiguousRecord, PreviousRecord } from "./match.ts";
 import type { SourceCompleteness } from "./source-adapter.ts";
 
+/** The vocabulary of ambiguousMatch, disappearance and removalCandidate decisions. */
 export const REVIEW_DECISION_VERSION = "review-decision.v1";
+/** The vocabulary of relocationCandidate decisions (ADR-0009); v1 is never valid on that kind. */
+export const RELOCATION_REVIEW_DECISION_VERSION = "review-decision.v2";
 
-export type ReviewItemKind = "ambiguousMatch" | "disappearance" | "removalCandidate";
-export type ReviewDecision = "matchedToEntity" | "confirmedNew" | "removalConfirmed" | "removalRejected" | "deferred";
+export type ReviewItemKind = "ambiguousMatch" | "disappearance" | "removalCandidate" | "relocationCandidate";
+export type ReviewDecision =
+  | "matchedToEntity" | "confirmedNew" | "removalConfirmed" | "removalRejected" | "deferred"
+  | "relocationConfirmed" | "relocationRejected";
 
 export interface CandidateContext {
   sourceId: string;
@@ -20,7 +25,7 @@ export interface CandidateContext {
   completeness: SourceCompleteness;
 }
 
-interface ReviewItemRow {
+export interface ReviewItemRow {
   kind: ReviewItemKind;
   candidateKey: string;
   recordId: number | null;
@@ -113,17 +118,19 @@ export interface ReviewDecisionInput {
 
 /**
  * Records a reviewer's decision as evidence. The item's latest decision is its largest
- * review_decision_id; decided_at never decides precedence. It is validated against the item by the schema and
- * changes nothing else: no spot, link, provenance, hold or release state.
+ * review_decision_id; decided_at never decides precedence. It is stored under the vocabulary version of
+ * the item's kind (v2 for a relocationCandidate, v1 otherwise), validated against the item by the schema,
+ * and changes nothing else: no spot, link, provenance, hold or release state. A relocationConfirmed
+ * decision in particular moves no coordinate; only a later reviewed application may.
  */
 export async function recordReviewDecision(db: Db, input: ReviewDecisionInput): Promise<number> {
   // RETURNING yields the id of this statement's own row, even with concurrent decisions on the item.
   const row = await db.prepare(
     `INSERT INTO review_decisions (review_item_id, decision, decision_version, source_entity_id, decided_by, decided_at, note)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
+     VALUES (?, ?, CASE (SELECT kind FROM review_items WHERE review_item_id = ?) WHEN 'relocationCandidate' THEN ? ELSE ? END, ?, ?, ?, ?)
      RETURNING review_decision_id`,
-  ).bind(input.reviewItemId, input.decision, REVIEW_DECISION_VERSION, input.sourceEntityId ?? null,
-    input.decidedBy, input.decidedAt, input.note ?? null).first<{ review_decision_id: number }>();
+  ).bind(input.reviewItemId, input.decision, input.reviewItemId, RELOCATION_REVIEW_DECISION_VERSION, REVIEW_DECISION_VERSION,
+    input.sourceEntityId ?? null, input.decidedBy, input.decidedAt, input.note ?? null).first<{ review_decision_id: number }>();
   if (!row) throw new Error(`review queue: decision ${input.decision} on item ${input.reviewItemId} returned no row`);
   return row.review_decision_id;
 }

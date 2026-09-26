@@ -8,11 +8,12 @@
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
-import { CROSS_RELEASE_MATCHER_VERSION, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
+import { CROSS_RELEASE_MATCHER_VERSION, type PreviousRecord, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
 import { type StoredObservation, observeRelease } from "./observe.ts";
-import { crossReleaseCandidates, persistReviewItems } from "./review-queue.ts";
+import { relocationCandidate, sameCoordinate } from "./relocation.ts";
+import { type CandidateContext, crossReleaseCandidates, persistReviewItems } from "./review-queue.ts";
 import {
-  type AmbiguousReview, REVIEW_MATCH_APPLICATION_VERSION, REVIEW_REMOVAL_RESOLUTION_VERSION, type RemovalReview, type ResolvedPreviousEntities,
+  type AmbiguousReview, type EffectiveDecision, REVIEW_MATCH_APPLICATION_VERSION, REVIEW_REMOVAL_RESOLUTION_VERSION, type RemovalReview, type ResolvedPreviousEntities,
   ReviewedMatchError, planReviewedMatch, resolvePreviousEntities,
 } from "./reviewed-match.ts";
 import { type FieldAttenuation, type SourceAdapter, type SourceObservation, sourceCompleteness } from "./source-adapter.ts";
@@ -200,7 +201,10 @@ function newSpotStatements(
  * continued by a record or its spot was removed by an applied reviewed removal (audited in
  * review_removal_resolutions in the same batch; the resolver itself never removes): otherwise the open ambiguous records and unresolved previous entities
  * (disappearance candidates; removal candidates only for a complete source, decision 5) are stored
- * in the review queue (ADR-0008 decision 8) and the release stays ingested.
+ * in the review queue (ADR-0008 decision 8) and the release stays ingested. Once every ambiguous record
+ * is decided, a reviewed match whose coordinate changed is stored as a relocationCandidate (ADR-0009)
+ * and keeps the release ingested too, whatever that item's own decision: applying a relocation is not
+ * implemented, so no coordinate, hold, link, provenance or release state is written for it.
  *
  * A matched record keeps its entity and its spot: the spot id, created_at and link never change.
  * Only the evidence moves to the new record: provenance cites it and last_verified_at becomes its
@@ -259,18 +263,23 @@ async function resolveNextRelease(
     : [];
   const removalReviews = await readRemovalReviews(db, residualIds);
   const previousEntities: ResolvedPreviousEntities = resolvePreviousEntities(effective, removalReviews);
-  if (effective.openReviewItemIds.length > 0 || previousEntities.unresolved.length > 0) {
+  // An open ambiguity is answered first: relocation needs the identity it would establish.
+  if (effective.openReviewItemIds.length > 0) return { status: "needsReview", reviewItemIds: effective.openReviewItemIds };
+
+  const previousByRecord = new Map(previous.map((p) => [p.recordId, p]));
+  const previousObservationByRecord = new Map(previousObservations.map((o) => [o.recordId, o.observation]));
+  const observationByRecord = new Map(observations.map((o) => [o.recordId, o]));
+  const relocationItemIds = await persistRelocationCandidates(db, ctx, effective.decisions, previousByRecord, previousObservationByRecord,
+    observationByRecord, current, now);
+  if (relocationItemIds.length > 0 || previousEntities.unresolved.length > 0) {
     const unresolvedItemIds = removalReviews.filter((r) => previousEntities.unresolved.includes(r.sourceEntityId)).map((r) => r.reviewItemId);
-    return { status: "needsReview", reviewItemIds: [...effective.openReviewItemIds, ...unresolvedItemIds] };
+    return { status: "needsReview", reviewItemIds: [...unresolvedItemIds, ...relocationItemIds] };
   }
   if (effective.decisions.some((d) => d.method === "reviewed_match" || d.method === "reviewed_new")
     || previousEntities.resolvedByReviewedRemoval.length > 0) {
     await assertNoCompetingRelease(db, release.source_id, releaseId, current);
   }
 
-  const previousByRecord = new Map(previous.map((p) => [p.recordId, p]));
-  const previousObservationByRecord = new Map(previousObservations.map((o) => [o.recordId, o.observation]));
-  const observationByRecord = new Map(observations.map((o) => [o.recordId, o]));
   const statements = [...matchKeyStatements(db, [...previous, ...next].map((r) => r.recordId), now)];
   const spotIds: string[] = [];
   // Written before the decision it audits: its trigger re-checks, inside the batch, that the decision
@@ -294,7 +303,6 @@ async function resolveNextRelease(
     }
     const prior = previousByRecord.get(decision.previousRecordId)!;
     const previousObservation = previousObservationByRecord.get(prior.recordId);
-    if (decision.method === "reviewed_match") await assertReviewedMatchKeepsValues(db, prior.spotId, record, previousObservation);
     await assertEvidenceCanMove(db, adapter, prior.spotId, prior.recordId, record, previousObservation);
     spotIds.push(prior.spotId);
     if (decision.method === "reviewed_match") statements.push(application(decision, "matchedToEntity", decision.sourceEntityId));
@@ -331,6 +339,48 @@ async function resolveNextRelease(
   await db.batch(statements);
   return { status: "resolved", spotIds };
 }
+
+/**
+ * Checks every reviewed match before anything is applied. One whose coordinate is unchanged must keep
+ * every value (assertReviewedMatchKeepsValues); one whose coordinate changed becomes a relocationCandidate
+ * item, stored as review state only, and its ids are returned. Its spot must be active, unmerged and not
+ * held: a held spot is refused (carry-forward is not implemented) and its hold is left as it is.
+ */
+async function persistRelocationCandidates(
+  db: Db, ctx: CandidateContext, decisions: readonly EffectiveDecision[], previousByRecord: ReadonlyMap<number, PreviousRecord>,
+  previousObservationByRecord: ReadonlyMap<number, SourceObservation>, observationByRecord: ReadonlyMap<number, StoredObservation>,
+  current: { release_id: number; observed_on: string | null }, now: string,
+): Promise<number[]> {
+  const items = [];
+  for (const d of decisions) {
+    if (d.method !== "reviewed_match") continue;
+    const prior = previousByRecord.get(d.previousRecordId)!;
+    const record = observationByRecord.get(d.recordId)!;
+    const previousObservation = previousObservationByRecord.get(prior.recordId);
+    if (!previousObservation || sameCoordinate(previousObservation, record.observation)) {
+      await assertReviewedMatchKeepsValues(db, prior.spotId, record, previousObservation);
+      continue;
+    }
+    const spot = await db.prepare("SELECT lifecycle, merged_into, publication_hold FROM spots WHERE spot_id = ?")
+      .bind(prior.spotId).first<{ lifecycle: string; merged_into: string | null; publication_hold: string | null }>();
+    if (!spot || spot.lifecycle !== "active" || spot.merged_into !== null) {
+      throw new ReviewedMatchError(`resolve: record ${record.recordId} is reviewed as spot ${prior.spotId} at another coordinate, but the spot is ${spot?.lifecycle ?? "missing"}${spot?.merged_into ? ", merged" : ""}; a relocation needs an active, unmerged spot`);
+    }
+    if (spot.publication_hold !== null) {
+      throw new ReviewedMatchError(`resolve: record ${record.recordId} is reviewed as spot ${prior.spotId} at another coordinate, but the spot is held (${spot.publication_hold}); carry-forward is not implemented`);
+    }
+    items.push(relocationCandidate({
+      recordId: record.recordId, sourceEntityId: d.sourceEntityId, spotId: prior.spotId, previousRecordId: prior.recordId,
+      reviewItemId: d.reviewItemId, reviewDecisionId: d.reviewDecisionId, previous: previousObservation, next: record.observation,
+    }, ctx.matcherVersion, await previousContentSha256(db, ctx.previousReleaseId)));
+  }
+  if (items.length === 0) return [];
+  await assertNoCompetingRelease(db, ctx.sourceId, ctx.releaseId, current);
+  return persistReviewItems(db, ctx, items, now);
+}
+
+const previousContentSha256 = async (db: Db, releaseId: number) =>
+  (await db.prepare("SELECT content_sha256 FROM source_releases WHERE release_id = ?").bind(releaseId).first<{ content_sha256: string }>())!.content_sha256;
 
 /** The stored ambiguousMatch items `ids` with their latest decision (largest review_decision_id). */
 async function readAmbiguousReviews(db: Db, ids: readonly number[]): Promise<AmbiguousReview[]> {
@@ -414,9 +464,9 @@ async function assertNoCompetingRelease(db: Db, sourceId: string, releaseId: num
 
 /**
  * A reviewed match says the record continues the entity; it does not approve new values. Only a
- * match whose observation is unchanged moves evidence. A changed coordinate is a relocation, and any
- * other changed value needs a value update policy; neither exists yet, so both are refused. A removed
- * or merged spot is never revived by a match.
+ * match whose observation is unchanged moves evidence. A changed coordinate is a relocation candidate
+ * (persistRelocationCandidates), never applied here, and any other changed value needs a value update
+ * policy, which does not exist yet; both are refused. A removed or merged spot is never revived by a match.
  */
 async function assertReviewedMatchKeepsValues(db: Db, spotId: string, record: StoredObservation, previous: SourceObservation | undefined) {
   const spot = await db.prepare("SELECT lifecycle, merged_into FROM spots WHERE spot_id = ?")

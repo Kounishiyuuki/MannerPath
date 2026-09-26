@@ -1,8 +1,8 @@
 # ADR-0009 — Relocation and natural-key policy
 
-Status: Accepted (2026-09, Issue #91, tracker #67). **Design only:** nothing here is
-implemented. It fixes the rules that the follow-up issues listed under "Implementation plan"
-implement. It amends ADR-0008 decisions 3, 5, 8 and 10 and replaces none of them. ADR-0006
+Status: Accepted (2026-09, Issue #91, tracker #67). Implemented so far: step A only (Issue #93,
+candidate detection and review vocabulary); steps B–E are not implemented. It fixes the rules that
+the follow-up issues listed under "Implementation plan" implement. It amends ADR-0008 decisions 3, 5, 8 and 10 and replaces none of them. ADR-0006
 decision 6 (`publication_hold` is an axis, not lifecycle) and decision 11 (unpublish first) are kept.
 
 ## Context
@@ -269,6 +269,12 @@ Each step is its own issue and PR, and each builds on the previous one:
   (`needsReview`) instead of throwing. It writes no canonical row. The schema and
   `recordReviewDecision` accept the decision version that fits the kind (v2 for
   `relocationCandidate`, v1 otherwise). Test-only source only.
+  **Implemented** (Issue #93, `migrations/0013_relocation_review_candidates.sql`,
+  `src/pipeline/relocation.ts`): the item is raised only after its `ambiguousMatch` is decided,
+  its insert trigger re-checks the identity item and its latest decision, the records' stored
+  coordinates, the active / unmerged / unheld spot and the stale comparison, and a v2 decision is
+  refused once the identity decision is superseded. No relocation decision is consumed yet: the
+  release stays `needsReview` while the item exists.
 - **B. Relocation hold step** (0014). `holdRelocationCandidate`: unpublish, then hold, with a hold
   row. Stale-evidence triggers.
 - **C. Reviewed relocation application** (0015). `applyReviewedRelocation`, and the resolver

@@ -302,7 +302,9 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
   batch. An item and a decision are applied at most once, so another decision cannot be
   substituted; a re-run of an applied release is `alreadyApplied`. A `manual`
   `source_record_entities` row cannot be inserted without its application row.
-  **Not implemented:** relocation, value-update policy for a reviewed match, carrying a
+  A reviewed match whose coordinate changed is raised as a `relocationCandidate` (ADR-0009 step A,
+  Issue #93) and the release stays `needsReview`. **Not implemented:** relocation hold and
+  application, value-update policy for a reviewed match, carrying a
   partial `disappearance` or a `removalRejected` entity forward into release application (such a
   release stays `needsReview`), restoring removed spots. An applied removal is consumed by the
   resolver since Issue #89 (decision 3, `review_removal_resolutions`).
