@@ -295,15 +295,31 @@ async function assertEvidenceCanMove(
     throw new Error(`resolve: record ${record.recordId} would be attenuated; carrying attenuations across releases is not implemented`);
   }
   const spot = await db.prepare(
-    `SELECT s.merged_into, s.publication_hold,
+    `SELECT s.*,
        (SELECT count(*) FROM spot_field_attenuations a WHERE a.spot_id = s.spot_id) AS attenuations,
        (SELECT count(*) FROM spot_field_provenance p WHERE p.spot_id = s.spot_id AND p.record_id <> ?) AS foreign_provenance
      FROM spots s WHERE s.spot_id = ?`,
-  ).bind(previousRecordId, spotId).first<{ merged_into: string | null; publication_hold: string | null; attenuations: number; foreign_provenance: number }>();
-  if (!spot || spot.merged_into !== null || spot.publication_hold !== null || spot.attenuations > 0) {
+  ).bind(previousRecordId, spotId).first<Record<string, unknown>>();
+  if (!spot || spot.merged_into !== null || spot.publication_hold !== null || (spot.attenuations as number) > 0) {
     throw new Error(`resolve: spot ${spotId} is merged, held or attenuated; its evidence is not moved automatically`);
   }
-  if (spot.foreign_provenance > 0) {
+  // The new record may only become the evidence of the values it supports: the canonical row must
+  // still be exactly what this observation resolves to. Anything else is canonical drift.
+  const r = resolveObservation(record.observation, []);
+  const tile = tileForCoordinate(r.latitude, r.longitude, DATA_TILE_ZOOM);
+  const expected: Record<string, unknown> = {
+    name: r.name, latitude: r.latitude, longitude: r.longitude,
+    supports_paper: r.supportsPaper, supports_heated: r.supportsHeated,
+    opening_hours_raw: r.openingHours.raw,
+    opening_hours_json: r.openingHours.parsed ? JSON.stringify(r.openingHours.parsed) : null,
+    opening_hours_status: r.openingHours.status, lifecycle: r.lifecycle, publication_hold: r.publicationHold,
+    tile_z: tile.z, tile_x: tile.x, tile_y: tile.y, tile_id: formatTileId(tile),
+  };
+  const drifted = Object.keys(expected).filter((k) => spot[k] !== expected[k]);
+  if (drifted.length > 0) {
+    throw new Error(`resolve: spot ${spotId} canonical drift in ${drifted.join(", ")}; record ${record.recordId} does not support its values`);
+  }
+  if ((spot.foreign_provenance as number) > 0) {
     throw new Error(`resolve: spot ${spotId} has provenance from another record than ${previousRecordId}`);
   }
 }

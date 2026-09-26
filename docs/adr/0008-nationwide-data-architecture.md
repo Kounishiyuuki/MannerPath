@@ -55,8 +55,10 @@ first adapter (`src/pipeline/taito-adapter.ts`), wiring the unchanged rules in `
 
 **Completeness semantics** (whether a source is complete for its scope, so that disappearance is
 removal evidence) is part of an adapter's reviewed contract but is not an interface member yet:
-nothing consumes it until cross-release matching (decision 3). It is added there, per source,
-defaulting to *partial* — disappearance from a partial source never implies removal.
+nothing consumes it until removal / relocation (decision 5). It is added there, per source; a
+missing or undeclared value means *partial* — disappearance from a partial source never implies
+removal, and nothing defaults to complete. Cross-release matching (decision 3, Issue #78) does not
+add it.
 
 Parity rule: an adapter extraction or re-plumbing must keep the golden output
 (`services/api/test/golden-parity.test.ts`) byte-identical. An intended output change regenerates
@@ -108,8 +110,11 @@ As implemented (migration `0008_source_observations.sql`, `src/pipeline/observe.
 
 A new release of the same source is matched to the previous release's source entities by a
 versioned matcher that records every decision in `source_record_entities` / `source_record_match_keys`
-(`method`, `matcher_version`, note). Match keys come from the adapter (publisher row id only when the
-source is reviewed as stable-keyed; otherwise name + coordinate proximity). Ambiguous matches go to
+(`method`, `matcher_version`, note). Match keys are versioned and have two origins: the generic
+raw-identical key is the record's `raw_sha256`, derived by the generic matcher for every source; a
+source-specific natural key (publisher row id only when the source is reviewed as stable-keyed;
+otherwise name + coordinate proximity) comes from the adapter, and only once a reviewed policy for
+that source exists. Ambiguous matches go to
 the review queue (decision 8); they are never auto-resolved. The current first-release refusal
 stays until a matcher is validated on two real releases of the same source.
 
@@ -122,7 +127,9 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
   spot (`spot_id`, `created_at` and the `spot_source_entities` link never change). Only evidence
   moves: provenance cites the new record, `last_verified_at` becomes the new `observed_on` (which
   must be newer than the current release's), `updated_at` is the application time. The values
-  re-derive identically by construction and are asserted to.
+  re-derive identically by construction and are asserted to; the current canonical row must also
+  equal what the new observation resolves to (name, coordinate, tile, tobacco support, hours,
+  lifecycle, hold), or the release is refused as canonical drift and no evidence moves.
 - `natural_key` is **not enabled**: Taito's `#` is not reviewed as stable, and no reviewed name +
   coordinate-proximity threshold exists. It needs that threshold reviewed (ADR amendment/issue).
 - `new`: an unmatched record while no previous entity is left unmatched.
@@ -135,8 +142,9 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
 - Gate: `SourceAdapter.crossReleaseValidated`. `TAITO_ADAPTER` keeps it `false` — the repository
   has one real Taito release; the tests' second releases are artificial fixtures under a test-only
   source and do not count as the two-real-release validation.
-- Completeness semantics is still not an adapter member: nothing consumes it until removal
-  (decision 5), where it arrives defaulting to *partial*.
+- Completeness semantics is not an adapter member in this step (see decision 1): it arrives with
+  removal / relocation (decision 5), absent = *partial*.
+- The promotion bundle still carries one release per source; multi-release promotion is decision 7.
 
 ### 4. Cross-source matching (boundary)
 

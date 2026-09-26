@@ -8,6 +8,7 @@ import {
   CROSS_RELEASE_MATCHER_VERSION, RAW_SHA256_KEY_VERSION, planCrossReleaseMatch,
 } from "../src/pipeline/match.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import { publishTiles } from "../src/tiles/publish.ts";
 import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts";
@@ -44,18 +45,20 @@ const ADDED_ROW = "35,131067,台東区,テスト追加喫煙所,テストツイ�
 const withAddedRow = () => bytesOf([...LINES.slice(0, -1), ADDED_ROW, ""]);
 const SECOND = { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-09-18", fetchedAt: "2026-09-25T00:00:00Z" };
 
-function freshDb() {
+// `approved` only in the sources ROW of a throwaway test DB, so publishTiles can be exercised; the
+// adapter stays outside SOURCE_ADAPTERS and is never reviewed.
+function freshDb(publicationStatus: "blocked" | "approved" = "blocked") {
   const db = new SqliteD1();
   db.raw.prepare(
     `INSERT INTO sources (source_id, display_name, kind, license_name, license_url, attribution_text, publication_status, created_at, updated_at)
-     VALUES (?, 'TEST ONLY cross-release source', 'municipal', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/legalcode.ja', NULL, 'blocked', ?, ?)`,
-  ).run(SOURCE, NOW, NOW);
+     VALUES (?, 'TEST ONLY cross-release source', 'municipal', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/legalcode.ja', NULL, ?, ?, ?)`,
+  ).run(SOURCE, publicationStatus, NOW, NOW);
   return db;
 }
 
 async function applyFirst(db: SqliteD1) {
   const { releaseId } = await ingestRelease(db, TEST_CROSS_RELEASE_ADAPTER, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
-  await resolveFirstRelease(db, TEST_CROSS_RELEASE_ADAPTER, releaseId, { now: NOW, newSpotId: sequentialSpotIds("a") });
+  await resolveFirstRelease(db, TEST_CROSS_RELEASE_ADAPTER, releaseId, { now: NOW, newSpotId: sequentialSpotIds("A") });
   return releaseId;
 }
 
@@ -64,7 +67,7 @@ async function ingestSecond(db: SqliteD1, bytes: Uint8Array, meta = SECOND) {
 }
 
 const resolveSecond = (db: SqliteD1, releaseId: number) =>
-  resolveFirstRelease(db, TEST_CROSS_RELEASE_ADAPTER, releaseId, { now: LATER, newSpotId: sequentialSpotIds("b") });
+  resolveFirstRelease(db, TEST_CROSS_RELEASE_ADAPTER, releaseId, { now: LATER, newSpotId: sequentialSpotIds("B") });
 
 function snapshot(db: SqliteD1) {
   return {
@@ -73,6 +76,7 @@ function snapshot(db: SqliteD1) {
     spots: all(db, "SELECT * FROM spots ORDER BY spot_id"),
     links: all(db, "SELECT * FROM spot_source_entities ORDER BY source_entity_id"),
     provenance: all(db, "SELECT * FROM spot_field_provenance ORDER BY spot_id, field"),
+    attenuations: all(db, "SELECT * FROM spot_field_attenuations ORDER BY spot_id, field, effect"),
     keys: all(db, "SELECT * FROM source_record_match_keys ORDER BY record_id"),
     releases: all(db, "SELECT release_id, status, is_current, applied_at FROM source_releases ORDER BY release_id"),
   };
@@ -181,6 +185,75 @@ for (const [label, lines, pattern] of [
   });
 }
 
+// The spot of the file's first record; the second release keeps that record raw-identical.
+const firstSpot = (db: SqliteD1) => one(db,
+  `SELECT l.spot_id FROM spot_source_entities l JOIN source_record_entities e ON e.source_entity_id = l.source_entity_id
+   JOIN source_records r ON r.record_id = e.record_id WHERE r.ordinal = 1 ORDER BY r.release_id LIMIT 1`).spot_id as string;
+
+for (const [label, mutate, pattern] of [
+  ["canonical drift (name)", (db: SqliteD1, id: string) => db.raw.prepare("UPDATE spots SET name = '改変' WHERE spot_id = ?").run(id),
+    /canonical drift in name/],
+  ["canonical drift (coordinate)", (db: SqliteD1, id: string) => db.raw.prepare("UPDATE spots SET latitude = latitude + 0.001 WHERE spot_id = ?").run(id),
+    /canonical drift in latitude/],
+  ["an existing attenuation", (db: SqliteD1, id: string) => db.raw.prepare(
+    `INSERT INTO spot_field_attenuations (spot_id, field, effect, attestation_version, reference_kind, reference_url, checked_at,
+       release_id, release_content_sha256, release_observed_on, release_source_url, resolver_version, applied_at)
+     SELECT ?, 'openingHours', 'hoursUnknown', 'test.v1', 'publisherWebPage', 'https://example.invalid/', ?, release_id,
+       content_sha256, observed_on, source_url, 'test', ? FROM source_releases WHERE release_id = 1`).run(id, NOW, NOW),
+    /merged, held or attenuated/],
+  ["a publication hold", (db: SqliteD1, id: string) => db.raw.prepare("UPDATE spots SET publication_hold = 'locationSuperseded' WHERE spot_id = ?").run(id),
+    /merged, held or attenuated/],
+  ["a merge", (db: SqliteD1, id: string) => db.raw.prepare(
+    "UPDATE spots SET merged_into = (SELECT spot_id FROM spots WHERE spot_id <> ? ORDER BY spot_id LIMIT 1) WHERE spot_id = ?").run(id, id),
+    /merged, held or attenuated/],
+] as const) {
+  test(`a matched spot with ${label} is refused: evidence is not moved, nothing changes`, async () => {
+    const db = freshDb();
+    await applyFirst(db);
+    mutate(db, firstSpot(db));
+    const secondId = await ingestSecond(db, withAddedRow());
+    const before = snapshot(db);
+    await assert.rejects(resolveSecond(db, secondId), pattern);
+    assert.deepEqual(snapshot(db), before, "spots, provenance, decisions, keys and release state unchanged");
+    assert.equal(one(db, "SELECT count(*) AS n FROM source_record_entities WHERE release_id = ?", secondId).n, 0);
+    assert.equal(one(db, "SELECT status FROM source_releases WHERE release_id = ?", secondId).status, "ingested");
+  });
+}
+
+test("second release -> publish: matched spot ids stay in their tiles, only the new record adds a spot", async () => {
+  const db = freshDb("approved");
+  await applyFirst(db);
+  const first = await publishTiles(db, { now: NOW });
+  const tilesBefore = all(db, "SELECT tile_id, revision, content_sha256, body_json FROM tile_snapshots ORDER BY tile_id");
+  const publishedBefore = all(db, "SELECT spot_id, tile_id FROM tile_snapshot_spots ORDER BY spot_id");
+  assert.equal(publishedBefore.length, 34, "no attenuations under the test adapter, so every spot is published");
+
+  const secondId = await ingestSecond(db, withAddedRow());
+  const resolved = await resolveSecond(db, secondId);
+  assert.equal(resolved.status, "resolved");
+  const second = await publishTiles(db, { now: LATER });
+  const publishedAfter = all(db, "SELECT spot_id, tile_id FROM tile_snapshot_spots ORDER BY spot_id");
+  assert.equal(publishedAfter.length, 35);
+  const added = publishedAfter.filter((p) => !publishedBefore.some((b) => b.spot_id === p.spot_id));
+  assert.equal(added.length, 1);
+  assert.equal(added[0].spot_id, resolved.status === "resolved" && resolved.spotIds[34]);
+  for (const b of publishedBefore) assert.ok(publishedAfter.some((a) => a.spot_id === b.spot_id && a.tile_id === b.tile_id));
+
+  // Every tile carries a matched spot whose lastVerifiedAt moved, so every tile is republished.
+  const tilesAfter = all(db, "SELECT tile_id, revision, content_sha256, body_json FROM tile_snapshots ORDER BY tile_id");
+  assert.equal(second.unchanged.length, 0);
+  for (const b of tilesBefore) {
+    const a = tilesAfter.find((t) => t.tile_id === b.tile_id)!;
+    assert.equal(a.revision, b.revision + 1);
+    assert.notEqual(a.content_sha256, b.content_sha256);
+    const beforeIds = JSON.parse(b.body_json).spots.map((x: Row) => x.id);
+    const afterSpots = JSON.parse(a.body_json).spots as Row[];
+    for (const id of beforeIds) assert.equal(afterSpots.find((x) => x.id === id)?.lastVerifiedAt, "2026-09-18");
+  }
+  assert.equal(first.published.length, tilesBefore.length);
+  assert.equal(new Set(tilesAfter.flatMap((t) => JSON.parse(t.body_json).spots.map((x: Row) => x.id))).size, 35);
+});
+
 test("a release not newer than the current one is refused before anything is written", async () => {
   const db = freshDb();
   await applyFirst(db);
@@ -195,7 +268,7 @@ test("cross-source: identical rows of another source are never matched", async (
   addBlockedTestSource(db);
   await applyFirst(db);
   const { releaseId } = await ingestRelease(db, TEST_BLOCKED_TAITO_ADAPTER, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
-  await resolveFirstRelease(db, TEST_BLOCKED_TAITO_ADAPTER, releaseId, { now: LATER, newSpotId: sequentialSpotIds("c") });
+  await resolveFirstRelease(db, TEST_BLOCKED_TAITO_ADAPTER, releaseId, { now: LATER, newSpotId: sequentialSpotIds("C") });
   const decisions = all(db,
     `SELECT e.method, se.source_id FROM source_record_entities e JOIN source_entities se ON se.source_entity_id = e.source_entity_id
      WHERE e.release_id = ?`, releaseId);
