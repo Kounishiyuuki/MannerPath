@@ -6,7 +6,7 @@ decision 3 by Issue #78 (its production gate stays closed), and the review queue
 parts of decisions 5 and 8 by Issue #80, and the reviewed-removal executor of decisions 5 and 8 by
 Issue #84 (relocation is still not applied); every other decision fixes a boundary that later issues implement
 and may not silently change. The relocation and natural-key policy of decisions 3, 5, 8 and 10 is
-proposed in ADR-0009 (Issue #91, design only).
+fixed by ADR-0009 (Issue #91, design only).
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
 ADR-0002 (canonical data), ADR-0005 (tiles) and ADR-0006 (evidence and publication) and replaces
