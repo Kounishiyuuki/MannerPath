@@ -5,7 +5,8 @@
 //
 // The golden was generated from main before the SourceAdapter extraction. A refactor must not change
 // it; an intended output change regenerates it (GOLDEN_UPDATE=1) and justifies the diff in its PR.
-// Issue #73 added only `tables.source_observations`; every other byte was unchanged.
+// Issue #73 added only `tables.source_observations`, and Issue #80 only the empty
+// `tables.review_items` / `tables.review_decisions`; every other byte was unchanged.
 //
 // Compressed tile sizes depend on the zlib build (Issue #76), so the golden's quality analysis runs
 // with a deterministic stand-in sizer instead of node:zlib. Its `gzipBytes` figures are therefore

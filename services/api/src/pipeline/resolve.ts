@@ -10,7 +10,8 @@ import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts"
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
 import { CROSS_RELEASE_MATCHER_VERSION, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
 import { type StoredObservation, observeRelease } from "./observe.ts";
-import type { FieldAttenuation, SourceAdapter, SourceObservation } from "./source-adapter.ts";
+import { crossReleaseCandidates, persistReviewItems } from "./review-queue.ts";
+import { type FieldAttenuation, type SourceAdapter, type SourceObservation, sourceCompleteness } from "./source-adapter.ts";
 
 export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
 // Evidence-quality vocabulary v1 has one value: listed in the current applied release of an
@@ -49,7 +50,10 @@ export interface ResolveOptions {
 export type ResolveResult =
   // One spot id per record, in record order; a matched record's is its entity's existing spot.
   | { status: "resolved"; spotIds: string[] }
-  | { status: "alreadyApplied" };
+  | { status: "alreadyApplied" }
+  // Nothing canonical was written and the release stays ingested; the ids are the review items
+  // (ADR-0008 decision 8) that must be decided and applied first. Re-running returns the same ids.
+  | { status: "needsReview"; reviewItemIds: number[] };
 
 /**
  * Resolves `releaseId` with `adapter`. Fails closed before any write unless the release belongs to
@@ -186,10 +190,10 @@ function newSpotStatements(
 
 /**
  * Applies a later release of a source whose previous applied release is current, through the
- * cross-release matcher. Everything is refused before any canonical write unless every record is
- * raw_identical or new and every previous entity is matched: ambiguous records wait for the review
- * queue (ADR-0008 decision 8), and a previous entity no record matched is a disappearance
- * candidate, which only a completeness-aware removal step may act on (decision 5).
+ * cross-release matcher. Nothing canonical is written unless every record is raw_identical or new
+ * and every previous entity is matched: otherwise ambiguous records and unmatched previous entities
+ * (disappearance candidates; removal candidates only for a complete source, decision 5) are stored
+ * in the review queue (ADR-0008 decision 8) and the release stays ingested.
  *
  * A matched record keeps its entity and its spot: the spot id, created_at and link never change.
  * Its values are identical by construction (same raw values, same mapping), so only the evidence
@@ -225,17 +229,15 @@ async function resolveNextRelease(
     throw new Error(`resolve: current release ${current.release_id} has records without an entity and spot`);
   }
   const plan = planCrossReleaseMatch(previous, next);
-  if (plan.ambiguous.length > 0) {
-    throw new Error(
-      `resolve: release ${releaseId} has ${plan.ambiguous.length} ambiguous record(s) (first: record ` +
-        `${plan.ambiguous[0].recordId}, ${plan.ambiguous[0].reason}); not applied until reviewed`,
-    );
-  }
-  if (plan.unmatchedPreviousEntityIds.length > 0) {
-    throw new Error(
-      `resolve: release ${releaseId} leaves ${plan.unmatchedPreviousEntityIds.length} previous entit(ies) unmatched ` +
-        `(${plan.unmatchedPreviousEntityIds.join(", ")}); disappearance is not applied without completeness and review`,
-    );
+  if (plan.ambiguous.length > 0 || plan.unmatchedPreviousEntityIds.length > 0) {
+    // Candidates are review state, not canonical effect: no spot, link, provenance, hold, match key or
+    // release status is written, and a disappearance is removal evidence only for a complete source.
+    const completeness = sourceCompleteness(adapter);
+    const reviewItemIds = await persistReviewItems(db, {
+      sourceId: release.source_id, releaseId, releaseContentSha256: release.content_sha256,
+      previousReleaseId: current.release_id, matcherVersion: CROSS_RELEASE_MATCHER_VERSION, completeness,
+    }, crossReleaseCandidates(plan.ambiguous, plan.unmatchedPreviousEntityIds, previous, completeness), now);
+    return { status: "needsReview", reviewItemIds };
   }
 
   const previousByRecord = new Map(previous.map((p) => [p.recordId, p]));
