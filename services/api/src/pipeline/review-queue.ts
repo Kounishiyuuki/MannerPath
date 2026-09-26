@@ -1,6 +1,6 @@
 // Review queue (ADR-0008 decisions 5 and 8, Issue #80): what the cross-release matcher cannot decide
 // is persisted as review items, and a reviewer's answer as a review decision. Neither writes a
-// canonical row; applying a decision is a later, separate step (see migrations/0009_review_queue.sql).
+// canonical row; applying a decision is a separate step (./removal.ts, and ./reviewed-match.ts via the resolver).
 
 import { type Db } from "../db.ts";
 import type { AmbiguousRecord, PreviousRecord } from "./match.ts";

@@ -1,8 +1,8 @@
 // Removal executor (ADR-0008 decisions 5 and 8, Issue #84): the explicit application step that turns
 // a reviewed removal into the canonical change spots.lifecycle = 'removed'. Recording a decision
-// (review-queue.ts) changes nothing canonical, and the resolver never reads decisions; only this step
-// mutates, and only for a complete source's removalCandidate whose latest decision is
-// removalConfirmed. The spot keeps its id, links, raw evidence and provenance; every published tile
+// (review-queue.ts) changes nothing canonical, and the resolver reads only ambiguousMatch decisions
+// (./reviewed-match.ts); only this step removes, and only for a complete source's removalCandidate
+// whose latest decision is removalConfirmed. The spot keeps its id, links, raw evidence and provenance; every published tile
 // is rebuilt by the ordinary publish step afterwards.
 
 import { type Db } from "../db.ts";

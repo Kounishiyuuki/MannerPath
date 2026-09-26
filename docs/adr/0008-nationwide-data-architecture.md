@@ -147,6 +147,21 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
   has one real Taito release; the tests' second releases are artificial fixtures under a test-only
   source and do not count as the two-real-release validation.
 - Completeness semantics arrived with Issue #80 (see decision 1); the matcher itself does not read it.
+- Reviewed ambiguous matches (Issue #86, `src/pipeline/reviewed-match.ts`): the pure
+  `planReviewedMatch` combines the automatic plan with the latest decision of each stored
+  `ambiguousMatch` item of exactly this comparison into an effective plan. A record is resolved
+  when it is `raw_identical`, `new`, reviewed `matchedToEntity` (`method = 'manual'`, the chosen
+  candidate's entity and spot kept) or reviewed `confirmedNew` (a new entity and spot). The release
+  is applied only when no item is open (none / `deferred`) and every previous entity is continued by
+  a record; `confirmedNew` never turns a left-over previous entity into a disappearance or removal
+  by itself — it is raised as a disappearance/removal candidate item and the release stays
+  `ingested`. A reviewed same entity is **not** an approved field update: evidence moves only when
+  the new observation equals the previous one and `assertEvidenceCanMove` holds (no canonical
+  drift, no attenuation/hold/merge). A changed coordinate is refused as relocation (not
+  implemented; no distance threshold is chosen here), any other changed value is refused until a
+  value update policy exists, and a removed or merged spot is never a match target (restoring is
+  its own reviewed step). Two records claiming one entity, a decision outside the candidates or of
+  an unknown `decision_version` are refused.
 - The promotion bundle still carries one release per source; multi-release promotion is decision 7.
 
 ### 4. Cross-source matching (boundary)
@@ -244,11 +259,23 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
   `recordReviewDecision` returns its own row's id via `INSERT … RETURNING`.
 - The resolver stores the candidates and returns `{ status: "needsReview", reviewItemIds }`; the
   release stays `ingested`, and no match key or canonical row is written.
-- Applying a decision is a separate executor step. Only removal is implemented (Issue #84, decision
-  5): `applyReviewedRemoval` records which review item and decision it applied in
-  `review_removal_applications`. **Not implemented:** applying `matchedToEntity` or `confirmedNew`,
-  relocation, and applying a release under review; until then such decisions have no effect and the
-  release stays unapplied.
+- Applying a decision is a separate step from recording it. Removal (Issue #84, decision 5):
+  `applyReviewedRemoval` records which review item and decision it applied in
+  `review_removal_applications`. Ambiguous matches (Issue #86, decision 3): the resolver reads the
+  latest `matchedToEntity` / `confirmedNew` decisions into its effective plan and, only when the
+  whole release resolves, writes in the same batch one `review_match_applications` row per applied
+  decision (item, decision, record, chosen entity, `review-match-application.v1`, `applied_at`;
+  append-only). Its insert trigger re-checks inside the batch that the decision is still the
+  item's latest `review-decision.v1` decision, the entity is a candidate of the previous release
+  whose spot is active and unmerged, the previous release is still current applied, the release
+  is still `ingested`, and no other unrejected release is newer (or not comparable) — so a
+  decision recorded after the resolver read the queue, or a stale comparison, aborts the whole
+  batch. An item and a decision are applied at most once, so another decision cannot be
+  substituted; a re-run of an applied release is `alreadyApplied`. A `manual`
+  `source_record_entities` row cannot be inserted without its application row.
+  **Not implemented:** relocation, value-update policy for a reviewed match, resolving a
+  disappearance/removal candidate into release application (a release with one stays
+  `needsReview`, even after its removal was applied), restoring removed spots.
 
 ### 9. Source fingerprint (boundary, partly implemented)
 
