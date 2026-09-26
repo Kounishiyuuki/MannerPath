@@ -10,6 +10,7 @@
 // docs/SOURCES.md) and fails loudly rather than being silently absent.
 
 import { type Db } from "../db.ts";
+import { haversineMeters } from "../geo/distance.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
@@ -52,18 +53,6 @@ function percentile(sorted: number[], p: number): number | null {
 
 function rate(unknown: number, total: number): number | null {
   return total === 0 ? null : Number((unknown / total).toFixed(4));
-}
-
-const EARTH_RADIUS_M = 6_371_008.8;
-
-/** Great-circle distance in metres (haversine). Deterministic; no projection, no datum shift. */
-function haversineMeters(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {
-  const toRad = Math.PI / 180;
-  const dLat = (b.latitude - a.latitude) * toRad;
-  const dLon = (b.longitude - a.longitude) * toRad;
-  const h = Math.sin(dLat / 2) ** 2
-    + Math.cos(a.latitude * toRad) * Math.cos(b.latitude * toRad) * Math.sin(dLon / 2) ** 2;
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 /**

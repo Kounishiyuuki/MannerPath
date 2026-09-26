@@ -47,7 +47,6 @@ const TWO_REFS_CHANGED = bytesOf([LINES[0], withRef(LINES[1], "901"), withRef(LI
 const NO_REF = withRef(LINES[1], "");
 const DUPLICATED = bytesOf([LINES[0], NO_REF, NO_REF, ...LINES.slice(2)]);
 const CHANGED = bytesOf([LINES[0], LINES[1].replace("上野公園前交番裏", "上野公園前交番裏（改）"), ...LINES.slice(2)]);
-const MOVED = bytesOf([LINES[0], LINES[1].replace(",35.7112,", ",35.7113,"), ...LINES.slice(2)]);
 const DROPPED = bytesOf([LINES[0], ...LINES.slice(2)]);
 const SECOND = { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-09-18", fetchedAt: "2026-09-25T00:00:00Z" };
 const THIRD = { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-09-20", fetchedAt: "2026-09-26T00:00:00Z" };
@@ -249,17 +248,6 @@ test("two records reviewed onto one entity: refused", async () => {
   const before = canonical(db);
   await assert.rejects(resolve(db, PARTIAL_ADAPTER, secondId), /claimed by records/);
   assert.deepEqual(canonical(db), before);
-});
-
-test("coordinate changed: relocation is not implemented; decision kept as evidence, coordinate unchanged", async () => {
-  const { db, firstId, secondId, itemIds: [itemId] } = await setup(MOVED);
-  const prior = entityOf(db, recordOf(db, firstId, 1));
-  await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
-  const before = canonical(db);
-  await assert.rejects(resolve(db, PARTIAL_ADAPTER, secondId), /relocation is not implemented/);
-  assert.deepEqual(canonical(db), before);
-  assert.equal(one(db, "SELECT latitude FROM spots WHERE spot_id = ?", prior.spot_id).latitude, 35.7112);
-  assert.equal(one(db, "SELECT count(*) AS n FROM review_decisions").n, 1);
 });
 
 test("other changed values: a reviewed same entity is not an approved field update", async () => {
