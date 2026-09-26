@@ -69,6 +69,37 @@ struct WatchSyncTests {
         #expect(built.sources == reorderedInput.sources)
     }
 
+    @Test func multiSourceSnapshotRoundTripHasNoOrphansOrDuplicateRecords() throws {
+        let a = SpotSource(id: "municipal-a", displayName: "A", licenseName: "CC BY",
+                           licenseURL: "https://example.org/a", attributionText: "A attribution")
+        let b = SpotSource(id: "municipal-b", displayName: "B", licenseName: "Open license",
+                           licenseURL: "https://example.org/b", attributionText: "B attribution")
+        let unused = SpotSource(id: "unused", displayName: "Unused", licenseName: nil,
+                                licenseURL: nil, attributionText: nil)
+        let spot = Spot(
+            id: "multi-source", mergedInto: nil, name: "Area", latitude: 35, longitude: 139,
+            tileId: "14/1/1", spotType: .ashtray, hostType: nil, accessType: .unknown,
+            environment: .unknown, supportsPaper: .unknown, supportsHeated: .unknown,
+            openingHours: nil, feeType: nil, floor: nil, entranceNote: nil, lifecycle: .active,
+            verification: SpotVerification(acceptedExistenceEvidence: .yes,
+                                           evidenceQuality: "officialListing", sourceDisplayNames: ["A", "B"],
+                                           evidenceQualityVersion: "evidence-quality.v1", sources: [b, a]),
+            lastVerifiedAt: nil, createdAt: nil, updatedAt: nil
+        )
+        let built = WatchSnapshotBuilder.build(
+            spots: [spot], sources: [a, b, a, unused],
+            near: SpotCoordinate(latitude: 35, longitude: 139), at: now
+        )
+        let decoded = try WatchCodec.snapshot(WatchCodec.encode(built))
+        let watchSpot = try #require(decoded.spots.first)
+        #expect(watchSpot.sourceIDs == ["municipal-a", "municipal-b"])
+        #expect(decoded.sources.map(\.id) == watchSpot.sourceIDs)
+        #expect(decoded.sources.count == 2)
+        #expect(Set(decoded.sources(for: watchSpot).compactMap(\.attributionText)) ==
+                Set(["A attribution", "B attribution"]))
+        #expect(Set(watchSpot.sourceIDs).isSubset(of: Set(decoded.sources.map(\.id))))
+    }
+
     private func candidate(at date: Date, sources: [WatchSource]) -> WatchSnapshot {
         WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: date, snapshotID: UUID(),
                       spots: [], sources: sources)

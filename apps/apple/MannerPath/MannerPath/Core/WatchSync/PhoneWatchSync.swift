@@ -85,7 +85,7 @@ nonisolated struct PhoneWatchSnapshotStore {
                                  revision: (previous?.revision ?? 0) + 1,
                                  generatedAt: candidate.generatedAt, snapshotID: candidate.snapshotID,
                                  spots: candidate.spots, sources: candidate.sources)
-        try next.validated()
+        _ = try next.validated()
         try WatchCodec.encode(next).write(to: url, options: .atomic)
         return next
     }

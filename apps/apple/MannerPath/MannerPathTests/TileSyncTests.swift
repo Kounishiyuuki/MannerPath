@@ -101,6 +101,63 @@ struct TileSyncTests {
         #expect(mapped.spots[1].verification.acceptedExistenceEvidence == .yes)
     }
 
+    @Test func multipleSourcesSurviveMappingRegardlessOfWireOrder() throws {
+        let sources = [source("municipal-a"), source("municipal-b"), source("municipal-c")]
+        for ids in [["municipal-a", "municipal-b"],
+                    ["municipal-c", "municipal-b", "municipal-a"]] {
+            var multiSourceSpot = spot(1)
+            multiSourceSpot["sourceIds"] = ids
+            let dto = try JSONDecoder().decode(TileBodyV1.self, from: body(spots: [multiSourceSpot], sources: sources))
+            let mapped = try TileSpotMapper.map(dto, requestedTile: tile)
+            let verification = try #require(mapped.spots.first?.verification)
+            #expect(Set(verification.sources?.map(\.id) ?? []) == Set(ids))
+            #expect(Set(verification.sourceDisplayNames) == Set(ids.map { "Source \($0)" }))
+            #expect(Set(verification.sources?.compactMap(\.attributionText) ?? []) ==
+                    Set(ids.map { "Attribution \($0)" }))
+            #expect(verification.acceptedExistenceEvidence == .yes)
+            #expect(Set(mapped.sources.map(\.id)) == Set(sources.compactMap { $0["id"] as? String }))
+        }
+    }
+
+    @Test func malformedSourceReferencesRejectEntireTile() throws {
+        let sources = [source("municipal-a"), source("municipal-b")]
+        for ids in [[], ["municipal-a", "missing"], ["municipal-a", "municipal-a"]] {
+            var invalidSpot = spot(2)
+            invalidSpot["sourceIds"] = ids
+            let dto = try JSONDecoder().decode(TileBodyV1.self, from: body(spots: [spot(1), invalidSpot], sources: sources))
+            #expect(throws: TileSyncError.malformedResponse) {
+                _ = try TileSpotMapper.map(dto, requestedTile: tile)
+            }
+        }
+        let duplicateSources = try JSONDecoder().decode(TileBodyV1.self, from: body(spots: [spot(1)],
+                                                                                     sources: [source(sourceID), source(sourceID)]))
+        #expect(throws: TileSyncError.malformedResponse) {
+            _ = try TileSpotMapper.map(duplicateSources, requestedTile: tile)
+        }
+    }
+
+    @Test func futureValuesKeepUnknownDistinctFromFalseAndClosed() throws {
+        var future = spot(1, spotType: "futureType", accessType: "futureAccess", supportsPaper: "futurePaper")
+        future["environment"] = "futureEnvironment"
+        future["supportsHeated"] = "futureHeated"
+        future["lifecycle"] = "futureLifecycle"
+        future["openingHours"] = ["status": "futureStatus", "raw": "publisher text",
+                                   "parsed": ["v": 1, "kind": "futureKind"], "timeZone": "Asia/Tokyo"]
+        let dto = try JSONDecoder().decode(TileBodyV1.self, from: body(spots: [future, spot(2)]))
+        let mapped = try TileSpotMapper.map(dto, requestedTile: tile)
+        #expect(mapped.spots.count == 2)
+        let spot = mapped.spots[0]
+        #expect(spot.spotType == .unsupported)
+        #expect(spot.accessType == .unknown)
+        #expect(spot.environment == .unknown)
+        #expect(spot.supportsPaper == .unknown)
+        #expect(spot.supportsHeated == .unknown)
+        #expect(spot.lifecycle == .unknown)
+        #expect(spot.openingHours?.status == .unsupported)
+        #expect(spot.openingHours?.parsed?.kind == .unsupported)
+        #expect(spot.openingHours?.raw == "publisher text")
+    }
+
     @Test func first200PersistsCompleteTileAndOfflineAttribution() async throws {
         let path = cachePath()
         let store = try GRDBTileStore(path: path)
@@ -417,11 +474,17 @@ struct TileSyncTests {
         ["status": "unparsed", "raw": "休業日あり", "parsed": NSNull(), "timeZone": "Asia/Tokyo"]
     }
 
-    private func body(revision: Int = 1, spots: [[String: Any]]) throws -> Data {
+    private func source(_ id: String) -> [String: Any] {
+        ["id": id, "displayName": "Source \(id)", "licenseName": "CC BY 4.0",
+         "licenseUrl": "https://example.org/\(id)/license", "attributionText": "Attribution \(id)"]
+    }
+
+    private func body(revision: Int = 1, spots: [[String: Any]],
+                      sources: [[String: Any]]? = nil) throws -> Data {
         try JSONSerialization.data(withJSONObject: [
             "schemaVersion": 1, "tile": tile.id, "revision": revision,
             "generatedAt": "2026-09-21T00:00:00Z", "spots": spots,
-            "sources": [[
+            "sources": sources ?? [[
                 "id": sourceID, "displayName": "Approved ward source",
                 "licenseName": "CC BY 4.0", "licenseUrl": "https://example.org/license",
                 "attributionText": "Ward attribution"
