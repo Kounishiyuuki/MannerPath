@@ -137,6 +137,10 @@ The bundle is deterministic SQL (`services/api/src/pipeline/promotion.ts`):
 from the `source_records` that are, and the canonical rows it produced travel as themselves.
 `review_items` / `review_decisions` (ADR-0008 decision 8) are not in the bundle either: they are
 review state of the database that ran the pipeline, and nothing published reads them.
+`review_removal_applications` (ADR-0008 decision 5, Issue #84) is review state too and stays out of
+the bundle; a removed spot travels only as its canonical row with `lifecycle = 'removed'`, and the
+audit link to its review decision stays in the database that applied it. Run `publishTiles` after
+`applyReviewedRemoval` and before exporting, so the exported tile bodies no longer list the spot.
 
 `spot_field_attenuations` carries the rows behind every **weakened** field of a published spot
 (ADR-0006, Issue #42): which field was attenuated and how, under which attestation version, from

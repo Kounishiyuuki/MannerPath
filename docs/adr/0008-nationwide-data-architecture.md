@@ -3,7 +3,8 @@
 Status: Accepted (2026-09, Issue #68, tracker #67). Decision 1 (the SourceAdapter boundary) is
 implemented by this ADR's PR, decision 2 (source observations) by Issue #73 and the matcher engine of
 decision 3 by Issue #78 (its production gate stays closed), and the review queue and completeness
-parts of decisions 5 and 8 by Issue #80 (no removal or relocation is applied yet); every other decision fixes a boundary that later issues implement
+parts of decisions 5 and 8 by Issue #80, and the reviewed-removal executor of decisions 5 and 8 by
+Issue #84 (relocation is still not applied); every other decision fixes a boundary that later issues implement
 and may not silently change.
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
@@ -166,10 +167,30 @@ records are not mixed until the OSM ADR (decision 11) decides how.
 As implemented (Issue #80): an unmatched previous entity becomes a review item of kind
 `disappearance` for a partial source (not removal evidence; the schema refuses a
 `removalConfirmed` decision on it) or `removalCandidate` for a complete one, citing the entity,
-its spot, both releases, the completeness and the matcher version. **Not implemented:** applying a
-removal (`lifecycle = removed`), relocation detection (needs a reviewed natural key and distance
-threshold) and relocation holds, and the record-count / schema-change stop. No candidate changes a
-spot, its lifecycle, coordinates, hold, provenance or the release state.
+its spot, both releases, the completeness and the matcher version. No candidate changes a spot, its
+lifecycle, coordinates, hold, provenance or the release state.
+
+Removal application (Issue #84, `migrations/0010_review_removal_applications.sql`,
+`src/pipeline/removal.ts`): `applyReviewedRemoval(db, reviewItemId, { now })` is the only step that
+removes a spot, and it is explicit — the resolver never reads decisions. It applies a
+`removalCandidate` of a **complete** source whose latest decision (largest `review_decision_id`) is
+`removalConfirmed`; `removalRejected`, `deferred` or no decision is `notApplicable`, and a partial
+source's `disappearance` is refused. In one batch it inserts a `review_removal_applications` row
+(`spot_id`, `review_item_id`, `review_decision_id`, `executor_version`
+`review-removal-executor.v1`, `applied_at`), unpublishes the spot from `tile_snapshot_spots` and sets
+`spots.lifecycle = 'removed'`; the insert trigger re-checks inside the statement that the named
+decision is still the item's latest removalConfirmed for an active spot still linked to the item's
+entity, so a decision recorded after the executor read the queue aborts the whole batch. Only
+lifecycle (and `updated_at`) changes: the spot id, links, raw records, observations, provenance,
+attenuations and review rows stay, and nothing is deleted. The schema allows `removed` only with an
+application row, one application per spot and per decision, and no update back from a reviewed
+removal. Reapplying the same decision is `alreadyApplied`; a spot removed on another decision, or
+whose item's latest decision has since changed, fails closed. The ordinary `publishTiles` then
+rebuilds the affected tile (new revision, content hash and ETag) without the spot; other tiles keep
+their revision. Applying a removal does not apply the release under review: the second release stays
+`ingested`. **Not implemented:** relocation detection (needs a reviewed natural key and distance
+threshold) and relocation holds, restoring a removed spot, and the record-count / schema-change
+stop.
 
 ### 6. Generic attenuation (boundary, partly implemented)
 
@@ -214,8 +235,11 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
   `recordReviewDecision` returns its own row's id via `INSERT … RETURNING`.
 - The resolver stores the candidates and returns `{ status: "needsReview", reviewItemIds }`; the
   release stays `ingested`, and no match key or canonical row is written.
-- **Not implemented:** an executor that applies decisions to canonical rows. Until it exists a
-  recorded decision has no effect, and a release under review stays unapplied.
+- Applying a decision is a separate executor step. Only removal is implemented (Issue #84, decision
+  5): `applyReviewedRemoval` records which review item and decision it applied in
+  `review_removal_applications`. **Not implemented:** applying `matchedToEntity` or `confirmedNew`,
+  relocation, and applying a release under review; until then such decisions have no effect and the
+  release stays unapplied.
 
 ### 9. Source fingerprint (boundary, partly implemented)
 
