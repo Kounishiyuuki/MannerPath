@@ -46,11 +46,15 @@ END;
 --              the same choice keeps the item; any other latest decision (another entity, confirmedNew,
 --              deferred) makes it not actionable, and an insert racing with such a decision aborts;
 --   previous   the previous record is the entity's record in the previous release;
---   coordinate the details name the exact observation rows the resolver compared (observation id,
---              record, release, source and the one mapping version both were read under), their stored
---              coordinates are the copied ones and differ by exact numeric equality (no tolerance,
---              ADR-0009 decision 3), and the spot still holds the previous coordinate. An observation of
---              the same record under another mapping version is never used;
+--   coordinate the cited observation rows exist exactly (observation id, record, release, source, and
+--              one mapping version shared by both), their stored coordinates are the copied ones and
+--              differ by exact numeric equality (no tolerance, ADR-0009 decision 3), and the spot still
+--              holds the previous coordinate. This is relational integrity of the cited rows only: the
+--              schema cannot know which mapping version is the source adapter's current one
+--              (source_observations may hold several per record). Binding a candidate to the adapter's
+--              mapping is the resolver's job: it reads only adapter.mappingVersion, and on every run
+--              compares the stored candidate with the one recomputed from those rows, failing closed on
+--              any difference (mapping version and observation ids included);
 --   spot       the entity is linked to this spot, which is active, unmerged and not held (a held spot
 --              is not relocated in v1; its hold is never overwritten here);
 --   versions   relocation-policy.v1 with no threshold, the item's matcher version, and the previous

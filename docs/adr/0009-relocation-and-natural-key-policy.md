@@ -272,10 +272,14 @@ Each step is its own issue and PR, and each builds on the previous one:
   `relocationCandidate`, v1 otherwise). Test-only source only.
   **Implemented** (Issue #93, `migrations/0013_relocation_review_candidates.sql`,
   `src/pipeline/relocation.ts`): the item is raised only after its `ambiguousMatch` is decided,
-  its insert trigger re-checks the identity item and its latest decision, the exact observation rows
-  compared (observation ids under one mapping version, so another mapping's row never counts) and
-  their coordinates, the active / unmerged / unheld spot still at the old coordinate, and the stale
-  comparison. `identity.reviewDecisionId` is creation evidence; the item is actionable (v2 decisions
+  its insert trigger re-checks the identity item and its latest decision, the relational integrity
+  of the cited observation rows (ids, record, release, source, one shared mapping version) and their
+  coordinates, the active / unmerged / unheld spot still at the old coordinate, and the stale
+  comparison. **Trust boundary:** the schema cannot know which mapping version is the adapter's
+  current one, since `source_observations` may hold several per record. The resolver binds the
+  candidate to it: `observeRelease` reads only `adapter.mappingVersion`, the candidate cites those
+  exact observation ids, and `persistRelocationItems` compares a stored candidate with the one
+  recomputed from them on every run, failing closed on any difference. `identity.reviewDecisionId` is creation evidence; the item is actionable (v2 decisions
   accepted, rerun keeps the same item) only while the identity item's latest decision is a v1
   `matchedToEntity` choosing the same entity, so re-recording that choice keeps the item and any
   other latest decision makes it not actionable. No relocation decision is consumed yet: the
@@ -285,6 +289,17 @@ Each step is its own issue and PR, and each builds on the previous one:
 - **C. Reviewed relocation application** (0015). `applyReviewedRelocation`, and the resolver
   consuming it when it applies the release. A coordinate change is possible only through an
   application row.
+  - **Current mapping.** It must not mutate canonical rows by trusting the candidate's details:
+    before applying, it re-derives the observations under the current `adapter.mappingVersion` and
+    requires the cited observation ids, mapping version and coordinates to match them exactly. An
+    application trigger alone cannot know the adapter's mapping authority, so this check is in code.
+  - **Decision freshness.** A relocation decision is applicable only when the identity item's latest
+    decision is a v1 `matchedToEntity` of the item's entity, the relocation decision is the item's
+    latest v2 decision, **and** its `review_decision_id` is greater than that latest identity
+    decision's (`review_decision_id` is the append-only precedence key; `decided_at` is never used).
+    Re-recording the identity makes an earlier relocation decision stale evidence: D1 matched E →
+    R1 confirmed → D2 matched E needs a new R2; D1 → R1 → D2 confirmedNew → D3 matched E never
+    revives R1.
 - **D. Tile / promotion E2E.** Cover two cases:
   - cross-tile relocation: the old tile loses the spot and the new tile gains it, and both tiles'
     revisions and ETags change;

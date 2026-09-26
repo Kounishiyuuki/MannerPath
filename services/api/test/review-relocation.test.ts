@@ -344,7 +344,7 @@ test("schema: a relocationCandidate must name its identity ambiguousMatch item a
   assert.throws(() => insertItem(db, item), PREMISE, "identity no longer decided");
 });
 
-test("exact observation binding: an observation under another mapping version never satisfies the premise", async () => {
+test("exact observation binding: cited rows must match exactly; the resolver keeps the adapter's mapping", async () => {
   const { db, firstId, secondId, item } = await relocated();
   const alternate = (recordId: number, latitude: number) => Number(db.raw.prepare(
     `INSERT INTO source_observations (record_id, release_id, source_id, mapping_version, name, latitude, longitude, supports_paper,
@@ -383,6 +383,48 @@ test("identity re-decided after the candidate: v2 decisions refused against the 
   assert.equal(result.status, "needsReview");
   assert.equal(one(db, "SELECT kind FROM review_items WHERE review_item_id = ?", (result as any).reviewItemIds[0]).kind, "disappearance");
   assert.deepEqual(canonical(db), before);
+});
+
+test("trust boundary: a forged alternate-mapping candidate the schema accepts is refused by the resolver, nothing written", async () => {
+  const { db, firstId, secondId, itemId, prior } = await setup(MOVED);
+  const decisionId = await decide(db, itemId, "matchedToEntity", prior.source_entity_id);
+  const alternate = (recordId: number, latitude: number) => Number(db.raw.prepare(
+    `INSERT INTO source_observations (record_id, release_id, source_id, mapping_version, name, latitude, longitude, supports_paper,
+       supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status, lifecycle_claim, field_provenance_json)
+     SELECT record_id, release_id, source_id, 'alternate-mapping.v1', name, ?, longitude, supports_paper, supports_heated,
+       opening_hours_raw, opening_hours_json, opening_hours_status, lifecycle_claim, field_provenance_json
+     FROM source_observations WHERE observation_id = ?`).run(latitude, observationOf(db, recordId)).lastInsertRowid);
+  const previousRecord = recordOf(db, firstId, 1);
+  const record = recordOf(db, secondId, 1);
+  // The alternate previous row sits at the spot's canonical coordinate, so every relational premise holds.
+  const previousCoordinate = { latitude: 35.7112, longitude: 139.77377 };
+  const newCoordinate = { latitude: 35.7199, longitude: 139.77377 };
+  const release = one(db, "SELECT content_sha256 FROM source_releases WHERE release_id = ?", secondId).content_sha256;
+  insertItem(db, {
+    source_id: SOURCE, release_id: secondId, release_content_sha256: release, previous_release_id: firstId, kind: "relocationCandidate",
+    matcher_version: CROSS_RELEASE_MATCHER_VERSION, source_completeness: "partial",
+    candidate_key: `record:${record}|entity:${prior.source_entity_id}`, record_id: record, source_entity_id: prior.source_entity_id,
+    spot_id: prior.spot_id, created_at: LATER,
+    details_json: JSON.stringify({
+      reason: "forged", previousRecordId: previousRecord, mappingVersion: "alternate-mapping.v1",
+      previousObservationId: alternate(previousRecord, 35.7112), newObservationId: alternate(record, 35.7199),
+      previousCoordinate, newCoordinate, distanceMetres: haversineMeters(previousCoordinate, newCoordinate), otherChangedFields: [],
+      identity: { method: "reviewedMatch", reviewItemId: itemId, reviewDecisionId: decisionId },
+      matcherVersion: CROSS_RELEASE_MATCHER_VERSION, relocationPolicyVersion: RELOCATION_POLICY_VERSION, thresholdVersion: null,
+      previousReleaseContentSha256: one(db, "SELECT content_sha256 FROM source_releases WHERE release_id = ?", firstId).content_sha256,
+    }),
+  });
+  assert.equal(relocations(db).length, 1, "the schema checks cited rows only; it cannot know the adapter's mapping");
+  const before = canonical(db);
+  const spot = one(db, "SELECT latitude, longitude, tile_id, publication_hold FROM spots WHERE spot_id = ?", prior.spot_id);
+  await assert.rejects(resolve(db, PARTIAL_ADAPTER, secondId, RERUN), /differs from this run's candidate/);
+  assert.deepEqual(canonical(db), before, "no application, link, provenance, spot, tile or release state");
+  assert.deepEqual(one(db, "SELECT status, is_current FROM source_releases WHERE release_id = ?", secondId), { status: "ingested", is_current: 0 });
+  assert.equal(one(db, "SELECT count(*) AS n FROM review_match_applications").n, 0);
+  assert.equal(one(db, "SELECT count(*) AS n FROM source_record_entities WHERE record_id = ?", record).n, 0);
+  assert.equal(one(db, "SELECT count(*) AS n FROM spot_field_provenance WHERE record_id = ?", record).n, 0);
+  assert.deepEqual(one(db, "SELECT latitude, longitude, tile_id, publication_hold FROM spots WHERE spot_id = ?", prior.spot_id), spot);
+  assert.equal(relocations(db).length, 1);
 });
 
 test("identity re-decided to the same entity: the same candidate is kept, its evidence unchanged, v2 decisions still recordable", async () => {
