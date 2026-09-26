@@ -187,7 +187,8 @@ test("review decisions are append-only evidence: stored with reviewer/time/versi
   });
   assert.deepEqual(canonical(db), before, "recording a decision applies nothing");
   assert.equal(one(db, "SELECT count(*) AS n FROM spots WHERE lifecycle = 'removed'").n, 0);
-  // Still under review for the resolver: no executor exists, so the release is not applied.
+  // Still under review for the resolver: it never reads decisions, and applying one is the separate
+  // removal executor (review-removal.test.ts), so the release is not applied.
   assert.deepEqual(await resolve(db, COMPLETE_ADAPTER, secondId, RERUN), result);
 
   assert.throws(() => db.raw.prepare("UPDATE review_decisions SET decision = 'removalRejected'").run(), /immutable/);
