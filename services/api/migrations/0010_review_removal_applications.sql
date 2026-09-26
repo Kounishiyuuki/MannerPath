@@ -18,6 +18,8 @@ CREATE TABLE review_removal_applications (
   review_item_id       INTEGER NOT NULL REFERENCES review_items (review_item_id),
   -- One decision is applied at most once.
   review_decision_id   INTEGER NOT NULL UNIQUE REFERENCES review_decisions (review_decision_id),
+  -- Only 'review-removal-executor.v1' exists (checked by the insert trigger); a v2 replaces that
+  -- trigger in its own migration, as 0009 does for review-decision.v1.
   executor_version     TEXT NOT NULL CHECK (executor_version <> ''),
   applied_at           TEXT NOT NULL
 );
@@ -39,10 +41,30 @@ WHEN NOT EXISTS (
     AND d.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id)
     -- The item's entity must still be linked to the spot it names.
     AND EXISTS (SELECT 1 FROM spot_source_entities l WHERE l.spot_id = i.spot_id AND l.source_entity_id = i.source_entity_id)
+    -- TEMPORARY SAFETY GATE (ADR-0008 decision 5): one source's disappearance never removes a spot
+    -- that another source entity also supports. Lifted only by the PR that implements cross-source
+    -- removal semantics.
+    AND NOT EXISTS (SELECT 1 FROM spot_source_entities l WHERE l.spot_id = i.spot_id AND l.source_entity_id <> i.source_entity_id)
     AND s.lifecycle = 'active' AND s.merged_into IS NULL
+    AND NEW.executor_version = 'review-removal-executor.v1'
+    -- Stale evidence: the comparison the candidate came from must still be the source's latest.
+    -- The release it compared against is still the source's current applied release ...
+    AND EXISTS (SELECT 1 FROM source_releases p WHERE p.release_id = i.previous_release_id
+      AND p.source_id = i.source_id AND p.status = 'applied' AND p.is_current = 1)
+    -- ... the release that raised it is still under review ...
+    AND EXISTS (SELECT 1 FROM source_releases r WHERE r.release_id = i.release_id AND r.status = 'ingested')
+    -- ... and no other unrejected release of the source may be newer than that current release.
+    -- "Newer" follows resolveNextRelease: a strictly later observed_on; an unknown observed_on on
+    -- either side is not comparable, so it refuses (fail closed).
+    AND NOT EXISTS (
+      SELECT 1 FROM source_releases o, source_releases p
+      WHERE p.release_id = i.previous_release_id
+        AND o.source_id = i.source_id AND o.release_id NOT IN (i.release_id, i.previous_release_id)
+        AND o.status <> 'rejected'
+        AND (o.observed_on IS NULL OR p.observed_on IS NULL OR o.observed_on > p.observed_on))
 )
 BEGIN
-  SELECT RAISE(ABORT, 'review_removal_applications: not the latest removalConfirmed decision of a complete removal candidate for an active spot');
+  SELECT RAISE(ABORT, 'review_removal_applications: not the latest removalConfirmed decision of a current, single-source, complete removal candidate for an active spot');
 END;
 
 CREATE TRIGGER review_removal_applications_immutable

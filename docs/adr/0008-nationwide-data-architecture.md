@@ -180,7 +180,16 @@ source's `disappearance` is refused. In one batch it inserts a `review_removal_a
 `review-removal-executor.v1`, `applied_at`), unpublishes the spot from `tile_snapshot_spots` and sets
 `spots.lifecycle = 'removed'`; the insert trigger re-checks inside the statement that the named
 decision is still the item's latest removalConfirmed for an active spot still linked to the item's
-entity, so a decision recorded after the executor read the queue aborts the whole batch. Only
+entity, so a decision recorded after the executor read the queue aborts the whole batch. The same
+trigger refuses **stale evidence**: the item's `previous_release_id` must still be the source's
+current applied release, its `release_id` must still be `ingested`, and no other unrejected release
+of the source may be newer than that current release — "newer" as `resolveNextRelease` defines it (a
+strictly later `observed_on`), with an unknown `observed_on` on either side treated as not comparable
+and therefore refused. It accepts only `executor_version = 'review-removal-executor.v1'`; a v2
+replaces the trigger in its own migration, as for `review-decision.v1`.
+**Temporary safety gate:** the trigger also refuses a spot linked to any source entity other than the
+item's, so one source's disappearance never removes a spot that another source supports. It is
+lifted only by the PR that implements cross-source removal semantics (decision 4). Only
 lifecycle (and `updated_at`) changes: the spot id, links, raw records, observations, provenance,
 attenuations and review rows stay, and nothing is deleted. The schema allows `removed` only with an
 application row, one application per spot and per decision, and no update back from a reviewed

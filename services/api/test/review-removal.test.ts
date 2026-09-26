@@ -5,6 +5,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Db } from "../src/db.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
+import { PromotionError, buildPromotionBundle } from "../src/pipeline/promotion.ts";
+import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { REMOVAL_EXECUTOR_VERSION, RemovalApplicationError, applyReviewedRemoval } from "../src/pipeline/removal.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { type ReviewDecision, recordReviewDecision } from "../src/pipeline/review-queue.ts";
@@ -236,4 +238,121 @@ test("first release -> publish -> disappearance -> removalConfirmed -> executor 
   assert.equal(one(db, "SELECT count(*) AS n FROM spot_field_provenance WHERE spot_id = ?", item.spot_id).n > 0, true);
   // A second republish changes nothing.
   assert.deepEqual((await publishTiles(db, { now: REPUBLISH })).published, []);
+});
+
+// --- Final hardening (PR #85 review) ---
+
+const THIRD = { ...TAITO_FIXTURE_RELEASE, observedOn: "2026-09-20", fetchedAt: "2026-09-26T00:00:00Z" };
+const appCount = (db: SqliteD1) => one(db, "SELECT count(*) AS n FROM review_removal_applications").n;
+
+test("stale candidate: a newer release C of the source (spot present again) blocks applying B's removal", async () => {
+  const { db, item } = await setup();
+  await decide(db, item.review_item_id, "removalConfirmed");
+  // C is newer than the current release A and lists the spot again; it is not yet resolved.
+  await ingestRelease(db, COMPLETE_ADAPTER, TAITO_BYTES, THIRD);
+  const before = state(db);
+  await assert.rejects(apply(db, item.review_item_id), /not the latest removalConfirmed decision of a current/);
+  assert.deepEqual(state(db), before, "canonical, publication and application rows unchanged");
+  assert.equal(appCount(db), 0);
+  assert.equal(one(db, "SELECT lifecycle FROM spots WHERE spot_id = ?", item.spot_id).lifecycle, "active");
+});
+
+test("stale candidate: a newer release with unknown observed_on is not comparable, so it blocks too", async () => {
+  const { db, item } = await setup();
+  await decide(db, item.review_item_id, "removalConfirmed");
+  await ingestRelease(db, COMPLETE_ADAPTER, TAITO_BYTES, { ...THIRD, observedOn: null });
+  const before = state(db);
+  await assert.rejects(apply(db, item.review_item_id), /not the latest removalConfirmed decision of a current/);
+  assert.deepEqual(state(db), before);
+});
+
+test("stale candidate: a rejected newer release does not block; a previous release that is no longer current does", async () => {
+  const { db, firstId, item } = await setup();
+  await decide(db, item.review_item_id, "removalConfirmed");
+  const { releaseId: thirdId } = await ingestRelease(db, COMPLETE_ADAPTER, TAITO_BYTES, THIRD);
+  db.raw.prepare("UPDATE source_releases SET status = 'rejected' WHERE release_id = ?").run(thirdId);
+  // A is no longer the current release (as after another release was applied).
+  db.raw.prepare("UPDATE source_releases SET is_current = 0 WHERE release_id = ?").run(firstId);
+  const before = state(db);
+  await assert.rejects(apply(db, item.review_item_id), /not the latest removalConfirmed decision of a current/);
+  assert.deepEqual(state(db), before);
+  // With A current again and only a rejected newer release, the candidate is current and applies.
+  db.raw.prepare("UPDATE source_releases SET is_current = 1 WHERE release_id = ?").run(firstId);
+  assert.equal((await apply(db, item.review_item_id)).status, "applied");
+});
+
+test("stale candidate: the release that raised it must still be under review (not rejected)", async () => {
+  const { db, secondId, item } = await setup();
+  await decide(db, item.review_item_id, "removalConfirmed");
+  db.raw.prepare("UPDATE source_releases SET status = 'rejected' WHERE release_id = ?").run(secondId);
+  const before = state(db);
+  await assert.rejects(apply(db, item.review_item_id), /not the latest removalConfirmed decision of a current/);
+  assert.deepEqual(state(db), before);
+});
+
+test("multi-source spot: another source entity linked to the spot blocks removal (temporary gate)", async () => {
+  const { db, item } = await setup();
+  db.raw.prepare(
+    `INSERT INTO sources (source_id, display_name, kind, publication_status, created_at, updated_at)
+     VALUES ('test-other-source', 'TEST ONLY other source', 'municipal', 'approved', ?, ?)`,
+  ).run(NOW, NOW);
+  const otherEntity = Number(db.raw.prepare("INSERT INTO source_entities (source_id, created_at) VALUES ('test-other-source', ?)")
+    .run(NOW).lastInsertRowid);
+  db.raw.prepare("INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version) VALUES (?, ?, 'manual', ?, 'test')")
+    .run(otherEntity, item.spot_id, NOW);
+  await decide(db, item.review_item_id, "removalConfirmed");
+  const before = state(db);
+  await assert.rejects(apply(db, item.review_item_id), /single-source/);
+  assert.deepEqual(state(db), before, "lifecycle, publication and applications unchanged");
+  assert.equal(one(db, "SELECT lifecycle FROM spots WHERE spot_id = ?", item.spot_id).lifecycle, "active");
+  assert.equal(appCount(db), 0);
+  assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", item.spot_id).n, 1, "still published");
+});
+
+test("executor_version: only review-removal-executor.v1 is accepted by the schema", async () => {
+  const { db, item } = await setup();
+  const decisionId = await decide(db, item.review_item_id, "removalConfirmed");
+  const insert = (version: string) => db.raw.prepare(
+    "INSERT INTO review_removal_applications (spot_id, review_item_id, review_decision_id, executor_version, applied_at) VALUES (?, ?, ?, ?, ?)",
+  ).run(item.spot_id, item.review_item_id, decisionId, version, APPLY);
+  assert.throws(() => insert("x"), /not the latest removalConfirmed/);
+  assert.throws(() => insert("review-removal-executor.v2"), /not the latest removalConfirmed/);
+  assert.equal(appCount(db), 0);
+  assert.equal(REMOVAL_EXECUTOR_VERSION, "review-removal-executor.v1");
+  insert(REMOVAL_EXECUTOR_VERSION);
+  assert.equal(appCount(db), 1);
+});
+
+/**
+ * TEST ONLY: the promotion export accepts only a source in the reviewed registry, so this adapter
+ * reuses Taito's reviewed registry entry with a complete, gate-open test configuration. The
+ * production TAITO_ADAPTER is untouched (partial, crossReleaseValidated = false).
+ */
+const REVIEWED_COMPLETE_ADAPTER: SourceAdapter = {
+  ...TAITO_ADAPTER, assertResolvable: () => {}, attenuate: () => [], crossReleaseValidated: true, completeness: "complete",
+};
+
+test("promotion export is refused between the executor and republish, and succeeds after publishTiles", async () => {
+  const db = new SqliteD1();
+  await ensureReviewedSource(db, TAITO_REGISTRY.sourceId, NOW);
+  const { releaseId: firstId } = await ingestRelease(db, REVIEWED_COMPLETE_ADAPTER, TAITO_BYTES, TAITO_FIXTURE_RELEASE);
+  await resolveFirstRelease(db, REVIEWED_COMPLETE_ADAPTER, firstId, { now: NOW, newSpotId: sequentialSpotIds("A") });
+  await publishTiles(db, { now: NOW });
+  const { releaseId: secondId } = await ingestRelease(db, REVIEWED_COMPLETE_ADAPTER, DROPPED, SECOND);
+  assert.equal((await resolveFirstRelease(db, REVIEWED_COMPLETE_ADAPTER, secondId, { now: LATER, newSpotId: sequentialSpotIds("B") })).status, "needsReview");
+  const [item] = all(db, "SELECT * FROM review_items");
+  await buildPromotionBundle(db); // exportable before any removal
+
+  await decide(db, item.review_item_id, "removalConfirmed");
+  assert.equal((await apply(db, item.review_item_id)).status, "applied");
+  // Membership no longer matches the stored tile body until republish: the export fails closed.
+  await assert.rejects(buildPromotionBundle(db), (e: unknown) =>
+    e instanceof PromotionError && /snapshot membership does not match the body/.test(e.message));
+
+  await publishTiles(db, { now: REPUBLISH });
+  const bundle = await buildPromotionBundle(db);
+  assert.equal(bundle.manifest.releaseId, firstId);
+  assert.ok(!bundle.sql.includes(`"id":"${item.spot_id}"`), "no exported tile body lists the removed spot");
+  assert.equal(TAITO_ADAPTER.crossReleaseValidated, false);
+  assert.equal(TAITO_ADAPTER.completeness, "partial");
 });

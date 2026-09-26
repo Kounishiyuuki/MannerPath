@@ -140,7 +140,10 @@ review state of the database that ran the pipeline, and nothing published reads 
 `review_removal_applications` (ADR-0008 decision 5, Issue #84) is review state too and stays out of
 the bundle; a removed spot travels only as its canonical row with `lifecycle = 'removed'`, and the
 audit link to its review decision stays in the database that applied it. Run `publishTiles` after
-`applyReviewedRemoval` and before exporting, so the exported tile bodies no longer list the spot.
+`applyReviewedRemoval` and before exporting. Until then the spot's snapshot membership no longer
+matches its stored tile body, and `buildPromotionBundle` (`npm run local:export`) refuses the export
+with `snapshot membership does not match the body` (tested in `test/review-removal.test.ts`), so a
+crash or a forgotten republish cannot reach a remote promotion.
 
 `spot_field_attenuations` carries the rows behind every **weakened** field of a published spot
 (ADR-0006, Issue #42): which field was attenuated and how, under which attestation version, from
