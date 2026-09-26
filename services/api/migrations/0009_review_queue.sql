@@ -7,8 +7,10 @@
 --                    no canonical row. Applying a decision (removal, a manual match) is a separate
 --                    reviewed step that does not exist yet.
 --
--- Both tables are append-only. An item has no status column: it is open while it has no decision,
--- and a later decision on the same item supersedes an earlier one without rewriting it.
+-- Both tables are append-only. An item has no status column: it is open while it has no decision.
+-- Its latest decision is the one with the largest review_decision_id for that item; a later decision
+-- supersedes an earlier one without rewriting it. decided_at is evidence of when the reviewer
+-- decided and is never used for precedence.
 --
 -- Neither table travels in the promotion bundle: they are review state of the database that ran
 -- the pipeline, and nothing published reads them.
@@ -57,6 +59,30 @@ BEGIN
   SELECT RAISE(ABORT, 'review_items: kind, involved ids or completeness are inconsistent');
 END;
 
+-- The involved entities must be the ones the matcher compared: entities of the item's source that
+-- the previous release actually recorded, and for a disappearance the spot that entity is linked to.
+-- Candidate spots are not copied into details_json; they are read from spot_source_entities.
+CREATE TRIGGER review_items_candidates
+BEFORE INSERT ON review_items
+WHEN (NEW.kind = 'ambiguousMatch' AND (
+    json_array_length(NEW.details_json, '$.candidateEntityIds') = 0
+    OR (SELECT count(*) FROM json_each(NEW.details_json, '$.candidateEntityIds'))
+      <> (SELECT count(DISTINCT value) FROM json_each(NEW.details_json, '$.candidateEntityIds'))
+    OR EXISTS (
+      SELECT 1 FROM json_each(NEW.details_json, '$.candidateEntityIds') j
+      WHERE j.type <> 'integer' OR NOT EXISTS (
+        SELECT 1 FROM source_record_entities e JOIN source_entities se ON se.source_entity_id = e.source_entity_id
+        WHERE e.source_entity_id = j.value AND e.release_id = NEW.previous_release_id AND se.source_id = NEW.source_id))))
+  OR (NEW.kind IN ('disappearance', 'removalCandidate') AND NOT EXISTS (
+    SELECT 1 FROM source_record_entities e
+    JOIN source_entities se ON se.source_entity_id = e.source_entity_id
+    JOIN spot_source_entities l ON l.source_entity_id = e.source_entity_id
+    WHERE e.source_entity_id = NEW.source_entity_id AND e.release_id = NEW.previous_release_id
+      AND se.source_id = NEW.source_id AND l.spot_id = NEW.spot_id))
+BEGIN
+  SELECT RAISE(ABORT, 'review_items: involved entities are not the previous release''s entities of this source and spot');
+END;
+
 CREATE TRIGGER review_items_same_source
 BEFORE INSERT ON review_items
 WHEN NEW.source_id IS NOT (SELECT source_id FROM source_releases WHERE release_id = NEW.release_id)
@@ -86,7 +112,8 @@ CREATE TABLE review_decisions (
   review_item_id     INTEGER NOT NULL REFERENCES review_items (review_item_id),
   -- Validated per item kind by review_decisions_valid below (same reason as review_items.kind).
   decision           TEXT NOT NULL,
-  -- The decision vocabulary and its meaning, e.g. 'review-decision.v1'.
+  -- The decision vocabulary and its meaning. Only 'review-decision.v1' exists; a v2 replaces
+  -- review_decisions_valid in its own migration.
   decision_version   TEXT NOT NULL CHECK (decision_version <> ''),
   -- The previous entity a matchedToEntity decision chose; NULL for every other decision.
   source_entity_id   INTEGER REFERENCES source_entities (source_entity_id),
@@ -100,7 +127,8 @@ CREATE INDEX review_decisions_item ON review_decisions (review_item_id, review_d
 CREATE TRIGGER review_decisions_valid
 BEFORE INSERT ON review_decisions
 WHEN NOT EXISTS (
-  SELECT 1 FROM review_items i WHERE i.review_item_id = NEW.review_item_id AND (
+  SELECT 1 FROM review_items i WHERE i.review_item_id = NEW.review_item_id
+  AND NEW.decision_version = 'review-decision.v1' AND (
     NEW.decision = 'deferred' AND NEW.source_entity_id IS NULL
     -- An ambiguous record continues one of its candidate entities, or is confirmed new.
     OR (i.kind = 'ambiguousMatch' AND NEW.decision = 'confirmedNew' AND NEW.source_entity_id IS NULL)

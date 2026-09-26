@@ -48,11 +48,8 @@ export function crossReleaseCandidates(
       kind: "ambiguousMatch",
       candidateKey: `record:${a.recordId}|entities:${candidateEntityIds.join(",")}`,
       recordId: a.recordId, sourceEntityId: null, spotId: null,
-      details: {
-        reason: a.reason,
-        candidateEntityIds,
-        candidateSpotIds: candidateEntityIds.map((id) => byEntity.get(id)?.spotId ?? null),
-      },
+      // Candidate spots are read from spot_source_entities, not copied here (migration 0009).
+      details: { reason: a.reason, candidateEntityIds },
     });
   }
   for (const id of sortedIds(unmatchedPreviousEntityIds)) {
@@ -115,16 +112,18 @@ export interface ReviewDecisionInput {
 }
 
 /**
- * Records a reviewer's decision as evidence. It is validated against the item by the schema and
+ * Records a reviewer's decision as evidence. The item's latest decision is its largest
+ * review_decision_id; decided_at never decides precedence. It is validated against the item by the schema and
  * changes nothing else: no spot, link, provenance, hold or release state.
  */
 export async function recordReviewDecision(db: Db, input: ReviewDecisionInput): Promise<number> {
-  await db.prepare(
+  // RETURNING yields the id of this statement's own row, even with concurrent decisions on the item.
+  const row = await db.prepare(
     `INSERT INTO review_decisions (review_item_id, decision, decision_version, source_entity_id, decided_by, decided_at, note)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     RETURNING review_decision_id`,
   ).bind(input.reviewItemId, input.decision, REVIEW_DECISION_VERSION, input.sourceEntityId ?? null,
-    input.decidedBy, input.decidedAt, input.note ?? null).run();
-  const row = await db.prepare("SELECT max(review_decision_id) AS id FROM review_decisions WHERE review_item_id = ?")
-    .bind(input.reviewItemId).first<{ id: number }>();
-  return row!.id;
+    input.decidedBy, input.decidedAt, input.note ?? null).first<{ review_decision_id: number }>();
+  if (!row) throw new Error(`review queue: decision ${input.decision} on item ${input.reviewItemId} returned no row`);
+  return row.review_decision_id;
 }

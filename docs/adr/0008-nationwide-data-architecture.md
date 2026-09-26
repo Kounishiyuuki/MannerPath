@@ -197,7 +197,10 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
 
 - `review_items` (append-only): source, release + `content_sha256`, previous release, kind,
   matcher version, source completeness, involved record / entity / spot, `details_json`
-  (reason, candidate entity and spot ids, previous record), `created_at`. Identity is
+  (reason, candidate entity ids, previous record), `created_at`. The schema refuses involved
+  entities that the previous release did not record for this source, an empty, non-integer or
+  duplicated candidate list, and a spot that is not the entity's `spot_source_entities` link;
+  candidate spots are read from that table, not copied. Identity is
   `(source, release, previous release, matcher version, kind, candidate_key)`, where the key is
   derived from the involved ids only, so re-processing a release returns the same items; a stored
   item whose details differ from a re-run is refused loudly. Kinds: `ambiguousMatch`,
@@ -205,8 +208,10 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
   are added later by replacing the kind trigger, not by rebuilding the table.
 - `review_decisions` (append-only): item, decision, `decision_version` (`review-decision.v1`),
   chosen entity for `matchedToEntity`, `decided_by`, `decided_at`, note. Decisions valid per kind
-  are enforced by the schema; an item is open while it has no decision, and a later decision
-  supersedes an earlier one without rewriting it.
+  and the only known `decision_version` are enforced by the schema (a v2 replaces the trigger in its
+  migration). An item is open while it has no decision; its **latest decision is the one with the
+  largest `review_decision_id`** for that item. `decided_at` is evidence of when, never precedence.
+  `recordReviewDecision` returns its own row's id via `INSERT … RETURNING`.
 - The resolver stores the candidates and returns `{ status: "needsReview", reviewItemIds }`; the
   release stays `ingested`, and no match key or canonical row is written.
 - **Not implemented:** an executor that applies decisions to canonical rows. Until it exists a

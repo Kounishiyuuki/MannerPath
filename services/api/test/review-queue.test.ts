@@ -11,7 +11,7 @@ import { type SourceAdapter, sourceCompleteness } from "../src/pipeline/source-a
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
+import { NOW, TAITO_BYTES, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
@@ -107,7 +107,7 @@ test("ambiguous (changed record): stored as a review item, canonical unchanged, 
   assert.equal(item.candidate_key, `record:${item.record_id}|entities:${previous.source_entity_id}`);
   const details = JSON.parse(item.details_json);
   assert.deepEqual(details.candidateEntityIds, [previous.source_entity_id]);
-  assert.deepEqual(details.candidateSpotIds, [previous.spot_id]);
+  assert.equal("candidateSpotIds" in details, false, "candidate spots are read from spot_source_entities");
   assert.match(details.reason, /no reviewed natural-key policy/);
 
   const rerun = await resolve(db, PARTIAL_ADAPTER, secondId, RERUN);
@@ -230,4 +230,60 @@ test("the schema refuses a partial removal candidate and a cross-source item", a
   assert.throws(() => insert({ kind: "relocation" }), /inconsistent/);
   assert.throws(() => insert({ release_content_sha256: "0".repeat(64) }), /does not belong/);
   assert.throws(() => insert({ candidate_key: item.candidate_key }), /UNIQUE/);
+});
+
+function insertItem(db: SqliteD1, base: Row, over: Row) {
+  const r = { ...base, candidate_key: `direct:${Math.random()}`, ...over };
+  db.raw.prepare(
+    `INSERT INTO review_items (source_id, release_id, release_content_sha256, previous_release_id, kind, matcher_version,
+       source_completeness, candidate_key, record_id, source_entity_id, spot_id, details_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(r.source_id, r.release_id, r.release_content_sha256, r.previous_release_id, r.kind, r.matcher_version,
+    r.source_completeness, r.candidate_key, r.record_id, r.source_entity_id, r.spot_id, r.details_json, r.created_at);
+}
+
+test("direct SQL cannot create a candidate outside the previous release, the source or the entity's spot", async () => {
+  const { db, firstId, secondId } = await setup(DROPPED);
+  await resolve(db, PARTIAL_ADAPTER, secondId);
+  const disappearance = one(db, "SELECT * FROM review_items");
+  // Same source, but never recorded in the previous release.
+  const stray = Number(db.raw.prepare("INSERT INTO source_entities (source_id, created_at) VALUES (?, ?)").run(SOURCE, NOW).lastInsertRowid);
+  addBlockedTestSource(db);
+  await importTaito(db, { sourceId: TEST_BLOCKED_SOURCE, newSpotId: sequentialSpotIds("F") });
+  const foreign = one(db, "SELECT source_entity_id FROM source_entities WHERE source_id = ? LIMIT 1", TEST_BLOCKED_SOURCE).source_entity_id;
+  const other = entityOf(db, recordOf(db, firstId, 2));
+  const rejected = /not the previous release's entities/;
+
+  assert.throws(() => insertItem(db, disappearance, { source_entity_id: foreign }), /does not belong|not the previous/);
+  assert.throws(() => insertItem(db, disappearance, { source_entity_id: stray }), rejected);
+  assert.throws(() => insertItem(db, disappearance, { spot_id: other.spot_id }), rejected);
+  insertItem(db, disappearance, { source_entity_id: other.source_entity_id, spot_id: other.spot_id }); // consistent -> accepted
+
+  const ambiguous = { ...disappearance, kind: "ambiguousMatch", record_id: recordOf(db, secondId, 1), source_entity_id: null, spot_id: null };
+  const withCandidates = (ids: unknown[]) => ({ details_json: JSON.stringify({ reason: "direct", candidateEntityIds: ids }) });
+  assert.throws(() => insertItem(db, ambiguous, withCandidates([])), rejected);
+  assert.throws(() => insertItem(db, ambiguous, withCandidates([stray])), rejected);
+  assert.throws(() => insertItem(db, ambiguous, withCandidates([foreign])), rejected);
+  assert.throws(() => insertItem(db, ambiguous, withCandidates([String(other.source_entity_id)])), rejected);
+  assert.throws(() => insertItem(db, ambiguous, withCandidates([other.source_entity_id, other.source_entity_id])), rejected);
+  insertItem(db, ambiguous, withCandidates([other.source_entity_id])); // consistent -> accepted
+});
+
+test("recordReviewDecision returns its own row id; unknown decision versions are refused", async () => {
+  const { db, secondId } = await setup(DROPPED, COMPLETE_ADAPTER);
+  const result = await resolve(db, COMPLETE_ADAPTER, secondId);
+  const [reviewItemId] = result.status === "needsReview" ? result.reviewItemIds : [];
+  const first = await recordReviewDecision(db, { reviewItemId, decision: "deferred", decidedBy: REVIEWER, decidedAt: RERUN, note: "first" });
+  // Another writer's decision lands in between; each call still returns exactly the row it inserted.
+  db.raw.prepare(`INSERT INTO review_decisions (review_item_id, decision, decision_version, decided_by, decided_at, note)
+    VALUES (?, 'deferred', ?, 'other-writer', ?, 'other')`).run(reviewItemId, REVIEW_DECISION_VERSION, RERUN);
+  const second = await recordReviewDecision(db, { reviewItemId, decision: "removalRejected", decidedBy: REVIEWER, decidedAt: NOW, note: "second" });
+  assert.equal(one(db, "SELECT note FROM review_decisions WHERE review_decision_id = ?", first).note, "first");
+  assert.equal(one(db, "SELECT note FROM review_decisions WHERE review_decision_id = ?", second).note, "second");
+  // Latest = largest id, even though its decided_at is earlier.
+  assert.equal(one(db, "SELECT max(review_decision_id) AS id FROM review_decisions WHERE review_item_id = ?", reviewItemId).id, second);
+  for (const version of ["review-decision.v2", "x"]) {
+    assert.throws(() => db.raw.prepare(`INSERT INTO review_decisions (review_item_id, decision, decision_version, decided_by, decided_at)
+      VALUES (?, 'deferred', ?, ?, ?)`).run(reviewItemId, version, REVIEWER, RERUN), /not valid for this review item/);
+  }
 });
