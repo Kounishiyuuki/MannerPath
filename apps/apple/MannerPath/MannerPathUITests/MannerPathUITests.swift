@@ -152,7 +152,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         let typeMenu = app.buttons["場所の種類: 指定なし"]
         XCTAssertTrue(typeMenu.waitForExistence(timeout: 10))
         typeMenu.tap()
-        // The Taito list does not state a physical type, so a known type must not match it.
+        // This Taito UI fixture has no confirmed physical type; other sources may have one.
         app.buttons["公共の喫煙室"].tap()
         XCTAssertTrue(app.buttons["場所の種類: 1件選択中"].waitForExistence(timeout: 5))
         screenshot("05-filters-selected")
