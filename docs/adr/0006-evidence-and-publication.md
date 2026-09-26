@@ -287,7 +287,8 @@ the ward says is no longer the active location.
    `GET /spots/{id}`, which reads through the same gate. Migration 0004 adds the column and
    recreates the two publication triggers to read it, so the database refuses to publish a held spot
    and refuses to hold a spot that is still in a snapshot (decision 11's unpublish-first obligation).
-   Vocabulary v1 has one value, `locationSuperseded`.
+   Vocabulary v1 has one value, `locationSuperseded`. ADR-0009 decision 4 adds `relocationUnderReview`
+   (migration 0014, Issue #95), which is set only with its `review_relocation_holds` row.
 7. **An attenuated field publishes no provenance in schemaVersion 1.** `GET /spots/{id}` omits the
    field entirely rather than emitting its CSV provenance. Emitting it would tell a client that
    `taito-public-smoking-areas`, observed on 2026-08-18, is the evidence for the value it sees —
