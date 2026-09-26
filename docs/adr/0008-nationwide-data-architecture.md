@@ -5,7 +5,8 @@ implemented by this ADR's PR, decision 2 (source observations) by Issue #73 and 
 decision 3 by Issue #78 (its production gate stays closed), and the review queue and completeness
 parts of decisions 5 and 8 by Issue #80, and the reviewed-removal executor of decisions 5 and 8 by
 Issue #84 (relocation is still not applied); every other decision fixes a boundary that later issues implement
-and may not silently change.
+and may not silently change. The relocation and natural-key policy of decisions 3, 5, 8 and 10 is
+fixed by ADR-0009 (Issue #91, design only).
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
 ADR-0002 (canonical data), ADR-0005 (tiles) and ADR-0006 (evidence and publication) and replaces
@@ -133,7 +134,8 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
   equal what the new observation resolves to (name, coordinate, tile, tobacco support, hours,
   lifecycle, hold), or the release is refused as canonical drift and no evidence moves.
 - `natural_key` is **not enabled**: Taito's `#` is not reviewed as stable, and no reviewed name +
-  coordinate-proximity threshold exists. It needs that threshold reviewed (ADR amendment/issue).
+  coordinate-proximity threshold exists. Natural keys are source-specific, versioned, reviewed and
+  fail closed on missing / colliding / changed keys (ADR-0009 decision 2).
 - `new`: an unmatched record while no previous entity is left unmatched.
 - Ambiguous (duplicate keys on either side, or an unmatched record while previous entities remain
   unmatched — an edit and an add + remove are indistinguishable without a natural key): the release
@@ -196,8 +198,11 @@ records are not mixed until the OSM ADR (decision 11) decides how.
 
 - Disappearance is removal evidence only when the adapter declares the source complete for the
   relevant scope, and only after the cross-release matcher found no match.
-- A large coordinate movement of a matched entity (threshold per adapter, reviewed) is a
-  relocation candidate: the spot is held (`publication_hold`) until reviewed, never silently moved.
+- A coordinate change of an entity whose identity was established without the coordinate (reviewed
+  natural key or reviewed match) is a relocation candidate: the spot is held (`publication_hold`)
+  until reviewed, never silently moved. Amended by ADR-0009: **every** change is reviewed in policy
+  v1, no threshold is chosen, a reviewed per-source threshold never auto-accepts a move, and the
+  hold is a separate explicit step, not a resolver write (ADR-0009 decisions 1, 3, 4).
 - Large record-count drops and schema changes stop automatic application (strategy §7).
 
 As implemented (Issue #80): an unmatched previous entity becomes a review item of kind
@@ -273,8 +278,8 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
   `(source, release, previous release, matcher version, kind, candidate_key)`, where the key is
   derived from the involved ids only, so re-processing a release returns the same items; a stored
   item whose details differ from a re-run is refused loudly. Kinds: `ambiguousMatch`,
-  `disappearance`, `removalCandidate`; relocation, cross-source duplicate and schema-change kinds
-  are added later by replacing the kind trigger, not by rebuilding the table.
+  `disappearance`, `removalCandidate`; relocation (`relocationCandidate`, proposed in ADR-0009),
+  cross-source duplicate and schema-change kinds are added later by replacing the kind trigger, not by rebuilding the table.
 - `review_decisions` (append-only): item, decision, `decision_version` (`review-decision.v1`),
   chosen entity for `matchedToEntity`, `decided_by`, `decided_at`, note. Decisions valid per kind
   and the only known `decision_version` are enforced by the schema (a v2 replaces the trigger in its
@@ -314,7 +319,7 @@ advance `lastVerifiedAt`; changed bytes create a new immutable release.
 `spot_id` is generated once (CSPRNG, `src/spot-id.ts`) and never derived from source data, so a
 re-import, a matcher version change or a new source never renames a spot. A merge keeps the
 surviving id and records `merged_into` on the other; clients follow the redirect. A removed spot
-keeps its id.
+keeps its id. A relocated spot keeps its id too; relocation is never removal + new (ADR-0009).
 
 ### 11. OSM remains blocked
 
