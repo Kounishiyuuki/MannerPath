@@ -5,6 +5,7 @@
 // Deliberately minimal: it describes what the one implemented source (台東区) needs today. New
 // members arrive with the source that needs them, reviewed against ADR-0008, not speculatively.
 
+import type { Db } from "../db.ts";
 import type { ReviewedSource } from "./registry.ts";
 
 export type TriState = "yes" | "no" | "unknown";
@@ -69,7 +70,19 @@ export interface AttenuationReference {
  */
 export type SourceCompleteness = "partial" | "complete";
 
+export interface QualityCheck {
+  id: string;
+  status: "pass" | "fail";
+  detail: string;
+}
+
+export interface QualityPolicy {
+  analyze(db: Db, sourceId: string): Promise<{ checks: QualityCheck[]; reconciliation: unknown }>;
+}
+
 export interface SourceAdapter {
+  /** Optional source-specific read-only assertions and report detail. */
+  qualityPolicy?: QualityPolicy;
   /** Reviewed registry entry (docs/SOURCES.md). The adapter's source id is `registry.sourceId`. */
   registry: ReviewedSource;
   /** Stored on every release this adapter parses; resolve dispatches on it. */

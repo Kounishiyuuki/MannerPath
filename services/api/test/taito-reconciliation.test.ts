@@ -269,11 +269,11 @@ test("every attenuation carries its attestation and the exact reviewed release f
 
   const r = await analyzeCorpus(db, { now: "2026-09-21T00:00:00Z" });
   assert.equal(r.failedChecks, 0);
-  assert.equal(r.reconciliation.conflicts, TAITO_LIST_PAGE_CONFLICTS.length);
-  assert.equal(r.reconciliation.attestedFieldAttenuations, expected.length);
-  assert.deepEqual(r.reconciliation.reviewedRelease, TAITO_REVIEWED_RELEASE);
-  assert.deepEqual(r.reconciliation.canonicalButWithheld.map((w) => w.name).sort(), [CLOSED, RELOCATED].sort());
-  assert.deepEqual(r.reconciliation.unresolved, []);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)!.reconciliation.conflicts, TAITO_LIST_PAGE_CONFLICTS.length);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)!.reconciliation.attestedFieldAttenuations, expected.length);
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)!.reconciliation.reviewedRelease, TAITO_REVIEWED_RELEASE);
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)!.reconciliation.canonicalButWithheld.map((w) => w.name).sort(), [CLOSED, RELOCATED].sort());
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)!.reconciliation.unresolved, []);
   assert.equal(r.checks.find((c) => c.id === `${TAITO_SOURCE_ID}-list-page-conflicts-resolved-conservatively`)?.status, "pass");
   assert.equal(r.checks.find((c) => c.id === `${TAITO_SOURCE_ID}-attenuations-are-attested`)?.status, "pass");
   assert.equal(r.checks.find((c) => c.id === "published-spots-are-active-and-unheld")?.status, "pass");

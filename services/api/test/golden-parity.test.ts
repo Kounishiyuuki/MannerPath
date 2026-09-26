@@ -3,8 +3,7 @@
 // spot IDs and clock, and every row of every table plus every derived output (tile bodies, hashes,
 // ETags, promotion manifest/SQL, quality report) must equal the committed golden byte-for-byte.
 //
-// The golden was generated from main before the SourceAdapter extraction. A refactor must not change
-// it; an intended output change regenerates it (GOLDEN_UPDATE=1) and justifies the diff in its PR.
+// Issue #70 intentionally changes only the quality report shape. The other golden sections remain byte-identical.
 // Issue #73 added only `tables.source_observations`, and Issue #80 only the empty
 // `tables.review_items` / `tables.review_decisions`, and Issue #84 only the empty
 // `tables.review_removal_applications`, and Issue #86 only the empty

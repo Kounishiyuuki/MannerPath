@@ -2,6 +2,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { gzipSync } from "node:zlib";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
+import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ATTRIBUTION_TEXT, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { TILE_REEVALUATION_GZIP_BYTES, TILE_REEVALUATION_SPOTS, analyzeCorpus } from "../src/quality/analyze.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
@@ -149,7 +151,18 @@ test("a reviewed source that states a spot's type, access and environment is not
   }
   await publishTiles(db, { now: NOW });
 
-  const r = await analyze(db);
+  const second: SourceAdapter = {
+    ...TAITO_ADAPTER,
+    registry: { ...TAITO_ADAPTER.registry, sourceId: futureSource },
+    qualityPolicy: { async analyze(_db, sourceId) {
+      return { checks: [{ id: `${sourceId}-test-only`, status: "pass", detail: "isolated" }], reconciliation: null };
+    } },
+  };
+  const r = await analyzeCorpus(db, { now: NOW, gzip: (b) => gzipSync(b).length, adapters: [TAITO_ADAPTER, second] });
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === futureSource)?.publishedSpots, 1);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === futureSource)?.canonicalSpots, 1);
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === futureSource)?.checks.map((c) => c.id), [`${futureSource}-test-only`]);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)?.publishedSpots, 32);
   const status = (id: string) => r.checks.find((c) => c.id === id)!.status;
   assert.equal(status(`${TAITO_SOURCE_ID}-unstated-fields-stay-unknown`), "pass");
   assert.equal(status(`${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`), "pass");
@@ -175,4 +188,90 @@ test("the published attribution is the reviewed wording, on every non-empty tile
   assert.equal(r.sources.entries[0].attributionText, TAITO_ATTRIBUTION_TEXT);
   assert.equal(r.checks.find((c) => c.id === "published-tiles-carry-attribution")!.status, "pass");
   assert.equal(r.checks.find((c) => c.id === `${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`)!.status, "pass");
+});
+
+test("two source policies remain isolated without registering the test source", async () => {
+  const db = await publishedDb();
+  const testId = "test-future-municipal";
+  db.raw.prepare(`INSERT INTO sources (source_id, display_name, kind, license_name, license_url, attribution_text, publication_status, created_at, updated_at)
+    VALUES (?, 'TEST source', 'municipal', 'TEST license', 'https://example.invalid/license', 'TEST attribution', 'blocked', ?, ?)`).run(testId, NOW, NOW);
+  const second: SourceAdapter = {
+    ...TAITO_ADAPTER,
+    registry: { ...TAITO_ADAPTER.registry, sourceId: testId, publicationStatus: "blocked" },
+    qualityPolicy: { async analyze(_db, sourceId) {
+      return { checks: [{ id: `${sourceId}-test-only`, status: "pass", detail: "isolated" }], reconciliation: null };
+    } },
+  };
+  const r = await analyzeCorpus(db, { now: NOW, adapters: [TAITO_ADAPTER, second] });
+  assert.equal(r.sourceMetrics.length, 2);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === testId)?.publishedSpots, 0);
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === testId)?.checks.map((c) => c.id), [`${testId}-test-only`]);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)?.checks.length, 4);
+  assert.equal(r.checks.some((c) => c.id === `${testId}-unstated-fields-stay-unknown`), false);
+  assert.equal(r.sources.blocked, 1);
+});
+
+test("published verification dates must be valid and no later than the analysis instant", async () => {
+  const db = await publishedDb();
+  const baseline = await analyze(db);
+  assert.equal(baseline.nationwide.freshness.publishedWithin365Days, 32);
+  assert.equal(baseline.checks.find((check) => check.id === "freshness-timestamps-valid-and-not-future")?.status, "pass");
+
+  const tile = db.raw.prepare("SELECT tile_id, body_json FROM tile_snapshots ORDER BY tile_id LIMIT 1")
+    .get() as { tile_id: string; body_json: string };
+  // Inject malformed published evidence without running the publisher's republish path.
+  db.raw.prepare("DROP TRIGGER tile_snapshots_revision_monotonic").run();
+  for (const date of ["2027-01-01", "2026-02-30"]) {
+    const body = JSON.parse(tile.body_json);
+    body.spots[0].lastVerifiedAt = date;
+    db.raw.prepare("UPDATE tile_snapshots SET body_json = ? WHERE tile_id = ?")
+      .run(JSON.stringify(body), tile.tile_id);
+    const r = await analyze(db);
+    assert.equal(r.nationwide.freshness.publishedWithin365Days, 31, date);
+    assert.equal(r.sourceMetrics[0].publishedWithin365Days.count, 31, date);
+    assert.equal(r.checks.find((check) => check.id === "freshness-timestamps-valid-and-not-future")?.status, "fail", date);
+  }
+});
+
+test("current-release fetch dates reject future and invalid timestamps", async () => {
+  const db = await publishedDb();
+  const baseline = await analyze(db);
+  assert.equal(baseline.sourceMetrics[0].currentReleaseFetch?.within30Days, true);
+  assert.equal(baseline.nationwide.freshness.reviewedCurrentReleaseFetchedWithin30Days, 1);
+  db.raw.prepare("DROP TRIGGER source_releases_evidence_immutable").run();
+  db.raw.prepare("UPDATE source_releases SET fetched_at = ? WHERE source_id = ?")
+    .run("2026-09-20T00:00:00.123Z", TAITO_SOURCE_ID);
+  const fractional = await analyze(db);
+  assert.equal(fractional.sourceMetrics[0].currentReleaseFetch?.within30Days, true);
+  assert.equal(fractional.checks.find((check) => check.id === "freshness-timestamps-valid-and-not-future")?.status, "pass");
+  for (const fetchedAt of ["2027-01-01T00:00:00Z", "2026-02-30T00:00:00Z"]) {
+    db.raw.prepare("UPDATE source_releases SET fetched_at = ? WHERE source_id = ?")
+      .run(fetchedAt, TAITO_SOURCE_ID);
+    const r = await analyze(db);
+    assert.equal(r.sourceMetrics[0].currentReleaseFetch?.within30Days, false, fetchedAt);
+    assert.equal(r.nationwide.freshness.reviewedCurrentReleaseFetchedWithin30Days, 0, fetchedAt);
+    assert.equal(r.nationwide.freshness.reviewedCurrentReleaseCount, 1, fetchedAt);
+    assert.equal(r.checks.find((check) => check.id === "freshness-timestamps-valid-and-not-future")?.status, "fail", fetchedAt);
+  }
+});
+
+test("nationwide fetch denominator excludes an unreviewed blocked current release", async () => {
+  const db = await publishedDb();
+  addBlockedTestSource(db);
+  db.raw.prepare(`INSERT INTO source_releases (source_id, observed_on, fetched_at, source_url,
+    content_sha256, byte_length, header_json, record_count, parser_version, status, is_current, applied_at)
+    VALUES (?, '2026-09-01', '2027-01-01T00:00:00Z', 'https://example.invalid/blocked.csv',
+      ?, 1, '["a"]', 0, 'test-parser.v1', 'applied', 1, ?)`)
+    .run(TEST_BLOCKED_SOURCE, "f".repeat(64), NOW);
+  for (const fetchedAt of ["2027-01-01T00:00:00Z", "2025-01-01T00:00:00Z"]) {
+    db.raw.prepare("UPDATE source_releases SET fetched_at = ? WHERE source_id = ?")
+      .run(fetchedAt, TEST_BLOCKED_SOURCE);
+    const r = await analyze(db);
+    assert.equal(r.sourceMetrics.length, 2);
+    assert.equal(r.sourceMetrics.find((source) => source.sourceId === TEST_BLOCKED_SOURCE)?.currentReleaseFetch?.within30Days, false);
+    assert.equal(r.nationwide.freshness.reviewedCurrentReleaseCount, 1);
+    assert.equal(r.nationwide.freshness.reviewedCurrentReleaseFetchedWithin30Days, 1);
+    assert.equal(r.checks.find((check) => check.id === "freshness-timestamps-valid-and-not-future")?.status,
+      fetchedAt.startsWith("2027") ? "fail" : "pass");
+  }
 });

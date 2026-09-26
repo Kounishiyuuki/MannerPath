@@ -11,20 +11,12 @@
 
 import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
+import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
-import {
-  ATTENUATED_FIELD,
-  TAITO_LIST_PAGE_ATTESTATION_VERSION,
-  TAITO_LIST_PAGE_CHECKED_AT,
-  TAITO_LIST_PAGE_CONFLICTS,
-  TAITO_LIST_PAGE_REFERENCE_KIND,
-  TAITO_LIST_PAGE_URL,
-  TAITO_REVIEWED_RELEASE,
-} from "../pipeline/taito-list-page.ts";
-import { TAITO_EXISTENCE_RULE, TAITO_SOURCE_ID, TAITO_UNRESOLVED_FIELDS } from "../pipeline/taito.ts";
+import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
 
-export const ANALYSIS_VERSION = "beta-data-quality.v1";
+export const ANALYSIS_VERSION = "nationwide-data-quality.v1";
 
 /**
  * ADR-0005 §"Re-evaluate before release": the z14 decision is revisited if a source makes any tile
@@ -39,12 +31,8 @@ export interface AnalyzeOptions {
   now: string;
   /** Optional gzip sizer (node:zlib in the CLI and tests). Without it, gzip figures are null. */
   gzip?: (body: string) => number;
-}
-
-export interface Check {
-  id: string;
-  status: "pass" | "fail";
-  detail: string;
+  /** Explicit adapters allow isolated multi-source analysis in tests. Approval remains registry-controlled. */
+  adapters?: readonly SourceAdapter[];
 }
 
 type Counts = Record<string, number>;
@@ -104,6 +92,20 @@ function nearestNeighbourMeters(spots: { latitude: number; longitude: number }[]
 
 function days(from: string, to: string): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
+}
+
+/** Null means malformed, nonexistent on the calendar, or later than the reference instant. */
+function freshAgeDays(value: string, now: string): number | null {
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (!dateOnly && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) return null;
+  const from = Date.parse(dateOnly ? `${value}T00:00:00Z` : value);
+  const to = Date.parse(now);
+  if (!Number.isFinite(from) || !Number.isFinite(to) || from > to) return null;
+  const normalized = new Date(from).toISOString();
+  const canonical = value.replace(/\.(\d{1,2})Z$/, (_match, fraction: string) => `.${fraction.padEnd(3, "0")}Z`);
+  if (dateOnly ? normalized.slice(0, 10) !== value
+    : normalized !== (value.includes(".") ? canonical : value.replace("Z", ".000Z"))) return null;
+  return Math.round((to - from) / 86_400_000);
 }
 
 export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
@@ -172,101 +174,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const bySourceId = new Map(sources.map((s) => [s.source_id, s]));
   const reviewed = new Map(REVIEWED_SOURCES.map((s) => [s.sourceId, s]));
 
-  // Per-source expectation, not a repository invariant. 台東区's file has no column for a spot's
-  // type, host, access or environment (services/api/src/pipeline/taito.ts), so a Taito-derived spot
-  // that carries one of them was inferred — in this corpus, from a convenience store's name. A
-  // future reviewed source that *states* such a value resolves it with provenance and is untouched
-  // by these two checks.
-  const { results: taitoSpots } = await db.prepare(
-    `SELECT s.spot_id, s.spot_type, s.host_type, s.access_type, s.environment, p.rule AS existence_rule,
-            (SELECT group_concat(field) FROM spot_field_provenance q WHERE q.spot_id = s.spot_id
-              AND q.field IN ('spotType', 'hostType', 'accessType', 'environment')) AS typed_fields
-     FROM spots s
-     JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
-     JOIN source_records r ON r.record_id = p.record_id
-     JOIN source_releases rel ON rel.release_id = r.release_id
-     WHERE rel.source_id = ?
-     ORDER BY s.spot_id`,
-  ).bind(TAITO_SOURCE_ID).all<{
-    spot_id: string; spot_type: string; host_type: string | null; access_type: string;
-    environment: string; existence_rule: string; typed_fields: string | null;
-  }>();
-
-  const taitoTyped = taitoSpots.filter((r) =>
-    r.spot_type !== "unknown" || r.host_type !== null || r.access_type !== "unknown"
-    || r.environment !== "unknown" || r.typed_fields !== null);
-  const taitoHostEvidence = taitoSpots.filter((r) => r.existence_rule !== TAITO_EXISTENCE_RULE);
-
-  // Issue #42 reconciliation: every record the ward's *other* current publication contradicts must
-  // have ended up conservative — hours that cannot yield a confirmed openNow, or no publication at
-  // all — and every weakening must be backed by an explicit attestation row carrying the reference,
-  // the check date and the exact release it was reviewed against.
-  const { results: reconciled } = await db.prepare(
-    `SELECT s.spot_id, s.name, s.opening_hours_status, s.lifecycle, s.publication_hold,
-            EXISTS (SELECT 1 FROM tile_snapshot_spots t WHERE t.spot_id = s.spot_id) AS published
-     FROM spots s
-     JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
-     JOIN source_records r ON r.record_id = p.record_id
-     JOIN source_releases rel ON rel.release_id = r.release_id
-     WHERE rel.source_id = ? ORDER BY s.spot_id`,
-  ).bind(TAITO_SOURCE_ID).all<{
-    spot_id: string; name: string | null; opening_hours_status: string; lifecycle: string;
-    publication_hold: string | null; published: number;
-  }>();
-  const byName = new Map(reconciled.map((r) => [r.name ?? "", r]));
-
-  const { results: attenuations } = await db.prepare(
-    `SELECT a.spot_id, s.name, a.field, a.effect, a.attestation_version, a.reference_kind, a.reference_url,
-            a.checked_at, a.release_content_sha256, a.release_observed_on, a.release_source_url, a.resolver_version
-     FROM spot_field_attenuations a JOIN spots s ON s.spot_id = a.spot_id ORDER BY a.spot_id, a.field, a.effect`,
-  ).all<{
-    spot_id: string; name: string | null; field: string; effect: string; attestation_version: string;
-    reference_kind: string; reference_url: string; checked_at: string; release_content_sha256: string;
-    release_observed_on: string | null; release_source_url: string; resolver_version: string;
-  }>();
-  const attenuationAt = new Map(attenuations.map((a) => [`${a.spot_id}\u0000${a.effect}`, a]));
-
-  // A database with no Taito spots at all (a fixture of another source) has nothing to check.
-  const unresolvedConflicts = reconciled.length === 0 ? [] : TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => {
-    const row = byName.get(c.csvName);
-    if (!row) return [`${c.csvName}: no canonical spot`];
-    const problems: string[] = [];
-    if (c.effects.includes("hoursUnknown") && row.opening_hours_status === "parsed") {
-      problems.push("hours still parsed");
-    }
-    if (c.effects.includes("temporarilyClosed") && (row.lifecycle !== "temporarilyClosed" || row.published === 1)) {
-      problems.push(`lifecycle ${row.lifecycle}, published ${row.published === 1}`);
-    }
-    if (c.effects.includes("withholdFromPublication") && (row.publication_hold === null || row.published === 1)) {
-      problems.push(`hold ${row.publication_hold ?? "(none)"}, published ${row.published === 1}`);
-    }
-    // The attenuation row is the evidence. Without it the value is weakened for no recorded reason,
-    // which is the failure mode this check exists to catch.
-    for (const effect of c.effects) {
-      const a = attenuationAt.get(`${row.spot_id}\u0000${effect}`);
-      if (!a) { problems.push(`${effect}: no attestation row`); continue; }
-      if (a.field !== ATTENUATED_FIELD[effect]) problems.push(`${effect}: attests field ${a.field}`);
-      if (a.attestation_version !== TAITO_LIST_PAGE_ATTESTATION_VERSION) problems.push(`${effect}: attestation ${a.attestation_version}`);
-      if (a.reference_kind !== TAITO_LIST_PAGE_REFERENCE_KIND || a.reference_url !== TAITO_LIST_PAGE_URL) {
-        problems.push(`${effect}: reference ${a.reference_kind} ${a.reference_url}`);
-      }
-      if (a.checked_at !== TAITO_LIST_PAGE_CHECKED_AT) problems.push(`${effect}: checked_at ${a.checked_at}`);
-      if (a.release_content_sha256 !== TAITO_REVIEWED_RELEASE.contentSha256
-        || a.release_observed_on !== TAITO_REVIEWED_RELEASE.observedOn
-        || a.release_source_url !== TAITO_REVIEWED_RELEASE.sourceUrl) {
-        problems.push(`${effect}: attested against another release (${a.release_content_sha256.slice(0, 12)}…, ${a.release_observed_on ?? "(null)"})`);
-      }
-    }
-    return problems.length === 0 ? [] : [`${c.csvName}: ${problems.join("; ")}`];
-  });
-
-  // The converse: nothing may be attenuated that the reviewed attestations do not call for.
-  const attested = new Set(TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => c.effects.map((e) => `${c.csvName}\u0000${e}`)));
-  const unattested = attenuations.filter((a) => !attested.has(`${a.name ?? ""}\u0000${a.effect}`));
-
-  const heldButPublished = reconciled.filter((r) => r.published === 1 && (r.publication_hold !== null || r.lifecycle !== "active"));
-
-  const checks: Check[] = [];
+  const checks: QualityCheck[] = [];
   const check = (id: string, ok: boolean, detail: string) => checks.push({ id, status: ok ? "pass" : "fail", detail });
 
   const unreviewed = publishedSourceIds.filter((id) => !reviewed.has(id));
@@ -315,26 +223,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       ? "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
       : `osm data is approved or published: ${[...osmApproved.map((s) => s.source_id), ...osmPublished].join(", ")}`);
 
-  check(`${TAITO_SOURCE_ID}-unstated-fields-stay-unknown`, taitoTyped.length === 0,
-    taitoTyped.length === 0
-      ? `all ${taitoSpots.length} spots derived from ${TAITO_SOURCE_ID} leave ${TAITO_UNRESOLVED_FIELDS.join(", ")} unknown/null with no provenance row, because that source states none of them`
-      : `Taito-derived spots carrying a value that source does not state: ${taitoTyped.map((r) => r.spot_id).join(", ")}`);
+  const qualityBySource = new Map<string, { checks: QualityCheck[]; reconciliation: unknown }>();
+  for (const adapter of opts.adapters ?? SOURCE_ADAPTERS) {
+    if (!adapter.qualityPolicy) continue;
+    const result = await adapter.qualityPolicy.analyze(db, adapter.registry.sourceId);
+    qualityBySource.set(adapter.registry.sourceId, result);
+    checks.push(...result.checks);
+  }
 
-  check(`${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`, taitoHostEvidence.length === 0,
-    taitoHostEvidence.length === 0
-      ? `all ${taitoSpots.length} Taito-derived spots cite ${TAITO_EXISTENCE_RULE} for existence — the ward listing, never the convenience store or venue that hosts the spot`
-      : `Taito-derived spots citing another existence rule: ${taitoHostEvidence.map((r) => `${r.spot_id} (${r.existence_rule})`).join(", ")}`);
-
-  check(`${TAITO_SOURCE_ID}-list-page-conflicts-resolved-conservatively`, unresolvedConflicts.length === 0,
-    unresolvedConflicts.length === 0
-      ? `all ${TAITO_LIST_PAGE_CONFLICTS.length} reviewed contradictions with ${TAITO_LIST_PAGE_URL} are resolved subtractively, and each weakening is backed by a spot_field_attenuations row citing ${TAITO_LIST_PAGE_ATTESTATION_VERSION}, checked ${TAITO_LIST_PAGE_CHECKED_AT}, against the reviewed release ${TAITO_REVIEWED_RELEASE.contentSha256.slice(0, 12)}… observed ${TAITO_REVIEWED_RELEASE.observedOn}`
-      : `contradictions not conservatively resolved: ${unresolvedConflicts.join(" | ")}`);
-
-  check(`${TAITO_SOURCE_ID}-attenuations-are-attested`, unattested.length === 0,
-    unattested.length === 0
-      ? `every attenuation in spot_field_attenuations (${attenuations.length}) is called for by ${TAITO_LIST_PAGE_ATTESTATION_VERSION}`
-      : `attenuations with no reviewed attestation: ${unattested.map((a) => `${a.name ?? a.spot_id} (${a.effect})`).join(", ")}`);
-
+  const { results: heldButPublished } = await db.prepare(`SELECT s.name FROM spots s JOIN tile_snapshot_spots t ON t.spot_id = s.spot_id
+    WHERE s.publication_hold IS NOT NULL OR s.lifecycle <> 'active' ORDER BY s.spot_id`).all<{ name: string | null }>();
   check("published-spots-are-active-and-unheld", heldButPublished.length === 0,
     heldButPublished.length === 0
       ? "no published spot is temporarilyClosed, removed or under a publication hold"
@@ -353,7 +251,66 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const spotsTableCount = await db.prepare(
     "SELECT count(*) AS n FROM spots WHERE lifecycle = 'active' AND merged_into IS NULL",
   ).first<{ n: number }>();
+  const canonicalRows = await db.prepare(
+    "SELECT count(*) AS n FROM spots WHERE merged_into IS NULL",
+  ).first<{ n: number }>();
 
+  const { results: canonicalBySource } = await db.prepare(`SELECT rel.source_id, count(DISTINCT p.spot_id) AS n
+    FROM spot_field_provenance p JOIN source_records r ON r.record_id = p.record_id
+    JOIN source_releases rel ON rel.release_id = r.release_id WHERE p.field = 'existence'
+    GROUP BY rel.source_id ORDER BY rel.source_id`).all<{ source_id: string; n: number }>();
+  const canonicalCount = new Map(canonicalBySource.map((r) => [r.source_id, r.n]));
+  const sourceMetrics = sources.map((source) => {
+    const sourceSpots = spots.filter((spot) => spot.sourceIds.includes(source.source_id));
+    const currentRelease = releases.find((release) => release.source_id === source.source_id && release.is_current === 1);
+    const verifiedRecent = sourceSpots.filter((spot) => {
+      const age = spot.lastVerifiedAt === null ? null : freshAgeDays(spot.lastVerifiedAt, opts.now);
+      return age !== null && age <= 365;
+    }).length;
+    return {
+      sourceId: source.source_id,
+      publicationStatus: source.publication_status,
+      canonicalSpots: canonicalCount.get(source.source_id) ?? 0,
+      publishedSpots: sourceSpots.length,
+      currentReleaseFetch: currentRelease === undefined ? null : {
+        releaseId: currentRelease.release_id,
+        fetchedAt: currentRelease.fetched_at,
+        within30Days: (freshAgeDays(currentRelease.fetched_at, opts.now) ?? Infinity) <= 30,
+      },
+      publishedWithin365Days: { count: verifiedRecent, total: sourceSpots.length, rate: rate(verifiedRecent, sourceSpots.length) },
+      unknownRates: Object.fromEntries(Object.keys(unknownRates).map((field) => {
+        const unknown = sourceSpots.filter((spot) => field === 'openingHours' ? spot.openingHours.status !== 'parsed'
+          : spot[field as keyof typeof spot] === 'unknown').length;
+        return [field, { unknown, total: sourceSpots.length, rate: rate(unknown, sourceSpots.length) }];
+      })),
+      evidenceQuality: tally(sourceSpots.map((spot) => `${spot.evidenceQualityVersion}:${spot.evidenceQuality}`)),
+      checks: qualityBySource.get(source.source_id)?.checks ?? [],
+      reconciliation: qualityBySource.get(source.source_id)?.reconciliation ?? null,
+    };
+  });
+  const recent = spots.filter((spot) => {
+    const age = spot.lastVerifiedAt === null ? null : freshAgeDays(spot.lastVerifiedAt, opts.now);
+    return age !== null && age <= 365;
+  }).length;
+  const invalidPublishedDates = spots.filter((spot) =>
+    spot.lastVerifiedAt !== null && freshAgeDays(spot.lastVerifiedAt, opts.now) === null);
+  const reviewedCurrentReleases = sourceMetrics.filter((source) => {
+    const registry = reviewed.get(source.sourceId);
+    return registry?.publicationStatus === "approved" && source.publicationStatus === "approved"
+      && source.currentReleaseFetch !== null;
+  });
+  const invalidCurrentFetches = sourceMetrics.filter((source) => source.currentReleaseFetch !== null).filter((source) =>
+    freshAgeDays(source.currentReleaseFetch!.fetchedAt, opts.now) === null);
+  check("freshness-timestamps-valid-and-not-future",
+    invalidPublishedDates.length === 0 && invalidCurrentFetches.length === 0,
+    invalidPublishedDates.length === 0 && invalidCurrentFetches.length === 0
+      ? "published verification dates and current-release fetch dates are valid and not future-dated"
+      : `${invalidPublishedDates.length} published spots and ${invalidCurrentFetches.length} current releases have invalid or future freshness dates`);
+  const { results: publishedByRelease } = await db.prepare(`SELECT rel.release_id, count(DISTINCT t.spot_id) AS n
+    FROM tile_snapshot_spots t JOIN spot_field_provenance p ON p.spot_id = t.spot_id AND p.field = 'existence'
+    JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id
+    GROUP BY rel.release_id ORDER BY rel.release_id`).all<{ release_id: number; n: number }>();
+  const releasePublishedCount = new Map(publishedByRelease.map((r) => [r.release_id, r.n]));
   return {
     generator: ANALYSIS_VERSION,
     generatedAt: opts.now,
@@ -384,6 +341,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       contentSha256: r.content_sha256,
       byteLength: r.byte_length,
       recordCount: r.record_count,
+      publishedSpots: releasePublishedCount.get(r.release_id) ?? 0,
       parserVersion: r.parser_version,
       status: r.status,
       isCurrent: r.is_current === 1,
@@ -414,23 +372,22 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       newest: verified[verified.length - 1] ?? null,
       oldestDaysAgo: verified.length === 0 ? null : days(`${verified[0]}T00:00:00Z`, opts.now),
     },
-    reconciliation: {
-      attestationVersion: TAITO_LIST_PAGE_ATTESTATION_VERSION,
-      secondPublicationUrl: TAITO_LIST_PAGE_URL,
-      checkedAt: TAITO_LIST_PAGE_CHECKED_AT,
-      referenceKind: TAITO_LIST_PAGE_REFERENCE_KIND,
-      reviewedRelease: TAITO_REVIEWED_RELEASE,
-      conflicts: TAITO_LIST_PAGE_CONFLICTS.length,
-      effects: tally(TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => [...c.effects])),
-      attestedFieldAttenuations: attenuations.length,
-      canonicalButWithheld: reconciled.filter((r) => r.published === 0).map((r) => ({
-        name: r.name,
-        lifecycle: r.lifecycle,
-        publicationHold: r.publication_hold,
-        effects: attenuations.filter((a) => a.spot_id === r.spot_id).map((a) => a.effect).sort(),
-      })),
-      unresolved: unresolvedConflicts,
+    nationwide: {
+      sourceCoverage: { registered: sources.length, approved: sources.filter((source) => source.publication_status === 'approved').length, published: publishedSourceIds.length },
+      regionalCoverage: { status: 'notComputableYet', reason: 'No reviewed prefecture/municipality assignment or station reference dataset' },
+      stationCoverage: { status: 'notComputableYet', reason: 'Top 50/top 300 station reference dataset requires license review' },
+      populationCoverage: { status: 'notComputableYet', reason: 'DID/population reference dataset requires license review' },
+      freshness: {
+        publishedWithin365Days: recent, publishedTotal: spots.length, rate: rate(recent, spots.length),
+        reviewedCurrentReleaseFetchedWithin30Days: reviewedCurrentReleases.filter((source) => source.currentReleaseFetch!.within30Days).length,
+        reviewedCurrentReleaseCount: reviewedCurrentReleases.length,
+      },
+      publishedSpots: spots.length,
+      canonicalSpots: canonicalRows?.n ?? 0,
+      evidenceQuality: tally(spots.map((spot) => `${spot.evidenceQualityVersion}:${spot.evidenceQuality}`)),
+      unknownRates: Object.fromEntries(Object.entries(unknownRates).map(([field, value]) => [field, { ...value, rate: rate(value.unknown, value.total) }])),
     },
+    sourceMetrics,
     evidenceQuality: tally(spots.map((s) => `${s.evidenceQualityVersion}:${s.evidenceQuality}`)),
     openingHoursStatus: openingHours,
     unknownRates: Object.fromEntries(

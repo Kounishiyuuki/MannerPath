@@ -2,6 +2,7 @@
 // rules (./taito.ts) and reviewed list-page attestations (./taito-list-page.ts) to the boundary;
 // the rules themselves are unchanged.
 
+import { analyzeTaitoQuality } from "../quality/taito-policy.ts";
 import { parseCsv } from "./csv.ts";
 import type { SourceAdapter } from "./source-adapter.ts";
 import {
@@ -24,6 +25,7 @@ import {
 
 export const TAITO_ADAPTER: SourceAdapter = {
   registry: TAITO_REGISTRY,
+  qualityPolicy: { analyze: analyzeTaitoQuality },
   parserVersion: TAITO_PARSER_VERSION,
   resolverVersion: TAITO_RESOLVER_VERSION,
   mappingVersion: TAITO_MAPPING_VERSION,
