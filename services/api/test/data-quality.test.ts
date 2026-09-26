@@ -51,6 +51,21 @@ test("reports the largest tile and its distance from the ADR-0005 re-evaluation 
   assert.equal(r.thresholds.withinThresholds, true);
 });
 
+// The gate's logic, independent of the zlib build (Issue #76): a stand-in sizer reports every tile
+// at a chosen size. The gate trips only strictly above TILE_REEVALUATION_GZIP_BYTES.
+for (const [size, within] of [[1, true], [TILE_REEVALUATION_GZIP_BYTES, true], [TILE_REEVALUATION_GZIP_BYTES + 1, false]] as const) {
+  test(`a ${size}-byte gzipped tile is ${within ? "within" : "over"} the re-evaluation gzip threshold`, async () => {
+    const db = await publishedDb();
+    const r = await analyzeCorpus(db, { now: NOW, gzip: () => size });
+    assert.equal(r.thresholds.maxGzipBytesPerTile, size);
+    assert.equal(r.thresholds.withinThresholds, within);
+    const gate = r.checks.find((c) => c.id === "tile-zoom-thresholds")!;
+    assert.equal(gate.status, within ? "pass" : "fail");
+    assert.match(gate.detail, new RegExp(`max ${size} gzip bytes/tile \\(trigger ${TILE_REEVALUATION_GZIP_BYTES}\\)`));
+    assert.equal(r.failedChecks, within ? 0 : 1);
+  });
+}
+
 test("an unapproved source is neither published nor counted as approved", async () => {
   const db = new SqliteD1();
   addBlockedTestSource(db);
