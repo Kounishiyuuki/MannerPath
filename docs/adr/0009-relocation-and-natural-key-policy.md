@@ -1,6 +1,6 @@
 # ADR-0009 — Relocation and natural-key policy
 
-Status: Accepted as policy (2026-09, Issue #91, tracker #67). **Design only:** nothing here is
+Status: Proposed (2026-09, Issue #91, tracker #67; becomes Accepted when PR #92 merges). **Design only:** nothing here is
 implemented. It fixes the rules that the follow-up issues listed under "Implementation plan"
 implement. It amends ADR-0008 decisions 3, 5, 8 and 10 and replaces none of them. ADR-0006
 decision 6 (`publication_hold` is an axis, not lifecycle) and decision 11 (unpublish first) are kept.
@@ -30,8 +30,9 @@ A **relocation candidate** exists only when **both** of these hold:
   source (decision 2) matches exactly one previous entity and exactly one new record, or (b) a
   reviewer recorded `matchedToEntity` on an `ambiguousMatch` item.
 - **The coordinate changed.** The new observation's coordinate is not equal to the previous
-  observation's coordinate. Equality is bitwise on the stored observation values; there is no
-  tolerance (decision 3).
+  observation's coordinate. Equality is exact numeric equality of the normalized, stored
+  observation coordinates: `35.7112` and `35.711200` are the same number. No tolerance or epsilon
+  is used (decision 3).
 
 Nothing else is a relocation candidate:
 
@@ -49,7 +50,8 @@ Nothing else is a relocation candidate:
 
 A natural key is a **source-specific, versioned and reviewed** identity key. It is stored as
 `source_record_match_keys` rows under its own `key_version`. That table already supports several key
-versions per record (migration 0001). The matcher version names every key version it reads.
+versions per record (migration 0001). The adapter derives the key; the matcher reads only the
+stored rows. See "SourceAdapter boundary". The matcher version names every key version it reads.
 
 - **Reviewed before it is enabled.** A source has a natural key only when a `docs/SOURCES.md` review
   cites evidence that the key identifies the same physical place across releases. Acceptable evidence
@@ -105,9 +107,12 @@ versions per record (migration 0001). The matcher version names every key versio
   replacement coordinate.
 - The hold is lifted **only** by the same reviewed workflow that resolves the item:
   - `relocationConfirmed` application: the spot moves and is republished (decision 5).
-  - `relocationRejected` does **not** lift the hold by itself. The reviewer said "not the same place
-    moved", so the published coordinate is still contradicted. The hold stays until the resulting
-    `ambiguousMatch` / removal flow resolves the entity. That resolution is a later issue.
+  - `relocationRejected` does **not** lift the hold by itself. A rejection means only that the
+    same-entity premise may be wrong. It does not verify that the old coordinate is safe. The old
+    entity's existence and location still have to be resolved by a separate flow (`ambiguousMatch`
+    / disappearance / removal). The hold is lifted only by a later, explicit, reviewed resolution
+    of that flow, which is a later issue. In particular, a partial source's old spot is never
+    republished automatically because of a `relocationRejected`.
   - `deferred` keeps the hold.
 - A spot that is already held for another reason (`locationSuperseded`) is not relocated in v1. The
   candidate is refused as "held; carry-forward not implemented", like any other held spot in
@@ -120,8 +125,10 @@ is. In one batch it may change **only**:
 
 - `spots.latitude` / `longitude`, and `tile_id` derived from them. The value is copied from the new
   observation that the item cites, never typed in by the reviewer.
-- tile membership: the spot is unpublished from the old tile and published into the new tile by
-  the ordinary `publishTiles`. Both affected tiles get a new revision / content hash / ETag.
+- tile membership, rebuilt by the ordinary `publishTiles`. If the old and new z14 tiles differ,
+  the spot leaves the old tile and enters the new one, and both tiles get a new revision / content
+  hash / ETag. If the move stays inside the same z14 tile, only that one tile is rebuilt. No other
+  tile changes.
 - `publication_hold` back to NULL, only if the hold is this item's `relocationUnderReview`.
 - `updated_at`, and the evidence move of the whole release application (provenance cites the new
   record, `last_verified_at`). This happens only when the resolver later applies the release,
@@ -131,7 +138,7 @@ It must not change `spot_id`, `created_at`, `source_entity_id`, `spot_source_ent
 `merged_into`, raw records, observations, old provenance history, attenuation rows or review rows.
 It is refused if any other observed field differs (no value-update policy), if the spot is removed,
 merged or linked to another source's entity, or if the decision is not the item's latest
-`review-decision.v1` decision. An append-only `review_relocation_applications` row records the item,
+`review-decision.v2` decision. An append-only `review_relocation_applications` row records the item,
 decision, spot, entity, old coordinate, new coordinate, old tile, new tile, policy version, executor
 version and `applied_at`. Its insert trigger re-checks the premise inside the batch, as in
 0010–0012.
@@ -144,8 +151,13 @@ to the new coordinate.
 
 ### 7. Auditing old and new location evidence
 
-- Nothing is deleted. The old coordinate stays provable through the previous release's raw record,
-  its observation, its `source_record_entities` row, and the historical provenance rows.
+- Nothing is deleted. `spot_field_provenance` is not a history: when a release is applied it is
+  re-pointed at the new record. The old coordinate therefore stays auditable through:
+  - the previous release's `source_records` row;
+  - its `source_observations` row;
+  - its `source_record_entities` row;
+  - the immutable review item and decision;
+  - the before/after values in `review_relocation_applications`.
 - The `relocationCandidate` item carries the full comparison in `details_json`. It holds identity
   inputs only, from which the stored `candidate_key` is derived:
   - previous record id, entity id, spot id, and new record id;
@@ -180,14 +192,19 @@ This follows the existing naming: item kinds are camelCase nouns (`ambiguousMatc
 
 - Kind: `relocationCandidate`. It requires `previous_release_id`, `record_id`, `source_entity_id`
   and `spot_id`. `candidate_key` = `record:<id>|entity:<id>`.
-- Decisions under `review-decision.v1` are extended by replacing `review_decisions_valid`, as
-  migration 0009 anticipates:
+- Decisions on a `relocationCandidate` use **`review-decision.v2`**, validated by replacing
+  `review_decisions_valid` as migration 0009 anticipates:
   - `relocationConfirmed`: the same place moved to the new coordinate.
-  - `relocationRejected`: not a move. The item then routes to the ambiguous / removal flow.
-  - `deferred`: already generic.
+  - `relocationRejected`: not confirmed as a move. The hold stays (decision 4).
+  - `deferred`: the word is shared with v1, but a decision row on a `relocationCandidate` is v2.
 
-  If extending v1 turns out to change the meaning of any existing decision, it becomes
-  `review-decision.v2` instead. The PR that implements it decides this and records it here.
+  Reasons for v2:
+  - v1 vocabulary and semantics are not changed retroactively.
+  - A relocation consumer can require exactly v2.
+  - The meaning of a version stays fixed for audit.
+
+  The v1 decisions of `ambiguousMatch`, `disappearance` and `removalCandidate` are unchanged and
+  stay v1. v1 is invalid on a `relocationCandidate`, and v2 is invalid on the other kinds.
 
 ## Schema proposal (not migrated)
 
@@ -203,23 +220,28 @@ This follows the existing naming: item kinds are camelCase nouns (`ambiguousMatc
 
 ## SourceAdapter boundary (proposal)
 
-Only the members that the first implementing issue needs are added. Each member is optional, and
-**absent means disabled**, like `completeness`:
+This PR fixes the boundary only. The concrete API is decided with the first reviewed natural key:
 
-```ts
-/** Reviewed, versioned natural key (ADR-0009 decision 2). Absent = no natural key. */
-naturalKey?: {
-  keyVersion: string;              // e.g. "<source>-natural-key.v1"; part of the matcher version
-  evidence: string;                // docs/SOURCES.md section that reviewed it
-  derive(observation: SourceObservation): string | null; // null = missing key (fail closed)
-};
-```
+- **Derivation is an adapter step.** Natural keys are derived at the source adapter boundary, like
+  `observe`, and never by the matcher. The matcher never reads `raw_values_json`.
+- **Stored, then matched.** Each derived key is stored immutably in `source_record_match_keys` under
+  its `key_version`. The matcher reads only stored `key_version` / `match_key` rows, as it already
+  does for `raw-sha256.v1`.
+- **Allowed material.** If a source has a reviewed stable publisher id (`upstream_row_ref`), the
+  adapter may use it as key material. If the key needs source-specific raw fields, the adapter
+  reads them during derivation. The raw schema is never exposed to the matcher.
+- **No identity field in `SourceObservation`.** `SourceObservation` is the canonical normalization
+  and is not required to carry publisher identity. No publisher-specific identity field is added to
+  it for keys.
+- **Optional, absent = disabled** (like `completeness`). Collision / missing / changed key rules
+  are decision 2.
 
-The key is derived from the observation, never from raw values, as ADR-0008 decision 2 requires. A
-proximity threshold is **not** added now. It is needed only by a proximity-based key, and no source
-has reviewed one. It arrives with such a source, as `naturalKey.proximityMetres` plus its evidence.
-No `relocationPolicy` member is added: v1 relocation behaviour is generic (every change → review)
-and needs no source input.
+Nothing else is added now:
+
+- A proximity threshold is not added. It is needed only by a proximity-based key, and no source has
+  reviewed one. It arrives with such a source, together with its evidence.
+- No `relocationPolicy` member is added. v1 relocation behaviour is generic (every change → review)
+  and needs no source input.
 
 ## Taito — what is missing
 
@@ -244,17 +266,23 @@ Each step is its own issue and PR, and each builds on the previous one:
 
 - **A. Relocation candidate detection + vocabulary** (migration 0013). In the resolver's effective
   plan, a reviewed `matchedToEntity` with a changed coordinate raises a `relocationCandidate` item
-  (`needsReview`) instead of throwing. It writes no canonical row. Test-only source only.
+  (`needsReview`) instead of throwing. It writes no canonical row. The schema and
+  `recordReviewDecision` accept the decision version that fits the kind (v2 for
+  `relocationCandidate`, v1 otherwise). Test-only source only.
 - **B. Relocation hold step** (0014). `holdRelocationCandidate`: unpublish, then hold, with a hold
   row. Stale-evidence triggers.
 - **C. Reviewed relocation application** (0015). `applyReviewedRelocation`, and the resolver
   consuming it when it applies the release. A coordinate change is possible only through an
   application row.
-- **D. Tile / promotion E2E.** Old tile loses the spot and the new tile gains it (both revisions and
-  ETags change); the promotion bundle carries the new coordinate with old evidence retained; the
+- **D. Tile / promotion E2E.** Cover two cases:
+  - cross-tile relocation: the old tile loses the spot and the new tile gains it, and both tiles'
+    revisions and ETags change;
+  - same-tile relocation: only that one tile changes.
+
+  In both cases the promotion bundle carries the new coordinate with old evidence retained; the
   golden stays stable for Taito.
-- **E. Versioned natural-key foundation** (`SourceAdapter.naturalKey`, matcher version with key
-  version, collision / missing handling). This is independent of A–D, but it is **useful only with a
+- **E. Versioned natural-key foundation** (adapter-side derivation into `source_record_match_keys`,
+  its concrete API, matcher version with key version, collision / missing handling). This is independent of A–D, but it is **useful only with a
   reviewed key**. It should wait until a source has one, or a test-only source proves the generic
   path. It does not enable Taito.
 - Separate and later: resolving `relocationRejected` / hold release through removal, and a
