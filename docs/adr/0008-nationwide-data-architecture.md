@@ -162,6 +162,27 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
   value update policy exists, and a removed or merged spot is never a match target (restoring is
   its own reviewed step). Two records claiming one entity, a decision outside the candidates or of
   an unknown `decision_version` are refused.
+- Previous entities resolved by an applied reviewed removal (Issue #89,
+  `migrations/0012_review_removal_resolutions.sql`, `resolvePreviousEntities` in
+  `src/pipeline/reviewed-match.ts`): record decisions and previous entities are separate. Each
+  previous entity is `continuedByRecord`, `resolvedByReviewedRemoval` or `unresolved`. It is
+  `resolvedByReviewedRemoval` only when its complete-source `removalCandidate` item of exactly this
+  comparison has a latest `review-decision.v1` decision `removalConfirmed` **and** that exact
+  decision's `review_removal_applications` row (same item, decision, spot) exists, the spot is
+  `removed` and unmerged, and it is still linked to that entity alone. A decision without its
+  application, `removalRejected`, `deferred`, no decision, or a partial source's `disappearance`
+  stays `unresolved` (`needsReview`). An application whose premise changed since — another latest
+  decision, another item, link drift — fails closed. The resolver never removes a spot and invents no
+  record decision or `source_record_entities` row for the missing record; it writes one
+  append-only `review_removal_resolutions` row per consumed application (release, previous release,
+  item, decision, application, entity, spot, `review-removal-resolution.v1`, `applied_at`) in the
+  same batch as the release, before the release-state updates. Its insert trigger re-checks
+  everything above plus the stale-evidence conditions of 0010/0011, so a decision recorded after
+  the resolver read the queue aborts the whole batch. The release is applied (match keys,
+  application and resolution audit rows, provenance, `is_current` switch) only when every record
+  and every previous entity is resolved; otherwise nothing is written. `removalRejected` is **not**
+  a resolution: keeping an active spot whose existence evidence stays in the previous release
+  conflicts with single-release promotion (decision 7) and needs a carry-forward policy first.
 - The promotion bundle still carries one release per source; multi-release promotion is decision 7.
 
 ### 4. Cross-source matching (boundary)
@@ -212,7 +233,10 @@ removal. Reapplying the same decision is `alreadyApplied`; a spot removed on ano
 whose item's latest decision has since changed, fails closed. The ordinary `publishTiles` then
 rebuilds the affected tile (new revision, content hash and ETag) without the spot; other tiles keep
 their revision. Applying a removal does not apply the release under review: the second release stays
-`ingested`. **Not implemented:** relocation detection (needs a reviewed natural key and distance
+`ingested` until the resolver is re-run, which then consumes the application (decision 3, Issue
+#89) and, if nothing else is open, applies that release; the removed spot keeps its entity, link,
+old raw records and provenance, and is absent from the tiles republished afterwards and from the
+promotion bundle of the new current release. **Not implemented:** relocation detection (needs a reviewed natural key and distance
 threshold) and relocation holds, restoring a removed spot, and the record-count / schema-change
 stop.
 
@@ -273,9 +297,10 @@ As implemented (Issue #80, `migrations/0009_review_queue.sql`, `src/pipeline/rev
   batch. An item and a decision are applied at most once, so another decision cannot be
   substituted; a re-run of an applied release is `alreadyApplied`. A `manual`
   `source_record_entities` row cannot be inserted without its application row.
-  **Not implemented:** relocation, value-update policy for a reviewed match, resolving a
-  disappearance/removal candidate into release application (a release with one stays
-  `needsReview`, even after its removal was applied), restoring removed spots.
+  **Not implemented:** relocation, value-update policy for a reviewed match, carrying a
+  partial `disappearance` or a `removalRejected` entity forward into release application (such a
+  release stays `needsReview`), restoring removed spots. An applied removal is consumed by the
+  resolver since Issue #89 (decision 3, `review_removal_resolutions`).
 
 ### 9. Source fingerprint (boundary, partly implemented)
 
