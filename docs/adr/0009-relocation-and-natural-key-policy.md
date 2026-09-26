@@ -1,6 +1,6 @@
 # ADR-0009 — Relocation and natural-key policy
 
-Status: Proposed (2026-09, Issue #91, tracker #67; becomes Accepted when PR #92 merges). **Design only:** nothing here is
+Status: Accepted (2026-09, Issue #91, tracker #67). **Design only:** nothing here is
 implemented. It fixes the rules that the follow-up issues listed under "Implementation plan"
 implement. It amends ADR-0008 decisions 3, 5, 8 and 10 and replaces none of them. ADR-0006
 decision 6 (`publication_hold` is an axis, not lifecycle) and decision 11 (unpublish first) are kept.
