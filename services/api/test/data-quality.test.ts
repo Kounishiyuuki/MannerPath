@@ -2,6 +2,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { gzipSync } from "node:zlib";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
+import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ATTRIBUTION_TEXT, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { TILE_REEVALUATION_GZIP_BYTES, TILE_REEVALUATION_SPOTS, analyzeCorpus } from "../src/quality/analyze.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
@@ -149,7 +151,18 @@ test("a reviewed source that states a spot's type, access and environment is not
   }
   await publishTiles(db, { now: NOW });
 
-  const r = await analyze(db);
+  const second: SourceAdapter = {
+    ...TAITO_ADAPTER,
+    registry: { ...TAITO_ADAPTER.registry, sourceId: futureSource },
+    qualityPolicy: { async analyze(_db, sourceId) {
+      return { checks: [{ id: `${sourceId}-test-only`, status: "pass", detail: "isolated" }], reconciliation: null };
+    } },
+  };
+  const r = await analyzeCorpus(db, { now: NOW, gzip: (b) => gzipSync(b).length, adapters: [TAITO_ADAPTER, second] });
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === futureSource)?.publishedSpots, 1);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === futureSource)?.canonicalSpots, 1);
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === futureSource)?.checks.map((c) => c.id), [`${futureSource}-test-only`]);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)?.publishedSpots, 32);
   const status = (id: string) => r.checks.find((c) => c.id === id)!.status;
   assert.equal(status(`${TAITO_SOURCE_ID}-unstated-fields-stay-unknown`), "pass");
   assert.equal(status(`${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`), "pass");
@@ -175,4 +188,25 @@ test("the published attribution is the reviewed wording, on every non-empty tile
   assert.equal(r.sources.entries[0].attributionText, TAITO_ATTRIBUTION_TEXT);
   assert.equal(r.checks.find((c) => c.id === "published-tiles-carry-attribution")!.status, "pass");
   assert.equal(r.checks.find((c) => c.id === `${TAITO_SOURCE_ID}-existence-evidence-is-the-municipal-listing`)!.status, "pass");
+});
+
+test("two source policies remain isolated without registering the test source", async () => {
+  const db = await publishedDb();
+  const testId = "test-future-municipal";
+  db.raw.prepare(`INSERT INTO sources (source_id, display_name, kind, license_name, license_url, attribution_text, publication_status, created_at, updated_at)
+    VALUES (?, 'TEST source', 'municipal', 'TEST license', 'https://example.invalid/license', 'TEST attribution', 'blocked', ?, ?)`).run(testId, NOW, NOW);
+  const second: SourceAdapter = {
+    ...TAITO_ADAPTER,
+    registry: { ...TAITO_ADAPTER.registry, sourceId: testId, publicationStatus: "blocked" },
+    qualityPolicy: { async analyze(_db, sourceId) {
+      return { checks: [{ id: `${sourceId}-test-only`, status: "pass", detail: "isolated" }], reconciliation: null };
+    } },
+  };
+  const r = await analyzeCorpus(db, { now: NOW, adapters: [TAITO_ADAPTER, second] });
+  assert.equal(r.sourceMetrics.length, 2);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === testId)?.publishedSpots, 0);
+  assert.deepEqual(r.sourceMetrics.find((s) => s.sourceId === testId)?.checks.map((c) => c.id), [`${testId}-test-only`]);
+  assert.equal(r.sourceMetrics.find((s) => s.sourceId === TAITO_SOURCE_ID)?.checks.length, 4);
+  assert.equal(r.checks.some((c) => c.id === `${testId}-unstated-fields-stay-unknown`), false);
+  assert.equal(r.sources.blocked, 1);
 });

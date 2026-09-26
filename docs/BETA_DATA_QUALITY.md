@@ -37,6 +37,24 @@ node services/data-pipeline/research/beta-data-quality/spot-check.mjs
 
 Its committed output is `services/data-pipeline/research/beta-data-quality/2026-09-21-spot-check.json`.
 
+## Nationwide quality report shape (Issue #70)
+
+The read-only report now has `sourceMetrics[]` (one independent section per registered source),
+`releases[]` (including each release's published spot count), and `nationwide` aggregates.
+Taito reconciliation detail and its four checks live under the Taito source section, while
+`checks[]` remains the combined gate. The Taito check IDs and assertions are unchanged.
+`sourceMetrics[].canonicalSpots` counts distinct spots with existence provenance from that
+source; a future shared spot can appear in more than one source section. Nationwide published
+spots are counted once from tile contents. Approval is still controlled by the reviewed source
+registry and database publication status; a passing quality check never approves a source.
+
+The current fixture measures 1 registered/approved/published source, 32 published spots,
+34 canonical spots (33 active unmerged), and 32/32 published spots verified within 365 days at the
+measurement instant. Current-release fetch recency is also reported per source and nationwide against 30 days. `regionalCoverage`, `stationCoverage` and `populationCoverage` explicitly
+return `notComputableYet`: the repository has no reviewed geographic assignment, station
+rank/distance reference, or DID/population reference dataset. No prefectural, top 50/top 300,
+or population percentage is inferred from the Taito bounding box.
+
 ## 2. Corpus metrics **[measured]**
 
 | Metric | Value |

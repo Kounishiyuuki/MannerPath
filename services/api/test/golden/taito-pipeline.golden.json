@@ -173,7 +173,7 @@
     "sqlSha256": "340911cdcc71d92d594084c2e0601c8bde8a8848918b12655b74f42d25e8945c"
   },
   "quality": {
-    "generator": "beta-data-quality.v1",
+    "generator": "nationwide-data-quality.v1",
     "generatedAt": "2026-09-21T03:00:00Z",
     "sources": {
       "total": 1,
@@ -207,6 +207,7 @@
         "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
         "byteLength": 7266,
         "recordCount": 34,
+        "publishedSpots": 32,
         "parserVersion": "taito-csv.v1",
         "status": "applied",
         "isCurrent": true
@@ -245,44 +246,182 @@
       "newest": "2026-08-18",
       "oldestDaysAgo": 34
     },
-    "reconciliation": {
-      "attestationVersion": "taito-list-page-conflicts.v1",
-      "secondPublicationUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
-      "checkedAt": "2026-09-21T01:37:19Z",
-      "referenceKind": "publisherWebPage",
-      "reviewedRelease": {
-        "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
-        "observedOn": "2026-08-18",
-        "sourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+    "nationwide": {
+      "sourceCoverage": {
+        "registered": 1,
+        "approved": 1,
+        "published": 1
       },
-      "conflicts": 8,
-      "effects": {
-        "hoursUnknown": 7,
-        "temporarilyClosed": 1,
-        "withholdFromPublication": 1
+      "regionalCoverage": {
+        "status": "notComputableYet",
+        "reason": "No reviewed prefecture/municipality assignment or station reference dataset"
       },
-      "attestedFieldAttenuations": 9,
-      "canonicalButWithheld": [
-        {
-          "name": "ファミリーマート　台東一丁目店",
-          "lifecycle": "temporarilyClosed",
-          "publicationHold": null,
-          "effects": [
-            "hoursUnknown",
-            "temporarilyClosed"
-          ]
+      "stationCoverage": {
+        "status": "notComputableYet",
+        "reason": "Top 50/top 300 station reference dataset requires license review"
+      },
+      "populationCoverage": {
+        "status": "notComputableYet",
+        "reason": "DID/population reference dataset requires license review"
+      },
+      "freshness": {
+        "publishedWithin365Days": 32,
+        "publishedTotal": 32,
+        "rate": 1,
+        "currentReleaseFetchedWithin30Days": 1,
+        "currentReleaseCount": 1
+      },
+      "publishedSpots": 32,
+      "canonicalSpots": 34,
+      "evidenceQuality": {
+        "evidence-quality.v1:officialListing": 32
+      },
+      "unknownRates": {
+        "spotType": {
+          "unknown": 32,
+          "total": 32,
+          "rate": 1
         },
-        {
-          "name": "中小企業振興センター駐車場内",
-          "lifecycle": "active",
-          "publicationHold": "locationSuperseded",
-          "effects": [
-            "withholdFromPublication"
-          ]
+        "accessType": {
+          "unknown": 32,
+          "total": 32,
+          "rate": 1
+        },
+        "environment": {
+          "unknown": 32,
+          "total": 32,
+          "rate": 1
+        },
+        "supportsPaper": {
+          "unknown": 31,
+          "total": 32,
+          "rate": 0.9688
+        },
+        "supportsHeated": {
+          "unknown": 31,
+          "total": 32,
+          "rate": 0.9688
+        },
+        "openingHours": {
+          "unknown": 12,
+          "total": 32,
+          "rate": 0.375
         }
-      ],
-      "unresolved": []
+      }
     },
+    "sourceMetrics": [
+      {
+        "sourceId": "taito-public-smoking-areas",
+        "publicationStatus": "approved",
+        "canonicalSpots": 34,
+        "publishedSpots": 32,
+        "currentReleaseFetch": {
+          "releaseId": 1,
+          "fetchedAt": "2026-09-20T00:00:00Z",
+          "within30Days": true
+        },
+        "publishedWithin365Days": {
+          "count": 32,
+          "total": 32,
+          "rate": 1
+        },
+        "unknownRates": {
+          "spotType": {
+            "unknown": 32,
+            "total": 32,
+            "rate": 1
+          },
+          "accessType": {
+            "unknown": 32,
+            "total": 32,
+            "rate": 1
+          },
+          "environment": {
+            "unknown": 32,
+            "total": 32,
+            "rate": 1
+          },
+          "supportsPaper": {
+            "unknown": 31,
+            "total": 32,
+            "rate": 0.9688
+          },
+          "supportsHeated": {
+            "unknown": 31,
+            "total": 32,
+            "rate": 0.9688
+          },
+          "openingHours": {
+            "unknown": 12,
+            "total": 32,
+            "rate": 0.375
+          }
+        },
+        "evidenceQuality": {
+          "evidence-quality.v1:officialListing": 32
+        },
+        "checks": [
+          {
+            "id": "taito-public-smoking-areas-unstated-fields-stay-unknown",
+            "status": "pass",
+            "detail": "all 34 spots derived from taito-public-smoking-areas leave spotType, hostType, accessType, environment unknown/null with no provenance row, because that source states none of them"
+          },
+          {
+            "id": "taito-public-smoking-areas-existence-evidence-is-the-municipal-listing",
+            "status": "pass",
+            "detail": "all 34 Taito-derived spots cite taito.listed.v1 for existence — the ward listing, never the convenience store or venue that hosts the spot"
+          },
+          {
+            "id": "taito-public-smoking-areas-list-page-conflicts-resolved-conservatively",
+            "status": "pass",
+            "detail": "all 8 reviewed contradictions with https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html are resolved subtractively, and each weakening is backed by a spot_field_attenuations row citing taito-list-page-conflicts.v1, checked 2026-09-21T01:37:19Z, against the reviewed release 5123ee41251b… observed 2026-08-18"
+          },
+          {
+            "id": "taito-public-smoking-areas-attenuations-are-attested",
+            "status": "pass",
+            "detail": "every attenuation in spot_field_attenuations (9) is called for by taito-list-page-conflicts.v1"
+          }
+        ],
+        "reconciliation": {
+          "attestationVersion": "taito-list-page-conflicts.v1",
+          "secondPublicationUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+          "checkedAt": "2026-09-21T01:37:19Z",
+          "referenceKind": "publisherWebPage",
+          "reviewedRelease": {
+            "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+            "observedOn": "2026-08-18",
+            "sourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+          },
+          "conflicts": 8,
+          "effects": {
+            "hoursUnknown": 7,
+            "temporarilyClosed": 1,
+            "withholdFromPublication": 1
+          },
+          "attestedFieldAttenuations": 9,
+          "canonicalButWithheld": [
+            {
+              "name": "ファミリーマート　台東一丁目店",
+              "lifecycle": "temporarilyClosed",
+              "publicationHold": null,
+              "effects": [
+                "hoursUnknown",
+                "temporarilyClosed"
+              ]
+            },
+            {
+              "name": "中小企業振興センター駐車場内",
+              "lifecycle": "active",
+              "publicationHold": "locationSuperseded",
+              "effects": [
+                "withholdFromPublication"
+              ]
+            }
+          ],
+          "unresolved": []
+        }
+      }
+    ],
     "evidenceQuality": {
       "evidence-quality.v1:officialListing": 32
     },
