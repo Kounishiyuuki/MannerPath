@@ -47,7 +47,9 @@ struct SpotDetailView: View {
                         }
                         .frame(height: 220)
                     }
-                    LabeledContent("Walking time", value: "About \(Int((previewRoute.travelTime / 60).rounded())) min")
+                    LabeledContent("Walking time", value: previewRoute.travelTime < 60
+                                   ? String(localized: "Less than 1 min")
+                                   : String(localized: "About \(Int((previewRoute.travelTime / 60).rounded())) min"))
                     LabeledContent("Walking distance", value: SpotPresentation.distance(previewRoute.distanceMeters))
                 } else if previewLoading {
                     ProgressView("Finding a pedestrian route…")

@@ -70,6 +70,7 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         scrollUntilHittable(quickFilters, in: app)
         quickFilters.tap()
         XCTAssertTrue(app.staticTexts["Filters"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Tobacco"].exists)
 
         let tobacco = app.descendants(matching: .any)["watch-tobacco-filter"].firstMatch
         scrollUntilHittable(tobacco, in: app)
@@ -87,6 +88,7 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
 
         let openNow = app.descendants(matching: .any)["watch-open-now-filter"].firstMatch
         scrollUntilHittable(openNow, in: app)
+        XCTAssertTrue(app.staticTexts["Data"].exists)
         openNow.tap()
         XCTAssertEqual(openNow.value as? String, "1")
         attach(app, named: "watch-filters-selected")

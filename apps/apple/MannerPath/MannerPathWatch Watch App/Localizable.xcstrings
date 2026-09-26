@@ -1,6 +1,26 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Data": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データ条件"
+          }
+        }
+      }
+    },
+    "Place and access": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所と利用条件"
+          }
+        }
+      }
+    },
     "%@ km": {
       "localizations": {
         "en": {
