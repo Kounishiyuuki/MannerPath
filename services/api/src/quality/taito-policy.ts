@@ -1,5 +1,5 @@
 import type { Db } from "../db.ts";
-import type { Check } from "./analyze.ts";
+import type { QualityCheck } from "../pipeline/source-adapter.ts";
 import {
   ATTENUATED_FIELD,
   TAITO_LIST_PAGE_ATTESTATION_VERSION,
@@ -116,7 +116,7 @@ export async function analyzeTaitoQuality(db: Db, sourceId: string) {
 
 
 
-  const checks: Check[] = [];
+  const checks: QualityCheck[] = [];
   const check = (id: string, ok: boolean, detail: string) => checks.push({ id, status: ok ? "pass" : "fail", detail });
   check(`${TAITO_SOURCE_ID}-unstated-fields-stay-unknown`, taitoTyped.length === 0,
     taitoTyped.length === 0

@@ -6,7 +6,6 @@
 // members arrive with the source that needs them, reviewed against ADR-0008, not speculatively.
 
 import type { Db } from "../db.ts";
-import type { Check } from "../quality/analyze.ts";
 import type { ReviewedSource } from "./registry.ts";
 
 export type TriState = "yes" | "no" | "unknown";
@@ -71,8 +70,14 @@ export interface AttenuationReference {
  */
 export type SourceCompleteness = "partial" | "complete";
 
+export interface QualityCheck {
+  id: string;
+  status: "pass" | "fail";
+  detail: string;
+}
+
 export interface QualityPolicy {
-  analyze(db: Db, sourceId: string): Promise<{ checks: Check[]; reconciliation: unknown }>;
+  analyze(db: Db, sourceId: string): Promise<{ checks: QualityCheck[]; reconciliation: unknown }>;
 }
 
 export interface SourceAdapter {

@@ -268,8 +268,8 @@
         "publishedWithin365Days": 32,
         "publishedTotal": 32,
         "rate": 1,
-        "currentReleaseFetchedWithin30Days": 1,
-        "currentReleaseCount": 1
+        "reviewedCurrentReleaseFetchedWithin30Days": 1,
+        "reviewedCurrentReleaseCount": 1
       },
       "publishedSpots": 32,
       "canonicalSpots": 34,
@@ -609,6 +609,11 @@
         "id": "tile-zoom-thresholds",
         "status": "pass",
         "detail": "max 11 spots/tile (trigger 250), max 1623 gzip bytes/tile (trigger 16384)"
+      },
+      {
+        "id": "freshness-timestamps-valid-and-not-future",
+        "status": "pass",
+        "detail": "published verification dates and current-release fetch dates are valid and not future-dated"
       }
     ],
     "failedChecks": 0

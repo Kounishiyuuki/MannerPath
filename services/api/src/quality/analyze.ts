@@ -13,7 +13,7 @@ import { type Db } from "../db.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
-import type { SourceAdapter } from "../pipeline/source-adapter.ts";
+import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
 
 export const ANALYSIS_VERSION = "nationwide-data-quality.v1";
@@ -33,12 +33,6 @@ export interface AnalyzeOptions {
   gzip?: (body: string) => number;
   /** Explicit adapters allow isolated multi-source analysis in tests. Approval remains registry-controlled. */
   adapters?: readonly SourceAdapter[];
-}
-
-export interface Check {
-  id: string;
-  status: "pass" | "fail";
-  detail: string;
 }
 
 type Counts = Record<string, number>;
@@ -98,6 +92,20 @@ function nearestNeighbourMeters(spots: { latitude: number; longitude: number }[]
 
 function days(from: string, to: string): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
+}
+
+/** Null means malformed, nonexistent on the calendar, or later than the reference instant. */
+function freshAgeDays(value: string, now: string): number | null {
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (!dateOnly && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) return null;
+  const from = Date.parse(dateOnly ? `${value}T00:00:00Z` : value);
+  const to = Date.parse(now);
+  if (!Number.isFinite(from) || !Number.isFinite(to) || from > to) return null;
+  const normalized = new Date(from).toISOString();
+  const canonical = value.replace(/\.(\d{1,2})Z$/, (_match, fraction: string) => `.${fraction.padEnd(3, "0")}Z`);
+  if (dateOnly ? normalized.slice(0, 10) !== value
+    : normalized !== (value.includes(".") ? canonical : value.replace("Z", ".000Z"))) return null;
+  return Math.round((to - from) / 86_400_000);
 }
 
 export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
@@ -166,7 +174,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const bySourceId = new Map(sources.map((s) => [s.source_id, s]));
   const reviewed = new Map(REVIEWED_SOURCES.map((s) => [s.sourceId, s]));
 
-  const checks: Check[] = [];
+  const checks: QualityCheck[] = [];
   const check = (id: string, ok: boolean, detail: string) => checks.push({ id, status: ok ? "pass" : "fail", detail });
 
   const unreviewed = publishedSourceIds.filter((id) => !reviewed.has(id));
@@ -215,7 +223,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       ? "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
       : `osm data is approved or published: ${[...osmApproved.map((s) => s.source_id), ...osmPublished].join(", ")}`);
 
-  const qualityBySource = new Map<string, { checks: Check[]; reconciliation: unknown }>();
+  const qualityBySource = new Map<string, { checks: QualityCheck[]; reconciliation: unknown }>();
   for (const adapter of opts.adapters ?? SOURCE_ADAPTERS) {
     if (!adapter.qualityPolicy) continue;
     const result = await adapter.qualityPolicy.analyze(db, adapter.registry.sourceId);
@@ -255,7 +263,10 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const sourceMetrics = sources.map((source) => {
     const sourceSpots = spots.filter((spot) => spot.sourceIds.includes(source.source_id));
     const currentRelease = releases.find((release) => release.source_id === source.source_id && release.is_current === 1);
-    const verifiedRecent = sourceSpots.filter((spot) => spot.lastVerifiedAt !== null && days(`${spot.lastVerifiedAt}T00:00:00Z`, opts.now) <= 365).length;
+    const verifiedRecent = sourceSpots.filter((spot) => {
+      const age = spot.lastVerifiedAt === null ? null : freshAgeDays(spot.lastVerifiedAt, opts.now);
+      return age !== null && age <= 365;
+    }).length;
     return {
       sourceId: source.source_id,
       publicationStatus: source.publication_status,
@@ -264,7 +275,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       currentReleaseFetch: currentRelease === undefined ? null : {
         releaseId: currentRelease.release_id,
         fetchedAt: currentRelease.fetched_at,
-        within30Days: days(currentRelease.fetched_at, opts.now) <= 30,
+        within30Days: (freshAgeDays(currentRelease.fetched_at, opts.now) ?? Infinity) <= 30,
       },
       publishedWithin365Days: { count: verifiedRecent, total: sourceSpots.length, rate: rate(verifiedRecent, sourceSpots.length) },
       unknownRates: Object.fromEntries(Object.keys(unknownRates).map((field) => {
@@ -277,7 +288,24 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       reconciliation: qualityBySource.get(source.source_id)?.reconciliation ?? null,
     };
   });
-  const recent = spots.filter((spot) => spot.lastVerifiedAt !== null && days(`${spot.lastVerifiedAt}T00:00:00Z`, opts.now) <= 365).length;
+  const recent = spots.filter((spot) => {
+    const age = spot.lastVerifiedAt === null ? null : freshAgeDays(spot.lastVerifiedAt, opts.now);
+    return age !== null && age <= 365;
+  }).length;
+  const invalidPublishedDates = spots.filter((spot) =>
+    spot.lastVerifiedAt !== null && freshAgeDays(spot.lastVerifiedAt, opts.now) === null);
+  const reviewedCurrentReleases = sourceMetrics.filter((source) => {
+    const registry = reviewed.get(source.sourceId);
+    return registry?.publicationStatus === "approved" && source.publicationStatus === "approved"
+      && source.currentReleaseFetch !== null;
+  });
+  const invalidCurrentFetches = sourceMetrics.filter((source) => source.currentReleaseFetch !== null).filter((source) =>
+    freshAgeDays(source.currentReleaseFetch!.fetchedAt, opts.now) === null);
+  check("freshness-timestamps-valid-and-not-future",
+    invalidPublishedDates.length === 0 && invalidCurrentFetches.length === 0,
+    invalidPublishedDates.length === 0 && invalidCurrentFetches.length === 0
+      ? "published verification dates and current-release fetch dates are valid and not future-dated"
+      : `${invalidPublishedDates.length} published spots and ${invalidCurrentFetches.length} current releases have invalid or future freshness dates`);
   const { results: publishedByRelease } = await db.prepare(`SELECT rel.release_id, count(DISTINCT t.spot_id) AS n
     FROM tile_snapshot_spots t JOIN spot_field_provenance p ON p.spot_id = t.spot_id AND p.field = 'existence'
     JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id
@@ -351,8 +379,8 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       populationCoverage: { status: 'notComputableYet', reason: 'DID/population reference dataset requires license review' },
       freshness: {
         publishedWithin365Days: recent, publishedTotal: spots.length, rate: rate(recent, spots.length),
-        currentReleaseFetchedWithin30Days: sourceMetrics.filter((source) => source.currentReleaseFetch?.within30Days === true).length,
-        currentReleaseCount: sourceMetrics.filter((source) => source.currentReleaseFetch !== null).length,
+        reviewedCurrentReleaseFetchedWithin30Days: reviewedCurrentReleases.filter((source) => source.currentReleaseFetch!.within30Days).length,
+        reviewedCurrentReleaseCount: reviewedCurrentReleases.length,
       },
       publishedSpots: spots.length,
       canonicalSpots: canonicalRows?.n ?? 0,

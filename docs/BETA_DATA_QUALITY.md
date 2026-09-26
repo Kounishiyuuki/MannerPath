@@ -50,7 +50,13 @@ registry and database publication status; a passing quality check never approves
 
 The current fixture measures 1 registered/approved/published source, 32 published spots,
 34 canonical spots (33 active unmerged), and 32/32 published spots verified within 365 days at the
-measurement instant. Current-release fetch recency is also reported per source and nationwide against 30 days. `regionalCoverage`, `stationCoverage` and `populationCoverage` explicitly
+measurement instant. Current-release fetch recency is also reported per source and nationwide against
+30 days. Fresh means a valid timestamp with age in `0..365` days for published verification or
+`0..30` days for current-release fetches. Invalid and future timestamps are excluded and fail the
+generic freshness check when they belong to published spots or any current release.
+The nationwide fetch denominator counts only reviewed, approved sources with a current release
+(`reviewedCurrentReleaseCount`); blocked and unreviewed sources remain visible per source but do not
+dilute that gate. `regionalCoverage`, `stationCoverage` and `populationCoverage` explicitly
 return `notComputableYet`: the repository has no reviewed geographic assignment, station
 rank/distance reference, or DID/population reference dataset. No prefectural, top 50/top 300,
 or population percentage is inferred from the Taito bounding box.
