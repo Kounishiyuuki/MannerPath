@@ -1,7 +1,8 @@
 # ADR-0008 — Nationwide data architecture
 
 Status: Accepted (2026-09, Issue #68, tracker #67). Decision 1 (the SourceAdapter boundary) is
-implemented by this ADR's PR and decision 2 (source observations) by Issue #73; every other decision fixes a boundary that later issues implement
+implemented by this ADR's PR, decision 2 (source observations) by Issue #73 and the matcher engine of
+decision 3 by Issue #78 (its production gate stays closed); every other decision fixes a boundary that later issues implement
 and may not silently change.
 
 Formalizes `docs/NATIONWIDE_DATA_STRATEGY.md` §2, §4 and §7 as implementation decisions. It extends
@@ -54,8 +55,10 @@ first adapter (`src/pipeline/taito-adapter.ts`), wiring the unchanged rules in `
 
 **Completeness semantics** (whether a source is complete for its scope, so that disappearance is
 removal evidence) is part of an adapter's reviewed contract but is not an interface member yet:
-nothing consumes it until cross-release matching (decision 3). It is added there, per source,
-defaulting to *partial* — disappearance from a partial source never implies removal.
+nothing consumes it until removal / relocation (decision 5). It is added there, per source; a
+missing or undeclared value means *partial* — disappearance from a partial source never implies
+removal, and nothing defaults to complete. Cross-release matching (decision 3, Issue #78) does not
+add it.
 
 Parity rule: an adapter extraction or re-plumbing must keep the golden output
 (`services/api/test/golden-parity.test.ts`) byte-identical. An intended output change regenerates
@@ -103,14 +106,45 @@ As implemented (migration `0008_source_observations.sql`, `src/pipeline/observe.
 - The promotion bundle does not carry observations; they are re-derivable from the records it does
   carry. Adding them was a behavior-preserving change: the golden differs only by the new table.
 
-### 3. Cross-release matching (boundary)
+### 3. Cross-release matching (boundary; engine implemented, Issue #78, gate closed)
 
 A new release of the same source is matched to the previous release's source entities by a
 versioned matcher that records every decision in `source_record_entities` / `source_record_match_keys`
-(`method`, `matcher_version`, note). Match keys come from the adapter (publisher row id only when the
-source is reviewed as stable-keyed; otherwise name + coordinate proximity). Ambiguous matches go to
+(`method`, `matcher_version`, note). Match keys are versioned and have two origins: the generic
+raw-identical key is the record's `raw_sha256`, derived by the generic matcher for every source; a
+source-specific natural key (publisher row id only when the source is reviewed as stable-keyed;
+otherwise name + coordinate proximity) comes from the adapter, and only once a reviewed policy for
+that source exists. Ambiguous matches go to
 the review queue (decision 8); they are never auto-resolved. The current first-release refusal
 stays until a matcher is validated on two real releases of the same source.
+
+As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/resolve.ts`):
+
+- Matcher `cross-release.v1+raw-sha256.v1` reads match key version `raw-sha256.v1` (the record's
+  immutable `raw_sha256`) and never raw values. Key rows for both releases are written when a
+  later release is applied; a first release writes none, so its output is unchanged.
+- `raw_identical`: the key is unique in both releases → the previous entity is reused, and so its
+  spot (`spot_id`, `created_at` and the `spot_source_entities` link never change). Only evidence
+  moves: provenance cites the new record, `last_verified_at` becomes the new `observed_on` (which
+  must be newer than the current release's), `updated_at` is the application time. The values
+  re-derive identically by construction and are asserted to; the current canonical row must also
+  equal what the new observation resolves to (name, coordinate, tile, tobacco support, hours,
+  lifecycle, hold), or the release is refused as canonical drift and no evidence moves.
+- `natural_key` is **not enabled**: Taito's `#` is not reviewed as stable, and no reviewed name +
+  coordinate-proximity threshold exists. It needs that threshold reviewed (ADR amendment/issue).
+- `new`: an unmatched record while no previous entity is left unmatched.
+- Ambiguous (duplicate keys on either side, or an unmatched record while previous entities remain
+  unmatched — an edit and an add + remove are indistinguishable without a natural key): the whole
+  release is refused with no canonical write; never guessed, never a silent new entity.
+- An unmatched previous entity (disappearance candidate) also refuses the release: nothing is
+  removed, moved or held here (decision 5). Carrying attenuations across releases is not
+  implemented, so a matched spot that is attenuated, held or merged refuses the release too.
+- Gate: `SourceAdapter.crossReleaseValidated`. `TAITO_ADAPTER` keeps it `false` — the repository
+  has one real Taito release; the tests' second releases are artificial fixtures under a test-only
+  source and do not count as the two-real-release validation.
+- Completeness semantics is not an adapter member in this step (see decision 1): it arrives with
+  removal / relocation (decision 5), absent = *partial*.
+- The promotion bundle still carries one release per source; multi-release promotion is decision 7.
 
 ### 4. Cross-source matching (boundary)
 

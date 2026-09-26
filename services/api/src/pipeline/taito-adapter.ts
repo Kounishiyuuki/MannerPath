@@ -50,4 +50,7 @@ export const TAITO_ADAPTER: SourceAdapter = {
     referenceUrl: TAITO_LIST_PAGE_URL,
     checkedAt: TAITO_LIST_PAGE_CHECKED_AT,
   },
+  // Only one real Taito release exists in the repository (20260818), so the matcher has not been
+  // validated on two real releases of this source.
+  crossReleaseValidated: false,
 };
