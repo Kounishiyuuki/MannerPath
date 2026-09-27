@@ -143,9 +143,11 @@ CREATE TABLE review_relocation_holds (
   applied_at                 TEXT NOT NULL
 );
 
--- Re-reads, inside the insert, the premise 0013 checked when the candidate was raised, against the
--- item's own stored ids and details, so a decision recorded after the executor read the queue, link or
--- spot drift, or a stale comparison aborts the whole batch:
+-- The premise 0013 checked when the candidate was raised, re-read as it is now: the candidates a hold may
+-- be written for and set from. One view read by both the row's insert trigger and the spot's hold
+-- transition, so the two checks cannot drift apart and a row whose premise went stale after its insert
+-- cannot set a hold. Each item is re-read against its own stored ids and details, so a decision recorded
+-- after the executor read the queue, link or spot drift, or a stale comparison aborts the whole batch:
 --   item       a relocationCandidate naming this spot, under relocation-policy.v1 with no threshold;
 --   identity   its ambiguousMatch item of the same comparison and record, whose LATEST decision is still
 --              a review-decision.v1 matchedToEntity choosing the item's entity (the actionability rule of
@@ -162,13 +164,9 @@ CREATE TABLE review_relocation_holds (
 --              cited fingerprint, the release is still under review with the item's fingerprint, and no
 --              other unrejected release of the source is newer than the current one (an unknown
 --              observed_on is not comparable: refused).
-CREATE TRIGGER review_relocation_holds_valid
-BEFORE INSERT ON review_relocation_holds
-WHEN NOT EXISTS (
-  SELECT 1 FROM review_items i
-  WHERE i.review_item_id = NEW.review_item_id
-    AND i.kind = 'relocationCandidate' AND i.spot_id = NEW.spot_id
-    AND NEW.executor_version = 'review-relocation-hold.v1'
+CREATE VIEW review_relocation_hold_premises AS
+  SELECT i.review_item_id, i.spot_id FROM review_items i
+  WHERE i.kind = 'relocationCandidate'
     AND json_extract(i.details_json, '$.identity.method') = 'reviewedMatch'
     AND json_extract(i.details_json, '$.relocationPolicyVersion') = 'relocation-policy.v1'
     AND json_type(i.details_json, '$.thresholdVersion') = 'null'
@@ -223,8 +221,13 @@ WHEN NOT EXISTS (
       WHERE p.release_id = i.previous_release_id
         AND o.source_id = i.source_id AND o.release_id NOT IN (i.release_id, i.previous_release_id)
         AND o.status <> 'rejected'
-        AND (o.observed_on IS NULL OR p.observed_on IS NULL OR o.observed_on > p.observed_on))
-)
+        AND (o.observed_on IS NULL OR p.observed_on IS NULL OR o.observed_on > p.observed_on));
+
+CREATE TRIGGER review_relocation_holds_valid
+BEFORE INSERT ON review_relocation_holds
+WHEN NEW.executor_version IS NOT 'review-relocation-hold.v1'
+  OR NOT EXISTS (SELECT 1 FROM review_relocation_hold_premises v
+    WHERE v.review_item_id = NEW.review_item_id AND v.spot_id = NEW.spot_id)
 BEGIN
   SELECT RAISE(ABORT, 'review_relocation_holds: not a current, actionable relocationCandidate for an active, unheld spot at its previous coordinate');
 END;
@@ -241,8 +244,8 @@ BEGIN
   SELECT RAISE(ABORT, 'review_relocation_holds are immutable');
 END;
 
--- relocationUnderReview is reached only through a recorded hold of that spot. A spot row cannot be
--- created held: its hold row needs the spot first.
+-- relocationUnderReview is reached only through a recorded hold of that spot whose premise still holds.
+-- A spot row cannot be created held: its hold row needs the spot first.
 CREATE TRIGGER spots_relocation_hold_requires_row_on_insert
 BEFORE INSERT ON spots
 WHEN NEW.publication_hold = 'relocationUnderReview'
@@ -250,12 +253,20 @@ BEGIN
   SELECT RAISE(ABORT, 'spots: publication_hold relocationUnderReview requires a review_relocation_hold');
 END;
 
+-- The transition re-checks the premise too, through the same view: a hold row whose premise went stale
+-- after its insert (identity re-decided, spot moved, release superseded) no longer qualifies, so it cannot
+-- set a hold. The view reads the spot as it is before this update; the update itself may change nothing
+-- the premise reads (coordinate, tile, lifecycle, merge).
 CREATE TRIGGER spots_relocation_hold_requires_row
 BEFORE UPDATE OF publication_hold ON spots
 WHEN NEW.publication_hold = 'relocationUnderReview' AND OLD.publication_hold IS NOT 'relocationUnderReview'
-  AND NOT EXISTS (SELECT 1 FROM review_relocation_holds h WHERE h.spot_id = NEW.spot_id)
+  AND NOT (NEW.latitude IS OLD.latitude AND NEW.longitude IS OLD.longitude AND NEW.tile_id IS OLD.tile_id
+    AND NEW.lifecycle IS OLD.lifecycle AND NEW.merged_into IS OLD.merged_into
+    AND EXISTS (SELECT 1 FROM review_relocation_holds h
+      JOIN review_relocation_hold_premises v ON v.review_item_id = h.review_item_id AND v.spot_id = h.spot_id
+      WHERE h.spot_id = NEW.spot_id))
 BEGIN
-  SELECT RAISE(ABORT, 'spots: publication_hold relocationUnderReview requires a review_relocation_hold');
+  SELECT RAISE(ABORT, 'spots: publication_hold relocationUnderReview requires a review_relocation_hold whose relocationCandidate premise is still current');
 END;
 
 -- Only a reviewed relocation application lifts the hold (ADR-0009 decisions 4 and 5; not implemented,

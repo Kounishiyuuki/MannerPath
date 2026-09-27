@@ -287,6 +287,37 @@ test("spot drift: moved, closed, merged or already held spots are refused and le
 });
 
 
+test("stale hold row: a valid row whose premise goes stale afterwards cannot set the hold (the transition re-checks it)", async () => {
+  const setHold = (db: SqliteD1, id: string) => db.raw.prepare("UPDATE spots SET publication_hold = 'relocationUnderReview' WHERE spot_id = ?").run(id);
+  const STALE_TRANSITION = /requires a review_relocation_hold whose relocationCandidate premise is still current/;
+  const cases: [string, (s: Awaited<ReturnType<typeof candidate>>) => Promise<unknown> | unknown][] = [
+    ["identity deferred", (s) => decide(s.db, s.identityItemId, "deferred")],
+    ["identity confirmedNew", (s) => decide(s.db, s.identityItemId, "confirmedNew")],
+    ["coordinate drift", (s) => s.db.raw.prepare("UPDATE spots SET latitude = 35.71121 WHERE spot_id = ?").run(s.prior.spot_id)],
+    ["candidate release rejected", (s) => s.db.raw.prepare("UPDATE source_releases SET status = 'rejected' WHERE release_id = ?").run(s.secondId)],
+    ["newer release", (s) => ingestRelease(s.db, ADAPTER, TAITO_BYTES, THIRD)],
+    ["incomparable release", (s) => ingestRelease(s.db, ADAPTER, TAITO_BYTES, { ...THIRD, observedOn: null })],
+  ];
+  for (const [name, stale] of cases) {
+    const s = await candidate();
+    insertHoldRow(s.db, s.itemId, s.prior.spot_id);
+    await stale(s);
+    s.db.raw.prepare("DELETE FROM tile_snapshot_spots WHERE spot_id = ?").run(s.prior.spot_id);
+    const before = spotOf(s.db, s.prior.spot_id);
+    assert.throws(() => setHold(s.db, s.prior.spot_id), STALE_TRANSITION, name);
+    assert.deepEqual(spotOf(s.db, s.prior.spot_id), before, `${name}: spot unchanged`);
+  }
+  // Control: with the premise still current the same direct transition is accepted, but not together
+  // with a change of anything the premise reads.
+  const s = await candidate();
+  insertHoldRow(s.db, s.itemId, s.prior.spot_id);
+  s.db.raw.prepare("DELETE FROM tile_snapshot_spots WHERE spot_id = ?").run(s.prior.spot_id);
+  assert.throws(() => s.db.raw.prepare("UPDATE spots SET publication_hold = 'relocationUnderReview', latitude = 35.7199 WHERE spot_id = ?")
+    .run(s.prior.spot_id), STALE_TRANSITION, "moved in the same update");
+  setHold(s.db, s.prior.spot_id);
+  assert.equal(spotOf(s.db, s.prior.spot_id).publication_hold, HOLD_RELOCATION_UNDER_REVIEW);
+});
+
 test("trust boundary: a forged alternate-mapping candidate the schema accepts is refused by the executor, nothing written", async () => {
   const { db, firstId, secondId, identityItemId, identityDecisionId, prior } = await identityDecided();
   const alternate = (recordId: number, latitude: number) => Number(db.raw.prepare(

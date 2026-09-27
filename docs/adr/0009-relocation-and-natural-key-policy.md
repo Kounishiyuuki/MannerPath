@@ -291,15 +291,16 @@ Each step is its own issue and PR, and each builds on the previous one:
   `publication_hold` accepts `relocationUnderReview`. The column is replaced in place (rename, add with
   the widened CHECK, copy, drop), because `spots` cannot be rebuilt once it has rows, and the three
   triggers that read it are recreated unchanged. One batch writes the append-only
-  `review_relocation_holds` row, then the unpublication, then the hold. The row's insert trigger
-  re-checks 0013's premise against the item: actionable identity, records, cited observations, a
+  `review_relocation_holds` row, then the unpublication, then the hold. The row's insert trigger and the
+  hold transition both re-check 0013's premise against the item: actionable identity, records, cited observations, a
   same-source link, an active / unmerged / unheld spot at the old coordinate, and the stale comparison
   with both fingerprints. The hold needs no relocation decision and consumes none. The executor binds
   the candidate to `adapter.mappingVersion` and the cited observation ids, because the schema cannot
   (step A's trust boundary). It reads stored rows only and does not re-derive observations from raw
   records; that is step C's job. The step is idempotent per item.
-  `relocationUnderReview` requires its hold row, and no update lifts or replaces it; 0015 replaces
-  that trigger. A resolver rerun of the release refuses the held spot ("carry-forward is not
+  `relocationUnderReview` requires its hold row, and setting it re-checks the same premise (one shared
+  view, `review_relocation_hold_premises`), so a hold row whose premise went stale cannot set a hold.
+  No update lifts or replaces the hold; 0015 replaces that trigger. A resolver rerun of the release refuses the held spot ("carry-forward is not
   implemented") until step C consumes the hold.
 - **C. Reviewed relocation application** (0015). `applyReviewedRelocation`, and the resolver
   consuming it when it applies the release. A coordinate change is possible only through an
