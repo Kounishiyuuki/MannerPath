@@ -28,6 +28,7 @@
 
 import { type Db, sha256Hex } from "../db.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
+import { type CandidateRow, spotDto } from "../tiles/publish.ts";
 import { reviewedSource } from "./registry.ts";
 
 export const PROMOTION_BUNDLE_VERSION = "promotion-bundle.v1";
@@ -263,6 +264,7 @@ async function validatePublishedState(db: Db, releaseId: number, rows: Map<strin
 async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
+  const spots = rows.get("spots") ?? [];
   for (const tile of rows.get("tile_snapshots") ?? []) {
     const tileId = String(tile.tile_id);
     const body = String(tile.body_json);
@@ -275,6 +277,18 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
     const published = members.filter((m) => m.tile_id === tileId).map((m) => String(m.spot_id)).sort();
     const inBody = parsed.data.spots.map((s) => s.id).sort();
     if (published.join(",") !== inBody.join(",")) fail(`tile ${tileId}: snapshot membership does not match the body`);
+
+    // A body published before the exported release was applied can still list exactly the published
+    // spots, with the previous release's values (lastVerifiedAt, a relocated coordinate). The body must be
+    // what publishTiles would write from the canonical rows this bundle carries, or the tiles are stale.
+    const raw = JSON.parse(body) as { spots: { id: string }[] };
+    for (const bodySpot of raw.spots) {
+      const spot = spots.find((s) => s.spot_id === bodySpot.id);
+      const source = sources.find((s) => s.source_id === (bodySpot as { sourceIds?: string[] }).sourceIds?.[0]);
+      if (spot === undefined || source === undefined || JSON.stringify(spotDto({ ...spot, ...source } as unknown as CandidateRow)) !== JSON.stringify(bodySpot)) {
+        fail(`tile ${tileId}: body for spot ${bodySpot.id} does not match its canonical row; republish before exporting`);
+      }
+    }
 
     // Attribution travels with the data or the data does not travel (DATA_POLICY.md).
     for (const bodySource of parsed.data.sources) {

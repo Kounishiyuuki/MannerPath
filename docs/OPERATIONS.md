@@ -164,8 +164,15 @@ The export **refuses** rather than emitting a partial or unapproved bundle when:
 from the reviewed registry entry (including attribution); nothing is published; a published spot is
 merged, inactive or in another tile; a published spot's existence evidence comes from a release the
 bundle does not carry; provenance points at evidence outside the release; a stored tile body does
-not match its content hash, its schema, its membership or its spot count; or a tile cites a source
-whose attribution is missing. `test/promotion.test.ts` covers these.
+not match its content hash, its schema, its membership or its spot count, or a spot in it does not
+match its canonical row (a tile published before the release was applied: run `publishTiles` after the
+resolver, then export); or a tile cites a source whose attribution is missing. `test/promotion.test.ts`
+covers these.
+
+**Known gap (Issue #100):** a release with a reviewed match (`method = 'manual'`, including every
+relocated release, ADR-0009) exports, but does not apply to a fresh database: the bundle does not
+carry the review chain that migration 0011 requires for a manual link, so the target refuses it
+(`a manual decision requires a review_match_application`) and publishes nothing.
 
 **The bundle is a bootstrap artifact, not an update.** It is INSERT-only, and its target is an
 **empty, freshly migrated database**. It cannot modify an already-populated remote D1: applying it
