@@ -304,3 +304,40 @@ BEFORE DELETE ON review_relocation_resolutions
 BEGIN
   SELECT RAISE(ABORT, 'review_relocation_resolutions are immutable');
 END;
+
+-- An application is pending from its insert (the move, which lifts the hold) until the resolver writes its
+-- resolution row in the batch that applies the release and moves the provenance. In between, the spot is at
+-- its new coordinate, unheld, and its existence evidence is still the previous applied release: publishing it
+-- would show the new coordinate on the old evidence. Derived from the two append-only tables, so a consumed
+-- application never fences again and a later relocation of the same spot is fenced only while it is pending.
+-- publishTiles reads this view too, so the query and the trigger share one definition.
+CREATE VIEW pending_relocation_applications AS
+  SELECT a.review_relocation_application_id, a.spot_id
+  FROM review_relocation_applications a
+  WHERE NOT EXISTS (SELECT 1 FROM review_relocation_resolutions r
+    WHERE r.review_relocation_application_id = a.review_relocation_application_id);
+
+DROP TRIGGER tile_snapshot_spots_publication_invariant;
+
+-- As in 0014, plus: no pending relocation application on the spot.
+CREATE TRIGGER tile_snapshot_spots_publication_invariant
+BEFORE INSERT ON tile_snapshot_spots
+WHEN NOT EXISTS (
+  SELECT 1
+  FROM spots s
+  JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
+  JOIN source_records r ON r.record_id = p.record_id
+  JOIN source_releases rel ON rel.release_id = r.release_id
+  JOIN sources src ON src.source_id = rel.source_id
+  WHERE s.spot_id = NEW.spot_id
+    AND s.lifecycle = 'active'
+    AND s.merged_into IS NULL
+    AND s.publication_hold IS NULL
+    AND s.tile_id = NEW.tile_id
+    AND rel.status = 'applied'
+    AND src.publication_status = 'approved'
+    AND NOT EXISTS (SELECT 1 FROM pending_relocation_applications x WHERE x.spot_id = s.spot_id)
+)
+BEGIN
+  SELECT RAISE(ABORT, 'tile_snapshot_spots: spot is not publishable (ADR-0006: active, unmerged, not held, no pending relocation application, in this tile, accepted existence evidence from an approved source)');
+END;

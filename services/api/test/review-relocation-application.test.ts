@@ -467,6 +467,59 @@ test("resolver: consumes the application once and applies the release with the r
   assert.deepEqual(all(s.db, "SELECT tile_id FROM tile_snapshot_spots WHERE spot_id = ?", s.prior.spot_id), [{ tile_id: tileOf(FAR) }]);
 });
 
+test("publication fence: between application and resolution the moved spot is unpublishable; the resolution lifts the fence", async () => {
+  const s = await confirmed(MOVED_FAR);
+  const spotId = s.prior.spot_id;
+  const oldRecord = one(s.db, "SELECT record_id FROM spot_field_provenance WHERE spot_id = ? AND field = 'existence'", spotId).record_id;
+  assert.equal((await apply(s.db, s.itemId)).status, "applied");
+
+  // A. Applied, not yet resolved: new coordinate, no hold, old applied evidence, pending application.
+  assert.deepEqual(
+    (({ latitude, longitude, tile_id, publication_hold }) => ({ latitude, longitude, tile_id, publication_hold }))(spotOf(s.db, spotId)),
+    { ...FAR, tile_id: tileOf(FAR), publication_hold: null });
+  assert.equal(applications(s.db).length, 1);
+  assert.deepEqual(all(s.db, "SELECT * FROM review_relocation_resolutions"), []);
+  assert.equal(one(s.db, "SELECT status FROM source_releases WHERE release_id = ?", s.secondId).status, "ingested");
+  assert.equal(one(s.db, "SELECT record_id FROM spot_field_provenance WHERE spot_id = ? AND field = 'existence'", spotId).record_id, oldRecord);
+  assert.deepEqual(all(s.db, "SELECT spot_id FROM pending_relocation_applications"), [{ spot_id: spotId }]);
+  await publishTiles(s.db, { now: APPLY_AT });
+  assert.deepEqual(all(s.db, "SELECT * FROM tile_snapshot_spots WHERE spot_id = ?", spotId), [], "not published at the new coordinate");
+  for (const t of all(s.db, "SELECT body_json FROM tile_snapshots")) {
+    assert.ok(!JSON.parse(t.body_json).spots.some((x: Row) => x.id === spotId), "absent from every tile body");
+  }
+
+  // B. Direct SQL cannot bypass it.
+  assert.throws(() => s.db.raw.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").run(spotId, tileOf(FAR)),
+    /no pending relocation application/);
+
+  // C. The resolver consumes the application; the spot is publishable in its new tile.
+  assert.equal((await resolve(s.db, s.secondId, RESOLVE_AT)).status, "resolved");
+  assert.equal(all(s.db, "SELECT * FROM review_relocation_resolutions").length, 1);
+  assert.deepEqual(one(s.db, "SELECT status, is_current FROM source_releases WHERE release_id = ?", s.secondId), { status: "applied", is_current: 1 });
+  assert.equal(one(s.db, "SELECT record_id FROM spot_field_provenance WHERE spot_id = ? AND field = 'existence'", spotId).record_id, s.item.record_id);
+  assert.deepEqual((({ updated_at, last_verified_at }) => ({ updated_at, last_verified_at }))(spotOf(s.db, spotId)),
+    { updated_at: RESOLVE_AT, last_verified_at: SECOND.observedOn });
+  assert.deepEqual(all(s.db, "SELECT * FROM pending_relocation_applications"), []);
+  await publishTiles(s.db, { now: RESOLVE_AT });
+  assert.deepEqual(all(s.db, "SELECT tile_id FROM tile_snapshot_spots WHERE spot_id = ?", spotId), [{ tile_id: tileOf(FAR) }]);
+
+  // D. A consumed application is history only: it never fences again (direct re-insert after unpublishing).
+  unpublish(s.db, spotId);
+  s.db.raw.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").run(spotId, tileOf(FAR));
+  assert.equal(applications(s.db).length, 1);
+});
+
+test("publication fence: a resolver that fails closed leaves the application pending and the spot unpublishable", async () => {
+  const s = await confirmed(MOVED_FAR);
+  await apply(s.db, s.itemId);
+  await decide(s.db, s.itemId, "relocationRejected");
+  await assert.rejects(resolve(s.db, s.secondId, RESOLVE_AT), /relocation was applied .* but/);
+  await publishTiles(s.db, { now: RESOLVE_AT });
+  assert.deepEqual(all(s.db, "SELECT * FROM tile_snapshot_spots WHERE spot_id = ?", s.prior.spot_id), []);
+  assert.throws(() => s.db.raw.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").run(s.prior.spot_id, tileOf(FAR)),
+    /no pending relocation application/);
+});
+
 test("resolver: an application whose decision or identity was re-recorded afterwards fails closed; nothing written", async () => {
   for (const [name, redecide] of [
     ["relocationRejected after application", (s: Awaited<ReturnType<typeof confirmed>>) => decide(s.db, s.itemId, "relocationRejected")],

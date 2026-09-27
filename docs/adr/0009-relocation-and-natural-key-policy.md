@@ -346,6 +346,14 @@ Each step is its own issue and PR, and each builds on the previous one:
     link, provenance, `last_verified_at`, `updated_at`, release applied/current). In the same batch it
     writes one `review_relocation_resolutions` row, whose trigger re-checks this and whose UNIQUE
     application makes consumption single. A decision recorded after the application fails closed.
+  - **Publication fence.** Between the application (new coordinate, hold lifted) and its resolution
+    (release applied, provenance moved) the spot would carry the new coordinate on the old release's
+    evidence. An application without a `review_relocation_resolutions` row is pending
+    (`pending_relocation_applications`, derived from the two append-only tables), and a spot with a
+    pending application is not publishable: `publishTiles` excludes it and the
+    `tile_snapshot_spots_publication_invariant` trigger (replaced in 0015, earlier conditions unchanged)
+    refuses a direct insert. A resolver that fails closed leaves it pending; once resolved it is
+    publishable again, and a consumed application never fences a later relocation.
 - **D. Tile / promotion E2E.** Cover two cases:
   - cross-tile relocation: the old tile loses the spot and the new tile gains it, and both tiles'
     revisions and ETags change;
