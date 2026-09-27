@@ -124,3 +124,55 @@ test("coordinated confirmedNew tamper with a rewritten header hash applies, and 
     e instanceof PromotionError && /the reviewed record says /.test(e.message));
   assert.equal(await verifyPromotionBundle(sql, manifest.contentSha256), manifest.contentSha256);
 });
+
+// Single-row edits of a reviewed bundle, each refused by the target's schema with nothing left behind. (A
+// coordinated edit that also rewrites the declarations is the verifier's boundary, above.)
+test("reviewed bundle adversarial edits: missing attestations and invalid links are refused and rolled back", async () => {
+  const { db } = await reviewedRelease(duplicate, ["matchedToEntity", "confirmedNew"]);
+  const { sql } = await buildPromotionBundle(db);
+  const lines = sql.split("\n");
+  const attestation = (decision: string) => lines.find((l) => l.startsWith("INSERT INTO promotion_review_match_attestations ") && l.includes(`'${decision}'`))!;
+  const recordOf = (line: string) => Number(/VALUES \((\d+),/.exec(line)![1]);
+  const linkOf = (recordId: number) => lines.find((l) => l.startsWith("INSERT INTO source_record_entities ") && l.includes(`VALUES (${recordId}, `))!;
+  const matched = attestation("matchedToEntity");
+  const confirmed = attestation("confirmedNew");
+  const entity = Number(/'matchedToEntity', (\d+),/.exec(matched)![1]);
+  const other = (db.raw.prepare("SELECT source_entity_id FROM source_entities WHERE source_entity_id <> ? ORDER BY 1 DESC LIMIT 1").get(entity) as any).source_entity_id;
+  const manualLink = linkOf(recordOf(matched));
+  const newLink = linkOf(recordOf(confirmed));
+  const cases: [string, string, string, RegExp][] = [
+    ["matchedToEntity attestation missing", `${matched}\n`, "", /source_record_entities: a manual decision requires a review_match_application/],
+    ["confirmedNew attestation missing", `${confirmed}\n`, "", /promotion_bootstrap_completions: the database does not hold exactly the declared, complete release/],
+    ["attested entity outside the candidates", matched, matched.replace(`'matchedToEntity', ${entity},`, `'matchedToEntity', ${other},`),
+      /promotion_review_match_attestations: not a reviewed decision/],
+    ["manual link to another entity than attested", manualLink, manualLink.replace(`, ${entity}, 'manual'`, `, ${other}, 'manual'`),
+      /a manual decision requires a review_match_application|does not follow its promoted review attestation/],
+    ["confirmedNew record written as a manual link", newLink, newLink.replace(/, 'new', /, ", 'manual', "),
+      /a manual decision requires a review_match_application|does not follow its promoted review attestation/],
+  ];
+  for (const [name, from, to, error] of cases) {
+    const tampered = sql.replace(from, to);
+    assert.notEqual(tampered, sql, `${name}: fixture edit applies`);
+    const target = migratedSqlite();
+    assert.throws(() => applyPromotionBundle(target, tampered), error, name);
+    for (const t of ["promotion_bootstraps", "sources", "source_records", "promotion_review_match_attestations", "source_record_entities", "spots", "tile_snapshot_spots"]) {
+      assert.equal((target.prepare(`SELECT count(*) n FROM ${t}`).get() as any).n, 0, `${name}: ${t} rolled back`);
+    }
+  }
+});
+
+test("completion seals a reviewed target's attestations and match keys against UPDATE and DELETE", async () => {
+  const { db } = await reviewedRelease(duplicate, ["matchedToEntity", "confirmedNew"]);
+  const target = migratedSqlite();
+  applyPromotionBundle(target, (await buildPromotionBundle(db)).sql);
+  const count = (t: string) => (target.prepare(`SELECT count(*) n FROM ${t}`).get() as any).n;
+  assert.equal(count("promotion_review_match_attestations"), 2);
+  assert.ok(count("source_record_match_keys") > 0, "fixture: a cross-release release carries match keys");
+  for (const [table, set] of [["promotion_review_match_attestations", "decided_by = 'someone else'"], ["source_record_match_keys", "match_key = 'x'"]]) {
+    assert.throws(() => target.exec(`UPDATE ${table} SET ${set}`), /immutable/, `${table} UPDATE`);
+    assert.throws(() => target.exec(`DELETE FROM ${table}`), /immutable/, `${table} DELETE`);
+    assert.throws(() => target.exec(`INSERT INTO ${table} SELECT * FROM ${table} LIMIT 1`),
+      /promotion bootstrap is complete|not a reviewed decision|UNIQUE|PRIMARY KEY/, `${table} INSERT`);
+  }
+  assert.equal(count("promotion_review_match_attestations"), 2);
+});

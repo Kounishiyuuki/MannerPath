@@ -50,4 +50,35 @@ test("completion leaves report, moderation, rate window and App Attest writes av
   for (const table of ["reports", "report_moderation", "report_rate_windows", "app_attest_keys", "app_attest_challenges"]) {
     assert.equal((db.prepare(`SELECT count(*) n FROM ${table}`).get() as { n: number }).n, 1, table);
   }
+
+  // The runtime's own updates and purges, in the shapes src/ issues them, stay available too: no over-seal.
+  const at = "2026-12-01T00:00:00Z";
+  db.prepare(`INSERT INTO report_rate_windows (submitter_hash, window_kind, window_start, report_count, expires_at)
+    VALUES (?, 'hour', '2026-09-01T00:00:00Z', 1, '2026-09-01T01:00:00Z')
+    ON CONFLICT (submitter_hash, window_kind, window_start) DO UPDATE SET report_count = report_count + 1`).run("a".repeat(64));
+  assert.equal((db.prepare("SELECT report_count n FROM report_rate_windows").get() as { n: number }).n, 2, "rate-limit upsert");
+  db.prepare(`UPDATE report_moderation SET state = 'rejected', decided_at = ?, decided_by = 'moderator', decision_reason = 'unspecified', updated_at = ?
+    WHERE report_id = ?`).run(at, at, reportId);
+  db.prepare(`UPDATE reports SET note = NULL, proposed_latitude = NULL, proposed_longitude = NULL, observed_on = NULL,
+    submitter_hash = NULL, redacted_at = ? WHERE report_id = ? AND redacted_at IS NULL`).run(at, reportId);
+  db.prepare("UPDATE app_attest_challenges SET consumed_at = ? WHERE challenge = ? AND consumed_at IS NULL").run(at, `${"B".repeat(43)}=`);
+  db.prepare("UPDATE app_attest_keys SET sign_count = 1 WHERE key_id = ?").run(`${"A".repeat(43)}=`);
+  db.prepare("DELETE FROM report_rate_windows WHERE expires_at <= ?").run(at);
+  db.prepare("DELETE FROM app_attest_challenges WHERE expires_at <= ?").run(at);
+  assert.deepEqual(
+    ["report_rate_windows", "app_attest_challenges"].map((t) => (db.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n),
+    [0, 0], "retention purges");
+  assert.equal((db.prepare("SELECT redacted_at FROM reports").get() as { redacted_at: string }).redacted_at, at);
+  assert.equal((db.prepare("SELECT sign_count FROM app_attest_keys").get() as { sign_count: number }).sign_count, 1);
+});
+
+test("source_observations never travels, so its UPDATE and DELETE seals are asserted structurally", () => {
+  // A promoted database holds no observation row (INSERT is refused above), and a row trigger cannot fire on
+  // an empty table; the seal's triggers are still required, so a later schema change cannot drop them silently.
+  const db = migratedSqlite();
+  for (const op of ["insert", "update", "delete"]) {
+    const row = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?")
+      .get(`promotion_complete_seals_source_observations_${op}`) as { sql: string } | undefined;
+    assert.ok(row && /promotion_bootstrap_completions/.test(row.sql) && row.sql.includes(`BEFORE ${op.toUpperCase()} ON source_observations`), op);
+  }
 });
