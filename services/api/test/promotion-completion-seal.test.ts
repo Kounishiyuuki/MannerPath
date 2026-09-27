@@ -22,6 +22,17 @@ test("completion seals every promoted and derived table for INSERT, UPDATE and D
     "promotion_review_match_attestations", "source_record_entities", "spots", "spot_source_entities",
     "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots", "source_observations"];
   for (const table of tables) {
+    // A row trigger cannot fire on an empty carried table (source_observations never travels; match keys are
+    // empty on a first release), so every seal trigger is also asserted structurally: a later migration cannot
+    // drop one silently. Attestations are sealed by their own append-only and open-bootstrap triggers instead.
+    if (table !== "promotion_review_match_attestations") {
+      for (const op of ["insert", "update", "delete"]) {
+        const trigger = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?")
+          .get(`promotion_complete_seals_${table}_${op}`) as { sql: string } | undefined;
+        assert.ok(trigger?.sql.includes(`BEFORE ${op.toUpperCase()} ON ${table}`) && trigger.sql.includes("promotion_bootstrap_completions"),
+          `${table} ${op} seal missing`);
+      }
+    }
     const columns = (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
     assert.throws(() => db.prepare(`INSERT INTO ${table} (${columns.join(", ")}) VALUES (${columns.map(() => "1").join(", ")})`).run(),
       table === "promotion_review_match_attestations" ? /promotion_review_match_attestations: not a reviewed decision|promotion bootstrap is complete/ : SEALED, `${table} INSERT`);
@@ -70,15 +81,4 @@ test("completion leaves report, moderation, rate window and App Attest writes av
     [0, 0], "retention purges");
   assert.equal((db.prepare("SELECT redacted_at FROM reports").get() as { redacted_at: string }).redacted_at, at);
   assert.equal((db.prepare("SELECT sign_count FROM app_attest_keys").get() as { sign_count: number }).sign_count, 1);
-});
-
-test("source_observations never travels, so its UPDATE and DELETE seals are asserted structurally", () => {
-  // A promoted database holds no observation row (INSERT is refused above), and a row trigger cannot fire on
-  // an empty table; the seal's triggers are still required, so a later schema change cannot drop them silently.
-  const db = migratedSqlite();
-  for (const op of ["insert", "update", "delete"]) {
-    const row = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?")
-      .get(`promotion_complete_seals_source_observations_${op}`) as { sql: string } | undefined;
-    assert.ok(row && /promotion_bootstrap_completions/.test(row.sql) && row.sql.includes(`BEFORE ${op.toUpperCase()} ON source_observations`), op);
-  }
 });
