@@ -1,8 +1,8 @@
 # ADR-0009 — Relocation and natural-key policy
 
 Status: Accepted (2026-09, Issue #91, tracker #67). Implemented so far: step A (Issue #93,
-candidate detection and review vocabulary) and step B (Issue #95, relocation hold); steps C–E are not
-implemented. It fixes the rules that
+candidate detection and review vocabulary), step B (Issue #95, relocation hold) and step C (Issue #97,
+reviewed relocation application); steps D–E are not implemented. It fixes the rules that
 the follow-up issues listed under "Implementation plan" implement. It amends ADR-0008 decisions 3, 5, 8 and 10 and replaces none of them. ADR-0006
 decision 6 (`publication_hold` is an axis, not lifecycle) and decision 11 (unpublish first) are kept.
 
@@ -316,6 +316,53 @@ Each step is its own issue and PR, and each builds on the previous one:
     Re-recording the identity makes an earlier relocation decision stale evidence: D1 matched E →
     R1 confirmed → D2 matched E needs a new R2; D1 → R1 → D2 confirmedNew → D3 matched E never
     revives R1.
+
+  **Implemented** (Issue #97, `migrations/0015_relocation_application.sql`,
+  `src/pipeline/relocation-application.ts`):
+  - **Application row = move.** `applyReviewedRelocation` inserts one append-only
+    `review_relocation_applications` row (item, v2 decision, the identity decision it rests on, the item's
+    own hold row, spot, entity, both records, cited observations and mapping version, old/new coordinate
+    and tile, policy and executor versions, `applied_at`). Its insert trigger re-checks the premise
+    (`review_relocation_application_premises`), and its AFTER INSERT trigger then moves the spot and lifts
+    this item's hold in one `UPDATE`. No row exists without its move, so no row can authorize a later one.
+  - **Coordinate guard.** `spots_coordinate_requires_relocation_application` refuses any update of an
+    existing spot's coordinate or tile unless it is exactly an application row's move, from its old
+    coordinate and tile, while that row's premise still holds (re-evaluated at the transition), together
+    with lifting the hold. `spots_relocation_hold_is_final` is replaced by the same rule. Spot INSERT is
+    unaffected.
+  - **Premise.** On top of the step B premise (with the spot held instead of unheld): the item's latest
+    decision is v2 `relocationConfirmed` with a greater `review_decision_id` than the identity item's
+    latest v1 `matchedToEntity` of the same entity; the two cited observations differ in the coordinate
+    only and the item lists no other changed field; the item's own hold row exists for the spot, and no
+    other item's hold row on it is unconsumed (ambiguous ownership is refused).
+  - **Trust boundary.** The schema checks the cited rows only. It cannot run the adapter's mapping or
+    compute Web Mercator tiles. The executor re-derives both observations from raw under
+    `adapter.mappingVersion` (`rederiveObservation`), requires them to equal the stored rows and the
+    candidate's ids, mapping version and coordinates, takes the new coordinate from them, and derives
+    the tile with the shared tile function. The schema then pins the move to the row's values.
+  - **Resolver.** It never reads a relocation decision. For a reviewed match whose coordinate changed, it
+    looks for the item's application row. If one exists and its decision and identity decision are still
+    the latest, it applies the release with the reviewed-match semantics (match application, `manual`
+    link, provenance, `last_verified_at`, `updated_at`, release applied/current). As the last statements
+    of the same batch it writes one `review_relocation_resolutions` row per consumed application. That row
+    is the audit of a *completed* consumption: its trigger requires `review_relocation_resolution_premises`
+    (decision and identity decision still the latest; spot at the new coordinate and tile, unheld, active,
+    unmerged; release applied and current; previous release applied and no longer current; the new record
+    linked to the entity; existence provenance on the new record, none left on the previous one), so it
+    cannot be written before the resolver moved the evidence, by the resolver or by anyone else. Its UNIQUE
+    application makes consumption single. A decision recorded after the application fails closed, and a
+    failing trigger rolls back the whole batch.
+  - **Publication fence.** Between the application (new coordinate, hold lifted) and its resolution
+    (release applied, provenance moved) the spot would carry the new coordinate on the old release's
+    evidence. An application is pending (`pending_relocation_applications`) until it has a resolution row
+    **and** its consumption evidence holds (`review_relocation_consumption_evidence`: release applied, new
+    record linked, existence provenance off the previous record and on an applied release). The row alone
+    never lifts the fence, so a resolution that got in without its trigger still fences. The evidence is
+    durable (a later release moves provenance and the current flag on, but never back), so a consumed
+    application never fences again. A spot with a pending application is not publishable: `publishTiles`
+    excludes it and the `tile_snapshot_spots_publication_invariant` trigger (replaced in 0015, earlier
+    conditions unchanged) refuses a direct insert, both through the same view. A resolver that fails closed
+    leaves it pending, and a consumed application never fences a later relocation.
 - **D. Tile / promotion E2E.** Cover two cases:
   - cross-tile relocation: the old tile loses the spot and the new tile gains it, and both tiles'
     revisions and ETags change;

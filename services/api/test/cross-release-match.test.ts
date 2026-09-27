@@ -15,7 +15,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts"
 import {
   NOW, TAITO_BYTES, TEST_BLOCKED_TAITO_ADAPTER, addBlockedTestSource, importTaito, sequentialSpotIds,
 } from "./support/fixture.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, withoutTrigger } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 // node:sqlite rows have a null prototype; spread them so deepEqual compares plain objects.
@@ -195,7 +195,9 @@ const firstSpot = (db: SqliteD1) => one(db,
 for (const [label, mutate, pattern] of [
   ["canonical drift (name)", (db: SqliteD1, id: string) => db.raw.prepare("UPDATE spots SET name = '改変' WHERE spot_id = ?").run(id),
     /canonical drift in name/],
-  ["canonical drift (coordinate)", (db: SqliteD1, id: string) => db.raw.prepare("UPDATE spots SET latitude = latitude + 0.001 WHERE spot_id = ?").run(id),
+  // Migration 0015 refuses this update; the drift stands for a state written before that guard existed.
+  ["canonical drift (coordinate)", (db: SqliteD1, id: string) => withoutTrigger(db.raw, "spots_coordinate_requires_relocation_application",
+    () => db.raw.prepare("UPDATE spots SET latitude = latitude + 0.001 WHERE spot_id = ?").run(id)),
     /canonical drift in latitude/],
   ["an existing attenuation", (db: SqliteD1, id: string) => db.raw.prepare(
     `INSERT INTO spot_field_attenuations (spot_id, field, effect, attestation_version, reference_kind, reference_url, checked_at,

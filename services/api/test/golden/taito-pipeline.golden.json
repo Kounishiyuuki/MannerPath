@@ -627,7 +627,9 @@
     "review_decisions": [],
     "review_items": [],
     "review_match_applications": [],
+    "review_relocation_applications": [],
     "review_relocation_holds": [],
+    "review_relocation_resolutions": [],
     "review_removal_applications": [],
     "review_removal_resolutions": [],
     "source_entities": [
