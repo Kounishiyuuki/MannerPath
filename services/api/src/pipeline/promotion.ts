@@ -61,6 +61,10 @@ export interface PromotionBundle {
 
 export class PromotionError extends Error {}
 
+/** The first line of the hashed body. The header ends right before it, so exporter and verifier cut at the same byte. */
+const BUNDLE_BODY_FIRST_LINE = "-- promotion_bootstraps: refused unless the target is empty";
+const CONTENT_SHA256 = /^[0-9a-f]{64}$/;
+
 function fail(detail: string): never {
   throw new PromotionError(`promotion export refused: ${detail}`);
 }
@@ -384,7 +388,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
     previousReleaseContentSha256: a.previous_release_content_sha256,
   }));
   const statements: string[] = [
-    "-- promotion_bootstraps: refused unless the target is empty",
+    BUNDLE_BODY_FIRST_LINE,
     `INSERT INTO promotion_bootstraps (promotion_bootstrap_id, bundle_version, source_id, release_id, release_content_sha256, review_dependencies_json, expected_rows_json) VALUES (1, ${
       [PROMOTION_BUNDLE_VERSION, release.source_id, releaseId, release.content_sha256, JSON.stringify(reviewDependencies), JSON.stringify(counts)].map(literal).join(", ")});`,
     "",
@@ -445,9 +449,38 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
     "--   npx wrangler d1 migrations apply <new-database-name> --remote",
     "--   npx wrangler d1 execute <new-database-name> --remote --file <this file>",
     "-- The receiving database re-checks the publication invariant on every tile_snapshot_spots row,",
-    "-- so a tampered bundle is rejected there as well as here.",
+    "-- so an inconsistent bundle is rejected there as well as here. A consistently edited one is not:",
+    "-- before applying, verify this file against the contentSha256 in its REVIEW RECORD, not this header:",
+    "--   npm run local:verify-promotion -- --file <this file> --expected-content-sha256 <reviewed hash>",
     "",
   ].join("\n");
 
   return { sql: `${header}${body}`, manifest };
+}
+
+/**
+ * Checks a bundle file before it is applied (docs/OPERATIONS.md): the body's SHA-256 must equal both the
+ * header's `contentSha256` and `expectedContentSha256`, which the caller takes from a reviewed record kept
+ * apart from the file. The header alone proves nothing: whoever edits the body can rewrite it too, and
+ * the target database cannot tell a consistently edited bundle from a genuine one (Issue #100).
+ */
+export async function verifyPromotionBundle(sql: string, expectedContentSha256: string): Promise<string> {
+  const refuse = (detail: string): never => { throw new PromotionError(`promotion verification refused: ${detail}`); };
+  if (!CONTENT_SHA256.test(expectedContentSha256)) refuse("the expected contentSha256 is not 64 lowercase hex digits");
+  const start = sql.indexOf(`\n${BUNDLE_BODY_FIRST_LINE}\n`);
+  if (start < 0 || sql.indexOf(`\n${BUNDLE_BODY_FIRST_LINE}\n`, start + 1) >= 0) refuse("no single bundle body start");
+  const headerLines = sql.slice(0, start + 1).split("\n");
+  // The header is outside the hash. It must contain no executable SQL, even if the body and its
+  // externally reviewed hash are intact. SQLite accepts statements before a comment-only body.
+  if (headerLines.some((line) => /[\r\0]/.test(line) || (line !== "" && !line.startsWith("--")))) {
+    refuse("the unhashed header contains executable content");
+  }
+  const header = headerLines.filter((l) => l.startsWith("-- contentSha256: "));
+  if (header.length !== 1) refuse(`the header has ${header.length} contentSha256 lines, not 1`);
+  const embedded = header[0].slice("-- contentSha256: ".length);
+  if (!CONTENT_SHA256.test(embedded)) refuse("the header's contentSha256 is not 64 lowercase hex digits");
+  const calculated = await sha256Hex(sql.slice(start + 1));
+  if (calculated !== embedded) refuse(`body hashes to ${calculated}, header says ${embedded}`);
+  if (calculated !== expectedContentSha256) refuse(`body hashes to ${calculated}, the reviewed record says ${expectedContentSha256}`);
+  return calculated;
 }

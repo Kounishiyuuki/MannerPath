@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
-import { buildPromotionBundle } from "../src/pipeline/promotion.ts";
+import { PromotionError, buildPromotionBundle, verifyPromotionBundle } from "../src/pipeline/promotion.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { recordReviewDecision } from "../src/pipeline/review-queue.ts";
@@ -12,6 +12,7 @@ import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
+import { rehashed } from "./support/promotion-tamper.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
 const ADAPTER: SourceAdapter = { ...TAITO_ADAPTER, assertResolvable: () => {}, attenuate: () => [], crossReleaseValidated: true };
@@ -96,4 +97,30 @@ test("changed previous-release fingerprint fails at completion and rolls back", 
   assert.throws(() => applyPromotionBundle(target, tampered),
     /promotion_bootstrap_completions: the database does not hold exactly the declared, complete release/);
   assert.equal((target.prepare("SELECT count(*) n FROM sources").get() as any).n, 0);
+});
+
+// The known trust boundary (Issue #100): dropping a confirmedNew attestation together with its declared
+// count and dependency leaves a bundle the target cannot tell from a genuine one, because the previous
+// release and the origin review queue do not travel. Only the reviewed hash, checked before apply, stops it.
+test("coordinated confirmedNew tamper with a rewritten header hash applies, and only the reviewed hash stops it", async () => {
+  const { db } = await reviewedRelease(duplicate, ["matchedToEntity", "confirmedNew"]);
+  const { sql, manifest } = await buildPromotionBundle(db);
+  const confirmedNew = sql.split("\n").find((l) => l.startsWith("INSERT INTO promotion_review_match_attestations ") && l.includes("'confirmedNew'"))!;
+  const recordId = /VALUES \((\d+),/.exec(confirmedNew)![1];
+  const tampered = await rehashed(sql, (body) => body
+    .replace(`${confirmedNew}\n`, "")
+    .replace('"promotion_review_match_attestations":2', '"promotion_review_match_attestations":1')
+    .replace(new RegExp(`,?\\{"recordId":${recordId},[^}]*\\}`), ""));
+  assert.equal(tampered.split("\n").filter((l) => l.includes("'confirmedNew'")).length, 0);
+
+  const target = migratedSqlite();
+  applyPromotionBundle(target, tampered);
+  assert.equal((target.prepare("SELECT count(*) n FROM promotion_review_match_attestations").get() as any).n, 1,
+    "the database alone accepts the consistent edit: this is the boundary the verifier exists for");
+
+  const tamperedHash = /^-- contentSha256: ([0-9a-f]{64})$/m.exec(tampered)![1];
+  assert.equal(await verifyPromotionBundle(tampered, tamperedHash), tamperedHash, "the file agrees with itself");
+  await assert.rejects(() => verifyPromotionBundle(tampered, manifest.contentSha256), (e: Error) =>
+    e instanceof PromotionError && /the reviewed record says /.test(e.message));
+  assert.equal(await verifyPromotionBundle(sql, manifest.contentSha256), manifest.contentSha256);
 });

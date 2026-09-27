@@ -283,6 +283,12 @@ references the previous release, which is not promoted. So:
   applications / resolutions. The published state does not claim them: a removed spot is not
   published, and a relocated spot's canonical row is explained by the release's records and the
   identity attestation. They stay in the database that applied them.
+- **Trust boundary:** "empty" is every table of the schema, named one by one, including report and App
+  Attest tables that reference no canonical row. Because the previous release and the origin review queue
+  do not travel, the target cannot detect a bundle edited *consistently* (an attestation, its count and
+  its dependency removed together); the database is not asked to. The file's authenticity is checked
+  before apply by `npm run local:verify-promotion`, against a `contentSha256` taken from the reviewed
+  record of the bundle, never from the file's own header (docs/OPERATIONS.md step 4).
 
 ### 8. Review queue (boundary)
 

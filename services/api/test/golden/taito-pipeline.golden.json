@@ -171,7 +171,7 @@
       },
       "contentSha256": "88f4b048f37de68dedda7eeb1f0c67ef2ff9448c0d11beaeff8c260902af980f"
     },
-    "sqlSha256": "f8e394b6c6eb5fde55f4c57d9b63dc0bc97bacd233dcbc8f16679e4dbe53bc35"
+    "sqlSha256": "7ca0c90a8a3660e7cde5903b080be538dd0c410e56353c9d2c3c2356971c4a8a"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",

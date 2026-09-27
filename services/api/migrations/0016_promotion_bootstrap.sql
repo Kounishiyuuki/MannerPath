@@ -38,15 +38,6 @@ CREATE TABLE promotion_bootstraps (
   expected_rows_json     TEXT NOT NULL CHECK (json_valid(expected_rows_json) AND json_type(expected_rows_json) = 'object')
 );
 
--- Bootstrap means an empty database: nothing a pipeline, a previous bundle or a reviewer could have written.
-CREATE TRIGGER promotion_bootstraps_empty_target
-BEFORE INSERT ON promotion_bootstraps
-WHEN EXISTS (SELECT 1 FROM sources) OR EXISTS (SELECT 1 FROM source_releases) OR EXISTS (SELECT 1 FROM source_entities)
-  OR EXISTS (SELECT 1 FROM spots) OR EXISTS (SELECT 1 FROM tile_snapshots) OR EXISTS (SELECT 1 FROM review_items)
-BEGIN
-  SELECT RAISE(ABORT, 'promotion_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database');
-END;
-
 CREATE TRIGGER promotion_bootstraps_immutable
 BEFORE UPDATE ON promotion_bootstraps
 BEGIN
@@ -89,6 +80,45 @@ CREATE TABLE promotion_review_match_attestations (
   CHECK ((decision = 'matchedToEntity') = (source_entity_id IS NOT NULL)),
   CHECK (previous_release_id <> release_id)
 );
+
+-- Bootstrap means an empty database: nothing a pipeline, a previous bundle, a reviewer, a reporter or App Attest
+-- could have written. Every table of migrations 0001-0016 is named here, not reached through a parent's
+-- foreign key: reports, rate windows and App Attest rows reference no canonical row at all. Views are
+-- derived and excluded. test/promotion-empty-target.test.ts fails when a table is added and not listed.
+CREATE TRIGGER promotion_bootstraps_empty_target
+BEFORE INSERT ON promotion_bootstraps
+WHEN EXISTS (SELECT 1 FROM sources)
+  OR EXISTS (SELECT 1 FROM source_releases)
+  OR EXISTS (SELECT 1 FROM source_records)
+  OR EXISTS (SELECT 1 FROM source_record_match_keys)
+  OR EXISTS (SELECT 1 FROM source_observations)
+  OR EXISTS (SELECT 1 FROM source_entities)
+  OR EXISTS (SELECT 1 FROM source_record_entities)
+  OR EXISTS (SELECT 1 FROM spots)
+  OR EXISTS (SELECT 1 FROM spot_source_entities)
+  OR EXISTS (SELECT 1 FROM spot_field_provenance)
+  OR EXISTS (SELECT 1 FROM spot_field_attenuations)
+  OR EXISTS (SELECT 1 FROM tile_snapshots)
+  OR EXISTS (SELECT 1 FROM tile_snapshot_spots)
+  OR EXISTS (SELECT 1 FROM review_items)
+  OR EXISTS (SELECT 1 FROM review_decisions)
+  OR EXISTS (SELECT 1 FROM review_removal_applications)
+  OR EXISTS (SELECT 1 FROM review_removal_resolutions)
+  OR EXISTS (SELECT 1 FROM review_match_applications)
+  OR EXISTS (SELECT 1 FROM review_relocation_holds)
+  OR EXISTS (SELECT 1 FROM review_relocation_applications)
+  OR EXISTS (SELECT 1 FROM review_relocation_resolutions)
+  OR EXISTS (SELECT 1 FROM reports)
+  OR EXISTS (SELECT 1 FROM report_moderation)
+  OR EXISTS (SELECT 1 FROM report_rate_windows)
+  OR EXISTS (SELECT 1 FROM app_attest_keys)
+  OR EXISTS (SELECT 1 FROM app_attest_challenges)
+  OR EXISTS (SELECT 1 FROM promotion_bootstraps)
+  OR EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+  OR EXISTS (SELECT 1 FROM promotion_review_match_attestations)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database');
+END;
 
 -- Only while a bootstrap is open, only for its release, only before the record's decision, and only for a
 -- chosen entity of the bootstrapped source that is one of the item's distinct integer candidates.
@@ -199,4 +229,279 @@ CREATE TRIGGER promotion_bootstrap_completions_no_delete
 BEFORE DELETE ON promotion_bootstrap_completions
 BEGIN
   SELECT RAISE(ABORT, 'promotion_bootstrap_completions are immutable');
+END;
+
+-- Completion seals publication, evidence and canonical state. Runtime report and App Attest data stay writable.
+
+CREATE TRIGGER promotion_complete_seals_sources_insert
+BEFORE INSERT ON sources
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_sources_update
+BEFORE UPDATE ON sources
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_sources_delete
+BEFORE DELETE ON sources
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_releases_insert
+BEFORE INSERT ON source_releases
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_releases_update
+BEFORE UPDATE ON source_releases
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_releases_delete
+BEFORE DELETE ON source_releases
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_records_insert
+BEFORE INSERT ON source_records
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_records_update
+BEFORE UPDATE ON source_records
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_records_delete
+BEFORE DELETE ON source_records
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_record_match_keys_insert
+BEFORE INSERT ON source_record_match_keys
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_record_match_keys_update
+BEFORE UPDATE ON source_record_match_keys
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_record_match_keys_delete
+BEFORE DELETE ON source_record_match_keys
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_entities_insert
+BEFORE INSERT ON source_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_entities_update
+BEFORE UPDATE ON source_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_entities_delete
+BEFORE DELETE ON source_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_record_entities_insert
+BEFORE INSERT ON source_record_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_record_entities_update
+BEFORE UPDATE ON source_record_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_record_entities_delete
+BEFORE DELETE ON source_record_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spots_insert
+BEFORE INSERT ON spots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spots_update
+BEFORE UPDATE ON spots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spots_delete
+BEFORE DELETE ON spots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_source_entities_insert
+BEFORE INSERT ON spot_source_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_source_entities_update
+BEFORE UPDATE ON spot_source_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_source_entities_delete
+BEFORE DELETE ON spot_source_entities
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_field_provenance_insert
+BEFORE INSERT ON spot_field_provenance
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_field_provenance_update
+BEFORE UPDATE ON spot_field_provenance
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_field_provenance_delete
+BEFORE DELETE ON spot_field_provenance
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_field_attenuations_insert
+BEFORE INSERT ON spot_field_attenuations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_field_attenuations_update
+BEFORE UPDATE ON spot_field_attenuations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_spot_field_attenuations_delete
+BEFORE DELETE ON spot_field_attenuations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_tile_snapshots_insert
+BEFORE INSERT ON tile_snapshots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_tile_snapshots_update
+BEFORE UPDATE ON tile_snapshots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_tile_snapshots_delete
+BEFORE DELETE ON tile_snapshots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_tile_snapshot_spots_insert
+BEFORE INSERT ON tile_snapshot_spots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_tile_snapshot_spots_update
+BEFORE UPDATE ON tile_snapshot_spots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_tile_snapshot_spots_delete
+BEFORE DELETE ON tile_snapshot_spots
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_observations_insert
+BEFORE INSERT ON source_observations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_observations_update
+BEFORE UPDATE ON source_observations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
+END;
+
+CREATE TRIGGER promotion_complete_seals_source_observations_delete
+BEFORE DELETE ON source_observations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is complete; promoted state is immutable');
 END;

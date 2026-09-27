@@ -24,6 +24,7 @@ Two vocabularies, deliberately not mixed.
 | `npm run dev` (`wrangler dev --local`) | Local Worker on `127.0.0.1:8787` |
 | `npm run local:smoke` | HTTP GETs against `127.0.0.1:8787` |
 | `npm run local:export` | Reads `.wrangler/state` local D1; writes a file only when asked |
+| `npm run local:verify-promotion` | Reads one local bundle file; opens no database |
 
 Every one of these carries `local` in its name or runs entirely in-process. None accepts a remote
 target; `local:pipeline`, `local:registry` and `local:export` open their binding with
@@ -162,6 +163,12 @@ matches its stored tile body, and `buildPromotionBundle` (`npm run local:export`
 with `snapshot membership does not match the body` (tested in `test/review-removal.test.ts`), so a
 crash or a forgotten republish cannot reach a remote promotion.
 
+The origin review IDs, `decided_by`, decision time and previous-release fingerprint in an
+attestation are audit metadata certified by the reviewed promotion artifact. The target does not
+have the origin review history and cannot independently authenticate those values. In particular,
+`confirmedNew` has `method = 'new'` like an automatic new record, so its attestation and the
+externally reviewed artifact hash prove that distinction.
+
 `spot_field_attenuations` carries the rows behind every **weakened** field of a published spot
 (ADR-0006, Issue #42): which field was attenuated and how, under which attestation version, from
 which reviewed conflict reference, when that reference was read, and the fingerprint of the source
@@ -194,8 +201,18 @@ source's current one, and a reviewed link without its applied decision.
 **The bundle is a bootstrap artifact, not an update.** It is INSERT-only, and its target is an
 **empty database migrated through 0016** (a v2 bundle does not apply to an older schema). It cannot
 modify an already-populated remote D1: its first statement refuses any database that is not empty,
-before anything is written. This slice adds no remote upsert or update path, and none should be
+before anything is written. "Empty" is checked table by table over **every** table of migrations
+0001–0016 — source, canonical, attenuation, tile, review / removal / relocation, promotion, and the
+application tables that hang off no canonical row (`reports`, `report_moderation`,
+`report_rate_windows`, `app_attest_keys`, `app_attest_challenges`) — so a database that ever served
+reports or App Attest is refused too (`test/promotion-empty-target.test.ts`). This slice adds no remote upsert or update path, and none should be
 improvised at the console. Corrected or new data ships through the blue/green procedure in step 6.
+
+After the completion row is inserted, migration 0016 seals the promoted source, evidence,
+identity, canonical, provenance and tile tables against INSERT, UPDATE and DELETE. It also closes
+`source_observations`, which are derived from promoted records but not carried in the bundle.
+Normal runtime data stays writable: reports, moderation, rate windows and App Attest keys and
+challenges are outside the seal. A later publication needs a fresh target and another promotion.
 
 **Atomicity.** The bundle contains no `BEGIN` / `COMMIT`: D1 refuses transaction statements in SQL and
 runs a `wrangler d1 execute --remote --file` import as one transaction itself (wrangler: "if the
@@ -216,15 +233,43 @@ to the live one:
 
 ```sh
 npx wrangler d1 migrations apply DB --env staging --remote    # a fresh, empty database
+npm run local:verify-promotion -- --file promotion.sql --expected-content-sha256 <hash from the review record>
 npx wrangler d1 execute DB --env staging --remote --file promotion.sql
 ```
 
-Read the bundle before running it. The receiving database does not trust the file: foreign keys, the
-append-only and review-link triggers, the ADR-0006 publication invariant on every
-`tile_snapshot_spots` row and the completion check all run during the apply, so a tampered or
-incomplete bundle is rejected there as well as by the export. What it cannot detect is a consistent
-edit of the file's own declarations (for example dropping a `confirmedNew` attestation *and* its
-declared count): compare the header's `contentSha256` with the reviewed bundle's before applying.
+**What the database checks, and what only the verifier can.** The receiving database does not trust
+the file: foreign keys, the append-only and review-link triggers, the ADR-0006 publication invariant on
+every `tile_snapshot_spots` row and the completion check all run during the apply, so an inconsistent
+or incomplete bundle is rejected there as well as by the export. What it cannot detect is a
+**consistent** edit of the file's own declarations — for example dropping a `confirmedNew` attestation
+*and* its declared count *and* its declared dependency. The previous release and the origin review
+queue deliberately do not travel (they are not part of the bootstrapped state), so nothing in the
+target can contradict such an edit, and no trigger is meant to. The authenticity of the file is the
+job of a separate step before apply.
+
+**The trusted hash comes from outside the file.** The header's `contentSha256` is written by whoever
+wrote the file: someone who edits the body can recompute it, and a file checked only against its own
+header proves only that it agrees with itself — that is not a trust boundary. The manifest that
+`local:export` prints is produced in the same run as the SQL and is no more independent. The expected
+hash must be taken from a **reviewed record kept apart from the SQL file**: the PR or change record in
+which the reviewer approved this bundle and wrote down its `contentSha256`. The procedure is:
+
+1. **Export** — `npm run local:export -- --out promotion-<release>-<date>.sql`.
+2. **Review** — the reviewer reads the file (release, row counts, tiles, attestations).
+3. **Record** — the reviewer writes the file's `contentSha256` into the reviewed PR / change record.
+4. **Verify** immediately before apply, with the hash copied from that record, never from the file:
+   `npm run local:verify-promotion -- --file promotion-<release>-<date>.sql --expected-content-sha256 <recorded hash>`.
+   It recomputes the SHA-256 of the statement block (exactly the bytes the exporter hashed) and exits 0
+   only when it equals both the header's hash and the recorded one; a mismatch, a malformed or missing
+   header, executable content in the unhashed header, or a malformed expected hash exits non-zero.
+   The header may contain only SQL comments and blank lines. There is no mode that trusts the header alone.
+5. **Apply** only that same verified file, by name (step 6).
+6. **Discard** a target whose apply failed (above); never re-apply into it.
+
+`test/verify-promotion.test.ts` and the coordinated-tamper case in
+`test/promotion-reviewed-bootstrap.test.ts` fix this: a bundle with a `confirmedNew` attestation, its
+count and its dependency removed *and* its header hash recomputed still applies to an empty database,
+and is refused by the verifier against the recorded hash.
 
 ### 5. Smoke verify
 
@@ -272,10 +317,13 @@ npx wrangler d1 create mannerpath-staging-2
 npx wrangler d1 migrations apply mannerpath-staging-2 --remote
 npx wrangler d1 migrations list mannerpath-staging-2 --remote    # expect: no pending migrations
 
-# 3. Apply the reviewed bundle to green, again by name. Green must be empty apart from the schema
-#    (the bundle's first statement refuses anything else). If this step fails, D1 rolls the import
-#    back; still delete green and start again from step 1 with a new database — never re-apply into
-#    it and never switch a binding to it.
+# 3. Verify the file against the contentSha256 recorded in its review (step 4, never the file's own
+#    header), then apply that same file to green, again by name. Green must be empty apart from the
+#    schema (the bundle's first statement refuses anything else). If this step fails, D1 rolls the
+#    import back; still delete green and start again from step 1 with a new database — never
+#    re-apply into it and never switch a binding to it.
+npm run local:verify-promotion -- --file promotion-<release>-<date>.sql \
+  --expected-content-sha256 <hash from the review record>
 npx wrangler d1 execute mannerpath-staging-2 --remote \
   --file promotion-<release>-<date>.sql
 
@@ -505,6 +553,7 @@ npm run e2e:config -- --suffix <s> --database-id <uuid printed above>
 #    Build and read the bundle first: npm run local:pipeline && npm run local:export -- --out promotion.sql
 npx wrangler d1 migrations apply DB --config $C --remote
 npx wrangler d1 migrations list DB --config $C --remote     # expect: no pending migrations
+npm run local:verify-promotion -- --file promotion.sql --expected-content-sha256 <hash from the review record>
 npx wrangler d1 execute DB --config $C --remote --file promotion.sql
 
 # 3. Deploy, set the pepper, and prove it fails closed before any App Attest value exists.
