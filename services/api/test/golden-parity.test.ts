@@ -8,7 +8,8 @@
 // `tables.review_items` / `tables.review_decisions`, and Issue #84 only the empty
 // `tables.review_removal_applications`, and Issue #86 only the empty
 // `tables.review_match_applications`, and Issue #89 only the empty
-// `tables.review_removal_resolutions`; every other byte was unchanged.
+// `tables.review_removal_resolutions`, and Issue #95 only the empty
+// `tables.review_relocation_holds`; every other byte was unchanged.
 //
 // Compressed tile sizes depend on the zlib build (Issue #76), so the golden's quality analysis runs
 // with a deterministic stand-in sizer instead of node:zlib. Its `gzipBytes` figures are therefore
