@@ -7,7 +7,7 @@ import { PROMOTION_BUNDLE_VERSION, PromotionError, buildPromotionBundle } from "
 import { TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
-import { SqliteD1, migratedSqlite } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
 async function publishedDb(): Promise<SqliteD1> {
   const db = new SqliteD1();
@@ -39,6 +39,8 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     // against. The table is carried anyway, so a later release's matcher decisions travel too.
     source_record_match_keys: 0,
     source_entities: 34,
+    // A first release has no reviewed identity decision to attest (Issue #100).
+    promotion_review_match_attestations: 0,
     source_record_entities: 34,
     // The bundle carries the published corpus: the two spots withheld by the Issue #42
     // reconciliation have canonical rows here but are not exported, while the whole raw release is.
@@ -54,12 +56,13 @@ test("the bundle carries the whole evidence-to-publication chain for the current
   assert.equal(manifest.rows.spot_field_provenance > 32, true, "every spot has at least existence provenance");
 
   // Foreign-key-safe order: a parent table's inserts precede every child that references it.
-  const order = ["sources", "source_releases", "source_records", "source_record_match_keys",
-    "source_entities", "source_record_entities", "spots", "spot_source_entities",
+  const order = ["promotion_bootstraps", "sources", "source_releases", "source_records", "source_record_match_keys",
+    "source_entities", "promotion_review_match_attestations", "source_record_entities", "spots", "spot_source_entities",
     "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"];
-  // source_record_match_keys is empty on a first release, so it contributes no statement block.
-  const nonEmpty = order.filter((t) => manifest.rows[t] > 0);
-  assert.equal(nonEmpty.length, order.length - 1);
+  // source_record_match_keys and the attestations are empty on a first release, so they contribute no
+  // statement block; the bootstrap and completion statements are always there.
+  const nonEmpty = order.filter((t) => (manifest.rows[t] ?? 1) > 0);
+  assert.equal(nonEmpty.length, order.length - 2);
   const positions = nonEmpty.map((t) => sql.indexOf(`INSERT INTO ${t} (`));
   assert.equal(positions.every((p) => p > 0), true, "every non-empty table is present");
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, "tables are emitted in dependency order");
@@ -71,7 +74,7 @@ test("the bundle carries the whole evidence-to-publication chain for the current
   assert.match(sql, /wrangler d1 execute <new-database-name> --remote --file <this file>/);
   assert.equal(sql.includes("--env <environment>"), false);
   assert.equal(sql.includes(`-- contentSha256: ${manifest.contentSha256}`), true);
-  const body = sql.slice(sql.indexOf("-- sources ("));
+  const body = sql.slice(sql.indexOf("-- promotion_bootstraps"));
   assert.equal(createHash("sha256").update(body).digest("hex"), manifest.contentSha256);
 });
 
@@ -114,8 +117,7 @@ test("the bundle applies to a freshly migrated database and reproduces the publi
   // publication trigger re-checks every tile_snapshot_spots row here, so this also proves the
   // bundle's ordering satisfies the ADR-0006 invariant on the receiving side.
   const target = migratedSqlite();
-  target.exec("PRAGMA foreign_keys = ON;");
-  target.exec(sql);
+  applyPromotionBundle(target, sql);
 
   const count = (db: any, q: string) => (db.prepare(q).get() as any).n;
   // The bundle is a *publication* bundle: it carries the canonical rows behind the published tiles,
@@ -149,7 +151,8 @@ test("the bundle is a bootstrap artifact: INSERT-only, and it refuses a populate
   // stay inside their quoted literal, so statements are not split on line breaks.
   const withoutComments = sql.split("\n").filter((line) => !line.startsWith("--")).join("\n");
   const statements = withoutComments.split(");\n").map((s) => s.trim()).filter((s) => s !== "");
-  assert.equal(statements.length, Object.values(manifest.rows).reduce((a, b) => a + b, 0), "one statement per exported row");
+  assert.equal(statements.length, Object.values(manifest.rows).reduce((a, b) => a + b, 0) + 2,
+    "one statement per exported row, plus the bootstrap and completion statements");
   assert.equal(statements.every((s) => s.startsWith("INSERT INTO ")), true, "every statement is an INSERT");
   for (const forbidden of ["UPDATE ", "DELETE ", "ON CONFLICT", "INSERT OR ", "REPLACE INTO", "BEGIN;", "COMMIT;", "PRAGMA ", "DROP "]) {
     assert.equal(sql.includes(forbidden), false, `${forbidden} must not appear`);
@@ -158,12 +161,11 @@ test("the bundle is a bootstrap artifact: INSERT-only, and it refuses a populate
   assert.match(sql, /TARGET: an EMPTY, freshly migrated database/);
   assert.match(sql, /cannot update a populated one/);
 
-  // Applying it to a database that already holds the data fails outright rather than half-updating:
-  // that failure is what makes the blue/green procedure the only path for corrected data.
+  // Applying it to a database that already holds the data fails on its first statement rather than
+  // half-updating: that failure is what makes the blue/green procedure the only path for corrected data.
   const target = migratedSqlite();
-  target.exec("PRAGMA foreign_keys = ON;");
-  target.exec(sql);
-  assert.throws(() => target.exec(sql), /UNIQUE constraint failed|constraint failed/);
+  applyPromotionBundle(target, sql);
+  assert.throws(() => applyPromotionBundle(target, sql), /promotion_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database/);
 });
 
 test("an unapproved source is never exported", async () => {
@@ -205,10 +207,17 @@ test("published state that outruns the selected release fails the export", async
   const db = await publishedDb();
   // A second release of the same source exists, but the published tiles still describe the first:
   // exporting that second release would carry tiles whose evidence the bundle does not contain.
+  db.raw.prepare("UPDATE source_releases SET is_current = 0 WHERE release_id = 1").run();
   db.raw.prepare(
     `INSERT INTO source_releases (release_id, source_id, observed_on, fetched_at, source_url, content_sha256,
        byte_length, header_json, record_count, parser_version, status, is_current, applied_at)
-     VALUES (2, ?, '2026-09-01', ?, 'https://example.invalid/next.csv', ?, 1, '["a"]', 0, 'taito.v1', 'applied', 0, ?)`,
+     VALUES (2, ?, '2026-09-01', ?, 'https://example.invalid/next.csv', ?, 1, '["a"]', 0, 'taito.v1', 'applied', 1, ?)`,
   ).run(TAITO_SOURCE_ID, NOW, "b".repeat(64), NOW);
   await rejects(db, /draw existence evidence from another release/, { releaseId: 2 });
+});
+
+test("a release that is not its source's current one fails the export", async () => {
+  const db = await publishedDb();
+  db.raw.prepare("UPDATE source_releases SET is_current = 0 WHERE release_id = 1").run();
+  await rejects(db, /release 1 is not its source's current release/, { releaseId: 1 });
 });
