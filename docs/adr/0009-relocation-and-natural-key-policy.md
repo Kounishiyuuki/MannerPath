@@ -2,7 +2,7 @@
 
 Status: Accepted (2026-09, Issue #91, tracker #67). Implemented so far: step A (Issue #93,
 candidate detection and review vocabulary), step B (Issue #95, relocation hold) and step C (Issue #97,
-reviewed relocation application); steps D–E are not implemented. It fixes the rules that
+reviewed relocation application) and step D (Issue #99, tile / promotion E2E); step E is not implemented. It fixes the rules that
 the follow-up issues listed under "Implementation plan" implement. It amends ADR-0008 decisions 3, 5, 8 and 10 and replaces none of them. ADR-0006
 decision 6 (`publication_hold` is an axis, not lifecycle) and decision 11 (unpublish first) are kept.
 
@@ -370,6 +370,22 @@ Each step is its own issue and PR, and each builds on the previous one:
 
   In both cases the promotion bundle carries the new coordinate with old evidence retained; the
   golden stays stable for Taito.
+  **Implemented** (Issue #99, `test/relocation-tile-promotion-e2e.test.ts`, no migration): cross-tile into a
+  new tile (404 → 200) and into an existing tile, and same-tile, each through the operational order and
+  `GET /v1/tiles` / `GET /v1/spots`. The hold publish changes only the old tile; the publish between
+  application and resolution changes nothing (fence, spot detail 404); a repeat publish is unchanged. Applying
+  B refreshes `lastVerifiedAt` of every matched spot, so the publish after the resolver rewrites every tile;
+  against a control that applies the same B without the move, every tile but the old/new one is identical
+  (revision, hash, body), and those two differ by exactly the move. Stale ETags get 200, current ones 304.
+  - **"Old evidence retained"** means, under the single-release bootstrap bundle: the bundle carries the
+    relocated release B only (new coordinate, new tile membership, B's records and provenance), and the old
+    location stays auditable in the database that ran the pipeline (decision 7). A bundle built between
+    application and resolution is the previous release without the relocating spot, so the new coordinate is
+    never promoted on the old evidence.
+  - **Fix:** `buildPromotionBundle` now refuses a tile body whose spot does not match its canonical row, so a
+    release exported after the resolver but before the republish (stale bodies) fails closed.
+  - **Known gap (Issue #100):** such a bundle does not apply to a fresh database, because it does not carry
+    the review chain that a `manual` link requires (migration 0011); the target refuses it.
 - **E. Versioned natural-key foundation** (adapter-side derivation into `source_record_match_keys`,
   its concrete API, matcher version with key version, collision / missing handling). This is independent of A–D, but it is **useful only with a
   reviewed key**. It should wait until a source has one, or a test-only source proves the generic
