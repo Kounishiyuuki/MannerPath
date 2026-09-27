@@ -151,8 +151,15 @@ link, and `confirmedNew`, Issue #86): for each, the bundle carries one
 `promotion_review_match_attestations` row — decision, chosen entity, candidates, previous release id
 and fingerprint, matcher, reviewer, decision time and version, executor version and application
 time, and the origin item/decision/application ids as provenance. The target accepts a `manual` link
-only with that row (migration 0016), exactly as the pipeline database accepts one only with its
-application (0011). Relocation holds / applications / resolutions stay out too: a relocated spot
+only with that row (migration 0016). That is not the same strength of evidence as the pipeline
+database's application (0011): there the schema re-checks the latest decision, the previous release,
+the candidate entities and the active spot link against rows it holds, while the target can check the
+attestation only for internal consistency with the bundle and trusts the reviewed artifact (its
+externally verified `contentSha256`) for the rest. The attestation path exists only while a bundle is
+being applied: an open bootstrap refuses any other source or release, release updates, observations and
+review rows, and an attestation needs the single declared applied release with no review, decision,
+spot or tile row yet — so a pipeline database, even one with a hand-inserted bootstrap row, cannot use it.
+Relocation holds / applications / resolutions stay out too: a relocated spot
 travels as its canonical row at the new coordinate on the new release's evidence, and the move's
 audit stays in the database that applied it (ADR-0008 decision 7, ADR-0009).
 `review_removal_applications` (ADR-0008 decision 5, Issue #84) is review state too and stays out of

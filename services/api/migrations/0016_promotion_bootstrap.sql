@@ -19,8 +19,13 @@
 -- promotion_bootstrap_completions      last statement of a bundle: re-checks on the receiving side that what
 --                                      arrived is the declared, complete, consistent release.
 --
--- The runtime rule of 0011 is unchanged: in a database that runs the pipeline no bootstrap row can exist (it
--- needs an empty database), so no attestation can exist, and a manual link still needs its
+-- The runtime rule of 0011 is unchanged. A bootstrap row needs an empty database, and while it is open (no
+-- completion) that database can hold only what a bundle writes: the declared source, the declared release in
+-- its final applied/current state, no review queue, no observations, and no release update. An attestation
+-- additionally needs exactly that state at its own insert (one source, one applied current release matching the
+-- declaration, no review rows, no record decision, spot or tile yet: the bundle writes attestations before
+-- those). So a database that runs the pipeline — several releases, an `ingested` one, review rows — cannot
+-- create an attestation, even with a bootstrap row inserted by hand, and a manual link there still needs its
 -- review_match_application. All three tables are append-only.
 CREATE TABLE promotion_bootstraps (
   promotion_bootstrap_id INTEGER PRIMARY KEY CHECK (promotion_bootstrap_id = 1),
@@ -120,15 +125,29 @@ BEGIN
   SELECT RAISE(ABORT, 'promotion_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database');
 END;
 
--- Only while a bootstrap is open, only for its release, only before the record's decision, and only for a
--- chosen entity of the bootstrapped source that is one of the item's distinct integer candidates.
+-- Only while a bundle is being applied: the bootstrap is open, and the database holds exactly the bundle's
+-- state at this point of its statement order — the declared source and release (applied, current, same
+-- fingerprint) and nothing a pipeline writes (review rows, observations, record decisions, spots, tiles).
+-- Then only for the declared release, and only for a chosen entity of the bootstrapped source that is one
+-- of the item's distinct integer candidates.
 CREATE TRIGGER promotion_review_match_attestations_valid
 BEFORE INSERT ON promotion_review_match_attestations
 WHEN NOT EXISTS (
   SELECT 1 FROM promotion_bootstraps b
   WHERE b.release_id = NEW.release_id
     AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
-    AND NOT EXISTS (SELECT 1 FROM source_record_entities e WHERE e.record_id = NEW.record_id)
+    AND (SELECT count(*) FROM sources) = 1
+    AND EXISTS (SELECT 1 FROM sources s WHERE s.source_id = b.source_id)
+    AND (SELECT count(*) FROM source_releases) = 1
+    AND EXISTS (SELECT 1 FROM source_releases r WHERE r.release_id = b.release_id AND r.source_id = b.source_id
+      AND r.content_sha256 = b.release_content_sha256 AND r.status = 'applied' AND r.is_current = 1)
+    AND NOT EXISTS (SELECT 1 FROM review_items)
+    AND NOT EXISTS (SELECT 1 FROM review_decisions)
+    AND NOT EXISTS (SELECT 1 FROM review_match_applications)
+    AND NOT EXISTS (SELECT 1 FROM source_observations)
+    AND NOT EXISTS (SELECT 1 FROM source_record_entities)
+    AND NOT EXISTS (SELECT 1 FROM spots)
+    AND NOT EXISTS (SELECT 1 FROM tile_snapshots)
     AND json_array_length(NEW.candidate_entity_ids_json) > 0
     AND NOT EXISTS (SELECT 1 FROM json_each(NEW.candidate_entity_ids_json) j WHERE j.type <> 'integer')
     AND (SELECT count(DISTINCT value) FROM json_each(NEW.candidate_entity_ids_json)) = json_array_length(NEW.candidate_entity_ids_json)
@@ -149,6 +168,62 @@ CREATE TRIGGER promotion_review_match_attestations_no_delete
 BEFORE DELETE ON promotion_review_match_attestations
 BEGIN
   SELECT RAISE(ABORT, 'promotion_review_match_attestations are immutable');
+END;
+
+-- While a bootstrap is open the database is a bundle being applied, not a pipeline database: only the declared
+-- source and the declared release in its final state may be written, a release is never updated, and nothing
+-- only a pipeline writes (observations, review rows) may appear. A hand-inserted bootstrap row therefore cannot
+-- be followed by a pipeline run.
+CREATE TRIGGER promotion_open_bootstrap_sources
+BEFORE INSERT ON sources
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps b WHERE NEW.source_id IS NOT b.source_id)
+  AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: only the declared source and release may be written');
+END;
+
+CREATE TRIGGER promotion_open_bootstrap_source_releases_insert
+BEFORE INSERT ON source_releases
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps b WHERE NOT (NEW.release_id = b.release_id AND NEW.source_id IS b.source_id
+    AND NEW.content_sha256 IS b.release_content_sha256 AND NEW.status = 'applied' AND NEW.is_current = 1))
+  AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: only the declared source and release may be written');
+END;
+
+CREATE TRIGGER promotion_open_bootstrap_source_releases_update
+BEFORE UPDATE ON source_releases
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: only the declared source and release may be written');
+END;
+
+CREATE TRIGGER promotion_open_bootstrap_source_observations
+BEFORE INSERT ON source_observations
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: a bundle carries no pipeline or review state');
+END;
+
+CREATE TRIGGER promotion_open_bootstrap_review_items
+BEFORE INSERT ON review_items
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: a bundle carries no pipeline or review state');
+END;
+
+CREATE TRIGGER promotion_open_bootstrap_review_decisions
+BEFORE INSERT ON review_decisions
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: a bundle carries no pipeline or review state');
+END;
+
+CREATE TRIGGER promotion_open_bootstrap_review_match_applications
+BEFORE INSERT ON review_match_applications
+WHEN EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion bootstrap is open: a bundle carries no pipeline or review state');
 END;
 
 DROP TRIGGER source_record_entities_manual_requires_application;

@@ -275,7 +275,12 @@ references the previous release, which is not promoted. So:
   with its attestation (0016 replaces the 0011 trigger with "application **or** attestation"), and an
   attested record's decision must follow it.
 - **Explicit bootstrap:** the first statement (`promotion_bootstraps`, one row) is accepted only by an
-  empty database, so no attestation can exist in a pipeline database and the runtime rule is unchanged;
+  empty database; while it is open the schema accepts only the declared source and release (in their
+  final applied/current state), no release update, no observations and no review rows, and an
+  attestation additionally needs that single-release state with no review, decision, spot or tile row
+  yet. So a pipeline database cannot create an attestation, even after a hand-inserted bootstrap row,
+  and the runtime rule of 0011 is unchanged there. An attestation is weaker evidence than a runtime
+  application: the target checks its internal consistency, not the origin chain;
   the last (`promotion_bootstrap_completions`) re-checks on the target the declared source, current
   applied release and fingerprint, every declared row count, the previous-release id and fingerprint
   of each attested record against the bootstrap declaration, and that every attestation was followed.
