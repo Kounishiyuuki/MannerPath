@@ -125,18 +125,35 @@ The bundle is deterministic SQL (`services/api/src/pipeline/promotion.ts`):
 - a header naming the generator, the release, its source, every tile with its revision, spot count
   and content hash, and a `contentSha256` over the statement block, so a reviewed bundle is
   identifiable by one value;
+- a first statement, `promotion_bootstraps` (migration 0016), naming the bundle version
+  (`promotion-bundle.v2`), the release and its fingerprint, the prior-release fingerprints cited by
+  reviewed decisions, and the declared row count per table; the
+  target refuses it unless it is empty;
 - `INSERT` statements in foreign-key-safe order for `sources`, `source_releases`, `source_records`,
-  `source_record_match_keys`, `source_entities`, `source_record_entities`, `spots`,
-  `spot_source_entities`, `spot_field_provenance`, `spot_field_attenuations`, `tile_snapshots`,
-  `tile_snapshot_spots` — fixed table, column and row order and fixed literal formatting, so two
-  runs over the same state produce byte-identical files and two bundles can be diffed;
+  `source_record_match_keys`, `source_entities`, `promotion_review_match_attestations`,
+  `source_record_entities`, `spots`, `spot_source_entities`, `spot_field_provenance`,
+  `spot_field_attenuations`, `tile_snapshots`, `tile_snapshot_spots` — fixed table, column and row
+  order and fixed literal formatting, so two runs over the same state produce byte-identical files and
+  two bundles can be diffed;
+- a last statement, `promotion_bootstrap_completions`, whose trigger re-checks on the target that it
+  holds exactly the declared source, the declared release as its current applied release, every
+  declared row count, the declared prior-release dependencies, and a decision for every attested record;
 - opaque spot IDs, tile revisions, content hashes, attribution and field provenance verbatim: the
   receiving database gets the same published bytes, not a re-derivation.
 
 `source_observations` (ADR-0008 decision 2) is not in the bundle: it is derived data, re-derivable
 from the `source_records` that are, and the canonical rows it produced travel as themselves.
-`review_items` / `review_decisions` (ADR-0008 decision 8) are not in the bundle either: they are
-review state of the database that ran the pipeline, and nothing published reads them.
+`review_items` / `review_decisions` / `review_match_applications` (ADR-0008 decision 8) are not in the
+bundle either: they are review state of the database that ran the pipeline. What the carried rows do
+depend on is the **applied reviewed identity decision** of a record (`matchedToEntity`, a `manual`
+link, and `confirmedNew`, Issue #86): for each, the bundle carries one
+`promotion_review_match_attestations` row — decision, chosen entity, candidates, previous release id
+and fingerprint, matcher, reviewer, decision time and version, executor version and application
+time, and the origin item/decision/application ids as provenance. The target accepts a `manual` link
+only with that row (migration 0016), exactly as the pipeline database accepts one only with its
+application (0011). Relocation holds / applications / resolutions stay out too: a relocated spot
+travels as its canonical row at the new coordinate on the new release's evidence, and the move's
+audit stays in the database that applied it (ADR-0008 decision 7, ADR-0009).
 `review_removal_applications` (ADR-0008 decision 5, Issue #84) is review state too and stays out of
 the bundle; a removed spot travels only as its canonical row with `lifecycle = 'removed'`, and the
 audit link to its review decision stays in the database that applied it. Run `publishTiles` after
@@ -169,17 +186,27 @@ match its canonical row (a tile published before the release was applied: run `p
 resolver, then export); or a tile cites a source whose attribution is missing. `test/promotion.test.ts`
 covers these.
 
-**Known gap (Issue #100):** a release with a reviewed match (`method = 'manual'`, including every
-relocated release, ADR-0009) exports, but does not apply to a fresh database: the bundle does not
-carry the review chain that migration 0011 requires for a manual link, so the target refuses it
-(`a manual decision requires a review_match_application`) and publishes nothing.
+A release with reviewed matches, including every relocated release (ADR-0009), exports and applies to a
+fresh database (Issue #100, `test/promotion-reviewed-bootstrap.test.ts`,
+`test/relocation-tile-promotion-e2e.test.ts`). The export also refuses a release that is not its
+source's current one, and a reviewed link without its applied decision.
 
 **The bundle is a bootstrap artifact, not an update.** It is INSERT-only, and its target is an
-**empty, freshly migrated database**. It cannot modify an already-populated remote D1: applying it
-to one fails on primary keys rather than half-updating it, which is the behaviour that keeps a
-partially-applied promotion from existing. This slice adds no remote upsert or update path, and none
-should be improvised at the console. Corrected or new data ships through the blue/green procedure in
-step 6.
+**empty database migrated through 0016** (a v2 bundle does not apply to an older schema). It cannot
+modify an already-populated remote D1: its first statement refuses any database that is not empty,
+before anything is written. This slice adds no remote upsert or update path, and none should be
+improvised at the console. Corrected or new data ships through the blue/green procedure in step 6.
+
+**Atomicity.** The bundle contains no `BEGIN` / `COMMIT`: D1 refuses transaction statements in SQL and
+runs a `wrangler d1 execute --remote --file` import as one transaction itself (wrangler: "if the
+execution fails to complete, your DB will return to its original state"; the D1 import docs require
+`BEGIN TRANSACTION` / `COMMIT` to be removed). Any failing statement — a tampered row, a missing
+attestation, the completion check — therefore leaves the target empty; the tests model this apply
+(`applyPromotionBundle` in `test/support/sqlite-d1.ts`) and fix the rollback. Local `wrangler d1
+execute --file` (no `--remote`) runs the statements as one D1 batch, also one transaction. The remote
+rollback is the platform's behaviour and has not been exercised against a real D1 from this repository.
+Operationally, **treat a target whose apply failed as discarded**: delete it and create a new database
+rather than retrying into it or switching a binding to it, whatever state it reports.
 
 Applying it is a separate human step, and the only step that writes to a remote database. The
 binding form below is for the **first** promotion into a freshly created environment, where the
@@ -192,8 +219,12 @@ npx wrangler d1 migrations apply DB --env staging --remote    # a fresh, empty d
 npx wrangler d1 execute DB --env staging --remote --file promotion.sql
 ```
 
-Read the bundle before running it. The receiving database re-checks the ADR-0006 publication
-invariant on every `tile_snapshot_spots` row, so a tampered bundle is rejected there as well.
+Read the bundle before running it. The receiving database does not trust the file: foreign keys, the
+append-only and review-link triggers, the ADR-0006 publication invariant on every
+`tile_snapshot_spots` row and the completion check all run during the apply, so a tampered or
+incomplete bundle is rejected there as well as by the export. What it cannot detect is a consistent
+edit of the file's own declarations (for example dropping a `confirmedNew` attestation *and* its
+declared count): compare the header's `contentSha256` with the reviewed bundle's before applying.
 
 ### 5. Smoke verify
 
@@ -241,7 +272,10 @@ npx wrangler d1 create mannerpath-staging-2
 npx wrangler d1 migrations apply mannerpath-staging-2 --remote
 npx wrangler d1 migrations list mannerpath-staging-2 --remote    # expect: no pending migrations
 
-# 3. Apply the reviewed bundle to green, again by name. Green must be empty apart from the schema.
+# 3. Apply the reviewed bundle to green, again by name. Green must be empty apart from the schema
+#    (the bundle's first statement refuses anything else). If this step fails, D1 rolls the import
+#    back; still delete green and start again from step 1 with a new database — never re-apply into
+#    it and never switch a binding to it.
 npx wrangler d1 execute mannerpath-staging-2 --remote \
   --file promotion-<release>-<date>.sql
 

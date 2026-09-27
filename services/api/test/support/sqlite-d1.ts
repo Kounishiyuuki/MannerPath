@@ -33,6 +33,22 @@ export function migratedSqlite(upTo?: string): DatabaseSync {
 }
 
 /**
+ * Applies a promotion bundle the way `wrangler d1 execute --remote --file` does: D1 runs an imported file as
+ * one transaction ("if the execution fails to complete, your DB will return to its original state"), so a
+ * failing statement leaves the target as it was. The bundle itself carries no BEGIN/COMMIT (D1 refuses them).
+ */
+export function applyPromotionBundle(db: DatabaseSync, sql: string): void {
+  db.exec("BEGIN");
+  try {
+    db.exec(sql);
+    db.exec("COMMIT");
+  } catch (e) {
+    db.exec("ROLLBACK");
+    throw e;
+  }
+}
+
+/**
  * Runs `fn` with one trigger dropped, then recreates it from its stored SQL. Only for tests that need a state
  * the schema now refuses to create (e.g. canonical drift written before a later guard existed), to show that
  * the code path still fails closed on it.

@@ -4,8 +4,16 @@
 // It is a BOOTSTRAP artifact: INSERT-only, for an empty, freshly migrated target database. It cannot
 // update a populated one, and this slice deliberately adds no upsert path — corrected data ships by
 // promoting a new database and switching the Worker's binding (the blue/green procedure in
-// docs/OPERATIONS.md). Applying a bundle to a populated database fails on primary keys, which is what
-// keeps a half-applied update from ever existing.
+// docs/OPERATIONS.md). Its first statement (promotion_bootstraps, migration 0016) is refused by any
+// database that is not empty, and its last (promotion_bootstrap_completions) re-checks on the receiving
+// side that exactly the declared release arrived. It carries no BEGIN/COMMIT: D1 runs a `--file` import
+// as one transaction and refuses one inside it, so the apply is all or nothing there.
+//
+// A reviewed identity decision travels as an attestation (promotion_review_match_attestations, 0016), not
+// as the runtime review chain: the bundle bootstraps the finished, applied state of one release and does
+// not replay the pipeline moment (previous release current, this one `ingested`) that the chain's triggers
+// check. Holds, relocation and removal audits stay in the origin database: nothing the bundle carries
+// claims them (Issue #100).
 //
 // It is a pure read of a local database plus a text serialisation. Nothing here opens a connection,
 // and nothing here applies anything: the caller writes a file, a human reads it, and a human runs
@@ -31,7 +39,8 @@ import { TileBodyV1 } from "../tiles/dto.ts";
 import { type CandidateRow, spotDto } from "../tiles/publish.ts";
 import { reviewedSource } from "./registry.ts";
 
-export const PROMOTION_BUNDLE_VERSION = "promotion-bundle.v1";
+/** v2 (Issue #100): bootstrap/completion statements and review-match attestations; needs migration 0016. */
+export const PROMOTION_BUNDLE_VERSION = "promotion-bundle.v2";
 
 export interface PromotionManifest {
   generator: string;
@@ -77,7 +86,7 @@ function literal(value: unknown): string {
 
 /**
  * The tables the bundle carries, in foreign-key-safe order, each with its explicit column list and
- * a deterministic ORDER BY. `sql` takes the release id as its single bound parameter. Adding a table here
+ * a deterministic ORDER BY. `sql` takes the release id as its only parameter, bound to every `?`. Adding a table here
  * is a deliberate decision about what may leave a database.
  */
 interface TableSpec {
@@ -115,6 +124,31 @@ const TABLES: readonly TableSpec[] = [
     table: "source_entities",
     columns: ["source_entity_id", "source_id", "created_at"],
     sql: `SELECT * FROM source_entities WHERE source_id = (${RELEASE_SOURCE}) ORDER BY source_entity_id`,
+  },
+  {
+    // One row per reviewed ambiguousMatch decision applied to a record of the release (matchedToEntity and
+    // confirmedNew): read from the runtime chain here, or from the attestations of a database that was itself
+    // bootstrapped, so a re-export is identical. Before source_record_entities: a manual link needs its row.
+    table: "promotion_review_match_attestations",
+    columns: ["record_id", "release_id", "decision", "source_entity_id", "origin_review_item_id", "origin_review_decision_id",
+      "origin_review_match_application_id", "previous_release_id", "previous_release_content_sha256", "matcher_version",
+      "candidate_entity_ids_json", "decision_version", "decided_by", "decided_at", "decision_note", "executor_version", "applied_at"],
+    sql: `SELECT a.record_id, a.release_id, a.decision, a.source_entity_id, a.review_item_id AS origin_review_item_id,
+            a.review_decision_id AS origin_review_decision_id, a.review_match_application_id AS origin_review_match_application_id,
+            i.previous_release_id, p.content_sha256 AS previous_release_content_sha256, i.matcher_version,
+            json_extract(i.details_json, '$.candidateEntityIds') AS candidate_entity_ids_json, d.decision_version, d.decided_by,
+            d.decided_at, d.note AS decision_note, a.executor_version, a.applied_at
+          FROM review_match_applications a
+          JOIN review_items i ON i.review_item_id = a.review_item_id
+          JOIN review_decisions d ON d.review_decision_id = a.review_decision_id
+          JOIN source_releases p ON p.release_id = i.previous_release_id
+          WHERE a.release_id = ?
+          UNION ALL
+          SELECT record_id, release_id, decision, source_entity_id, origin_review_item_id, origin_review_decision_id,
+            origin_review_match_application_id, previous_release_id, previous_release_content_sha256, matcher_version,
+            candidate_entity_ids_json, decision_version, decided_by, decided_at, decision_note, executor_version, applied_at
+          FROM promotion_review_match_attestations WHERE release_id = ?
+          ORDER BY record_id`,
   },
   {
     table: "source_record_entities",
@@ -161,9 +195,9 @@ type Row = Record<string, unknown>;
 
 async function rowsOf(db: Db, spec: TableSpec, releaseId: number): Promise<Row[]> {
   // Two specs carry no parameter (the published tiles are whole-database state), and binding a
-  // value to a statement that has no placeholder is an error.
-  const statement = db.prepare(spec.sql);
-  const { results } = await (spec.sql.includes("?") ? statement.bind(releaseId) : statement).all<Row>();
+  // value to a statement that has no placeholder is an error; the attestation spec has two.
+  const placeholders = spec.sql.split("?").length - 1;
+  const { results } = await db.prepare(spec.sql).bind(...Array(placeholders).fill(releaseId)).all<Row>();
   // A column added by a later migration must be added to the spec deliberately; silently dropping
   // it would produce a bundle that looks complete and is not.
   for (const row of results) {
@@ -187,6 +221,8 @@ export async function currentReleaseId(db: Db): Promise<number> {
 async function validateRelease(db: Db, releaseId: number, sources: Row[], release: Row | undefined): Promise<void> {
   if (release === undefined) fail(`release ${releaseId} does not exist`);
   if (release.status !== "applied") fail(`release ${releaseId} has status ${String(release.status)}, not applied`);
+  // The receiving database holds this one release, so it must be its source's current one there as well.
+  if (release.is_current !== 1) fail(`release ${releaseId} is not its source's current release`);
   if (sources.length !== 1) fail(`release ${releaseId} resolved ${sources.length} source rows`);
   const source = sources[0];
 
@@ -261,6 +297,28 @@ async function validatePublishedState(db: Db, releaseId: number, rows: Map<strin
   }
 }
 
+/**
+ * Every reviewed link has the attestation of the decision it follows, and every attestation is followed by
+ * its record's decision: the receiving schema enforces the first and the completion check the second, so a
+ * gap here would only move the failure to a remote apply.
+ */
+function validateReviewAttestations(releaseId: number, rows: Map<string, Row[]>): void {
+  const attestations = new Map((rows.get("promotion_review_match_attestations") ?? []).map((a) => [Number(a.record_id), a]));
+  const decisions = new Map((rows.get("source_record_entities") ?? []).map((e) => [Number(e.record_id), e]));
+  for (const [recordId, e] of decisions) {
+    if (e.method === "manual" && attestations.get(recordId)?.decision !== "matchedToEntity") {
+      fail(`record ${recordId} of release ${releaseId} is a reviewed (manual) link without its applied matchedToEntity decision`);
+    }
+  }
+  for (const [recordId, a] of attestations) {
+    const e = decisions.get(recordId);
+    const follows = a.decision === "matchedToEntity"
+      ? e?.method === "manual" && e.source_entity_id === a.source_entity_id
+      : e?.method === "new";
+    if (!follows) fail(`record ${recordId}: its decision does not follow the applied ${String(a.decision)} review decision`);
+  }
+}
+
 async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
@@ -315,9 +373,22 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
 
   await validateRelease(db, releaseId, rows.get("sources") ?? [], (rows.get("source_releases") ?? [])[0]);
   await validatePublishedState(db, releaseId, rows);
+  validateReviewAttestations(releaseId, rows);
   await validateSnapshots(rows);
 
-  const statements: string[] = [];
+  const release = (rows.get("source_releases") ?? [])[0];
+  const counts = Object.fromEntries(TABLES.map((s) => [s.table, (rows.get(s.table) ?? []).length]));
+  const reviewDependencies = (rows.get("promotion_review_match_attestations") ?? []).map((a) => ({
+    recordId: a.record_id,
+    previousReleaseId: a.previous_release_id,
+    previousReleaseContentSha256: a.previous_release_content_sha256,
+  }));
+  const statements: string[] = [
+    "-- promotion_bootstraps: refused unless the target is empty",
+    `INSERT INTO promotion_bootstraps (promotion_bootstrap_id, bundle_version, source_id, release_id, release_content_sha256, review_dependencies_json, expected_rows_json) VALUES (1, ${
+      [PROMOTION_BUNDLE_VERSION, release.source_id, releaseId, release.content_sha256, JSON.stringify(reviewDependencies), JSON.stringify(counts)].map(literal).join(", ")});`,
+    "",
+  ];
   for (const spec of TABLES) {
     const table = rows.get(spec.table) ?? [];
     if (table.length === 0) continue;
@@ -328,10 +399,14 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
     }
     statements.push("");
   }
+  statements.push(
+    "-- promotion_bootstrap_completions: the target re-checks the declared release and row counts",
+    "INSERT INTO promotion_bootstrap_completions (promotion_bootstrap_id) VALUES (1);",
+    "",
+  );
   const body = statements.join("\n");
   const contentSha256 = await sha256Hex(body);
 
-  const release = (rows.get("source_releases") ?? [])[0];
   const manifest: PromotionManifest = {
     generator: PROMOTION_BUNDLE_VERSION,
     releaseId,
@@ -344,7 +419,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
       spotCount: Number(t.spot_count),
       contentSha256: String(t.content_sha256),
     })),
-    rows: Object.fromEntries(TABLES.map((s) => [s.table, (rows.get(s.table) ?? []).length])),
+    rows: counts,
     contentSha256,
   };
 
@@ -359,8 +434,10 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
     "-- TARGET: an EMPTY, freshly migrated database. This bundle is INSERT-only — it bootstraps a new",
     "-- database and cannot update a populated one. To ship corrected data, create a new D1 database,",
     "-- migrate it, apply the new bundle, smoke verify, then switch the Worker's binding in a reviewed",
-    "-- deployment (blue/green; docs/OPERATIONS.md). Re-applying this file to a populated database",
-    "-- fails on primary keys rather than half-updating it.",
+    "-- deployment (blue/green; docs/OPERATIONS.md). Its first statement refuses any database that is not",
+    "-- empty; its last re-checks that exactly the declared release arrived. Requires migrations through",
+    "-- 0016. D1 applies --file as one transaction: a failure leaves the target empty. Do not add",
+    "-- BEGIN/COMMIT (D1 refuses them), and discard a target whose apply failed rather than reuse it.",
     "--",
     "-- This file contains no secret and no user report data. Applying it is an explicit human step.",
     "-- Address the target database BY NAME: while an environment's binding still points at the live",

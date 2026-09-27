@@ -31,7 +31,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts
 import { tileEtag } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
-import { SqliteD1, migratedSqlite } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => (db.raw.prepare(sql).all(...p) as Row[]).map((r) => ({ ...r }));
@@ -151,7 +151,8 @@ for (const c of CASES) {
     assert.equal((await holdRelocationCandidate(db, ADAPTER, item.review_item_id, { now: HOLD_AT })).status, "held");
     assert.deepEqual(members(db, spotId), [], "held: unpublished first");
     // Membership is gone but the old body still lists the spot until republish: promotion fails closed.
-    await assert.rejects(buildPromotionBundle(db), PromotionError);
+    await assert.rejects(buildPromotionBundle(db), (e: Error) =>
+      e instanceof PromotionError && /tile [^:]+: snapshot membership does not match the body/.test(e.message));
 
     // ── publish after hold: only the old tile changes, and the spot is in no tile.
     const holdReport = await publishTiles(db, { now: HOLD_AT });
@@ -196,7 +197,9 @@ for (const c of CASES) {
     assert.deepEqual(all(db, "SELECT DISTINCT record_id FROM spot_field_provenance WHERE spot_id = ?", spotId), [{ record_id: item.record_id }]);
     assert.equal(all(db, "SELECT * FROM review_relocation_resolutions").length, 1);
     assert.deepEqual(all(db, "SELECT * FROM pending_relocation_applications"), []);
-    await assert.rejects(buildPromotionBundle(db), PromotionError, "published tiles still cite A");
+    // Published tiles still cite A: every matched spot's lastVerifiedAt is stale in its body.
+    await assert.rejects(buildPromotionBundle(db), (e: Error) =>
+      e instanceof PromotionError && /tile [^:]+: body for spot \S+ does not match its canonical row/.test(e.message));
 
     // ── final publish: baseline 2 (the control) isolates the move from B's lastVerifiedAt refresh.
     const finalReport = await publishTiles(db, { now: REPUBLISH_AT });
@@ -292,7 +295,8 @@ for (const c of CASES) {
     // ── promotion of B: new coordinate, new tile membership, B's accepted evidence; A stays local history.
     const bundle = await buildPromotionBundle(db);
     assert.equal(bundle.manifest.releaseId, secondId);
-    assert.equal(bundle.manifest.rows.source_releases, 1, "single-release bootstrap: previous releases are not carried");
+    assert.equal(bundle.manifest.rows.source_releases, 1, "the previous release is represented by a review attestation");
+    assert.equal(bundle.manifest.rows.promotion_review_match_attestations, 1);
     assert.equal(bundle.manifest.rows.spots, spotCount);
     assert.deepEqual(bundle.manifest.tiles.map((t) => [t.tileId, t.revision, t.contentSha256]),
       expectedTiles.map((id) => [id, snapFinal.get(id)!.revision, snapFinal.get(id)!.content_sha256]));
@@ -301,15 +305,34 @@ for (const c of CASES) {
     assert.ok(spotInsert.includes(`, ${c.to.latitude}, ${c.to.longitude}, 14, `) && spotInsert.includes(`'${newTile}'`), "canonical row at the new coordinate");
     assert.ok(!spotInsert.includes(`, ${OLD.latitude}, ${OLD.longitude}, `), "the old coordinate is not canonical");
     assert.ok(bundle.sql.includes(`INSERT INTO source_record_entities (record_id, release_id, source_entity_id, method, matcher_version, decided_at, note) VALUES (${item.record_id}, ${secondId}, ${entityId}, 'manual'`));
-    assert.ok(!bundle.sql.includes(`VALUES (${recordA}, ${firstId}, `), "A's record is not carried");
+    assert.ok(!bundle.sql.includes(`VALUES (${recordA}, ${firstId}, `), "A's full record is not needed by the attestation");
 
-    // ── fresh target: KNOWN GAP (follow-up issue). The single-release bootstrap bundle does not carry the review
-    // chain (review_items / review_decisions / review_match_applications, which reference the previous release),
-    // so migration 0011's trigger refuses B's reviewed ('manual') link on the receiving side. It fails closed; a
-    // relocated (or any reviewed-match) release cannot bootstrap a fresh database until that gap is closed.
+    // ── fresh target: the actual migrated schema validates the reviewed identity chain and
+    // the completed release state; the same published tile and spot APIs serve identical bytes.
     const target = migratedSqlite();
-    target.exec("PRAGMA foreign_keys = ON;");
-    assert.throws(() => target.exec(bundle.sql), /source_record_entities: a manual decision requires a review_match_application/);
-    assert.equal((target.prepare("SELECT count(*) AS n FROM tile_snapshot_spots").get() as Row).n, 0, "nothing is published on the target");
+    applyPromotionBundle(target, bundle.sql);
+    const bootstrapped = new SqliteD1(target);
+    assert.deepEqual(one(bootstrapped, "SELECT decision, source_entity_id, origin_review_item_id FROM promotion_review_match_attestations WHERE record_id = ?", item.record_id),
+      { decision: "matchedToEntity", source_entity_id: entityId, origin_review_item_id: identityItemId });
+    assert.equal(one(bootstrapped, "SELECT method FROM source_record_entities WHERE record_id = ?", item.record_id).method, "manual");
+    assert.deepEqual(one(bootstrapped, "SELECT latitude, longitude, tile_id, publication_hold FROM spots WHERE spot_id = ?", spotId),
+      { ...c.to, tile_id: newTile, publication_hold: null });
+    assert.deepEqual(members(bootstrapped, spotId), [newTile]);
+    assert.equal(existenceRecord(bootstrapped, spotId), item.record_id, "B's evidence");
+    // The relocation audit (hold, application, resolution) and the review queue stay in the origin database.
+    for (const t of ["review_items", "review_decisions", "review_match_applications", "review_relocation_holds",
+      "review_relocation_applications", "review_relocation_resolutions"]) {
+      assert.equal(one(bootstrapped, `SELECT count(*) AS n FROM ${t}`).n, 0, t);
+    }
+    assert.deepEqual(release(bootstrapped, secondId), { status: "applied", is_current: 1 });
+    assert.deepEqual(snapshots(bootstrapped), snapFinal);
+    const targetTile = await get(bootstrapped, `/v1/tiles/${newTile}`);
+    assert.equal(targetTile.status, 200);
+    assert.equal(await targetTile.text(), snapFinal.get(newTile)!.body_json);
+    assert.equal(targetTile.headers.get("ETag"), etagOf(snapFinal.get(newTile)!));
+    assert.equal((await get(bootstrapped, `/v1/tiles/${newTile}`, { "If-None-Match": etagOf(snapFinal.get(newTile)!) })).status, 304);
+    const targetDetail = await get(bootstrapped, `/v1/spots/${spotId}`);
+    assert.equal(targetDetail.status, 200);
+    assert.deepEqual(await targetDetail.json(), detail);
   });
 }

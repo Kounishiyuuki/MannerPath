@@ -117,7 +117,7 @@
   ],
   "promotion": {
     "manifest": {
-      "generator": "promotion-bundle.v1",
+      "generator": "promotion-bundle.v2",
       "releaseId": 1,
       "sourceId": "taito-public-smoking-areas",
       "observedOn": "2026-08-18",
@@ -160,6 +160,7 @@
         "source_records": 34,
         "source_record_match_keys": 0,
         "source_entities": 34,
+        "promotion_review_match_attestations": 0,
         "source_record_entities": 34,
         "spots": 32,
         "spot_source_entities": 32,
@@ -168,9 +169,9 @@
         "tile_snapshots": 5,
         "tile_snapshot_spots": 32
       },
-      "contentSha256": "476603b16a5bba48c6d96fba8d774fde4467fca18c3004e63c4b29ae74cb831c"
+      "contentSha256": "88f4b048f37de68dedda7eeb1f0c67ef2ff9448c0d11beaeff8c260902af980f"
     },
-    "sqlSha256": "340911cdcc71d92d594084c2e0601c8bde8a8848918b12655b74f42d25e8945c"
+    "sqlSha256": "f8e394b6c6eb5fde55f4c57d9b63dc0bc97bacd233dcbc8f16679e4dbe53bc35"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",
@@ -621,6 +622,9 @@
   "tables": {
     "app_attest_challenges": [],
     "app_attest_keys": [],
+    "promotion_bootstrap_completions": [],
+    "promotion_bootstraps": [],
+    "promotion_review_match_attestations": [],
     "report_moderation": [],
     "report_rate_windows": [],
     "reports": [],

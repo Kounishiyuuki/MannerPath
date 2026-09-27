@@ -260,6 +260,30 @@ The promotion bundle (`src/pipeline/promotion.ts`) currently carries one source'
 It is generalized to a manifest listing every approved source's current release fingerprint, the
 tile set and row counts, still deterministic and still refusing unapproved or OSM data.
 
+As implemented for reviewed releases (Issue #100, `migrations/0016_promotion_bootstrap.sql`,
+`promotion-bundle.v2`): the bundle bootstraps the **finished, applied** state of one release; it does not
+replay the pipeline. The runtime review chain (decision 8: `review_items`, `review_decisions`,
+`review_match_applications`) cannot be carried as it is: its triggers check a pipeline moment (the
+previous release current, the reviewed one `ingested`) that the bootstrapped state has left, and it
+references the previous release, which is not promoted. So:
+
+- **Carried:** for each record of the release whose identity a reviewer decided (`matchedToEntity` and
+  `confirmedNew`), one `promotion_review_match_attestations` row: the decision, the chosen entity, the
+  candidates, the previous release's id and fingerprint, the matcher, `decided_by` / `decided_at` /
+  decision version / note, executor version and `applied_at`, and the origin item, decision and
+  application ids as provenance (not foreign keys). On the target, a `manual` link is accepted only
+  with its attestation (0016 replaces the 0011 trigger with "application **or** attestation"), and an
+  attested record's decision must follow it.
+- **Explicit bootstrap:** the first statement (`promotion_bootstraps`, one row) is accepted only by an
+  empty database, so no attestation can exist in a pipeline database and the runtime rule is unchanged;
+  the last (`promotion_bootstrap_completions`) re-checks on the target the declared source, current
+  applied release and fingerprint, every declared row count, the previous-release id and fingerprint
+  of each attested record against the bootstrap declaration, and that every attestation was followed.
+- **Not carried:** the review queue itself, removal applications / resolutions, relocation holds /
+  applications / resolutions. The published state does not claim them: a removed spot is not
+  published, and a relocated spot's canonical row is explained by the release's records and the
+  identity attestation. They stay in the database that applied them.
+
 ### 8. Review queue (boundary)
 
 Ambiguous cross-release matches, cross-source duplicate candidates, relocation candidates,

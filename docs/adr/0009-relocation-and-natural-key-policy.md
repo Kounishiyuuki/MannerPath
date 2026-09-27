@@ -384,8 +384,12 @@ Each step is its own issue and PR, and each builds on the previous one:
     never promoted on the old evidence.
   - **Fix:** `buildPromotionBundle` now refuses a tile body whose spot does not match its canonical row, so a
     release exported after the resolver but before the republish (stale bodies) fails closed.
-  - **Known gap (Issue #100):** such a bundle does not apply to a fresh database, because it does not carry
-    the review chain that a `manual` link requires (migration 0011); the target refuses it.
+  - **Resolved (Issue #100, migration 0016, `promotion-bundle.v2`):** such a bundle now applies to a fresh
+    database. The reviewed identity travels as an attestation of the applied decision
+    (`promotion_review_match_attestations`), not as the review chain; the hold, application and resolution
+    rows are not carried: the promoted canonical row (new coordinate, B's evidence) is explained by B's
+    records and that attestation, and the relocation history stays in the origin database (ADR-0008
+    decision 7).
 - **E. Versioned natural-key foundation** (adapter-side derivation into `source_record_match_keys`,
   its concrete API, matcher version with key version, collision / missing handling). This is independent of A–D, but it is **useful only with a
   reviewed key**. It should wait until a source has one, or a test-only source proves the generic
