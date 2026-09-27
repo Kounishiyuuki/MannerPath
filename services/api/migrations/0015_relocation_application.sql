@@ -7,9 +7,11 @@
 --                                 new coordinate and tile, the relocation policy version, the executor version
 --                                 and applied_at. It is the canonical before/after record of the move.
 -- review_relocation_resolutions   one row per applied relocation the resolver consumed when it applied the
---                                 release the item was raised for (as review_removal_resolutions, 0012). The
---                                 resolver never reads a relocation decision directly; only this row, in the
---                                 same batch as the release, and at most once per application.
+--                                 release the item was raised for (as review_removal_resolutions, 0012). It is
+--                                 the audit of a completed consumption: its insert trigger requires the release
+--                                 applied and current and the provenance already on the new record, so it is
+--                                 the last statement of the resolver's batch, at most once per application.
+--                                 The resolver never reads a relocation decision directly.
 --
 -- The move is not a separate statement. Inserting the application row IS the move: its insert trigger
 -- re-checks the whole premise inside the statement, and its AFTER INSERT trigger then sets, in one UPDATE,
@@ -255,42 +257,73 @@ CREATE TABLE review_relocation_resolutions (
   applied_at                        TEXT NOT NULL
 );
 
--- Re-reads, inside the resolver's batch, what the resolver read: the application is this comparison's item's,
--- its relocationConfirmed decision is still the item's latest, the identity decision it rests on is still the
--- identity item's latest (so still older than the relocation decision), the spot is where the application
--- moved it, unheld, active and unmerged, and the comparison is still current with both fingerprints. A decision
--- recorded after the application (relocationRejected, a re-recorded identity) aborts the release.
-CREATE TRIGGER review_relocation_resolutions_valid
-BEFORE INSERT ON review_relocation_resolutions
-WHEN NEW.resolver_version IS NOT 'review-relocation-resolution.v1'
-  OR NOT EXISTS (
-  SELECT 1
+-- The evidence that the resolver consumed an application: the release the item was raised for is applied,
+-- the new record continues the application's entity in it, and the spot's existence evidence no longer cites
+-- the previous record but a record of an applied release. Only the resolver's batch writes all of these
+-- (applyReviewedRelocation writes none), and none of them is undone by a later release: a later release moves
+-- the provenance on to its own record and the current flag on to itself, but the release stays applied, the
+-- link stays and the provenance never returns to the previous record. So this is both the durable half of the
+-- insert premise below and what pending_relocation_applications requires besides the resolution row.
+CREATE VIEW review_relocation_consumption_evidence AS
+  SELECT a.review_relocation_application_id, a.review_item_id, a.spot_id, a.release_id, a.previous_release_id
   FROM review_relocation_applications a
+  JOIN source_releases r ON r.release_id = a.release_id
+  JOIN spot_field_provenance p ON p.spot_id = a.spot_id AND p.field = 'existence'
+  JOIN source_records pr ON pr.record_id = p.record_id
+  JOIN source_releases prel ON prel.release_id = pr.release_id
+  WHERE r.status = 'applied'
+    AND EXISTS (SELECT 1 FROM source_record_entities e WHERE e.record_id = a.record_id AND e.release_id = a.release_id
+      AND e.source_entity_id = a.source_entity_id)
+    AND p.record_id <> a.previous_record_id AND prel.status = 'applied'
+    AND NOT EXISTS (SELECT 1 FROM spot_field_provenance old WHERE old.spot_id = a.spot_id AND old.record_id = a.previous_record_id);
+
+-- The completed consumption as it is at the end of the resolver's batch: the durable evidence above, plus what
+-- holds only at that moment. The application is this comparison's item's, its relocationConfirmed decision is
+-- still the item's latest, the identity decision it rests on is still the identity item's latest (so still
+-- older than the relocation decision), the spot is where the application moved it, unheld, active and
+-- unmerged, the release is now the source's current one with the item's fingerprint, the previous release is
+-- applied with the cited fingerprint and no longer current, and the existence evidence cites exactly the new
+-- record, and no other unrejected release of the source is newer. A decision recorded after the application (relocationRejected, a re-recorded identity) aborts the
+-- release; so does a resolution written before the batch moved the evidence and the current release.
+CREATE VIEW review_relocation_resolution_premises AS
+  SELECT a.review_relocation_application_id, a.review_item_id, a.spot_id, a.release_id, a.previous_release_id
+  FROM review_relocation_applications a
+  JOIN review_relocation_consumption_evidence c ON c.review_relocation_application_id = a.review_relocation_application_id
   JOIN review_items i ON i.review_item_id = a.review_item_id
   JOIN spots s ON s.spot_id = a.spot_id
-  WHERE a.review_relocation_application_id = NEW.review_relocation_application_id
-    AND a.review_item_id = NEW.review_item_id AND a.spot_id = NEW.spot_id AND i.spot_id = NEW.spot_id
-    AND i.kind = 'relocationCandidate' AND i.release_id = NEW.release_id AND i.previous_release_id = NEW.previous_release_id
+  WHERE i.kind = 'relocationCandidate' AND i.spot_id = a.spot_id
+    AND i.release_id = a.release_id AND i.previous_release_id = a.previous_release_id
     AND a.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id)
     AND a.identity_review_decision_id = (SELECT max(review_decision_id) FROM review_decisions
       WHERE review_item_id = json_extract(i.details_json, '$.identity.reviewItemId'))
     AND s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
     AND s.latitude = a.new_latitude AND s.longitude = a.new_longitude AND s.tile_id = a.new_tile_id
     AND EXISTS (SELECT 1 FROM spot_source_entities l WHERE l.source_entity_id = a.source_entity_id AND l.spot_id = a.spot_id)
+    AND EXISTS (SELECT 1 FROM spot_field_provenance p WHERE p.spot_id = a.spot_id AND p.field = 'existence'
+      AND p.record_id = a.record_id)
     AND EXISTS (SELECT 1 FROM source_releases p WHERE p.release_id = i.previous_release_id
-      AND p.source_id = i.source_id AND p.status = 'applied' AND p.is_current = 1
+      AND p.source_id = i.source_id AND p.status = 'applied' AND p.is_current = 0
       AND p.content_sha256 IS json_extract(i.details_json, '$.previousReleaseContentSha256'))
     AND EXISTS (SELECT 1 FROM source_releases r WHERE r.release_id = i.release_id
-      AND r.source_id = i.source_id AND r.status = 'ingested' AND r.content_sha256 = i.release_content_sha256)
+      AND r.source_id = i.source_id AND r.status = 'applied' AND r.is_current = 1 AND r.content_sha256 = i.release_content_sha256)
     AND NOT EXISTS (
       SELECT 1 FROM source_releases o, source_releases p
       WHERE p.release_id = i.previous_release_id
         AND o.source_id = i.source_id AND o.release_id NOT IN (i.release_id, i.previous_release_id)
         AND o.status <> 'rejected'
-        AND (o.observed_on IS NULL OR p.observed_on IS NULL OR o.observed_on > p.observed_on))
-)
+        AND (o.observed_on IS NULL OR p.observed_on IS NULL OR o.observed_on > p.observed_on));
+
+-- A resolution row is the audit of a completed consumption, so the resolver writes it last in its batch,
+-- after the evidence and the current release moved; it cannot be written before (nor by anyone else before).
+CREATE TRIGGER review_relocation_resolutions_valid
+BEFORE INSERT ON review_relocation_resolutions
+WHEN NEW.resolver_version IS NOT 'review-relocation-resolution.v1'
+  OR NOT EXISTS (SELECT 1 FROM review_relocation_resolution_premises v
+    WHERE v.review_relocation_application_id = NEW.review_relocation_application_id
+      AND v.review_item_id = NEW.review_item_id AND v.spot_id = NEW.spot_id
+      AND v.release_id = NEW.release_id AND v.previous_release_id = NEW.previous_release_id)
 BEGIN
-  SELECT RAISE(ABORT, 'review_relocation_resolutions: not a current relocation application of this comparison (decision, identity, spot or comparison changed)');
+  SELECT RAISE(ABORT, 'review_relocation_resolutions: not a completed consumption of a current relocation application (decision, identity, spot, release or evidence not applied)');
 END;
 
 CREATE TRIGGER review_relocation_resolutions_immutable
@@ -305,16 +338,21 @@ BEGIN
   SELECT RAISE(ABORT, 'review_relocation_resolutions are immutable');
 END;
 
--- An application is pending from its insert (the move, which lifts the hold) until the resolver writes its
--- resolution row in the batch that applies the release and moves the provenance. In between, the spot is at
--- its new coordinate, unheld, and its existence evidence is still the previous applied release: publishing it
--- would show the new coordinate on the old evidence. Derived from the two append-only tables, so a consumed
--- application never fences again and a later relocation of the same spot is fenced only while it is pending.
--- publishTiles reads this view too, so the query and the trigger share one definition.
+-- An application is pending from its insert (the move, which lifts the hold) until the resolver consumed it:
+-- the batch that applies the release, moves the provenance to the new record and, last, writes the resolution
+-- row. In between, the spot is at its new coordinate, unheld, and its existence evidence is still the previous
+-- release: publishing it would show the new coordinate on the old evidence. The resolution row alone does not
+-- end it: the consumption evidence must hold too, so a resolution row that got in without its trigger still
+-- fences. Both are durable, so a consumed application never fences again and a later relocation of the same
+-- spot is fenced only while it is pending. publishTiles reads this view too, so the query and the trigger
+-- share one definition.
 CREATE VIEW pending_relocation_applications AS
   SELECT a.review_relocation_application_id, a.spot_id
   FROM review_relocation_applications a
   WHERE NOT EXISTS (SELECT 1 FROM review_relocation_resolutions r
+    JOIN review_relocation_consumption_evidence c ON c.review_relocation_application_id = r.review_relocation_application_id
+      AND c.review_item_id = r.review_item_id AND c.spot_id = r.spot_id
+      AND c.release_id = r.release_id AND c.previous_release_id = r.previous_release_id
     WHERE r.review_relocation_application_id = a.review_relocation_application_id);
 
 DROP TRIGGER tile_snapshot_spots_publication_invariant;

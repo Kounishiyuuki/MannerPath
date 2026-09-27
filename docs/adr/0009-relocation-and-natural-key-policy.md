@@ -343,17 +343,26 @@ Each step is its own issue and PR, and each builds on the previous one:
   - **Resolver.** It never reads a relocation decision. For a reviewed match whose coordinate changed, it
     looks for the item's application row. If one exists and its decision and identity decision are still
     the latest, it applies the release with the reviewed-match semantics (match application, `manual`
-    link, provenance, `last_verified_at`, `updated_at`, release applied/current). In the same batch it
-    writes one `review_relocation_resolutions` row, whose trigger re-checks this and whose UNIQUE
-    application makes consumption single. A decision recorded after the application fails closed.
+    link, provenance, `last_verified_at`, `updated_at`, release applied/current). As the last statements
+    of the same batch it writes one `review_relocation_resolutions` row per consumed application. That row
+    is the audit of a *completed* consumption: its trigger requires `review_relocation_resolution_premises`
+    (decision and identity decision still the latest; spot at the new coordinate and tile, unheld, active,
+    unmerged; release applied and current; previous release applied and no longer current; the new record
+    linked to the entity; existence provenance on the new record, none left on the previous one), so it
+    cannot be written before the resolver moved the evidence, by the resolver or by anyone else. Its UNIQUE
+    application makes consumption single. A decision recorded after the application fails closed, and a
+    failing trigger rolls back the whole batch.
   - **Publication fence.** Between the application (new coordinate, hold lifted) and its resolution
     (release applied, provenance moved) the spot would carry the new coordinate on the old release's
-    evidence. An application without a `review_relocation_resolutions` row is pending
-    (`pending_relocation_applications`, derived from the two append-only tables), and a spot with a
-    pending application is not publishable: `publishTiles` excludes it and the
-    `tile_snapshot_spots_publication_invariant` trigger (replaced in 0015, earlier conditions unchanged)
-    refuses a direct insert. A resolver that fails closed leaves it pending; once resolved it is
-    publishable again, and a consumed application never fences a later relocation.
+    evidence. An application is pending (`pending_relocation_applications`) until it has a resolution row
+    **and** its consumption evidence holds (`review_relocation_consumption_evidence`: release applied, new
+    record linked, existence provenance off the previous record and on an applied release). The row alone
+    never lifts the fence, so a resolution that got in without its trigger still fences. The evidence is
+    durable (a later release moves provenance and the current flag on, but never back), so a consumed
+    application never fences again. A spot with a pending application is not publishable: `publishTiles`
+    excludes it and the `tile_snapshot_spots_publication_invariant` trigger (replaced in 0015, earlier
+    conditions unchanged) refuses a direct insert, both through the same view. A resolver that fails closed
+    leaves it pending, and a consumed application never fences a later relocation.
 - **D. Tile / promotion E2E.** Cover two cases:
   - cross-tile relocation: the old tile loses the spot and the new tile gains it, and both tiles'
     revisions and ETags change;

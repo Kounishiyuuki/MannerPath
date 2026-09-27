@@ -5,7 +5,7 @@
 // cross-release matcher (./match.ts), and only for an adapter whose matcher is validated on two real
 // releases (ADR-0008 decision 3); every other adapter's second release is refused.
 
-import { type Db } from "../db.ts";
+import { type Db, type DbStatement } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
 import { CROSS_RELEASE_MATCHER_VERSION, type PreviousRecord, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
@@ -287,6 +287,9 @@ async function resolveNextRelease(
 
   const statements = [...matchKeyStatements(db, [...previous, ...next].map((r) => r.recordId), now)];
   const spotIds: string[] = [];
+  // Audits of consumed relocation applications, appended last: their trigger (0015) requires the release
+  // already applied and current and the provenance already on the new record, earlier in this same batch.
+  const resolutions: DbStatement[] = [];
   // Written before the decision it audits: its trigger re-checks, inside the batch, that the decision
   // is still the item's latest and the comparison still current, and a manual decision needs it.
   const application = (d: { recordId: number; reviewItemId: number; reviewDecisionId: number }, decision: string, entityId: number | null) =>
@@ -318,7 +321,7 @@ async function resolveNextRelease(
     spotIds.push(prior.spotId);
     if (decision.method === "reviewed_match") statements.push(application(decision, "matchedToEntity", decision.sourceEntityId));
     if (relocation) {
-      statements.push(db.prepare(
+      resolutions.push(db.prepare(
         `INSERT INTO review_relocation_resolutions (release_id, previous_release_id, review_relocation_application_id, review_item_id,
            spot_id, resolver_version, applied_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       ).bind(releaseId, current.release_id, relocation.reviewRelocationApplicationId, relocation.reviewItemId, prior.spotId,
@@ -353,6 +356,7 @@ async function resolveNextRelease(
     // The one-current index needs the old flag cleared first; the old release stays applied evidence.
     db.prepare("UPDATE source_releases SET is_current = 0 WHERE release_id = ?").bind(current.release_id),
     db.prepare("UPDATE source_releases SET status = 'applied', applied_at = ?, is_current = 1 WHERE release_id = ?").bind(now, releaseId),
+    ...resolutions,
   );
   await db.batch(statements);
   return { status: "resolved", spotIds };

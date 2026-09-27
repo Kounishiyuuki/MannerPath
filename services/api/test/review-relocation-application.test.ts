@@ -460,7 +460,7 @@ test("resolver: consumes the application once and applies the release with the r
   assert.throws(() => s.db.raw.prepare(
     `INSERT INTO review_relocation_resolutions (release_id, previous_release_id, review_relocation_application_id, review_item_id, spot_id,
        resolver_version, applied_at) VALUES (?, ?, 1, ?, ?, 'review-relocation-resolution.v1', ?)`,
-  ).run(s.secondId, s.firstId, s.itemId, s.prior.spot_id, RESOLVE_AT), /UNIQUE|not a current relocation application/);
+  ).run(s.secondId, s.firstId, s.itemId, s.prior.spot_id, RESOLVE_AT), /UNIQUE|not a completed consumption/);
 
   // The ordinary publish step puts it in its new tile (tile/ETag E2E is step D).
   await publishTiles(s.db, { now: RESOLVE_AT });
@@ -518,6 +518,79 @@ test("publication fence: a resolver that fails closed leaves the application pen
   assert.deepEqual(all(s.db, "SELECT * FROM tile_snapshot_spots WHERE spot_id = ?", s.prior.spot_id), []);
   assert.throws(() => s.db.raw.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").run(s.prior.spot_id, tileOf(FAR)),
     /no pending relocation application/);
+});
+
+/** The resolution row the resolver would write for `s`'s application 1, by direct SQL. */
+const insertResolution = (s: Awaited<ReturnType<typeof confirmed>>) => s.db.raw.prepare(
+  `INSERT INTO review_relocation_resolutions (release_id, previous_release_id, review_relocation_application_id, review_item_id, spot_id,
+     resolver_version, applied_at) VALUES (?, ?, 1, ?, ?, 'review-relocation-resolution.v1', ?)`,
+).run(s.secondId, s.firstId, s.itemId, s.prior.spot_id, RESOLVE_AT);
+const existenceRecord = (db: SqliteD1, spotId: string) =>
+  one(db, "SELECT record_id FROM spot_field_provenance WHERE spot_id = ? AND field = 'existence'", spotId).record_id;
+
+/** Applied, not resolved: the resolution must not be writable, and the spot must stay fenced. */
+async function assertFenced(s: Awaited<ReturnType<typeof confirmed>>, oldRecord: number) {
+  const spotId = s.prior.spot_id;
+  assert.equal(one(s.db, "SELECT status FROM source_releases WHERE release_id = ?", s.secondId).status, "ingested");
+  assert.equal(existenceRecord(s.db, spotId), oldRecord);
+  assert.deepEqual(all(s.db, "SELECT spot_id FROM pending_relocation_applications"), [{ spot_id: spotId }]);
+  await publishTiles(s.db, { now: RESOLVE_AT });
+  assert.deepEqual(all(s.db, "SELECT * FROM tile_snapshot_spots WHERE spot_id = ?", spotId), []);
+  assert.throws(() => s.db.raw.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").run(spotId, tileOf(FAR)),
+    /no pending relocation application/);
+}
+
+test("publication fence: a resolution row inserted directly before the resolver ran is refused (Codex repro)", async () => {
+  const s = await confirmed(MOVED_FAR);
+  const spotId = s.prior.spot_id;
+  const oldRecord = existenceRecord(s.db, spotId);
+  assert.equal((await apply(s.db, s.itemId)).status, "applied");
+  assert.deepEqual(
+    (({ latitude, longitude, publication_hold }) => ({ latitude, longitude, publication_hold }))(spotOf(s.db, spotId)),
+    { ...FAR, publication_hold: null });
+  assert.deepEqual(one(s.db, "SELECT status, is_current FROM source_releases WHERE release_id = ?", s.firstId), { status: "applied", is_current: 1 });
+  assert.equal(applications(s.db).length, 1);
+
+  assert.throws(() => insertResolution(s), /review_relocation_resolutions: not a completed consumption/);
+  assert.deepEqual(all(s.db, "SELECT * FROM review_relocation_resolutions"), []);
+  await assertFenced(s, oldRecord);
+});
+
+test("publication fence: a resolution row that got in without its trigger still does not lift the fence", async () => {
+  const s = await confirmed(MOVED_FAR);
+  const oldRecord = existenceRecord(s.db, s.prior.spot_id);
+  await apply(s.db, s.itemId);
+  withoutTrigger(s.db.raw, "review_relocation_resolutions_valid", () => insertResolution(s));
+  assert.equal(all(s.db, "SELECT * FROM review_relocation_resolutions").length, 1);
+  await assertFenced(s, oldRecord);
+});
+
+test("publication fence: a consumed application stays unfenced after a later release moves the evidence and current flag on", async () => {
+  const s = await confirmed(MOVED_FAR);
+  await apply(s.db, s.itemId);
+  assert.equal((await resolve(s.db, s.secondId, RESOLVE_AT)).status, "resolved");
+  const { releaseId: thirdId } = await ingestRelease(s.db, ADAPTER, MOVED_FAR, THIRD);
+  assert.equal((await resolve(s.db, thirdId, RESOLVE_AT)).status, "resolved");
+  assert.deepEqual(one(s.db, "SELECT status, is_current FROM source_releases WHERE release_id = ?", s.secondId), { status: "applied", is_current: 0 });
+  assert.notEqual(existenceRecord(s.db, s.prior.spot_id), s.item.record_id);
+  assert.deepEqual(all(s.db, "SELECT * FROM pending_relocation_applications"), []);
+  await publishTiles(s.db, { now: RESOLVE_AT });
+  assert.deepEqual(all(s.db, "SELECT tile_id FROM tile_snapshot_spots WHERE spot_id = ?", s.prior.spot_id), [{ tile_id: tileOf(FAR) }]);
+});
+
+test("publication fence: a fail-closed resolver writes no resolution and keeps the release, the evidence and the fence", async () => {
+  for (const redecide of [
+    (s: Awaited<ReturnType<typeof confirmed>>) => decide(s.db, s.itemId, "relocationRejected"),
+    (s: Awaited<ReturnType<typeof confirmed>>) => decide(s.db, s.identityItemId, "matchedToEntity", s.prior.source_entity_id),
+  ]) {
+    const s = await confirmed(MOVED_FAR);
+    const oldRecord = existenceRecord(s.db, s.prior.spot_id);
+    await apply(s.db, s.itemId);
+    await redecide(s);
+    await assert.rejects(resolve(s.db, s.secondId, RESOLVE_AT), /relocation was applied .* but/);
+    assert.deepEqual(all(s.db, "SELECT * FROM review_relocation_resolutions"), []);
+    await assertFenced(s, oldRecord);
+  }
 });
 
 test("resolver: an application whose decision or identity was re-recorded afterwards fails closed; nothing written", async () => {
