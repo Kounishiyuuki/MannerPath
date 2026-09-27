@@ -64,6 +64,11 @@ for (const [name, nextBytes, decisions] of [
     const rows = (sql: string) => imported.raw.prepare(sql).all();
     assert.deepEqual(rows("SELECT decision, source_entity_id FROM promotion_review_match_attestations ORDER BY record_id"),
       db.raw.prepare("SELECT decision, source_entity_id FROM review_match_applications ORDER BY record_id").all());
+    // These rows exist only for reviewed releases; a first-release seal test cannot exercise row triggers.
+    assert.throws(() => target.prepare("UPDATE promotion_review_match_attestations SET decided_by = decided_by").run(),
+      /promotion_review_match_attestations are immutable/);
+    assert.throws(() => target.prepare("DELETE FROM promotion_review_match_attestations").run(),
+      /promotion_review_match_attestations are immutable/);
     assert.equal((target.prepare("SELECT count(*) n FROM source_releases WHERE release_id = ? AND status = 'applied' AND is_current = 1").get(secondId) as any).n, 1);
     assert.equal((target.prepare("SELECT count(*) n FROM source_releases WHERE release_id = ?").get(firstId) as any).n, 0);
     assert.deepEqual(rows("SELECT tile_id, content_sha256, body_json FROM tile_snapshots ORDER BY tile_id"),
@@ -84,6 +89,28 @@ test("tampered reviewed dependency fails closed at the receiving schema guard", 
     /promotion_review_match_attestations: not a reviewed decision of an open bootstrap's release \(record, entity, candidates or order\)/);
   assert.equal((target.prepare("SELECT count(*) n FROM promotion_bootstrap_completions").get() as any).n, 0);
   assert.equal((target.prepare("SELECT count(*) n FROM sources").get() as any).n, 0, "failed import rolls back earlier rows");
+});
+
+test("both reviewed decision types require their attestation", async () => {
+  const { db } = await reviewedRelease(duplicate, ["matchedToEntity", "confirmedNew"]);
+  const { sql } = await buildPromotionBundle(db);
+  for (const decision of ["matchedToEntity", "confirmedNew"]) {
+    const line = sql.split("\n").find((l) => l.startsWith("INSERT INTO promotion_review_match_attestations ") && l.includes(`'${decision}'`))!;
+    const target = migratedSqlite();
+    assert.throws(() => applyPromotionBundle(target, sql.replace(`${line}\n`, "")),
+      /source_record_entities: a manual decision requires a review_match_application|promotion_bootstrap_completions: the database does not hold exactly the declared, complete release/);
+    assert.equal((target.prepare("SELECT count(*) n FROM sources").get() as { n: number }).n, 0, `${decision}: atomic rollback`);
+  }
+});
+
+test("a matched entity outside the attested candidates is refused", async () => {
+  const { db } = await reviewedRelease(changedRef, ["matchedToEntity"]);
+  const { sql } = await buildPromotionBundle(db);
+  const line = sql.split("\n").find((l) => l.startsWith("INSERT INTO promotion_review_match_attestations "))!;
+  const changed = line.replace(/'\[\d+\]'/, "'[999999999]'");
+  assert.notEqual(changed, line);
+  assert.throws(() => applyPromotionBundle(migratedSqlite(), sql.replace(line, changed)),
+    /promotion_review_match_attestations: not a reviewed decision/);
 });
 
 test("changed previous-release fingerprint fails at completion and rolls back", async () => {

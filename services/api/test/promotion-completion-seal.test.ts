@@ -22,6 +22,15 @@ test("completion seals every promoted and derived table for INSERT, UPDATE and D
     "promotion_review_match_attestations", "source_record_entities", "spots", "spot_source_entities",
     "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots", "source_observations"];
   for (const table of tables) {
+    // Empty carried tables have no row on which UPDATE/DELETE can fire. Keep their seal
+    // coverage structural so a future migration cannot silently drop either trigger.
+    for (const action of ["insert", "update", "delete"]) {
+      const trigger = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?")
+        .get(`promotion_complete_seals_${table}_${action}`) as { sql: string } | undefined;
+      if (table !== "promotion_review_match_attestations") {
+        assert.ok(trigger?.sql.includes("promotion_bootstrap_completions"), `${table} ${action} seal missing`);
+      }
+    }
     const columns = (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
     assert.throws(() => db.prepare(`INSERT INTO ${table} (${columns.join(", ")}) VALUES (${columns.map(() => "1").join(", ")})`).run(),
       table === "promotion_review_match_attestations" ? /promotion_review_match_attestations: not a reviewed decision|promotion bootstrap is complete/ : SEALED, `${table} INSERT`);
