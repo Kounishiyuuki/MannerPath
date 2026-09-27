@@ -99,6 +99,31 @@ export async function observeRelease(db: Db, adapter: SourceAdapter, releaseId: 
   return statements.length > 0 ? readObservations(db, adapter, releaseId) : existing;
 }
 
+/**
+ * Re-derives one record's observation from its raw values under `adapter.mappingVersion` and requires the
+ * stored row of that version to exist and be identical. Returns the stored row's id with the re-derived
+ * observation. For a step that mutates canonical rows from a cited observation (a relocation application):
+ * a stored row alone does not show that the adapter's current mapping still derives it. Writes nothing.
+ */
+export async function rederiveObservation(db: Db, adapter: SourceAdapter, recordId: number): Promise<StoredObservation & { releaseId: number }> {
+  const record = await db.prepare(
+    `SELECT r.release_id, r.raw_values_json, rel.source_id, rel.parser_version
+     FROM source_records r JOIN source_releases rel ON rel.release_id = r.release_id WHERE r.record_id = ?`,
+  ).bind(recordId).first<{ release_id: number; raw_values_json: string; source_id: string; parser_version: string }>();
+  if (!record) throw new Error(`observe: record ${recordId} does not exist`);
+  if (record.source_id !== adapter.registry.sourceId || record.parser_version !== adapter.parserVersion) {
+    throw new Error(`observe: record ${recordId} is ${record.source_id} parsed by ${record.parser_version}, not ${adapter.registry.sourceId} parsed by ${adapter.parserVersion}`);
+  }
+  const row = await db.prepare("SELECT * FROM source_observations WHERE record_id = ? AND mapping_version = ?")
+    .bind(recordId, adapter.mappingVersion).first<ObservationRow>();
+  if (!row) throw new Error(`observe: record ${recordId} has no ${adapter.mappingVersion} observation`);
+  const derived = adapter.observe(JSON.parse(record.raw_values_json));
+  if (JSON.stringify(columnsOf(fromRow(row))) !== JSON.stringify(columnsOf(derived))) {
+    throw new Error(`observe: record ${recordId} re-derives differently from its stored ${adapter.mappingVersion} observation ${row.observation_id}`);
+  }
+  return { observationId: row.observation_id, recordId, releaseId: record.release_id, observation: derived };
+}
+
 async function readObservations(db: Db, adapter: SourceAdapter, releaseId: number): Promise<StoredObservation[]> {
   const { results } = await db.prepare(
     `SELECT o.* FROM source_observations o JOIN source_records r ON r.record_id = o.record_id

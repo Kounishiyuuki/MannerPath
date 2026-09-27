@@ -19,7 +19,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts"
 import { haversineMeters } from "../src/geo/distance.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
-import { SqliteD1, applyMigration, migratedSqlite } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyMigration, migratedSqlite, withoutTrigger } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => (db.raw.prepare(sql).all(...p) as Row[]).map((r) => ({ ...r }));
@@ -185,7 +185,7 @@ test("no decision lifts the hold: relocationRejected / deferred after holding; d
   }
   for (const value of [null, "locationSuperseded"]) {
     assert.throws(() => db.raw.prepare("UPDATE spots SET publication_hold = ? WHERE spot_id = ?").run(value, prior.spot_id),
-      /lifted only by a reviewed relocation application/);
+      /lifted only by its reviewed relocation application/);
   }
   assert.throws(() => db.raw.prepare("UPDATE review_relocation_holds SET applied_at = ?").run(LATER), /immutable/);
   assert.throws(() => db.raw.prepare("DELETE FROM review_relocation_holds").run(), /immutable/);
@@ -270,7 +270,9 @@ test("stale comparison: a competing release, an unknown observed_on, or a finish
 test("spot drift: moved, closed, merged or already held spots are refused and left as they are", async () => {
   const unpublish = (db: SqliteD1, id: string) => db.raw.prepare("DELETE FROM tile_snapshot_spots WHERE spot_id = ?").run(id);
   const cases: [string, (db: SqliteD1, spotId: string, otherId: string) => void, RegExp][] = [
-    ["coordinate changed", (db, id) => db.raw.prepare("UPDATE spots SET latitude = 35.71121 WHERE spot_id = ?").run(id), INVALID_ROW],
+    // Migration 0015 refuses a direct coordinate update; the drift stands for a state written before that guard.
+    ["coordinate changed", (db, id) => withoutTrigger(db.raw, "spots_coordinate_requires_relocation_application",
+      () => db.raw.prepare("UPDATE spots SET latitude = 35.71121 WHERE spot_id = ?").run(id)), INVALID_ROW],
     ["temporarilyClosed", (db, id) => { unpublish(db, id); db.raw.prepare("UPDATE spots SET lifecycle = 'temporarilyClosed' WHERE spot_id = ?").run(id); }, INVALID_ROW],
     ["merged", (db, id, other) => { unpublish(db, id); db.raw.prepare("UPDATE spots SET merged_into = ? WHERE spot_id = ?").run(other, id); }, INVALID_ROW],
     ["locationSuperseded", (db, id) => { unpublish(db, id); db.raw.prepare("UPDATE spots SET publication_hold = 'locationSuperseded' WHERE spot_id = ?").run(id); },
@@ -293,7 +295,8 @@ test("stale hold row: a valid row whose premise goes stale afterwards cannot set
   const cases: [string, (s: Awaited<ReturnType<typeof candidate>>) => Promise<unknown> | unknown][] = [
     ["identity deferred", (s) => decide(s.db, s.identityItemId, "deferred")],
     ["identity confirmedNew", (s) => decide(s.db, s.identityItemId, "confirmedNew")],
-    ["coordinate drift", (s) => s.db.raw.prepare("UPDATE spots SET latitude = 35.71121 WHERE spot_id = ?").run(s.prior.spot_id)],
+    ["coordinate drift", (s) => withoutTrigger(s.db.raw, "spots_coordinate_requires_relocation_application",
+      () => s.db.raw.prepare("UPDATE spots SET latitude = 35.71121 WHERE spot_id = ?").run(s.prior.spot_id))],
     ["candidate release rejected", (s) => s.db.raw.prepare("UPDATE source_releases SET status = 'rejected' WHERE release_id = ?").run(s.secondId)],
     ["newer release", (s) => ingestRelease(s.db, ADAPTER, TAITO_BYTES, THIRD)],
     ["incomparable release", (s) => ingestRelease(s.db, ADAPTER, TAITO_BYTES, { ...THIRD, observedOn: null })],
@@ -313,7 +316,8 @@ test("stale hold row: a valid row whose premise goes stale afterwards cannot set
   insertHoldRow(s.db, s.itemId, s.prior.spot_id);
   s.db.raw.prepare("DELETE FROM tile_snapshot_spots WHERE spot_id = ?").run(s.prior.spot_id);
   assert.throws(() => s.db.raw.prepare("UPDATE spots SET publication_hold = 'relocationUnderReview', latitude = 35.7199 WHERE spot_id = ?")
-    .run(s.prior.spot_id), STALE_TRANSITION, "moved in the same update");
+    .run(s.prior.spot_id), new RegExp(`${STALE_TRANSITION.source}|coordinate or tile changes only through a reviewed relocation application`),
+    "moved in the same update (0015's coordinate guard refuses it too)");
   setHold(s.db, s.prior.spot_id);
   assert.equal(spotOf(s.db, s.prior.spot_id).publication_hold, HOLD_RELOCATION_UNDER_REVIEW);
 });

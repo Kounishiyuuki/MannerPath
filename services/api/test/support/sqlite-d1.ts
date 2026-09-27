@@ -32,6 +32,22 @@ export function migratedSqlite(upTo?: string): DatabaseSync {
   return db;
 }
 
+/**
+ * Runs `fn` with one trigger dropped, then recreates it from its stored SQL. Only for tests that need a state
+ * the schema now refuses to create (e.g. canonical drift written before a later guard existed), to show that
+ * the code path still fails closed on it.
+ */
+export function withoutTrigger(db: DatabaseSync, name: string, fn: () => void): void {
+  const row = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?").get(name) as { sql: string } | undefined;
+  if (!row) throw new Error(`withoutTrigger: no trigger ${name}`);
+  db.exec(`DROP TRIGGER ${name}`);
+  try {
+    fn();
+  } finally {
+    db.exec(row.sql);
+  }
+}
+
 class Statement implements DbStatement {
   readonly db: DatabaseSync;
   readonly sql: string;

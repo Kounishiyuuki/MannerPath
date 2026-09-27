@@ -14,6 +14,8 @@ import { REVIEW_DECISION_VERSION } from "./review-queue.ts";
 export const REVIEW_MATCH_APPLICATION_VERSION = "review-match-application.v1";
 /** Stored in `review_removal_resolutions.resolver_version`. */
 export const REVIEW_REMOVAL_RESOLUTION_VERSION = "review-removal-resolution.v1";
+/** Stored in `review_relocation_resolutions.resolver_version`. */
+export const REVIEW_RELOCATION_RESOLUTION_VERSION = "review-relocation-resolution.v1";
 
 /** One stored ambiguousMatch item of the release under reconciliation, with its latest decision. */
 export interface AmbiguousReview {
