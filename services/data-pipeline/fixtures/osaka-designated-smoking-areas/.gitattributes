@@ -1,0 +1,2 @@
+# Official release bytes are fingerprinted evidence; never normalize their CRLF or embedded LF.
+opendata_1012.csv -text -diff

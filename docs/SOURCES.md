@@ -93,3 +93,37 @@ the row with this status and attribution; a database that still holds the older 
 upgraded deliberately with `npm run local:registry`. A source that is not in that list can be
 neither registered nor approved by importer code — approval stays a repository change reviewed in a
 PR, and the publish step plus the D1 publication trigger still gate on `sources.publication_status`.
+
+### 大阪市指定喫煙所（マップナビおおさか）
+
+Reviewed directly against the publisher's dataset page, its actual CC-BY image link and the
+linked legal code on 2026-09-28. Neither search snippets nor third-party catalog metadata approve
+this source. Raw fixture and detailed mapping: `services/data-pipeline/fixtures/osaka-designated-smoking-areas/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `osaka-designated-smoking-areas` |
+| Name / publisher | 大阪市指定喫煙所（マップナビおおさか） / 大阪市、計画調整局 企画振興部 統計調査担当 (dataset-page owner); smoking-location listing: 環境局 |
+| Kind | municipal |
+| Dataset URL | https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html — item 14, 施設情報ポイントデータ（環境・リサイクル） |
+| Original-data URL | https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv |
+| License name | CC BY 2.1 JP (表示 2.1 日本). The page says CC-BY; its license image links to `http://creativecommons.org/licenses/by/2.1/jp/`. This source-specific link controls; do not substitute the general site's CC BY 4.0-compatible terms |
+| License URL / original terms | https://creativecommons.org/licenses/by/2.1/jp/ ; https://creativecommons.org/licenses/by/2.1/jp/legalcode |
+| Redistribution to clients allowed | Yes, legal code §3(1), §3(3), §3 final paragraph: reproduction, distribution and public transmission in present/future formats, subject to §5 |
+| Modification/derivation allowed | Yes, §3(2); extraction and normalization disclosed in attribution. No implication that Osaka City authored or endorses the derived output |
+| Share-alike obligations | No share-alike requirement. §4 directly licenses source content to recipients; §5(3), (6), (7) retain the source's rights and forbid conflicting restrictions/technical protection. This does not relicense the entire combined database |
+| Required attribution text | §5(2), (5), (8): license URI, notices, original author, supplied title and source URI, and credit for use in derivatives. Publisher disclaimer is retained verbatim. **Approved wording**: `出典：大阪市「マップナビおおさか 施設情報ポイントデータ（環境・リサイクル）」 https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html 元データ https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv CC BY 2.1 JP https://creativecommons.org/licenses/by/2.1/jp/ 本ページに掲載しているデータの使用で生じた結果等については、大阪市は一切の責任を負いません。MannerPathが大阪市指定喫煙所を抽出・正規化して作成。` |
+| Geographic scope | Osaka City; only rows whose category is 環境・リサイクル and both 分類 columns equal 大阪市指定喫煙所. Partial coverage, not an exhaustive claim |
+| Update date/frequency | Dataset-page update 2026-03-31; CSV category first listed 2014-01-17, updated 随時. The publisher says CSVs regenerate the day after Mapnavi information changes. Retrieved file HTTP Last-Modified: 2026-09-26 14:06:05 GMT; none of these dates establishes observation time |
+| Observation date available | none. `observedOn` and published `lastVerifiedAt` are NULL; fetch and HTTP metadata remain separate |
+| Coordinate availability | CSV 経度/緯度, decimal degree JGD2011, map-icon positions (publisher's note for items 1–30). Used directly at map-display accuracy; not a surveyed entrance or geocoded host coordinate |
+| Automation suitability | Machine-readable UTF-8 CSV, no login, stable official download URL, automatic upstream regeneration. Suitable for deterministic ingest. Publication is restricted to the reviewed SHA/URL/NULL date and 344 selected records; no scheduled refresh and no cross-release matching enabled |
+| Reviewed release | SHA-256 `f58b62791396bc46ceca436a7c4ad598520a5c9dd4162b37723ef519399e69ce`, 242493 bytes; 524 raw rows → 344 designated-smoking observations/spots. Other 126 information-provided smoking venues and 54 recycling businesses remain raw only |
+| Reviewed by / date | Codex, AI-assisted primary-source review, 2026-09-28, under the maintainer's second-source implementation instruction. Repository approval is reviewable in this branch; no remote database or deployment is changed |
+| Publication status | approved for the pinned first release and selected scope; changed content requires another review |
+
+The City's separate [smoking-location page](https://www.city.osaka.lg.jp/kankyo/page/0000607135.html)
+(2026-09-08) distinguishes designated locations from information-provided venues and explains that
+designated locations are free and usable without patronizing the host. It supports the scope
+review; no values or schedules are copied from that page. Its map infrastructure and linked
+third-party business URLs are not ingested. The raw CC BY CSV is the sole value source.

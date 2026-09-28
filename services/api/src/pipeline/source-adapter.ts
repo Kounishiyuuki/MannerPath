@@ -100,7 +100,10 @@ export interface SourceAdapter {
    * reviewed per-release decisions were reviewed against exactly this file.
    */
   assertResolvable(release: ReleaseFingerprint, observations: readonly SourceObservation[]): void;
-  /** The field mapping: one raw record (values in header order) -> its normalized observation. */
+  /** Optional reviewed scope filter for mixed datasets. All raw rows remain evidence. Changing
+   * scope requires a new mappingVersion; excluded rows create neither observations nor spots. */
+  includesRecord?(values: readonly string[]): boolean;
+  /** The field mapping: one in-scope raw record -> its normalized observation. */
   observe(values: readonly string[]): SourceObservation;
   /** Weakenings the adapter's reviewed attenuation reference applies to one observation. */
   attenuate(observation: SourceObservation): readonly FieldAttenuation[];

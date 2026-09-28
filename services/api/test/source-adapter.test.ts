@@ -7,6 +7,7 @@ import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { REVIEWED_SOURCES, ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import { OSAKA_ADAPTER } from "../src/pipeline/osaka-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import {
@@ -27,9 +28,9 @@ function insertBareRelease(db: SqliteD1, sourceId: string, parserVersion: string
   ).run(sourceId, NOW, "a".repeat(64), parserVersion).lastInsertRowid);
 }
 
-test("the reviewed registry is exactly the adapters' registry entries, Taito first and only", () => {
-  assert.deepEqual(REVIEWED_SOURCES, [TAITO_REGISTRY]);
-  assert.deepEqual(SOURCE_ADAPTERS, [TAITO_ADAPTER]);
+test("the reviewed registry is exactly the adapters' registry entries, Taito and Osaka independently reviewed", () => {
+  assert.deepEqual(REVIEWED_SOURCES, [TAITO_REGISTRY, OSAKA_ADAPTER.registry]);
+  assert.deepEqual(SOURCE_ADAPTERS, [TAITO_ADAPTER, OSAKA_ADAPTER]);
   assert.equal(new Set(SOURCE_ADAPTERS.map((a) => a.registry.sourceId)).size, SOURCE_ADAPTERS.length);
   assert.equal(SOURCE_ADAPTERS.includes(TEST_BLOCKED_TAITO_ADAPTER), false, "the test-only adapter is never reviewed");
 });

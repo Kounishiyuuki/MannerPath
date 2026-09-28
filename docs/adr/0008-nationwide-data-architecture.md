@@ -440,3 +440,21 @@ Code: `services/api/src/refresh/` (`check.ts`, `artifact-store.ts`, `policy.ts`,
 Discovery of new release URLs from a landing page; conditional requests (`If-None-Match`); closing or
 superseding candidates; a reviewed command that ingests a candidate's artifact from R2; artifact
 retention/expiry (objects are kept); alerting on `failed`/`needsReview`.
+
+## Amendment 2026-09 — mixed-dataset scope (second reviewed source)
+
+Osaka's official environment/recycling CSV mixes designated smoking locations, information-only
+smoking venues with access conditions, and paper-recycling businesses. Keeping raw evidence must
+not make each host a smoking spot. `SourceAdapter.includesRecord` is an optional, pure, reviewed
+raw-row scope predicate, evaluated only at the normalization boundary. Ingest still preserves every
+row, original ordinal, header (including duplicate column names) and release fingerprint. Only
+in-scope rows receive observations, entity decisions and canonical spots; a row outside scope has
+no observation for that mapping generation. An adapter without the predicate retains the existing
+one-observation-per-record behavior, including Taito's byte-identical golden.
+
+The scope rule is part of `mappingVersion`. Re-derivation refuses an existing observation that
+would now be excluded under the same version, including the read-only re-derivation used by review
+applications. A new scope or field mapping requires a new mapping version. Scope exclusion is not
+removal evidence. Osaka remains partial and `crossReleaseValidated: false`; repeated releases and
+cross-source merges are deliberately gated, and the matcher must account for out-of-scope raw
+rows before that source's cross-release gate can be opened.
