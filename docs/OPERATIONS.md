@@ -407,6 +407,28 @@ Notes:
   through ingest → resolve → publish locally, and reach a remote database only as a reviewed
   promotion bundle applied to a fresh one.
 
+## Source checks and raw artifacts (ADR-0008 source refresh amendment)
+
+The Worker exports a Cron `scheduled` handler that **only checks** reviewed sources: fetch the
+adapter's `refreshTarget.url`, fingerprint (sha256), retain the bytes in R2 under
+`raw/sha256/<hex>`, and record a `source_checks` row (`unchanged` / `changed` / `needsReview` /
+`failed`) plus, for a changed file, one `source_refresh_candidates` row. It never ingests, resolves,
+removes, relocates, publishes or promotes, and it never changes canonical data in any database.
+
+Every committed environment has `triggers.crons = []` and a `RAW_ARTIFACTS` R2 binding
+(`mannerpath-raw-artifacts[-staging|-production]`). Enabling checks on an environment is a
+maintainer's action, in this order:
+
+1. Promote first (step 4/6). A bundle bootstraps only an empty database, and check history counts.
+2. Create the environment's bucket: `npx wrangler r2 bucket create mannerpath-raw-artifacts-<env>`.
+3. Add a schedule in a reviewed change (e.g. `"triggers": { "crons": ["0 18 * * *"] }` for 03:00
+   JST) and update `test/deploy-config.test.ts` in the same PR, then deploy.
+
+A candidate is acted on only through the reviewed flow: fetch its artifact from R2 by hash, run the
+local pipeline with the publisher's `observed_on`, review, and promote a bundle. A `needsReview`
+candidate's findings (`findings_json`) must be resolved first. A `failed` check changes nothing; the
+previous release and tiles stay as they were. To stop checks, set `crons` back to `[]` and deploy.
+
 ## Cache and CDN semantics
 
 No CDN configuration is introduced. The behaviour is the one the responses already describe.

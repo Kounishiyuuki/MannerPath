@@ -15,6 +15,7 @@ import {
 } from "./taito-list-page.ts";
 import {
   TAITO_MAPPING_VERSION,
+  TAITO_ORIGINAL_DATA_URL,
   TAITO_PARSER_VERSION,
   TAITO_REGISTRY,
   TAITO_RESOLVER_VERSION,
@@ -58,4 +59,7 @@ export const TAITO_ADAPTER: SourceAdapter = {
   // docs/SOURCES.md reviews Taito's license and scope but not that its list is exhaustive for the
   // ward, and DATA_POLICY assumes no source complete; so a Taito disappearance is never removal evidence.
   completeness: "partial",
+  // The reviewed release file itself. Taito publishes each release under a new dated file name, so this
+  // detects in-place changes to the reviewed file only; discovering a newer file is not implemented.
+  refreshTarget: { url: TAITO_ORIGINAL_DATA_URL },
 };

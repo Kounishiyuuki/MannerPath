@@ -116,6 +116,12 @@ export interface SourceAdapter {
    * only from reviewed publisher evidence that the list is exhaustive, never inferred.
    */
   completeness?: SourceCompleteness;
+  /**
+   * Where a source check fetches this source's release file (ADR-0008 decision 9, source refresh
+   * amendment). Absent means the source is never checked. A check only fingerprints and retains what it
+   * fetches; it never ingests, so this URL grants no path into canonical data.
+   */
+  refreshTarget?: { url: string };
 }
 
 export function sourceCompleteness(adapter: SourceAdapter): SourceCompleteness {

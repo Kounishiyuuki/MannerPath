@@ -26,6 +26,12 @@
   // LOCAL/TEST ONLY. Unattested (schema 1) reports are accepted here because the local default is
   // `disabled`; the remote environments below require App Attest (ADR-0007 §6).
   "vars": { "REPORT_ATTESTATION": "disabled" },
+  // Content-addressed raw source artifacts (src/refresh/artifact-store.ts). Each environment names its own
+  // bucket; creating it is a maintainer's action (docs/OPERATIONS.md). A check never writes elsewhere.
+  "r2_buckets": [{ "binding": "RAW_ARTIFACTS", "bucket_name": "mannerpath-raw-artifacts" }],
+  // Source checks fetch, fingerprint and retain only; they never apply data. Still, no environment commits a
+  // schedule: enabling one is a maintainer's action (docs/OPERATIONS.md), and test/deploy-config.test.ts holds it.
+  "triggers": { "crons": [] },
   "d1_databases": [
     {
       "binding": "DB",
@@ -45,6 +51,8 @@
       // /v1/config reports reports.available = false. A remote environment must never accept
       // unattested reports. Do not change this here.
       "vars": { "REPORT_ATTESTATION": "required" },
+      "r2_buckets": [{ "binding": "RAW_ARTIFACTS", "bucket_name": "mannerpath-raw-artifacts-staging" }],
+      "triggers": { "crons": [] },
       "d1_databases": [
         {
           "binding": "DB",
@@ -59,6 +67,8 @@
       "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
       // App Attest required, exactly as staging.
       "vars": { "REPORT_ATTESTATION": "required" },
+      "r2_buckets": [{ "binding": "RAW_ARTIFACTS", "bucket_name": "mannerpath-raw-artifacts-production" }],
+      "triggers": { "crons": [] },
       "d1_databases": [
         {
           "binding": "DB",
