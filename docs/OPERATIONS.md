@@ -112,6 +112,18 @@ npm run local:pipeline     # ingest -> resolve -> publish; read the published/ex
 A source listed under `excluded` is not a failure to work around: it is the publication gate doing
 its job.
 
+**Cross-source review and merge** (ADR-0008 "Amendment — cross-source review and merge", migration 0019,
+Issue #107) happens here, locally, between publishing and exporting, and only on a database that runs the
+pipeline for several sources. There is no operator CLI yet: `generateCrossSourceCandidates`,
+`recordCrossSourceDecision` and `applyCrossSourceMerge` (`src/pipeline/cross-source.ts`) are called from a
+reviewed local script or test. Candidates are recall only; a merge needs a recorded `sameRealWorldSpot`
+decision with identity evidence and an explicit survivor. After applying merges run `npm run local:pipeline`'s
+publish step (`publishTiles`) again before exporting: until then a merged or held spot's membership no longer
+matches its tile body and the export refuses. A survivor whose values conflict with its loser's stays
+unpublished (held); that is the intended conservative outcome, not a failure. A database with applied merges
+exports only with `--bundle v3` (a v2 export refuses it), and the v3 bundle carries the merges as
+attestations together with every involved spot and its evidence.
+
 Then generate the **promotion bundle** — the reviewable artifact that carries that validated local
 state to another database:
 

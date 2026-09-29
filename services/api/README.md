@@ -6,7 +6,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 
 ## Contents
 
-- `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables. `0008` adds the immutable, derived `source_observations` layer the resolver reads (ADR-0008 decision 2).
+- `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables. `0008` adds the immutable, derived `source_observations` layer the resolver reads (ADR-0008 decision 2). `0019` adds the cross-source review and merge tables and their promotion attestations (ADR-0008, Issue #107).
 - `src/pipeline/`: source-agnostic ingest (raw evidence) and first-release reconciliation behind the `SourceAdapter` boundary (`source-adapter.ts`, `adapters.ts`, ADR-0008); Taito is the first adapter (`taito-adapter.ts`, field rules in `taito.ts`); the reviewed source registry is `registry.ts`.
 - `src/refresh/`: scheduled source checks — fetch, sha256 fingerprint, content-addressed R2 retention, drift probes and review candidates (`0017`, ADR-0008 source refresh amendment). Check-only: nothing here ingests, resolves or publishes.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.

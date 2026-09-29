@@ -190,9 +190,14 @@ As implemented (`src/pipeline/match.ts`, `resolveNextRelease` in `src/pipeline/r
 ### 4. Cross-source matching (boundary)
 
 Records of different sources are never merged automatically on proximity or name alone. A
-cross-source matcher proposes duplicate candidates into the review queue; a reviewed merge links
-several source entities to one canonical spot (`spot_source_entities`). Official and OSM-derived
+cross-source matcher proposes duplicate candidates for review; a reviewed merge makes one of the two
+existing spots the survivor and the other a one-hop redirect to it. Official and OSM-derived
 records are not mixed until the OSM ADR (decision 11) decides how.
+
+*Amended (Issue #107, "Amendment — cross-source review and merge" below):* the merge does **not**
+relink the loser's source entity to the survivor. The loser keeps its own links, provenance and
+attenuations behind the redirect, so each source's evidence stays exactly as that source stated it,
+and `cross_source_merges` records which spots are one real-world place.
 
 ### 5. Removal and relocation (boundary)
 
@@ -508,3 +513,71 @@ Code: `buildMultiSourcePromotionBundle` in `services/api/src/pipeline/promotion.
    sealed; reports, App Attest and source-refresh tables stay writable.
 7. **Not implemented:** more than one release per source, and cross-source spot merges (a spot linked to
    entities of two sources) have no reviewed flow; the v3 checks allow the latter but nothing creates it.
+
+## Amendment 2026-09 — cross-source review and merge (Issue #107, strategy §10 step 7)
+
+Code: `migrations/0019_cross_source_merge.sql`, `src/pipeline/cross-source.ts`, `src/pipeline/promotion.ts`,
+`src/tiles/publish.ts`. Tests: `test/cross-source.test.ts`. It persists and applies the planning foundation
+of the unmerged commit `bf225b3` (its recall rule, normalization and merge plan), integrated with migration
+0018 and `promotion-bundle.v3`.
+
+**Why new tables, not `review_items`/`review_decisions`.** A review item names one source, one release with
+its fingerprint and the previous release of that source, and at most one record/entity/spot; every trigger of
+0009–0015 reads it that way. A cross-source candidate is a pair of spots of two sources and cites no release
+pair, so it would either break those triggers' meaning or require rewriting them all. The semantics are
+reused unchanged: candidates are immutable, decisions append-only, the **latest decision is the largest id**,
+`decided_at` is evidence and never precedence, and applying a decision is a separate audited step.
+
+1. **Candidates (`cross-source-candidate.v1`).** Only pairs of live (active, unmerged, unheld) spots, each
+   backed by exactly one approved source's current release, the two sources different. Recall only:
+   within 100 m, or within 500 m with an exact nonempty NFKC/case/whitespace/punctuation-normalized name
+   or location (the canonical model has no location text yet, so only names match today). Nothing beyond
+   500 m, and no same-source pair (that is cross-release matching). Proximity, a name or a shared
+   host/business is **never** identity. Each candidate stores both spots' complete canonical state
+   (`cross_source_spot_state`: row, provenance, attenuations, links, inbound redirects); a candidate whose
+   spot changed in any of these is stale (`cross_source_current_candidates`). Generation is idempotent.
+2. **Decisions (`cross-source-decision.v1`).** `sameRealWorldSpot` (requires specific identity evidence and
+   an explicit survivor: one of the two existing spots), `distinctSpots`, `insufficientEvidence`. A stale
+   candidate takes no decision. Recording a decision changes nothing canonical.
+3. **Merge application (`cross-source-merge.v1`).** `applyCrossSourceMerge` inserts one
+   `cross_source_merge_applications` row; inserting it **is** the merge (the 0015 pattern). Its triggers
+   re-check, inside the statement, that the decision is the candidate's latest `sameRealWorldSpot` naming
+   this survivor and loser, that both states are unchanged, that both spots are still live and backed by
+   their approved current sources, that the redirects to repoint are exactly the loser's inbound ones, and
+   that the hold flag is right; then, in the same statement, it unpublishes the loser (and a held
+   survivor), repoints the loser's inbound redirects to the survivor and redirects the loser. The survivor
+   keeps its id and row; no id is issued, no spot deleted, no entity relinked, no provenance rewritten; the
+   0001 triggers keep redirects one hop and permanent. Reapplying the same decision is `alreadyApplied`; a
+   stale candidate, a superseded decision, a decision recorded between read and write, identity drift or a
+   loser already merged abort with nothing written.
+4. **Conflicts are held, never resolved.** `cross_source_spot_values` is the one list of semantic fields
+   (coordinates, type, host, access, environment, paper/heated support, hours status/json/raw, time zone,
+   fee, floor, entrance note, lifecycle); the name is a display label and is not compared. The application
+   records the differing fields and sets `conflict_hold` exactly when they differ (unknown vs `no` included)
+   or either spot already survives a held merge. `cross_source_publication_blocks` keeps a survivor out of
+   publication while any merge into it is held **or** its loser's current values differ from its own; a
+   trigger on `tile_snapshot_spots` enforces it and `publishTiles` skips such spots. No source priority picks
+   a value, and `sameRealWorldSpot` means identity only. Resolving a held conflict needs an explicit
+   reviewed evidence rule, which is not implemented: a held survivor stays unpublished.
+5. **Temporary safety gates.** A merge survivor cannot be removed (`review_removal_applications`) or relocated
+   (`review_relocation_applications`) on one source's evidence; lifted only by the PR that gives those steps
+   multi-source semantics.
+6. **Promotion v3.** A v3 bundle carries every spot a merge involves (survivor, even held; loser; repointed
+   redirects) with its links, provenance and attenuations, and one `promotion_cross_source_merge_attestations`
+   row per merge (who decided, when, identity evidence, conflicts, hold, executor), written after the declared
+   sources and before any spot. On the target a redirect arrives only as an attested merge's loser or
+   repointed spot, and the completion re-checks the count, that every attested loser is redirected and that
+   every redirect is attested; runtime candidate/decision/application rows never travel. Held survivors are
+   held there too, through the same view. A bundle without merges omits the attestation count key, so its
+   bytes are unchanged; a v2 export refuses a database with merges. The runtime chain stays in the origin
+   database, as for the other reviews.
+
+Tested with synthetic independently reviewed sources (the real Taito release, and a test-only Taito-format
+source under Koto's reviewed registry entry); the real Taito, Osaka and Koto releases are not identity
+evidence. The whole flow was also run on Wrangler's local D1 (D1's expression-depth limit), including a v3
+bootstrap of a fresh database.
+
+**Not implemented:** a reviewed conflict-resolution rule (held survivors stay unpublished), re-evaluating an
+agreeing merge's audit when a later release changes a value (the publication block is re-evaluated live, the
+audit list is not), relinking or multi-entity spots, removal and relocation of merge survivors, merging
+across more than the current releases of the carried sources, an operator CLI, and OSM.
