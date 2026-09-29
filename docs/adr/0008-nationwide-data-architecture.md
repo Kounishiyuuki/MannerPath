@@ -352,6 +352,8 @@ A release is identified by `(source_id, content_sha256, observed_on)` plus `sour
 per-release reviewed decision binds to that fingerprint and fails closed on any difference (as the
 Taito attestations already do). Unchanged remote bytes update fetch/check metadata only and do not
 advance `lastVerifiedAt`; changed bytes create a new immutable release.
+*(Refined by the "source refresh foundation" amendment below: changed bytes found by a check become
+a review candidate; the release is created by the reviewed ingest, never by the check.)*
 
 ### 10. Stable canonical IDs (boundary)
 
@@ -378,3 +380,63 @@ never fabricate a stronger value; no raw location history; stable spot IDs.
   in `SOURCE_ADAPTERS`. No generic step changes for a source with Taito-like semantics.
 - Decisions 2–10 each need their own issue (tracker #67) and must stay within these boundaries or
   amend this ADR.
+
+## Amendment 2026-09 — source refresh foundation (strategy §10 step 5)
+
+Code: `services/api/src/refresh/` (`check.ts`, `artifact-store.ts`, `policy.ts`, `scheduled.ts`),
+`SourceAdapter.refreshTarget`, Worker `scheduled` export (`src/index.ts`). Migration:
+`0017_source_refresh.sql`. Tests: `services/api/test/source-refresh.test.ts`,
+`test/deploy-config.test.ts`.
+
+### Decisions
+
+1. **A check is not an import.** A check fetches an adapter's `refreshTarget.url`, fingerprints the
+   bytes (sha256), retains them in R2, compares them and records the attempt. It writes only
+   `raw_artifacts`, `source_checks` and `source_refresh_candidates`. It never creates a
+   `source_release`, never touches spots, provenance, attenuations, review items or tiles, and never
+   advances `lastVerifiedAt`. The refresh module imports none of ingest/observe/resolve/match/removal/
+   relocation/publish/promotion (tested). This refines decision 9: a changed file becomes a
+   **candidate**; a maintainer turns it into a release through the reviewed flow (ingest with the
+   publisher's `observed_on`, observe, resolve, publish, promotion bundle). The check cannot supply
+   `observed_on` (the publisher's date is not in the bytes), which is one more reason it must not ingest.
+2. **Raw artifacts are content-addressed in R2.** Key `raw/sha256/<hex>`; the object is written only
+   when absent (`head` first), with R2's `sha256` integrity check, and never overwritten. An existing
+   object of a different size fails the check closed (`storage`). D1 holds only the hash, key, size and
+   first storage time; the schema ties the key to the hash. R2 is written before D1, so D1 never names
+   a missing object; an interrupted check leaves at most an unreferenced object under its own hash.
+3. **Outcomes.** `unchanged`: the hash equals the baseline (the latest non-failed check of the source,
+   else its current applied release). `changed`: a different hash with no drift finding.
+   `needsReview`: a different hash with at least one finding. `failed`: fetch, HTTP, `tooLarge` or
+   storage failure — recorded with whatever metadata was received and the fingerprint if the bytes
+   arrived; never a baseline, no candidate. A candidate is one row per `(source, hash)`; content that
+   already is a release of the source gets none.
+4. **Drift probes** (read-only, source-agnostic, in a fixed order): redirect to another origin
+   (`sourceIdentityMismatch`); the adapter's own `parse` refuses the file (`parseFailed`); the header
+   differs from the reviewed baseline (`headerChanged`); the record count decreased (`recordCountDecreased`);
+   zero records (`noRecords`); the adapter's `observe` refuses records (`recordsUnobservable`); a
+   coordinate outside the policy extent (`coordinatesOutsideExtent`). The drift baseline is the current
+   applied release, else the last parsed check.
+5. **Reviewed policy `source-refresh-policy.v1`** (`src/refresh/policy.ts`). No threshold is
+   calibrated, because no refresh history exists: any record decrease is flagged
+   (`maxRecordDecrease = 0`); the coordinate extent is Japan's end points per 国土地理院, rounded
+   outward (lat 20–46, lng 122–154); bodies over 16 MiB fail as `tooLarge` (Worker memory is 128 MB).
+   Changing any value is a new policy version, stamped on every check row.
+6. **Idempotence.** `source_checks.check_key = "<run key>:<source id>"` is unique; the Cron run key is
+   the scheduled time, so a retried invocation finds its row and neither fetches nor writes again. Rows
+   of all three tables are append-only/immutable (triggers).
+7. **Cron is check-only and off by default.** The Worker exports `scheduled`, which runs
+   `checkSource` for every adapter with a `refreshTarget` and fails loudly without the `RAW_ARTIFACTS`
+   binding. Every committed environment has `triggers.crons = []`; enabling a schedule and creating the
+   bucket are maintainer actions (`docs/OPERATIONS.md`), guarded by `test/deploy-config.test.ts`.
+8. **Promotion.** The refresh tables are not carried by the promotion bundle. Migration 0017 recreates
+   `promotion_bootstraps_empty_target` to name them too, so a database with check history is not empty:
+   promote first, then enable checks.
+9. **Taito.** `refreshTarget` is the reviewed release file. Taito publishes each release under a new
+   dated file name, so a check detects in-place changes of that file only; discovering a newer file is
+   not implemented. `crossReleaseValidated = false` and `completeness = partial` are unchanged.
+
+### Not implemented
+
+Discovery of new release URLs from a landing page; conditional requests (`If-None-Match`); closing or
+superseding candidates; a reviewed command that ingests a candidate's artifact from R2; artifact
+retention/expiry (objects are kept); alerting on `failed`/`needsReview`.

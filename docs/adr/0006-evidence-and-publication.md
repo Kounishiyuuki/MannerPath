@@ -115,7 +115,7 @@ The schema follows the real Taito source shape (research §3): 12 CSV columns, a
 
 ### Unresolved before the Taito importer / tile API
 
-- Archiving the original file bytes (for example in R2, keyed by `content_sha256`). D1 keeps the verbatim fields and hash only.
+- Archiving the original file bytes (for example in R2, keyed by `content_sha256`). D1 keeps the verbatim fields and hash only. *(Fetched bytes: resolved by the ADR-0008 source refresh amendment, R2 `raw/sha256/<hex>`. Bytes of releases ingested before it are not back-filled.)*
 - The Taito natural-key normalisation and matcher rules, including the ambiguous-match review flow. They need a second real release to validate (research §7).
 - The spot ID format, `evidence_quality` values and the tile DTO / `schemaVersion` 1 body shape.
 - History of canonical values: provenance describes the current value only. Earlier values can be reproduced from raw records plus versions, but they are not stored.

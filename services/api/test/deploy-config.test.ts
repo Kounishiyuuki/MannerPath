@@ -109,3 +109,16 @@ test("automatic invocation logs, which persist request URLs, are disabled everyw
     assert.equal("head_sampling_rate" in env.observability, false, `${name}: sampling is not the privacy control`);
   }
 });
+
+test("every environment has its own raw-artifact R2 bucket, and none commits a cron schedule", () => {
+  const buckets = environments.map(([name, env]) => {
+    const r2 = env.r2_buckets;
+    assert.equal(Array.isArray(r2) && r2.length === 1, true, `${name}: one R2 binding`);
+    assert.equal(r2[0].binding, "RAW_ARTIFACTS", `${name}: R2 binding name`);
+    assert.deepEqual(Object.keys(r2[0]).sort(), ["binding", "bucket_name"], `${name}: no jurisdiction, preview or credential keys`);
+    // Source checks only fetch, fingerprint and retain, but a schedule is still a maintainer's action.
+    assert.deepEqual(env.triggers, { crons: [] }, `${name}: no committed cron schedule`);
+    return r2[0].bucket_name;
+  });
+  assert.deepEqual(buckets, ["mannerpath-raw-artifacts", "mannerpath-raw-artifacts-staging", "mannerpath-raw-artifacts-production"]);
+});

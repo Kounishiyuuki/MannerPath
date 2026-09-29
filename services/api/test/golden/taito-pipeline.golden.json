@@ -625,6 +625,7 @@
     "promotion_bootstrap_completions": [],
     "promotion_bootstraps": [],
     "promotion_review_match_attestations": [],
+    "raw_artifacts": [],
     "report_moderation": [],
     "report_rate_windows": [],
     "reports": [],
@@ -636,6 +637,7 @@
     "review_relocation_resolutions": [],
     "review_removal_applications": [],
     "review_removal_resolutions": [],
+    "source_checks": [],
     "source_entities": [
       {
         "source_entity_id": 1,
@@ -1971,6 +1973,7 @@
         "raw_sha256": "0676836d17f588d370950ba8b9c0a6ec254298de08b2a4c8d904d17dd8866a4b"
       }
     ],
+    "source_refresh_candidates": [],
     "source_releases": [
       {
         "release_id": 1,

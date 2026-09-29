@@ -33,7 +33,7 @@ test("the guard names every table of a freshly migrated schema", () => {
   const db = migratedSqlite();
   const trigger = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'promotion_bootstraps_empty_target'").get() as { sql: string }).sql;
   const tables = TABLES(db);
-  assert.equal(tables.length, 29);
+  assert.equal(tables.length, 32);
   for (const t of tables) assert.match(trigger, new RegExp(`EXISTS \\(SELECT 1 FROM ${t}\\)`), `${t} is not checked`);
   for (const t of tables) assert.equal((db.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n, 0, `${t} is not empty after migrating`);
 });
