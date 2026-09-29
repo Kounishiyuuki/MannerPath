@@ -1,8 +1,9 @@
 // System refresh + Data mixed-dataset integration. Refresh targets below are test-only;
-// the reviewed Osaka adapter deliberately has no automated refresh approval.
+// the reviewed Osaka and Koto adapters deliberately have no automated refresh approval.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { KOTO_ADAPTER, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_DATA_URL, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { checkSource } from "../src/refresh/check.ts";
@@ -27,19 +28,24 @@ function memoryStore() {
 }
 const fetchOsaka = async () => new Response(OSAKA_BYTES);
 
-test("scheduled registry checks Taito but skips Osaka without a refresh target or fetch", async () => {
+test("scheduled registry checks Taito but skips Osaka and Koto without refresh targets or fetches", async () => {
   const db = new SqliteD1();
   await importTaito(db);
   await ensureReviewedSource(db, OSAKA_SOURCE_ID, NOW);
+  await ensureReviewedSource(db, KOTO_SOURCE_ID, NOW);
   assert.equal(OSAKA_ADAPTER.refreshTarget, undefined);
+  assert.equal(KOTO_ADAPTER.refreshTarget, undefined);
   let fetches = 0;
   const results = await runSourceChecks({ db, store: memoryStore().store, now,
     fetch: async () => { fetches++; return new Response(TAITO_BYTES); },
   }, "scope-scheduled", "scheduled");
-  assert.equal(results.length, 2);
+  assert.equal(results.length, 3);
   assert.equal(results[0].result.status === "recorded" && results[0].result.outcome, "unchanged");
   assert.deepEqual(results[1], { sourceId: OSAKA_SOURCE_ID,
     result: { status: "skipped", reason: `${OSAKA_SOURCE_ID} has no refresh target` },
+  });
+  assert.deepEqual(results[2], { sourceId: KOTO_SOURCE_ID,
+    result: { status: "skipped", reason: `${KOTO_SOURCE_ID} has no refresh target` },
   });
   assert.equal(fetches, 1);
   assert.equal(count(db, "source_checks"), 1);
