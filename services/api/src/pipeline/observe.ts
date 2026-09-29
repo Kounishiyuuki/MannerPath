@@ -77,8 +77,18 @@ export async function observeRelease(db: Db, adapter: SourceAdapter, releaseId: 
 
   const statements = [];
   for (const record of records) {
-    const derived = adapter.observe(JSON.parse(record.raw_values_json));
+    const values: string[] = JSON.parse(record.raw_values_json);
     const stored = existingByRecord.get(record.record_id);
+    if (adapter.includesRecord && !adapter.includesRecord(values)) {
+      if (stored) throw new Error(`observe: record ${record.record_id} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
+      continue;
+    }
+    // A generation is derived in one atomic batch. A newly included row in an existing
+    // generation is a scope change, just as excluding a stored row is.
+    if (!stored && existing.length > 0) {
+      throw new Error(`observe: record ${record.record_id} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
+    }
+    const derived = adapter.observe(values);
     if (stored) {
       if (JSON.stringify(columnsOf(stored)) !== JSON.stringify(columnsOf(derived))) {
         throw new Error(
@@ -117,7 +127,11 @@ export async function rederiveObservation(db: Db, adapter: SourceAdapter, record
   const row = await db.prepare("SELECT * FROM source_observations WHERE record_id = ? AND mapping_version = ?")
     .bind(recordId, adapter.mappingVersion).first<ObservationRow>();
   if (!row) throw new Error(`observe: record ${recordId} has no ${adapter.mappingVersion} observation`);
-  const derived = adapter.observe(JSON.parse(record.raw_values_json));
+  const values: string[] = JSON.parse(record.raw_values_json);
+  if (adapter.includesRecord && !adapter.includesRecord(values)) {
+    throw new Error(`observe: record ${recordId} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
+  }
+  const derived = adapter.observe(values);
   if (JSON.stringify(columnsOf(fromRow(row))) !== JSON.stringify(columnsOf(derived))) {
     throw new Error(`observe: record ${recordId} re-derives differently from its stored ${adapter.mappingVersion} observation ${row.observation_id}`);
   }

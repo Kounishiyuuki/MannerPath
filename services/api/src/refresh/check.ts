@@ -277,6 +277,9 @@ async function probeDrift(
   const { extent } = SOURCE_REFRESH_POLICY;
   for (const [i, values] of parsed.rows.entries()) {
     try {
+      // Mixed datasets keep every raw row, but only reviewed in-scope rows have a mapping.
+      // Keep the predicate inside the try: a scope error is drift, never a silent exclusion.
+      if (adapter.includesRecord && !adapter.includesRecord(values)) continue;
       const o = adapter.observe(values);
       if (!(o.latitude >= extent.minLatitude && o.latitude <= extent.maxLatitude
         && o.longitude >= extent.minLongitude && o.longitude <= extent.maxLongitude)) outside.push(i + 1);

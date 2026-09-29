@@ -1,0 +1,380 @@
+{
+  "sourceId": "osaka-designated-smoking-areas",
+  "fixtureSha256": "f58b62791396bc46ceca436a7c4ad598520a5c9dd4162b37723ef519399e69ce",
+  "publishedSpots": 344,
+  "tables": {
+    "source_releases": {
+      "count": 1,
+      "digest": "a6502687f25390f73304e24d67602d2a2e21f08b68ba885a54ade6f30453aec1"
+    },
+    "source_records": {
+      "count": 524,
+      "digest": "9eb5f687cf9344b8f79b5b1175e049004e1502c40551b31f09eb6bc298bd0c23"
+    },
+    "source_observations": {
+      "count": 344,
+      "digest": "bd1f5c74f9c9e6a13e8051ffb60b32192bc711e08a97bdd0282940fb49840c27"
+    },
+    "source_entities": {
+      "count": 344,
+      "digest": "b4c9cdc56a1a13d4173d3a6e79628749c02eeeba91028343b321eca72b17f9d3"
+    },
+    "source_record_entities": {
+      "count": 344,
+      "digest": "e433afe564c0fa60ec4b07a616653142ed1973943013e8cf41605afbb9352eb5"
+    },
+    "spots": {
+      "count": 344,
+      "digest": "e864f6ee22f09bb2643e7d89b58b8f462d4e04080d7ee5f555e45a90f312b050"
+    },
+    "spot_field_provenance": {
+      "count": 1720,
+      "digest": "3d6a67930b0c3c15de47ecf85b32132c0b58608c278b7e6f070f36d2928f8b33"
+    },
+    "spot_field_attenuations": {
+      "count": 0,
+      "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tile_snapshots": {
+      "count": 55,
+      "digest": "ef99619233d9a502ceb1969fecbf23d2d09f3b6b48650105807df4cb4d715401"
+    },
+    "tile_snapshot_spots": {
+      "count": 344,
+      "digest": "c5d04f46234a7afcb4dcc86348afb833f0a1143e1586f84e79aad77e21adbd88"
+    }
+  },
+  "tiles": [
+    {
+      "tile": "14/14354/6509",
+      "etag": "\"1-ee8afa0cd2050b2aea40c7ea70ef1d93ea742bd22c563a84c056c5a04ef7ff22\"",
+      "digest": "ee8afa0cd2050b2aea40c7ea70ef1d93ea742bd22c563a84c056c5a04ef7ff22",
+      "spots": 2
+    },
+    {
+      "tile": "14/14355/6505",
+      "etag": "\"1-604bb476cbcd3c7fe5d772b6e7fbef5c0694b637fb642d2925899ad320302b1b\"",
+      "digest": "604bb476cbcd3c7fe5d772b6e7fbef5c0694b637fb642d2925899ad320302b1b",
+      "spots": 1
+    },
+    {
+      "tile": "14/14355/6508",
+      "etag": "\"1-5532c5bafe47e9d5355874120fbb8be3201fce17fcc7b20698b10e08aab0a486\"",
+      "digest": "5532c5bafe47e9d5355874120fbb8be3201fce17fcc7b20698b10e08aab0a486",
+      "spots": 4
+    },
+    {
+      "tile": "14/14355/6510",
+      "etag": "\"1-9cabecb56e8d8cf3f05868345492155aa8d15f6eddfac51f608be4378f3b28f1\"",
+      "digest": "9cabecb56e8d8cf3f05868345492155aa8d15f6eddfac51f608be4378f3b28f1",
+      "spots": 2
+    },
+    {
+      "tile": "14/14356/6504",
+      "etag": "\"1-ca3f0f7ae6a47b32c7718fb61b68348bf6f50b0c69943f570d04823a2925341b\"",
+      "digest": "ca3f0f7ae6a47b32c7718fb61b68348bf6f50b0c69943f570d04823a2925341b",
+      "spots": 3
+    },
+    {
+      "tile": "14/14356/6505",
+      "etag": "\"1-7de73ba2e122eb9443084c2449162b840de5a60c748e76417835eacebf915b32\"",
+      "digest": "7de73ba2e122eb9443084c2449162b840de5a60c748e76417835eacebf915b32",
+      "spots": 1
+    },
+    {
+      "tile": "14/14356/6506",
+      "etag": "\"1-a132bb39917404e08ae35545e4f614206bf0b9f8c760caf5180459af4ffea946\"",
+      "digest": "a132bb39917404e08ae35545e4f614206bf0b9f8c760caf5180459af4ffea946",
+      "spots": 1
+    },
+    {
+      "tile": "14/14356/6507",
+      "etag": "\"1-5e3d410e4cae71ac9ccfb7912ffb093b63f0a4d3cab791c1a08237cafff3956b\"",
+      "digest": "5e3d410e4cae71ac9ccfb7912ffb093b63f0a4d3cab791c1a08237cafff3956b",
+      "spots": 4
+    },
+    {
+      "tile": "14/14356/6508",
+      "etag": "\"1-fc38900a945d8df495ff47b79c59f64309d404e47131fe6f36706704ab1b89ed\"",
+      "digest": "fc38900a945d8df495ff47b79c59f64309d404e47131fe6f36706704ab1b89ed",
+      "spots": 2
+    },
+    {
+      "tile": "14/14357/6504",
+      "etag": "\"1-9710a5d77d68ebfb945a9671349a8acef92fe11e23cd2752c0548a46ed3c14e5\"",
+      "digest": "9710a5d77d68ebfb945a9671349a8acef92fe11e23cd2752c0548a46ed3c14e5",
+      "spots": 1
+    },
+    {
+      "tile": "14/14357/6505",
+      "etag": "\"1-02f6901dc4cf7a8fc70d93c6b88a29c2453905a94227b6d2666f549742d029fc\"",
+      "digest": "02f6901dc4cf7a8fc70d93c6b88a29c2453905a94227b6d2666f549742d029fc",
+      "spots": 4
+    },
+    {
+      "tile": "14/14357/6506",
+      "etag": "\"1-b410963c073881a05cfc37d0082e2bf84d7681cfea44b5b76542625b808ebde0\"",
+      "digest": "b410963c073881a05cfc37d0082e2bf84d7681cfea44b5b76542625b808ebde0",
+      "spots": 7
+    },
+    {
+      "tile": "14/14357/6507",
+      "etag": "\"1-e782bfcc82cf49c19a34daf56b27bb03af8e548df1fff9cd8c64b7c918701810\"",
+      "digest": "e782bfcc82cf49c19a34daf56b27bb03af8e548df1fff9cd8c64b7c918701810",
+      "spots": 3
+    },
+    {
+      "tile": "14/14357/6508",
+      "etag": "\"1-85b75be08dc2d0a2b3ded0a4b5a5006410caa327b057341c43276d04f938a39f\"",
+      "digest": "85b75be08dc2d0a2b3ded0a4b5a5006410caa327b057341c43276d04f938a39f",
+      "spots": 3
+    },
+    {
+      "tile": "14/14357/6509",
+      "etag": "\"1-875f12f57e8ca3da11fc1fe49b328c6b6037ab086239bcf3d25566d32505d952\"",
+      "digest": "875f12f57e8ca3da11fc1fe49b328c6b6037ab086239bcf3d25566d32505d952",
+      "spots": 2
+    },
+    {
+      "tile": "14/14357/6510",
+      "etag": "\"1-6effd17a550230a1ca7e958d7965b44282460f0a0d6ba9d71c5feb2e1e783e19\"",
+      "digest": "6effd17a550230a1ca7e958d7965b44282460f0a0d6ba9d71c5feb2e1e783e19",
+      "spots": 7
+    },
+    {
+      "tile": "14/14357/6511",
+      "etag": "\"1-cec3e700a5121b75d03b0c5154bdcfc0c9571f8cb58e3fa81364a5b628316b49\"",
+      "digest": "cec3e700a5121b75d03b0c5154bdcfc0c9571f8cb58e3fa81364a5b628316b49",
+      "spots": 4
+    },
+    {
+      "tile": "14/14358/6503",
+      "etag": "\"1-233bc7284999a565c9f7c4110ec84e01763c852f27dd5a73ec6ca213d32bbdc2\"",
+      "digest": "233bc7284999a565c9f7c4110ec84e01763c852f27dd5a73ec6ca213d32bbdc2",
+      "spots": 4
+    },
+    {
+      "tile": "14/14358/6504",
+      "etag": "\"1-3aabc6d544dd2e7452f54ba48a6ae381ed0be82da3be62200dd1745c62b9d589\"",
+      "digest": "3aabc6d544dd2e7452f54ba48a6ae381ed0be82da3be62200dd1745c62b9d589",
+      "spots": 10
+    },
+    {
+      "tile": "14/14358/6505",
+      "etag": "\"1-86e02958604619cda796c8996340ae6dadba23723979673654761f99c28e8180\"",
+      "digest": "86e02958604619cda796c8996340ae6dadba23723979673654761f99c28e8180",
+      "spots": 4
+    },
+    {
+      "tile": "14/14358/6506",
+      "etag": "\"1-3284b634bce608434dd82fd29b2be74824b5776e998400d9a7c7fe3c2c8e993a\"",
+      "digest": "3284b634bce608434dd82fd29b2be74824b5776e998400d9a7c7fe3c2c8e993a",
+      "spots": 28
+    },
+    {
+      "tile": "14/14358/6507",
+      "etag": "\"1-0222c841246ca0b34783087f54ba60c02d511b890748906b786c310ea0e9e38a\"",
+      "digest": "0222c841246ca0b34783087f54ba60c02d511b890748906b786c310ea0e9e38a",
+      "spots": 18
+    },
+    {
+      "tile": "14/14358/6508",
+      "etag": "\"1-efa75614834f606205919de01c76f5dafdd59d07ca92025e5fa4286b9a95d9f8\"",
+      "digest": "efa75614834f606205919de01c76f5dafdd59d07ca92025e5fa4286b9a95d9f8",
+      "spots": 42
+    },
+    {
+      "tile": "14/14358/6509",
+      "etag": "\"1-61647fbda33cc93775569caea95ed838e59a442431df62a487f6e36a42b3171d\"",
+      "digest": "61647fbda33cc93775569caea95ed838e59a442431df62a487f6e36a42b3171d",
+      "spots": 10
+    },
+    {
+      "tile": "14/14358/6510",
+      "etag": "\"1-094980f2ce23c507eb2ea39887fad45aca3c8791da4d5b597cc80dc7eac09346\"",
+      "digest": "094980f2ce23c507eb2ea39887fad45aca3c8791da4d5b597cc80dc7eac09346",
+      "spots": 8
+    },
+    {
+      "tile": "14/14358/6511",
+      "etag": "\"1-90f987bc47cd3ec18c9f1c855655de3d8630f46ca648f02e9264a8b3287bf0f9\"",
+      "digest": "90f987bc47cd3ec18c9f1c855655de3d8630f46ca648f02e9264a8b3287bf0f9",
+      "spots": 5
+    },
+    {
+      "tile": "14/14358/6512",
+      "etag": "\"1-a0c227a95eb140bd00d7029b6a10540209d02b38a0fd772558bc4f532cf851ff\"",
+      "digest": "a0c227a95eb140bd00d7029b6a10540209d02b38a0fd772558bc4f532cf851ff",
+      "spots": 1
+    },
+    {
+      "tile": "14/14359/6503",
+      "etag": "\"1-7aff9d324fa3653aff1909fded1f8bf9039244e00bf22f4a8eeed6bde29da956\"",
+      "digest": "7aff9d324fa3653aff1909fded1f8bf9039244e00bf22f4a8eeed6bde29da956",
+      "spots": 1
+    },
+    {
+      "tile": "14/14359/6504",
+      "etag": "\"1-7ad6a013b1459f6f31d20bc426c0465c71d8b11a27019b684f73bf8ccfb10f72\"",
+      "digest": "7ad6a013b1459f6f31d20bc426c0465c71d8b11a27019b684f73bf8ccfb10f72",
+      "spots": 3
+    },
+    {
+      "tile": "14/14359/6505",
+      "etag": "\"1-06eaa8b752fe92492e1bc144df8214346a962bfaf616a646d1eea643e9e2b9b0\"",
+      "digest": "06eaa8b752fe92492e1bc144df8214346a962bfaf616a646d1eea643e9e2b9b0",
+      "spots": 5
+    },
+    {
+      "tile": "14/14359/6506",
+      "etag": "\"1-d4bd7059dc593fbf7c6b0c17faf042b97191405ed507326c7187aa817eaa77ed\"",
+      "digest": "d4bd7059dc593fbf7c6b0c17faf042b97191405ed507326c7187aa817eaa77ed",
+      "spots": 10
+    },
+    {
+      "tile": "14/14359/6507",
+      "etag": "\"1-0a325d62cc1f7888bb79be24562d0889a618363ded3347cc3c9791fd1547ccf8\"",
+      "digest": "0a325d62cc1f7888bb79be24562d0889a618363ded3347cc3c9791fd1547ccf8",
+      "spots": 8
+    },
+    {
+      "tile": "14/14359/6508",
+      "etag": "\"1-e2be35f8de68ae8a5461af2fac6bc63762577ab3d2ab9bae97398820ab012d89\"",
+      "digest": "e2be35f8de68ae8a5461af2fac6bc63762577ab3d2ab9bae97398820ab012d89",
+      "spots": 8
+    },
+    {
+      "tile": "14/14359/6509",
+      "etag": "\"1-edc1fdecb23d230609b4b367f32a29dfbd2eb8b73f67a5f4007b61e250ee621e\"",
+      "digest": "edc1fdecb23d230609b4b367f32a29dfbd2eb8b73f67a5f4007b61e250ee621e",
+      "spots": 20
+    },
+    {
+      "tile": "14/14359/6510",
+      "etag": "\"1-ceca5f05c52df4c734293d799756f13eb9c797a0e306b6316b44e17c42027d18\"",
+      "digest": "ceca5f05c52df4c734293d799756f13eb9c797a0e306b6316b44e17c42027d18",
+      "spots": 2
+    },
+    {
+      "tile": "14/14359/6511",
+      "etag": "\"1-46cbc7e6a458d2116a326dd1909a1ff71ef2d879c0f7a3a484b5c85ebec682b1\"",
+      "digest": "46cbc7e6a458d2116a326dd1909a1ff71ef2d879c0f7a3a484b5c85ebec682b1",
+      "spots": 17
+    },
+    {
+      "tile": "14/14360/6503",
+      "etag": "\"1-d2c40f6de00a7baa3b6996f13514dfdd4603fbf61db918440a472dfcee560f02\"",
+      "digest": "d2c40f6de00a7baa3b6996f13514dfdd4603fbf61db918440a472dfcee560f02",
+      "spots": 2
+    },
+    {
+      "tile": "14/14360/6504",
+      "etag": "\"1-8330e02f9639004d77e9076c181ff03b69c5b9186660929de0bb4fa993cb43a1\"",
+      "digest": "8330e02f9639004d77e9076c181ff03b69c5b9186660929de0bb4fa993cb43a1",
+      "spots": 3
+    },
+    {
+      "tile": "14/14360/6505",
+      "etag": "\"1-be1aa23289960fe5ced33455cba294c9a1c712c4129d5a06c99df5a23496042e\"",
+      "digest": "be1aa23289960fe5ced33455cba294c9a1c712c4129d5a06c99df5a23496042e",
+      "spots": 7
+    },
+    {
+      "tile": "14/14360/6506",
+      "etag": "\"1-f2d86d2b4a284c3d80ea1b45db2ad263191caccdfdce9a251f4f8c68a6e6937b\"",
+      "digest": "f2d86d2b4a284c3d80ea1b45db2ad263191caccdfdce9a251f4f8c68a6e6937b",
+      "spots": 11
+    },
+    {
+      "tile": "14/14360/6507",
+      "etag": "\"1-0714dc44ec6c3297e034e0085958f2b802c71abd1a68d481099d21bccb94a9f9\"",
+      "digest": "0714dc44ec6c3297e034e0085958f2b802c71abd1a68d481099d21bccb94a9f9",
+      "spots": 11
+    },
+    {
+      "tile": "14/14360/6508",
+      "etag": "\"1-6e70f926021c605974854d84d274b53a7ec54b8707cc6fe17493b914aef59c09\"",
+      "digest": "6e70f926021c605974854d84d274b53a7ec54b8707cc6fe17493b914aef59c09",
+      "spots": 10
+    },
+    {
+      "tile": "14/14360/6509",
+      "etag": "\"1-de35f87a29394bd92629f84c64d500ef0b87227fa62887459bcc196b52e7cdbd\"",
+      "digest": "de35f87a29394bd92629f84c64d500ef0b87227fa62887459bcc196b52e7cdbd",
+      "spots": 2
+    },
+    {
+      "tile": "14/14360/6510",
+      "etag": "\"1-1e80f049ee8dbaeb07ca3151399667acbd3b58a6872b24fa694e2e5462837e0e\"",
+      "digest": "1e80f049ee8dbaeb07ca3151399667acbd3b58a6872b24fa694e2e5462837e0e",
+      "spots": 6
+    },
+    {
+      "tile": "14/14360/6511",
+      "etag": "\"1-b39a50defe2e3693157a03a6215196f87522a014cff559d71147fb6b0cefdbe2\"",
+      "digest": "b39a50defe2e3693157a03a6215196f87522a014cff559d71147fb6b0cefdbe2",
+      "spots": 6
+    },
+    {
+      "tile": "14/14361/6504",
+      "etag": "\"1-e4881b1e16de7975f78f1220a37ee67153b45818f04965d91e8269d46d18e04b\"",
+      "digest": "e4881b1e16de7975f78f1220a37ee67153b45818f04965d91e8269d46d18e04b",
+      "spots": 5
+    },
+    {
+      "tile": "14/14361/6505",
+      "etag": "\"1-0c14d624907bfddd7496234dbf169004a11dd5314c30ee20f067597b3b16f393\"",
+      "digest": "0c14d624907bfddd7496234dbf169004a11dd5314c30ee20f067597b3b16f393",
+      "spots": 2
+    },
+    {
+      "tile": "14/14361/6506",
+      "etag": "\"1-4efe8915be507bfbbc62c3e36f1d3b8224aa15f3f1e0f36114d3375af2d0d0f7\"",
+      "digest": "4efe8915be507bfbbc62c3e36f1d3b8224aa15f3f1e0f36114d3375af2d0d0f7",
+      "spots": 3
+    },
+    {
+      "tile": "14/14361/6507",
+      "etag": "\"1-e81e7b6e9f2aba4b11de81ab3e641263147a6b539ed3c68a933fcfdd3499e6b8\"",
+      "digest": "e81e7b6e9f2aba4b11de81ab3e641263147a6b539ed3c68a933fcfdd3499e6b8",
+      "spots": 4
+    },
+    {
+      "tile": "14/14361/6508",
+      "etag": "\"1-11acd8b5ca6483a8b0e860495ff6185d36be19d044616b1854d270ef9483e427\"",
+      "digest": "11acd8b5ca6483a8b0e860495ff6185d36be19d044616b1854d270ef9483e427",
+      "spots": 2
+    },
+    {
+      "tile": "14/14361/6509",
+      "etag": "\"1-62aa8b20c15b326f41b771739dafd083656e07c9662b9221f1af3c003057838e\"",
+      "digest": "62aa8b20c15b326f41b771739dafd083656e07c9662b9221f1af3c003057838e",
+      "spots": 1
+    },
+    {
+      "tile": "14/14361/6510",
+      "etag": "\"1-8e1241630a1a18ff82968a7dda8655afce718a84d10fb4b79c29116f1bd822a1\"",
+      "digest": "8e1241630a1a18ff82968a7dda8655afce718a84d10fb4b79c29116f1bd822a1",
+      "spots": 5
+    },
+    {
+      "tile": "14/14361/6511",
+      "etag": "\"1-eec1de406680361b8b981a01bec65e61de4318d0791b7125b81aac73ffe67a50\"",
+      "digest": "eec1de406680361b8b981a01bec65e61de4318d0791b7125b81aac73ffe67a50",
+      "spots": 4
+    },
+    {
+      "tile": "14/14362/6505",
+      "etag": "\"1-4d3920835913d38f989b151c9993fba6d08507ca46c571519bfb12b75528a739\"",
+      "digest": "4d3920835913d38f989b151c9993fba6d08507ca46c571519bfb12b75528a739",
+      "spots": 1
+    },
+    {
+      "tile": "14/14362/6511",
+      "etag": "\"1-e26a718499982a3f985c3170e20cedd2f7511331283836527a00bd199d855ae1\"",
+      "digest": "e26a718499982a3f985c3170e20cedd2f7511331283836527a00bd199d855ae1",
+      "spots": 4
+    }
+  ],
+  "detailDigest": "482b75ebcefcdd0a41c29df77787a84b3493e092e3e691abe1a006a60a718969"
+}

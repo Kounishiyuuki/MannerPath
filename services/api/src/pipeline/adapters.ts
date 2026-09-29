@@ -4,6 +4,7 @@
 // OSM is deliberately absent until its own ADR (docs/DATA_POLICY.md).
 
 import type { SourceAdapter } from "./source-adapter.ts";
+import { OSAKA_ADAPTER } from "./osaka-adapter.ts";
 import { TAITO_ADAPTER } from "./taito-adapter.ts";
 
-export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER];
+export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER, OSAKA_ADAPTER];
