@@ -127,3 +127,42 @@ The City's separate [smoking-location page](https://www.city.osaka.lg.jp/kankyo/
 designated locations are free and usable without patronizing the host. It supports the scope
 review; no values or schedules are copied from that page. Its map infrastructure and linked
 third-party business URLs are not ingested. The raw CC BY CSV is the sole value source.
+
+### 江東区 公共喫煙所一覧（駅前）
+
+Reviewed 2026-09-29 after the [23-ward survey](research/2026-09-29-tokyo-n1-source-survey.md).
+Raw evidence and detailed mapping: `services/data-pipeline/fixtures/koto-station-smoking-areas/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `koto-station-smoking-areas` |
+| Name / publisher | 公共喫煙所一覧（駅前） / 江東区、環境保全課 |
+| Kind | municipal |
+| Official source URL | https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html — ordinary current-operation reference only; no values imported from it |
+| Dataset URL | https://catalog.data.metro.tokyo.lg.jp/dataset/t131083d0000000061 |
+| Raw data URL | https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv |
+| License name / applicability | CC BY 4.0. The ward's https://www.city.koto.lg.jp/012107/koto_opendata.html explicitly publishes via Tokyo catalog and requires its terms. The publisher's scoped package API https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_show?id=t131083d0000000061 declares CC-BY-4.0 and binds this exact resource. Catalog HTML returned 403, so original publisher API evidence is retained. This does not extend a license to ordinary ward HTML |
+| License URL / original terms | https://creativecommons.org/licenses/by/4.0/legalcode.ja ; https://portal.data.metro.tokyo.lg.jp/terms/ §2 |
+| Redistribution to clients allowed | Yes, Tokyo terms §2 and CC BY 4.0 §2(a)(1)(A), subject to attribution and notices |
+| Modification/derivation allowed | Yes, Tokyo terms §2(1)(イ), CC BY 4.0 §2(a)(1)(B); disclose changes and do not imply government authorship/endorsement |
+| Share-alike obligations | None; retain source rights and do not impose conflicting downstream restrictions (CC BY §2(a)(5), §3) |
+| Required attribution text | Tokyo's modified-work example plus source/license URI and change disclosure: `このデータベースは、以下の著作物を改変して利用しています。公共喫煙所一覧（駅前）、東京都・江東区、クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/ 元データ https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv MannerPathが抽出・正規化して作成。コンテンツ提供者は内容を保証せず、利用により生じた損害について責任を負いません。利用規約 https://portal.data.metro.tokyo.lg.jp/terms/` |
+| Geographic scope / completeness | 江東区の駅前公衆喫煙所3地点のみ。Partial, not all ward smoking places; excludes park resource, designated private locations and cooperation venues |
+| Update cadence | Official package 更新頻度: 随時; no SLA. Resource metadata date 2025-03-17 JST, HTTP Last-Modified 2026-01-15. These are not observation dates |
+| Observation date available | none; `observedOn` and `lastVerifiedAt` NULL. Fetch/check date never substitutes |
+| Coordinate semantics | Explicit 緯度/経度 decimal site points paired with smoking names, not inferred host/business locations. Datum, accuracy and entrance positioning **unstated** in publisher CSV/catalog/spec. Supplied values used directly under the existing WGS84-compatible display-lat/lon convention; compatibility is an implementation assumption, not verified publisher CRS or entrance precision. No geocoding |
+| Automation suitability | Stable named official CSV URL, unauthenticated GET succeeds, 314 bytes CP932/Shift_JIS. Exact header decoder/parser and pinned first-release gate. No `refreshTarget`; automatic checks and repeated-release behavior require further review |
+| Current operation | 2026-02-04 ordinary official page identifies all three CSV sites; no station conflict found in 2026-09-29 review. No ordinary-page wording, hours or coordinates enter canonical data |
+| Reviewed release | SHA-256 `e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d`, 314 bytes; 3 raw rows → 3 observations → 3 published spots |
+| Reviewed by / date | Codex, AI-assisted primary-source review, 2026-09-29; repository approval reviewable on this branch, local DB only |
+| Publication status | approved only for pinned station first release; `crossReleaseValidated=false`, `completeness=partial` |
+
+### 江東区 公共喫煙所一覧（公園） — blocked candidate
+
+Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv
+has clear CC BY 4.0 applicability but a current-operation conflict: the
+[official park prohibition](https://www.city.koto.lg.jp/470601/machizukuri/kasenkoen/sebi/jidouyuenkinen.html)
+states all ward parks became smoke-free on 2022-01-01. No applicable exception was established.
+Publication status: **blocked**; no adapter, ingest or canonical values. Do not equate a later
+catalog timestamp with current smoking permission. Remaining surveyed candidates with unresolved
+license/raw coordinates are also blocked, with per-ward reasons in the survey linked above.

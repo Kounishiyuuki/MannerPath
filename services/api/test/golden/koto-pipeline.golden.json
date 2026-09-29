@@ -1,0 +1,68 @@
+{
+  "sourceId": "koto-station-smoking-areas",
+  "fixtureSha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d",
+  "publishedSpots": 3,
+  "tables": {
+    "source_releases": {
+      "count": 1,
+      "digest": "2d2721e920c3a900f4429b304d8149ab60d8ffbf9c605a6c2c62e4fc6b6609dd"
+    },
+    "source_records": {
+      "count": 3,
+      "digest": "9b46c884bd78d0ee5c7aea61e7c17e5da77f2cdf8898f18d1d67b33fec99001c"
+    },
+    "source_observations": {
+      "count": 3,
+      "digest": "2932d661440ad5b430fb273feb7ab1b184645b92e3dc6f6e16f311a7fbe58185"
+    },
+    "source_entities": {
+      "count": 3,
+      "digest": "1bb842945f63d9971d90ea097533fb5f717a0ac2bd355f45cc5addd119349153"
+    },
+    "source_record_entities": {
+      "count": 3,
+      "digest": "8b638d9073444d762c762fdf90e70a475d331a63a9dbb6d3fc456b8e10517637"
+    },
+    "spots": {
+      "count": 3,
+      "digest": "5feb2c9d488c9b6c86a1a4b87b9adafc7971dcba5b4e8f105e24bd010d8b8331"
+    },
+    "spot_field_provenance": {
+      "count": 12,
+      "digest": "cfe1983c724800f868d505fd02d005b069afbd218bd0eace850359f5e228f639"
+    },
+    "spot_field_attenuations": {
+      "count": 0,
+      "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tile_snapshots": {
+      "count": 3,
+      "digest": "10ca51768b2a6ff2ccc680d8b3b46d9d062e79577c17f32130685dee0b241ed9"
+    },
+    "tile_snapshot_spots": {
+      "count": 3,
+      "digest": "f1bbd76253a493390cd7703fdf195cd449fc0dc75ebf7b6588e3da40c2129525"
+    }
+  },
+  "tiles": [
+    {
+      "tile": "14/14554/6453",
+      "etag": "\"1-928abbf75c34548bda58e98934633d71ee009368497b04dcdc4d905c350b27b7\"",
+      "digest": "928abbf75c34548bda58e98934633d71ee009368497b04dcdc4d905c350b27b7",
+      "spots": 1
+    },
+    {
+      "tile": "14/14555/6452",
+      "etag": "\"1-4d0e6be620b97ff00f4438802a2512e420ffc4d97092df3e8543508b52d15521\"",
+      "digest": "4d0e6be620b97ff00f4438802a2512e420ffc4d97092df3e8543508b52d15521",
+      "spots": 1
+    },
+    {
+      "tile": "14/14555/6453",
+      "etag": "\"1-defb1186e1fd8dcdeaa335811496496a0179131155f4028c50f2331a8fb7fa2e\"",
+      "digest": "defb1186e1fd8dcdeaa335811496496a0179131155f4028c50f2331a8fb7fa2e",
+      "spots": 1
+    }
+  ],
+  "detailDigest": "bedc59991e5a6d513bf1c59566637985d5dbda44d34772c72c20c9c5df87a790"
+}

@@ -1,0 +1,34 @@
+{
+  "name": "t131083d0000000061",
+  "title": "公共喫煙所一覧",
+  "organization": {
+    "name": "t131083",
+    "title": "江東区"
+  },
+  "maintainer": "環境保全課",
+  "license_id": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+  "extras": [
+    {
+      "key": "更新頻度",
+      "value": "随時"
+    }
+  ],
+  "resources": [
+    {
+      "name": "公共喫煙所一覧（駅前）",
+      "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "format": "CSV",
+      "created": "2025-03-16T15:00:00",
+      "last_modified": "2025-03-16T15:00:00"
+    },
+    {
+      "name": "公共喫煙所一覧（公園）",
+      "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+      "format": "CSV",
+      "created": "2025-03-16T15:00:00",
+      "last_modified": "2025-03-16T15:00:00"
+    }
+  ],
+  "url": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html"
+}
