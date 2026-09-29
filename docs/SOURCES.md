@@ -219,3 +219,14 @@ Immutable fixture, publisher metadata and exact mapping: `services/data-pipeline
 | Uncertain fields | Hours retained unparsed where supplied; no openNow inference. Tobacco support, physical type, access, fee, host and other unsupported fields unknown; address raw-only |
 | Reviewed by / date | Codex, AI-assisted primary-source review, 2026-09-30, Issue #109; repository approval reviewable in this branch |
 | Publication status | approved for pinned first release and exact scoped extraction only |
+
+### 鹿児島市 路上禁煙区マナー灰皿 — blocked candidate
+
+Surveyed 2026-09-30 in the [N2 west/central survey](research/2026-09-30-n2-west-central-municipal-survey.md).
+The raw CSV https://data.bodik.jp/dataset/e7b3a67c-b67d-41ad-9808-6f9a11696c85/resource/947f79ad-91c7-4b4d-bace-744eac2b726f/download/3-15_haizara.csv
+(4 rows) has clear CC BY 4.0 applicability through the city's BODIK catalog terms and explicit
+経度/緯度, but conflicts with current official evidence. The city states that the 路上禁煙地区
+prohibits all smoking, including portable-ashtray use, with no exception for these ashtrays. Three
+of the four points fall inside the publisher's own zone polygons. An ashtray's existence does not
+establish smoking permission. Publication status: **blocked**, with no adapter, ingest or canonical
+values, until the publisher states what the ashtrays are for.
