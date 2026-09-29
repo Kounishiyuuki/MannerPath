@@ -1,25 +1,27 @@
-// A promotion bundle bootstraps only an EMPTY, freshly migrated database (migration 0016, Issue #100).
+// A promotion bundle bootstraps only an EMPTY, freshly migrated database (migration 0016, Issue #100; v3: 0018).
 // Every table must be named by promotion_bootstraps_empty_target itself — reports, rate windows and
 // App Attest rows reference no canonical row, so no parent check could stand in for them.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { type DatabaseSync } from "node:sqlite";
-import { buildPromotionBundle } from "../src/pipeline/promotion.ts";
+import { buildMultiSourcePromotionBundle, buildPromotionBundle } from "../src/pipeline/promotion.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
-const REFUSED = /promotion_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database/;
+const REFUSED = /promotion_(multi_)?bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database/;
+const GUARDS = ["promotion_bootstraps_empty_target", "promotion_multi_bootstraps_empty_target"];
 const TABLES = (db: DatabaseSync) => (db.prepare(
   "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\' ORDER BY name",
 ).all() as { name: string }[]).map((r) => r.name);
 
-const bundle = (async () => {
+const origin = (async () => {
   const db = new SqliteD1();
   await importTaito(db, { newSpotId: sequentialSpotIds() });
   await publishTiles(db, { now: NOW });
-  return (await buildPromotionBundle(db)).sql;
+  return db;
 })();
+const bundles = (async () => [(await buildPromotionBundle(await origin)).sql, (await buildMultiSourcePromotionBundle(await origin)).sql])();
 
 function refusedWithNothingWritten(target: DatabaseSync, sql: string, seeded: string): void {
   const before = Object.fromEntries(TABLES(target).map((t) => [t, (target.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n]));
@@ -29,19 +31,27 @@ function refusedWithNothingWritten(target: DatabaseSync, sql: string, seeded: st
   }
 }
 
-test("the guard names every table of a freshly migrated schema", () => {
+test("both bootstrap guards (v2 and v3) name every table of a freshly migrated schema", () => {
   const db = migratedSqlite();
-  const trigger = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'promotion_bootstraps_empty_target'").get() as { sql: string }).sql;
   const tables = TABLES(db);
-  assert.equal(tables.length, 32);
-  for (const t of tables) assert.match(trigger, new RegExp(`EXISTS \\(SELECT 1 FROM ${t}\\)`), `${t} is not checked`);
+  assert.equal(tables.length, 35);
+  for (const guard of GUARDS) {
+    const trigger = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?").get(guard) as { sql: string }).sql;
+    for (const t of tables) assert.match(trigger, new RegExp(`EXISTS \\(SELECT 1 FROM ${t}\\)`), `${guard}: ${t} is not checked`);
+  }
   for (const t of tables) assert.equal((db.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n, 0, `${t} is not empty after migrating`);
 });
 
-test("a freshly migrated database accepts the bundle", async () => {
+test("a freshly migrated database accepts either bundle version, and neither over the other", async () => {
+  const [v2, v3] = await bundles;
   const target = migratedSqlite();
-  applyPromotionBundle(target, await bundle);
+  applyPromotionBundle(target, v2);
   assert.equal((target.prepare("SELECT count(*) n FROM promotion_bootstrap_completions").get() as { n: number }).n, 1);
+  assert.throws(() => applyPromotionBundle(target, v3), REFUSED);
+  const other = migratedSqlite();
+  applyPromotionBundle(other, v3);
+  assert.equal((other.prepare("SELECT count(*) n FROM promotion_multi_bootstrap_completions").get() as { n: number }).n, 1);
+  assert.throws(() => applyPromotionBundle(other, v2), REFUSED);
 });
 
 // Rows the application itself writes into tables that hang off no canonical row, through their real constraints.
@@ -61,7 +71,7 @@ for (const [table, statements] of APPLICATION_ROWS) {
   test(`application data in ${table} refuses the bootstrap`, async () => {
     const target = migratedSqlite();
     for (const s of statements) target.exec(s);
-    refusedWithNothingWritten(target, await bundle, table);
+    for (const sql of await bundles) refusedWithNothingWritten(target, sql, table);
   });
 }
 
@@ -70,7 +80,7 @@ for (const [table, statements] of APPLICATION_ROWS) {
 for (const table of TABLES(migratedSqlite())) {
   test(`a row in ${table} alone refuses the bootstrap`, async () => {
     const target = migratedSqlite();
-    for (const { name } of target.prepare("SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ? AND name <> 'promotion_bootstraps_empty_target'").all(table) as { name: string }[]) {
+    for (const { name } of target.prepare(`SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ? AND name NOT IN ('${GUARDS.join("', '")}')`).all(table) as { name: string }[]) {
       target.exec(`DROP TRIGGER ${name}`);
     }
     const columns = (target.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
@@ -78,6 +88,6 @@ for (const table of TABLES(migratedSqlite())) {
     target.prepare(`INSERT INTO ${table} (${columns.join(", ")}) VALUES (${columns.map(() => "1").join(", ")})`).run();
     target.exec("PRAGMA foreign_keys = ON; PRAGMA ignore_check_constraints = OFF;");
     assert.deepEqual(TABLES(target).filter((t) => (target.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n > 0), [table]);
-    refusedWithNothingWritten(target, await bundle, table);
+    for (const sql of await bundles) refusedWithNothingWritten(target, sql, table);
   });
 }

@@ -294,6 +294,8 @@ references the previous release, which is not promoted. So:
   its dependency removed together); the database is not asked to. The file's authenticity is checked
   before apply by `npm run local:verify-promotion`, against a `contentSha256` taken from the reviewed
   record of the bundle, never from the file's own header (docs/OPERATIONS.md step 4).
+- **Several sources:** `promotion-bundle.v3` (migration 0018) carries every named source's current release
+  in one bootstrap; see "Amendment 2026-09 — multi-source promotion". v2 is unchanged.
 
 ### 8. Review queue (boundary)
 
@@ -470,3 +472,39 @@ source-specific review requirement before enabling refresh of a mixed dataset, r
 implicit threshold: checks only queue candidates, and Osaka has no `refreshTarget`. Its approval
 is for the pinned first release only; scheduled checks skip it without fetching. Scope remains part
 of `mappingVersion`; refresh does not derive or replace observation generations.
+
+## Amendment 2026-09 — multi-source promotion (`promotion-bundle.v3`)
+
+Code: `buildMultiSourcePromotionBundle` in `services/api/src/pipeline/promotion.ts`, `--bundle v3` in
+`scripts/export-promotion.ts`. Migration: `0018_promotion_multi_source.sql`. Tests:
+`test/promotion-multi-source.test.ts`, `test/promotion-empty-target.test.ts`,
+`test/relocation-tile-promotion-e2e.test.ts`.
+
+1. **New version beside v2, not a change of v2.** 0016's `promotion_bootstraps` fixes one source and one
+   release in CHECKs and triggers. v3 adds its own tables (`promotion_multi_bootstraps`,
+   `promotion_multi_bootstrap_sources`, `promotion_multi_bootstrap_completions`) and triggers; a v2 bundle
+   still produces byte-identical SQL (the Taito golden pins its hash) and is checked by 0016 exactly as
+   before. 0018 replaces two 0016/0017 triggers, each as a superset: `promotion_bootstraps_empty_target`
+   (now also naming the v3 tables) and `promotion_review_match_attestations_valid` (0016's condition
+   verbatim, **or** the v3 condition).
+2. **Manifest.** One declaration per source, before any data row: release id and fingerprint, display
+   name / license / attribution identity, that source's row counts for every source-scoped table, and the
+   previous-release dependencies of its attestations. Plus bundle-wide counts and the tile list.
+3. **Atomicity.** The exporter refuses the bundle when any source fails any v2 check, or when a published
+   spot draws evidence from a release not in the bundle. On the target, the completion re-checks every
+   declaration; one mismatch aborts the file, and D1 rolls back the whole import. No partial promotion.
+4. **Identity separation.** A record decision cannot cross sources (0001). While a v3 bootstrap is open,
+   field provenance and attenuations must come from a declared release of a source the spot is linked to
+   through that source's own entity, and an attestation's chosen entity and every candidate must belong to
+   its release's source; the exporter checks the same before writing.
+5. **Trust boundary unchanged.** Attestations remain weaker evidence than the runtime chain, which never
+   travels. The target cannot detect a *consistent* edit (a row, its per-source and bundle-wide counts and
+   its declaration changed together); the externally reviewed `contentSha256`, checked by
+   `local:verify-promotion` before apply, remains the authenticity check. The verifier accepts exactly one
+   v2 or v3 body start.
+6. **Empty target and seal.** Both bootstrap guards name every table of 0001–0018; neither version applies
+   over the other. While a v3 bootstrap is open, observations, review rows and source-refresh rows (0017)
+   are refused; at completion they must be empty. After completion the same promoted tables as v2 are
+   sealed; reports, App Attest and source-refresh tables stay writable.
+7. **Not implemented:** more than one release per source, and cross-source spot merges (a spot linked to
+   entities of two sources) have no reviewed flow; the v3 checks allow the latter but nothing creates it.

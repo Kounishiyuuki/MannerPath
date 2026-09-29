@@ -19,7 +19,7 @@ import { createHash } from "node:crypto";
 import { app } from "../src/app.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../src/geo/tile.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
-import { PromotionError, buildPromotionBundle } from "../src/pipeline/promotion.ts";
+import { PromotionError, buildMultiSourcePromotionBundle, buildPromotionBundle } from "../src/pipeline/promotion.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { applyReviewedRelocation } from "../src/pipeline/relocation-application.ts";
 import { holdRelocationCandidate } from "../src/pipeline/relocation-hold.ts";
@@ -334,5 +334,17 @@ for (const c of CASES) {
     const targetDetail = await get(bootstrapped, `/v1/spots/${spotId}`);
     assert.equal(targetDetail.status, 200);
     assert.deepEqual(await targetDetail.json(), detail);
+
+    // ── the same relocated release through promotion-bundle.v3 (migration 0018): the same published state,
+    // the same attestation, and a byte-identical re-export from the bootstrapped database.
+    const multi = await buildMultiSourcePromotionBundle(db);
+    assert.deepEqual(multi.manifest.sources.map((s) => [s.releaseId, s.rows.promotion_review_match_attestations]), [[secondId, 1]]);
+    const multiTarget = new SqliteD1(migratedSqlite());
+    applyPromotionBundle(multiTarget.raw, multi.sql);
+    assert.deepEqual(snapshots(multiTarget), snapFinal);
+    assert.deepEqual(one(multiTarget, "SELECT latitude, longitude, tile_id FROM spots WHERE spot_id = ?", spotId), { ...c.to, tile_id: newTile });
+    assert.equal(existenceRecord(multiTarget, spotId), item.record_id);
+    assert.equal(one(multiTarget, "SELECT method FROM source_record_entities WHERE record_id = ?", item.record_id).method, "manual");
+    assert.equal((await buildMultiSourcePromotionBundle(multiTarget)).sql, multi.sql);
   });
 }

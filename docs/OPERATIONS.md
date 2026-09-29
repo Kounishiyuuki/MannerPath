@@ -119,7 +119,24 @@ state to another database:
 npm run local:export                                  # validate + print the manifest, write nothing
 npm run local:export -- --out promotion.sql           # write the artifact
 npm run local:export -- --release 1 --out promotion.sql
+# several reviewed sources in ONE all-or-nothing bundle (promotion-bundle.v3, migration 0018):
+npm run local:export -- --bundle v3 --out promotion.sql                           # every source's current release
+npm run local:export -- --bundle v3 --release 1 --release 2 --out promotion.sql   # an explicit set
 ```
+
+**Several sources: `promotion-bundle.v3`.** A v2 bundle carries one release, and on a database whose
+tiles also publish another source it is refused ("draw existence evidence from another release") —
+there is no partial promotion. A v3 bundle (`buildMultiSourcePromotionBundle`) carries the current
+release of every named source. Its first statements are `promotion_multi_bootstraps` (bundle version,
+source count, bundle-wide row counts) and one `promotion_multi_bootstrap_sources` declaration per
+source, written before any data row: release id and fingerprint, display name / license / attribution
+identity, that source's own row counts and the previous-release dependencies of its attestations. Its
+last statement, `promotion_multi_bootstrap_completions`, re-checks every declaration on the target.
+One source's fingerprint mismatch, missing row, attestation mismatch or non-approved status fails the
+whole file (D1 applies it as one transaction). The export refuses the same way: every source must pass
+every v2 check. Field provenance and attenuations must come from a release of a source the spot is
+linked to (exporter and target both check), and a record decision or attestation can name only an
+entity of its own source. Everything else below applies to both versions; v2 is unchanged.
 
 The bundle is deterministic SQL (`services/api/src/pipeline/promotion.ts`):
 
@@ -206,10 +223,12 @@ fresh database (Issue #100, `test/promotion-reviewed-bootstrap.test.ts`,
 source's current one, and a reviewed link without its applied decision.
 
 **The bundle is a bootstrap artifact, not an update.** It is INSERT-only, and its target is an
-**empty database migrated through 0016** (a v2 bundle does not apply to an older schema). It cannot
+**empty database migrated through 0016** (a v2 bundle does not apply to an older schema; a v3 bundle needs
+0018). It cannot
 modify an already-populated remote D1: its first statement refuses any database that is not empty,
 before anything is written. "Empty" is checked table by table over **every** table of migrations
-0001–0016 — source, canonical, attenuation, tile, review / removal / relocation, promotion, and the
+0001–0018 — source, canonical, attenuation, tile, review / removal / relocation, promotion (v2 and v3),
+source refresh (0017), and the
 application tables that hang off no canonical row (`reports`, `report_moderation`,
 `report_rate_windows`, `app_attest_keys`, `app_attest_challenges`) — so a database that ever served
 reports or App Attest is refused too (`test/promotion-empty-target.test.ts`). This slice adds no remote upsert or update path, and none should be
@@ -220,6 +239,9 @@ identity, canonical, provenance and tile tables against INSERT, UPDATE and DELET
 `source_observations`, which are derived from promoted records but not carried in the bundle.
 Normal runtime data stays writable: reports, moderation, rate windows and App Attest keys and
 challenges are outside the seal. A later publication needs a fresh target and another promotion.
+Migration 0018 seals the same tables after a v3 completion. The source refresh tables (0017) are
+refused while a v3 bootstrap is open and must be empty at its completion, and stay writable after it:
+promote first, then enable checks.
 
 **Atomicity.** The bundle contains no `BEGIN` / `COMMIT`: D1 refuses transaction statements in SQL and
 runs a `wrangler d1 execute --remote --file` import as one transaction itself (wrangler: "if the

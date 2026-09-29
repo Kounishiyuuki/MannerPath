@@ -12,7 +12,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
 - `src/app.ts`: `GET /v1/config`, `GET /v1/tiles/{z}/{x}/{y}` with ETag / `If-None-Match`, `GET /v1/spots/{id}` and `POST /v1/reports`.
 - `src/config/`: the `GET /v1/config` compatibility body, built from the canonical constants the rest of the code enforces.
-- `src/pipeline/promotion.ts`: the deterministic promotion bundle (`npm run local:export`) that carries a validated local release to another database.
+- `src/pipeline/promotion.ts`: the deterministic promotion bundle (`npm run local:export`) that carries a validated local release (v2) or several sources' current releases (v3, `--bundle v3`) to another database.
 - `src/reports/`: the report API (ADR-0007) — strict request schema, hashed-submitter rate limiting, the App Attest boundary, retention/minimization and moderation state.
 - `src/geo/tile.ts`: Slippy XYZ tile math, checked against `contracts/tiles/slippy-xyz-vectors.v1.json`.
 - `test/`: node:test suites. They run on node:sqlite through a D1-shaped adapter that applies the real migrations.

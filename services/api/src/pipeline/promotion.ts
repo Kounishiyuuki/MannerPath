@@ -41,6 +41,8 @@ import { reviewedSource } from "./registry.ts";
 
 /** v2 (Issue #100): bootstrap/completion statements and review-match attestations; needs migration 0016. */
 export const PROMOTION_BUNDLE_VERSION = "promotion-bundle.v2";
+/** v3: several sources' current releases in one all-or-nothing bootstrap; needs migration 0018. v2 is unchanged. */
+export const MULTI_SOURCE_PROMOTION_BUNDLE_VERSION = "promotion-bundle.v3";
 
 export interface PromotionManifest {
   generator: string;
@@ -63,6 +65,7 @@ export class PromotionError extends Error {}
 
 /** The first line of the hashed body. The header ends right before it, so exporter and verifier cut at the same byte. */
 const BUNDLE_BODY_FIRST_LINE = "-- promotion_bootstraps: refused unless the target is empty";
+const MULTI_SOURCE_BUNDLE_BODY_FIRST_LINE = "-- promotion_multi_bootstraps: refused unless the target is empty";
 const CONTENT_SHA256 = /^[0-9a-f]{64}$/;
 
 function fail(detail: string): never {
@@ -197,11 +200,12 @@ const TABLES: readonly TableSpec[] = [
 
 type Row = Record<string, unknown>;
 
-async function rowsOf(db: Db, spec: TableSpec, releaseId: number): Promise<Row[]> {
+async function rowsOf(db: Db, spec: TableSpec, releaseId: number | undefined): Promise<Row[]> {
   // Two specs carry no parameter (the published tiles are whole-database state), and binding a
   // value to a statement that has no placeholder is an error; the attestation spec has two.
   const placeholders = spec.sql.split("?").length - 1;
-  const { results } = await db.prepare(spec.sql).bind(...Array(placeholders).fill(releaseId)).all<Row>();
+  const statement = db.prepare(spec.sql);
+  const { results } = await (placeholders === 0 ? statement : statement.bind(...Array(placeholders).fill(releaseId))).all<Row>();
   // A column added by a later migration must be added to the spec deliberately; silently dropping
   // it would produce a bundle that looks complete and is not.
   for (const row of results) {
@@ -257,7 +261,7 @@ async function validateRelease(db: Db, releaseId: number, sources: Row[], releas
   if (source.attribution_text === null) fail(`source ${String(source.source_id)} has no attribution text`);
 }
 
-async function validatePublishedState(db: Db, releaseId: number, rows: Map<string, Row[]>): Promise<void> {
+async function validatePublishedState(db: Db, releaseIds: readonly number[], rows: Map<string, Row[]>): Promise<void> {
   const tiles = rows.get("tile_snapshots") ?? [];
   const members = rows.get("tile_snapshot_spots") ?? [];
   const spots = rows.get("spots") ?? [];
@@ -280,8 +284,8 @@ async function validatePublishedState(db: Db, releaseId: number, rows: Map<strin
     `SELECT s.spot_id FROM tile_snapshot_spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id
-     WHERE r.release_id <> ? ORDER BY s.spot_id`,
-  ).bind(releaseId).all<{ spot_id: string }>();
+     WHERE r.release_id NOT IN (${releaseIds.map(() => "?").join(", ")}) ORDER BY s.spot_id`,
+  ).bind(...releaseIds).all<{ spot_id: string }>();
   if (outside.results.length > 0) {
     fail(`${outside.results.length} published spot(s) draw existence evidence from another release (first: ${outside.results[0].spot_id}); export that release instead, or republish`);
   }
@@ -290,13 +294,44 @@ async function validatePublishedState(db: Db, releaseId: number, rows: Map<strin
   const carried = new Set((rows.get("source_records") ?? []).map((r) => Number(r.record_id)));
   for (const p of rows.get("spot_field_provenance") ?? []) {
     if (!carried.has(Number(p.record_id))) {
-      fail(`provenance for ${String(p.spot_id)}.${String(p.field)} references a record outside release ${releaseId}`);
+      fail(`provenance for ${String(p.spot_id)}.${String(p.field)} references a record outside release ${releaseIds.join(", ")}`);
     }
   }
   const entities = new Set((rows.get("source_entities") ?? []).map((e) => Number(e.source_entity_id)));
   for (const link of rows.get("spot_source_entities") ?? []) {
     if (!entities.has(Number(link.source_entity_id))) {
       fail(`spot ${String(link.spot_id)} links a source entity outside the exported source`);
+    }
+  }
+  validateSourceBoundaries(rows);
+}
+
+/**
+ * Identity separation: a spot's field evidence and attenuations must come from a release of a source the spot is
+ * linked to through that source's own entity. With one source this always holds; with several (v3) it is what
+ * stops one source's record from standing behind another source's spot. The v3 target re-checks both.
+ */
+function validateSourceBoundaries(rows: Map<string, Row[]>): void {
+  const releaseSource = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), String(r.source_id)]));
+  const releaseHash = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), String(r.content_sha256)]));
+  const recordSource = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), releaseSource.get(Number(r.release_id))]));
+  const entitySource = new Map((rows.get("source_entities") ?? []).map((e) => [Number(e.source_entity_id), String(e.source_id)]));
+  const spotSources = new Map<string, Set<string>>();
+  for (const link of rows.get("spot_source_entities") ?? []) {
+    const sources = spotSources.get(String(link.spot_id)) ?? new Set<string>();
+    sources.add(String(entitySource.get(Number(link.source_entity_id))));
+    spotSources.set(String(link.spot_id), sources);
+  }
+  for (const p of rows.get("spot_field_provenance") ?? []) {
+    const source = recordSource.get(Number(p.record_id));
+    if (source === undefined || !spotSources.get(String(p.spot_id))?.has(source)) {
+      fail(`provenance for ${String(p.spot_id)}.${String(p.field)} crosses a source boundary: record ${String(p.record_id)} is not of a source linked to the spot`);
+    }
+  }
+  for (const a of rows.get("spot_field_attenuations") ?? []) {
+    const source = releaseSource.get(Number(a.release_id));
+    if (source === undefined || releaseHash.get(Number(a.release_id)) !== a.release_content_sha256 || !spotSources.get(String(a.spot_id))?.has(source)) {
+      fail(`attenuation ${String(a.spot_id)}.${String(a.field)} cites release ${String(a.release_id)}, which is not a carried release of a source linked to the spot`);
     }
   }
 }
@@ -306,12 +341,12 @@ async function validatePublishedState(db: Db, releaseId: number, rows: Map<strin
  * its record's decision: the receiving schema enforces the first and the completion check the second, so a
  * gap here would only move the failure to a remote apply.
  */
-function validateReviewAttestations(releaseId: number, rows: Map<string, Row[]>): void {
+function validateReviewAttestations(rows: Map<string, Row[]>): void {
   const attestations = new Map((rows.get("promotion_review_match_attestations") ?? []).map((a) => [Number(a.record_id), a]));
   const decisions = new Map((rows.get("source_record_entities") ?? []).map((e) => [Number(e.record_id), e]));
   for (const [recordId, e] of decisions) {
     if (e.method === "manual" && attestations.get(recordId)?.decision !== "matchedToEntity") {
-      fail(`record ${recordId} of release ${releaseId} is a reviewed (manual) link without its applied matchedToEntity decision`);
+      fail(`record ${recordId} of release ${String(e.release_id)} is a reviewed (manual) link without its applied matchedToEntity decision`);
     }
   }
   for (const [recordId, a] of attestations) {
@@ -363,6 +398,21 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   }
 }
 
+function tableStatements(rows: Map<string, Row[]>): string[] {
+  const statements: string[] = [];
+  for (const spec of TABLES) {
+    const table = rows.get(spec.table) ?? [];
+    if (table.length === 0) continue;
+    statements.push(`-- ${spec.table} (${table.length})`);
+    for (const row of table) {
+      const values = spec.columns.map((c) => literal(row[c])).join(", ");
+      statements.push(`INSERT INTO ${spec.table} (${spec.columns.join(", ")}) VALUES (${values});`);
+    }
+    statements.push("");
+  }
+  return statements;
+}
+
 /**
  * Reads one validated local database and returns the promotion artifact. It never writes, and the
  * `Db` it is given is a local binding by construction — the scripts that call it open their
@@ -376,8 +426,8 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
   for (const spec of TABLES) rows.set(spec.table, await rowsOf(db, spec, releaseId));
 
   await validateRelease(db, releaseId, rows.get("sources") ?? [], (rows.get("source_releases") ?? [])[0]);
-  await validatePublishedState(db, releaseId, rows);
-  validateReviewAttestations(releaseId, rows);
+  await validatePublishedState(db, [releaseId], rows);
+  validateReviewAttestations(rows);
   await validateSnapshots(rows);
 
   const release = (rows.get("source_releases") ?? [])[0];
@@ -393,16 +443,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
       [PROMOTION_BUNDLE_VERSION, release.source_id, releaseId, release.content_sha256, JSON.stringify(reviewDependencies), JSON.stringify(counts)].map(literal).join(", ")});`,
     "",
   ];
-  for (const spec of TABLES) {
-    const table = rows.get(spec.table) ?? [];
-    if (table.length === 0) continue;
-    statements.push(`-- ${spec.table} (${table.length})`);
-    for (const row of table) {
-      const values = spec.columns.map((c) => literal(row[c])).join(", ");
-      statements.push(`INSERT INTO ${spec.table} (${spec.columns.join(", ")}) VALUES (${values});`);
-    }
-    statements.push("");
-  }
+  statements.push(...tableStatements(rows));
   statements.push(
     "-- promotion_bootstrap_completions: the target re-checks the declared release and row counts",
     "INSERT INTO promotion_bootstrap_completions (promotion_bootstrap_id) VALUES (1);",
@@ -458,6 +499,169 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
   return { sql: `${header}${body}`, manifest };
 }
 
+export interface MultiSourcePromotionSource {
+  sourceId: string;
+  releaseId: number;
+  observedOn: string | null;
+  releaseContentSha256: string;
+  displayName: string;
+  licenseName: string | null;
+  licenseUrl: string | null;
+  attributionText: string;
+  /** This source's share of the source-scoped tables; the target re-checks each one. */
+  rows: Record<string, number>;
+  reviewDependencies: { recordId: number; previousReleaseId: number; previousReleaseContentSha256: string }[];
+}
+
+export interface MultiSourcePromotionManifest {
+  generator: string;
+  sources: MultiSourcePromotionSource[];
+  tiles: PromotionManifest["tiles"];
+  rows: Record<string, number>;
+  contentSha256: string;
+}
+
+/** The current applied release of every source in the database, ordered by source id. */
+export async function currentReleaseIds(db: Db): Promise<number[]> {
+  const { results } = await db.prepare(
+    "SELECT release_id FROM source_releases WHERE is_current = 1 ORDER BY source_id",
+  ).all<{ release_id: number }>();
+  if (results.length === 0) fail("no current applied release exists in this database; run the pipeline first");
+  return results.map((r) => r.release_id);
+}
+
+/**
+ * promotion-bundle.v3: the current releases of several reviewed sources in ONE bootstrap. Every source passes
+ * the same checks as a v2 export, and the bundle is refused as a whole when any one of them fails — there is
+ * no partial export, and the target's completion (migration 0018) refuses a partial apply. Sources are ordered
+ * by source id and rows keep the v2 per-table order, so the artifact is byte-deterministic.
+ */
+export async function buildMultiSourcePromotionBundle(
+  db: Db, options: { releaseIds?: number[] } = {},
+): Promise<{ sql: string; manifest: MultiSourcePromotionManifest }> {
+  const requested = options.releaseIds ?? await currentReleaseIds(db);
+  if (requested.length === 0) fail("no release was named");
+  for (const id of requested) if (!Number.isInteger(id) || id < 1) fail(`release id must be a positive integer, got ${id}`);
+  if (new Set(requested).size !== requested.length) fail("a release is named twice");
+
+  // Validate each release on its own first (existence, applied, current, approved, registry identity), then order
+  // by source id, so the same set named in any order yields the same bytes.
+  const releases: Row[] = [];
+  for (const id of requested) {
+    const release = await db.prepare("SELECT * FROM source_releases WHERE release_id = ?").bind(id).first<Row>();
+    const { results: sources } = await db.prepare(`SELECT * FROM sources WHERE source_id = (${RELEASE_SOURCE})`).bind(id).all<Row>();
+    await validateRelease(db, id, sources, release ?? undefined);
+    releases.push(release!);
+  }
+  releases.sort((a, b) => String(a.source_id) < String(b.source_id) ? -1 : 1);
+  for (let i = 1; i < releases.length; i++) {
+    if (releases[i].source_id === releases[i - 1].source_id) fail(`source ${String(releases[i].source_id)} is named with two releases`);
+  }
+  const releaseIds = releases.map((r) => Number(r.release_id));
+
+  const rows = new Map<string, Row[]>();
+  for (const spec of TABLES) {
+    const scoped = spec.sql.includes("?");
+    const collected: Row[] = [];
+    for (const id of scoped ? releaseIds : [undefined]) collected.push(...await rowsOf(db, spec, id));
+    rows.set(spec.table, collected);
+  }
+  await validatePublishedState(db, releaseIds, rows);
+  validateReviewAttestations(rows);
+  await validateSnapshots(rows);
+
+  const counts = Object.fromEntries(TABLES.map((s) => [s.table, (rows.get(s.table) ?? []).length]));
+  const of = (table: string) => rows.get(table) ?? [];
+  const sourceRows = new Map(of("sources").map((s) => [String(s.source_id), s]));
+  const entitySource = new Map(of("source_entities").map((e) => [Number(e.source_entity_id), String(e.source_id)]));
+  const recordRelease = new Map(of("source_records").map((r) => [Number(r.record_id), Number(r.release_id)]));
+  const declared: MultiSourcePromotionSource[] = releases.map((release) => {
+    const sourceId = String(release.source_id);
+    const releaseId = Number(release.release_id);
+    const source = sourceRows.get(sourceId)!;
+    const inRelease = (r: Row) => Number(r.release_id) === releaseId;
+    return {
+      sourceId,
+      releaseId,
+      observedOn: release.observed_on === null ? null : String(release.observed_on),
+      releaseContentSha256: String(release.content_sha256),
+      displayName: String(source.display_name),
+      licenseName: source.license_name === null ? null : String(source.license_name),
+      licenseUrl: source.license_url === null ? null : String(source.license_url),
+      attributionText: String(source.attribution_text),
+      rows: {
+        source_releases: of("source_releases").filter((r) => r.source_id === sourceId).length,
+        source_records: of("source_records").filter(inRelease).length,
+        source_record_match_keys: of("source_record_match_keys").filter((k) => recordRelease.get(Number(k.record_id)) === releaseId).length,
+        source_entities: of("source_entities").filter((e) => e.source_id === sourceId).length,
+        promotion_review_match_attestations: of("promotion_review_match_attestations").filter(inRelease).length,
+        source_record_entities: of("source_record_entities").filter(inRelease).length,
+        spot_source_entities: of("spot_source_entities").filter((l) => entitySource.get(Number(l.source_entity_id)) === sourceId).length,
+        spot_field_provenance: of("spot_field_provenance").filter((p) => recordRelease.get(Number(p.record_id)) === releaseId).length,
+      },
+      reviewDependencies: of("promotion_review_match_attestations").filter(inRelease).map((a) => ({
+        recordId: Number(a.record_id),
+        previousReleaseId: Number(a.previous_release_id),
+        previousReleaseContentSha256: String(a.previous_release_content_sha256),
+      })),
+    };
+  });
+
+  const statements: string[] = [
+    MULTI_SOURCE_BUNDLE_BODY_FIRST_LINE,
+    `INSERT INTO promotion_multi_bootstraps (promotion_bootstrap_id, bundle_version, source_count, expected_rows_json) VALUES (1, ${
+      [MULTI_SOURCE_PROMOTION_BUNDLE_VERSION, declared.length, JSON.stringify(counts)].map(literal).join(", ")});`,
+    "",
+    `-- promotion_multi_bootstrap_sources (${declared.length}): every source is declared before any data row`,
+    ...declared.map((d) => `INSERT INTO promotion_multi_bootstrap_sources (source_id, promotion_bootstrap_id, release_id, release_content_sha256, display_name, license_name, license_url, attribution_text, review_dependencies_json, expected_rows_json) VALUES (${
+      [d.sourceId, 1, d.releaseId, d.releaseContentSha256, d.displayName, d.licenseName, d.licenseUrl, d.attributionText,
+        JSON.stringify(d.reviewDependencies), JSON.stringify(d.rows)].map(literal).join(", ")});`),
+    "",
+    ...tableStatements(rows),
+    "-- promotion_multi_bootstrap_completions: the target re-checks every declared source and the row counts",
+    "INSERT INTO promotion_multi_bootstrap_completions (promotion_bootstrap_id) VALUES (1);",
+    "",
+  ];
+  const body = statements.join("\n");
+  const contentSha256 = await sha256Hex(body);
+  const manifest: MultiSourcePromotionManifest = {
+    generator: MULTI_SOURCE_PROMOTION_BUNDLE_VERSION,
+    sources: declared,
+    tiles: of("tile_snapshots").map((t) => ({
+      tileId: String(t.tile_id),
+      revision: Number(t.revision),
+      spotCount: Number(t.spot_count),
+      contentSha256: String(t.content_sha256),
+    })),
+    rows: counts,
+    contentSha256,
+  };
+
+  const header = [
+    "-- MannerPath promotion bundle. Generated from a validated LOCAL database; see docs/OPERATIONS.md.",
+    `-- generator: ${MULTI_SOURCE_PROMOTION_BUNDLE_VERSION}`,
+    ...declared.map((d) => `-- source ${d.sourceId}: release ${d.releaseId} (observed ${d.observedOn ?? "unknown"}, bytes ${d.releaseContentSha256})`),
+    `-- rows: ${Object.entries(manifest.rows).map(([t, n]) => `${t}=${n}`).join(" ")}`,
+    ...manifest.tiles.map((t) => `-- tile ${t.tileId}: revision ${t.revision}, ${t.spotCount} spot(s), ${t.contentSha256}`),
+    `-- contentSha256: ${contentSha256}`,
+    "--",
+    "-- TARGET: an EMPTY, freshly migrated database (migrations through 0018). This bundle is INSERT-only and",
+    "-- cannot update a populated one. It carries SEVERAL sources and applies ALL OR NOTHING: if any one source's",
+    "-- fingerprint, rows, attestations or publication status does not match its declaration, the completion",
+    "-- statement fails and D1 rolls the whole file back. Do not split it, do not add BEGIN/COMMIT (D1 refuses",
+    "-- them), and discard a target whose apply failed rather than reuse it (blue/green; docs/OPERATIONS.md).",
+    "--",
+    "-- This file contains no secret and no user report data. Applying it is an explicit human step.",
+    "-- Address the target database BY NAME (docs/OPERATIONS.md step 6):",
+    "--   npx wrangler d1 migrations apply <new-database-name> --remote",
+    "--   npx wrangler d1 execute <new-database-name> --remote --file <this file>",
+    "-- Before applying, verify this file against the contentSha256 in its REVIEW RECORD, not this header:",
+    "--   npm run local:verify-promotion -- --file <this file> --expected-content-sha256 <reviewed hash>",
+    "",
+  ].join("\n");
+  return { sql: `${header}${body}`, manifest };
+}
+
 /**
  * Checks a bundle file before it is applied (docs/OPERATIONS.md): the body's SHA-256 must equal both the
  * header's `contentSha256` and `expectedContentSha256`, which the caller takes from a reviewed record kept
@@ -467,8 +671,14 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
 export async function verifyPromotionBundle(sql: string, expectedContentSha256: string): Promise<string> {
   const refuse = (detail: string): never => { throw new PromotionError(`promotion verification refused: ${detail}`); };
   if (!CONTENT_SHA256.test(expectedContentSha256)) refuse("the expected contentSha256 is not 64 lowercase hex digits");
-  const start = sql.indexOf(`\n${BUNDLE_BODY_FIRST_LINE}\n`);
-  if (start < 0 || sql.indexOf(`\n${BUNDLE_BODY_FIRST_LINE}\n`, start + 1) >= 0) refuse("no single bundle body start");
+  // A v2 or a v3 body, and exactly one body start of either kind in the whole file.
+  const starts = [BUNDLE_BODY_FIRST_LINE, MULTI_SOURCE_BUNDLE_BODY_FIRST_LINE].flatMap((line) => {
+    const found: number[] = [];
+    for (let i = sql.indexOf(`\n${line}\n`); i >= 0; i = sql.indexOf(`\n${line}\n`, i + 1)) found.push(i);
+    return found;
+  });
+  if (starts.length !== 1) refuse("no single bundle body start");
+  const start = starts[0];
   const headerLines = sql.slice(0, start + 1).split("\n");
   // The header is outside the hash. It must contain no executable SQL, even if the body and its
   // externally reviewed hash are intact. SQLite accepts statements before a comment-only body.
