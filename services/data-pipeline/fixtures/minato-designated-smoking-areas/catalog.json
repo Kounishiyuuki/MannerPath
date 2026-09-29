@@ -1,0 +1,133 @@
+{
+  "author": "企画経営部区長室",
+  "author_email": "",
+  "creator_user_id": "a51815e1-65ec-4133-b535-fbddf54eec73",
+  "id": "c02688a0-2e85-4637-aa36-edb37b3d010b",
+  "isopen": true,
+  "license_id": "cc-by",
+  "license_title": "クリエイティブ・コモンズ 表示",
+  "license_url": "http://www.opendefinition.org/licenses/cc-by",
+  "maintainer": "",
+  "maintainer_email": "",
+  "metadata_created": "2021-05-10T08:34:37.732796",
+  "metadata_modified": "2026-07-16T05:33:24.884894",
+  "name": "minatokushisetsujoho_fukugo",
+  "notes": "港区複合施設・男女平等参画施設・その他の施設の情報です。",
+  "num_resources": 2,
+  "num_tags": 0,
+  "organization": {
+    "id": "39082827-bf58-4418-a744-363fb6084773",
+    "name": "minatoku",
+    "title": "港区",
+    "type": "organization",
+    "description": "",
+    "image_url": "2020-12-07-053157.268021EmblemofMinatoTokyo.png",
+    "created": "2019-10-06T14:22:32.767956",
+    "is_organization": true,
+    "approval_status": "approved",
+    "state": "active"
+  },
+  "owner_org": "39082827-bf58-4418-a744-363fb6084773",
+  "private": false,
+  "state": "active",
+  "title": "複合施設・男女平等参画施設・その他の施設",
+  "type": "dataset",
+  "url": "https://www.city.minato.tokyo.jp/map/index.html",
+  "version": "",
+  "groups": [
+    {
+      "description": "",
+      "display_name": "健康・医療・福祉",
+      "id": "3d7a8652-71b8-4937-bd56-e0bdfd90b177",
+      "image_display_url": "https://opendata.city.minato.tokyo.jp/uploads/group/2020-06-18-045709.941229healthcare.svg",
+      "name": "fukushi",
+      "title": "健康・医療・福祉"
+    },
+    {
+      "description": "",
+      "display_name": "公共施設",
+      "id": "1e881940-3935-48ad-8892-f70c76ac18e6",
+      "image_display_url": "https://opendata.city.minato.tokyo.jp/uploads/group/2020-06-18-045753.050650facilityinformation.svg",
+      "name": "kokyoshisetsu",
+      "title": "公共施設"
+    },
+    {
+      "description": "",
+      "display_name": "子育て",
+      "id": "6d594e60-7099-4182-9e21-3c48a390066e",
+      "image_display_url": "https://opendata.city.minato.tokyo.jp/uploads/group/2020-06-18-050353.217839kosodate.svg",
+      "name": "kosodate",
+      "title": "子育て"
+    }
+  ],
+  "resources": [
+    {
+      "cache_last_updated": null,
+      "cache_url": null,
+      "ckan_url": "https://opendata.city.minato.tokyo.jp",
+      "created": "2021-05-10T08:35:54.399490",
+      "datastore_active": true,
+      "datastore_contains_all_records_of_source_file": true,
+      "description": "港区複合施設・男女平等参画施設・その他の施設の情報です。",
+      "format": "CSV",
+      "hash": "836d8484c882e8f8e29d10777d7e867e",
+      "id": "02705cbf-d01a-4f32-98c1-05329a11d316",
+      "ignore_hash": false,
+      "last_modified": "2026-07-16T05:32:22.367458",
+      "metadata_modified": "2026-07-16T05:32:28.462841",
+      "mimetype": "text/csv",
+      "mimetype_inner": null,
+      "name": "複合施設・男女平等参画施設・その他の施設",
+      "original_url": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "package_id": "c02688a0-2e85-4637-aa36-edb37b3d010b",
+      "position": 0,
+      "resource_id": "02705cbf-d01a-4f32-98c1-05329a11d316",
+      "resource_type": null,
+      "set_url_type": false,
+      "size": 96869,
+      "state": "active",
+      "task_created": "2026-07-16 05:32:22.588780",
+      "tracking_summary": {
+        "total": 0,
+        "recent": 0
+      },
+      "url": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "url_type": "upload"
+    },
+    {
+      "cache_last_updated": null,
+      "cache_url": null,
+      "created": "2021-05-10T08:37:21.622600",
+      "datastore_active": false,
+      "datastore_contains_all_records_of_source_file": false,
+      "description": "GeoJSON形式。地図上でデータのプレビューが可能です。",
+      "format": "GeoJSON",
+      "hash": "",
+      "id": "305a0d9f-38bd-41cc-9ca6-fdda6dd3662a",
+      "last_modified": "2026-07-16T05:33:24.878520",
+      "metadata_modified": "2026-07-16T05:33:24.889789",
+      "mimetype": "application/json",
+      "mimetype_inner": null,
+      "name": "複合施設・男女平等参画施設・その他の施設",
+      "package_id": "c02688a0-2e85-4637-aa36-edb37b3d010b",
+      "position": 1,
+      "resource_type": null,
+      "size": 133099,
+      "state": "active",
+      "tracking_summary": {
+        "total": 0,
+        "recent": 0
+      },
+      "url": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/305a0d9f-38bd-41cc-9ca6-fdda6dd3662a/download/minatokushisetsujoho_fukugo.json",
+      "url_type": "upload"
+    }
+  ],
+  "tags": [],
+  "extras": [],
+  "relationships_as_subject": [],
+  "relationships_as_object": [],
+  "tracking_summary": {
+    "total": 0,
+    "recent": 0
+  }
+}

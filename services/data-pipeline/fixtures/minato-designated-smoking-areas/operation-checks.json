@@ -1,0 +1,929 @@
+{
+  "reviewedOn": "2026-09-30",
+  "use": "Current-operation/conflict review metadata only; no ordinary page values imported.",
+  "aggregateUrl": "https://www.city.minato.tokyo.jp/kankyouseisaku/shiteikitsuenbasyo.html",
+  "excludedUrl": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/109.html",
+  "reason": "Absent from current aggregate; closure unknown.",
+  "checks": [
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/01.html",
+      "status": 200,
+      "sha256": "f4d35eb0b608d537558e573b1a133495bd2ae978340fb05fa20e77b632da6f73",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.836801+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/02.html",
+      "status": 200,
+      "sha256": "d3603d8f9533f0ac1186ac9c03857b5fa149c86e72336b2d7e66e157040d9cc5",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.731554+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/03.html",
+      "status": 200,
+      "sha256": "b7c1c0eb8f5255b77738d93247c83951b7b32408c1d75dc5052f6e070eb16cd3",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.842073+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/05.html",
+      "status": 200,
+      "sha256": "f48eaa278a69a92ceabc50bb17ce644a5cd8f38b6f8fece371ec38780a998ee5",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.850283+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/11.html",
+      "status": 200,
+      "sha256": "c213d22011fa99b990150ad4378a2cafc1c2b50cc3f7d983e3e55bd0312bfd85",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.828472+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/13.html",
+      "status": 200,
+      "sha256": "63042ff223427f5e95cdf1b3c3cea137e098a863103e3a1cad380b0f853a0a30",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.811908+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/14.html",
+      "status": 200,
+      "sha256": "f0dca66746bd4970e97899f2c38b4b201d29be75ed090c54e872576eadf717c0",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.821230+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/15.html",
+      "status": 200,
+      "sha256": "77c9d21b6bcf53b71c4614e75e3e059b29315634cf04d18351a435618cf86bd7",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.837003+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/16.html",
+      "status": 200,
+      "sha256": "b56e3572675bec9a3ca3e09c7d5713f94f9a454bebffae675f2cbed7a4aa9c2c",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:35.965371+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/06.html",
+      "status": 200,
+      "sha256": "fa578fce6d2fb0011544cb1909dcdcceff7732e3307ccb30f6a222a6c1254a86",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.029971+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/17.html",
+      "status": 200,
+      "sha256": "8c4c10f400935ae22b83e83a5d6d920433984bd96506c4d1394d0574a3c5a086",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.015322+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/07.html",
+      "status": 200,
+      "sha256": "d7d7efc497ede5784873586f5968f575b2979499e98a2df4c075c648b742aec8",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.015228+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/19.html",
+      "status": 200,
+      "sha256": "87a34bcfc0671c222dd273b2e877b76caa14ea99f5996e3baca3e7f62f2b96ff",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.006988+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/20.html",
+      "status": 200,
+      "sha256": "3defda030e9638239ab044dddf2c1d24c84dd3b935c8542d88ac725b80084efa",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.058170+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/08.html",
+      "status": 200,
+      "sha256": "1e74e96dd7b1093b89a8b0c1715bdc41f616718aacf319007564914642249f2e",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.062686+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/21.html",
+      "status": 200,
+      "sha256": "739b9a3a2180ef57bf0cd53d4cce53abb283026aa446ac992e3a02e8ba4f9165",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.053321+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/22.html",
+      "status": 200,
+      "sha256": "47bb010e7b71346ed6bf4db99be0b5d048d0a251967fe51a380f16b8a964874d",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.207671+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/24.html",
+      "status": 200,
+      "sha256": "08fd7339e542abcf19f4c8730e73ebe637a32064ea430647dcc5d5262b4e46f7",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.166781+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/25.html",
+      "status": 200,
+      "sha256": "54f7ee27c3cf1d9453a993d0cb38a41040640da091630fbedb4bc1b619cd5631",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.218001+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/27.html",
+      "status": 200,
+      "sha256": "5dbef82b724fca6eb3273bbce5a1203699a0084af38e9eedb880b1b52a116364",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.269027+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/28.html",
+      "status": 200,
+      "sha256": "ede90e6633420f59487e752cbfc7c563fc6854dc11e384b927eff4e991eecf4b",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.264332+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/29.html",
+      "status": 200,
+      "sha256": "2366cfafcf3d9f295570db5cae7f6c8fa86cb1e513022c2a7ec51b13633f77e2",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.252013+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/30.html",
+      "status": 200,
+      "sha256": "e0a31541090ed663d638d6250693d78728762f64415077d92f7f1018195bac18",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.258989+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/31.html",
+      "status": 200,
+      "sha256": "87fb987dc53c0acf56c2597580d16a2bf1fce0ca4b1c8390496d09451ff71fcf",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.332012+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/33.html",
+      "status": 200,
+      "sha256": "3d242295f9ea8987d7338c1ce36231cb122f655507df755fa23332a7d59bce48",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.336775+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/35.html",
+      "status": 200,
+      "sha256": "0a8d2d04a8a9941d11b1ff9cab0046f53e4813eff7f0581a4fdc0f1f5131caa9",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.450052+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/37.html",
+      "status": 200,
+      "sha256": "bc84222749a1fb2bf47ff9df1a015f195b5f9473122763e7a4fde78c61ef56fa",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.410389+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/38.html",
+      "status": 200,
+      "sha256": "8ee2da2158b0f59afd0c6572657848b6283e5c61c86aff8a04ae673a43d33b5a",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.429412+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/39.html",
+      "status": 200,
+      "sha256": "0e0499eccd3c2416f6e14a1f1653cbce92cb74c61ac2ee9838df8ca920dcc461",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.426471+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/40.html",
+      "status": 200,
+      "sha256": "3bc3b060e6a00349eecb6bc2f78b062ed973af73c4bf65d717483fcdf6961786",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.420411+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/43.html",
+      "status": 200,
+      "sha256": "8d85136c961ba262f51e5eb5e2bf38decf63e0cb8684578dba5e3568b39947bc",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.465639+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/44.html",
+      "status": 200,
+      "sha256": "4868d49196a2f6b1099a506f7335d45166bea841bd114b927a2a27a219128d90",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.641764+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/51.html",
+      "status": 200,
+      "sha256": "ce94db37fbf69213405cdc911ba53a2cd92c864c30af3096b7651b9e879b5d28",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.532676+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/52.html",
+      "status": 200,
+      "sha256": "4537fb39d58e60c8527829ca680178eca35a7d4e63722aaf05242079e66b8966",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.659804+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/53.html",
+      "status": 200,
+      "sha256": "74c89e43d23c7c901086f86191590ed976e036dbef799bd3be0720f081c1f0da",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.655076+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/58.html",
+      "status": 200,
+      "sha256": "909148c46b0d72bf02366752479e94a8daee5f5ce5ba7b500740ccd522b0ffef",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.649210+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/59.html",
+      "status": 200,
+      "sha256": "70c7d1e8a5d7d80def0bb81b3ead68edd20a1056dd79ca3133fedbb88e37bec1",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.746784+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/60.html",
+      "status": 200,
+      "sha256": "a3ce406acc2e0d4c4149659a6a0b084ef42b562bd163cd2f15ec8796df06362d",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.714318+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/61.html",
+      "status": 200,
+      "sha256": "f8e70dd195269c18e9a2cb5a8b2403c6aa670d36f000c66d59c9e61270afc9a2",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.728129+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/63.html",
+      "status": 200,
+      "sha256": "b916e5ada890acdeff390e8ea7aa93b64044f11397d0be20d06bfa07dc57fc6c",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.791198+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/64.html",
+      "status": 200,
+      "sha256": "70563ba892de2c0e0b03c8d0a5ac934b153ba0c954d1e5b4f6f55308bc6d8d7b",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.841875+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/66.html",
+      "status": 200,
+      "sha256": "c2a51a7d5f17dbef5c11dae46cf8f704dce87850ac51cf4a0321676096ca111e",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.865394+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/68.html",
+      "status": 200,
+      "sha256": "66f21e2c5893c9edb3cbeb103b1ab2b75f03c3e3b69d6f02d2895bbc69ceecac",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.848338+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/69.html",
+      "status": 200,
+      "sha256": "1111ab24a31a9dad5df96372e841c75250835f47ccfc463347b5560e2d4b1fe5",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.835367+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/70.html",
+      "status": 200,
+      "sha256": "1ff766ad6241b54acd917ad2c0a4ce9517ae2813b9a6873e0b1aa127da854b8f",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.938901+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/71.html",
+      "status": 200,
+      "sha256": "63f85b6285feaaba1f9902ccf87ddabae2916f1904fe5633fb92128a6240d619",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.959600+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/72.html",
+      "status": 200,
+      "sha256": "b114ce1fc8d9a098a9dac5a587ed070c08b39f61c33029ed6ba05206fbeb9551",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:36.981098+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/73.html",
+      "status": 200,
+      "sha256": "d1c7d545aa7e382e8e3b07f335d3f12b8b6ad5686f4055fc320b5d51665c04a3",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.064578+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/74.html",
+      "status": 200,
+      "sha256": "53c5ec7c1d002c9d855697a7758954d9b47952f6b395c2b01e4e60143a15730b",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.025422+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/75.html",
+      "status": 200,
+      "sha256": "71b5e613c96c18253d1dd5bc76e943b3d4f368738ea25ca417c3a7cdb7d73a01",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.073466+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/76.html",
+      "status": 200,
+      "sha256": "a5571da7271f1027d552566c059664ac4c6273b55343187d9e613e9fca906e86",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.064491+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/77.html",
+      "status": 200,
+      "sha256": "9fe35cfa6cc4eb34971cb3faeff9dfcc4898a01efb4f7a8a28dcaa3cb37a12b4",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.057037+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/78.html",
+      "status": 200,
+      "sha256": "1b1e171faa5e23126314e38534424b6e888d6e259de2770ca509952805c45b4e",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.119803+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/79.html",
+      "status": 200,
+      "sha256": "a47ee05d36b8055ac90b7aec2e94e6d21671e81a5a575ee77028e7758451b8af",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.130507+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/80.html",
+      "status": 200,
+      "sha256": "d4f06c56efe35a8f83f584eaaa3cbe4d9a5c980b9f9e0e60aea20040873d547f",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.166690+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/81.html",
+      "status": 200,
+      "sha256": "50b55a30091d27884b2b12b588e516cdac7afe02c5ecdc70a0d0af39cd7e0fc3",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.290245+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/82.html",
+      "status": 200,
+      "sha256": "8b7d05bf3d18dae101942cc31728975148bc0e097fd2a5b0137d8450c586ccb6",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.244596+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/83.html",
+      "status": 200,
+      "sha256": "e0740dafae6a5a0dfafbe6430c9c182e14e95869d21842fdfc7bbf21406528dd",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.253754+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/84.html",
+      "status": 200,
+      "sha256": "bd5c49049d56335e2fa2bd44988ff69409847f072624debecd1fa26fd64c3682",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.342826+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/85.html",
+      "status": 200,
+      "sha256": "23977ce80e52ece2492e2d4bcd1e84a423d2d39706f397253a5a5367b3d6edf0",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.295513+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/86.html",
+      "status": 200,
+      "sha256": "bd05c53e92833a08e0cd6fc6d59e6e35222930824e112fa10ba91c5dd04d117b",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.342649+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/87.html",
+      "status": 200,
+      "sha256": "705a92439b598ec07c1f79ae49c0f2628f96be24f5e179a79cf50b46fa9e83fc",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.383486+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/88.html",
+      "status": 200,
+      "sha256": "c840f997e67a0e0d581724a91cba0efc0f5fdf2b2c98ab7d7b9b89617e9fee04",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.350602+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/89.html",
+      "status": 200,
+      "sha256": "06aa17ac3e76ded60fbe8b677767a01394f1bba9e06e9dbf67c716ed99c7952c",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.464645+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/90.html",
+      "status": 200,
+      "sha256": "86db31fb417b53389258d87ca4cfdaf4ded07d12be994cc2e7bcc6249670e834",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.457283+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/91.html",
+      "status": 200,
+      "sha256": "7dcd256c4a3af2269aa9dab1e55f191dce4064c3ecab328f59747bcdd7192b29",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.464529+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/95.html",
+      "status": 200,
+      "sha256": "0da18396aa3a56ba0b66f02480af38dde01b4ce8cc01c84c41ba8f4570d473c5",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.497680+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/96.html",
+      "status": 200,
+      "sha256": "4bb9dde323f04771fb2b2c87856287f208bf066a7236dafe3f2bddf7d26e40f8",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.579681+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/97.html",
+      "status": 200,
+      "sha256": "b76368f6010d3040dbef963ac72bfc2a777f0a9fe9be4388b92ded33164a8bdf",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.574071+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/98.html",
+      "status": 200,
+      "sha256": "2af2f4f264449c23391cd50dd9c6472cddf6939057b877c41d34abe8f9a884be",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.542771+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/99.html",
+      "status": 200,
+      "sha256": "1dfac91ff76a454509cf4d47ca66b25a21734d2be1465ebee7459e23dd3efb05",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.701369+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/100.html",
+      "status": 200,
+      "sha256": "4c955e16ac8d58fd2c7ff5405f86b675aabd632bf192aae4b00d0f197861d54f",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.706750+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/101.html",
+      "status": 200,
+      "sha256": "a8bee583872255aea0e23e0eb4a086ba82a6ed260580a91282a0e324f8ce524b",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.684347+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/102.html",
+      "status": 200,
+      "sha256": "e32e02e2e216d81748a47909b2d65abf789755d6004254b267247e71c25e0abb",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.694535+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/103.html",
+      "status": 200,
+      "sha256": "3219afdfc1f061d8a9f6c409343d7c8973cd71851d27ac9d5d683eae4fcddd8c",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.849915+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/104.html",
+      "status": 200,
+      "sha256": "784c10ff68fb3eeec6eaad19a812f21719c4edab2a048e294c99597367bd8182",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.866616+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/105.html",
+      "status": 200,
+      "sha256": "f8100cae22717d7a7c1911b3efe82e76d53cb48ce2474ec675d916f8401cbf90",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.906823+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/106.html",
+      "status": 200,
+      "sha256": "e1329ecdf5073f12465f29f63c3a237b556783fedad1385b6489a34325f9fbce",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.901014+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/107.html",
+      "status": 200,
+      "sha256": "4a49875f04974fb1894c39b4e32b0e4271bb26752d66e589ce81d09d53440a4f",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.967309+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/108.html",
+      "status": 200,
+      "sha256": "c205c976c62c2ad640dd6292867de99923591eab11354659f98605ce326bcece",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.962556+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/109.html",
+      "status": 200,
+      "sha256": "04f1be4b258c55bcad5c53f30859928a2d285dfb9126e0dfd9d931341eff42c6",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.971577+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/110.html",
+      "status": 200,
+      "sha256": "a48026c4f7e3c2aedf8b16a5784fc4d37eebe7419d593d71295b3054ad971174",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:37.957435+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/112.html",
+      "status": 200,
+      "sha256": "ae31cc755247b68fb8d37b08561d44fe441c340788d9b323573375eec9237931",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.086725+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/113.html",
+      "status": 200,
+      "sha256": "1732dcef816c474db1cee24d6a800df79acb7787d97974b29f7b2cfee04c132f",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.086920+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/115.html",
+      "status": 200,
+      "sha256": "7ee781df9c8a696d85351feca550fdfc764d625028f552e559d9ce68e39e6bbb",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.151739+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/117.html",
+      "status": 200,
+      "sha256": "bc81f698a3e466a066bf24799700cd0f0c07fc4a0ce1106462e69ec572223914",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.125239+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/118.html",
+      "status": 200,
+      "sha256": "d9fbe486d070625d5bb6cfb0bffcf90868394b59fab486bc5d637313ce245125",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.113781+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/119.html",
+      "status": 200,
+      "sha256": "fb2b779b05c49a1e5caea3bc9b896756fef2bfe6dc9af38aabda15654a8df44a",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.162475+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/120.html",
+      "status": 200,
+      "sha256": "5d78a18fcf5eb2cdef15b3cb8de7352026c0288d466813dd75c7f2583b616e58",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.217628+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/121.html",
+      "status": 200,
+      "sha256": "9a82c649c1dbde57308f778ef9b8204d917a368ed54dfc716bafc015cf88904d",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.152683+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/122.html",
+      "status": 200,
+      "sha256": "d6104342d20ca8ff9dea35129f038e76cc79b0300d4150eb1f1718d35fd6f1b7",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.231075+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/123.html",
+      "status": 200,
+      "sha256": "3300f092a3845f9b98476d5f1b01dc6eb715f2ee3a07cd95b36250323edcdebd",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.281739+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/124.html",
+      "status": 200,
+      "sha256": "1547c941ee352341b808db70dde614f7ab680f5cedc07d289bb867138f1b7c08",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.364437+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/125.html",
+      "status": 200,
+      "sha256": "1cb947460bc80112401708e68398b723b3950e30cd81cd5bd2fdce3c9fa048b6",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.330037+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/126.html",
+      "status": 200,
+      "sha256": "9d42bb27b08d58ea2d0e81550da53f0833ed609845e1b2ea372c9b7a36f6d8bb",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.390704+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/127.html",
+      "status": 200,
+      "sha256": "d0f0ca65629d40d8d389d588da8e3c5c3eccd101071dd72bc56ecb34b19768c3",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.373376+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/128.html",
+      "status": 200,
+      "sha256": "b6634173876773fbbfce76d90837b4346d4f5278c3ee7b532bbc903bdf88fddb",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.387191+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/129.html",
+      "status": 200,
+      "sha256": "eb093e02b0192ce3ff0bce3625fbb8fc03cbef1ca9328f5feed8cffcc274ea51",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.408185+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/130.html",
+      "status": 200,
+      "sha256": "d7d34644f0d9fc6aa78521748258ff965b8cd0fee594709a4a437d93a8c9f402",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.367713+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/131.html",
+      "status": 200,
+      "sha256": "8d2c85423607f9c434ae4894a9744e490f3e94bb0a48efc84469e082b2ee0ee2",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.488308+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/132.html",
+      "status": 200,
+      "sha256": "645d9b95a27e055d1d84cbc09e59c80f91a23c6432bb6d64696e8d251121b982",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.600963+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/133.html",
+      "status": 200,
+      "sha256": "2b5098114e36f552e8040ea41389d4a226a78ea832184b0bcc87ac0bebe3c962",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.524277+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/134.html",
+      "status": 200,
+      "sha256": "81b722b0fb79087d032623614ab71639a29136de8b575fefecb07e3408de7440",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.594674+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/135.html",
+      "status": 200,
+      "sha256": "9abe24bfe462299d5be8798bb6f65aef14b0be948dbb978a8a1493aeaed388b2",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.611627+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/136.html",
+      "status": 200,
+      "sha256": "6f4d0586d34684928297e7395c7a2ec0339a1517db7c0e04117bed3d0b2d6f32",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.606672+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/137.html",
+      "status": 200,
+      "sha256": "7a0b22057949b312dd01cc4fb4e4419652e66da31dec181ed206c94b11f6dadd",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.627185+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/138.html",
+      "status": 200,
+      "sha256": "2869d7cdeb1bbf183950b413fd5dcac993d9a1a6e36da180226e934d96a73fd2",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.632537+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/139.html",
+      "status": 200,
+      "sha256": "a548b928ea4f9fa8408cfdf90a7d151e61263d5b778d9c1e10963a197cb03efe",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.733084+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/140.html",
+      "status": 200,
+      "sha256": "f5d5cbd77843fda4f43586b9034a69ae92608590d616956ada7c9275b4d7dbb0",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.790455+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/141.html",
+      "status": 200,
+      "sha256": "007f049b85b4cf976c2a8dfee50499c3588fc99b37e0b5f22766563c63a3bcbe",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.874403+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/142.html",
+      "status": 200,
+      "sha256": "2af01471a6a1a44b7cca25e8807e697d9bf84ec0f7126e18dcd393cd46494eda",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.878740+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/143.html",
+      "status": 200,
+      "sha256": "4f15aba78c997a4e8f0782d8af830ebc7e4619748a6a0acf27de4db1f202e41f",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.878590+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/144.html",
+      "status": 200,
+      "sha256": "4701dc57fc9fc3ff175d3b2b36310de0b045d2b54439029a6929fffca7621f39",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.903503+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/145.html",
+      "status": 200,
+      "sha256": "e7070efdbd6e22c5c2564813f24e47279584c520d86f57eaa8a6f14afd88bdfd",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.921954+00:00"
+    },
+    {
+      "url": "https://www.city.minato.tokyo.jp/shisetsu/sonota/kitsuen/146.html",
+      "status": 200,
+      "sha256": "26360f2600387406ba9ce4f090648739e74657bf5cf5737f8d951f926bf63d4e",
+      "smokingReference": true,
+      "conflictTerms": [],
+      "checkedAt": "2026-09-29T15:15:38.890357+00:00"
+    }
+  ]
+}

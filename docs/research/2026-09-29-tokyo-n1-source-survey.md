@@ -65,3 +65,9 @@ Survey method: official ward smoking pages, ward open-data portals and Tokyo off
 ## Koto park resource blocked
 
 Raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv contains 3 rows: 区立油堀川公園内指定喫煙所, 区立南砂三丁目公園内指定喫煙所, 区立亀戸駅前公園内指定喫煙所. Same clear CC-BY licensing and coordinates, but current official source linked by smoking page https://www.city.koto.lg.jp/470601/machizukuri/kasenkoen/sebi/jidouyuenkinen.html (2024-11-01) states all ward parks became smoke-free 2022-01-01 with no exception described. CSV resource timestamp alone cannot resolve conflict. Block park implementation/publication pending explicit publisher clarification or current authoritative exemption evidence.
+
+## Batch 2 follow-up
+
+[2026-09-30 targeted review](2026-09-30-tokyo-n1-source-batch-2.md) finds Minato smoking
+points inside the generic mixed-facility CSV, beyond catalog smoking-keyword search.
+The earlier discovery result above is historical; batch 2 approves a pinned partial scope.
