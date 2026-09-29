@@ -361,57 +361,136 @@ END;
 -- ---------------------------------------------------------------------------------------------------------
 -- The receiving side's re-check, per declared source and for the whole bundle. Any single source failing any
 -- condition aborts the completion, and with it the whole file (D1 applies it as one transaction).
-CREATE TRIGGER promotion_multi_bootstrap_completions_valid
+-- It is split into several BEFORE INSERT triggers on the same table, each over the one bootstrap row (its primary
+-- key is fixed to 1) and each aborting on its own: the completion inserts only when every one holds, which is the
+-- conjunction of the same conditions. One trigger holding them all exceeds D1's expression tree depth limit (100)
+-- and makes every valid v3 bundle fail to apply; test/promotion-expr-depth.test.ts runs the migrations and bundles
+-- under that limit.
+
+-- Declaration and bootstrap cardinality.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_cardinality
 BEFORE INSERT ON promotion_multi_bootstrap_completions
 WHEN NOT EXISTS (
   SELECT 1 FROM promotion_multi_bootstraps b
   WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
     AND (SELECT count(*) FROM promotion_multi_bootstrap_sources) = b.source_count
     AND (SELECT count(*) FROM sources) = b.source_count
-    AND (SELECT count(*) FROM source_releases) = b.source_count
+    AND (SELECT count(*) FROM source_releases) = b.source_count)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (declaration and bootstrap cardinality)');
+END;
+
+-- Per-source registry identity and release fingerprint.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_source_identity
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
     AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_sources d WHERE NOT (
       EXISTS (SELECT 1 FROM sources s WHERE s.source_id = d.source_id AND s.publication_status = 'approved'
         AND s.display_name IS d.display_name AND s.license_name IS d.license_name AND s.license_url IS d.license_url AND s.attribution_text IS d.attribution_text)
       AND EXISTS (SELECT 1 FROM source_releases r WHERE r.release_id = d.release_id AND r.source_id = d.source_id
-        AND r.content_sha256 = d.release_content_sha256 AND r.status = 'applied' AND r.is_current = 1)
-      AND (SELECT count(*) FROM source_releases r WHERE r.source_id = d.source_id) IS json_extract(d.expected_rows_json, '$.source_releases')
+        AND r.content_sha256 = d.release_content_sha256 AND r.status = 'applied' AND r.is_current = 1))))
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (per-source registry identity and release fingerprint)');
+END;
+
+-- Per-source row counts: releases, records, match keys, entities.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_source_rows_a
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
+    AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_sources d WHERE NOT (
+      (SELECT count(*) FROM source_releases r WHERE r.source_id = d.source_id) IS json_extract(d.expected_rows_json, '$.source_releases')
       AND (SELECT count(*) FROM source_records x WHERE x.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.source_records')
       AND (SELECT count(*) FROM source_record_match_keys k JOIN source_records x ON x.record_id = k.record_id WHERE x.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.source_record_match_keys')
-      AND (SELECT count(*) FROM source_entities e WHERE e.source_id = d.source_id) IS json_extract(d.expected_rows_json, '$.source_entities')
-      AND (SELECT count(*) FROM promotion_review_match_attestations a WHERE a.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.promotion_review_match_attestations')
+      AND (SELECT count(*) FROM source_entities e WHERE e.source_id = d.source_id) IS json_extract(d.expected_rows_json, '$.source_entities'))))
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (per-source row counts: releases, records, match keys, entities)');
+END;
+
+-- Per-source row counts: attestations, record entities, spot links, provenance.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_source_rows_b
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
+    AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_sources d WHERE NOT (
+      (SELECT count(*) FROM promotion_review_match_attestations a WHERE a.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.promotion_review_match_attestations')
       AND (SELECT count(*) FROM source_record_entities e WHERE e.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.source_record_entities')
       AND (SELECT count(*) FROM spot_source_entities l JOIN source_entities e ON e.source_entity_id = l.source_entity_id WHERE e.source_id = d.source_id) IS json_extract(d.expected_rows_json, '$.spot_source_entities')
-      AND (SELECT count(*) FROM spot_field_provenance p JOIN source_records x ON x.record_id = p.record_id WHERE x.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.spot_field_provenance')
-      AND json_array_length(d.review_dependencies_json) = (SELECT count(*) FROM promotion_review_match_attestations a WHERE a.release_id = d.release_id)
+      AND (SELECT count(*) FROM spot_field_provenance p JOIN source_records x ON x.record_id = p.record_id WHERE x.release_id = d.release_id) IS json_extract(d.expected_rows_json, '$.spot_field_provenance'))))
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (per-source row counts: attestations, record entities, spot links, provenance)');
+END;
+
+-- Review dependencies and attestations.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_review_dependencies
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
+    AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_sources d WHERE NOT (
+      json_array_length(d.review_dependencies_json) = (SELECT count(*) FROM promotion_review_match_attestations a WHERE a.release_id = d.release_id)
       AND NOT EXISTS (SELECT 1 FROM promotion_review_match_attestations a WHERE a.release_id = d.release_id AND NOT EXISTS (
         SELECT 1 FROM json_each(d.review_dependencies_json) dep
         WHERE json_extract(dep.value, '$.recordId') = a.record_id
           AND json_extract(dep.value, '$.previousReleaseId') = a.previous_release_id
           AND json_extract(dep.value, '$.previousReleaseContentSha256') = a.previous_release_content_sha256))))
+    AND NOT EXISTS (SELECT 1 FROM promotion_review_match_attestations a
+      WHERE NOT EXISTS (SELECT 1 FROM source_record_entities e WHERE e.record_id = a.record_id AND e.release_id = a.release_id)))
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (review dependencies and attestations)');
+END;
+
+-- Bundle row counts: source side.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_bundle_rows_a
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
     AND (SELECT count(*) FROM sources) IS json_extract(b.expected_rows_json, '$.sources')
     AND (SELECT count(*) FROM source_releases) IS json_extract(b.expected_rows_json, '$.source_releases')
     AND (SELECT count(*) FROM source_records) IS json_extract(b.expected_rows_json, '$.source_records')
     AND (SELECT count(*) FROM source_record_match_keys) IS json_extract(b.expected_rows_json, '$.source_record_match_keys')
     AND (SELECT count(*) FROM source_entities) IS json_extract(b.expected_rows_json, '$.source_entities')
     AND (SELECT count(*) FROM promotion_review_match_attestations) IS json_extract(b.expected_rows_json, '$.promotion_review_match_attestations')
-    AND (SELECT count(*) FROM source_record_entities) IS json_extract(b.expected_rows_json, '$.source_record_entities')
+    AND (SELECT count(*) FROM source_record_entities) IS json_extract(b.expected_rows_json, '$.source_record_entities'))
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (bundle row counts: source side)');
+END;
+
+-- Bundle row counts: published spots and tiles.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_bundle_rows_b
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
     AND (SELECT count(*) FROM spots) IS json_extract(b.expected_rows_json, '$.spots')
     AND (SELECT count(*) FROM spot_source_entities) IS json_extract(b.expected_rows_json, '$.spot_source_entities')
     AND (SELECT count(*) FROM spot_field_provenance) IS json_extract(b.expected_rows_json, '$.spot_field_provenance')
     AND (SELECT count(*) FROM spot_field_attenuations) IS json_extract(b.expected_rows_json, '$.spot_field_attenuations')
     AND (SELECT count(*) FROM tile_snapshots) IS json_extract(b.expected_rows_json, '$.tile_snapshots')
     AND (SELECT count(*) FROM tile_snapshot_spots) IS json_extract(b.expected_rows_json, '$.tile_snapshot_spots')
-    AND (SELECT count(*) FROM tile_snapshot_spots) > 0
-    AND NOT EXISTS (SELECT 1 FROM promotion_review_match_attestations a
-      WHERE NOT EXISTS (SELECT 1 FROM source_record_entities e WHERE e.record_id = a.record_id AND e.release_id = a.release_id))
-    -- Nothing the bundle does not carry.
+    AND (SELECT count(*) FROM tile_snapshot_spots) > 0)
+BEGIN
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (bundle row counts: published spots and tiles)');
+END;
+
+-- Runtime and pipeline state the bundle does not carry.
+CREATE TRIGGER promotion_multi_bootstrap_completions_valid_nothing_else
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN NOT EXISTS (
+  SELECT 1 FROM promotion_multi_bootstraps b
+  WHERE b.promotion_bootstrap_id = NEW.promotion_bootstrap_id
     AND NOT EXISTS (SELECT 1 FROM review_items) AND NOT EXISTS (SELECT 1 FROM review_match_applications)
     AND NOT EXISTS (SELECT 1 FROM source_observations)
     AND NOT EXISTS (SELECT 1 FROM raw_artifacts) AND NOT EXISTS (SELECT 1 FROM source_checks)
     AND NOT EXISTS (SELECT 1 FROM source_refresh_candidates)
     AND NOT EXISTS (SELECT 1 FROM promotion_bootstraps))
 BEGIN
-  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources');
+  SELECT RAISE(ABORT, 'promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources (runtime and pipeline state the bundle does not carry)');
 END;
 
 -- ---------------------------------------------------------------------------------------------------------

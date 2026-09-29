@@ -2,6 +2,7 @@
 // bootstrap. Taito and Osaka are the two real reviewed sources; every refusal here must leave the target empty.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { type DatabaseSync } from "node:sqlite";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
@@ -17,7 +18,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { rehashed } from "./support/promotion-tamper.ts";
-import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite, migrationFiles } from "./support/sqlite-d1.ts";
 
 const OSAKA_BYTES = new Uint8Array(readFileSync(new URL("../../data-pipeline/fixtures/osaka-designated-smoking-areas/opendata_1012.csv", import.meta.url)));
 type Row = Record<string, any>;
@@ -381,4 +382,36 @@ test("while a v3 bootstrap is open, pipeline, review and source-check writes are
   ]) {
     assert.throws(() => target.exec(statement), /promotion v3 bootstrap is open|bootstraps only an empty/, statement.slice(0, 40));
   }
+});
+
+// D1 caps SQLite's expression tree depth at 100; node:sqlite keeps the default 1000, so the tests above cannot see
+// a trigger that D1 refuses to compile. The sqlite3 CLI with `.limit expr_depth 100` runs the real migrations and
+// a bundle under D1's cap, each in one transaction, and stops at the first error.
+function underD1DepthLimit(bundle: string): string {
+  const migrations = migrationFiles().map((f) => `BEGIN;\n${readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8")}\nCOMMIT;`);
+  const script = [".bail on", ".limit expr_depth 100", "PRAGMA foreign_keys = ON;", ...migrations, "BEGIN;", bundle, "COMMIT;",
+    "SELECT 'completions', (SELECT count(*) FROM promotion_multi_bootstrap_completions) + (SELECT count(*) FROM promotion_bootstrap_completions);"];
+  const run = spawnSync("sqlite3", [":memory:"], { input: script.join("\n"), encoding: "utf8", maxBuffer: 1 << 28 });
+  if (run.error) throw new Error(`the D1 expression depth probe needs the sqlite3 CLI: ${run.error.message}`);
+  return `${run.stdout}${run.stderr}`;
+}
+
+test("D1 expression depth: v2 and v3 bundles apply, and a tampered v3 is refused by its check, under D1's limit of 100", async () => {
+  const taito = new SqliteD1();
+  await importTaito(taito, { newSpotId: sequentialSpotIds("0") });
+  await publishTiles(taito, { now: NOW });
+  const { db: reviewed } = await reviewedMixed();
+  for (const [name, sql] of [
+    ["v2 Taito", (await buildPromotionBundle(taito)).sql],
+    ["v3 Taito + Osaka", (await buildMultiSourcePromotionBundle(await mixed())).sql],
+    ["v3 reviewed Taito + Osaka", (await buildMultiSourcePromotionBundle(reviewed)).sql],
+  ]) {
+    const out = underD1DepthLimit(sql);
+    assert.doesNotMatch(out, /Expression tree is too large/, name);
+    assert.match(out, /^completions\|1$/m, `${name}: ${out.slice(-300)}`);
+  }
+  const { sql } = await buildMultiSourcePromotionBundle(await mixed());
+  const tampered = await rehashed(sql, (b) => b.replace(/("tile_snapshot_spots":)(\d+)/, (_, k, n) => `${k}${Number(n) + 1}`));
+  assert.notEqual(tampered, sql);
+  assert.match(underD1DepthLimit(tampered), /promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources/);
 });
