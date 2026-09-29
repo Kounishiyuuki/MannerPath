@@ -387,3 +387,76 @@ test("fresh migration: refresh tables exist, are append-only, and candidates mus
      VALUES ('x', ?, 'manual', 'p', 'u', ?, ?, 'failed', 'http', ?)`,
   ).run(TAITO_SOURCE_ID, NOW, NOW, failed.checkId), /baseline must be/);
 });
+
+// Blocker 2 (review of 79a0561): the body limit holds while streaming, whatever Content-Length says.
+function endlessProducer(chunkBytes: number, maxChunks: number) {
+  const state = { produced: 0, cancelled: false };
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (state.produced >= maxChunks) return controller.close();
+      state.produced++;
+      controller.enqueue(new Uint8Array(chunkBytes));
+    },
+    cancel() { state.cancelled = true; },
+  }, { highWaterMark: 0 });
+  return { stream, state };
+}
+
+for (const contentLength of [null, "1024"]) {
+  test(`an oversized streamed body stops at the limit (Content-Length ${contentLength ?? "absent"})`, async () => {
+    const db = await withTaitoRelease();
+    const { store, puts } = memoryStore();
+    const MiB = 1024 * 1024;
+    const { stream, state } = endlessProducer(MiB, 64); // could produce 64 MiB
+    const fetch: FetchLike = async (url) => {
+      const res = new Response(stream, { status: 200, headers: contentLength ? { "Content-Length": contentLength } : {} });
+      Object.defineProperty(res, "url", { value: url });
+      return res;
+    };
+    const r = await check(db, store, fetch, "run-1");
+    assert.equal(r.outcome, "failed");
+    const row = checkRow(db, r.checkId);
+    assert.equal(row.failure_stage, "tooLarge");
+    assert.equal(row.content_sha256, null);
+    assert.equal(row.artifact_sha256, null);
+    assert.match(row.detail, /reading stopped/);
+    // 16 MiB is 16 chunks; the 17th crosses the limit and reading stops there (a pull or two of lookahead at most).
+    assert.ok(state.produced >= 17 && state.produced <= 19, `produced ${state.produced} chunks`);
+    assert.ok(state.produced < 64, "the producer never generated the whole body");
+    assert.equal(state.cancelled, true);
+    assert.equal(puts.length, 0);
+    assert.equal(count(db, "raw_artifacts"), 0);
+    assert.equal(count(db, "source_refresh_candidates"), 0);
+  });
+}
+
+test("a streamed body at the limit is read completely and checked as usual", async () => {
+  const db = await withTaitoRelease();
+  const chunks = [TAITO_BYTES.slice(0, 1000), TAITO_BYTES.slice(1000)];
+  const fetch: FetchLike = async (url) => {
+    const res = new Response(new ReadableStream({ start(c) { for (const x of chunks) c.enqueue(x); c.close(); } }), { status: 200 });
+    Object.defineProperty(res, "url", { value: url });
+    return res;
+  };
+  const r = await check(db, memoryStore().store, fetch, "run-1");
+  assert.equal(r.outcome, "unchanged");
+  assert.equal(r.contentSha256, TAITO_FIXTURE_SHA256);
+});
+
+// Blocker 1 (review of 79a0561): a non-failed check must name its retained artifact in the schema itself.
+test("a non-failed check row without an artifact is refused by the schema", async () => {
+  const db = await withTaitoRelease();
+  const insert = (outcome: string, findings: string) => db.raw.prepare(
+    `INSERT INTO source_checks (check_key, source_id, trigger_kind, policy_version, request_url, started_at, finished_at,
+       content_sha256, byte_length, artifact_sha256, outcome, findings_json)
+     VALUES (?, ?, 'manual', 'p', 'u', ?, ?, ?, 7, NULL, ?, ?)`,
+  ).run(`probe-${outcome}`, TAITO_SOURCE_ID, NOW, NOW, TAITO_FIXTURE_SHA256, outcome, findings);
+  assert.throws(() => insert("unchanged", "[]"), /CHECK/);
+  assert.throws(() => insert("changed", "[]"), /CHECK/);
+  assert.throws(() => insert("needsReview", '[{"id":"x","detail":"y"}]'), /CHECK/);
+  assert.equal(count(db, "source_checks"), 0);
+  // The ordinary path still records a successful check with its artifact.
+  const r = await check(db, memoryStore().store, fakeFetch(TAITO_BYTES).fetch, "run-1");
+  assert.equal(r.outcome, "unchanged");
+  assert.equal(checkRow(db, r.checkId).artifact_sha256, TAITO_FIXTURE_SHA256);
+});

@@ -74,7 +74,10 @@ CREATE TABLE source_checks (
   baseline_check_id     INTEGER REFERENCES source_checks (check_id),
   baseline_release_id   INTEGER REFERENCES source_releases (release_id),
   CHECK ((outcome = 'failed') = (failure_stage IS NOT NULL)),
-  CHECK (outcome = 'failed' OR (content_sha256 IS NOT NULL AND artifact_sha256 = content_sha256 AND byte_length IS NOT NULL)),
+  -- Every non-failed check names its retained artifact. Each operand is IS NOT NULL-guarded because a NULL
+  -- comparison would make the CHECK unknown, which SQLite accepts.
+  CHECK (outcome = 'failed' OR (content_sha256 IS NOT NULL AND artifact_sha256 IS NOT NULL
+    AND artifact_sha256 = content_sha256 AND byte_length IS NOT NULL)),
   CHECK (artifact_sha256 IS NULL OR artifact_sha256 = content_sha256),
   CHECK ((outcome = 'needsReview') = (json_array_length(findings_json) > 0))
 );

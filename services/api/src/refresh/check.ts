@@ -105,14 +105,7 @@ export async function checkSource(deps: CheckDeps, adapter: SourceAdapter, reque
     if (Number.isFinite(declared) && declared > SOURCE_REFRESH_POLICY.maxBytes) {
       throw new CheckFailure("tooLarge", `Content-Length ${declared} exceeds ${SOURCE_REFRESH_POLICY.maxBytes}`);
     }
-    try {
-      bytes = new Uint8Array(await response.arrayBuffer());
-    } catch (e) {
-      throw new CheckFailure("fetch", `reading the body of ${target.url} failed: ${describe(e)}`);
-    }
-    if (bytes.byteLength > SOURCE_REFRESH_POLICY.maxBytes) {
-      throw new CheckFailure("tooLarge", `body of ${bytes.byteLength} bytes exceeds ${SOURCE_REFRESH_POLICY.maxBytes}`);
-    }
+    bytes = await readCapped(response, SOURCE_REFRESH_POLICY.maxBytes, target.url);
     const sha = await sha256Hex(bytes);
     Object.assign(row, { content_sha256: sha, byte_length: bytes.byteLength });
 
@@ -168,6 +161,40 @@ export async function checkSource(deps: CheckDeps, adapter: SourceAdapter, reque
   const written = await readCheck(db, checkKey);
   if (!written) throw new Error(`source check ${checkKey}: row was not stored`);
   return recorded(db, written, sourceId, false);
+}
+
+/**
+ * Reads the body chunk by chunk and stops as soon as more than maxBytes have arrived, whatever
+ * Content-Length claimed (it may be absent or understated): the reader is cancelled and nothing past the
+ * limit is read or kept.
+ */
+async function readCapped(response: Response, maxBytes: number, url: string): Promise<Uint8Array> {
+  if (!response.body) return new Uint8Array(0);
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => {}); // the check already fails as tooLarge; a cancel error adds nothing
+        throw new CheckFailure("tooLarge", `body exceeded ${maxBytes} bytes after ${total} bytes read; reading stopped`);
+      }
+      chunks.push(value);
+    }
+  } catch (e) {
+    if (e instanceof CheckFailure) throw e;
+    throw new CheckFailure("fetch", `reading the body of ${url} failed: ${describe(e)}`);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
 }
 
 async function readCheck(db: Db, checkKey: string): Promise<CheckRow | null> {
