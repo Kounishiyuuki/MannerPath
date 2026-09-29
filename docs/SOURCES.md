@@ -157,6 +157,35 @@ Raw evidence and detailed mapping: `services/data-pipeline/fixtures/koto-station
 | Reviewed by / date | Codex, AI-assisted primary-source review, 2026-09-29; repository approval reviewable on this branch, local DB only |
 | Publication status | approved only for pinned station first release; `crossReleaseValidated=false`, `completeness=partial` |
 
+### 京都市 公設喫煙場所（施設情報一覧）
+
+Reviewed 2026-09-30 in the [N2 west/central survey](research/2026-09-30-n2-west-central-municipal-survey.md).
+Raw evidence and detailed mapping: `services/data-pipeline/fixtures/kyoto-public-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `kyoto-public-smoking-places` |
+| Name / publisher | 京都市等の施設に関する情報（一覧表） / 京都市 (著作権者); rows maintained by 文化市民局くらし安全推進課 |
+| Kind | municipal |
+| Official source URL | https://www.city.kyoto.lg.jp/bunshi/page/0000027498.html: current-operation cross-check only ("All rights reserved"); no values imported |
+| Dataset URL | https://data.city.kyoto.lg.jp/dataset/00003/ |
+| Raw data URL | https://data.city.kyoto.lg.jp/resource/?id=21432, a POST form download of `20260903182354_data（令和8年9月3日現在）.csv`; no GET file URL exists |
+| License name / applicability | CC BY 4.0, shown on the dataset and on this exact resource (著作権者 京都市); 京都市オープンデータ利用規約（第３版）§1 applies the per-dataset license |
+| License URL / original terms | https://creativecommons.org/licenses/by/4.0/legalcode.ja ; https://data.city.kyoto.lg.jp/contents.php?category=0 |
+| Redistribution to clients allowed | Yes, CC BY 4.0 §2(a)(1)(A), with attribution |
+| Modification/derivation allowed | Yes, CC BY 4.0 §2(a)(1)(B); changes are indicated |
+| Share-alike obligations | None |
+| Required attribution text | `出典：京都市オープンデータ「京都市等の施設に関する情報（一覧表）」施設情報一覧（令和８年９月３日現在） https://data.city.kyoto.lg.jp/dataset/00003/ 著作権者 京都市 クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/legalcode.ja MannerPathが喫煙場所カテゴリを抽出・正規化して作成。京都市は本データの利用により生じた結果について責任を負いません。` (the portal asks derived works to credit 『京都市オープンデータ』) |
+| Geographic scope / completeness | City-run 公設喫煙場所 in 京都市 (category 138). Partial: 17 of 19 category rows; the two 西大路 rows conflict with the official page and are withheld |
+| Update cadence | Irregular; the portal has republished the file about quarterly (2025-11-14, 2025-12-22, 2026-01-09, 2026-03-10, 2026-06-18, 2026-09-03). No SLA |
+| Observation date available | Yes, dataset-level: the resource is titled 令和８年９月３日現在 → `observedOn = 2026-09-03`. Fetch and upload times are not used |
+| Coordinate semantics | Explicit 緯度/経度 decimal points of each named place, identical to the city's own map links for the same IDs. Datum, accuracy, entrance position and derivation method are **unstated**; used under the existing display-lat/lon convention without geocoding |
+| Automation suitability | Deterministic bytes, exact header, 53 columns, UTF-8 with BOM. Download is a POST form per resource ID; each release has a new resource ID, so no `refreshTarget` |
+| Current operation | The 2025-08-14 official page links 17 selected IDs at identical coordinates. Conflicts: ID 1781 is shown there as 北側改札口前（2階） at the old point (CSV: 南側, moved about 50 m) and ID 2132 is absent, so both are excluded |
+| Reviewed release | SHA-256 `bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc`, 843,922 bytes; 1,777 raw rows → 17 observations → 17 published spots |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review, 2026-09-30; local DB only |
+| Publication status | approved only for the pinned first release; `crossReleaseValidated=false`, `completeness=partial` |
+
 ### 江東区 公共喫煙所一覧（公園） — blocked candidate
 
 Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv

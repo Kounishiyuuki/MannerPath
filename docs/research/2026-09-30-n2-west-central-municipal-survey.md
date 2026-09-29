@@ -1,9 +1,10 @@
 # N2 west/central municipal bulk survey, batch 1 (2026-09-30)
 
-Read-only primary-source survey for N2 (ordinance-designated cities + prefectural capitals),
-western Japan to Chubu. **No candidate meets the publication gate in this batch; no adapter,
-fixture, ingest or canonical value is added.** A failure to discover a licensed dataset is a
-survey finding, not proof none exists.
+Primary-source survey for N2 (ordinance-designated cities + prefectural capitals), western Japan to
+Chubu. The first pass searched only for smoking-specific datasets and found none that passes the gate.
+The second pass (below) looked for a smoking category inside general facility datasets and found one:
+**京都市 (class B, approved, 17 spots)**. A failure to discover a licensed dataset is a survey finding,
+not proof none exists.
 
 Classification: **A** machine-readable smoking dataset · **B** official facility dataset with an
 extractable smoking category · **C** license blocker · **D** coordinate blocker · **E** no usable
@@ -26,7 +27,7 @@ client-side; a site-restricted web search found no smoking dataset on either.
 
 | City | Official evidence | Class | Blocker |
 |---|---|---|---|
-| 京都市 | https://www.city.kyoto.lg.jp/bunshi/page/0000027498.html (2025-08-14) | C | 17 公設喫煙場所 with coordinates only inside embedded map links; page footer "(c) City of Kyoto. All rights reserved."; no open-data resource found. |
+| 京都市 | https://www.city.kyoto.lg.jp/bunshi/page/0000027498.html (2025-08-14) ; https://data.city.kyoto.lg.jp/dataset/00003/ | ~~C~~ → **B, approved** | First pass: the smoking page is all rights reserved. Second pass: the city's CC BY 4.0 facility list has category 138 = 喫煙場所. 17 of 19 rows are approved; see `docs/SOURCES.md`. |
 | 神戸市 | https://www.city.kobe.lg.jp/a84526/kurashi/activate/project/eco/outsmoking.html (2026-04-13) | E | Enforcement page and PDFs only; no location list or coordinates; Kobe CKAN has no smoking dataset. |
 | 名古屋市 | https://www.city.nagoya.jp/bousai/anzen/1034530/1014489/1014490/1014491.html (2026-04-23) | C/D | 3 喫煙所 as text, no coordinates, "All rights reserved". Nagoya's BODIK organization has no smoking dataset. |
 | 広島市 | https://www.city.hiroshima.lg.jp/living/gomi-kankyo/1021281/1037470/1024206.html (2025-02-16) | D | 6 park smoking booths by address only; do not geocode. |

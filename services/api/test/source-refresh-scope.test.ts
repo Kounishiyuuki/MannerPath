@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { MUSASHINO_ADAPTER, MUSASHINO_SOURCE_ID } from "../src/pipeline/musashino-adapter.ts";
 import { MINATO_ADAPTER, MINATO_SOURCE_ID } from "../src/pipeline/minato-adapter.ts";
 import { KOTO_ADAPTER, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
+import { KYOTO_ADAPTER, KYOTO_SOURCE_ID } from "../src/pipeline/kyoto-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_DATA_URL, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { checkSource } from "../src/refresh/check.ts";
@@ -30,22 +31,24 @@ function memoryStore() {
 }
 const fetchOsaka = async () => new Response(OSAKA_BYTES);
 
-test("scheduled registry checks Taito but skips four sources without refresh targets or fetches", async () => {
+test("scheduled registry checks Taito but skips five sources without refresh targets or fetches", async () => {
   const db = new SqliteD1();
   await importTaito(db);
   await ensureReviewedSource(db, OSAKA_SOURCE_ID, NOW);
   await ensureReviewedSource(db, KOTO_SOURCE_ID, NOW);
   await ensureReviewedSource(db, MUSASHINO_SOURCE_ID, NOW);
   await ensureReviewedSource(db, MINATO_SOURCE_ID, NOW);
+  await ensureReviewedSource(db, KYOTO_SOURCE_ID, NOW);
   assert.equal(OSAKA_ADAPTER.refreshTarget, undefined);
   assert.equal(KOTO_ADAPTER.refreshTarget, undefined);
   assert.equal(MUSASHINO_ADAPTER.refreshTarget, undefined);
   assert.equal(MINATO_ADAPTER.refreshTarget, undefined);
+  assert.equal(KYOTO_ADAPTER.refreshTarget, undefined);
   let fetches = 0;
   const results = await runSourceChecks({ db, store: memoryStore().store, now,
     fetch: async () => { fetches++; return new Response(TAITO_BYTES); },
   }, "scope-scheduled", "scheduled");
-  assert.equal(results.length, 5);
+  assert.equal(results.length, 6);
   assert.equal(results[0].result.status === "recorded" && results[0].result.outcome, "unchanged");
   assert.deepEqual(results[1], { sourceId: OSAKA_SOURCE_ID,
     result: { status: "skipped", reason: `${OSAKA_SOURCE_ID} has no refresh target` },
@@ -58,6 +61,9 @@ test("scheduled registry checks Taito but skips four sources without refresh tar
   });
   assert.deepEqual(results[4], { sourceId: MINATO_SOURCE_ID,
     result: { status: "skipped", reason: `${MINATO_SOURCE_ID} has no refresh target` },
+  });
+  assert.deepEqual(results[5], { sourceId: KYOTO_SOURCE_ID,
+    result: { status: "skipped", reason: `${KYOTO_SOURCE_ID} has no refresh target` },
   });
   assert.equal(fetches, 1);
   assert.equal(count(db, "source_checks"), 1);

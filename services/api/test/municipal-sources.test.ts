@@ -1,0 +1,87 @@
+// Bulk onboarding regression: every reviewed municipal source, one table row each. A new source adds a
+// row here; its dedicated test file keeps the source-specific semantics.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
+import { ingestRelease, type ReleaseMetadata } from "../src/pipeline/ingest.ts";
+import { KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, KOTO_FIXTURE_SHA256 } from "../src/pipeline/koto-adapter.ts";
+import { KYOTO_ADAPTER, KYOTO_FIXTURE_RELEASE, KYOTO_FIXTURE_SHA256 } from "../src/pipeline/kyoto-adapter.ts";
+import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_FIXTURE_SHA256 } from "../src/pipeline/osaka-adapter.ts";
+import { ensureReviewedSource } from "../src/pipeline/registry.ts";
+import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
+import { TAITO_FIXTURE_RELEASE, TAITO_FIXTURE_SHA256 } from "../src/pipeline/taito.ts";
+import { TileBodyV1 } from "../src/tiles/dto.ts";
+import { publishTiles } from "../src/tiles/publish.ts";
+import { NOW, sequentialSpotIds } from "./support/fixture.ts";
+import { SqliteD1 } from "./support/sqlite-d1.ts";
+
+interface Row {
+  adapter: SourceAdapter; release: ReleaseMetadata; fixture: string; sha256: string;
+  rawRows: number; selected: number; spots: number; published: number; refresh: boolean;
+}
+const fixture = (path: string) => new Uint8Array(readFileSync(new URL(`../../data-pipeline/fixtures/${path}`, import.meta.url)));
+const SOURCES: readonly Row[] = [
+  { adapter: TAITO_ADAPTER, release: TAITO_FIXTURE_RELEASE, fixture: "taito-public-smoking-areas/20260818_koshukitsuenjo.csv",
+    sha256: TAITO_FIXTURE_SHA256, rawRows: 34, selected: 34, spots: 34, published: 32, refresh: true },
+  { adapter: OSAKA_ADAPTER, release: OSAKA_FIXTURE_RELEASE, fixture: "osaka-designated-smoking-areas/opendata_1012.csv",
+    sha256: OSAKA_FIXTURE_SHA256, rawRows: 524, selected: 344, spots: 344, published: 344, refresh: false },
+  { adapter: KOTO_ADAPTER, release: KOTO_FIXTURE_RELEASE, fixture: "koto-station-smoking-areas/131083_237_public_smoking_area_station.csv",
+    sha256: KOTO_FIXTURE_SHA256, rawRows: 3, selected: 3, spots: 3, published: 3, refresh: false },
+  { adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE, fixture: "kyoto-public-smoking-places/20260903_shisetsu.csv",
+    sha256: KYOTO_FIXTURE_SHA256, rawRows: 1777, selected: 17, spots: 17, published: 17, refresh: false },
+];
+const n = (db: SqliteD1, sql: string, ...p: unknown[]) => (db.raw.prepare(sql).get(...p) as { n: number }).n;
+
+test("the bulk table covers exactly the reviewed adapters", () => {
+  assert.deepEqual(SOURCES.map((s) => s.adapter), [...SOURCE_ADAPTERS]);
+});
+
+for (const s of SOURCES) {
+  const id = s.adapter.registry.sourceId;
+
+  test(`${id}: pinned fixture, raw/selected counts and fail-closed coordinates`, () => {
+    const bytes = fixture(s.fixture);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), s.sha256);
+    const { header, rows } = s.adapter.parse(bytes);
+    assert.equal(rows.length, s.rawRows);
+    const inScope = rows.filter((r) => s.adapter.includesRecord?.(r) ?? true);
+    assert.equal(inScope.length, s.selected);
+    for (const r of rows) if (!inScope.includes(r)) assert.throws(() => s.adapter.observe(r));
+    const location = s.adapter.observe(inScope[0]).provenance.find((p) => p.field === "location")!;
+    // Malformed syntax fails in every adapter; range checks are source-specific (see each source's test).
+    for (const column of location.columns) {
+      for (const bad of ["35,6", "", "NaN"]) {
+        const invalid = [...inScope[0]];
+        invalid[header.indexOf(column)] = bad;
+        assert.throws(() => s.adapter.observe(invalid), undefined, `${id} ${column}=${bad}`);
+      }
+    }
+  });
+
+  test(`${id}: registry gate, observations, spots, tiles and attribution`, async () => {
+    const db = new SqliteD1();
+    assert.equal(s.adapter.registry.publicationStatus, "approved");
+    assert.equal(s.adapter.crossReleaseValidated, false);
+    assert.equal(s.adapter.refreshTarget !== undefined, s.refresh);
+    await ensureReviewedSource(db, id, NOW);
+    const { releaseId } = await ingestRelease(db, s.adapter, fixture(s.fixture), s.release);
+    const result = await resolveFirstRelease(db, s.adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds("9") });
+    assert.equal(result.status, "resolved");
+    assert.equal(n(db, "SELECT count(*) n FROM source_records"), s.rawRows);
+    assert.equal(n(db, "SELECT count(*) n FROM source_observations"), s.selected);
+    assert.equal(n(db, "SELECT count(*) n FROM spots"), s.spots);
+    const report = await publishTiles(db, { now: NOW });
+    assert.equal(report.published.reduce((sum, t) => sum + t.spotCount, 0), s.published);
+    for (const t of db.raw.prepare("SELECT body_json FROM tile_snapshots").all() as { body_json: string }[]) {
+      const body = TileBodyV1.parse(JSON.parse(t.body_json));
+      assert.deepEqual(body.sources.map((x) => [x.id, x.attributionText]), [[id, s.adapter.registry.attributionText]]);
+    }
+    db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(id);
+    const blocked = await publishTiles(db, { now: NOW });
+    assert.equal(blocked.published.reduce((sum, t) => sum + t.spotCount, 0), 0);
+  });
+}

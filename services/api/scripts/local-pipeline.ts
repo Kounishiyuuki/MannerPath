@@ -12,6 +12,7 @@ import { type Db, isoSeconds } from "../src/db.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { MINATO_ADAPTER, MINATO_FIXTURE_RELEASE, MINATO_SOURCE_ID } from "../src/pipeline/minato-adapter.ts";
 import { KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
+import { KYOTO_ADAPTER, KYOTO_FIXTURE_RELEASE, KYOTO_SOURCE_ID } from "../src/pipeline/kyoto-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
@@ -24,10 +25,13 @@ import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_SOURCE_ID } fro
 //   npm run local:pipeline -- osaka-designated-smoking-areas
 //   npm run local:pipeline -- koto-station-smoking-areas
 const sourceId = process.argv[2] ?? TAITO_SOURCE_ID;
-if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID].includes(sourceId)) {
+if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID].includes(sourceId)) {
   throw new Error(`local:pipeline: unreviewed source ${sourceId}`);
 }
-const selected = sourceId === MUSASHINO_SOURCE_ID ? {
+const selected = sourceId === KYOTO_SOURCE_ID ? {
+  adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/kyoto-public-smoking-places/20260903_shisetsu.csv",
+} : sourceId === MUSASHINO_SOURCE_ID ? {
   adapter: MUSASHINO_ADAPTER, release: MUSASHINO_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/musashino-public-smoking-areas/doc.kml",
 } : sourceId === MINATO_SOURCE_ID ? {

@@ -1,0 +1,2 @@
+# Official release bytes are fingerprinted evidence; never normalize their BOM or CRLF.
+20260903_shisetsu.csv -text -diff
