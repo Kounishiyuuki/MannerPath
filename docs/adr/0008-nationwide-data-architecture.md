@@ -470,3 +470,43 @@ source-specific review requirement before enabling refresh of a mixed dataset, r
 implicit threshold: checks only queue candidates, and Osaka has no `refreshTarget`. Its approval
 is for the pinned first release only; scheduled checks skip it without fetching. Scope remains part
 of `mappingVersion`; refresh does not derive or replace observation generations.
+
+## Amendment — cross-source review planning foundation (2026-09)
+
+`services/api/src/pipeline/cross-source.ts` is a pure staging boundary, independent of
+source adapters and promotion. It does not write a queue, canonical rows or tiles.
+Synthetic independently reviewed sources test overlap; Taito/Osaka geographic separation
+is not evidence that this workflow is unnecessary. Existing resolver gates remain intact.
+
+- Candidate v1: different sources, within 100m regardless of names, or within 500m
+  with an exact nonempty NFKC/case/whitespace/punctuation-normalized name or location.
+  These are review-recall thresholds, not identity thresholds. Host similarity cannot
+  confirm identity. Coordinates must be finite WGS84; snapshots must contain independent
+  existence evidence and attribution. The trusted future loader must enforce registry
+  approval and read the complete current evidence and inbound redirects.
+- Candidate identity binds both complete snapshots and algorithm version. A changed
+  record/release, field, coordinate or redirect requires a new review. Caller-supplied
+  snapshots are trusted staging inputs, not an untrusted API payload.
+- Review explicitly states `sameRealWorldSpot`, `distinctSpots` or
+  `insufficientEvidence`, with reviewer, date and specific independent location identity
+  evidence. No decision/default means unresolved. Distinct/insufficient never yield a
+  merge plan. A same decision still requires a separate explicit existing survivor ID.
+- The merge proposal preserves that stable ID, the losing ID as a redirect, all inbound
+  redirects as one-hop redirects, and the review as merge history. Every source evidence
+  object (release/record/entity, existence, fields and attribution) is retained without
+  overwriting the current single-field provenance representation.
+- Every unequal coordinate or source field is flagged, including unknown versus false
+  and missing versus known. No source priority selects values. Every proposal is held,
+  including an agreement, until an explicit publication/evidence policy review. Identity
+  approval is separate from field conflict resolution and permission to publish.
+
+Persistence and execution are deliberately deferred to avoid competing with the concurrent
+multi-source promotion migration. No 0018 is reserved here. After that work merges, assign
+a fresh number for immutable candidates, append-only review decisions and merge applications
+with snapshot preconditions, full source claim provenance, history and publication holds.
+Application must atomically unpublish affected tiles, repoint existing redirects, relink
+entities, preserve evidence, apply holds and republish only eligible spots. It must refuse
+stale decisions and concurrent identity drift, and replay an already applied decision as a
+no-op. Persisted idempotence, DB concurrency and promotion of merges are **not implemented**
+by this foundation; pure reruns are deterministic. No operator CLI or public endpoint is
+exposed until those transactional guarantees exist.
