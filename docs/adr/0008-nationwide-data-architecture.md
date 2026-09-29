@@ -374,6 +374,8 @@ keeps its id. A relocated spot keeps its id too; relocation is never removal + n
 No OSM adapter may be added, and the schema's refusal of an approved `kind = 'osm'` source stays,
 until a dedicated ODbL ADR decides the production architecture (strategy §4,
 `docs/DATA_POLICY.md`). The nationwide goal does not authorize OSM.
+ADR-0010 is that ADR: legal review is required before adoption, and this decision stays in force
+until an approving ADR-0010 amendment.
 
 ## Invariants carried over unchanged
 

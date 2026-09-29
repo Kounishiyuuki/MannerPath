@@ -74,6 +74,8 @@ OSM remains blocked for production publication until a dedicated ADR decides:
 
 The nationwide goal alone does not authorize using OSM.
 
+Decided by ADR-0010 (Issue #110): legal review required before adoption; reference-only in the meantime; canonical integration rejected; isolated OSM-derived database is the only adoptable architecture. The §6 gate is planned without OSM.
+
 ## 5. Rollout stages
 
 ### N1 — dense initial multi-source proof
