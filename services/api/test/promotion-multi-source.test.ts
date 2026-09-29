@@ -3,8 +3,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { type DatabaseSync } from "node:sqlite";
+import { fileURLToPath } from "node:url";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { MULTI_SOURCE_PROMOTION_BUNDLE_VERSION, PromotionError, buildMultiSourcePromotionBundle, buildPromotionBundle,
@@ -18,7 +21,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { rehashed } from "./support/promotion-tamper.ts";
-import { SqliteD1, applyPromotionBundle, migratedSqlite, migrationFiles } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
 const OSAKA_BYTES = new Uint8Array(readFileSync(new URL("../../data-pipeline/fixtures/osaka-designated-smoking-areas/opendata_1012.csv", import.meta.url)));
 type Row = Record<string, any>;
@@ -385,33 +388,79 @@ test("while a v3 bootstrap is open, pipeline, review and source-check writes are
 });
 
 // D1 caps SQLite's expression tree depth at 100; node:sqlite keeps the default 1000, so the tests above cannot see
-// a trigger that D1 refuses to compile. The sqlite3 CLI with `.limit expr_depth 100` runs the real migrations and
-// a bundle under D1's cap, each in one transaction, and stops at the first error.
-function underD1DepthLimit(bundle: string): string {
-  const migrations = migrationFiles().map((f) => `BEGIN;\n${readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8")}\nCOMMIT;`);
-  const script = [".bail on", ".limit expr_depth 100", "PRAGMA foreign_keys = ON;", ...migrations, "BEGIN;", bundle, "COMMIT;",
-    "SELECT 'completions', (SELECT count(*) FROM promotion_multi_bootstrap_completions) + (SELECT count(*) FROM promotion_bootstrap_completions);"];
-  const run = spawnSync("sqlite3", [":memory:"], { input: script.join("\n"), encoding: "utf8", maxBuffer: 1 << 28 });
-  if (run.error) throw new Error(`the D1 expression depth probe needs the sqlite3 CLI: ${run.error.message}`);
-  return `${run.stdout}${run.stderr}`;
+// a trigger that D1 refuses to compile. Wrangler's local D1 (a pinned devDependency) enforces the same cap, so the
+// real migrations and each bundle run there, the same commands an operator runs, in a throwaway --persist-to
+// directory: the repository's own .wrangler state and every remote database stay untouched.
+const WRANGLER = fileURLToPath(new URL("../node_modules/wrangler/bin/wrangler.js", import.meta.url));
+
+function wrangler(dir: string, ...args: string[]) {
+  const run = spawnSync(process.execPath, [WRANGLER, "d1", ...args, "DB", "--local", "--config", join(dir, "wrangler.json"),
+    "--persist-to", join(dir, "state")], { cwd: dir, encoding: "utf8", maxBuffer: 1 << 28,
+    env: { ...process.env, CI: "1", WRANGLER_SEND_METRICS: "false", WRANGLER_LOG_PATH: join(dir, "logs") } });
+  if (run.error) throw new Error(`wrangler d1 ${args[0]} could not start: ${run.error.message}`);
+  return { ok: run.status === 0, out: `${run.stdout}${run.stderr}` };
 }
 
-test("D1 expression depth: v2 and v3 bundles apply, and a tampered v3 is refused by its check, under D1's limit of 100", async () => {
+/** A fresh local D1 with migrations 0001..latest; `fn` gets its directory, which is removed afterwards. */
+function withLocalD1<T>(fn: (dir: string) => T): T {
+  const dir = mkdtempSync(join(tmpdir(), "mannerpath-d1-depth-"));
+  try {
+    cpSync(fileURLToPath(new URL("../migrations/", import.meta.url)), join(dir, "migrations"), { recursive: true });
+    writeFileSync(join(dir, "wrangler.json"), JSON.stringify({ name: "d1-depth-probe", compatibility_date: "2026-09-01",
+      d1_databases: [{ binding: "DB", database_name: "probe", database_id: "00000000-0000-0000-0000-000000000000", migrations_dir: "migrations" }] }));
+    const migrated = wrangler(dir, "migrations", "apply");
+    assert.equal(migrated.ok, true, migrated.out.slice(-500));
+    return fn(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function localCounts(dir: string, tables: string[]): Row {
+  const run = wrangler(dir, "execute", "--json", "--command", `SELECT ${tables.map((t) => `(SELECT count(*) FROM ${t}) AS ${t}`).join(", ")}`);
+  assert.equal(run.ok, true, run.out.slice(-500));
+  return JSON.parse(run.out.slice(run.out.indexOf("[")))[0].results[0];
+}
+
+function applyLocally(dir: string, bundle: string) {
+  writeFileSync(join(dir, "bundle.sql"), bundle);
+  return wrangler(dir, "execute", "--file", join(dir, "bundle.sql"));
+}
+
+test("D1 expression depth: v2 and v3 bundles apply, and a tampered v3 is refused by its check, on Wrangler's local D1", async () => {
   const taito = new SqliteD1();
   await importTaito(taito, { newSpotId: sequentialSpotIds("0") });
   await publishTiles(taito, { now: NOW });
   const { db: reviewed } = await reviewedMixed();
-  for (const [name, sql] of [
-    ["v2 Taito", (await buildPromotionBundle(taito)).sql],
-    ["v3 Taito + Osaka", (await buildMultiSourcePromotionBundle(await mixed())).sql],
-    ["v3 reviewed Taito + Osaka", (await buildMultiSourcePromotionBundle(reviewed)).sql],
-  ]) {
-    const out = underD1DepthLimit(sql);
-    assert.doesNotMatch(out, /Expression tree is too large/, name);
-    assert.match(out, /^completions\|1$/m, `${name}: ${out.slice(-300)}`);
-  }
   const { sql } = await buildMultiSourcePromotionBundle(await mixed());
   const tampered = await rehashed(sql, (b) => b.replace(/("tile_snapshot_spots":)(\d+)/, (_, k, n) => `${k}${Number(n) + 1}`));
   assert.notEqual(tampered, sql);
-  assert.match(underD1DepthLimit(tampered), /promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources/);
+  const COMPLETIONS = ["promotion_multi_bootstrap_completions", "promotion_bootstrap_completions"];
+
+  withLocalD1((dir) => {
+    // Without the cap this whole test would pass vacuously, so first show the engine enforces it.
+    const deep = wrangler(dir, "execute", "--command", `SELECT 1${" + 1".repeat(101)}`);
+    assert.equal(deep.ok, false);
+    assert.match(deep.out, /Expression tree is too large \(maximum depth 100\)/);
+  });
+  for (const [name, bundle] of [
+    ["v2 Taito", (await buildPromotionBundle(taito)).sql],
+    ["v3 Taito + Osaka", sql],
+    ["v3 reviewed Taito + Osaka", (await buildMultiSourcePromotionBundle(reviewed)).sql],
+  ]) {
+    withLocalD1((dir) => {
+      const run = applyLocally(dir, bundle);
+      assert.doesNotMatch(run.out, /Expression tree is too large/, name);
+      assert.equal(run.ok, true, `${name}: ${run.out.slice(-500)}`);
+      const n = localCounts(dir, COMPLETIONS);
+      assert.equal(n.promotion_multi_bootstrap_completions + n.promotion_bootstrap_completions, 1, name);
+    });
+  }
+  withLocalD1((dir) => {
+    const run = applyLocally(dir, tampered);
+    assert.equal(run.ok, false);
+    assert.match(run.out, /promotion_multi_bootstrap_completions: the database does not hold exactly the declared, complete sources/);
+    const left = localCounts(dir, [...CARRIED, ...COMPLETIONS]);
+    for (const t of [...CARRIED, ...COMPLETIONS]) assert.equal(left[t], 0, `${t} rolled back`);
+  });
 });
