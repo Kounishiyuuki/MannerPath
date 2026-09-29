@@ -175,3 +175,18 @@ test("two real reviewed sources import independently; blocking Osaka withdraws o
   await assert.rejects(resolveFirstRelease(db, OSAKA_ADAPTER, next.releaseId, { now: NOW }), /cross-release reconciliation is not implemented/);
   assert.equal(count(db, "spots"), 378);
 });
+
+test("Osaka scope expansion requires a new mappingVersion for an existing observation generation", async () => {
+  const db = new SqliteD1();
+  const { releaseId } = await ingest(db);
+  const excludedName = OSAKA_ADAPTER.parse(BYTES).rows.find((r) => OSAKA_ADAPTER.includesRecord!(r))![0];
+  const narrower = { ...OSAKA_ADAPTER, includesRecord: (values: readonly string[]) =>
+    OSAKA_ADAPTER.includesRecord!(values) && values[0] !== excludedName };
+  const first = await observeRelease(db, narrower, releaseId);
+  assert.equal(first.length, 343);
+  await assert.rejects(observeRelease(db, OSAKA_ADAPTER, releaseId), /scope changed.*new mappingVersion/);
+  assert.equal(count(db, "source_observations"), 343, "refused expansion writes nothing");
+  const next = await observeRelease(db, { ...OSAKA_ADAPTER, mappingVersion: "test-osaka-expanded.v2" }, releaseId);
+  assert.equal(next.length, 344);
+  assert.equal(count(db, "source_observations"), 687, "a new generation preserves the old one");
+});

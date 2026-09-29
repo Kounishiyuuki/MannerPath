@@ -83,6 +83,11 @@ export async function observeRelease(db: Db, adapter: SourceAdapter, releaseId: 
       if (stored) throw new Error(`observe: record ${record.record_id} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
       continue;
     }
+    // A generation is derived in one atomic batch. A newly included row in an existing
+    // generation is a scope change, just as excluding a stored row is.
+    if (!stored && existing.length > 0) {
+      throw new Error(`observe: record ${record.record_id} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
+    }
     const derived = adapter.observe(values);
     if (stored) {
       if (JSON.stringify(columnsOf(stored)) !== JSON.stringify(columnsOf(derived))) {

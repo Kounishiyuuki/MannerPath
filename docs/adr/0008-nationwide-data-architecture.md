@@ -446,7 +446,8 @@ retention/expiry (objects are kept); alerting on `failed`/`needsReview`.
 Osaka's official environment/recycling CSV mixes designated smoking locations, information-only
 smoking venues with access conditions, and paper-recycling businesses. Keeping raw evidence must
 not make each host a smoking spot. `SourceAdapter.includesRecord` is an optional, pure, reviewed
-raw-row scope predicate, evaluated only at the normalization boundary. Ingest still preserves every
+raw-row scope predicate, evaluated at the normalization boundary and by read-only refresh drift
+probes before field mapping. Ingest still preserves every
 row, original ordinal, header (including duplicate column names) and release fingerprint. Only
 in-scope rows receive observations, entity decisions and canonical spots; a row outside scope has
 no observation for that mapping generation. An adapter without the predicate retains the existing
@@ -454,7 +455,18 @@ one-observation-per-record behavior, including Taito's byte-identical golden.
 
 The scope rule is part of `mappingVersion`. Re-derivation refuses an existing observation that
 would now be excluded under the same version, including the read-only re-derivation used by review
-applications. A new scope or field mapping requires a new mapping version. Scope exclusion is not
+applications. A nonempty observation generation is created atomically; newly including a row not
+in that generation is also refused under the same version. A new scope or field mapping requires
+a new mapping version. Scope exclusion is not
 removal evidence. Osaka remains partial and `crossReleaseValidated: false`; repeated releases and
 cross-source merges are deliberately gated, and the matcher must account for out-of-scope raw
 rows before that source's cross-release gate can be opened.
+
+Refresh drift probes skip a row only when `includesRecord` returns false; an exception is a
+`recordsUnobservable` finding and produces `needsReview`, never a silent skip. Refresh
+`record_count` and its decrease comparison still describe all parsed raw rows, not the subset of
+observations. There is no separate in-scope-count baseline in this foundation. That remains a
+source-specific review requirement before enabling refresh of a mixed dataset, rather than a new
+implicit threshold: checks only queue candidates, and Osaka has no `refreshTarget`. Its approval
+is for the pinned first release only; scheduled checks skip it without fetching. Scope remains part
+of `mappingVersion`; refresh does not derive or replace observation generations.

@@ -1,9 +1,8 @@
 // Runs ingest -> resolve -> publish for a reviewed fixture against the LOCAL D1 database
 // (.wrangler/state, the same one `wrangler dev` serves). It never talks to a remote database.
 //
-// It creates the Taito registry row from the reviewed entry (approved, with attribution) when it is
-// missing, and never rewrites an existing row: a database that still holds the older blocked Taito
-// row is upgraded deliberately with `npm run local:registry`.
+// It creates the selected source's registry row from its reviewed entry when missing, and never
+// rewrites an existing row: registry upgrades are deliberate through `npm run local:registry`.
 //
 //   npx wrangler d1 migrations apply DB --local
 //   npm run local:pipeline

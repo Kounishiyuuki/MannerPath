@@ -2,8 +2,8 @@
 // its registry entry, file shape, per-record resolution rules and fail-closed release checks — is
 // behind this interface, so ingest/resolve/registry depend on the boundary and never on a source.
 //
-// Deliberately minimal: it describes what the one implemented source (台東区) needs today. New
-// members arrive with the source that needs them, reviewed against ADR-0008, not speculatively.
+// Deliberately minimal: it describes what the reviewed sources need today. New members arrive
+// with the source that needs them, reviewed against ADR-0008, not speculatively.
 
 import type { Db } from "../db.ts";
 import type { ReviewedSource } from "./registry.ts";
