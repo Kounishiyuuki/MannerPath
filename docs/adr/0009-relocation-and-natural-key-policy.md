@@ -389,7 +389,8 @@ Each step is its own issue and PR, and each builds on the previous one:
     (`promotion_review_match_attestations`), not as the review chain; the hold, application and resolution
     rows are not carried: the promoted canonical row (new coordinate, B's evidence) is explained by B's
     records and that attestation, and the relocation history stays in the origin database (ADR-0008
-    decision 7).
+    decision 7). The same relocated release also bootstraps through `promotion-bundle.v3` (migration 0018)
+    with the same published state and a byte-identical re-export (same test).
 - **E. Versioned natural-key foundation** (adapter-side derivation into `source_record_match_keys`,
   its concrete API, matcher version with key version, collision / missing handling). This is independent of A–D, but it is **useful only with a
   reviewed key**. It should wait until a source has one, or a test-only source proves the generic
