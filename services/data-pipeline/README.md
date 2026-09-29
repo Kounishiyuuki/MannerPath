@@ -13,8 +13,8 @@ An importer must have fixtures and tests before being scheduled.
 
 ## Reviewed multi-source first releases
 
-Three municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
-Taito, Osaka City's designated smoking locations and Koto's station-front public smoking locations.
+Four municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
+Taito, Osaka City's designated smoking locations, Koto's station-front locations and Musashino's licensed KML public smoking sites.
 Source review, licensing and exact attribution
 are in `docs/SOURCES.md`; immutable fixture evidence is under `fixtures/`.
 
@@ -40,6 +40,12 @@ date/count. Hours and tobacco support remain unknown. The adapter starts with pa
 cross-release disabled and no refresh target. All 23 wards were surveyed before selection:
 `docs/research/2026-09-29-tokyo-n1-source-survey.md` records rejected candidates and next priorities.
 
-The existing promotion exporter supports a single release's fresh-database bootstrap, not a
-multi-source production rollout. Multi-source promotion, repeated releases, overlap matching and
-broader field support remain separate work. These commands never target a remote database.
+Musashino adds 3 station public smoking locations from the exact licensed ZIP/KMZ KML member,
+retaining all 25 Placemarks as raw evidence. Run `npm run local:pipeline -- musashino-public-smoking-areas`
+from `services/api`; no refresh is enabled. Its fixture PROVENANCE.md records resource-level CC BY 4.0,
+WGS1984 point semantics and NULL observation dates.
+
+The existing promotion-bundle.v3 exporter supports all approved sources in one fresh-database
+bootstrap (migration 0018). It carries published canonical state, provenance, attribution and tile
+membership; ADR-0008 excludes source_observations and withheld canonical spots. Fresh bootstrap is
+publication reproduction, not an ingestion-workspace backup. No schema or ADR change is made here.

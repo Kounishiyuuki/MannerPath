@@ -1,0 +1,13 @@
+{
+  "sourceUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+  "observedOn": null,
+  "fetchedAt": "2026-09-29T16:10:07Z",
+  "httpLastModified": "Tue, 18 Apr 2023 04:43:38 GMT",
+  "archiveSha256": "3cc620efb082a2b6ee1f30b757dd35d26691924d427dc0c4812d654e009b3f5c",
+  "archiveBytes": 13232,
+  "member": "KML/トイレおよび路上禁煙エリア・公衆喫煙所.kmz",
+  "memberSha256": "b686c4dd049d297bc6dfc7a0facd62855b35a8a089e4d1479d421e60ff8b2028",
+  "innerMember": "doc.kml",
+  "contentSha256": "fc6986b986ec315691299a12583f14a8fd942e34075fd1e9e44837dc72c57a7c",
+  "byteLength": 28067
+}

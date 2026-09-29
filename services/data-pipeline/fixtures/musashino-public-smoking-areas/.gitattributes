@@ -1,0 +1,4 @@
+# Immutable publisher evidence must retain original CRLF bytes and SHA-256.
+doc.kml -text -diff
+license-evidence.html -text -diff
+toilet.zip -text

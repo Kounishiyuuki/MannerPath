@@ -76,10 +76,31 @@ export async function analyzeTaitoQuality(db: Db, sourceId: string) {
   }>();
   const attenuationAt = new Map(attenuations.map((a) => [`${a.spot_id}\u0000${a.effect}`, a]));
 
+  // Publication bootstraps intentionally omit withheld canonical rows (ADR-0008).
+  // Only a completed bootstrap declaring this source can justify that absence; an
+  // ordinary ingestion database must still retain every reviewed conflict row.
+  const bootstrap = await db.prepare(`SELECT EXISTS (
+    SELECT 1 FROM promotion_bootstraps b
+    JOIN promotion_bootstrap_completions c USING (promotion_bootstrap_id)
+    JOIN source_releases rel ON rel.release_id = b.release_id
+    WHERE b.source_id = ? AND rel.content_sha256 = ? AND rel.observed_on IS ? AND rel.source_url = ?
+    UNION ALL
+    SELECT 1 FROM promotion_multi_bootstrap_sources b
+    JOIN promotion_multi_bootstrap_completions c USING (promotion_bootstrap_id)
+    JOIN source_releases rel ON rel.release_id = b.release_id
+    WHERE b.source_id = ? AND rel.content_sha256 = ? AND rel.observed_on IS ? AND rel.source_url = ?
+  ) AS completed`).bind(
+    sourceId, TAITO_REVIEWED_RELEASE.contentSha256, TAITO_REVIEWED_RELEASE.observedOn, TAITO_REVIEWED_RELEASE.sourceUrl,
+    sourceId, TAITO_REVIEWED_RELEASE.contentSha256, TAITO_REVIEWED_RELEASE.observedOn, TAITO_REVIEWED_RELEASE.sourceUrl,
+  ).first<{ completed: number }>();
+
   // A database with no Taito spots at all (a fixture of another source) has nothing to check.
   const unresolvedConflicts = reconciled.length === 0 ? [] : TAITO_LIST_PAGE_CONFLICTS.flatMap((c) => {
     const row = byName.get(c.csvName);
-    if (!row) return [`${c.csvName}: no canonical spot`];
+    if (!row) {
+      const withheld = c.effects.includes("withholdFromPublication") || c.effects.includes("temporarilyClosed");
+      return bootstrap?.completed === 1 && withheld ? [] : [`${c.csvName}: no canonical spot`];
+    }
     const problems: string[] = [];
     if (c.effects.includes("hoursUnknown") && row.opening_hours_status === "parsed") {
       problems.push("hours still parsed");
