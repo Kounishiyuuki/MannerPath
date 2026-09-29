@@ -91,6 +91,8 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
+       -- A survivor held by an unresolved cross-source merge conflict (0019) is not a candidate.
+       AND s.spot_id NOT IN (SELECT spot_id FROM cross_source_publication_blocks)
        AND rel.status = 'applied'
        AND NOT EXISTS (SELECT 1 FROM pending_relocation_applications x WHERE x.spot_id = s.spot_id)
      ORDER BY s.spot_id`,

@@ -622,8 +622,12 @@
   "tables": {
     "app_attest_challenges": [],
     "app_attest_keys": [],
+    "cross_source_candidates": [],
+    "cross_source_decisions": [],
+    "cross_source_merge_applications": [],
     "promotion_bootstrap_completions": [],
     "promotion_bootstraps": [],
+    "promotion_cross_source_merge_attestations": [],
     "promotion_multi_bootstrap_completions": [],
     "promotion_multi_bootstrap_sources": [],
     "promotion_multi_bootstraps": [],

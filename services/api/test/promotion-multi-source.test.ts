@@ -398,7 +398,7 @@ function wrangler(dir: string, ...args: string[]) {
     "--persist-to", join(dir, "state")], { cwd: dir, encoding: "utf8", maxBuffer: 1 << 28,
     env: { ...process.env, CI: "1", WRANGLER_SEND_METRICS: "false", WRANGLER_LOG_PATH: join(dir, "logs") } });
   if (run.error) throw new Error(`wrangler d1 ${args[0]} could not start: ${run.error.message}`);
-  return { ok: run.status === 0, out: `${run.stdout}${run.stderr}` };
+  return { ok: run.status === 0, out: `${run.stdout}${run.stderr}`, stdout: run.stdout };
 }
 
 /** A fresh local D1 with migrations 0001..latest; `fn` gets its directory, which is removed afterwards. */
@@ -419,7 +419,8 @@ function withLocalD1<T>(fn: (dir: string) => T): T {
 function localCounts(dir: string, tables: string[]): Row {
   const run = wrangler(dir, "execute", "--json", "--command", `SELECT ${tables.map((t) => `(SELECT count(*) FROM ${t}) AS ${t}`).join(", ")}`);
   assert.equal(run.ok, true, run.out.slice(-500));
-  return JSON.parse(run.out.slice(run.out.indexOf("[")))[0].results[0];
+  // stdout only: Wrangler may log to stderr after the JSON (e.g. behind a proxy), which is not part of the result.
+  return JSON.parse(run.stdout.slice(run.stdout.indexOf("[")))[0].results[0];
 }
 
 function applyLocally(dir: string, bundle: string) {
