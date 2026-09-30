@@ -6,7 +6,7 @@ Issue [#133](https://github.com/Kounishiyuuki/MannerPath/issues/133), child of #
 
 **41 assigned groups; 39 deep-reviewed; 39 blocked; candidate 0; approved 0; implemented 0.** Two incomplete attempts are explicitly pending and excluded from the completed count. Condition B (at least 35 substantive reviews, all approvals implemented) is met. New sources/spots/prefectures/major cities: **0**. No fixture, registry approval, migration or canonical coordinate is added.
 
-Assignment comes from the original 73 truncated groups, using manifest prefecture geography: Hokkaido, Tohoku, Kanto, Niigata, Yamanashi, Nagano, and the national group. Haneda is the only east operator in those 73; other already completed operator exclusions were not arbitrarily reopened. No west/central/south group is changed.
+Assignment comes from the original 73 truncated groups, using manifest prefecture geography: Hokkaido, Tohoku, Kanto, Niigata, Yamanashi, Nagano, and the national group. Haneda is the only east operator in those 73; other already completed operator exclusions were not arbitrarily reopened. No west/central/south group is changed. The merged west report #134 labels Fukui as Codex-owned, but the task explicitly assigns Fukui to Claude; `pref-fukui` is therefore left untouched and is not included in our 41. That one follow-up remains in the west lane.
 
 The original 190-target/215-raw/61-historical report remains unchanged. Exact prior inspections and SHA references were reused, including payloads retained only as historical attestations; those are not claimed as new raw reinspection. Follow-up inspected actual smoking inventories, public linked export routes/scripts, facility-category dictionaries, CSV/GeoJSON/SHP/XLSX contents and relevant terms/operation evidence. Catalog searches alone do not count as completed reviews. Each conclusion is limited to its named dataset/export path, not a claim that a jurisdiction has no eligible sources.
 
@@ -41,7 +41,7 @@ Source/evidence/identity/license/privacy policies are unchanged. Community #124 
 | Check | Result |
 | --- | --- |
 | `make contract` | pass |
-| `make api-validate` | pass:581 API tests +45 discovery tests; final rebase check required |
+| `make api-validate` | pass:581 API tests +45 discovery tests, repeated after rebase onto west batch #134 |
 | `services/api: npx tsc -p .` | pass |
 | Discovery regression suite | pass; manual latest/dedup, pending exclusion, approval/coverage boundary, rescan retention |
 | Fresh local SQLite/D1-compatible all-migration combined pipeline | 6 sources, 515 canonical, 513 published, 81 tiles |
@@ -49,7 +49,7 @@ Source/evidence/identity/license/privacy policies are unchanged. Community #124 
 | Promotion v3, fresh migrated target, deterministic re-export | pass, byte-identical |
 | Cross-source generation | 0 candidates; no canonical mutation |
 | Community regression | included in full API suite; blocked registry preserved |
-| `git diff --check`; `git diff origin/main --check` | final-head checks recorded with PR |
+| `git diff --check`; `git diff origin/main --check` | pass after rebase onto #134 |
 
 No source passed approval, so new-source Wrangler D1 onboarding is inapplicable. The independent fresh local D1-shaped SQLite corpus check runs the real migrations and all existing sources; it is not reported as a remote or Wrangler production run.
 
@@ -98,3 +98,5 @@ Group | Completed | Verdict | Blockers
 江戸川区 (`ward-edogawa`) | yes | blocked | coordinatesMissing, licenseUnknown
 日本空港ビルデング（羽田空港） (`operator-haneda`) | yes | blocked | reuseForbidden, hostPointOnly, coordinatesMissing
 国土交通省 屋内地理空間情報 (`national-mlit-indoor`) | yes | blocked | rawUnavailable, coordinatesMissing, currentOperationUnknown, licenseUnknown
+
+Latest-main integration: rebased onto west/operator PR #134 main `b3bd86f11a70a8407f8ddcea43148000c487af8d`. Its research/report files are retained; both batches add no sources. No conflicts or migration renumbering were needed.
