@@ -33,6 +33,14 @@ nonisolated struct ReportCoordinate: Codable, Equatable, Sendable {
     }
 }
 
+/// The report terms document this build shows (docs/legal/REPORT_TERMS_DRAFT.md, Issue #124). A deployment that
+/// publishes another version in /v1/config cannot receive valid consent from this build.
+nonisolated enum ReportTerms {
+    static let bundledVersion = "report-terms.2026-09-30.draft"
+    /// The bundled document is a draft awaiting legal/maintainer approval; the sheet says so.
+    static let isDraft = true
+}
+
 nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var type: ReportType
     var spotId: String?
@@ -40,16 +48,20 @@ nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var proposedLocation: ReportCoordinate?
     var observedOn: String?
     var note: String?
+    /// The terms version the user explicitly agreed to for this draft; nil until they do. Drafts saved by an
+    /// earlier build decode with nil, so consent is never assumed.
+    var acceptedTermsVersion: String?
 
     init(type: ReportType, spotId: String? = nil, subjectName: String? = nil,
          proposedLocation: ReportCoordinate? = nil,
-         observedOn: String? = nil, note: String? = nil) {
+         observedOn: String? = nil, note: String? = nil, acceptedTermsVersion: String? = nil) {
         self.type = type
         self.spotId = spotId
         self.subjectName = subjectName
         self.proposedLocation = proposedLocation
         self.observedOn = observedOn
         self.note = note
+        self.acceptedTermsVersion = acceptedTermsVersion
     }
 }
 
@@ -69,6 +81,8 @@ nonisolated struct ReportLimits: Equatable, Sendable {
     var submissionProtocol: ReportProtocol = .unattested
     /// The whole request body limit; for schemaVersion 1 it equals `maxBodyBytes`.
     var maxSubmissionBytes: Int? = nil
+    /// The report terms version the deployment records consent to; nil for a deployment that predates terms.
+    var termsVersion: String? = nil
 }
 
 nonisolated enum ReportAvailability: Equatable, Sendable {
@@ -82,7 +96,7 @@ nonisolated enum ReportAvailability: Equatable, Sendable {
 
 nonisolated enum ReportValidationError: Error, Equatable, Sendable {
     case missingSpotID, unexpectedSpotID, missingProposedLocation, unexpectedProposedLocation
-    case invalidCoordinate, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge
+    case invalidCoordinate, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge, termsNotAccepted
 }
 
 nonisolated struct ReportRequest: Encodable, Sendable {
@@ -93,9 +107,11 @@ nonisolated struct ReportRequest: Encodable, Sendable {
     let observedOn: String?
     let note: String?
     let installId: UUID
+    /// Inside the payload, so for schemaVersion 2 the App Attest assertion signs the consent too.
+    let acceptedTermsVersion: String?
 
     enum CodingKeys: String, CodingKey {
-        case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId
+        case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId, acceptedTermsVersion
     }
 
     /// Encodes once. For schemaVersion 2 the returned bytes are the payload that is both hashed
@@ -119,9 +135,15 @@ nonisolated struct ReportRequest: Encodable, Sendable {
             guard !note.isEmpty else { throw ReportValidationError.emptyNote }
             guard note.utf16.count <= limits.noteMaxLength else { throw ReportValidationError.noteTooLong }
         }
+        // A deployment that records consent gets it explicitly, for exactly its version; one that predates terms
+        // is never sent the field (its strict schema would reject it).
+        if let required = limits.termsVersion {
+            guard draft.acceptedTermsVersion == required else { throw ReportValidationError.termsNotAccepted }
+        }
         let request = Self(schemaVersion: limits.submissionProtocol.schemaVersion, type: draft.type, spotId: draft.spotId,
                            proposedLocation: draft.proposedLocation?.quantized,
-                           observedOn: draft.observedOn, note: draft.note, installId: installId)
+                           observedOn: draft.observedOn, note: draft.note, installId: installId,
+                           acceptedTermsVersion: limits.termsVersion)
         let data = try JSONEncoder().encode(request)
         guard data.count <= limits.maxBodyBytes else { throw ReportValidationError.bodyTooLarge }
         return data

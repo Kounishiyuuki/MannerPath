@@ -115,6 +115,14 @@ final class ReportModel {
         }
     }
 
+    /// Records (or withdraws) the user's explicit agreement to the terms version this deployment shows. Only the
+    /// current version can be agreed to; there is no consent without an available deployment that names one.
+    func setTermsAccepted(_ accepted: Bool) {
+        guard case .available(let limits) = availability, let version = limits.termsVersion, var edited = draft else { return }
+        edited.acceptedTermsVersion = accepted ? version : nil
+        saveDraft(edited)
+    }
+
     func cancel() {
         guard !acceptedCleanupPending, !isBusy else { return }
         do {
@@ -193,6 +201,7 @@ final class ReportModel {
             case .rejected(let status, let code):
                 guard clearDefiniteAttempt() else { return }
                 if status == 503 && code == "attestationUnavailable" { availability = .unavailable }
+                if status == 409 && code == "termsVersionOutdated" { availability = .incompatible }
                 submission = .rejected(Self.rejectionMessage(status: status, code: code))
             case .rateLimited(let seconds):
                 guard clearDefiniteAttempt() else { return }
@@ -286,6 +295,7 @@ final class ReportModel {
         case .emptyNote: String(localized: "Remove the empty note or add some detail.")
         case .noteTooLong: String(localized: "Shorten the note to the character limit.")
         case .bodyTooLarge: String(localized: "Shorten the note and try again.")
+        case .termsNotAccepted: String(localized: "Read and agree to the report terms before submitting.")
         }
     }
 
@@ -293,6 +303,8 @@ final class ReportModel {
         switch (status, code) {
         case (503, "attestationUnavailable"):
             String(localized: "Reporting is temporarily unavailable. Your draft remains saved.")
+        case (409, "termsVersionOutdated"):
+            String(localized: "The report terms have changed. Update the app to read them. Your draft remains saved.")
         case (400, _):
             String(localized: "Some report information needs to be corrected.")
         case (413, _):

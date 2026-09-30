@@ -53,8 +53,14 @@ enum SpotPresentation {
 
     static func evidence(_ value: String?, version: String?) -> String {
         guard let value, !value.isEmpty else { return String(localized: "Unknown") }
+        if isCommunityReviewed(value, version: version) { return String(localized: "Reviewed user reports (not official)") }
         return value == "officialListing" && version == "evidence-quality.v1"
             ? String(localized: "Official listing") : String(localized: "Evidence confidence unknown")
+    }
+
+    /// A place backed by reviewed community reports (Issue #124). It must never read as an official listing.
+    static func isCommunityReviewed(_ value: String?, version: String?) -> Bool {
+        value == "communityReviewed" && version == "evidence-quality.v2"
     }
 
     static func verificationDate(_ value: Date?) -> String {
