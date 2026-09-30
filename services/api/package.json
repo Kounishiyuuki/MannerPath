@@ -6,7 +6,9 @@
     "node": ">=23.3"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --experimental-sqlite --no-warnings --test test/*.test.ts",
+    "test": "node --experimental-strip-types --experimental-sqlite --no-warnings --test test/*.test.ts && npm run test:discovery",
+    "test:discovery": "node --experimental-sqlite --no-warnings --test ../data-pipeline/discovery/*.test.mjs",
+    "discover:sources": "node --experimental-sqlite --no-warnings ../data-pipeline/discovery/cli.mjs",
     "typecheck": "tsc -p .",
     "dev": "wrangler dev --local",
     "local:migrate": "wrangler d1 migrations apply DB --local",

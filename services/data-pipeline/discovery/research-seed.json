@@ -1,0 +1,1366 @@
+{
+  "version": 1,
+  "note": "Imported prior raw inspections only; hashes do not replace raw bytes or grant reuse rights. URL skip applies to inspected unchanged releases only.",
+  "resources": [
+    {
+      "targetId": "city-gifu",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/5739966f-1ece-4884-80e3-7f13e65c9869/resource/5143f469-4436-4cd7-b273-4ee736779ee8/download/20250401.csv"
+      ],
+      "sha256": "bc56405d381d8eace0d80dddc87271d8add5e92de246e5d40ff4192f671ec293",
+      "rawRowCount": 351,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 22,
+        "1307": 50,
+        "1505": 1,
+        "1302": 3,
+        "1304": 18,
+        "1399": 5,
+        "1503": 46,
+        "1215": 10,
+        "1214": 4,
+        "1512": 7,
+        "1125": 6,
+        "1599": 1,
+        "1506": 2,
+        "1507": 1,
+        "1504": 23,
+        "802": 1,
+        "1009": 1,
+        "803": 2,
+        "801": 2,
+        "1016": 6,
+        "3710": 1,
+        "1499": 12,
+        "1606": 1,
+        "1509": 1,
+        "805": 1,
+        "1019": 1,
+        "1601": 1,
+        "1510": 1,
+        "3731": 2,
+        "1907": 1,
+        "2006": 2,
+        "1107": 4,
+        "2008": 2,
+        "1199": 1,
+        "": 17,
+        "3732": 25,
+        "1305": 1,
+        "1403": 13,
+        "1402": 11,
+        "1010": 1,
+        "1110": 11,
+        "1103": 1,
+        "1106": 8,
+        "1133": 1,
+        "1501": 2,
+        "1003": 13,
+        "2003": 4,
+        "1513": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:20.255327+00:00"
+    },
+    {
+      "targetId": "historical-c212024",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/f2931ff7-cc3a-48e4-bd8a-ae94a8a3c140/resource/1a6807bc-d26e-43ba-b2af-c9b6354e76e6/download/212024_city.ogaki_20200401_public-facility.csv"
+      ],
+      "sha256": "a9ecbf27fc3d36add6e539acad8e64b28b99b6df7deb9c816b6cc54abf4f24d0",
+      "rawRowCount": 132,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 20,
+        "1307": 5,
+        "1302": 1,
+        "1304": 11,
+        "1499": 6,
+        "1399": 3,
+        "1503": 22,
+        "1215": 4,
+        "1214": 3,
+        "1512": 3,
+        "1125": 1,
+        "1504": 10,
+        "801": 1,
+        "803": 10,
+        "802": 1,
+        "1016": 3,
+        "1403": 1,
+        "2299": 25,
+        "4007": 1,
+        "1514": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:22.015184+00:00"
+    },
+    {
+      "targetId": "historical-c212032",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/5f8c03f2-cdf1-410d-9ec7-1dc6eea32d69/resource/7458c3c6-0637-4a37-9d9e-2a3d15fa05f6/download/212032_public-facility2024.csv"
+      ],
+      "sha256": "e43c867bba4d14b8e8622ce7fcc0c9186f0cca08d735920ce5ddbb626e53565d",
+      "rawRowCount": 228,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 14,
+        "1302": 1,
+        "1304": 9,
+        "1503": 19,
+        "1215": 9,
+        "1512": 10,
+        "1399": 4,
+        "1504": 12,
+        "803": 9,
+        "801": 3,
+        "1016": 3,
+        "699": 1,
+        "1499": 21,
+        "1602": 13,
+        "1402": 24,
+        "1403": 5,
+        "2499": 1,
+        "2311": 1,
+        "1152": 1,
+        "2699": 1,
+        "1099": 1,
+        "1309": 1,
+        "1106": 7,
+        "1199": 26,
+        "1103": 1,
+        "1102": 2,
+        "1116": 5,
+        "1107": 4,
+        "1118": 1,
+        "1110": 9,
+        "2009": 3,
+        "1409": 3,
+        "": 4
+      },
+      "fetchedAt": "2026-09-30T13:08:24.043889+00:00"
+    },
+    {
+      "targetId": "historical-c212041",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/bcf33113-ea43-4f7e-9060-b85d9a53090d/resource/a2bf5e7d-7d17-43a8-91b6-2350844d84f5/download/212041_city.tajimi_20200401_public-facility.csv"
+      ],
+      "sha256": "e6ab729481881e5488e3179fd9f2ea7f832dee01413995cb62fabfa43d2aa971",
+      "rawRowCount": 97,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 9,
+        "1302": 2,
+        "1304": 9,
+        "1399": 14,
+        "1503": 13,
+        "1214": 4,
+        "1512": 3,
+        "1504": 8,
+        "807": 1,
+        "801": 1,
+        "803": 2,
+        "1499": 22,
+        "1110": 2,
+        "1103": 1,
+        "1102": 1,
+        "2004": 1,
+        "1601": 1,
+        "2009": 1,
+        "1016": 1,
+        "1599": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:25.705228+00:00"
+    },
+    {
+      "targetId": "historical-c212059",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/5fb7442d-228b-4061-b96b-d51787f6576c/resource/eb78bc4f-0d67-4f5f-91c8-23facc602c8f/download/212059_city.seki_20200401_public-facility.csv"
+      ],
+      "sha256": "fd4e6d2a0e90b014f1094332d1604cc7d4b682235a19fa6dc5900150c3ca95f5",
+      "rawRowCount": 188,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 17,
+        "1307": 105,
+        "1302": 1,
+        "1304": 6,
+        "1503": 19,
+        "1512": 6,
+        "1125": 1,
+        "1504": 9,
+        "803": 7,
+        "802": 1,
+        "1016": 1,
+        "1499": 6,
+        "1505": 1,
+        "1215": 6,
+        "1214": 2
+      },
+      "fetchedAt": "2026-09-30T13:08:27.386490+00:00"
+    },
+    {
+      "targetId": "historical-c212067",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/ed701fab-5346-4169-bbe6-7295e634ee85/resource/687eb5f9-8185-4ae6-94f6-728f34895b79/download/212067_city.nakatsugawa_20200401_public-facility.csv"
+      ],
+      "sha256": "67f796a484e1f16b22baa3f3183c10c8722abb79cd059ee8b471452fa094a897",
+      "rawRowCount": 90,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 13,
+        "1302": 1,
+        "1304": 12,
+        "1503": 19,
+        "1214": 4,
+        "1215": 3,
+        "1512": 2,
+        "1504": 12,
+        "803": 4,
+        "802": 2,
+        "801": 2,
+        "1016": 5,
+        "1499": 4,
+        "1505": 1,
+        "1199": 5,
+        "1514": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:29.057193+00:00"
+    },
+    {
+      "targetId": "historical-c212083",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/0be9cc26-98bf-4995-877c-e3a51df226ce/resource/2da48d8d-7e9c-4c5d-ba10-854068aa659a/download/212083_city.mizunami_20200401_public-facility.csv"
+      ],
+      "sha256": "d57be385b852ca56a87211060e09de5c14766a84f0c5cefac3d8afcfa899fb7f",
+      "rawRowCount": 79,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 7,
+        "1302": 2,
+        "1304": 5,
+        "1503": 7,
+        "1214": 2,
+        "1215": 1,
+        "1512": 1,
+        "1504": 3,
+        "801": 2,
+        "803": 1,
+        "802": 1,
+        "1016": 4,
+        "1499": 15,
+        "1501": 8,
+        "1399": 2,
+        "1514": 2,
+        "1199": 10,
+        "2009": 1,
+        "2004": 2,
+        "2003": 1,
+        "1513": 1,
+        "2614": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:30.964305+00:00"
+    },
+    {
+      "targetId": "historical-c212075",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/6ef54508-6827-4d73-aa59-90c0bb7e05d6/resource/1fa616da-f6af-4a39-99ac-18416a6402b2/download/212075_city.mino_20200401_public-facility.csv"
+      ],
+      "sha256": "6f34f9144f666fe3af762b9fee27300fa84bdef29dc2224dee3ac5653d3b80bb",
+      "rawRowCount": 25,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 3,
+        "1302": 1,
+        "1304": 6,
+        "1503": 5,
+        "1512": 1,
+        "1504": 2,
+        "803": 4,
+        "1016": 1,
+        "1499": 1,
+        "1399": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:32.635729+00:00"
+    },
+    {
+      "targetId": "historical-c212091",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/33635865-5455-4caf-a3e2-777fa13d3c12/resource/0c49d9cd-753b-402e-8a45-799e866507a6/download/212091_city.hashima_20200401_public-facility.csv"
+      ],
+      "sha256": "f5c4791fbad1f2f02c41a2ec4adf49e058419896c5da0193df46e98246a07deb",
+      "rawRowCount": 43,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 13,
+        "1307": 1,
+        "1302": 1,
+        "1503": 8,
+        "1214": 4,
+        "1512": 1,
+        "1504": 4,
+        "803": 1,
+        "1016": 1,
+        "1399": 3,
+        "1499": 2,
+        "1502": 1,
+        "1199": 1,
+        "801": 1,
+        "6331": 1
+      },
+      "fetchedAt": "2026-09-30T13:08:34.288139+00:00"
+    },
+    {
+      "targetId": "historical-c212105",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/ae300a54-a450-457a-b8c4-0e4ec246c73e/resource/8a6850cf-e132-437c-8656-094a8d425bd2/download/212105_city.ena_20200401_public-facility.csv"
+      ],
+      "sha256": "08638ac40adb57f11550cc9acbbcb37c0251666add27e60cd00352d1c9c0b657",
+      "rawRowCount": 104,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 1,
+        "1309": 11,
+        "1302": 1,
+        "1304": 11,
+        "1503": 14,
+        "1214": 5,
+        "1215": 1,
+        "1512": 1,
+        "1504": 8,
+        "803": 17,
+        "1499": 5,
+        "1003": 12,
+        "1016": 2,
+        "1399": 1,
+        "1405": 14
+      },
+      "fetchedAt": "2026-09-30T13:08:36.058444+00:00"
+    },
+    {
+      "targetId": "historical-c212148",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/c9f07639-2677-4913-af47-1850b5b01391/resource/a31c8603-3828-463d-af5d-0454628923ae/download/212148_public-facility_202504.csv"
+      ],
+      "sha256": "14685f882d1552949f59af1b3682ec1cbdb35a6435f24a830ecf1743ff1487b1",
+      "rawRowCount": 95,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 16,
+        "1302": 1,
+        "1304": 17,
+        "1399": 1,
+        "1199": 1,
+        "1503": 11,
+        "1512": 4,
+        "1010": 2,
+        "1504": 5,
+        "803": 2,
+        "801": 2,
+        "1016": 2,
+        "1001": 1,
+        "1499": 5,
+        "1403": 5,
+        "1409": 1,
+        "1107": 1,
+        "1402": 5,
+        "1101": 1,
+        "1404": 12
+      },
+      "fetchedAt": "2026-09-30T13:08:40.497023+00:00"
+    },
+    {
+      "targetId": "pref-gifu",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/ecbc253a-da6f-4acf-a1c5-0781bebf6947/resource/8bbc05c2-e894-489e-9363-d4b35e039ee2/download/210005_public-facility_202204.csv"
+      ],
+      "sha256": "0f4456e7e631f3e13c9689fead066aac9a49c39102bb53d6a3513d9814324e29",
+      "rawRowCount": 239,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "": 239
+      },
+      "fetchedAt": "2026-09-30T13:08:42.275226+00:00"
+    },
+    {
+      "targetId": "city-utsunomiya",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://catalog.city.utsunomiya.tochigi.jp/dataset/ab3e5608-da09-4d66-9081-1c7483c89eeb/resource/1fb147d5-d8d8-43fc-afb8-98f15b990105/download/092011_okunaisisetu.csv"
+      ],
+      "sha256": "8cc5721683984239b6babd426822396b1d264d715a28de74e72f2553ce5cc54d",
+      "rawRowCount": 8,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:08:44.154507+00:00"
+    },
+    {
+      "targetId": "city-utsunomiya",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://catalog.city.utsunomiya.tochigi.jp/dataset/cd71d1aa-6ccc-4401-94c4-fd921bff94b0/resource/f93912d5-397d-4f2f-a8d1-49e967335aa1/download/092011_okugaisisetu.csv"
+      ],
+      "sha256": "2a89b38f1b8e4327117c68338739181d0e95b183ea864aa72d2b0f9eec2803a7",
+      "rawRowCount": 24,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:08:45.834726+00:00"
+    },
+    {
+      "targetId": "city-utsunomiya",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://catalog.city.utsunomiya.tochigi.jp/dataset/f8f372ff-d0b7-44ca-bade-57379290fb62/resource/e12ae1a8-93bf-4575-9c6f-2935a26ff200/download/092011_sinainohoru.csv"
+      ],
+      "sha256": "a6610156f5cac49f2bc61f92b97515059d122ecc54cb5d06d873fd52f9e032ef",
+      "rawRowCount": 4,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:08:47.518431+00:00"
+    },
+    {
+      "targetId": "city-sagamihara",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opendata.city.sagamihara.kanagawa.jp/dataset/d3dd00b8-6059-43e9-b11a-19bd816fa70e/resource/fabd3781-5e09-40fe-b430-d1dcd999ad0f/download/sports_facility.csv"
+      ],
+      "sha256": "abaa97b14ad23747d1c124e565a963a78f2e8255d4e15a1ed297f0645a922819",
+      "rawRowCount": 63,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:08:49.380050+00:00"
+    },
+    {
+      "targetId": "city-nagoya",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.nagoya.jp/_res/projects/default_project/_page_/001/003/577/shisetukarute2026.csv"
+      ],
+      "sha256": "6de8f7a8397fcf1b60617ea5fa3675c002a8a157a900e632a008a60953333fc9",
+      "rawRowCount": 875,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:09:44.735531+00:00"
+    },
+    {
+      "targetId": "city-shizuoka",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opendata.pref.shizuoka.jp/dataset/12466/resource/103603/%E9%9D%99%E5%B2%A1%E5%B8%82%E3%81%8C%E4%BF%9D%E6%9C%89%E3%81%99%E3%82%8B%E5%85%AC%E5%85%B1%E6%96%BD%E8%A8%AD%E6%83%85%E5%A0%B1%E4%B8%80%E8%A6%A7.csv"
+      ],
+      "sha256": "dd015592f61129d42d7a3961bc46a337362a4fbf00fbe42e1640ea354beb01c9",
+      "rawRowCount": 690,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:09:46.547446+00:00"
+    },
+    {
+      "targetId": "city-chiba",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.chiba.jp/sogoseisaku/shichokoshitsu/kohokocho/documents/export_r7.csv"
+      ],
+      "sha256": "6f5f418f37ee0cc6586b68b3e90959b03da9560207da6a9b4a83e6988f4cf251",
+      "rawRowCount": 3117,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:09:48.545129+00:00"
+    },
+    {
+      "targetId": "city-kawasaki",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.kawasaki.jp/170/cmsfiles/contents/0000116/116229/141305_public_facility.csv"
+      ],
+      "sha256": "78a4bb634f63149b89c29d09946a56deac9e12b1590ea0b5089a4666ba385522",
+      "rawRowCount": 1645,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1399": 18,
+        "1302": 3,
+        "802": 5,
+        "1305": 20,
+        "1016": 2,
+        "1012": 3,
+        "1110": 7,
+        "1113": 1,
+        "803": 4,
+        "1306": 3,
+        "1019": 1,
+        "4007": 3,
+        "3699": 2,
+        "1107": 1,
+        "1513": 2,
+        "2006": 3,
+        "2004": 4,
+        "1599": 6,
+        "1010": 2,
+        "1199": 1,
+        "1506": 1,
+        "1613": 3,
+        "1406": 3,
+        "1499": 7,
+        "1602": 10,
+        "1609": 1,
+        "2009": 2,
+        "1303": 7,
+        "1304": 6,
+        "1601": 3,
+        "801": 2,
+        "1003": 1231,
+        "1512": 12,
+        "1503": 115,
+        "1504": 52,
+        "1505": 8,
+        "1214": 9,
+        "1215": 28,
+        "2299": 54
+      },
+      "fetchedAt": "2026-09-30T13:09:50.539774+00:00"
+    },
+    {
+      "targetId": "city-yokohama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.yokohama.lg.jp/city-info/zaisei/fmsuishin/facility-management/hakusyo/manejiment_hakusho.files/0058_20260408.csv"
+      ],
+      "sha256": "e00b51dce9bb28cc2eae3e43333c5d3e15139d384afca4f40c9fe48cdb83b3ea",
+      "rawRowCount": 1312,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30T13:09:55.876620+00:00"
+    },
+    {
+      "targetId": "historical-c212130",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/cf42e758-d9ce-48f5-81e3-8391fe5a6698/resource/b36b396d-0154-4f54-90d6-d9e7438e6dd6/download/212130_public-facility_202204.csv"
+      ],
+      "sha256": "cde1956c759eff168e9b362ceb01fd42c38d3b19d4d457d3cb5c190b48e6f069",
+      "rawRowCount": 157,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1499": 19,
+        "1307": 4,
+        "1302": 1,
+        "1304": 6,
+        "1399": 13,
+        "1503": 17,
+        "1214": 3,
+        "1215": 5,
+        "1512": 4,
+        "1125": 1,
+        "1504": 8,
+        "803": 3,
+        "1016": 1,
+        "1509": 1,
+        "2009": 1,
+        "1402": 18,
+        "624": 1,
+        "1199": 2,
+        "801": 1,
+        "2010": 1,
+        "1405": 8,
+        "1501": 11,
+        "1408": 1,
+        "699": 3,
+        "1003": 6,
+        "622": 1,
+        "601": 1,
+        "1110": 7,
+        "1103": 3,
+        "1106": 2,
+        "1120": 1,
+        "1116": 2,
+        "1107": 1
+      },
+      "fetchedAt": "2026-09-30T13:10:47.102508+00:00"
+    },
+    {
+      "targetId": "historical-c212113",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/59214285-9da7-45a2-b0d5-739876d674cc/resource/a3fd954d-bea8-4693-bc54-7d5fd7ebb1c1/download/21211_.csv"
+      ],
+      "sha256": "9e1cc600d5f64e80cf2b8d0e5ad9e74de8aa93c1d9b510888905381a8a3a55b3",
+      "rawRowCount": 88,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 10,
+        "1302": 3,
+        "1304": 8,
+        "1503": 9,
+        "1215": 1,
+        "1214": 2,
+        "1512": 2,
+        "1504": 2,
+        "803": 3,
+        "1016": 1,
+        "403": 19,
+        "2311": 1,
+        "1099": 3,
+        "1499": 6,
+        "1199": 8,
+        "1402": 6,
+        "1405": 1,
+        "1403": 1,
+        "1399": 1,
+        "1407": 1
+      },
+      "fetchedAt": "2026-09-30T13:10:48.807954+00:00"
+    },
+    {
+      "targetId": "historical-c212164",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/dae0fa23-0c50-4a3d-8a8b-9b5513b88d71/resource/5fefe38e-8739-4a4f-93d0-9a02263e301a/download/21216_.csv"
+      ],
+      "sha256": "598621fe33e9c65296ebc59dc45720555431550f7d2a1a58aef0b311bb11d191",
+      "rawRowCount": 24,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1309": 3,
+        "1307": 2,
+        "1302": 2,
+        "1503": 7,
+        "1214": 1,
+        "1215": 1,
+        "1512": 2,
+        "1504": 3,
+        "1016": 1,
+        "1499": 2
+      },
+      "fetchedAt": "2026-09-30T13:10:50.474561+00:00"
+    },
+    {
+      "targetId": "historical-c212172",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/18bdb21d-bf50-4110-8e68-16ec4c586945/resource/369a38a2-d51a-455b-ad6a-be2e1edf40e6/download/212172_public-facility_202204.csv"
+      ],
+      "sha256": "c29ecc3b09c7879e8aa84a05ed31f024bcb3628a90014e38f3e1279aedd6a39b",
+      "rawRowCount": 46,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 6,
+        "1302": 1,
+        "1304": 3,
+        "1503": 6,
+        "1215": 1,
+        "1214": 3,
+        "1512": 2,
+        "1504": 3,
+        "803": 4,
+        "802": 1,
+        "1399": 3,
+        "1016": 1,
+        "1499": 7,
+        "1402": 5
+      },
+      "fetchedAt": "2026-09-30T13:10:52.175434+00:00"
+    },
+    {
+      "targetId": "historical-c212181",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/86deca08-c2e4-40c3-b544-d25c09c16829/resource/f44dc7b0-93bf-46cb-b9c8-ab790d719d44/download/21218_.csv"
+      ],
+      "sha256": "2dd0303d3fcab641326058772b3564532c302ebc3cf484326b4fe117378bda2d",
+      "rawRowCount": 34,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 4,
+        "1302": 1,
+        "1304": 3,
+        "1503": 7,
+        "1512": 1,
+        "1504": 3,
+        "1502": 1,
+        "803": 7,
+        "1399": 1,
+        "1016": 2,
+        "1499": 4
+      },
+      "fetchedAt": "2026-09-30T13:10:53.928070+00:00"
+    },
+    {
+      "targetId": "historical-c212199",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/efa55424-bafe-460f-ac8b-a312d9b6b501/resource/f9c8349c-7aa3-496e-a25f-6e9dfc8cfc46/download/21219_.csv"
+      ],
+      "sha256": "6b9cfcedd7e1be5d31c0e3a3cd99e3d695523c6e3da13c486c89dea4b156c9c2",
+      "rawRowCount": 147,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 42,
+        "1302": 7,
+        "1503": 17,
+        "1215": 2,
+        "1214": 3,
+        "1512": 7,
+        "1125": 1,
+        "1504": 8,
+        "805": 1,
+        "803": 7,
+        "801": 12,
+        "1016": 4,
+        "1499": 10,
+        "1309": 2,
+        "1501": 9,
+        "1010": 1,
+        "1408": 2,
+        "1602": 5,
+        "1601": 2,
+        "607": 1,
+        "809": 1,
+        "2006": 2,
+        "2004": 1
+      },
+      "fetchedAt": "2026-09-30T13:10:55.676927+00:00"
+    },
+    {
+      "targetId": "historical-c212202",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://gifu-opendata.pref.gifu.lg.jp/dataset/5b258083-a864-43d2-8867-66da666198a5/resource/b647a846-2f0d-4d71-a206-dd4e1630fab6/download/21220_.csv"
+      ],
+      "sha256": "a3d27293333b7e288fa646235175d3971b8f539f46821d80494cb228b8cc50e4",
+      "rawRowCount": 119,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "1307": 13,
+        "1302": 2,
+        "1304": 5,
+        "1503": 9,
+        "1215": 1,
+        "1214": 4,
+        "1512": 4,
+        "1504": 6,
+        "803": 6,
+        "1016": 2,
+        "1499": 4,
+        "1601": 1,
+        "1602": 5,
+        "1309": 5,
+        "1399": 6,
+        "2009": 2,
+        "1010": 1,
+        "1199": 29,
+        "1402": 4,
+        "1405": 6,
+        "1305": 1,
+        "1110": 3
+      },
+      "fetchedAt": "2026-09-30T13:10:57.425048+00:00"
+    },
+    {
+      "targetId": "pref-shizuoka",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opendata.pref.shizuoka.jp/dataset/10210/resource/72044/220001_public_facility.csv"
+      ],
+      "sha256": "b5bd9503b212086ffc5fe35742828f2d3d75796ee2ddd11d79fe29b8e661470b",
+      "rawRowCount": 294,
+      "matchingRowCount": 0,
+      "categoryInventory": {
+        "": 294
+      },
+      "fetchedAt": "2026-09-30T13:10:59.534711+00:00"
+    },
+    {
+      "targetId": "city-aomori",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.aomori.aomori.jp/_res/projects/default_project/_page_/001/008/655/koukyoushisetuichirann.csv"
+      ],
+      "sha256": "6d416d1d611e0d4238990696bb61dd2b5c8a4bd6f6fd4aaf917a7aead3e1dd9b",
+      "rawRowCount": 235,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-morioka",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.morioka.iwate.jp/_res/projects/default_project/_page_/001/024/522/opendata20230118/032018_tourism.csv"
+      ],
+      "sha256": "ac509477556dced3d548259b587c35ee23bc31d9e2a8a3ac5b6ebecd5da58a39",
+      "rawRowCount": 37,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-morioka",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.morioka.iwate.jp/_res/projects/default_project/_page_/001/024/522/opendata20250922/032018_public_facility-5.csv"
+      ],
+      "sha256": "1161fc1842f1dbdf8ba7a5768a7d674b9bcbba2c5b25fc422462d5afdf810ea0",
+      "rawRowCount": 220,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "hostPointOnly"
+      ],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv"
+      ],
+      "sha256": "c6bf5395eed995773e3b74b6d3ba6ea3868940f45a6293b8d37330f2bdd72c8b",
+      "rawRowCount": 2844,
+      "matchingRowCount": 1,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/oomachi_fujisakimae.csv"
+      ],
+      "sha256": "26970654c24833a2c30b6d0fb0f9ec2594b1df2425c2b0379b9f00391e4a70a7",
+      "rawRowCount": 738,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/oomachi_organmae.csv"
+      ],
+      "sha256": "0c4e11d4ae35cb17af4ca9a84cd7296dc1bf26bc7964bff5643397a6d5af5929",
+      "rawRowCount": 738,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/aobayamaeki_kaisatugai.csv"
+      ],
+      "sha256": "f3cd467f99b2cbd07f5fae676fb9d35dd6cdb3aef7e40a13ace2648e6347c55d",
+      "rawRowCount": 701,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/aobayamaeki_kaisatunai.csv"
+      ],
+      "sha256": "f3cd467f99b2cbd07f5fae676fb9d35dd6cdb3aef7e40a13ace2648e6347c55d",
+      "rawRowCount": 701,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/katahiracampus.csv"
+      ],
+      "sha256": "cd9db9fcb940a263487807631a437e7a8b71fa58d4dea053a651a5c879df4bef",
+      "rawRowCount": 681,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-sapporo",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "hostPointOnly"
+      ],
+      "rawUrls": [
+        "https://ckan.pf-sapporo.jp/dataset/18355704-3066-44eb-b120-aeb0e81fe0e2/resource/63c85dd8-2b09-4124-9cbf-fb5a274d8b84/download/011006publicfacility.xlsx"
+      ],
+      "sha256": "297333e5a9a97639967c9bebc95ca7cc8a7adfcbe11ddc1e3b394672278a6dcb",
+      "rawRowCount": 868,
+      "matchingRowCount": 1,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-niigata",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-gis/od-gis_kurashibosai/od-gis_park.files/od_gis_10019_park.csv"
+      ],
+      "sha256": "5f97356c920dce15c053c160f12a7c65b56d7bfbcb718d9cfedd2795374defe2",
+      "rawRowCount": 1328,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-yamagata",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.yamagata-yamagata.lg.jp/_res/projects/default_project/_page_/001/002/595/r7_062014_tourism.csv"
+      ],
+      "sha256": "7a09b935b5ac968a5e3b97bbdc69528dd921cf581764c1642e1c687931540c0f",
+      "rawRowCount": 17,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-nagano",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.nagano.nagano.jp/documents/1948/202011_public_wireless_lan.csv"
+      ],
+      "sha256": "e94d97c7de2e4922df76af6522ff5f4c6239288eaf194ce2f386a4a793e15b0e",
+      "rawRowCount": 42,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-fukui",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.fukui.lg.jp/sisei/tokei/opendata/p018970_d/fil/fukuishishisetsu.xls"
+      ],
+      "sha256": "f3a262b20a395f130866f5e0c4197e6b4b532e78206e177b82552e89be3e2e12",
+      "rawRowCount": 148,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/f58f20a1-1dab-4e22-bc06-4068830fbcf4/resource/1e9d2021-425c-4e12-9839-b15cf140480e/download/shiyakushogyosecenter.xlsx"
+      ],
+      "sha256": "301d24871b2a177684ba61efd9e8ec7bbd65b5d73cbc3be6643ee77d0838554e",
+      "rawRowCount": 7,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-fukushima",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.fukushima.fukushima.jp/material/files/group/7/sportshisetsu20200310.csv"
+      ],
+      "sha256": "d116c3643102da002ba1c1d862c699aa45ce890b334a7c3e6a73007bd2356e55",
+      "rawRowCount": 40,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-akita",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://www.city.akita.lg.jp/_res/projects/default_project/_page_/001/043/053/cooling_shelters080818.csv"
+      ],
+      "sha256": "133585fc50f632197a0d28f5226fb5d02531488a519a30dc926fcbcb5364a9ed",
+      "rawRowCount": 60,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/aa17e339-305e-4f35-ae6d-5bc74fb0210e/resource/5a0cd9ba-393d-4914-9238-1fa316deec81/download/intfs01.int.toyama-city.localredirect111015downloads14tosyokan.xlsx"
+      ],
+      "sha256": "ba97ece8fc008cb3f56263f3fd03c0d5cac52036c8da9ce1e75d2053062d3e56",
+      "rawRowCount": 99,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/aa17e339-305e-4f35-ae6d-5bc74fb0210e/resource/f085250b-2ee4-4ddb-9779-145905dc4ee1/download/intfs01.int.toyama-city.localredirect111015downloads15supotusisetu.xlsx"
+      ],
+      "sha256": "247edba15394c60c29658cbb39a5cc1fab50e73d73c693ae79ce8e575f97e2a0",
+      "rawRowCount": 72,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/aa17e339-305e-4f35-ae6d-5bc74fb0210e/resource/1104cef3-d817-4918-8979-e0c792d26098/download/intfs01.int.toyama-city.localredirect111015downloads16kouen.xlsx"
+      ],
+      "sha256": "5f09ab9be91c98a1c941e34351965f100d02f2916d367f95bfaa9b792b1c4926",
+      "rawRowCount": 40,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/aa17e339-305e-4f35-ae6d-5bc74fb0210e/resource/0085dad8-2f56-4822-a0da-5cbc4e8cbd9a/download/kobunshokan.xlsx"
+      ],
+      "sha256": "cfd41fd334c54602d945dcfc364dde324c94da49bf6f491ec98fbfd4db35ea94",
+      "rawRowCount": 1,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/145eafa2-ddbc-476a-8ca0-59785869ca23/resource/d877a255-b68a-4df4-9f42-6e0feccb355e/download/intfs01.int.toyama-city.localredirect111015downloads01kankosisetu.xlsx"
+      ],
+      "sha256": "14779f6b77ea7e64c76210af489ae99ca69aca4ad9c304b0d05c7e9f523a7d0c",
+      "rawRowCount": 79,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    },
+    {
+      "targetId": "city-toyama",
+      "reference": "docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json",
+      "status": "rawScanned",
+      "blockerCodes": [
+        "noSmokingEvidence"
+      ],
+      "rawUrls": [
+        "https://opdt.city.toyama.lg.jp/dataset/145eafa2-ddbc-476a-8ca0-59785869ca23/resource/afcda3bf-eb4e-47fe-9633-d3d86c5f5110/download/intfs01.int.toyama-city.localredirect111015downloads02hugansuizyorain.xlsx"
+      ],
+      "sha256": "924c247b46d17db7067a5ff3907f8e2202960cda808df62c8cf341df7d5eecfd",
+      "rawRowCount": 3,
+      "matchingRowCount": 0,
+      "categoryInventory": {},
+      "fetchedAt": "2026-09-30"
+    }
+  ],
+  "reviewedResources": [
+    {
+      "targetId": "city-kyoto",
+      "reference": "services/data-pipeline/fixtures/kyoto-public-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "kyoto-public-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://data.city.kyoto.lg.jp/resource/?id=21432"
+      ],
+      "sha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc",
+      "reviewedHashScope": "POSTDownloadedCsvBytesNotResourcePageHtml",
+      "retrievalMethod": "POST",
+      "retrievalDescription": "HTTP POST form on the resource page: upload_file=20260903182354_data（令和8年9月3日現在）.csv, download=このデータをダウンロード",
+      "fetchedAt": "2026-09-29T17:12:54Z"
+    },
+    {
+      "targetId": "city-osaka",
+      "reference": "services/data-pipeline/fixtures/osaka-designated-smoking-areas/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "osaka-designated-smoking-areas",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv"
+      ],
+      "sha256": "f58b62791396bc46ceca436a7c4ad598520a5c9dd4162b37723ef519399e69ce",
+      "reviewedHashScope": "rawResponseBytes"
+    },
+    {
+      "targetId": "ward-minato",
+      "reference": "services/data-pipeline/fixtures/minato-designated-smoking-areas/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "minato-designated-smoking-areas",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv"
+      ],
+      "sha256": "d11ad6a5c2c72bba114d58bc7cce9f84f54338c75ee37cdd275b7680c6314220",
+      "reviewedHashScope": "rawResponseBytes",
+      "lastModified": "Thu, 16 Jul 2026 05:32:22 GMT",
+      "fetchedAt": "2026-09-29T15:18:42.326Z"
+    },
+    {
+      "targetId": "ward-taito",
+      "reference": "services/data-pipeline/fixtures/taito-public-smoking-areas/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "taito-public-smoking-areas",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+      ],
+      "sha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+      "reviewedHashScope": "rawResponseBytes"
+    },
+    {
+      "targetId": "ward-koto",
+      "reference": "services/data-pipeline/fixtures/koto-station-smoking-areas/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "koto-station-smoking-areas",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv"
+      ],
+      "sha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d",
+      "reviewedHashScope": "rawResponseBytes",
+      "lastModified": "Thu, 15 Jan 2026 02:59:37 GMT",
+      "fetchedAt": "2026-09-29T04:56:43Z"
+    },
+    {
+      "targetId": "city-musashino",
+      "reference": "services/data-pipeline/fixtures/musashino-public-smoking-areas/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "musashino-public-smoking-areas",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip"
+      ],
+      "sha256": "3cc620efb082a2b6ee1f30b757dd35d26691924d427dc0c4812d654e009b3f5c",
+      "reviewedHashScope": "rawArchiveBytes",
+      "extractedMemberSha256": "fc6986b986ec315691299a12583f14a8fd942e34075fd1e9e44837dc72c57a7c",
+      "extractedMember": "doc.kml",
+      "archiveMemberSha256": "b686c4dd049d297bc6dfc7a0facd62855b35a8a089e4d1479d421e60ff8b2028",
+      "archiveMember": "KML/トイレおよび路上禁煙エリア・公衆喫煙所.kmz",
+      "lastModified": "Tue, 18 Apr 2023 04:43:38 GMT",
+      "fetchedAt": "2026-09-29T16:10:07Z"
+    }
+  ],
+  "researchReferences": [
+    "PR #106",
+    "PR #112",
+    "PR #115",
+    "PR #119",
+    "PR #121",
+    "PR #125",
+    "PR #129",
+    "Issue #118",
+    "PR #122",
+    "docs/SOURCES.md"
+  ]
+}

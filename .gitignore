@@ -10,5 +10,6 @@ DerivedData/
 node_modules/
 .wrangler/
 .dev.vars
+services/data-pipeline/discovery/.local/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcworkspace/xcuserdata/
