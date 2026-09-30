@@ -7,7 +7,7 @@
 // is a review candidate, and turning it into a release, spots or tiles stays the reviewed flow's job.
 
 import { type Db, isoSeconds, sha256Hex } from "../db.ts";
-import type { SourceAdapter } from "../pipeline/source-adapter.ts";
+import { observeSourceRecord, type SourceAdapter } from "../pipeline/source-adapter.ts";
 import { type RawArtifactStore, rawArtifactKey } from "./artifact-store.ts";
 import { SOURCE_REFRESH_POLICY } from "./policy.ts";
 
@@ -280,7 +280,7 @@ async function probeDrift(
       // Mixed datasets keep every raw row, but only reviewed in-scope rows have a mapping.
       // Keep the predicate inside the try: a scope error is drift, never a silent exclusion.
       if (adapter.includesRecord && !adapter.includesRecord(values)) continue;
-      const o = adapter.observe(values);
+      const o = observeSourceRecord(adapter, values);
       if (!(o.latitude >= extent.minLatitude && o.latitude <= extent.maxLatitude
         && o.longitude >= extent.minLongitude && o.longitude <= extent.maxLongitude)) outside.push(i + 1);
     } catch {

@@ -103,7 +103,8 @@ export interface SourceAdapter {
   /** Optional reviewed scope filter for mixed datasets. All raw rows remain evidence. Changing
    * scope requires a new mappingVersion; excluded rows create neither observations nor spots. */
   includesRecord?(values: readonly string[]): boolean;
-  /** The field mapping: one in-scope raw record -> its normalized observation. */
+  /** The field mapping: one in-scope raw record -> its normalized observation. Call through
+   * observeSourceRecord at shared boundaries to enforce finite global coordinate ranges. */
   observe(values: readonly string[]): SourceObservation;
   /** Weakenings the adapter's reviewed attenuation reference applies to one observation. */
   attenuate(observation: SourceObservation): readonly FieldAttenuation[];
@@ -129,4 +130,14 @@ export interface SourceAdapter {
 
 export function sourceCompleteness(adapter: SourceAdapter): SourceCompleteness {
   return adapter.completeness ?? "partial";
+}
+
+/** The shared observation boundary; adapters may impose tighter source-specific bounds. */
+export function observeSourceRecord(adapter: SourceAdapter, values: readonly string[]): SourceObservation {
+  const observation = adapter.observe(values);
+  if (!Number.isFinite(observation.latitude) || observation.latitude < -90 || observation.latitude > 90
+    || !Number.isFinite(observation.longitude) || observation.longitude < -180 || observation.longitude > 180) {
+    throw new Error(`observe: ${adapter.registry.sourceId} has out-of-range coordinates`);
+  }
+  return observation;
 }

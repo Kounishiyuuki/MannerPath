@@ -3,7 +3,7 @@
 // resolver reads observations. Observations are derived, so deriving them twice writes nothing new.
 
 import { type Db } from "../db.ts";
-import type { SourceAdapter, SourceObservation } from "./source-adapter.ts";
+import { observeSourceRecord, type SourceAdapter, type SourceObservation } from "./source-adapter.ts";
 
 export interface StoredObservation {
   observationId: number;
@@ -88,7 +88,7 @@ export async function observeRelease(db: Db, adapter: SourceAdapter, releaseId: 
     if (!stored && existing.length > 0) {
       throw new Error(`observe: record ${record.record_id} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
     }
-    const derived = adapter.observe(values);
+    const derived = observeSourceRecord(adapter, values);
     if (stored) {
       if (JSON.stringify(columnsOf(stored)) !== JSON.stringify(columnsOf(derived))) {
         throw new Error(
@@ -131,7 +131,7 @@ export async function rederiveObservation(db: Db, adapter: SourceAdapter, record
   if (adapter.includesRecord && !adapter.includesRecord(values)) {
     throw new Error(`observe: record ${recordId} scope changed under ${adapter.mappingVersion}; a mapping change needs a new mappingVersion`);
   }
-  const derived = adapter.observe(values);
+  const derived = observeSourceRecord(adapter, values);
   if (JSON.stringify(columnsOf(fromRow(row))) !== JSON.stringify(columnsOf(derived))) {
     throw new Error(`observe: record ${recordId} re-derives differently from its stored ${adapter.mappingVersion} observation ${row.observation_id}`);
   }
