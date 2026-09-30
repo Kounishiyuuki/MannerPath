@@ -102,7 +102,12 @@ interface TableSpec {
   sql: string;
 }
 
-const PUBLISHED_SPOTS = "SELECT spot_id FROM tile_snapshot_spots";
+// The spots a bundle carries: the published ones, plus every spot an applied cross-source merge involves (its
+// survivor, even when held, its loser, and the redirects repointed to the survivor) so the target reproduces the
+// merge, the redirects and the retained evidence (Issue #107). Without merges this is exactly the published set.
+const PUBLISHED_SPOTS = `SELECT spot_id FROM tile_snapshot_spots
+  UNION SELECT survivor_spot_id FROM cross_source_merges UNION SELECT loser_spot_id FROM cross_source_merges
+  UNION SELECT spot_id FROM spots WHERE merged_into IN (SELECT survivor_spot_id FROM cross_source_merges)`;
 const RELEASE_SOURCE = "SELECT source_id FROM source_releases WHERE release_id = ?";
 
 const TABLES: readonly TableSpec[] = [
@@ -165,7 +170,9 @@ const TABLES: readonly TableSpec[] = [
   {
     table: "spots",
     columns: ["spot_id", "merged_into", "name", "latitude", "longitude", "tile_z", "tile_x", "tile_y", "tile_id", "spot_type", "host_type", "access_type", "environment", "supports_paper", "supports_heated", "opening_hours_raw", "opening_hours_json", "opening_hours_status", "time_zone", "fee_type", "floor", "entrance_note", "lifecycle", "publication_hold", "evidence_quality", "evidence_quality_version", "last_verified_at", "resolver_version", "created_at", "updated_at"],
-    sql: `SELECT * FROM spots WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id`,
+    // Live spots first, so a redirect's target exists when the redirect is inserted (spots.merged_into is a foreign
+    // key). Without merges every merged_into is NULL and this is exactly ORDER BY spot_id.
+    sql: `SELECT * FROM spots WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY merged_into IS NOT NULL, spot_id`,
   },
   {
     table: "spot_source_entities",
@@ -197,6 +204,38 @@ const TABLES: readonly TableSpec[] = [
     sql: "SELECT * FROM tile_snapshot_spots ORDER BY spot_id",
   },
 ];
+
+/**
+ * v3 only (migration 0019): one attestation per applied cross-source merge, read from the runtime chain or, in a
+ * database that was itself bootstrapped, from its attestations, so a re-export is identical. Inserted after the
+ * declared sources' rows and before any spot: a redirect needs the attestation it follows.
+ */
+const CROSS_SOURCE_ATTESTATIONS: TableSpec = {
+  table: "promotion_cross_source_merge_attestations",
+  columns: ["loser_spot_id", "survivor_spot_id", "survivor_source_id", "loser_source_id", "origin_candidate_id",
+    "origin_decision_id", "origin_application_id", "algorithm_version", "distance_m", "reasons_json", "decision_version",
+    "decided_by", "decided_at", "identity_evidence", "decision_note", "redirected_spot_ids_json", "conflicts_json",
+    "conflict_hold", "executor_version", "applied_at"],
+  sql: `SELECT a.loser_spot_id, a.survivor_spot_id,
+          CASE WHEN c.spot_a_id = a.survivor_spot_id THEN c.source_a_id ELSE c.source_b_id END AS survivor_source_id,
+          CASE WHEN c.spot_a_id = a.loser_spot_id THEN c.source_a_id ELSE c.source_b_id END AS loser_source_id,
+          c.cross_source_candidate_id AS origin_candidate_id, d.cross_source_decision_id AS origin_decision_id,
+          a.cross_source_merge_application_id AS origin_application_id, c.algorithm_version, c.distance_m, c.reasons_json,
+          d.decision_version, d.decided_by, d.decided_at, d.identity_evidence, d.note AS decision_note,
+          a.redirected_spot_ids_json, a.conflicts_json, a.conflict_hold, a.executor_version, a.applied_at
+        FROM cross_source_merge_applications a
+        JOIN cross_source_candidates c ON c.cross_source_candidate_id = a.cross_source_candidate_id
+        JOIN cross_source_decisions d ON d.cross_source_decision_id = a.cross_source_decision_id
+        UNION ALL
+        SELECT loser_spot_id, survivor_spot_id, survivor_source_id, loser_source_id, origin_candidate_id, origin_decision_id,
+          origin_application_id, algorithm_version, distance_m, reasons_json, decision_version, decided_by, decided_at,
+          identity_evidence, decision_note, redirected_spot_ids_json, conflicts_json, conflict_hold, executor_version, applied_at
+        FROM promotion_cross_source_merge_attestations
+        ORDER BY loser_spot_id`,
+};
+
+/** v3's carried tables: v2's, with the cross-source attestations right before the spots. */
+const MULTI_SOURCE_TABLES: readonly TableSpec[] = TABLES.flatMap((t) => (t.table === "spots" ? [CROSS_SOURCE_ATTESTATIONS, t] : [t]));
 
 type Row = Record<string, unknown>;
 
@@ -358,6 +397,28 @@ function validateReviewAttestations(rows: Map<string, Row[]>): void {
   }
 }
 
+/**
+ * Every merge the bundle attests is between two carried sources, both its spots travel, and every carried redirect
+ * is one an attested merge made. The target re-checks the same (0019); a gap here would only move the failure there.
+ */
+function validateCrossSourceMerges(rows: Map<string, Row[]>): void {
+  const carriedSources = new Set((rows.get("sources") ?? []).map((s) => String(s.source_id)));
+  const spots = new Map((rows.get("spots") ?? []).map((s) => [String(s.spot_id), s]));
+  const attestations = rows.get("promotion_cross_source_merge_attestations") ?? [];
+  for (const a of attestations) {
+    for (const source of [a.survivor_source_id, a.loser_source_id]) {
+      if (!carriedSources.has(String(source))) fail(`cross-source merge of ${String(a.loser_spot_id)} involves source ${String(source)}, which this bundle does not carry; export every source a merge involves`);
+    }
+    if (!spots.has(String(a.survivor_spot_id)) || !spots.has(String(a.loser_spot_id))) fail(`cross-source merge of ${String(a.loser_spot_id)}: its spots are not carried`);
+  }
+  for (const s of spots.values()) {
+    if (s.merged_into === null) continue;
+    const justified = attestations.some((a) => a.survivor_spot_id === s.merged_into && (a.loser_spot_id === s.spot_id
+      || (JSON.parse(String(a.redirected_spot_ids_json)) as string[]).includes(String(s.spot_id))));
+    if (!justified) fail(`spot ${String(s.spot_id)} redirects to ${String(s.merged_into)} without an attested cross-source merge`);
+  }
+}
+
 async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
@@ -398,9 +459,9 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   }
 }
 
-function tableStatements(rows: Map<string, Row[]>): string[] {
+function tableStatements(rows: Map<string, Row[]>, specs: readonly TableSpec[] = TABLES): string[] {
   const statements: string[] = [];
-  for (const spec of TABLES) {
+  for (const spec of specs) {
     const table = rows.get(spec.table) ?? [];
     if (table.length === 0) continue;
     statements.push(`-- ${spec.table} (${table.length})`);
@@ -421,6 +482,10 @@ function tableStatements(rows: Map<string, Row[]>): string[] {
 export async function buildPromotionBundle(db: Db, options: { releaseId?: number } = {}): Promise<PromotionBundle> {
   const releaseId = options.releaseId ?? await currentReleaseId(db);
   if (!Number.isInteger(releaseId) || releaseId < 1) fail(`release id must be a positive integer, got ${releaseId}`);
+
+  // A v2 bundle carries one source; a cross-source merge spans two and travels only in v3 (Issue #107).
+  const merges = await db.prepare("SELECT count(*) AS n FROM cross_source_merges").first<{ n: number }>();
+  if ((merges?.n ?? 0) > 0) fail("this database holds applied cross-source merges; export it with promotion-bundle.v3");
 
   const rows = new Map<string, Row[]>();
   for (const spec of TABLES) rows.set(spec.table, await rowsOf(db, spec, releaseId));
@@ -560,7 +625,7 @@ export async function buildMultiSourcePromotionBundle(
   const releaseIds = releases.map((r) => Number(r.release_id));
 
   const rows = new Map<string, Row[]>();
-  for (const spec of TABLES) {
+  for (const spec of MULTI_SOURCE_TABLES) {
     const scoped = spec.sql.includes("?");
     const collected: Row[] = [];
     for (const id of scoped ? releaseIds : [undefined]) collected.push(...await rowsOf(db, spec, id));
@@ -568,9 +633,13 @@ export async function buildMultiSourcePromotionBundle(
   }
   await validatePublishedState(db, releaseIds, rows);
   validateReviewAttestations(rows);
+  validateCrossSourceMerges(rows);
   await validateSnapshots(rows);
 
-  const counts = Object.fromEntries(TABLES.map((s) => [s.table, (rows.get(s.table) ?? []).length]));
+  // The attestation count is declared only when there is one, so a bundle without merges keeps its v3 bytes.
+  const counts = Object.fromEntries(MULTI_SOURCE_TABLES
+    .filter((s) => s !== CROSS_SOURCE_ATTESTATIONS || (rows.get(s.table) ?? []).length > 0)
+    .map((s) => [s.table, (rows.get(s.table) ?? []).length]));
   const of = (table: string) => rows.get(table) ?? [];
   const sourceRows = new Map(of("sources").map((s) => [String(s.source_id), s]));
   const entitySource = new Map(of("source_entities").map((e) => [Number(e.source_entity_id), String(e.source_id)]));
@@ -617,7 +686,7 @@ export async function buildMultiSourcePromotionBundle(
       [d.sourceId, 1, d.releaseId, d.releaseContentSha256, d.displayName, d.licenseName, d.licenseUrl, d.attributionText,
         JSON.stringify(d.reviewDependencies), JSON.stringify(d.rows)].map(literal).join(", ")});`),
     "",
-    ...tableStatements(rows),
+    ...tableStatements(rows, MULTI_SOURCE_TABLES),
     "-- promotion_multi_bootstrap_completions: the target re-checks every declared source and the row counts",
     "INSERT INTO promotion_multi_bootstrap_completions (promotion_bootstrap_id) VALUES (1);",
     "",
