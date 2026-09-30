@@ -2957,13 +2957,13 @@
         "prefecture"
       ],
       "urls": [
-        "https://www.pref.nara.jp/"
+        "https://www.pref.nara.lg.jp/"
       ],
-      "homepageUrl": "https://www.pref.nara.jp/",
+      "homepageUrl": "https://www.pref.nara.lg.jp/",
       "catalogs": [
         {
           "type": "static",
-          "url": "https://www.pref.nara.jp/44954.htm"
+          "url": "https://www.pref.nara.lg.jp/kenseijouhou/unei/gyouseikaikaku/jouhourenkei/opendata/index.html"
         }
       ],
       "rawResources": [],
@@ -3219,7 +3219,7 @@
       "catalogs": [
         {
           "type": "static",
-          "url": "https://ckan-hiroshima-opendata.dataeye.jp/"
+          "url": "https://hiroshima-opendata.dataeye.jp/"
         }
       ],
       "rawResources": [],
@@ -3277,8 +3277,8 @@
       "homepageUrl": "https://www.pref.yamaguchi.lg.jp/",
       "catalogs": [
         {
-          "type": "static",
-          "url": "https://yamaguchi-opendata.jp/www/"
+          "type": "ckan",
+          "url": "https://yamaguchi-opendata.jp/ckan/api/3/action/package_search"
         }
       ],
       "rawResources": [],
@@ -4859,10 +4859,10 @@
         "tokyoWard"
       ],
       "urls": [
-        "https://www.city.setagaya.tokyo.jp/",
+        "https://www.city.setagaya.lg.jp/",
         "https://www.city.setagaya.lg.jp/01101/31285.html"
       ],
-      "homepageUrl": "https://www.city.setagaya.tokyo.jp/",
+      "homepageUrl": "https://www.city.setagaya.lg.jp/",
       "catalogs": [],
       "rawResources": [],
       "priorResearch": [
@@ -5002,7 +5002,7 @@
         "tokyoWard"
       ],
       "urls": [
-        "https://www.city.suginami.lg.jp/",
+        "https://www.city.suginami.tokyo.jp/",
         "https://www.city.suginami.tokyo.jp/s102/688.html",
         "https://catalog.data.metro.tokyo.lg.jp/dataset/t131156d0000000038",
         "https://www2.wagmap.jp/suginami/OpenDataDetail?lid=205&mids=35",
@@ -5013,7 +5013,7 @@
         "https://www.city.suginami.tokyo.jp/documents/8444/opdata-riyoukiyaku.pdf",
         "https://www.city.suginami.tokyo.jp/about/17.html"
       ],
-      "homepageUrl": "https://www.city.suginami.lg.jp/",
+      "homepageUrl": "https://www.city.suginami.tokyo.jp/",
       "catalogs": [
         {
           "type": "csvIndex",
@@ -5190,11 +5190,11 @@
         "tokyoWard"
       ],
       "urls": [
-        "https://www.city.itabashi.lg.jp/",
+        "https://www.city.itabashi.tokyo.jp/",
         "https://www.city.itabashi.tokyo.jp/bousai/kougai/bika/kitsuen/1019824.html",
         "https://www.city.itabashi.tokyo.jp/kusei/joho/sisetsu/index.html"
       ],
-      "homepageUrl": "https://www.city.itabashi.lg.jp/",
+      "homepageUrl": "https://www.city.itabashi.tokyo.jp/",
       "catalogs": [],
       "rawResources": [],
       "priorResearch": [
@@ -5340,11 +5340,11 @@
         "tokyoWard"
       ],
       "urls": [
-        "https://www.city.katsushika.tokyo.jp/",
+        "https://www.city.katsushika.lg.jp/",
         "https://www.city.katsushika.lg.jp/information/1000084/1030260/1025304.html",
         "https://www.city.katsushika.lg.jp/kenkou/1030183/1001793/1038719.html"
       ],
-      "homepageUrl": "https://www.city.katsushika.tokyo.jp/",
+      "homepageUrl": "https://www.city.katsushika.lg.jp/",
       "catalogs": [],
       "rawResources": [],
       "priorResearch": [
