@@ -1,0 +1,13 @@
+{
+  "datasetUrl": "https://data.city.kyoto.lg.jp/dataset/00003/",
+  "sourceUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+  "retrieval": "HTTP POST form on the resource page: upload_file=20260903182354_data（令和8年9月3日現在）.csv, download=このデータをダウンロード",
+  "contentDispositionFilename": "20260903182354_data（令和8年9月3日現在）.csv",
+  "observedOn": null,
+  "fetchedAt": "2026-09-29T17:12:54Z",
+  "httpLastModified": null,
+  "portalResourceCreated": "2026-09-03 18:23:54 JST",
+  "contentSha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc",
+  "byteLength": 843922,
+  "encoding": "utf-8 with BOM, CRLF"
+}

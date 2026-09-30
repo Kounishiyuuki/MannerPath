@@ -13,8 +13,8 @@ An importer must have fixtures and tests before being scheduled.
 
 ## Reviewed multi-source first releases
 
-Five municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
-Taito, Osaka City's designated smoking locations, Koto's station-front locations, Musashino's licensed KML public smoking sites, and Minato's designated smoking points.
+Six municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
+Taito, Osaka City's designated smoking locations, Koto's station-front locations, Musashino's licensed KML public smoking sites, Minato's designated smoking points, and Kyoto City's public smoking places.
 Source review, licensing and exact attribution
 are in `docs/SOURCES.md`; immutable fixture evidence is under `fixtures/`.
 
@@ -28,6 +28,7 @@ npm run local:pipeline -- osaka-designated-smoking-areas
 npm run local:pipeline -- koto-station-smoking-areas
 npm run local:pipeline -- musashino-public-smoking-areas
 npm run local:pipeline -- minato-designated-smoking-areas
+npm run local:pipeline -- kyoto-public-smoking-places
 ```
 
 The no-argument command retains Taito behavior. The Osaka command retains all 524 mixed CSV rows
@@ -56,6 +57,12 @@ Minato's mixed facility CSV retains 169 raw records and derives 114 reviewed smo
 Its publisher trailer is verified separately, and the unchanged original file remains the release
 fingerprint. One smoking point omitted from the current official aggregate list stays raw-only.
 See `docs/research/2026-09-30-tokyo-n1-source-batch-2.md` and its fixture `PROVENANCE.md`.
+
+Kyoto adds 17 city-run smoking places selected by the publisher's own 喫煙場所 category (cate_id 138)
+from its CC BY 4.0 general facility list; all 1,777 facility rows stay raw evidence. The two 西大路 rows
+conflict with the city's current smoking page and are withheld. The release is pinned to hash, URL,
+the publisher's as-of date (2026-09-03) and count. There is no refresh target, because the portal
+download is a POST form.
 
 The promotion exporter supports `npm run local:export -- --bundle v3 --out <file>` for one
 reviewed release per source into a fresh database, using migration 0018. v2 remains available.

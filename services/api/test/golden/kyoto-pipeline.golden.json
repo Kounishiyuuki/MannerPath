@@ -1,0 +1,86 @@
+{
+  "sourceId": "kyoto-public-smoking-places",
+  "fixtureSha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc",
+  "publishedSpots": 17,
+  "tables": {
+    "source_releases": {
+      "count": 1,
+      "digest": "81041610ddbdcd2acf529397286d208ca984132b947d22ed2a731d1647f24bd3"
+    },
+    "source_records": {
+      "count": 1777,
+      "digest": "4f5577385c906c46f287c12fea3f2127b59e577e075e7bc029eb7bd84a90bf2f"
+    },
+    "source_observations": {
+      "count": 17,
+      "digest": "15d42dc29419aa2ac2384d6b6dff1ee70a6f8f8f4704e7af327d3cf8cfa0b189"
+    },
+    "source_entities": {
+      "count": 17,
+      "digest": "519e23c85047825c4833f3c87f3190641e6edf18b86c19b5703c13c4fba312f3"
+    },
+    "source_record_entities": {
+      "count": 17,
+      "digest": "72a03a92e0d9e692fbc7966576d71e25183e5d43e418280f4009a147883e3f2e"
+    },
+    "spots": {
+      "count": 17,
+      "digest": "86091fbf68cce3ba83fe903c9ec1e708e9a159dfa0319ea01b2360804466194d"
+    },
+    "spot_field_provenance": {
+      "count": 68,
+      "digest": "280927e90aea7a201b8ef58f7eed455c66f3ab11739b222eba316b95156c2f60"
+    },
+    "spot_field_attenuations": {
+      "count": 0,
+      "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "tile_snapshots": {
+      "count": 6,
+      "digest": "e09e28bc39764d16ccf598175f3c14ef15882ca504a12231d332e59182e5d564"
+    },
+    "tile_snapshot_spots": {
+      "count": 17,
+      "digest": "ff32e294d72fa64728fc70d9b673707ac2e77694481dba18b3cace75482c9ced"
+    }
+  },
+  "tiles": [
+    {
+      "tile": "14/14368/6491",
+      "etag": "\"1-ccfd86e1c3c98e5469886c0769e675463df4d1cc8cca7b517c6f577a5eb53d6d\"",
+      "digest": "ccfd86e1c3c98e5469886c0769e675463df4d1cc8cca7b517c6f577a5eb53d6d",
+      "spots": 1
+    },
+    {
+      "tile": "14/14370/6489",
+      "etag": "\"1-a77bef1c7d4f38586036b2ff517e230699822c6ee7a3b0b28b60a7886d258ecb\"",
+      "digest": "a77bef1c7d4f38586036b2ff517e230699822c6ee7a3b0b28b60a7886d258ecb",
+      "spots": 1
+    },
+    {
+      "tile": "14/14370/6490",
+      "etag": "\"1-6de46cb1046ee3dc69e5996c95fd02777a2c5ff626d5a43d7d254349e4b05fb5\"",
+      "digest": "6de46cb1046ee3dc69e5996c95fd02777a2c5ff626d5a43d7d254349e4b05fb5",
+      "spots": 8
+    },
+    {
+      "tile": "14/14370/6493",
+      "etag": "\"1-002a989bde7cede7fa2dc1e0cbccfa4d597be270f2c7cd3e2adb0d9d6b8afb1e\"",
+      "digest": "002a989bde7cede7fa2dc1e0cbccfa4d597be270f2c7cd3e2adb0d9d6b8afb1e",
+      "spots": 1
+    },
+    {
+      "tile": "14/14371/6489",
+      "etag": "\"1-ae6dda47f427459df84f05d0c302e34a11484460d794b4f9f0aaf26f0299fa9e\"",
+      "digest": "ae6dda47f427459df84f05d0c302e34a11484460d794b4f9f0aaf26f0299fa9e",
+      "spots": 4
+    },
+    {
+      "tile": "14/14373/6490",
+      "etag": "\"1-f6a0c88aa5d9b0a9804029abfea457b89efc5cf40c94d049b00c88d75cee67eb\"",
+      "digest": "f6a0c88aa5d9b0a9804029abfea457b89efc5cf40c94d049b00c88d75cee67eb",
+      "spots": 2
+    }
+  ],
+  "detailDigest": "aca51c316fb175679c2313454425f4aaabd061c8ef2a8459d3d58286cf1e55a5"
+}
