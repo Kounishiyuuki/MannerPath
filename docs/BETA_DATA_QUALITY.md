@@ -61,6 +61,33 @@ return `notComputableYet`: the repository has no reviewed geographic assignment,
 rank/distance reference, or DID/population reference dataset. No prefectural, top 50/top 300,
 or population percentage is inferred from the Taito bounding box.
 
+## Multi-confidence quality (ADR-0012, Issue #143) **[measured 2026-10-01]**
+
+The report adds `nationwide.coverage` and `nationwide.confidence`. A lower tier never fails the gate; a label above
+its evidence does (`confidence-never-overstated`, fails on a community spot labelled official, an official spot
+labelled community, a community spot without `communityPinned`, or a `communityReported` spot with a confirmation
+count other than 1).
+
+- `coverage`: `official`, `operator`, `communityVerified`, `communityReported`, `allVisible` — counted from tile
+  contents; tiers are never summed into `official`.
+- `confidence`: distributions of `existence`, `locationPrecision`, `freshness` (`freshness.v1`), `accessType`
+  (with `accessDetail`), `spotType` (with `spotSubtype`), `hostType`, and `communityCanonicalByTier` — live community
+  spots per tier and how many only the rights gate keeps unpublished.
+
+Measured on a fresh local D1 (all 23 migrations, the six reviewed fixtures):
+
+| | Value |
+| --- | --- |
+| Published spots | 513, all `official` / `publisherPoint`; failed checks 0 |
+| Freshness | 49 fresh (Taito 32, Kyoto 17); 464 `unknown` — Osaka, Minato, Koto and Musashino releases carry no observation date |
+| Type / access / host | 513 `unknown` each: no reviewed source states them, and nothing is inferred |
+| Tile payload | total raw tile bytes 315,649 → 426,702 (+35%, the `verification` object); largest tile 3,721 gzip bytes, trigger 16,384 |
+| Community, rights blocked (simulated reports) | 2 canonical (1 reported, 1 verified); coverage unchanged at 513; spot detail 404 |
+| Community, rights simulated granted | `allVisible` 515 = 513 official + 2 community; after an independent `exists` confirmation both are `communityVerified`; the only failing check is `registry-row-matches-reviewed-entry`, because the simulation edits the local row by hand |
+
+The freshness gate in `NATIONWIDE_DATA_STRATEGY.md` §6 is measured on official spots; the four undated sources are
+reported as `unknown`, not as stale and not as fresh.
+
 ## 2. Corpus metrics **[measured]**
 
 | Metric | Value |

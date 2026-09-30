@@ -11,12 +11,19 @@ MannerPath is product-complete only when discovery is practically useful across 
 "Nationwide" does not mean inventing a result at every coordinate. It means:
 
 - the app and backend work anywhere in Japan;
-- approved nearby smoking places are discoverable where evidence exists;
-- broad national coverage passes the quantitative release gate below;
-- places without approved evidence remain absent/unknown;
-- the UI distinguishes no nearby approved data from network/cache failures.
+- as many permitted smoking places as possible are discoverable, **each labelled with how far it can be trusted**
+  (ADR-0012 coverage-first multi-confidence model);
+- broad national coverage passes the quantitative release gate below, measured per evidence tier;
+- places without any accepted evidence remain absent/unknown;
+- the UI distinguishes no nearby data from network/cache failures.
 
-The existing rules remain non-negotiable: a convenience store or other host does not prove an ashtray or smoking permission; unknown is not false; every published spot needs approved existence evidence.
+**Nationwide coverage is not achievable from official datasets alone.** Official open data rarely lists
+convenience-store side ashtrays, small smoking corners, cafés and kissaten where smoking is permitted, or
+customer-only spaces, and 33 of 61 reviewed research targets are blocked only because the official data does not
+carry the smoking place at all (§12). Coverage therefore comes from several evidence routes, each counted
+separately and never summed into "official".
+
+The existing rules remain non-negotiable: a convenience store or other host does not prove an ashtray or smoking permission; unknown is not false; every published spot needs accepted existence evidence of an explicit class.
 
 ## 2. Architecture direction
 
@@ -51,12 +58,18 @@ Required architectural work:
 
 ## 3. Source strategy
 
-Priority:
+Priority (ADR-0012):
 
-1. reviewed municipal/government open data and official public facility lists;
-2. reviewed official/operator data with compatible reuse permission;
-3. OSM only if a dedicated ODbL ADR approves a safe production architecture;
-4. reviewed community/user evidence through moderation.
+1. **reusable official/operator data** — reviewed municipal/government open data, official facility lists and operator
+   data with compatible reuse permission (`official` / `operator`);
+2. **community acquisition** — moderated, consented, explicitly classified reports (`communityReported`), corroborated
+   by independent submitters (`communityVerified`); needs Issue #124 before anything publishes;
+3. **venue/operator direct submissions** (future) — a shop or facility stating its own smoking space, reviewed as an
+   operator source; not built yet;
+4. **reference-only discovery** — license-unresolved official pages, OSM (ADR-0010), Google/MapKit and other apps:
+   leads for where to look and conflict references, never a source of published values;
+5. **confidence upgrading / re-verification** — independent confirmations, official evidence found later (cross-source
+   review), and re-checks that keep freshness honest.
 
 Web pages, PDFs, maps or catalogs with unclear reuse terms may be used only as conflict/reference material that weakens a claim, not as a source of published values, unless their applicable reuse terms are reviewed.
 
@@ -103,13 +116,19 @@ These are product release targets and may be tightened as measurements improve:
 | Population-weighted coverage | At least 85% of densely inhabited areas and 60% nationwide population coverage have a published spot within 1 km |
 | Regional representation | 47/47 prefectures represented; every prefectural-capital central station has at least one published spot within 1 km |
 | Major municipality representation | All ordinance-designated cities and Tokyo 23 wards have reviewed source coverage |
-| Freshness | At least 90% of published spots have `lastVerifiedAt` within 365 days; reviewed-source fetch checks within 30 days |
-| Existence evidence | 100% of published spots, no exceptions |
+| Freshness | Reported per tier (`freshness.v1`: fresh / aging / stale / unknown); at least 90% of **official** spots fresh; reviewed-source fetch checks within 30 days. Staleness labels a spot, it never removes it |
+| Existence evidence | 100% of published spots carry an explicit evidence class (`verification.existence`), no exceptions |
+| Confidence integrity | 0 spots labelled above their evidence (`confidence-never-overstated`) |
 | Publication conflicts | 0 unresolved conflicts capable of producing a false actionable claim |
 | Source review | 0 unreviewed sources in published data |
 | Unknown fields | Reported transparently by source/region; unknown is not converted to false |
 
 Population/station reference datasets used only to measure coverage still require their own license review.
+
+Every coverage metric above is reported twice — **official-source coverage** (`official` + `operator`) and **all
+usable coverage** (`allVisible`, every tier) — with `communityVerified` and `communityReported` shown separately
+(`quality.nationwide.coverage`). The gate states which of the two it is met on; neither number may be presented as
+the other.
 
 ## 7. Source-update behavior
 
@@ -125,18 +144,25 @@ Population/station reference datasets used only to measure coverage still requir
 
 Reports remain evidence proposals, not direct canonical edits.
 
-- closure/move/restriction reports can lead to attenuation or hold after abuse controls and review;
-- a new community spot requires corroboration across independent evidence plus moderation;
+- closure/move/restriction reports can lead to attenuation or hold after abuse controls and review; one negative
+  report never deletes a spot;
+- a new community spot is `communityReported` on one moderated, consented report with an exact pin and an explicit
+  known spot type, and `communityVerified` with independent corroboration (ADR-0012);
 - host/business existence is never sufficient evidence;
-- only reviewed community-derived records may count toward the nationwide release gate.
+- only reviewed community-derived records may count toward the nationwide release gate, in their own tier.
 
-Implemented for new spots by Issue #123 (ADR-0007 and ADR-0006 community amendments). A reviewer applies an explicit application of at least two accepted, queued reports from distinct submitters at one report's pin, and it enters the ordinary resolver as a `userReport` source with evidence quality `communityReviewed`. Such spots count toward the §6 gate only once they are published. They are not published today: the community source is blocked until user-submission reuse rights exist (Issue #124). Closure/move/restriction reports are not yet connected to attenuation or holds.
+Implemented for new spots by Issue #123 (ADR-0007 and ADR-0006 community amendments). Originally a reviewer applied an explicit application of at least two accepted, queued reports from distinct submitters at one report's pin, entering the ordinary resolver as a `userReport` source with evidence quality `communityReviewed`; ADR-0012 below adds the single-report tier. Such spots count toward the §6 gate only once they are published. They are not published today: the community source is blocked until user-submission reuse rights exist (Issue #124). Existing-spot reports are connected to reviewed effects and, for `prohibited`, a corroborated publication hold (Issue #127).
+
+ADR-0012 (Issue #143) adds the single-report tier `communityReported`, the independent-confirmation upgrade to
+`communityVerified`, and structured claims (spot type, subtype, access, host type, environment, tobacco) on
+new-spot reports. New applications write `communityVerified` (v3) instead of `communityReviewed` (v2).
 
 ## 9. UI implications of nationwide data
 
 The product UI must handle:
 
-- multiple attributions and evidence levels without overwhelming the primary navigation task;
+- multiple attributions and evidence levels without overwhelming the primary navigation task — one short evidence
+  label per place (公式確認済み / 利用者確認済み / 利用者報告・未確認), a distinct but calm map pin per tier;
 - regions with sparse or no approved data;
 - stale versus unavailable data;
 - unknown access/type/hours without false precision;
@@ -177,3 +203,33 @@ The next source-research pass must record, per candidate:
 - explicit approval/rejection decision.
 
 Approved sources continue to live in `docs/SOURCES.md`; this strategy document does not substitute for source review.
+
+## 12. Coverage acquisition strategy (ADR-0012)
+
+Replay of every committed research verdict under the new model (`npm run replay:coverage`, output
+`docs/research/nationwide-discovery/2026-10-01-coverage-replay.json`; rules in
+`services/api/src/quality/coverage-replay.ts`). 61 review records (some jurisdictions appear both as a dataset
+review and a target review):
+
+| Why it was 0 | Records | Route |
+| --- | --- | --- |
+| Data does not carry the smoking place (host point only, no smoking category/point, no coordinate) | 33 | C — community acquisition target |
+| Both rights and data blockers | 25 | D — reference lead only |
+| Rights only (license/reuse) — data itself usable | 1 (中央区, 79 supplied smoking points) | D until reuse permission; then A |
+| Already a reviewed, published source (duplicate research) | 2 | A |
+
+ADR-0012 relaxes exactly one blocker: `currentOperationUnknown` alone no longer withholds a dated official listing
+(it publishes with its date and a freshness label); explicit closure evidence still blocks. No other research
+verdict changes: coverage-first never turns a host facility, a missing coordinate or an unlicensed file into a spot.
+
+Ordering from here:
+
+1. **Rights for reusable official/operator data.** Ask the publishers whose data is otherwise usable (中央区 first;
+   then the address-only sources whose only other gap is ADR-0011) for explicit reuse permission.
+2. **Community acquisition** where official data structurally cannot help: stations, konbini side ashtrays, cafés,
+   tobacco shops, airports and facilities (the 33 data-only targets and the operator inventories of the
+   east/north operator batch). Needs Issue #124 before anything publishes; the pipeline is ready.
+3. **Venue/operator direct submissions** — a later operator-source route for shops and facilities.
+4. **Reference-only discovery** keeps pointing reviewers and reporters at likely places; it never publishes.
+5. **Confidence upgrading** — independent confirmations, cross-source review against official data, re-checks.
+

@@ -24,7 +24,10 @@ struct SpotDetailView: View {
                 Text(SpotPresentation.name(spot))
                     .font(.title2.bold())
                     .accessibilityAddTraits(.isHeader)
-                LabeledContent("Physical type", value: SpotPresentation.type(spot.spotType))
+                LabeledContent("Physical type", value: SpotPresentation.type(spot))
+                if let host = SpotPresentation.host(spot.hostType) {
+                    LabeledContent("Located at", value: host)
+                }
                 LabeledContent("Straight-line distance", value: SpotPresentation.distance(result.distanceMeters))
                 detailText("Bearing", SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))
             } footer: {
@@ -69,7 +72,7 @@ struct SpotDetailView: View {
             Section("Use and access") {
                 LabeledContent("Paper tobacco", value: SpotPresentation.tobacco(spot.supportsPaper))
                 LabeledContent("Heated tobacco", value: SpotPresentation.tobacco(spot.supportsHeated))
-                LabeledContent("Access", value: SpotPresentation.access(spot.accessType))
+                LabeledContent("Access", value: SpotPresentation.access(spot))
                 LabeledContent("Environment", value: SpotPresentation.environment(spot.environment))
                 if let floor = spot.floor, !floor.isEmpty {
                     LabeledContent("Floor", value: floor)
@@ -97,17 +100,32 @@ struct SpotDetailView: View {
             }
 
             Section("Evidence and freshness") {
-                LabeledContent("Evidence quality", value: SpotPresentation.evidence(spot.verification.evidenceQuality,
-                                                                                   version: spot.verification.evidenceQualityVersion))
-                if SpotPresentation.isCommunityReviewed(spot.verification.evidenceQuality,
-                                                        version: spot.verification.evidenceQualityVersion) {
-                    Label("Based on independent reports from users that MannerPath reviewed, not on an official listing. Check on-site signs.",
+                LabeledContent("Evidence") {
+                    Label(SpotPresentation.evidence(spot), systemImage: SpotPresentation.existenceSymbol(spot.verification.existenceTier))
+                }
+                if let confirmations = spot.verification.confirmations {
+                    LabeledContent("Independent user confirmations", value: "\(confirmations)")
+                }
+                switch spot.verification.existenceTier {
+                case .communityVerified:
+                    Label("Confirmed by independent reports from users that MannerPath reviewed, not by an official listing. Check on-site signs.",
                           systemImage: "person.2")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.footnote).foregroundStyle(.secondary)
+                case .communityReported:
+                    Label("Reported by one user and reviewed by MannerPath, but not yet confirmed by anyone else. Check on-site signs before you rely on it.",
+                          systemImage: "person")
+                        .font(.footnote).foregroundStyle(.secondary)
+                case .unknown:
+                    Label("This app version cannot tell how this place was confirmed. Check on-site signs.", systemImage: "questionmark.circle")
+                        .font(.footnote).foregroundStyle(.secondary)
+                case .official, .operator:
+                    EmptyView()
+                }
+                if let note = SpotPresentation.locationNote(spot.verification.locationPrecision) {
+                    LabeledContent("Location", value: note)
                 }
                 LabeledContent("Last verified", value: SpotPresentation.verificationDate(spot.lastVerifiedAt))
-                LabeledContent("Freshness", value: SpotPresentation.freshness(result))
+                LabeledContent("Freshness", value: SpotPresentation.confirmation(result))
                 detailText("Sources", SpotPresentation.sourceNames(spot))
                 NavigationLink(spot.verification.sources == nil
                                ? "All nearby cached source attributions"

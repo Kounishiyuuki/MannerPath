@@ -13,7 +13,7 @@
     },
     "source_observations": {
       "count": 3,
-      "digest": "2932d661440ad5b430fb273feb7ab1b184645b92e3dc6f6e16f311a7fbe58185"
+      "digest": "fb1069cbe91cad359201b601032e4f6c9faec63492f5d75fab4e493e9aa485f2"
     },
     "source_entities": {
       "count": 3,
@@ -25,7 +25,7 @@
     },
     "spots": {
       "count": 3,
-      "digest": "5feb2c9d488c9b6c86a1a4b87b9adafc7971dcba5b4e8f105e24bd010d8b8331"
+      "digest": "96d10a591831e9d71e68564c2542f50ad5a373917f07f943476c26b838b4e1e3"
     },
     "spot_field_provenance": {
       "count": 12,
@@ -37,7 +37,7 @@
     },
     "tile_snapshots": {
       "count": 3,
-      "digest": "10ca51768b2a6ff2ccc680d8b3b46d9d062e79577c17f32130685dee0b241ed9"
+      "digest": "3a9a7635dbb320ada8fa23ed44b79e3b96637878bfe8446185de826eb12c05a1"
     },
     "tile_snapshot_spots": {
       "count": 3,
@@ -47,22 +47,22 @@
   "tiles": [
     {
       "tile": "14/14554/6453",
-      "etag": "\"1-928abbf75c34548bda58e98934633d71ee009368497b04dcdc4d905c350b27b7\"",
-      "digest": "928abbf75c34548bda58e98934633d71ee009368497b04dcdc4d905c350b27b7",
+      "etag": "\"1-41cd6cd52227044419097a7cefd0af8a977e2a800fad2d63816ca3c121d086ae\"",
+      "digest": "41cd6cd52227044419097a7cefd0af8a977e2a800fad2d63816ca3c121d086ae",
       "spots": 1
     },
     {
       "tile": "14/14555/6452",
-      "etag": "\"1-4d0e6be620b97ff00f4438802a2512e420ffc4d97092df3e8543508b52d15521\"",
-      "digest": "4d0e6be620b97ff00f4438802a2512e420ffc4d97092df3e8543508b52d15521",
+      "etag": "\"1-a8a1c8b34fd9c4a60f65bec9e444394f7e6968a0905182ccf2be783daee9a19b\"",
+      "digest": "a8a1c8b34fd9c4a60f65bec9e444394f7e6968a0905182ccf2be783daee9a19b",
       "spots": 1
     },
     {
       "tile": "14/14555/6453",
-      "etag": "\"1-defb1186e1fd8dcdeaa335811496496a0179131155f4028c50f2331a8fb7fa2e\"",
-      "digest": "defb1186e1fd8dcdeaa335811496496a0179131155f4028c50f2331a8fb7fa2e",
+      "etag": "\"1-bc9592f3756a79a972102610f0cec5652a5900960b8ab70acbb53ae954f85477\"",
+      "digest": "bc9592f3756a79a972102610f0cec5652a5900960b8ab70acbb53ae954f85477",
       "spots": 1
     }
   ],
-  "detailDigest": "bedc59991e5a6d513bf1c59566637985d5dbda44d34772c72c20c9c5df87a790"
+  "detailDigest": "7dbaa6dcf36c0a85161194fb148e54d47c102ff7595bc13ac31ca4dc74bc669c"
 }

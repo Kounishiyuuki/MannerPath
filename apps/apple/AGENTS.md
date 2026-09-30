@@ -15,6 +15,7 @@ Apple task; a pure UI/layout change inside an existing feature needs none of it.
 | caching or offline behavior | ADR-0004 |
 | tile math or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
 | spot fields, freshness, or publication state shown in the UI | `docs/API.md`, ADR-0006 |
+| evidence labels, confidence/freshness display, ranking or "confirmed only" filtering | ADR-0012 |
 | user-facing product behavior | `docs/PRODUCT_REQUIREMENTS.md` |
 
 Backend/API/source documents are not part of an Apple task unless a row above names one.

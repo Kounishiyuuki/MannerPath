@@ -140,7 +140,7 @@ test("a reviewed source that states a spot's type, access and environment is not
        access_type, environment, opening_hours_status, lifecycle, evidence_quality, evidence_quality_version,
        last_verified_at, resolver_version, created_at, updated_at)
      VALUES ('sp_90000000000000000000000000', 'TEST typed spot', 35.7, 139.78, 14, 14553, 6449, '14/14553/6449',
-       'publicSmokingRoom', 'municipal', 'public', 'indoor', 'none', 'active', 'officialListing', 'evidence-quality.v1',
+       'publicSmokingRoom', 'municipality', 'public', 'indoor', 'none', 'active', 'officialListing', 'evidence-quality.v1',
        '2026-09-01', 'test-resolver.v1', ?, ?)`,
   ).run(NOW, NOW);
   for (const field of ["existence", "spotType", "hostType", "accessType", "environment"]) {

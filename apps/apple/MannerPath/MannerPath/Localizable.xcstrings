@@ -786,7 +786,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "利用者限定"
+            "value": "店舗利用者のみ"
           }
         }
       }
@@ -1052,7 +1052,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "施設利用者限定"
+            "value": "施設利用者のみ"
           }
         }
       }
@@ -3259,6 +3259,586 @@
           "stringUnit": {
             "state": "translated",
             "value": "公的機関の掲載情報ではなく、MannerPath が審査した複数の利用者からの報告に基づいています。現地の表示を確認してください。"
+          }
+        }
+      }
+    },
+    "Ticket holders only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チケット・入場者のみ"
+          }
+        }
+      }
+    },
+    "Officially confirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公式確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed by the operator": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運営者確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed by users": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者確認済み"
+          }
+        }
+      }
+    },
+    "User report · unconfirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者報告・未確認"
+          }
+        }
+      }
+    },
+    "Confirmation status unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認状況不明"
+          }
+        }
+      }
+    },
+    "Smoking corner": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙コーナー"
+          }
+        }
+      }
+    },
+    "Tobacco shop smoking space": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "たばこ店の喫煙スペース"
+          }
+        }
+      }
+    },
+    "Public facility": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共施設"
+          }
+        }
+      }
+    },
+    "Station": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "駅"
+          }
+        }
+      }
+    },
+    "Airport": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空港"
+          }
+        }
+      }
+    },
+    "Commercial building": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商業施設"
+          }
+        }
+      }
+    },
+    "Convenience store": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンビニ"
+          }
+        }
+      }
+    },
+    "Tobacco shop": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "たばこ店"
+          }
+        }
+      }
+    },
+    "Restaurant or café": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "飲食店・喫茶店"
+          }
+        }
+      }
+    },
+    "Other host": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他の場所"
+          }
+        }
+      }
+    },
+    "Location estimated from the address": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置は住所から推定"
+          }
+        }
+      }
+    },
+    "Location pinned by a user": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置は利用者のピン"
+          }
+        }
+      }
+    },
+    "Location precision unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置の精度は不明"
+          }
+        }
+      }
+    },
+    "Not confirmed for a while": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "しばらく確認されていません"
+          }
+        }
+      }
+    },
+    "Confirmed today": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本日確認"
+          }
+        }
+      }
+    },
+    "Last confirmed %lld days ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終確認から%lld日"
+          }
+        }
+      }
+    },
+    "Last reviewed %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終確認: %@"
+          }
+        }
+      }
+    },
+    "Confirmation date unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認日不明"
+          }
+        }
+      }
+    },
+    "Located at": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所"
+          }
+        }
+      }
+    },
+    "Evidence": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認状況"
+          }
+        }
+      }
+    },
+    "Independent user confirmations": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "独立した利用者の確認数"
+          }
+        }
+      }
+    },
+    "Confirmed by independent reports from users that MannerPath reviewed, not by an official listing. Check on-site signs.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MannerPathが審査した複数の利用者の報告で確認されています（公式情報ではありません）。現地の表示も確認してください。"
+          }
+        }
+      }
+    },
+    "Reported by one user and reviewed by MannerPath, but not yet confirmed by anyone else. Check on-site signs before you rely on it.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1人の利用者の報告をMannerPathが審査したもので、まだ他の人の確認はありません。利用前に現地の表示を確認してください。"
+          }
+        }
+      }
+    },
+    "This app version cannot tell how this place was confirmed. Check on-site signs.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このバージョンのアプリでは確認方法を表示できません。現地の表示を確認してください。"
+          }
+        }
+      }
+    },
+    "Show": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示"
+          }
+        }
+      }
+    },
+    "All places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて"
+          }
+        }
+      }
+    },
+    "Anyone can use": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "誰でも使える"
+          }
+        }
+      }
+    },
+    "Confirmed only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認済みのみ"
+          }
+        }
+      }
+    },
+    "“Confirmed only” hides places reported by a single user that nobody else has confirmed yet.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「確認済みのみ」では、1人の利用者の報告だけで他の人の確認がない場所を非表示にします。"
+          }
+        }
+      }
+    },
+    "Confirmed places only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認済みの場所のみ"
+          }
+        }
+      }
+    },
+    "Place details can only be added to a missing-place suggestion.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の詳細は「地図にない場所」の報告にだけ追加できます。"
+          }
+        }
+      }
+    },
+    "Check the place details: a detail must match the type or access you chose, and text must fit its limit.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の詳細を確認してください。詳しい種類や利用条件は選んだ種類・利用条件に合っている必要があり、文字数にも上限があります。"
+          }
+        }
+      }
+    },
+    "Kind of smoking place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙場所の種類"
+          }
+        }
+      }
+    },
+    "Not sure": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "わからない"
+          }
+        }
+      }
+    },
+    "Ashtray": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "灰皿"
+          }
+        }
+      }
+    },
+    "Smoking room in a facility": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設内の喫煙室"
+          }
+        }
+      }
+    },
+    "Smoking permitted inside a shop or café": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店内で喫煙可（店舗・喫茶店）"
+          }
+        }
+      }
+    },
+    "More specific (optional)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳しい種類（任意）"
+          }
+        }
+      }
+    },
+    "Not stated": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未回答"
+          }
+        }
+      }
+    },
+    "Who can use it": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用できる人"
+          }
+        }
+      }
+    },
+    "Anyone": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "誰でも"
+          }
+        }
+      }
+    },
+    "Facility users only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "施設利用者のみ"
+          }
+        }
+      }
+    },
+    "Where is it": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所の種類"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他"
+          }
+        }
+      }
+    },
+    "Indoor or outdoor": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屋内・屋外"
+          }
+        }
+      }
+    },
+    "Paper cigarettes": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙巻たばこ"
+          }
+        }
+      }
+    },
+    "Allowed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可"
+          }
+        }
+      }
+    },
+    "Not allowed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可"
+          }
+        }
+      }
+    },
+    "Shop or facility name (optional)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店舗・施設名（任意）"
+          }
+        }
+      }
+    },
+    "Opening hours, if you know them (optional)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "営業時間（わかれば・任意）"
+          }
+        }
+      }
+    },
+    "About this place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所について"
+          }
+        }
+      }
+    },
+    "Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and hours are only for the reviewer and are deleted after 90 days.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店舗名だけでなく、喫煙場所そのもの（灰皿・喫煙室など）を選んでください。コンビニや喫茶店があるだけでは喫煙場所になりません。店名や営業時間は審査担当者だけが確認し、90日後に削除されます。"
           }
         }
       }

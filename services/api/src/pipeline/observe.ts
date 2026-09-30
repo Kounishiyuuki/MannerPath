@@ -24,13 +24,25 @@ interface ObservationRow {
   opening_hours_status: "none" | "parsed" | "unparsed";
   lifecycle_claim: SourceObservation["lifecycle"];
   field_provenance_json: string;
+  /** Absent on a schema before 0023. */
+  claims_json?: string | null;
+}
+
+/** The ADR-0012 members of an observation, stored together; null when the record states none of them. */
+function claimsOf(o: SourceObservation): string | null {
+  if (o.classification === undefined && o.existenceEvidence === undefined && o.communityConfirmations === undefined) return null;
+  return JSON.stringify({
+    classification: o.classification ?? null,
+    existenceEvidence: o.existenceEvidence ?? null,
+    communityConfirmations: o.communityConfirmations ?? null,
+  });
 }
 
 function columnsOf(o: SourceObservation) {
   return [
     o.name, o.latitude, o.longitude, o.supportsPaper, o.supportsHeated, o.openingHours.raw,
     o.openingHours.parsed === null ? null : JSON.stringify(o.openingHours.parsed), o.openingHours.status,
-    o.lifecycle, JSON.stringify(o.provenance),
+    o.lifecycle, JSON.stringify(o.provenance), claimsOf(o),
   ];
 }
 
@@ -48,6 +60,17 @@ function fromRow(row: ObservationRow): SourceObservation {
         : { status: "unparsed", raw: row.opening_hours_raw!, parsed: null },
     lifecycle: row.lifecycle_claim,
     provenance: JSON.parse(row.field_provenance_json),
+    ...claimsFromJson(row.claims_json),
+  };
+}
+
+function claimsFromJson(json: string | null | undefined): Pick<SourceObservation, "classification" | "existenceEvidence" | "communityConfirmations"> {
+  if (json === null || json === undefined) return {};
+  const c = JSON.parse(json);
+  return {
+    ...(c.classification === null ? {} : { classification: c.classification }),
+    ...(c.existenceEvidence === null ? {} : { existenceEvidence: c.existenceEvidence }),
+    ...(c.communityConfirmations === null ? {} : { communityConfirmations: c.communityConfirmations }),
   };
 }
 
@@ -98,12 +121,16 @@ export async function observeRelease(db: Db, adapter: SourceAdapter, releaseId: 
       }
       continue;
     }
+    // claims_json (0023) is named only when the record states something for it, so an official record's insert
+    // is exactly the pre-0023 statement.
+    const columns = columnsOf(derived);
+    const claims = columns.pop();
     statements.push(db.prepare(
       `INSERT INTO source_observations (record_id, release_id, source_id, mapping_version, name, latitude, longitude,
          supports_paper, supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status,
-         lifecycle_claim, field_provenance_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(record.record_id, releaseId, release.source_id, adapter.mappingVersion, ...columnsOf(derived)));
+         lifecycle_claim, field_provenance_json${claims === null ? "" : ", claims_json"})
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${claims === null ? "" : ", ?"})`,
+    ).bind(record.record_id, releaseId, release.source_id, adapter.mappingVersion, ...columns, ...(claims === null ? [] : [claims])));
   }
   if (statements.length > 0) await db.batch(statements);
   return statements.length > 0 ? readObservations(db, adapter, releaseId) : existing;

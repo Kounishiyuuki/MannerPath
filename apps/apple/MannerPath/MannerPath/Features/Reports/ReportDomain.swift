@@ -41,6 +41,24 @@ nonisolated enum ReportTerms {
     static let isDraft = true
 }
 
+/// What a new-spot report states about the place (ADR-0012, docs/API.md `claim`). Values are wire strings; `nil`
+/// means "not stated". The place type is the one required answer: a shop or café alone is not a smoking place.
+nonisolated struct ReportClaim: Codable, Equatable, Sendable {
+    var spotType: String = "unknown"
+    var spotSubtype: String? = nil
+    var accessType: String? = nil
+    var accessDetail: String? = nil
+    var hostType: String? = nil
+    var environment: String? = nil
+    var supportsPaper: String? = nil
+    var supportsHeated: String? = nil
+    var hostName: String? = nil
+    var hoursNote: String? = nil
+
+    static let hostNameMaxLength = 80
+    static let hoursNoteMaxLength = 120
+}
+
 nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var type: ReportType
     var spotId: String?
@@ -51,6 +69,8 @@ nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     /// The terms version the user explicitly agreed to for this draft; nil until they do. Drafts saved by an
     /// earlier build decode with nil, so consent is never assumed.
     var acceptedTermsVersion: String?
+    /// ADR-0012 structured claim; only a `missing` report carries one. Drafts saved earlier decode with nil.
+    var claim: ReportClaim? = nil
 
     init(type: ReportType, spotId: String? = nil, subjectName: String? = nil,
          proposedLocation: ReportCoordinate? = nil,
@@ -83,6 +103,8 @@ nonisolated struct ReportLimits: Equatable, Sendable {
     var maxSubmissionBytes: Int? = nil
     /// The report terms version the deployment records consent to; nil for a deployment that predates terms.
     var termsVersion: String? = nil
+    /// Whether the deployment accepts `claim` on a new-spot report; its strict schema rejects it otherwise.
+    var acceptsNewSpotClaim = false
 }
 
 nonisolated enum ReportAvailability: Equatable, Sendable {
@@ -97,6 +119,7 @@ nonisolated enum ReportAvailability: Equatable, Sendable {
 nonisolated enum ReportValidationError: Error, Equatable, Sendable {
     case missingSpotID, unexpectedSpotID, missingProposedLocation, unexpectedProposedLocation
     case invalidCoordinate, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge, termsNotAccepted
+    case unexpectedClaim, invalidClaim
 }
 
 nonisolated struct ReportRequest: Encodable, Sendable {
@@ -109,9 +132,10 @@ nonisolated struct ReportRequest: Encodable, Sendable {
     let installId: UUID
     /// Inside the payload, so for schemaVersion 2 the App Attest assertion signs the consent too.
     let acceptedTermsVersion: String?
+    let claim: ReportClaim?
 
     enum CodingKeys: String, CodingKey {
-        case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId, acceptedTermsVersion
+        case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId, acceptedTermsVersion, claim
     }
 
     /// Encodes once. For schemaVersion 2 the returned bytes are the payload that is both hashed
@@ -140,13 +164,26 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         if let required = limits.termsVersion {
             guard draft.acceptedTermsVersion == required else { throw ReportValidationError.termsNotAccepted }
         }
+        // The claim travels only on a new-spot report, and only to a deployment that accepts it.
+        if draft.claim != nil && draft.type != .missing { throw ReportValidationError.unexpectedClaim }
+        if let claim = draft.claim, limits.acceptsNewSpotClaim, !isValid(claim) { throw ReportValidationError.invalidClaim }
         let request = Self(schemaVersion: limits.submissionProtocol.schemaVersion, type: draft.type, spotId: draft.spotId,
                            proposedLocation: draft.proposedLocation?.quantized,
                            observedOn: draft.observedOn, note: draft.note, installId: installId,
-                           acceptedTermsVersion: limits.termsVersion)
+                           acceptedTermsVersion: limits.termsVersion,
+                           claim: limits.acceptsNewSpotClaim ? draft.claim : nil)
         let data = try JSONEncoder().encode(request)
         guard data.count <= limits.maxBodyBytes else { throw ReportValidationError.bodyTooLarge }
         return data
+    }
+
+    /// The server's refinement rules, checked before sending so a user is not told only "invalid report".
+    private static func isValid(_ claim: ReportClaim) -> Bool {
+        if claim.spotSubtype != nil && claim.spotType == "unknown" { return false }
+        if claim.accessDetail != nil && claim.accessType != "facilityOnly" { return false }
+        if let name = claim.hostName, name.isEmpty || name.count > ReportClaim.hostNameMaxLength { return false }
+        if let hours = claim.hoursNote, hours.isEmpty || hours.count > ReportClaim.hoursNoteMaxLength { return false }
+        return true
     }
 
     private static func isValidDay(_ value: String) -> Bool {

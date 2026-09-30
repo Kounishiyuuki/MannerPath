@@ -47,31 +47,31 @@
         "tileId": "14/14552/6449",
         "revision": 1,
         "spotCount": 1,
-        "contentSha256": "1e99010dc59d92441c61d1697d50089f76a1b82adc89e3a1bc10948a5296a0b5"
+        "contentSha256": "b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9"
       },
       {
         "tileId": "14/14553/6449",
         "revision": 1,
         "spotCount": 11,
-        "contentSha256": "d0ef7051aa6135454c8ddb471fb02b5b54b422b270578a5b4a31d0d2955815c4"
+        "contentSha256": "468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02"
       },
       {
         "tileId": "14/14553/6450",
         "revision": 1,
         "spotCount": 9,
-        "contentSha256": "6170053f7b19813db692ec4113e4ace78a64a0d11bdd89fc39b3c6e2f574d30e"
+        "contentSha256": "08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e"
       },
       {
         "tileId": "14/14554/6449",
         "revision": 1,
         "spotCount": 9,
-        "contentSha256": "6dfc9fa4182e33ad5b6eb29dcee1b1bde04a6c0ea7e6ade1a60775c1ca873f01"
+        "contentSha256": "9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d"
       },
       {
         "tileId": "14/14554/6450",
         "revision": 1,
         "spotCount": 2,
-        "contentSha256": "6030999417456f4675abfa580720b70bb0807123736727ffac557649964c4684"
+        "contentSha256": "495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c"
       }
     ],
     "unchanged": [],
@@ -82,37 +82,37 @@
     {
       "tileId": "14/14552/6449",
       "status": 200,
-      "etag": "\"1-1e99010dc59d92441c61d1697d50089f76a1b82adc89e3a1bc10948a5296a0b5\"",
-      "bodySha256": "1e99010dc59d92441c61d1697d50089f76a1b82adc89e3a1bc10948a5296a0b5",
-      "body": "{\"schemaVersion\":1,\"tile\":\"14/14552/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000009\",\"name\":\"池之端二丁目公衆トイレ横\",\"latitude\":35.71358,\"longitude\":139.76573,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
+      "etag": "\"1-b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9\"",
+      "bodySha256": "b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9",
+      "body": "{\"schemaVersion\":1,\"tile\":\"14/14552/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000009\",\"name\":\"池之端二丁目公衆トイレ横\",\"latitude\":35.71358,\"longitude\":139.76573,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
     },
     {
       "tileId": "14/14553/6449",
       "status": 200,
-      "etag": "\"1-d0ef7051aa6135454c8ddb471fb02b5b54b422b270578a5b4a31d0d2955815c4\"",
-      "bodySha256": "d0ef7051aa6135454c8ddb471fb02b5b54b422b270578a5b4a31d0d2955815c4",
-      "body": "{\"schemaVersion\":1,\"tile\":\"14/14553/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000001\",\"name\":\"上野公園前交番裏\",\"latitude\":35.7112,\"longitude\":139.77377,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000002\",\"name\":\"JR上野駅（広小路口）ぺデストリアンデッキ上\",\"latitude\":35.71163,\"longitude\":139.77628,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000003\",\"name\":\"JR上野駅（浅草口）ペデストリアンデッキ上\",\"latitude\":35.71168,\"longitude\":139.77726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000008\",\"name\":\"広徳公園内\",\"latitude\":35.71248,\"longitude\":139.78067,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000010\",\"name\":\"本庁舎駐車場出口横\",\"latitude\":35.712724,\"longitude\":139.779469,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000013\",\"name\":\"鶯谷公園内\",\"latitude\":35.721114,\"longitude\":139.779621,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000014\",\"name\":\"上野公園正岡子規記念球場横\",\"latitude\":35.714185,\"longitude\":139.77416,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000015\",\"name\":\"金竜公園内\",\"latitude\":35.716998,\"longitude\":139.789717,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000020\",\"name\":\"セブン-イレブン　台東松が谷１丁目店\",\"latitude\":35.71107,\"longitude\":139.78613,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000023\",\"name\":\"paspa 上野\",\"latitude\":35.71284,\"longitude\":139.778,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000027\",\"name\":\"松葉公園内\",\"latitude\":35.712137,\"longitude\":139.78738,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
+      "etag": "\"1-468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02\"",
+      "bodySha256": "468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02",
+      "body": "{\"schemaVersion\":1,\"tile\":\"14/14553/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000001\",\"name\":\"上野公園前交番裏\",\"latitude\":35.7112,\"longitude\":139.77377,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000002\",\"name\":\"JR上野駅（広小路口）ぺデストリアンデッキ上\",\"latitude\":35.71163,\"longitude\":139.77628,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000003\",\"name\":\"JR上野駅（浅草口）ペデストリアンデッキ上\",\"latitude\":35.71168,\"longitude\":139.77726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000008\",\"name\":\"広徳公園内\",\"latitude\":35.71248,\"longitude\":139.78067,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000010\",\"name\":\"本庁舎駐車場出口横\",\"latitude\":35.712724,\"longitude\":139.779469,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000013\",\"name\":\"鶯谷公園内\",\"latitude\":35.721114,\"longitude\":139.779621,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000014\",\"name\":\"上野公園正岡子規記念球場横\",\"latitude\":35.714185,\"longitude\":139.77416,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000015\",\"name\":\"金竜公園内\",\"latitude\":35.716998,\"longitude\":139.789717,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000020\",\"name\":\"セブン-イレブン　台東松が谷１丁目店\",\"latitude\":35.71107,\"longitude\":139.78613,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000023\",\"name\":\"paspa 上野\",\"latitude\":35.71284,\"longitude\":139.778,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000027\",\"name\":\"松葉公園内\",\"latitude\":35.712137,\"longitude\":139.78738,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
     },
     {
       "tileId": "14/14553/6450",
       "status": 200,
-      "etag": "\"1-6170053f7b19813db692ec4113e4ace78a64a0d11bdd89fc39b3c6e2f574d30e\"",
-      "bodySha256": "6170053f7b19813db692ec4113e4ace78a64a0d11bdd89fc39b3c6e2f574d30e",
-      "body": "{\"schemaVersion\":1,\"tile\":\"14/14553/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000017\",\"name\":\"paspa 浅草橋\",\"latitude\":35.69849,\"longitude\":139.78759,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000019\",\"name\":\"セブン-イレブン　東上野１丁目店\",\"latitude\":35.70759,\"longitude\":139.77987,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000022\",\"name\":\"smokers peace in ミマツ書房\",\"latitude\":35.70564,\"longitude\":139.77756,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-21:00\\n日祝日・元旦は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000024\",\"name\":\"paspa 御徒町\",\"latitude\":35.70902,\"longitude\":139.77537,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000026\",\"name\":\"アメ横センタービル喫煙所\",\"latitude\":35.709078,\"longitude\":139.77454,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:30-19:30\\n12月を除く毎月第3水曜日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000028\",\"name\":\"セブン-イレブン　上野１丁目店\",\"latitude\":35.705201,\"longitude\":139.7716,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-20:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"20:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000030\",\"name\":\"佐竹公衆喫煙所\",\"latitude\":35.705877,\"longitude\":139.78115,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-0:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000031\",\"name\":\"上野恩賜公園野外ステージ近辺喫煙所\",\"latitude\":35.70961,\"longitude\":139.77008,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000032\",\"name\":\"e-booth御徒町　※加熱式たばこ専用\",\"latitude\":35.706313,\"longitude\":139.77347,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"no\",\"supportsHeated\":\"yes\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\\n※加熱式たばこ専用\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
+      "etag": "\"1-08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e\"",
+      "bodySha256": "08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e",
+      "body": "{\"schemaVersion\":1,\"tile\":\"14/14553/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000017\",\"name\":\"paspa 浅草橋\",\"latitude\":35.69849,\"longitude\":139.78759,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000019\",\"name\":\"セブン-イレブン　東上野１丁目店\",\"latitude\":35.70759,\"longitude\":139.77987,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000022\",\"name\":\"smokers peace in ミマツ書房\",\"latitude\":35.70564,\"longitude\":139.77756,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-21:00\\n日祝日・元旦は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000024\",\"name\":\"paspa 御徒町\",\"latitude\":35.70902,\"longitude\":139.77537,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000026\",\"name\":\"アメ横センタービル喫煙所\",\"latitude\":35.709078,\"longitude\":139.77454,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:30-19:30\\n12月を除く毎月第3水曜日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000028\",\"name\":\"セブン-イレブン　上野１丁目店\",\"latitude\":35.705201,\"longitude\":139.7716,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-20:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"20:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000030\",\"name\":\"佐竹公衆喫煙所\",\"latitude\":35.705877,\"longitude\":139.78115,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-0:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000031\",\"name\":\"上野恩賜公園野外ステージ近辺喫煙所\",\"latitude\":35.70961,\"longitude\":139.77008,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000032\",\"name\":\"e-booth御徒町　※加熱式たばこ専用\",\"latitude\":35.706313,\"longitude\":139.77347,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"no\",\"supportsHeated\":\"yes\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\\n※加熱式たばこ専用\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
     },
     {
       "tileId": "14/14554/6449",
       "status": 200,
-      "etag": "\"1-6dfc9fa4182e33ad5b6eb29dcee1b1bde04a6c0ea7e6ade1a60775c1ca873f01\"",
-      "bodySha256": "6dfc9fa4182e33ad5b6eb29dcee1b1bde04a6c0ea7e6ade1a60775c1ca873f01",
-      "body": "{\"schemaVersion\":1,\"tile\":\"14/14554/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000004\",\"name\":\"浅草寺境内 ①「二尊仏前」東\",\"latitude\":35.71361,\"longitude\":139.79737,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000005\",\"name\":\"浅草寺境内 ②「観音前警備派出所」北\",\"latitude\":35.71411,\"longitude\":139.79726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000006\",\"name\":\"浅草寺境内 ③「北側トイレ」南\",\"latitude\":35.71559,\"longitude\":139.79706,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000007\",\"name\":\"浅草寺境内 ④「はとバス駐車場」西\",\"latitude\":35.71528,\"longitude\":139.79597,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000011\",\"name\":\"台東リバーサイドスポーツセンター体育館前\",\"latitude\":35.717866,\"longitude\":139.804235,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000012\",\"name\":\"清川清掃車庫内\",\"latitude\":35.727847,\"longitude\":139.805037,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000016\",\"name\":\"隅田公園内\",\"latitude\":35.712469,\"longitude\":139.800097,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000033\",\"name\":\"千束公園内\",\"latitude\":35.718557,\"longitude\":139.79418,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000034\",\"name\":\"千束通り商店街公衆喫煙所\",\"latitude\":35.719649,\"longitude\":139.79532,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:00-18:00\\n土日祝日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
+      "etag": "\"1-9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d\"",
+      "bodySha256": "9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d",
+      "body": "{\"schemaVersion\":1,\"tile\":\"14/14554/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000004\",\"name\":\"浅草寺境内 ①「二尊仏前」東\",\"latitude\":35.71361,\"longitude\":139.79737,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000005\",\"name\":\"浅草寺境内 ②「観音前警備派出所」北\",\"latitude\":35.71411,\"longitude\":139.79726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000006\",\"name\":\"浅草寺境内 ③「北側トイレ」南\",\"latitude\":35.71559,\"longitude\":139.79706,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000007\",\"name\":\"浅草寺境内 ④「はとバス駐車場」西\",\"latitude\":35.71528,\"longitude\":139.79597,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000011\",\"name\":\"台東リバーサイドスポーツセンター体育館前\",\"latitude\":35.717866,\"longitude\":139.804235,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000012\",\"name\":\"清川清掃車庫内\",\"latitude\":35.727847,\"longitude\":139.805037,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000016\",\"name\":\"隅田公園内\",\"latitude\":35.712469,\"longitude\":139.800097,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000033\",\"name\":\"千束公園内\",\"latitude\":35.718557,\"longitude\":139.79418,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000034\",\"name\":\"千束通り商店街公衆喫煙所\",\"latitude\":35.719649,\"longitude\":139.79532,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:00-18:00\\n土日祝日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
     },
     {
       "tileId": "14/14554/6450",
       "status": 200,
-      "etag": "\"1-6030999417456f4675abfa580720b70bb0807123736727ffac557649964c4684\"",
-      "bodySha256": "6030999417456f4675abfa580720b70bb0807123736727ffac557649964c4684",
-      "body": "{\"schemaVersion\":1,\"tile\":\"14/14554/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000021\",\"name\":\"セブン-イレブン　田原町駅前店\",\"latitude\":35.70956,\"longitude\":139.79066,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000025\",\"name\":\"SMOKING & COFFEE BAR SMOCO\",\"latitude\":35.710627,\"longitude\":139.79721,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"10:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"10:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
+      "etag": "\"1-495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c\"",
+      "bodySha256": "495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c",
+      "body": "{\"schemaVersion\":1,\"tile\":\"14/14554/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000021\",\"name\":\"セブン-イレブン　田原町駅前店\",\"latitude\":35.70956,\"longitude\":139.79066,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000025\",\"name\":\"SMOKING & COFFEE BAR SMOCO\",\"latitude\":35.710627,\"longitude\":139.79721,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"10:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"10:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}"
     }
   ],
   "promotion": {
@@ -127,31 +127,31 @@
           "tileId": "14/14552/6449",
           "revision": 1,
           "spotCount": 1,
-          "contentSha256": "1e99010dc59d92441c61d1697d50089f76a1b82adc89e3a1bc10948a5296a0b5"
+          "contentSha256": "b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9"
         },
         {
           "tileId": "14/14553/6449",
           "revision": 1,
           "spotCount": 11,
-          "contentSha256": "d0ef7051aa6135454c8ddb471fb02b5b54b422b270578a5b4a31d0d2955815c4"
+          "contentSha256": "468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02"
         },
         {
           "tileId": "14/14553/6450",
           "revision": 1,
           "spotCount": 9,
-          "contentSha256": "6170053f7b19813db692ec4113e4ace78a64a0d11bdd89fc39b3c6e2f574d30e"
+          "contentSha256": "08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e"
         },
         {
           "tileId": "14/14554/6449",
           "revision": 1,
           "spotCount": 9,
-          "contentSha256": "6dfc9fa4182e33ad5b6eb29dcee1b1bde04a6c0ea7e6ade1a60775c1ca873f01"
+          "contentSha256": "9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d"
         },
         {
           "tileId": "14/14554/6450",
           "revision": 1,
           "spotCount": 2,
-          "contentSha256": "6030999417456f4675abfa580720b70bb0807123736727ffac557649964c4684"
+          "contentSha256": "495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c"
         }
       ],
       "rows": {
@@ -169,9 +169,9 @@
         "tile_snapshots": 5,
         "tile_snapshot_spots": 32
       },
-      "contentSha256": "88f4b048f37de68dedda7eeb1f0c67ef2ff9448c0d11beaeff8c260902af980f"
+      "contentSha256": "053c321d08c86bdc87ae3b9e4c6d24721d5e02e0b972ca8473900c49465d25b7"
     },
-    "sqlSha256": "7ca0c90a8a3660e7cde5903b080be538dd0c410e56353c9d2c3c2356971c4a8a"
+    "sqlSha256": "68516688b00898c41505b2befe4bfea66d8102801491a0117b607ec97d6c8559"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",
@@ -314,6 +314,35 @@
           "total": 32,
           "rate": 0.375
         }
+      },
+      "coverage": {
+        "official": 32,
+        "operator": 0,
+        "communityVerified": 0,
+        "communityReported": 0,
+        "allVisible": 32
+      },
+      "confidence": {
+        "freshnessPolicy": "freshness.v1",
+        "existence": {
+          "official": 32
+        },
+        "locationPrecision": {
+          "publisherPoint": 32
+        },
+        "freshness": {
+          "fresh": 32
+        },
+        "accessType": {
+          "unknown": 32
+        },
+        "spotType": {
+          "unknown": 32
+        },
+        "hostType": {
+          "unknown": 32
+        },
+        "communityCanonicalByTier": {}
       }
     },
     "sourceMetrics": [
@@ -473,8 +502,8 @@
         "tileId": "14/14552/6449",
         "revision": 1,
         "spotCount": 1,
-        "rawBytes": 1095,
-        "gzipBytes": 274,
+        "rawBytes": 1316,
+        "gzipBytes": 329,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -483,8 +512,8 @@
         "tileId": "14/14553/6449",
         "revision": 1,
         "spotCount": 11,
-        "rawBytes": 6490,
-        "gzipBytes": 1623,
+        "rawBytes": 8921,
+        "gzipBytes": 2231,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -493,8 +522,8 @@
         "tileId": "14/14553/6450",
         "revision": 1,
         "spotCount": 9,
-        "rawBytes": 5512,
-        "gzipBytes": 1378,
+        "rawBytes": 7501,
+        "gzipBytes": 1876,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -503,8 +532,8 @@
         "tileId": "14/14554/6449",
         "revision": 1,
         "spotCount": 9,
-        "rawBytes": 5435,
-        "gzipBytes": 1359,
+        "rawBytes": 7424,
+        "gzipBytes": 1856,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -513,8 +542,8 @@
         "tileId": "14/14554/6450",
         "revision": 1,
         "spotCount": 2,
-        "rawBytes": 1662,
-        "gzipBytes": 416,
+        "rawBytes": 2104,
+        "gzipBytes": 526,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -525,8 +554,8 @@
         "tileId": "14/14553/6449",
         "revision": 1,
         "spotCount": 11,
-        "rawBytes": 6490,
-        "gzipBytes": 1623,
+        "rawBytes": 8921,
+        "gzipBytes": 2231,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -535,8 +564,8 @@
         "tileId": "14/14553/6449",
         "revision": 1,
         "spotCount": 11,
-        "rawBytes": 6490,
-        "gzipBytes": 1623,
+        "rawBytes": 8921,
+        "gzipBytes": 2231,
         "sourceIds": [
           "taito-public-smoking-areas"
         ]
@@ -545,8 +574,8 @@
     "thresholds": {
       "dataTileZoom": 14,
       "maxSpotsPerTile": 11,
-      "maxRawBytesPerTile": 6490,
-      "maxGzipBytesPerTile": 1623,
+      "maxRawBytesPerTile": 8921,
+      "maxGzipBytesPerTile": 2231,
       "reevaluateAboveSpots": 250,
       "reevaluateAboveGzipBytes": 16384,
       "withinThresholds": true
@@ -583,6 +612,11 @@
         "detail": "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
       },
       {
+        "id": "confidence-never-overstated",
+        "status": "pass",
+        "detail": "every published spot's existence tier and location precision match its evidence source"
+      },
+      {
         "id": "taito-public-smoking-areas-unstated-fields-stay-unknown",
         "status": "pass",
         "detail": "all 34 spots derived from taito-public-smoking-areas leave spotType, hostType, accessType, environment unknown/null with no provenance row, because that source states none of them"
@@ -615,7 +649,7 @@
       {
         "id": "tile-zoom-thresholds",
         "status": "pass",
-        "detail": "max 11 spots/tile (trigger 250), max 1623 gzip bytes/tile (trigger 16384)"
+        "detail": "max 11 spots/tile (trigger 250), max 2231 gzip bytes/tile (trigger 16384)"
       },
       {
         "id": "freshness-timestamps-valid-and-not-future",
@@ -630,6 +664,7 @@
     "app_attest_keys": [],
     "community_effect_applications": [],
     "community_effect_evidence": [],
+    "community_evidence_upgrades": [],
     "community_publication_holds": [],
     "community_reconciliation_applications": [],
     "community_reconciliation_evidence": [],
@@ -848,7 +883,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 2,
@@ -865,7 +901,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 3,
@@ -882,7 +919,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 4,
@@ -899,7 +937,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 5,
@@ -916,7 +955,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 6,
@@ -933,7 +973,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 7,
@@ -950,7 +991,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 8,
@@ -967,7 +1009,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 9,
@@ -984,7 +1027,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 10,
@@ -1001,7 +1045,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"08:00\",\"closes\":\"19:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 11,
@@ -1018,7 +1063,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 12,
@@ -1035,7 +1081,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 13,
@@ -1052,7 +1099,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 14,
@@ -1069,7 +1117,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"18:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 15,
@@ -1086,7 +1135,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 16,
@@ -1103,7 +1153,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 17,
@@ -1120,7 +1171,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 18,
@@ -1137,7 +1189,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 19,
@@ -1154,7 +1207,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 20,
@@ -1171,7 +1225,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 21,
@@ -1188,7 +1243,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 22,
@@ -1205,7 +1261,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 23,
@@ -1222,7 +1279,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 24,
@@ -1239,7 +1297,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 25,
@@ -1256,7 +1315,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"10:00\",\"closes\":\"18:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 26,
@@ -1273,7 +1333,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 27,
@@ -1290,7 +1351,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 28,
@@ -1307,7 +1369,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"20:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 29,
@@ -1324,7 +1387,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 30,
@@ -1341,7 +1405,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"24:00\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 31,
@@ -1358,7 +1423,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"allDay\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 32,
@@ -1375,7 +1441,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"supportsPaper\",\"columns\":[\"名称\",\"特記事項\"],\"rule\":\"taito.heatedOnly.v1\"},{\"field\":\"supportsHeated\",\"columns\":[\"名称\",\"特記事項\"],\"rule\":\"taito.heatedOnly.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"supportsPaper\",\"columns\":[\"名称\",\"特記事項\"],\"rule\":\"taito.heatedOnly.v1\"},{\"field\":\"supportsHeated\",\"columns\":[\"名称\",\"特記事項\"],\"rule\":\"taito.heatedOnly.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 33,
@@ -1392,7 +1459,8 @@
         "opening_hours_json": "{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"}",
         "opening_hours_status": "parsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       },
       {
         "observation_id": 34,
@@ -1409,7 +1477,8 @@
         "opening_hours_json": null,
         "opening_hours_status": "unparsed",
         "lifecycle_claim": "active",
-        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]"
+        "field_provenance_json": "[{\"field\":\"existence\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"lifecycle\",\"columns\":[],\"rule\":\"taito.listed.v1\"},{\"field\":\"location\",\"columns\":[\"緯度\",\"経度\"],\"rule\":\"taito.coordinates.v1\"},{\"field\":\"name\",\"columns\":[\"名称\"],\"rule\":\"taito.name.v1\"},{\"field\":\"openingHours\",\"columns\":[\"利用開始時間\",\"利用終了時間\",\"特記事項\"],\"rule\":\"taito.hours.v1\"}]",
+        "claims_json": null
       }
     ],
     "source_record_entities": [
@@ -3985,7 +4054,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000002",
@@ -4017,7 +4090,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000003",
@@ -4049,7 +4126,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000004",
@@ -4081,7 +4162,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000005",
@@ -4113,7 +4198,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000006",
@@ -4145,7 +4234,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000007",
@@ -4177,7 +4270,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000008",
@@ -4209,7 +4306,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000009",
@@ -4241,7 +4342,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000010",
@@ -4273,7 +4378,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000011",
@@ -4305,7 +4414,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000012",
@@ -4337,7 +4450,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000013",
@@ -4369,7 +4486,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000014",
@@ -4401,7 +4522,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000015",
@@ -4433,7 +4558,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000016",
@@ -4465,7 +4594,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000017",
@@ -4497,7 +4630,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000018",
@@ -4529,7 +4666,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000019",
@@ -4561,7 +4702,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000020",
@@ -4593,7 +4738,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000021",
@@ -4625,7 +4774,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000022",
@@ -4657,7 +4810,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000023",
@@ -4689,7 +4846,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000024",
@@ -4721,7 +4882,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000025",
@@ -4753,7 +4918,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000026",
@@ -4785,7 +4954,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000027",
@@ -4817,7 +4990,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000028",
@@ -4849,7 +5026,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000029",
@@ -4881,7 +5062,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": "locationSuperseded"
+        "publication_hold": "locationSuperseded",
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000030",
@@ -4913,7 +5098,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000031",
@@ -4945,7 +5134,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000032",
@@ -4977,7 +5170,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000033",
@@ -5009,7 +5206,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       },
       {
         "spot_id": "sp_00000000000000000000000034",
@@ -5041,7 +5242,11 @@
         "resolver_version": "taito-resolver.v2",
         "created_at": "2026-09-21T03:00:00Z",
         "updated_at": "2026-09-21T03:00:00Z",
-        "publication_hold": null
+        "publication_hold": null,
+        "spot_subtype": null,
+        "access_detail": null,
+        "community_confirmations": null,
+        "last_reviewed_on": null
       }
     ],
     "tile_snapshot_spots": [
@@ -5182,9 +5387,9 @@
         "y": 6449,
         "revision": 1,
         "schema_version": 1,
-        "content_sha256": "1e99010dc59d92441c61d1697d50089f76a1b82adc89e3a1bc10948a5296a0b5",
+        "content_sha256": "b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9",
         "spot_count": 1,
-        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14552/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000009\",\"name\":\"池之端二丁目公衆トイレ横\",\"latitude\":35.71358,\"longitude\":139.76573,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
+        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14552/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000009\",\"name\":\"池之端二丁目公衆トイレ横\",\"latitude\":35.71358,\"longitude\":139.76573,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
         "published_at": "2026-09-21T03:00:00Z"
       },
       {
@@ -5194,9 +5399,9 @@
         "y": 6449,
         "revision": 1,
         "schema_version": 1,
-        "content_sha256": "d0ef7051aa6135454c8ddb471fb02b5b54b422b270578a5b4a31d0d2955815c4",
+        "content_sha256": "468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02",
         "spot_count": 11,
-        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14553/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000001\",\"name\":\"上野公園前交番裏\",\"latitude\":35.7112,\"longitude\":139.77377,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000002\",\"name\":\"JR上野駅（広小路口）ぺデストリアンデッキ上\",\"latitude\":35.71163,\"longitude\":139.77628,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000003\",\"name\":\"JR上野駅（浅草口）ペデストリアンデッキ上\",\"latitude\":35.71168,\"longitude\":139.77726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000008\",\"name\":\"広徳公園内\",\"latitude\":35.71248,\"longitude\":139.78067,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000010\",\"name\":\"本庁舎駐車場出口横\",\"latitude\":35.712724,\"longitude\":139.779469,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000013\",\"name\":\"鶯谷公園内\",\"latitude\":35.721114,\"longitude\":139.779621,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000014\",\"name\":\"上野公園正岡子規記念球場横\",\"latitude\":35.714185,\"longitude\":139.77416,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000015\",\"name\":\"金竜公園内\",\"latitude\":35.716998,\"longitude\":139.789717,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000020\",\"name\":\"セブン-イレブン　台東松が谷１丁目店\",\"latitude\":35.71107,\"longitude\":139.78613,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000023\",\"name\":\"paspa 上野\",\"latitude\":35.71284,\"longitude\":139.778,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000027\",\"name\":\"松葉公園内\",\"latitude\":35.712137,\"longitude\":139.78738,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
+        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14553/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000001\",\"name\":\"上野公園前交番裏\",\"latitude\":35.7112,\"longitude\":139.77377,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000002\",\"name\":\"JR上野駅（広小路口）ぺデストリアンデッキ上\",\"latitude\":35.71163,\"longitude\":139.77628,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000003\",\"name\":\"JR上野駅（浅草口）ペデストリアンデッキ上\",\"latitude\":35.71168,\"longitude\":139.77726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000008\",\"name\":\"広徳公園内\",\"latitude\":35.71248,\"longitude\":139.78067,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000010\",\"name\":\"本庁舎駐車場出口横\",\"latitude\":35.712724,\"longitude\":139.779469,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000013\",\"name\":\"鶯谷公園内\",\"latitude\":35.721114,\"longitude\":139.779621,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000014\",\"name\":\"上野公園正岡子規記念球場横\",\"latitude\":35.714185,\"longitude\":139.77416,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000015\",\"name\":\"金竜公園内\",\"latitude\":35.716998,\"longitude\":139.789717,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000020\",\"name\":\"セブン-イレブン　台東松が谷１丁目店\",\"latitude\":35.71107,\"longitude\":139.78613,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000023\",\"name\":\"paspa 上野\",\"latitude\":35.71284,\"longitude\":139.778,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000027\",\"name\":\"松葉公園内\",\"latitude\":35.712137,\"longitude\":139.78738,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
         "published_at": "2026-09-21T03:00:00Z"
       },
       {
@@ -5206,9 +5411,9 @@
         "y": 6450,
         "revision": 1,
         "schema_version": 1,
-        "content_sha256": "6170053f7b19813db692ec4113e4ace78a64a0d11bdd89fc39b3c6e2f574d30e",
+        "content_sha256": "08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e",
         "spot_count": 9,
-        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14553/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000017\",\"name\":\"paspa 浅草橋\",\"latitude\":35.69849,\"longitude\":139.78759,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000019\",\"name\":\"セブン-イレブン　東上野１丁目店\",\"latitude\":35.70759,\"longitude\":139.77987,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000022\",\"name\":\"smokers peace in ミマツ書房\",\"latitude\":35.70564,\"longitude\":139.77756,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-21:00\\n日祝日・元旦は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000024\",\"name\":\"paspa 御徒町\",\"latitude\":35.70902,\"longitude\":139.77537,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000026\",\"name\":\"アメ横センタービル喫煙所\",\"latitude\":35.709078,\"longitude\":139.77454,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:30-19:30\\n12月を除く毎月第3水曜日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000028\",\"name\":\"セブン-イレブン　上野１丁目店\",\"latitude\":35.705201,\"longitude\":139.7716,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-20:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"20:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000030\",\"name\":\"佐竹公衆喫煙所\",\"latitude\":35.705877,\"longitude\":139.78115,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-0:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000031\",\"name\":\"上野恩賜公園野外ステージ近辺喫煙所\",\"latitude\":35.70961,\"longitude\":139.77008,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000032\",\"name\":\"e-booth御徒町　※加熱式たばこ専用\",\"latitude\":35.706313,\"longitude\":139.77347,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"no\",\"supportsHeated\":\"yes\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\\n※加熱式たばこ専用\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
+        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14553/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000017\",\"name\":\"paspa 浅草橋\",\"latitude\":35.69849,\"longitude\":139.78759,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000019\",\"name\":\"セブン-イレブン　東上野１丁目店\",\"latitude\":35.70759,\"longitude\":139.77987,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000022\",\"name\":\"smokers peace in ミマツ書房\",\"latitude\":35.70564,\"longitude\":139.77756,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"8:00-21:00\\n日祝日・元旦は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000024\",\"name\":\"paspa 御徒町\",\"latitude\":35.70902,\"longitude\":139.77537,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000026\",\"name\":\"アメ横センタービル喫煙所\",\"latitude\":35.709078,\"longitude\":139.77454,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:30-19:30\\n12月を除く毎月第3水曜日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000028\",\"name\":\"セブン-イレブン　上野１丁目店\",\"latitude\":35.705201,\"longitude\":139.7716,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-20:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"20:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000030\",\"name\":\"佐竹公衆喫煙所\",\"latitude\":35.705877,\"longitude\":139.78115,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-0:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000031\",\"name\":\"上野恩賜公園野外ステージ近辺喫煙所\",\"latitude\":35.70961,\"longitude\":139.77008,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000032\",\"name\":\"e-booth御徒町　※加熱式たばこ専用\",\"latitude\":35.706313,\"longitude\":139.77347,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"no\",\"supportsHeated\":\"yes\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-20:00\\n土日祝日、年末年始は休業\\n※加熱式たばこ専用\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
         "published_at": "2026-09-21T03:00:00Z"
       },
       {
@@ -5218,9 +5423,9 @@
         "y": 6449,
         "revision": 1,
         "schema_version": 1,
-        "content_sha256": "6dfc9fa4182e33ad5b6eb29dcee1b1bde04a6c0ea7e6ade1a60775c1ca873f01",
+        "content_sha256": "9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d",
         "spot_count": 9,
-        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14554/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000004\",\"name\":\"浅草寺境内 ①「二尊仏前」東\",\"latitude\":35.71361,\"longitude\":139.79737,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000005\",\"name\":\"浅草寺境内 ②「観音前警備派出所」北\",\"latitude\":35.71411,\"longitude\":139.79726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000006\",\"name\":\"浅草寺境内 ③「北側トイレ」南\",\"latitude\":35.71559,\"longitude\":139.79706,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000007\",\"name\":\"浅草寺境内 ④「はとバス駐車場」西\",\"latitude\":35.71528,\"longitude\":139.79597,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000011\",\"name\":\"台東リバーサイドスポーツセンター体育館前\",\"latitude\":35.717866,\"longitude\":139.804235,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000012\",\"name\":\"清川清掃車庫内\",\"latitude\":35.727847,\"longitude\":139.805037,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000016\",\"name\":\"隅田公園内\",\"latitude\":35.712469,\"longitude\":139.800097,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000033\",\"name\":\"千束公園内\",\"latitude\":35.718557,\"longitude\":139.79418,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000034\",\"name\":\"千束通り商店街公衆喫煙所\",\"latitude\":35.719649,\"longitude\":139.79532,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:00-18:00\\n土日祝日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
+        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14554/6449\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000004\",\"name\":\"浅草寺境内 ①「二尊仏前」東\",\"latitude\":35.71361,\"longitude\":139.79737,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000005\",\"name\":\"浅草寺境内 ②「観音前警備派出所」北\",\"latitude\":35.71411,\"longitude\":139.79726,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000006\",\"name\":\"浅草寺境内 ③「北側トイレ」南\",\"latitude\":35.71559,\"longitude\":139.79706,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000007\",\"name\":\"浅草寺境内 ④「はとバス駐車場」西\",\"latitude\":35.71528,\"longitude\":139.79597,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000011\",\"name\":\"台東リバーサイドスポーツセンター体育館前\",\"latitude\":35.717866,\"longitude\":139.804235,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000012\",\"name\":\"清川清掃車庫内\",\"latitude\":35.727847,\"longitude\":139.805037,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000016\",\"name\":\"隅田公園内\",\"latitude\":35.712469,\"longitude\":139.800097,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"7:00-19:00\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000033\",\"name\":\"千束公園内\",\"latitude\":35.718557,\"longitude\":139.79418,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"7:00-19:30\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"07:00\",\"closes\":\"19:30\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000034\",\"name\":\"千束通り商店街公衆喫煙所\",\"latitude\":35.719649,\"longitude\":139.79532,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"unparsed\",\"raw\":\"10:00-18:00\\n土日祝日は休業\",\"parsed\":null,\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
         "published_at": "2026-09-21T03:00:00Z"
       },
       {
@@ -5230,9 +5435,9 @@
         "y": 6450,
         "revision": 1,
         "schema_version": 1,
-        "content_sha256": "6030999417456f4675abfa580720b70bb0807123736727ffac557649964c4684",
+        "content_sha256": "495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c",
         "spot_count": 2,
-        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14554/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000021\",\"name\":\"セブン-イレブン　田原町駅前店\",\"latitude\":35.70956,\"longitude\":139.79066,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]},{\"id\":\"sp_00000000000000000000000025\",\"name\":\"SMOKING & COFFEE BAR SMOCO\",\"latitude\":35.710627,\"longitude\":139.79721,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"10:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"10:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"]}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
+        "body_json": "{\"schemaVersion\":1,\"tile\":\"14/14554/6450\",\"revision\":1,\"generatedAt\":\"2026-09-21T03:00:00Z\",\"spots\":[{\"id\":\"sp_00000000000000000000000021\",\"name\":\"セブン-イレブン　田原町駅前店\",\"latitude\":35.70956,\"longitude\":139.79066,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"終日利用可能\",\"parsed\":{\"v\":1,\"kind\":\"allDay\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}},{\"id\":\"sp_00000000000000000000000025\",\"name\":\"SMOKING & COFFEE BAR SMOCO\",\"latitude\":35.710627,\"longitude\":139.79721,\"spotType\":\"unknown\",\"accessType\":\"unknown\",\"environment\":\"unknown\",\"supportsPaper\":\"unknown\",\"supportsHeated\":\"unknown\",\"openingHours\":{\"status\":\"parsed\",\"raw\":\"10:00-18:00\",\"parsed\":{\"v\":1,\"kind\":\"daily\",\"opens\":\"10:00\",\"closes\":\"18:00\"},\"timeZone\":\"Asia/Tokyo\"},\"lifecycle\":\"active\",\"evidenceQuality\":\"officialListing\",\"evidenceQualityVersion\":\"evidence-quality.v1\",\"lastVerifiedAt\":\"2026-08-18\",\"sourceIds\":[\"taito-public-smoking-areas\"],\"spotSubtype\":null,\"hostType\":\"unknown\",\"accessDetail\":null,\"verification\":{\"version\":\"spot-verification.v1\",\"existence\":\"official\",\"locationPrecision\":\"publisherPoint\",\"confirmations\":null,\"lastReviewedMonth\":\"2026-08\"}}],\"sources\":[{\"id\":\"taito-public-smoking-areas\",\"displayName\":\"台東区 公衆喫煙所\",\"licenseName\":\"CC BY 4.0\",\"licenseUrl\":\"https://creativecommons.org/licenses/by/4.0/legalcode.ja\",\"attributionText\":\"台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv\"}]}",
         "published_at": "2026-09-21T03:00:00Z"
       }
     ]

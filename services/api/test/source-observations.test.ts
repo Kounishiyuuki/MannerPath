@@ -215,8 +215,12 @@ test("upgrade: a release applied before migration 0008 is backfilled on resolve,
   assert.equal(legacy.prepare("SELECT count(*) n FROM sqlite_master WHERE name = 'source_observations'").get()!.n, 0);
   for (const table of ["sources", "source_releases", "source_records", "source_entities", "source_record_entities", "spots",
     "spot_source_entities", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"]) {
+    // Columns added after 0007 (0023's spot refinements) do not exist in the legacy schema; for an official
+    // source they are all NULL, which is exactly what their absence means.
+    const legacyColumns = new Set((legacy.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name));
     for (const row of built.raw.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all() as Row[]) {
-      const cols = Object.keys(row);
+      for (const c of Object.keys(row)) if (!legacyColumns.has(c)) assert.equal(row[c], null, `${table}.${c} is not NULL`);
+      const cols = Object.keys(row).filter((c) => legacyColumns.has(c));
       legacy.prepare(`INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`).run(...cols.map((c) => row[c]));
     }
   }
@@ -248,8 +252,12 @@ test("upgrade: a release applied before migration 0008 is backfilled on resolve,
   assert.equal(await tileAfter.text(), bodyBefore);
   assert.equal(tileAfter.headers.get("ETag"), tileBefore.headers.get("ETag"));
   // The backfill is the same mapping a fresh import stores.
+  // (0023's claims_json is NULL for an official record, and absent from this 0008-only schema.)
   assert.deepEqual(all(db, "SELECT * FROM source_observations ORDER BY observation_id").map((r) => ({ ...r })),
-    all(built, "SELECT * FROM source_observations ORDER BY observation_id").map((r) => ({ ...r })));
+    all(built, "SELECT * FROM source_observations ORDER BY observation_id").map(({ claims_json, ...r }) => {
+      assert.equal(claims_json, null);
+      return { ...r };
+    }));
   // A wrong adapter is still refused on an applied release, before any backfill.
   await assert.rejects(resolveFirstRelease(db, TEST_BLOCKED_TAITO_ADAPTER, releaseId, { now: NOW }), /not to adapter source/);
 });

@@ -16,6 +16,7 @@ import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
 import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
+import { FRESHNESS_POLICY_VERSION, spotFreshness } from "./freshness.ts";
 
 export const ANALYSIS_VERSION = "nationwide-data-quality.v1";
 
@@ -212,6 +213,20 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       ? "no osm-kind source is approved or published (docs/DATA_POLICY.md: ODbL obligations unreviewed)"
       : `osm data is approved or published: ${[...osmApproved.map((s) => s.source_id), ...osmPublished].join(", ")}`);
 
+  // ADR-0012: lower-confidence data may publish, but never labelled above its evidence. Fails only on a
+  // misrepresentation — a community-backed spot shown as official, or an official one shown as community — never
+  // because a lower tier exists.
+  const kindOf = (id: string) => bySourceId.get(id)?.kind;
+  const mislabelled = spots.filter((s) => {
+    const community = s.sourceIds.some((id) => kindOf(id) === "userReport");
+    const labelledCommunity = s.verification.existence === "communityVerified" || s.verification.existence === "communityReported";
+    return community !== labelledCommunity || (community && s.verification.locationPrecision !== "communityPinned")
+      || (s.verification.existence === "communityReported" && s.verification.confirmations !== 1);
+  });
+  check("confidence-never-overstated", mislabelled.length === 0,
+    mislabelled.length === 0 ? "every published spot's existence tier and location precision match its evidence source"
+      : `labelled above or beside its evidence: ${mislabelled.map((s) => s.id).join(", ")}`);
+
   const qualityBySource = new Map<string, { checks: QualityCheck[]; reconciliation: unknown }>();
   for (const adapter of opts.adapters ?? SOURCE_ADAPTERS) {
     if (!adapter.qualityPolicy) continue;
@@ -253,6 +268,14 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const communityHolds = await db.prepare(
     "SELECT count(*) AS n FROM community_publication_holds WHERE lifted_at IS NULL",
   ).first<{ n: number }>();
+  // ADR-0012: live community spots by tier, and how many of them only the rights gate (Issue #124) keeps unpublished.
+  // These are technically usable listings, never counted as coverage until they are in a tile.
+  const { results: communityTiers } = await db.prepare(
+    `SELECT s.evidence_quality AS tier, count(*) AS canonical,
+            coalesce(sum(CASE WHEN EXISTS (SELECT 1 FROM tile_snapshot_spots t WHERE t.spot_id = s.spot_id) THEN 0 ELSE 1 END), 0) AS unpublished
+     FROM community_spot_rights c JOIN spots s ON s.spot_id = c.spot_id
+     WHERE s.merged_into IS NULL AND s.lifecycle = 'active' GROUP BY s.evidence_quality ORDER BY s.evidence_quality`,
+  ).all<{ tier: string; canonical: number; unpublished: number }>();
 
   const { results: canonicalBySource } = await db.prepare(`SELECT rel.source_id, count(DISTINCT p.spot_id) AS n
     FROM spot_field_provenance p JOIN source_records r ON r.record_id = p.record_id
@@ -391,6 +414,24 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       },
       evidenceQuality: tally(spots.map((spot) => `${spot.evidenceQualityVersion}:${spot.evidenceQuality}`)),
       unknownRates: Object.fromEntries(Object.entries(unknownRates).map(([field, value]) => [field, { ...value, rate: rate(value.unknown, value.total) }])),
+      // ADR-0012: coverage by evidence tier. Tiers are counted separately and never summed into "official".
+      coverage: {
+        official: spots.filter((s) => s.verification.existence === "official").length,
+        operator: spots.filter((s) => s.verification.existence === "operator").length,
+        communityVerified: spots.filter((s) => s.verification.existence === "communityVerified").length,
+        communityReported: spots.filter((s) => s.verification.existence === "communityReported").length,
+        allVisible: spots.length,
+      },
+      confidence: {
+        freshnessPolicy: FRESHNESS_POLICY_VERSION,
+        existence: tally(spots.map((s) => s.verification.existence)),
+        locationPrecision: tally(spots.map((s) => s.verification.locationPrecision)),
+        freshness: tally(spots.map((s) => spotFreshness(s, opts.now))),
+        accessType: tally(spots.map((s) => (s.accessDetail === null ? s.accessType : `${s.accessType}:${s.accessDetail}`))),
+        spotType: tally(spots.map((s) => (s.spotSubtype === null ? s.spotType : `${s.spotType}:${s.spotSubtype}`))),
+        hostType: tally(spots.map((s) => s.hostType)),
+        communityCanonicalByTier: Object.fromEntries(communityTiers.map((t) => [t.tier, { canonical: t.canonical, unpublished: t.unpublished }])),
+      },
     },
     sourceMetrics,
     evidenceQuality: tally(spots.map((s) => `${s.evidenceQualityVersion}:${s.evidenceQuality}`)),

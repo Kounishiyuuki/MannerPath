@@ -26,7 +26,9 @@ enum WatchSnapshotBuilder {
                                    version: $0.parsed?.version, opens: $0.parsed?.opens,
                                    closes: $0.parsed?.closes, timeZone: $0.timeZone)
                     }, sourceIDs: Array(Set(spot.verification.sources?.map(\.id) ?? [])
-                        .intersection(Set(allSources.map(\.id)))).sorted()
+                        .intersection(Set(allSources.map(\.id)))).sorted(),
+                    existence: spot.verification.existenceTier.rawValue,
+                    accessDetail: spot.accessDetail?.rawValue
                 )
             },
             sources: allSources.filter { referenced.contains($0.id) }.sorted {

@@ -13,7 +13,7 @@
     },
     "source_observations": {
       "count": 17,
-      "digest": "15d42dc29419aa2ac2384d6b6dff1ee70a6f8f8f4704e7af327d3cf8cfa0b189"
+      "digest": "4a6d812436c3ebec06274661912547702070cb674f47ee5898d216d414429fe6"
     },
     "source_entities": {
       "count": 17,
@@ -25,7 +25,7 @@
     },
     "spots": {
       "count": 17,
-      "digest": "86091fbf68cce3ba83fe903c9ec1e708e9a159dfa0319ea01b2360804466194d"
+      "digest": "10f0c8b3de04f5b3077d788ac6f0a29bc7caa44e61cb813a2ee8098d9bf8e4aa"
     },
     "spot_field_provenance": {
       "count": 68,
@@ -37,7 +37,7 @@
     },
     "tile_snapshots": {
       "count": 6,
-      "digest": "e09e28bc39764d16ccf598175f3c14ef15882ca504a12231d332e59182e5d564"
+      "digest": "8a4eb0c16daa2dccc3be84cc5967a4cc8bd6db5c1487ae076591bf4bc4fcadf9"
     },
     "tile_snapshot_spots": {
       "count": 17,
@@ -47,40 +47,40 @@
   "tiles": [
     {
       "tile": "14/14368/6491",
-      "etag": "\"1-ccfd86e1c3c98e5469886c0769e675463df4d1cc8cca7b517c6f577a5eb53d6d\"",
-      "digest": "ccfd86e1c3c98e5469886c0769e675463df4d1cc8cca7b517c6f577a5eb53d6d",
+      "etag": "\"1-f269f0d9e6d4f7566080028883e22c09b67bb5045d1ffad7c9c6b209bbcb6780\"",
+      "digest": "f269f0d9e6d4f7566080028883e22c09b67bb5045d1ffad7c9c6b209bbcb6780",
       "spots": 1
     },
     {
       "tile": "14/14370/6489",
-      "etag": "\"1-a77bef1c7d4f38586036b2ff517e230699822c6ee7a3b0b28b60a7886d258ecb\"",
-      "digest": "a77bef1c7d4f38586036b2ff517e230699822c6ee7a3b0b28b60a7886d258ecb",
+      "etag": "\"1-3d31942b6024c5bcf01cf97026e401d47483bc3fb85765cb3a909f37af778da2\"",
+      "digest": "3d31942b6024c5bcf01cf97026e401d47483bc3fb85765cb3a909f37af778da2",
       "spots": 1
     },
     {
       "tile": "14/14370/6490",
-      "etag": "\"1-6de46cb1046ee3dc69e5996c95fd02777a2c5ff626d5a43d7d254349e4b05fb5\"",
-      "digest": "6de46cb1046ee3dc69e5996c95fd02777a2c5ff626d5a43d7d254349e4b05fb5",
+      "etag": "\"1-8984f690b560e19b86e015fddb174d6ac2743cbfff978ad17d112a8099c57bf1\"",
+      "digest": "8984f690b560e19b86e015fddb174d6ac2743cbfff978ad17d112a8099c57bf1",
       "spots": 8
     },
     {
       "tile": "14/14370/6493",
-      "etag": "\"1-002a989bde7cede7fa2dc1e0cbccfa4d597be270f2c7cd3e2adb0d9d6b8afb1e\"",
-      "digest": "002a989bde7cede7fa2dc1e0cbccfa4d597be270f2c7cd3e2adb0d9d6b8afb1e",
+      "etag": "\"1-5381e361a579f6828e03b92bdf249dce1f3e05eb0fa82748cfe451c223c6b69f\"",
+      "digest": "5381e361a579f6828e03b92bdf249dce1f3e05eb0fa82748cfe451c223c6b69f",
       "spots": 1
     },
     {
       "tile": "14/14371/6489",
-      "etag": "\"1-ae6dda47f427459df84f05d0c302e34a11484460d794b4f9f0aaf26f0299fa9e\"",
-      "digest": "ae6dda47f427459df84f05d0c302e34a11484460d794b4f9f0aaf26f0299fa9e",
+      "etag": "\"1-ed0070b735ca3ad4d47cead91e33458aacc60b96bde88524137d109d587638da\"",
+      "digest": "ed0070b735ca3ad4d47cead91e33458aacc60b96bde88524137d109d587638da",
       "spots": 4
     },
     {
       "tile": "14/14373/6490",
-      "etag": "\"1-f6a0c88aa5d9b0a9804029abfea457b89efc5cf40c94d049b00c88d75cee67eb\"",
-      "digest": "f6a0c88aa5d9b0a9804029abfea457b89efc5cf40c94d049b00c88d75cee67eb",
+      "etag": "\"1-c6684234ed26e1e9c3252b12139c382d93cb5230cc6b93fe136c69b11162ade2\"",
+      "digest": "c6684234ed26e1e9c3252b12139c382d93cb5230cc6b93fe136c69b11162ade2",
       "spots": 2
     }
   ],
-  "detailDigest": "aca51c316fb175679c2313454425f4aaabd061c8ef2a8459d3d58286cf1e55a5"
+  "detailDigest": "a4cb46824196147ce294c0eae81a990c99ef1e59ef89a324004c72154ef719b1"
 }

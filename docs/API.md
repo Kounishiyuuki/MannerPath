@@ -68,7 +68,11 @@ Implementation: `services/api/src/app.ts`. Zod schema: `services/api/src/tiles/d
       "evidenceQuality": "officialListing",
       "evidenceQualityVersion": "evidence-quality.v1",
       "lastVerifiedAt": "2026-08-18",
-      "sourceIds": ["taito-public-smoking-areas"]
+      "sourceIds": ["taito-public-smoking-areas"],
+      "spotSubtype": null,
+      "hostType": "unknown",
+      "accessDetail": null,
+      "verification": { "version": "spot-verification.v1", "existence": "official", "locationPrecision": "publisherPoint", "confirmations": null, "lastReviewedMonth": "2026-08" }
     }
   ],
   "sources": [
@@ -91,6 +95,32 @@ Implementation: `services/api/src/app.ts`. Zod schema: `services/api/src/tiles/d
 - `sourceIds`: IDs of the sources that provide the spot's existence evidence. Every one has an entry in `sources`.
 - `sources`: `attributionText` is `null` until approved wording exists.
 - `spots` are sorted by `id` and `sources` by `id`. The body is compact JSON, and the served bytes are exactly the stored snapshot.
+
+#### ADR-0012 additions (Issue #143) — additive, still schemaVersion 1
+
+Every addition is an ignorable field for an older client (see "Forward compatibility"), so neither the tile nor the
+spot-detail schema version changes. An older client keeps reading `spotType`, `accessType` and `evidenceQuality`
+exactly as before; it shows a community spot through its existing "unrecognised evidence" fallback, never as official.
+
+- `spotSubtype`: `smokingCorner | tobaccoShopSmokingSpace | null`. Refines `spotType`, never replaces it.
+- `hostType`: `municipality | station | airport | commercialBuilding | convenienceStore | tobaccoShop | restaurantOrCafe | other | unknown`.
+  Where the place is. **Never evidence** that smoking is permitted there.
+- `accessDetail`: `ticketedUsersOnly | null`. Refines `accessType: "facilityOnly"`.
+- `verification` (`spot-verification.v1`), the separate trust axes:
+  - `existence`: `official | operator | communityVerified | communityReported` — who stands behind the place's
+    existence. `communityReported` is one moderated, consented, explicitly classified report; `communityVerified` is
+    two or more independent submitters, or a reported spot later confirmed by an independent submitter.
+  - `locationPrecision`: `publisherPoint | reviewedDerived | communityPinned | unknown` — how the pin was placed,
+    independent of existence. (`reviewedDerived` is reserved for ADR-0011, which is not approved; nothing emits it.)
+  - `confirmations`: independent community submitters behind the evidence (≥ 1), or `null` for official/operator.
+  - `lastReviewedMonth`: `YYYY-MM` — an official release's observation month, or the month a reviewer applied
+    community evidence. Month precision on purpose (ADR-0007): a single report's review day is close to its
+    submission day. Clients must tolerate a `verification.version` they do not know by ignoring the object.
+- `evidenceQuality` v3 (`evidence-quality.v3`): `communityReported`, `communityVerified`, `operatorListing`. Existing
+  values keep their versions: `officialListing` (v1), `communityReviewed` (v2, read as communityVerified).
+- Freshness (`freshness.v1`, computed by the client and by the quality report from `lastVerifiedAt`, else the first day
+  of `lastReviewedMonth`): `fresh` ≤ 365 days, `aging` ≤ 730, `stale` beyond, `unknown` without a date. A label and a
+  ranking factor, never a reason to hide a spot (stale ≠ nonexistent).
 
 Responses:
 
@@ -151,7 +181,8 @@ Implementation: `services/api/src/app.ts`, `services/api/src/spots/`. Zod schema
 
 - `spot` repeats the tile DTO's spot object field-for-field, with identical values, plus `tile` (the data tile the spot is published in). A client decodes it with the same decoder it uses for tile spots. `spotType: "unknown"` is returned normally here too, with the same meaning as in the tile DTO.
 - The **verification summary** is the same triple the tile carries: `evidenceQuality`, `evidenceQualityVersion` and `lastVerifiedAt` (the observation date of the accepted existence evidence). Freshness stays a client-side computation.
-- `evidenceQuality` values: `officialListing` (`evidence-quality.v1`) and, from Issue #123, `communityReviewed` (`evidence-quality.v2`: backed by an applied community reconciliation application, `lastVerifiedAt` always `null`). No community spot is published while its source is blocked (Issue #124). Clients treat any value they do not recognise as non-official, never as an error.
+- `evidenceQuality` values: `officialListing` (`evidence-quality.v1`) and, from Issue #123, `communityReviewed` (`evidence-quality.v2`: backed by an applied community reconciliation application, `lastVerifiedAt` always `null`); from ADR-0012, `communityReported`, `communityVerified` and `operatorListing` (`evidence-quality.v3`). No community spot is published while its source is blocked (Issue #124). Clients treat any value they do not recognise as non-official, never as an error.
+- The detail `spot` repeats the tile spot field for field, ADR-0012 additions included (`verification`, `spotSubtype`, `hostType`, `accessDetail`). Public provenance may now include `spotType`, `hostType`, `accessType`, `environment`, `supportsPaper` and `supportsHeated` for a community spot whose reports agreed on them (rule `community.agreedClaim.v1`).
 - `sources` is the same compact attribution shape as the tile DTO's `sources`, holding the sources behind `spot.sourceIds`.
 - `provenance` is the **public** field-level provenance: for each resolved field, which source it came from, the named derivation `rule` and the observation date of that evidence. A field whose canonical claim was **attenuated** — weakened on reviewed evidence outside the source, such as a later contradicting publication by the same publisher (ADR-0006, Issue #42 amendment) — is **omitted from this list entirely**. Its source provenance alone would say "this source, observed on this date, is the evidence for the value you see", which for an attenuated field is exactly what it is not, and schemaVersion 1 has no shape for "claim withdrawn on other evidence". A missing field therefore means either "no accepted evidence" or "the claim was withdrawn"; the value itself already says which — for example `openingHours.status: "unparsed"` means `openNow` is not computable, whatever the reason. Clients must not treat a present provenance entry as a completeness guarantee, and must never infer a value from provenance absence. It is limited to evidence from an applied release of an approved source **and to an explicit public field allowlist** (`PUBLIC_PROVENANCE_FIELDS` in `services/api/src/spots/dto.ts`, the field list above): a provenance field added to the database later is withheld until it is deliberately published here. The final body is validated against the schemaVersion 1 schema before it is sent. Raw source records, source column names, record/release/entity IDs, matcher and resolver internals are never exposed. A field absent from the list has no accepted evidence (it is unknown/default).
 - `requestedId` / `mergedInto`: merges resolve in exactly one hop (ADR-0006). When the requested ID was merged, the response is the live target's, `mergedInto` names it, and `requestedId` is what the client asked for, so a client can rewrite stored references. When the spot is live, `requestedId` equals `spot.id` and `mergedInto` is `null`. A merge whose target is not published answers `404` like any other unpublished spot.
@@ -218,6 +249,16 @@ server responses, while the report body is the server's minimization boundary.)
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
   IDFV, IDFA, a DeviceCheck value or any other system identifier.
+- `claim`: optional, **only for `missing`** (rejected for every other type), and only where `/v1/config`
+  `reports.newSpotClaims` is `true` (ADR-0012). What the reporter states about the new place:
+  `{ "spotType": required — designatedOutdoorArea | publicSmokingRoom | facilitySmokingRoom | ashtray | smokingPermittedVenue | unknown,
+  "spotSubtype"?: smokingCorner | tobaccoShopSmokingSpace (needs a known spotType), "accessType"?: public | customerOnly | facilityOnly | unknown,
+  "accessDetail"?: ticketedUsersOnly (needs facilityOnly), "hostType"?: (the tile vocabulary), "environment"?, "supportsPaper"?, "supportsHeated"?,
+  "hostName"?: 1–80 characters, "hoursNote"?: 1–120 characters }`. There is no staff-only/private access value: such a
+  place is not a public search result. Categorical claims are facts about a place and survive redaction; `hostName` and
+  `hoursNote` are personal content like `note`: shown to reviewers, minimized after 90 days, never published. A single
+  report becomes a `communityReported` listing only with consent and a known `spotType`; a host type alone (a
+  convenience store, a café) never does.
 - `acceptedTermsVersion`: optional. The report terms version the user **explicitly agreed to** in the
   client before sending (Issue #124). When present it must equal `reports.termsVersion` from
   `/v1/config`; any other version is refused with `409 termsVersionOutdated` and nothing is stored. A
@@ -432,13 +473,13 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
   "dataTileZoom": 14,
   "schemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
   "minimumSupportedSchemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
-  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft" }
+  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true }
 }
 ```
 
 On a deployment that requires App Attest, the report entries read
 `"schemaVersions": {…, "report": 2}`, `"minimumSupportedSchemaVersions": {…, "report": 2}` and
-`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft" }`.
+`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true }`.
 
 - `schemaVersion`: the schema version of *this* body.
 - `apiVersion`: the base path this document describes (`v1`).
@@ -476,6 +517,8 @@ On a deployment that requires App Attest, the report entries read
   must name (Issue #124). A client whose bundled terms document has another version cannot collect
   informed consent and presents reporting as needing an update. The current version is a **draft**:
   consent to it is recorded, but it grants no publication rights until a legal/maintainer approval.
+- `reports.newSpotClaims`: whether a `missing` report may carry `claim` (ADR-0012). A deployment before migration 0023
+  omits it; read absence as `false` and never send `claim` there (the report schema is strict).
 - Clients ignore unknown fields here as everywhere else; a value added later is additive.
 
 Responses:

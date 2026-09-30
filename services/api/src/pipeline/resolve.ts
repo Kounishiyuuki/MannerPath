@@ -29,10 +29,24 @@ export const OFFICIAL_LISTING = "officialListing";
 // Adding a value bumps the version (ADR-0006); municipal spots keep writing their v1 value unchanged.
 export const EVIDENCE_QUALITY_V2 = "evidence-quality.v2";
 export const COMMUNITY_REVIEWED = "communityReviewed";
+// v3 (ADR-0012) splits community evidence into tiers and names operator evidence. A community record that
+// declares its tier writes it; an older (tier-less) community record keeps writing its v2 value.
+export const EVIDENCE_QUALITY_V3 = "evidence-quality.v3";
+export const COMMUNITY_REPORTED = "communityReported";
+export const COMMUNITY_VERIFIED = "communityVerified";
+export const OPERATOR_LISTING = "operatorListing";
 const EVIDENCE_QUALITY_BY_KIND: Readonly<Record<string, { value: string; version: string }>> = {
   municipal: { value: OFFICIAL_LISTING, version: EVIDENCE_QUALITY_VERSION },
+  operator: { value: OPERATOR_LISTING, version: EVIDENCE_QUALITY_V3 },
   userReport: { value: COMMUNITY_REVIEWED, version: EVIDENCE_QUALITY_V2 },
 };
+
+export function evidenceQualityFor(kind: string, o: SourceObservation): { value: string; version: string } {
+  if (kind === "userReport" && o.existenceEvidence !== undefined) return { value: o.existenceEvidence, version: EVIDENCE_QUALITY_V3 };
+  const quality = EVIDENCE_QUALITY_BY_KIND[kind];
+  if (!quality) throw new Error(`resolve: no evidence quality is defined for source kind ${kind}`);
+  return quality;
+}
 
 // The only publication hold the schema knows (migration 0004). A new hold reason arrives with its
 // own migration and attenuation effect.
@@ -168,6 +182,11 @@ function newSpotStatements(
   const ref = adapter.attenuationReference;
   const r = resolveObservation(record.observation, adapter.attenuate(record.observation));
   const tile = tileForCoordinate(r.latitude, r.longitude, DATA_TILE_ZOOM);
+  const quality = evidenceQualityFor(release.kind, r);
+  const c = r.classification;
+  // A community spot's review day is the day its reviewed evidence was applied (ADR-0012): not an observation,
+  // so last_verified_at stays the release's (null) observation date.
+  const community = release.kind === "userReport" && r.existenceEvidence !== undefined;
   return [
     db.prepare(
       `INSERT INTO source_entities (source_entity_id, source_id, created_at)
@@ -181,12 +200,14 @@ function newSpotStatements(
       `INSERT INTO spots (spot_id, name, latitude, longitude, tile_z, tile_x, tile_y, tile_id, spot_type,
          supports_paper, supports_heated, opening_hours_raw, opening_hours_json, opening_hours_status,
          lifecycle, publication_hold, evidence_quality, evidence_quality_version, last_verified_at,
-         resolver_version, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'unknown', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(spotId, r.name, r.latitude, r.longitude, tile.z, tile.x, tile.y, formatTileId(tile),
+         resolver_version, created_at, updated_at${c ? ", spot_subtype, access_type, access_detail, host_type, environment" : ""}${community ? ", community_confirmations, last_reviewed_on" : ""})
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${c ? ", ?, ?, ?, ?, ?" : ""}${community ? ", ?, ?" : ""})`,
+    ).bind(spotId, r.name, r.latitude, r.longitude, tile.z, tile.x, tile.y, formatTileId(tile), c?.spotType ?? "unknown",
       r.supportsPaper, r.supportsHeated, r.openingHours.raw,
       r.openingHours.parsed ? JSON.stringify(r.openingHours.parsed) : null, r.openingHours.status,
-      r.lifecycle, r.publicationHold, EVIDENCE_QUALITY_BY_KIND[release.kind].value, EVIDENCE_QUALITY_BY_KIND[release.kind].version, release.observed_on, resolverVersion, now, now),
+      r.lifecycle, r.publicationHold, quality.value, quality.version, release.observed_on, resolverVersion, now, now,
+      ...(c ? [c.spotSubtype, c.accessType, c.accessDetail, c.hostType, c.environment] : []),
+      ...(community ? [r.communityConfirmations ?? null, now.slice(0, 10)] : [])),
     db.prepare(
       `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
        VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,

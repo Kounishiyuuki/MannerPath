@@ -32,15 +32,14 @@ struct ContentView: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(name(result.spot)).font(.headline)
-                                    Text(type(result.spot.spotType)).font(.caption)
+                                    Text(summary(result.spot)).font(.caption)
                                     Text(result.distanceMeters.isFinite
                                          ? "\(distance(result.distanceMeters)) · current location"
                                          : "Distance needs location")
                                         .font(.caption)
                                     Text(freshness(result))
                                         .font(.caption2).foregroundStyle(.secondary)
-                                    if result.spot.evidenceQualityVersion != "evidence-quality.v1" ||
-                                        result.spot.evidenceQuality != "officialListing" {
+                                    if result.spot.existenceTier != "official" {
                                         Text(evidence(result.spot))
                                             .font(.caption2).foregroundStyle(.secondary)
                                     }
@@ -181,7 +180,7 @@ struct ContentView: View {
             }
             Section("Details") {
                 Text("Paper: \(support(result.spot.supportsPaper)) · Heated: \(support(result.spot.supportsHeated))")
-                Text("Access: \(access(result.spot.accessType))")
+                Text("Access: \(accessLabel(result.spot))")
                 Text("Follow posted signs, on-site rules, and local law. Unknown details are not confirmation.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
@@ -236,8 +235,21 @@ struct ContentView: View {
         if days == 1 { return String(localized: "Verified 1 day ago") }
         return String(localized: "Verified \(days) days ago")
     }
+    // One short line: the type, and the access condition only when it restricts who may use the place.
+    private func summary(_ spot: WatchSpot) -> String {
+        let restricted = spot.accessDetail == "ticketedUsersOnly" || ["customerOnly", "facilityOnly"].contains(spot.accessType)
+        return restricted ? "\(type(spot.spotType)) · \(accessLabel(spot))" : type(spot.spotType)
+    }
+    private func accessLabel(_ spot: WatchSpot) -> String {
+        spot.accessDetail == "ticketedUsersOnly" ? String(localized: "Ticket holders only") : access(spot.accessType)
+    }
     private func evidence(_ spot: WatchSpot) -> String {
-        spot.evidenceQualityVersion == "evidence-quality.v1" && spot.evidenceQuality == "officialListing"
-            ? String(localized: "Official listing") : String(localized: "Evidence confidence unknown")
+        switch spot.existenceTier {
+        case "official": String(localized: "Officially confirmed")
+        case "operator": String(localized: "Confirmed by the operator")
+        case "communityVerified": String(localized: "Confirmed by users")
+        case "communityReported": String(localized: "User report · unconfirmed")
+        default: String(localized: "Confirmation status unknown")
+        }
     }
 }

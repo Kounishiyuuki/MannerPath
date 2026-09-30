@@ -50,6 +50,9 @@ nonisolated enum TileSpotMapper {
                 observationDate = nil
             }
             let attributedSources = wire.sourceIds.compactMap { sourceByID[$0] }
+            // Only the version this build understands is read; another version's axes are ignored, and the
+            // spot falls back to its evidenceQuality (SpotVerification.existenceTier).
+            let verification = wire.verification?.version == "spot-verification.v1" ? wire.verification : nil
             return Spot(
                 id: wire.id,
                 mergedInto: nil,
@@ -58,7 +61,7 @@ nonisolated enum TileSpotMapper {
                 longitude: wire.longitude,
                 tileId: body.tile,
                 spotType: SpotType(rawValue: wire.spotType) ?? .unsupported,
-                hostType: nil,
+                hostType: wire.hostType.map { HostType(rawValue: $0) ?? .unknown },
                 accessType: AccessType(rawValue: wire.accessType) ?? .unknown,
                 environment: SpotEnvironment(rawValue: wire.environment) ?? .unknown,
                 supportsPaper: TriState(rawValue: wire.supportsPaper) ?? .unknown,
@@ -73,11 +76,17 @@ nonisolated enum TileSpotMapper {
                     evidenceQuality: wire.evidenceQuality,
                     sourceDisplayNames: attributedSources.map(\.displayName),
                     evidenceQualityVersion: wire.evidenceQualityVersion,
-                    sources: attributedSources
+                    sources: attributedSources,
+                    existence: verification.map { ExistenceEvidence(wire: $0.existence) },
+                    locationPrecision: verification.map { LocationPrecision(wire: $0.locationPrecision) },
+                    confirmations: verification?.confirmations.flatMap { $0 >= 1 ? $0 : nil },
+                    lastReviewedMonth: verification?.lastReviewedMonth.flatMap { validMonth($0) ? $0 : nil }
                 ),
                 lastVerifiedAt: observationDate,
                 createdAt: nil,
-                updatedAt: nil
+                updatedAt: nil,
+                spotSubtype: SpotSubtype(wire: wire.spotSubtype),
+                accessDetail: AccessDetail(wire: wire.accessDetail)
             )
         }
         return MappedTile(tileID: body.tile, revision: body.revision,
@@ -112,6 +121,12 @@ nonisolated enum TileSpotMapper {
         }
         return SpotOpeningHours(raw: wire.raw, parsed: parsed, status: status,
                                 timeZone: wire.timeZone)
+    }
+
+    private static func validMonth(_ value: String) -> Bool {
+        guard value.count == 7, value[value.index(value.startIndex, offsetBy: 4)] == "-",
+              Int(value.prefix(4)) != nil, let month = Int(value.suffix(2)) else { return false }
+        return (1...12).contains(month)
     }
 
     private static func validTime(_ value: String, allowEndOfDay: Bool = false) -> Bool {

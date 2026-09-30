@@ -39,6 +39,24 @@ export interface SourceObservation {
   /** The source's own claim. The canonical lifecycle may be weaker after attenuation. */
   lifecycle: Lifecycle;
   provenance: readonly FieldProvenance[];
+  /**
+   * What kind of place the record states (ADR-0012). Absent means the source states nothing about it, which
+   * resolves to `unknown` / null exactly as before; a value is never inferred from a name or a host business.
+   */
+  classification?: SpotClassification;
+  /** A community record's evidence tier (ADR-0012). Absent for every other source. */
+  existenceEvidence?: "communityReported" | "communityVerified";
+  /** A community record's independent submitter count, recorded at review (ADR-0012). */
+  communityConfirmations?: number;
+}
+
+export interface SpotClassification {
+  spotType: "designatedOutdoorArea" | "publicSmokingRoom" | "facilitySmokingRoom" | "ashtray" | "smokingPermittedVenue" | "unknown";
+  spotSubtype: "smokingCorner" | "tobaccoShopSmokingSpace" | null;
+  accessType: "public" | "customerOnly" | "facilityOnly" | "unknown";
+  accessDetail: "ticketedUsersOnly" | null;
+  hostType: "municipality" | "station" | "airport" | "commercialBuilding" | "convenienceStore" | "tobaccoShop" | "restaurantOrCafe" | "other" | "unknown" | null;
+  environment: "indoor" | "outdoor" | "covered" | "unknown";
 }
 
 export type AttenuationEffect = "hoursUnknown" | "temporarilyClosed" | "withholdFromPublication";

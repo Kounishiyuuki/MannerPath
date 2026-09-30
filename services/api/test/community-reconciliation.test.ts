@@ -40,6 +40,11 @@ const HASH_A = "0123456789abcdef".repeat(4);
 const HASH_B = "fedcba9876543210".repeat(4);
 const HASH_C = "0f1e2d3c4b5a6978".repeat(4);
 const PIN = { latitude: 35.71201, longitude: 139.77701 };
+// A hand-built artifact that states nothing about the place (ADR-0012 v3 shape).
+const UNSTATED = {
+  tier: "communityVerified" as const, independentSubmitters: 2,
+  claims: { spotType: "unknown", spotSubtype: null, accessType: "unknown", accessDetail: null, hostType: null, environment: "unknown", supportsPaper: "unknown", supportsHeated: "unknown" } as const,
+};
 const NEAR = { latitude: 35.71205, longitude: 139.77706 };
 
 async function report(db: SqliteD1, hash: string, at = PIN, type = "missing", consent?: string): Promise<string> {
@@ -151,11 +156,12 @@ test("apply writes one sanitized userReport release and spot in one batch; nothi
   assert.deepEqual([release.source_id, release.status, release.is_current, release.observed_on, release.record_count], [COMMUNITY_SOURCE_ID, "applied", 0, null, 1]);
   const record = one(db, "SELECT * FROM source_records WHERE release_id = ?", result.releaseId);
   assert.deepEqual(JSON.parse(record.raw_values_json),
-    [applicationId, "newSpot", String(PIN.latitude), String(PIN.longitude), [a, b].sort().join(" "), "community-reconciliation.v1", ""],
+    [applicationId, "newSpot", String(PIN.latitude), String(PIN.longitude), [a, b].sort().join(" "), "community-reconciliation.v1", "",
+      "communityVerified", "2", "unknown", "", "unknown", "", "", "unknown", "unknown", "unknown"],
     "reports stored without consent leave the rights basis empty (Issue #124)");
   const spot = one(db, "SELECT * FROM spots WHERE spot_id = ?", spotId);
   assert.deepEqual([spot.latitude, spot.longitude, spot.evidence_quality, spot.last_verified_at, spot.name, spot.supports_paper, spot.opening_hours_status],
-    [PIN.latitude, PIN.longitude, "communityReviewed", null, null, "unknown", "none"]);
+    [PIN.latitude, PIN.longitude, "communityVerified", null, null, "unknown", "none"]);
   assert.deepEqual(all(db, "SELECT field, rule FROM spot_field_provenance WHERE spot_id = ? ORDER BY field", spotId).map((p) => p.field), ["existence", "lifecycle", "location"]);
   assert.deepEqual(all(db, "SELECT reconciliation_state FROM report_moderation WHERE report_id IN (?, ?)", a, b).map((r) => r.reconciliation_state), ["applied", "applied"]);
   assert.deepEqual(one(db, "SELECT state, release_id FROM community_reconciliation_applications"), { state: "applied", release_id: result.releaseId });
@@ -229,7 +235,7 @@ test("a stale application is rejected before any write, and the database re-chec
   // release cannot become applied without it.
   await ensureReviewedSource(db, COMMUNITY_SOURCE_ID, isoSeconds(APPLY));
   const { releaseId } = await ingestRelease(db, COMMUNITY_ADAPTER, communityArtifact({
-    applicationId, latitude: PIN.latitude, longitude: PIN.longitude, reportIds: [b, "rp_" + "1".repeat(26)], version: "community-reconciliation.v1",
+    applicationId, latitude: PIN.latitude, longitude: PIN.longitude, reportIds: [b, "rp_" + "1".repeat(26)], version: "community-reconciliation.v1", termsVersion: null, ...UNSTATED,
   }), { sourceUrl: "urn:test", observedOn: null, fetchedAt: isoSeconds(APPLY), httpLastModified: null });
   assert.throws(() => db.raw.prepare("UPDATE community_reconciliation_applications SET state = 'applied', release_id = ?, applied_at = ? WHERE application_id = ?")
     .run(releaseId, isoSeconds(APPLY), applicationId), /no longer accepted, queued and unredacted/);
@@ -260,7 +266,7 @@ test("the userReport source comes only from the reviewed registry, and nothing r
   // A community release resolved without an applied application is refused by the database, and nothing is written.
   const { releaseId } = await ingestRelease(db, COMMUNITY_ADAPTER, communityArtifact({
     applicationId: "ca_" + "2".repeat(26), latitude: 35.7, longitude: 139.7, reportIds: ["rp_" + "1".repeat(26), "rp_" + "2".repeat(26)],
-    version: "community-reconciliation.v1",
+    version: "community-reconciliation.v1", termsVersion: null, ...UNSTATED,
   }), { sourceUrl: "urn:test", observedOn: null, fetchedAt: isoSeconds(APPLY), httpLastModified: null });
   await assert.rejects(resolveFirstRelease(db, COMMUNITY_ADAPTER, releaseId, { now: isoSeconds(APPLY) }), /applied only by its applied reconciliation application/);
   assert.equal(count(db, "spots"), 0);
@@ -306,12 +312,12 @@ test("simulated approval: a community spot passes the ordinary publication gate,
   await publishTiles(db, { now: isoSeconds(APPLY) });
   assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n, 1, "passes the ordinary publication trigger");
   const detail = await (await app.request(`/v1/spots/${spotId}`, {}, { DB: db })).json() as any;
-  assert.equal(detail.spot.evidenceQuality, "communityReviewed");
-  assert.equal(detail.spot.evidenceQualityVersion, "evidence-quality.v2");
+  assert.equal(detail.spot.evidenceQuality, "communityVerified");
+  assert.equal(detail.spot.evidenceQualityVersion, "evidence-quality.v3");
   assert.equal(detail.spot.lastVerifiedAt, null);
   assert.ok(JSON.stringify(detail).includes("TEST ONLY simulated community attribution"));
   const tile = one(db, "SELECT body_json FROM tile_snapshots t JOIN tile_snapshot_spots s ON s.tile_id = t.tile_id WHERE s.spot_id = ?", spotId);
-  assert.ok(tile.body_json.includes('"evidenceQuality":"communityReviewed"'));
+  assert.ok(tile.body_json.includes('"evidenceQuality":"communityVerified"'));
 
   await generateCrossSourceCandidates(db, { now: isoSeconds(APPLY) });
   const candidate = one(db, "SELECT * FROM cross_source_candidates WHERE ? IN (spot_a_id, spot_b_id) AND ? IN (spot_a_id, spot_b_id)", spotId, taito.spot_id);

@@ -239,9 +239,10 @@ for (const c of CASES) {
     assert.equal(all(db, "SELECT body_json FROM tile_snapshots").filter((t) => t.body_json.includes(`"id":"${spotId}"`)).length, 1);
     assert.equal(dtoMoved.lastVerifiedAt, SECOND.observedOn);
 
-    // Relocation-only view (A -> final with the lastVerifiedAt refresh taken out): only old/new tiles differ.
+    // Relocation-only view (A -> final with the lastVerifiedAt refresh taken out, including its ADR-0012 month
+    // projection verification.lastReviewedMonth): only old/new tiles differ.
     const withoutRefresh = (body: string) => JSON.stringify({ ...JSON.parse(body), revision: 0, generatedAt: "",
-      spots: JSON.parse(body).spots.map((s: Row) => ({ ...s, lastVerifiedAt: null })) });
+      spots: JSON.parse(body).spots.map((s: Row) => ({ ...s, lastVerifiedAt: null, verification: { ...s.verification, lastReviewedMonth: null } })) });
     const semanticChanges = expectedTiles.filter((id) => !snapA.has(id) || withoutRefresh(snapA.get(id)!.body_json) !== withoutRefresh(snapFinal.get(id)!.body_json));
     assert.deepEqual(semanticChanges, [...new Set([oldTile, newTile])].sort());
 

@@ -186,7 +186,7 @@ test("approved simulation publishes; revoking the terms or the source removes it
   await publishTiles(db, { now: isoSeconds(APPLY) });
   assert.equal(published(db, spotId), true);
   const detail = await (await app.request(`/v1/spots/${spotId}`, {}, { DB: db })).json() as Row;
-  assert.equal(detail.spot.evidenceQuality, "communityReviewed", "labelled as reviewed community evidence, never as official");
+  assert.equal(detail.spot.evidenceQuality, "communityVerified", "labelled as reviewed community evidence, never as official");
   const quality = await analyzeCorpus(db, { now: isoSeconds(APPLY) });
   assert.deepEqual(quality.nationwide.community, { canonicalSpots: 1, withGrantedRights: 1, publishedSpots: 1, activePublicationHolds: 0 });
   assert.ok(quality.sources.publishedSourceIds.includes(COMMUNITY_SOURCE_ID));
@@ -272,7 +272,7 @@ test("promotion v3 carries several additive community releases to a fresh databa
     for (const id of [...first.reportIds, ...second.reportIds, first.applicationId]) assert.ok(!tile.body_json.includes(id), "a tile names a report");
   }
   const onTarget = await (await app.request(`/v1/spots/${first.spotId}`, {}, { DB: t })).json() as Row;
-  assert.equal(onTarget.spot.evidenceQuality, "communityReviewed");
+  assert.equal(onTarget.spot.evidenceQuality, "communityVerified");
 
   // Fresh bootstrap: the bootstrapped database re-exports the identical bundle.
   assert.equal((await buildMultiSourcePromotionBundle(t, { registry: SIMULATED_REGISTRY })).sql, bundle.sql);

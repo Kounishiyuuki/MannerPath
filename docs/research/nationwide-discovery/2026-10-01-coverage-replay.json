@@ -1,0 +1,767 @@
+{
+  "generator": "coverage-replay.v1",
+  "adr": "ADR-0012",
+  "summary": {
+    "reviewedTargets": 61,
+    "blockedBy": {
+      "alreadyReviewedSource": 2,
+      "dataOnly": 33,
+      "rightsAndData": 25,
+      "rightsOnly": 1
+    },
+    "route": {
+      "A-officialReusable": 2,
+      "C-communityAcquisition": 33,
+      "D-referenceLead": 26
+    },
+    "blockerFrequency": {
+      "accessBlocked": 4,
+      "coordinateSemanticsUnknown": 1,
+      "coordinatesMissing": 37,
+      "currentOperationUnknown": 6,
+      "duplicateKnownResearch": 2,
+      "exactTermsUnknown": 9,
+      "hostPointOnly": 13,
+      "incompatibleFormat": 1,
+      "licenseUnknown": 8,
+      "noSmokingEvidence": 11,
+      "noSmokingPoint": 11,
+      "polygonOnly": 1,
+      "rawUnavailable": 4,
+      "redistributionBlocked": 2,
+      "reuseForbidden": 10
+    }
+  },
+  "targets": [
+    {
+      "key": "city-aomori",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "青森市",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingEvidence"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-chiba",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "千葉市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-fukushima",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "福島市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "city-hiroshima",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "広島市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "exactTermsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "city-kawasaki",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "川崎市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "rawUnavailable"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-mito",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "水戸市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "currentOperationUnknown",
+        "incompatibleFormat"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-morioka",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "盛岡市",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingEvidence"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-nagoya",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "名古屋市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "exactTermsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "city-niigata",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "新潟市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-sagamihara",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "相模原市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-saitama",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "さいたま市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-sendai",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "仙台市",
+      "kind": "municipality",
+      "blockers": [
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "city-shizuoka",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "静岡市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "national-mlit-indoor",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "国土交通省 屋内地理空間情報",
+      "kind": "national",
+      "blockers": [
+        "rawUnavailable",
+        "exactTermsUnknown",
+        "currentOperationUnknown",
+        "coordinateSemanticsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "operator-haneda",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "日本空港ビルデング（羽田空港）",
+      "kind": "operator",
+      "blockers": [
+        "reuseForbidden",
+        "hostPointOnly",
+        "coordinatesMissing"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "pref-akita",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "秋田県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-aomori",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "青森県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-fukushima",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "福島県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-hokkaido",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "北海道",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-ibaraki",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "茨城県",
+      "kind": "prefecture",
+      "blockers": [
+        "hostPointOnly",
+        "noSmokingEvidence"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-iwate",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "岩手県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-miyagi",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "宮城県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-nagano",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "長野県",
+      "kind": "prefecture",
+      "blockers": [
+        "coordinatesMissing",
+        "noSmokingEvidence"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-niigata",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "新潟県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingPoint",
+        "coordinatesMissing"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-saitama",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "埼玉県",
+      "kind": "prefecture",
+      "blockers": [
+        "coordinatesMissing",
+        "currentOperationUnknown",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "pref-tochigi",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "栃木県",
+      "kind": "prefecture",
+      "blockers": [
+        "accessBlocked",
+        "rawUnavailable",
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-yamagata",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "山形県",
+      "kind": "prefecture",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "pref-yamanashi",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "山梨県",
+      "kind": "prefecture",
+      "blockers": [
+        "accessBlocked",
+        "coordinatesMissing",
+        "currentOperationUnknown"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "ward-adachi",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "足立区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-arakawa",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "荒川区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-bunkyo",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "文京区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "exactTermsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-chiyoda",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "千代田区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-chuo",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "中央区",
+      "kind": "municipality",
+      "blockers": [
+        "reuseForbidden",
+        "exactTermsUnknown",
+        "currentOperationUnknown"
+      ],
+      "blockedBy": "rightsOnly",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-edogawa",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "江戸川区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-itabashi",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "板橋区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "exactTermsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-katsushika",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "葛飾区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown",
+        "redistributionBlocked"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-kita",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "北区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown",
+        "redistributionBlocked"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-koto",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "江東区",
+      "kind": "municipality",
+      "blockers": [
+        "accessBlocked",
+        "coordinatesMissing",
+        "licenseUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-meguro",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "目黒区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-nakano",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "中野区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-nerima",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "練馬区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-ota",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "大田区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-shibuya",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "渋谷区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "reuseForbidden"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-shinagawa",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "品川区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "exactTermsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-shinjuku",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "新宿区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-suginami",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "杉並区",
+      "kind": "municipality",
+      "blockers": [
+        "accessBlocked",
+        "rawUnavailable",
+        "coordinatesMissing",
+        "exactTermsUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-sumida",
+      "file": "2026-10-01-high-value-reviews.json",
+      "jurisdiction": "墨田区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "exactTermsUnknown",
+        "currentOperationUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "ward-taito",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "台東区",
+      "kind": "municipality",
+      "blockers": [
+        "duplicateKnownResearch"
+      ],
+      "blockedBy": "alreadyReviewedSource",
+      "route": "A-officialReusable"
+    },
+    {
+      "key": "ward-toshima",
+      "file": "2026-10-01-east-deep-reviews.json",
+      "jurisdiction": "豊島区",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "licenseUnknown"
+      ],
+      "blockedBy": "rightsAndData",
+      "route": "D-referenceLead"
+    },
+    {
+      "key": "下関市",
+      "file": "2026-10-01-west-reviews.json",
+      "jurisdiction": "下関市",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "台東区",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "台東区",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "大阪市",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "大阪市",
+      "kind": "municipality",
+      "blockers": [
+        "duplicateKnownResearch"
+      ],
+      "blockedBy": "alreadyReviewedSource",
+      "route": "A-officialReusable"
+    },
+    {
+      "key": "岡山市",
+      "file": "2026-10-01-west-reviews.json",
+      "jurisdiction": "岡山市",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint",
+        "polygonOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "文京区",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "文京区",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "札幌市",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "札幌市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "杉並区",
+      "file": "2026-09-30-reviews.json",
+      "jurisdiction": "杉並区",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint",
+        "coordinatesMissing"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "板橋区",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "板橋区",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "津市",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "津市",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "青森市",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "青森市",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "静岡市",
+      "file": "2026-10-01-west-reviews.json",
+      "jurisdiction": "静岡市",
+      "kind": "municipality",
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    },
+    {
+      "key": "高知県",
+      "file": "2026-10-01-v2-reviews.json",
+      "jurisdiction": "高知県",
+      "kind": "municipality",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "blockedBy": "dataOnly",
+      "route": "C-communityAcquisition"
+    }
+  ]
+}

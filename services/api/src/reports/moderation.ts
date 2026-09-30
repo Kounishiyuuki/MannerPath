@@ -51,6 +51,17 @@ export interface ModerationQueueRow {
   reconciliation_state: string;
   /** The terms version the submitter consented to; null for a report without consent (never a publication basis). */
   accepted_terms_version: string | null;
+  /** ADR-0012 new-spot claims, for the moderator to check against the pin. Null when not stated. */
+  claim_spot_type: string | null;
+  claim_spot_subtype: string | null;
+  claim_access_type: string | null;
+  claim_access_detail: string | null;
+  claim_host_type: string | null;
+  claim_environment: string | null;
+  claim_supports_paper: string | null;
+  claim_supports_heated: string | null;
+  claim_host_name: string | null;
+  claim_hours_note: string | null;
 }
 
 export async function listModerationQueue(
@@ -61,7 +72,9 @@ export async function listModerationQueue(
   const sql =
     `SELECT r.report_id, r.report_type, r.subject_spot_id, r.proposed_latitude, r.proposed_longitude,
             r.observed_on, r.note, r.attestation_status, r.received_at, r.redacted_at,
-            m.state, m.reconciliation_state, r.accepted_terms_version
+            m.state, m.reconciliation_state, r.accepted_terms_version,
+            r.claim_spot_type, r.claim_spot_subtype, r.claim_access_type, r.claim_access_detail, r.claim_host_type,
+            r.claim_environment, r.claim_supports_paper, r.claim_supports_heated, r.claim_host_name, r.claim_hours_note
        FROM reports r
        JOIN report_moderation m ON m.report_id = r.report_id
       WHERE (? IS NULL OR m.state = ?)
