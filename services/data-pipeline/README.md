@@ -11,6 +11,56 @@ Responsibilities:
 
 An importer must have fixtures and tests before being scheduled.
 
+## Nationwide source discovery (local only)
+
+`discovery/manifest.json` tracks prefectures, prefectural capitals, designated cities,
+Tokyo wards and official operators. Roles overlap: a capital that is also a designated
+city is one target. `discovery/generate-manifest.py` deterministically imports historical
+research and the six reviewed source identities; it makes no network calls or approvals.
+The historical raw audit supplies hashes and attribute inventories without committing raw bytes.
+
+From `services/api`, run:
+
+```sh
+npm run discover:sources
+npm run test:discovery
+```
+
+Options include `--manifest`, `--state`, `--cache`, `--report`, `--limit`,
+`--delay` (milliseconds), `--timeout` (milliseconds), `--retries` and `--reviews`.
+`--revalidate` deliberately performs conditional requests, including previously inspected
+resources; use it only when a new release is worth reviewing. `--rescan --cache-only`
+rebuilds reports after parser changes without network access. JSON and sibling Markdown
+reports include coverage and explicit truncation. Persisted host stops remain in force;
+restarting the command does not probe a blocked host again.
+
+Catalog connectors cover CKAN, ArcGIS REST, static dataset pages and CSV/JSON indexes.
+Inspectors cover CSV/TSV (UTF-8 and CP932), JSON/GeoJSON, a bounded KML subset,
+KMZ, SHP ZIP attributes/PRJ and GPKG attributes/CRS metadata. Standalone SHP without
+its attribute sidecars is unsupported. GIS binary geometry is not decoded, and schemas,
+ZIP expansion, rows and downloads have bounds. Unsupported or malformed payloads remain
+blocked. ArcGIS transfer limits and catalog/resource caps are explicit partial scans.
+Public-address checks reduce accidental private-network requests; DNS validation and
+fetch resolve separately, so this remains a local tool for curated manifests rather
+than an unrestricted crawler of arbitrary user-supplied URLs.
+
+Discovery is independent of adapters, D1 and publication. Candidate output requires an
+individual publisher/terms/coordinate/current-operation review in `docs/SOURCES.md` before
+onboarding. A smoking keyword in a mixed facility description cannot establish that its
+Point identifies the smoking place. Unknown category codes are inventories for review,
+not inferred smoking categories. HTML/PDF/image/map information does not supply coordinates.
+
+Raw cache and resumable state stay local under `discovery/.local/`; only compact scan
+metadata/reports belong in the repository. Approved releases alone follow immutable fixture
+policy. Scan bounds, failed requests and prior inspections are reported separately: a bounded
+scan finding no eligible resource does not establish that a jurisdiction has no smoking sites.
+Reviewed coverage is derived solely from existing reviewed source IDs, never fetch success.
+
+Each host is serialized with a configurable delay, timeout and retry budget. HTTP 403 or
+429 stops that host; other hosts continue. There is no proxy rotation, authentication bypass,
+private endpoint guessing or block avoidance. Cache entries retain URL, SHA-256, ETag and
+Last-Modified; conditional validation never substitutes for approval of a changed release.
+
 ## Reviewed multi-source first releases
 
 Six municipal adapters now enter the same ingest → observation → resolution → tile/detail path:

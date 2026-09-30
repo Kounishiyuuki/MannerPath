@@ -1,0 +1,102 @@
+[
+  {
+    "jurisdiction": "津市",
+    "publisher": "津市",
+    "datasetUrl": "https://www.info.city.tsu.mie.jp/kurashi/koseki_juuminhyou/1002332/1008442.html",
+    "rawUrl": "https://www.info.city.tsu.mie.jp/_res/projects/default_project/_page_/001/008/442/bunbetsu20240419.csv",
+    "sha256": "981cb76fb2504641064b09ac39dcf384d7a451a75705a08de9a20df854c58903",
+    "reviewedAt": "2026-09-30",
+    "reviewer": "Codex",
+    "verdict": "blocked",
+    "blockerCodes": [
+      "noSmokingPoint",
+      "coordinatesMissing"
+    ],
+    "reason": "Publisher raw rows are discarded-ashtray waste sorting items, not locations. No latitude/longitude columns or current smoking-place evidence.",
+    "approvalGate": {
+      "publisherOwner": "津市",
+      "exactApplicableLicense": "not established for a new smoking source; approval not reached",
+      "redistributionAllowed": "unreviewed",
+      "derivationAllowed": "unreviewed",
+      "attribution": "unreviewed",
+      "shareAlike": "unreviewed",
+      "publisherCoordinates": "absent from matched catalog/waste rows",
+      "coordinateSemantics": "no smoking-site coordinates",
+      "geometry": "none",
+      "geographicScope": "津市",
+      "completeness": "unestablished",
+      "observationDateSemantics": "unknown; metadata dates not observations",
+      "updateCadence": "unreviewed",
+      "currentOperationEvidence": "not established for any new eligible smoking Point",
+      "exactSmokingCategory": "none; keyword match is catalog/prohibition/waste metadata"
+    },
+    "priorResearchReference": null
+  },
+  {
+    "jurisdiction": "大阪市",
+    "publisher": "大阪市",
+    "datasetUrl": "https://www.city.osaka.lg.jp/contents/wdu290/opendata/",
+    "rawUrl": "https://www.city.osaka.lg.jp/contents/wdu290/opendata/csv/resource.csv",
+    "sha256": "931857ff852a0e09e2ecf3ada99c752785b0495d69257446e1e8a6c884141372",
+    "reviewedAt": "2026-09-30",
+    "reviewer": "Codex",
+    "verdict": "blocked",
+    "blockerCodes": [
+      "noSmokingPoint",
+      "coordinatesMissing",
+      "duplicateKnownResearch"
+    ],
+    "reason": "This raw is a catalog resource index. The one matching row points to the already implemented Osaka environment/recycling CSV; it creates no new source or spot.",
+    "approvalGate": {
+      "publisherOwner": "大阪市",
+      "exactApplicableLicense": "not established for a new smoking source; approval not reached",
+      "redistributionAllowed": "unreviewed",
+      "derivationAllowed": "unreviewed",
+      "attribution": "unreviewed",
+      "shareAlike": "unreviewed",
+      "publisherCoordinates": "absent from matched catalog/waste rows",
+      "coordinateSemantics": "no smoking-site coordinates",
+      "geometry": "none",
+      "geographicScope": "大阪市",
+      "completeness": "unestablished",
+      "observationDateSemantics": "unknown; metadata dates not observations",
+      "updateCadence": "unreviewed",
+      "currentOperationEvidence": "not established for any new eligible smoking Point",
+      "exactSmokingCategory": "none; keyword match is catalog/prohibition/waste metadata"
+    },
+    "priorResearchReference": "docs/SOURCES.md"
+  },
+  {
+    "jurisdiction": "杉並区",
+    "publisher": "杉並区",
+    "datasetUrl": "https://www.city.suginami.tokyo.jp/s102/688.html",
+    "rawUrl": "https://www.city.suginami.tokyo.jp/documents/8444/open-data-list.csv",
+    "sha256": "a44ade6898a686fa403009511d683c3aa957166f4ccb2bf430e374ec8420c57a",
+    "reviewedAt": "2026-09-30",
+    "reviewer": "Codex",
+    "verdict": "blocked",
+    "blockerCodes": [
+      "noSmokingPoint",
+      "coordinatesMissing"
+    ],
+    "reason": "Publisher catalog row describes road-smoking prohibition districts, not permitted smoking-site points. The old GIS access URL is not a smoking point export; prior primary review remains blocked.",
+    "approvalGate": {
+      "publisherOwner": "杉並区",
+      "exactApplicableLicense": "not established for a new smoking source; approval not reached",
+      "redistributionAllowed": "unreviewed",
+      "derivationAllowed": "unreviewed",
+      "attribution": "unreviewed",
+      "shareAlike": "unreviewed",
+      "publisherCoordinates": "absent from matched catalog/waste rows",
+      "coordinateSemantics": "no smoking-site coordinates",
+      "geometry": "none",
+      "geographicScope": "杉並区",
+      "completeness": "unestablished",
+      "observationDateSemantics": "unknown; metadata dates not observations",
+      "updateCadence": "unreviewed",
+      "currentOperationEvidence": "not established for any new eligible smoking Point",
+      "exactSmokingCategory": "none; keyword match is catalog/prohibition/waste metadata"
+    },
+    "priorResearchReference": "docs/research/2026-09-30-tokyo-n1-source-batch-2.md"
+  }
+]
