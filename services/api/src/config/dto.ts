@@ -56,6 +56,9 @@ export const ConfigBodyV1 = z.object({
     // The report terms version a client must show and a report must accept (Issue #124). A client whose
     // bundled terms document has another version cannot collect valid consent and must ask for an update.
     termsVersion: z.string().regex(TERMS_VERSION),
+    // Whether a `missing` report may carry the ADR-0012 `claim` object. The report schema is strict, so a client
+    // sends it only where this is true; a deployment before migration 0023 omits the field (read it as false).
+    newSpotClaims: z.boolean(),
   }).strict(),
 }).strict().refine(
   (c) => CONFIG_RESOURCES.every((r) => c.minimumSupportedSchemaVersions[r] <= c.schemaVersions[r]),
@@ -93,6 +96,7 @@ export function configBody(env: AttestationBindings): ConfigBodyV1 {
       maxSubmissionBytes: attestation.kind === "disabled" ? REPORT_BODY_MAX_BYTES : REPORT_SUBMISSION_MAX_BYTES,
       noteMaxLength: REPORT_NOTE_MAX,
       termsVersion: CURRENT_REPORT_TERMS.version,
+      newSpotClaims: true,
     },
   };
 }

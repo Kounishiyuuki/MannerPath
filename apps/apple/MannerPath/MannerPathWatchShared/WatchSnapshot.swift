@@ -49,6 +49,17 @@ nonisolated struct WatchSpot: Codable, Sendable, Equatable {
     let lastVerifiedAt: Date?
     let openingHours: WatchHours?
     let sourceIDs: [String]
+    // ADR-0012: the existence tier and access refinement. Optional so a snapshot from an older iPhone build decodes.
+    var existence: String? = nil
+    var accessDetail: String? = nil
+
+    /// The tier to show. Without the ADR-0012 value only the long-standing official value is trusted.
+    var existenceTier: String {
+        if let existence, ["official", "operator", "communityVerified", "communityReported"].contains(existence) { return existence }
+        if existence == nil && evidenceQualityVersion == "evidence-quality.v1" && evidenceQuality == "officialListing" { return "official" }
+        if existence == nil && evidenceQualityVersion == "evidence-quality.v2" && evidenceQuality == "communityReviewed" { return "communityVerified" }
+        return "unknown"
+    }
 }
 
 nonisolated struct WatchHours: Codable, Sendable, Equatable {

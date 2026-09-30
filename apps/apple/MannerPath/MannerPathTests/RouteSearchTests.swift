@@ -67,8 +67,10 @@ struct RouteSearchTests {
         ]
         var filters = NearbyFilters()
         filters.openNowOnly = true
+        // nearby-ranking.v2: the officially confirmed place, ~110 m further than "other-evidence", ranks ahead of
+        // it because an unrecognised evidence value is ranked like an unconfirmed report (1.3x distance).
         #expect(NearbySearch.rank(spots, from: origin, filters: filters, at: atTenUTC)
-            .map(\.spot.id) == ["unversioned", "other-evidence", "confirmed"])
+            .map(\.spot.id) == ["unversioned", "confirmed", "other-evidence"])
         filters.officialEvidenceOnly = true
         #expect(NearbySearch.rank(spots, from: origin, filters: filters, at: atTenUTC)
             .map(\.spot.id) == ["confirmed"])

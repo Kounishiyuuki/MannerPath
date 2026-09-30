@@ -24,6 +24,84 @@ enum SpotPresentation {
         }
     }
 
+    /// The access condition with its refinement, e.g. ticket holders inside a facility.
+    static func access(_ spot: Spot) -> String {
+        spot.accessDetail == .ticketedUsersOnly ? String(localized: "Ticket holders only") : access(spot.accessType)
+    }
+
+    /// The physical type, refined when the evidence states a subtype.
+    static func type(_ spot: Spot) -> String {
+        switch spot.spotSubtype {
+        case .smokingCorner: String(localized: "Smoking corner")
+        case .tobaccoShopSmokingSpace: String(localized: "Tobacco shop smoking space")
+        case nil: type(spot.spotType)
+        }
+    }
+
+    /// Where the place is. nil for an unstated host: nothing is shown rather than "unknown".
+    static func host(_ value: HostType?) -> String? {
+        switch value {
+        case .municipality: String(localized: "Public facility")
+        case .station: String(localized: "Station")
+        case .airport: String(localized: "Airport")
+        case .commercialBuilding: String(localized: "Commercial building")
+        case .convenienceStore: String(localized: "Convenience store")
+        case .tobaccoShop: String(localized: "Tobacco shop")
+        case .restaurantOrCafe: String(localized: "Restaurant or café")
+        case .other: String(localized: "Other host")
+        case .unknown, nil: nil
+        }
+    }
+
+    /// ADR-0012 evidence label: short, plain, never alarming, never above the evidence.
+    static func existence(_ value: ExistenceEvidence) -> String {
+        switch value {
+        case .official: String(localized: "Officially confirmed")
+        case .operator: String(localized: "Confirmed by the operator")
+        case .communityVerified: String(localized: "Confirmed by users")
+        case .communityReported: String(localized: "User report · unconfirmed")
+        case .unknown: String(localized: "Confirmation status unknown")
+        }
+    }
+
+    static func existenceSymbol(_ value: ExistenceEvidence) -> String {
+        switch value {
+        case .official: "checkmark.seal"
+        case .operator: "building.2"
+        case .communityVerified: "person.2"
+        case .communityReported: "person"
+        case .unknown: "questionmark.circle"
+        }
+    }
+
+    /// Shown only when the pin is not the publisher's own point.
+    static func locationNote(_ value: LocationPrecision?) -> String? {
+        switch value {
+        case .reviewedDerived: String(localized: "Location estimated from the address")
+        case .communityPinned: String(localized: "Location pinned by a user")
+        case .unknown: String(localized: "Location precision unknown")
+        case .publisherPoint, nil: nil
+        }
+    }
+
+    /// "Last confirmed N days ago", a month for month-precision evidence, or a plain note once stale.
+    static func confirmation(_ result: NearbyResult) -> String {
+        let spot = result.spot
+        if result.freshness == .stale { return String(localized: "Not confirmed for a while") }
+        if let age = result.verificationAge {
+            let days = Int(age / 86_400)
+            return days == 0 ? String(localized: "Confirmed today") : String(localized: "Last confirmed \(days) days ago")
+        }
+        if let date = SpotFreshness.referenceDate(spot) {
+            // The month is a UTC calendar month; formatting it in UTC keeps it the same month everywhere.
+            let formatter = DateFormatter()
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.setLocalizedDateFormatFromTemplate("yMMMM")
+            return String(localized: "Last reviewed \(formatter.string(from: date))")
+        }
+        return String(localized: "Confirmation date unknown")
+    }
+
     static func environment(_ value: SpotEnvironment) -> String {
         switch value {
         case .indoor: String(localized: "Indoor")
@@ -50,6 +128,8 @@ enum SpotPresentation {
         case .unsupported: return String(localized: "Unsupported hours format")
         }
     }
+
+    static func evidence(_ spot: Spot) -> String { existence(spot.verification.existenceTier) }
 
     static func evidence(_ value: String?, version: String?) -> String {
         guard let value, !value.isEmpty else { return String(localized: "Unknown") }

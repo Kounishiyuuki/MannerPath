@@ -24,6 +24,8 @@ struct NearbyFilters: Sendable, Equatable {
     var environments: Set<SpotEnvironment>? = nil
     var openNowOnly = false
     var officialEvidenceOnly = false
+    // Official, operator or corroborated community evidence only. Off by default: coverage first (ADR-0012).
+    var verifiedEvidenceOnly = false
     var maximumDistanceMeters: Double? = nil
     var verifiedWithin: TimeInterval? = nil
 }
@@ -35,10 +37,31 @@ struct NearbyResult: Sendable {
     let bearingDegrees: Double
     // nil means verification observation time is unknown.
     let verificationAge: TimeInterval?
+    var freshness: SpotFreshness = .unknown
+    // The distance the ranking sorts by (NearbyRanking); equal to distanceMeters for fresh, public, official places.
+    var rankingDistance: Double = 0
+}
+
+// nearby-ranking.v2 (ADR-0012, docs/PRODUCT_REQUIREMENTS.md): distance first, lengthened by a small, named factor
+// for each thing that makes a place less certain to be usable. A far official place never outranks a near
+// community-verified one: the largest combined factor is well under 2x.
+nonisolated enum NearbyRanking {
+    static let version = "nearby-ranking.v2"
+
+    static func factor(evidence: ExistenceEvidence, freshness: SpotFreshness, access: AccessType) -> Double {
+        let evidenceFactor: Double = switch evidence {
+        case .official, .operator: 1.0
+        case .communityVerified: 1.1
+        case .communityReported, .unknown: 1.3
+        }
+        let freshnessFactor = freshness == .stale ? 1.2 : 1.0
+        let accessFactor = access == .customerOnly || access == .facilityOnly ? 1.1 : 1.0
+        return evidenceFactor * freshnessFactor * accessFactor
+    }
 }
 
 enum NearbySearch {
-    static let algorithmVersion = 1
+    static let algorithmVersion = 2
 
     static func rank(
         _ spots: [Spot],
@@ -76,6 +99,7 @@ enum NearbySearch {
             if filters.officialEvidenceOnly &&
                 (spot.verification.evidenceQualityVersion != "evidence-quality.v1" ||
                  spot.verification.evidenceQuality != "officialListing") { return nil }
+            if filters.verifiedEvidenceOnly && !spot.verification.existenceTier.isVerified { return nil }
 
             let distance = straightLineDistance(from: origin, to: destination)
             if let maximum = filters.maximumDistanceMeters, distance > maximum { return nil }
@@ -84,14 +108,21 @@ enum NearbySearch {
                 guard let age, age <= verifiedWithin else { return nil }
             }
 
+            let freshness = SpotFreshness.of(spot, at: date)
             return NearbyResult(
                 spot: spot,
                 distanceMeters: distance,
                 bearingDegrees: bearing(from: origin, to: destination),
-                verificationAge: age
+                verificationAge: age,
+                freshness: freshness,
+                rankingDistance: distance * NearbyRanking.factor(evidence: spot.verification.existenceTier,
+                                                                 freshness: freshness, access: spot.accessType)
             )
         }
         .sorted {
+            if $0.rankingDistance != $1.rankingDistance {
+                return $0.rankingDistance < $1.rankingDistance
+            }
             if $0.distanceMeters != $1.distanceMeters {
                 return $0.distanceMeters < $1.distanceMeters
             }

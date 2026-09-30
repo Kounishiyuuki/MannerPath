@@ -13,6 +13,17 @@ struct NearbyFilterView: View {
     var body: some View {
         Section("Filters") {
             VStack(alignment: .leading, spacing: 12) {
+                // Coverage first (ADR-0012): every usable listing is shown unless the user narrows it here.
+                Picker("Show", selection: quickScope) {
+                    Text("All places").tag(QuickScope.all)
+                    Text("Anyone can use").tag(QuickScope.publicAccess)
+                    Text("Confirmed only").tag(QuickScope.verified)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("nearby-quick-scope")
+                Text("“Confirmed only” hides places reported by a single user that nobody else has confirmed yet.")
+                    .font(.footnote).foregroundStyle(.secondary)
+
                 Picker("Tobacco type", selection: $filters.tobaccoType) {
                     Text("Any").tag(nil as TobaccoType?)
                     Text("Paper").tag(TobaccoType?.some(.paper))
@@ -71,6 +82,7 @@ struct NearbyFilterView: View {
 
                 Toggle("Confirmed open now", isOn: $filters.openNowOnly)
                 Toggle("Official listing evidence", isOn: $filters.officialEvidenceOnly)
+                Toggle("Confirmed places only", isOn: $filters.verifiedEvidenceOnly)
                 Picker("Verified within", selection: $filters.verifiedWithin) {
                     Text("Any date").tag(nil as TimeInterval?)
                     Text("30 days").tag(TimeInterval?.some(30 * 86_400))
@@ -94,6 +106,23 @@ struct NearbyFilterView: View {
         .onChange(of: filters.publicAccessOnly) { _, value in
             if !value { filters.requireConfirmedPublicAccess = false }
         }
+    }
+
+    private enum QuickScope: Hashable { case all, publicAccess, verified }
+
+    // The quick scope is a view of two existing filters, so it never disagrees with the detailed toggles below.
+    private var quickScope: Binding<QuickScope> {
+        Binding(
+            get: {
+                if filters.verifiedEvidenceOnly && !filters.publicAccessOnly { return .verified }
+                if filters.publicAccessOnly && !filters.verifiedEvidenceOnly { return .publicAccess }
+                return .all
+            },
+            set: { scope in
+                filters.verifiedEvidenceOnly = scope == .verified
+                filters.publicAccessOnly = scope == .publicAccess
+            }
+        )
     }
 
     private func selectionSummary(_ count: Int?) -> String {

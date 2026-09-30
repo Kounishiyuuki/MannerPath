@@ -24,6 +24,29 @@ nonisolated struct Spot: Codable, Sendable, Identifiable {
     // Tile v1 does not supply these timestamps. An absent value is not the fetch time.
     let createdAt: Date?
     let updatedAt: Date?
+    // ADR-0012 refinements. Optional so spots cached before them still decode; nil means "not stated".
+    var spotSubtype: SpotSubtype? = nil
+    var accessDetail: AccessDetail? = nil
+}
+
+// Refines a v1 spotType; never replaces it. Unsupported future values decode to nil (no refinement shown).
+nonisolated enum SpotSubtype: String, Codable, Hashable, Sendable {
+    case smokingCorner, tobaccoShopSmokingSpace
+
+    init?(wire: String?) {
+        guard let wire, let value = Self(rawValue: wire) else { return nil }
+        self = value
+    }
+}
+
+// Refines accessType .facilityOnly.
+nonisolated enum AccessDetail: String, Codable, Hashable, Sendable {
+    case ticketedUsersOnly
+
+    init?(wire: String?) {
+        guard let wire, let value = Self(rawValue: wire) else { return nil }
+        self = value
+    }
 }
 
 // Unsupported future wire values decode conservatively so one new server value cannot discard a tile.
@@ -47,9 +70,10 @@ nonisolated enum SpotType: String, Codable, Hashable, Sendable {
     }
 }
 
-nonisolated enum HostType: String, Codable, Sendable {
-    case municipality, station, commercialBuilding, convenienceStore
-    case restaurantOrCafe, other, unknown
+// Where a place is. A host business is never evidence that smoking is permitted there (ADR-0012).
+nonisolated enum HostType: String, Codable, Hashable, Sendable {
+    case municipality, station, airport, commercialBuilding, convenienceStore
+    case tobaccoShop, restaurantOrCafe, other, unknown
 
     init(from decoder: Decoder) throws {
         let value = try decoder.singleValueContainer().decode(String.self)

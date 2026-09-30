@@ -284,15 +284,11 @@ struct ContentView: View {
                         Button {
                             openDetail(result)
                         } label: {
-                            Image(systemName: "mappin.circle.fill")
-                                .font(.title)
-                                .foregroundStyle(.red)
-                                .background(.white, in: Circle())
-                                .frame(minWidth: 44, minHeight: 44)
-                                .contentShape(Rectangle())
+                            SpotPin(existence: result.spot.verification.existenceTier)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Show details for \(SpotPresentation.name(result.spot))")
+                        .accessibilityValue(SpotPresentation.evidence(result.spot))
                     }
                 }
             }
@@ -525,7 +521,7 @@ private struct NearbySpotRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(SpotPresentation.name(result.spot))
                     .font(.headline)
-                Text("\(SpotPresentation.type(result.spot.spotType)) · Access: \(SpotPresentation.access(result.spot.accessType))")
+                Text(typeLine)
                 Text("\(SpotPresentation.distance(result.distanceMeters)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
                     .fontWeight(.medium)
                 if let detourSeconds {
@@ -535,7 +531,8 @@ private struct NearbySpotRow: View {
                     Text("Walking detour unconfirmed · straight-line fallback")
                         .foregroundStyle(.secondary)
                 }
-                Text("Last verified: \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt)) · \(SpotPresentation.evidence(result.spot.verification.evidenceQuality, version: result.spot.verification.evidenceQualityVersion))")
+                Label("\(SpotPresentation.evidence(result.spot)) · \(SpotPresentation.confirmation(result))",
+                      systemImage: SpotPresentation.existenceSymbol(result.spot.verification.existenceTier))
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
@@ -553,10 +550,17 @@ private struct NearbySpotRow: View {
         .accessibilityValue(accessibilitySummary)
     }
 
+    // Type, host (when stated) and access: what the place is, where, and who may use it.
+    private var typeLine: String {
+        [SpotPresentation.type(result.spot), SpotPresentation.host(result.spot.hostType),
+         String(localized: "Access: \(SpotPresentation.access(result.spot))")]
+            .compactMap { $0 }.joined(separator: " · ")
+    }
+
     private var accessibilitySummary: String {
         var parts = [
-            SpotPresentation.type(result.spot.spotType),
-            String(localized: "Access: \(SpotPresentation.access(result.spot.accessType))"),
+            SpotPresentation.type(result.spot),
+            String(localized: "Access: \(SpotPresentation.access(result.spot))"),
             String(localized: "\(SpotPresentation.distance(result.distanceMeters)) straight-line"),
             SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters)
         ]
@@ -567,9 +571,31 @@ private struct NearbySpotRow: View {
         } else if routeMode {
             parts.append(String(localized: "Walking detour unconfirmed; straight-line fallback"))
         }
-        parts.append(String(localized: "Last verified \(SpotPresentation.verificationDate(result.spot.lastVerifiedAt))"))
-        parts.append(SpotPresentation.evidence(result.spot.verification.evidenceQuality,
-                                               version: result.spot.verification.evidenceQualityVersion))
+        parts.append(SpotPresentation.evidence(result.spot))
+        parts.append(SpotPresentation.confirmation(result))
         return parts.joined(separator: ", ")
+    }
+}
+
+// A map pin that tells official and community listings apart without alarming colours: a filled pin for
+// official/operator evidence, a filled orange pin for user-confirmed places, an outlined grey pin for a single report.
+private struct SpotPin: View {
+    let existence: ExistenceEvidence
+
+    var body: some View {
+        Image(systemName: existence == .communityReported || existence == .unknown ? "mappin.circle" : "mappin.circle.fill")
+            .font(.title)
+            .foregroundStyle(tint)
+            .background(.white, in: Circle())
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+    }
+
+    private var tint: Color {
+        switch existence {
+        case .official, .operator: .red
+        case .communityVerified: .orange
+        case .communityReported, .unknown: .gray
+        }
     }
 }

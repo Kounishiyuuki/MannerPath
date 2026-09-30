@@ -62,6 +62,13 @@ struct ReportFormView: View {
                         }
                     }
 
+                    if isMissing, case .available(let limits) = model.availability, limits.acceptsNewSpotClaim {
+                        NewSpotClaimSection(claim: Binding(
+                            get: { model.draft?.claim ?? ReportClaim() },
+                            set: { value in editDraft { $0.claim = value } }
+                        ))
+                    }
+
                     Section("When did you observe this? (optional)") {
                         Toggle("Add observation day", isOn: $hasObservedDate)
                             .onChange(of: hasObservedDate) { _, enabled in
@@ -344,5 +351,84 @@ private struct ReportPinPicker: View {
                 ))
             }
         )
+    }
+}
+
+/// ADR-0012 new-spot claim. What kind of smoking place it is comes first and is the one answer a single report
+/// needs to be listed; "Not sure" stays a valid answer. Everything else is optional and defaults to "not stated".
+private struct NewSpotClaimSection: View {
+    @Binding var claim: ReportClaim
+
+    var body: some View {
+        Section {
+            Picker("Kind of smoking place", selection: $claim.spotType) {
+                Text("Not sure").tag("unknown")
+                Text("Ashtray").tag("ashtray")
+                Text("Designated outdoor area").tag("designatedOutdoorArea")
+                Text("Public smoking room").tag("publicSmokingRoom")
+                Text("Smoking room in a facility").tag("facilitySmokingRoom")
+                Text("Smoking permitted inside a shop or café").tag("smokingPermittedVenue")
+            }
+            .onChange(of: claim.spotType) { _, type in if type == "unknown" { claim.spotSubtype = nil } }
+            if claim.spotType != "unknown" {
+                Picker("More specific (optional)", selection: $claim.spotSubtype) {
+                    Text("Not stated").tag(String?.none)
+                    Text("Smoking corner").tag(String?.some("smokingCorner"))
+                    Text("Tobacco shop smoking space").tag(String?.some("tobaccoShopSmokingSpace"))
+                }
+            }
+            Picker("Who can use it", selection: $claim.accessType) {
+                Text("Not stated").tag(String?.none)
+                Text("Anyone").tag(String?.some("public"))
+                Text("Customers only").tag(String?.some("customerOnly"))
+                Text("Facility users only").tag(String?.some("facilityOnly"))
+            }
+            .onChange(of: claim.accessType) { _, access in if access != "facilityOnly" { claim.accessDetail = nil } }
+            if claim.accessType == "facilityOnly" {
+                Toggle("Ticket holders only", isOn: Binding(
+                    get: { claim.accessDetail == "ticketedUsersOnly" },
+                    set: { claim.accessDetail = $0 ? "ticketedUsersOnly" : nil }
+                ))
+            }
+            Picker("Where is it", selection: $claim.hostType) {
+                Text("Not stated").tag(String?.none)
+                Text("Convenience store").tag(String?.some("convenienceStore"))
+                Text("Tobacco shop").tag(String?.some("tobaccoShop"))
+                Text("Restaurant or café").tag(String?.some("restaurantOrCafe"))
+                Text("Station").tag(String?.some("station"))
+                Text("Airport").tag(String?.some("airport"))
+                Text("Commercial building").tag(String?.some("commercialBuilding"))
+                Text("Public facility").tag(String?.some("municipality"))
+                Text("Other").tag(String?.some("other"))
+            }
+            Picker("Indoor or outdoor", selection: $claim.environment) {
+                Text("Not stated").tag(String?.none)
+                Text("Outdoor").tag(String?.some("outdoor"))
+                Text("Covered").tag(String?.some("covered"))
+                Text("Indoor").tag(String?.some("indoor"))
+            }
+            Picker("Paper cigarettes", selection: $claim.supportsPaper) {
+                Text("Not stated").tag(String?.none)
+                Text("Allowed").tag(String?.some("yes"))
+                Text("Not allowed").tag(String?.some("no"))
+            }
+            Picker("Heated tobacco", selection: $claim.supportsHeated) {
+                Text("Not stated").tag(String?.none)
+                Text("Allowed").tag(String?.some("yes"))
+                Text("Not allowed").tag(String?.some("no"))
+            }
+            TextField("Shop or facility name (optional)", text: Binding(
+                get: { claim.hostName ?? "" },
+                set: { claim.hostName = $0.isEmpty ? nil : String($0.prefix(ReportClaim.hostNameMaxLength)) }
+            ))
+            TextField("Opening hours, if you know them (optional)", text: Binding(
+                get: { claim.hoursNote ?? "" },
+                set: { claim.hoursNote = $0.isEmpty ? nil : String($0.prefix(ReportClaim.hoursNoteMaxLength)) }
+            ))
+        } header: {
+            Text("About this place")
+        } footer: {
+            Text("Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and hours are only for the reviewer and are deleted after 90 days.")
+        }
     }
 }

@@ -74,6 +74,8 @@ private nonisolated struct ConfigBody: Decodable {
         let noteMaxLength: Int
         /// Absent from a deployment that predates report terms (Issue #124).
         let termsVersion: String?
+        /// Absent from a deployment that predates ADR-0012 claims: read as false.
+        let newSpotClaims: Bool?
     }
 }
 
@@ -142,7 +144,8 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
                                        maxBodyBytes: config.reports.maxBodyBytes,
                                        submissionProtocol: submissionProtocol,
                                        maxSubmissionBytes: maxSubmissionBytes,
-                                       termsVersion: config.reports.termsVersion))
+                                       termsVersion: config.reports.termsVersion,
+                                       acceptsNewSpotClaim: config.reports.newSpotClaims == true))
     }
 
     func submit(_ body: Data) async throws -> AcceptedReport {

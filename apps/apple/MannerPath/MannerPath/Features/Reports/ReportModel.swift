@@ -296,6 +296,8 @@ final class ReportModel {
         case .noteTooLong: String(localized: "Shorten the note to the character limit.")
         case .bodyTooLarge: String(localized: "Shorten the note and try again.")
         case .termsNotAccepted: String(localized: "Read and agree to the report terms before submitting.")
+        case .unexpectedClaim: String(localized: "Place details can only be added to a missing-place suggestion.")
+        case .invalidClaim: String(localized: "Check the place details: a detail must match the type or access you chose, and text must fit its limit.")
         }
     }
 

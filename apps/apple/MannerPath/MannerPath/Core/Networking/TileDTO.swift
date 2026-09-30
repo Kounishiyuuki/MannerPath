@@ -27,11 +27,17 @@ nonisolated struct TileSpotV1: Decodable, Sendable {
     let evidenceQualityVersion: String
     let lastVerifiedAt: String?
     let sourceIds: [String]
+    // ADR-0012 additions to schemaVersion 1. Absent from an older server; decoded leniently.
+    let spotSubtype: String?
+    let hostType: String?
+    let accessDetail: String?
+    let verification: TileVerificationV1?
 
     private enum CodingKeys: String, CodingKey {
         case id, name, latitude, longitude, spotType, accessType, environment
         case supportsPaper, supportsHeated, openingHours, lifecycle, evidenceQuality
         case evidenceQualityVersion, lastVerifiedAt, sourceIds
+        case spotSubtype, hostType, accessDetail, verification
     }
 
     init(from decoder: Decoder) throws {
@@ -51,7 +57,20 @@ nonisolated struct TileSpotV1: Decodable, Sendable {
         evidenceQualityVersion = try c.decode(String.self, forKey: .evidenceQualityVersion)
         lastVerifiedAt = try c.decode(String?.self, forKey: .lastVerifiedAt)
         sourceIds = try c.decode([String].self, forKey: .sourceIds)
+        spotSubtype = try c.decodeIfPresent(String.self, forKey: .spotSubtype)
+        hostType = try c.decodeIfPresent(String.self, forKey: .hostType)
+        accessDetail = try c.decodeIfPresent(String.self, forKey: .accessDetail)
+        // A malformed or future-shaped object costs only the refinement, never the spot or the tile.
+        verification = try? c.decodeIfPresent(TileVerificationV1.self, forKey: .verification)
     }
+}
+
+nonisolated struct TileVerificationV1: Decodable, Sendable {
+    let version: String
+    let existence: String
+    let locationPrecision: String
+    let confirmations: Int?
+    let lastReviewedMonth: String?
 }
 
 nonisolated struct TileOpeningHoursV1: Decodable, Sendable {

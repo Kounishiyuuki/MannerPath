@@ -260,7 +260,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "利用客のみ"
+            "value": "店舗利用者のみ"
           }
         }
       }
@@ -877,6 +877,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "保存済みの情報が古くなっています。iPhoneアプリを開いて更新してください。"
+          }
+        }
+      }
+    },
+    "Ticket holders only": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チケット・入場者のみ"
+          }
+        }
+      }
+    },
+    "Officially confirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公式確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed by the operator": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運営者確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed by users": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者確認済み"
+          }
+        }
+      }
+    },
+    "User report · unconfirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者報告・未確認"
+          }
+        }
+      }
+    },
+    "Confirmation status unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認状況不明"
           }
         }
       }
