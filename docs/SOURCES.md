@@ -190,3 +190,32 @@ current-operation check and field semantics are in
 No canonical attributes come from the ordinary current-operation page. Field uncertainty and
 excluded categories are enforced in the dedicated pinned reader; existing SourceAdapter contracts
 and schema remain unchanged.
+
+### 港区 指定喫煙場所（施設情報）
+
+Targeted [batch 2 review](research/2026-09-30-tokyo-n1-source-batch-2.md), Issue #109.
+Immutable fixture, publisher metadata and exact mapping: `services/data-pipeline/fixtures/minato-designated-smoking-areas/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `minato-designated-smoking-areas` |
+| Name / publisher | 港区 指定喫煙場所（施設情報） / 港区; catalog author 企画経営部区長室 |
+| Kind | municipal |
+| Original dataset URL | https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo — 複合施設・男女平等参画施設・その他の施設 |
+| Raw resource URL | https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv |
+| License / exact applicability | CC BY 4.0, permitted by original same-host catalog terms https://opendata.city.minato.tokyo.jp/about . Exact resource is hosted catalog content, not an external-site link. https://opendata.city.minato.tokyo.jp/pages/exhibit excludes only ちぃばすGTFS and 赤ちゃんの駅; not this resource. Ordinary website/map content is not approved as a value source |
+| License URL / original terms | https://creativecommons.org/licenses/by/4.0/ ; https://creativecommons.org/licenses/by/4.0/legalcode.ja ; https://opendata.city.minato.tokyo.jp/about |
+| Redistribution to clients allowed | Yes: catalog terms allow copying/public transmission/commercial use; CC BY §2(a)(1) |
+| Modification/derivation allowed | Yes: catalog terms allow adaptation; credit source/use date and disclose extraction/normalization, no false publisher authorship; CC BY §2/§3 |
+| Share-alike obligations | None; preserve attribution/notices and avoid conflicting downstream restrictions |
+| Required attribution text | `出典：港区オープンデータカタログサイト「複合施設・男女平等参画施設・その他の施設」 https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo 元データ https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv （2026年9月30日に利用） CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが指定喫煙場所を抽出・正規化して作成。` |
+| Geographic scope / completeness | Partial 港区 designated smoking points: exact classification `009013004000`, `第2分類=指定喫煙場所`, publisher smoking-facility URL; exclude 109.html. 169 raw records, 115 smoking-classified, 114 published; 54 other facilities and one uncertain point raw-only. Not a claim of all 116 current aggregate sites |
+| Current operation evidence | https://www.city.minato.tokyo.jp/kankyouseisaku/shiteikitsuenbasyo.html (updated 2026-07-10, list as of 2026-06-01) and 115 publisher smoking facility pages reviewed 2026-09-30. Included names correspond to current aggregate; 109 omitted there, closure unknown, excluded conservatively. No HTML value import |
+| Coordinates | Explicit decimal 緯度/経度 for smoking locations, corroborated by publisher GeoJSON Point features. CRS/accuracy/entrance semantics undeclared; supplied display points only. No geocoding/map-vendor supplementation. Co-located floors preserve separate publisher identities |
+| Observation date | none; `observedOn` and `lastVerifiedAt` NULL. 最終更新日 is page modification, not observation |
+| Update frequency | Unspecified; official catalog describes automatic CSV conversion but no guaranteed interval/SLA. Resource modified 2026-07-16, export trailer Ver20260714, not observation time |
+| Stable automated fetch | Unauthenticated GET, stable named official raw URL; immutable pinned release only, no `refreshTarget` |
+| Reviewed release / policy | SHA-256 `d11ad6a5c2c72bba114d58bc7cce9f84f54338c75ee37cdd275b7680c6314220`, 96,869 bytes, exact URL/NULL date/114 observations; `crossReleaseValidated=false`, `completeness=partial`. Any changed content needs another review |
+| Uncertain fields | Hours retained unparsed where supplied; no openNow inference. Tobacco support, physical type, access, fee, host and other unsupported fields unknown; address raw-only |
+| Reviewed by / date | Codex, AI-assisted primary-source review, 2026-09-30, Issue #109; repository approval reviewable in this branch |
+| Publication status | approved for pinned first release and exact scoped extraction only |

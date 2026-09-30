@@ -1,0 +1,2 @@
+# Preserve immutable publisher bytes; inspect CSV through the parser and SHA tests.
+services/data-pipeline/fixtures/minato-designated-smoking-areas/minatokushisetsujoho_fukugo.csv -text -diff

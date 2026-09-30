@@ -13,8 +13,8 @@ An importer must have fixtures and tests before being scheduled.
 
 ## Reviewed multi-source first releases
 
-Four municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
-Taito, Osaka City's designated smoking locations, Koto's station-front locations and Musashino's licensed KML public smoking sites.
+Five municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
+Taito, Osaka City's designated smoking locations, Koto's station-front locations, Musashino's licensed KML public smoking sites, and Minato's designated smoking points.
 Source review, licensing and exact attribution
 are in `docs/SOURCES.md`; immutable fixture evidence is under `fixtures/`.
 
@@ -26,6 +26,8 @@ npm run local:migrate
 npm run local:pipeline
 npm run local:pipeline -- osaka-designated-smoking-areas
 npm run local:pipeline -- koto-station-smoking-areas
+npm run local:pipeline -- musashino-public-smoking-areas
+npm run local:pipeline -- minato-designated-smoking-areas
 ```
 
 The no-argument command retains Taito behavior. The Osaka command retains all 524 mixed CSV rows
@@ -49,3 +51,13 @@ The existing promotion-bundle.v3 exporter supports all approved sources in one f
 bootstrap (migration 0018). It carries published canonical state, provenance, attribution and tile
 membership; ADR-0008 excludes source_observations and withheld canonical spots. Fresh bootstrap is
 publication reproduction, not an ingestion-workspace backup. No schema or ADR change is made here.
+
+Minato's mixed facility CSV retains 169 raw records and derives 114 reviewed smoking points.
+Its publisher trailer is verified separately, and the unchanged original file remains the release
+fingerprint. One smoking point omitted from the current official aggregate list stays raw-only.
+See `docs/research/2026-09-30-tokyo-n1-source-batch-2.md` and its fixture `PROVENANCE.md`.
+
+The promotion exporter supports `npm run local:export -- --bundle v3 --out <file>` for one
+reviewed release per source into a fresh database, using migration 0018. v2 remains available.
+Repeated-release validation, cross-source merges and broader field support remain separate work.
+These commands never target a remote database.
