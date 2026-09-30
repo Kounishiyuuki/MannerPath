@@ -335,3 +335,36 @@ evidence for all 34 records, including the two now withheld (tested).
   re-running `spot-check.mjs` and re-reviewing the attestations; nothing expires automatically, and
   deliberately so — a time-dependent resolver would make tiles irreproducible.
 - Cross-release matching for Taito, and everything else still listed under the earlier amendments.
+
+## Amendment 2026-09 — community evidence (Issue #123)
+
+This amendment adds a second kind of existence evidence and makes the "accepted user reports can
+become evidence" line above concrete. The publication invariant is unchanged.
+
+1. **`userReport` sources resolve through the ordinary resolver.** A release of a `userReport`
+   source is the sanitized, single-record artifact of one applied community reconciliation
+   application (ADR-0007 amendment, Issue #123). The resolver gives each record a new entity and a
+   new spot, as for a first release. The source is **additive**: every release is applied, none is
+   `current`, none supersedes another, and the cross-release matcher never runs on it (migration
+   0020 enforces "never current"). Absence therefore never means removal.
+2. **Evidence quality `evidence-quality.v2`** adds `communityReviewed`: the existence evidence is an
+   applied community reconciliation application. Following decision 2 of the Issue #12 amendment,
+   adding the value bumps the version. Municipal spots keep writing `officialListing` /
+   `evidence-quality.v1` unchanged, so existing tiles and ETags do not move. Clients already treat
+   anything other than `officialListing` under v1 as non-official.
+3. **`lastVerifiedAt` is unknown for community spots.** The reports' observation dates are
+   personal and minimized (ADR-0007 §4), and a review date is not an observation.
+4. **Publication.** The community source is `blocked` until user-submission reuse rights exist
+   (Issue #124), so the insert trigger excludes it like any other unapproved source. When it is
+   approved, a community spot publishes under exactly the same trigger and hold rules as any other
+   spot. Its provenance cites the application record, and its attribution comes from the reviewed
+   registry entry.
+5. **Cross-source.** `cross_source_spot_sources` (migration 0019) counts a spot's evidence only
+   from its source's current release. Migration 0020 redefines it so that, for a `userReport`
+   source, any applied release counts, and everything else stays as it was. Community and
+   municipal spots in proximity become ordinary candidates. No source kind gains or loses
+   precedence, and nothing merges without the existing reviewed decision and application.
+6. **Promotion.** The v3 exporter carries current releases only. It therefore leaves an additive
+   community release out, and refuses to export while a published spot draws evidence from one.
+   Carrying community evidence to a promoted database is part of Issue #124. Report and
+   reconciliation tables never travel.

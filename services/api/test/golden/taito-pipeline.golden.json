@@ -622,6 +622,8 @@
   "tables": {
     "app_attest_challenges": [],
     "app_attest_keys": [],
+    "community_reconciliation_applications": [],
+    "community_reconciliation_evidence": [],
     "cross_source_candidates": [],
     "cross_source_decisions": [],
     "cross_source_merge_applications": [],

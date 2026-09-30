@@ -10,6 +10,7 @@
 
 import { type Db } from "../db.ts";
 import { SOURCE_ADAPTERS } from "./adapters.ts";
+import { COMMUNITY_REGISTRY } from "./community-adapter.ts";
 
 export interface ReviewedSource {
   sourceId: string;
@@ -28,8 +29,9 @@ export interface ReviewedSource {
  * blocked by absence, not by a status field.
  * OSM is deliberately absent (ODbL obligations unreviewed, docs/DATA_POLICY.md); the schema also
  * refuses `kind = 'osm'` with `publication_status = 'approved'`.
+ * The community `userReport` source is reviewed here too, though it is not a fetched adapter (Issue #123).
  */
-export const REVIEWED_SOURCES: readonly ReviewedSource[] = SOURCE_ADAPTERS.map((a) => a.registry);
+export const REVIEWED_SOURCES: readonly ReviewedSource[] = [...SOURCE_ADAPTERS.map((a) => a.registry), COMMUNITY_REGISTRY];
 
 const bySourceId = new Map(REVIEWED_SOURCES.map((s) => [s.sourceId, s]));
 

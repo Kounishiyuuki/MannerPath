@@ -4,7 +4,8 @@ Status: Accepted (2026-09, Issue #29). Amended 2026-09 by the PR #36 review: App
 (§6), moderation notes replaced by a bounded reason vocabulary (§4), reconciliation transitions
 narrowed to the ones this slice can honestly make (§2). Amended 2026-09 by Issue #37: App Attest
 implemented as a server-issued challenge / key registration / request-bound assertion protocol
-(§6), report request schema 2.
+(§6), report request schema 2. Amended 2026-09 by Issue #123: `queued → applied` implemented by
+community reconciliation (§2, §8, "Amendment — community reconciliation" below).
 
 Prerequisite for the report API. ADR-0006 ends with "Report privacy/retention requires a separate
 ADR before the report API ships"; this is that ADR. It governs `POST /v1/reports`
@@ -50,21 +51,22 @@ Moderation state and reconciliation state are separate, explicit columns
   | `notQueued` | `queued` | yes (report must be `accepted`) |
   | `notQueued` | `discarded` | yes (report must be `accepted`) |
   | `queued` | `discarded` | yes |
-  | anything | `applied` | **no** — nothing in this slice applies a report |
+  | `queued` | `applied` | only in the apply batch of an applied community reconciliation application that links the report (Issue #123, migration 0020) |
+  | `notQueued` / `discarded` | `applied` | **no** |
   | `queued` / `discarded` / `applied` | `notQueued` | **no** — backward |
   | `discarded` / `applied` | anything | **no** — terminal |
 
-  `applied` stays in the column's vocabulary for the reconciliation slice that will set it, but it
-  is unreachable: a database trigger rejects entering it, a row is born `notQueued`, and the
-  moderation module's type does not offer it. Neither the module nor the local CLI can claim that
-  reconciliation was applied while no reconciliation exists.
+  `applied` is reachable only through reconciliation (Issue #123): the transition trigger accepts it
+  solely for a report linked to an application that is already `applied` in the same batch, a row
+  is still born `notQueued`, and the moderation module's type still does not offer it. Neither the
+  module nor the `queue` CLI command can claim that reconciliation was applied.
 
 Accepting a report records a human judgement that the claim looks true. It does **not** make the
 report canonical evidence and does not change any published tile. Turning an accepted report into
 evidence is a separate, deliberate reconciliation step: it registers a `userReport` source through
 the reviewed source registry and goes through the ordinary ingest → resolve → publish path with
-the ADR-0006 publication invariant intact. That step is **not** part of this slice; until it
-exists, `reconciliation_state` stays `notQueued`/`queued` and nothing reaches canonical data.
+the ADR-0006 publication invariant intact. That step exists since Issue #123 for new-spot proposals
+(see the amendment below); every other report type still stops at `queued`.
 
 ### 3. Payload minimization
 
@@ -238,15 +240,17 @@ model would be a larger risk than the workflow it saves. Moderation runs through
 local D1 (`services/api/README.md`). The queue view never returns `submitter_hash`, because a
 moderator judges the claim, not the submitter; it does print the claim itself, which is the point
 of review and is distinct from the request-path logging §7 forbids. Decisions take a reason code
-from the §4 vocabulary — the CLI rejects anything else — and the reconciliation command exposes
-only `queued` and `discarded`.
+from the §4 vocabulary — the CLI rejects anything else — and the `queue` command exposes only
+`queued` and `discarded`. Reconciliation has its own local commands (`candidates`, `propose`,
+`apply`, `withdraw`); they print report IDs, pins and a distinct-submitter count, never a submitter
+key.
 
 ## Consequences
 
 - The report table is safe to keep, and bounded: personal content has a 90-day ceiling that does
   not depend on anyone doing moderation work.
-- Reports cannot improve data on their own. Until the reconciliation step exists, their value is
-  a reviewed queue, and that is deliberate.
+- Reports cannot improve data on their own. Only a reviewed reconciliation application turns them
+  into evidence, and until Issue #124 is resolved that evidence is not published.
 - Schema-1 reports are unattested; only local/test deployments accept them. A required deployment
   stores only reports whose App Attest assertion verified. Even then, `verified` means "a genuine
   instance of the app on a genuine device signed these bytes", not that the claim is true:
@@ -255,3 +259,58 @@ only `queued` and `discarded`.
   `REPORT_APP_ATTEST_ENVIRONMENT` and `REPORT_APP_ATTEST_BUNDLE_VERSIONS` so `required` enforces, verify on a physical device (#35), add the
   edge rate-limit rule, and schedule the retention pass. None of these may be substituted by
   application-level guesses.
+
+## Amendment 2026-09 — community reconciliation (Issue #123)
+
+Implements the missing `queued → evidence` step for **new-spot proposals** (`type = missing`) and
+NATIONWIDE_DATA_STRATEGY §8 ("a new community spot requires corroboration across independent
+evidence plus moderation"). Code: `services/api/src/pipeline/community-reconciliation.ts`,
+`community-adapter.ts`. Migration: `0020_community_reconciliation.sql`. Tests:
+`services/api/test/community-reconciliation.test.ts`.
+
+### Decisions
+
+1. **An application is a reviewer's decision, not a computation.** It names explicit report IDs
+   and the one report whose pin becomes the spot's location. No coordinate is averaged or
+   snapped, and no grouping radius, report count or distance publishes anything automatically.
+   `candidates` groups queued reports only with a radius the reviewer passes on each call; there
+   is no default. Applications are immutable, move `proposed → applied | withdrawn` once, and are
+   never deleted. Evidence links are immutable. A report backs at most one application **ever**,
+   so a withdrawn (superseded) decision cannot quietly reuse its reports.
+2. **Corroboration = at least two reports from distinct submitters.** This is the literal reading
+   of "corroboration across independent evidence", not a tuned threshold. Independence is checked
+   by comparing `submitter_hash` at propose time and again by trigger at apply time. The hash is
+   never copied, returned or printed.
+3. **Every premise is re-checked at apply time, inside the batch.** All reports must still be
+   `accepted` and `queued`, unredacted, and inside their minimization window. They must be at
+   least two, from distinct submitters. The pin must be one of them, and the release must be this
+   application's single-record release. A stale, redacted, discarded or withdrawn premise fails
+   before anything is written, and the same checks run as triggers on the first statement of the
+   apply batch.
+4. **Apply is one D1 batch.** The batch holds the application `→ applied`, every report
+   `→ applied`, and the ordinary resolver's writes (source entity, decision, spot, provenance,
+   release `→ applied`). Either all of it commits or none of it does. A `userReport` release can
+   only become `applied` as the release of an applied application (trigger), so no code path can
+   resolve user-derived evidence around the review. Re-applying returns `alreadyApplied`. The only
+   write outside the batch is the ingest of the sanitized release: raw evidence that is not
+   canonical, is never applied on its own, and is reused byte-identically by a retry.
+5. **What survives the 90-day minimization.** The sanitized release record holds exactly:
+   application ID, claim (`newSpot`), the adopted latitude/longitude, the sorted evidence report IDs
+   and the reconciliation version. It holds no note, `submitter_hash`, `observed_on`, attestation,
+   IP, `User-Agent` or `installId`. Report IDs are part of the non-personal skeleton (§4). The
+   location is the reviewed spot location, not a person's trajectory. It is copied only at apply
+   time, from an unredacted report, so an application that is never applied retains no
+   coordinate. The report's `observed_on` is **not** copied, because it would place a person at a
+   place on a day beyond 90 days. The release's `observed_on` is therefore NULL, and the spot's
+   `lastVerifiedAt` is unknown (ADR-0006).
+6. **The source is reviewed in the repository and blocked.** `mannerpath-community-reports`
+   (`kind = userReport`) is in `REVIEWED_SOURCES` with `publicationStatus: blocked`, no license and
+   no attribution. Neither the API, the terms nor the app grants MannerPath the right to republish
+   a submission, so publication and promotion stay closed until Issue #124 settles that.
+   Resolution and cross-source review work regardless of that status.
+
+### Not implemented
+
+- Existing-spot report types (`exists`, `moved`, `prohibited`, `hoursChanged`, `accessChanged`,
+  `tobaccoTypeChanged`, `other`) as attenuation or hold candidates. They stay `queued`.
+- Any rights, license, attribution or promotion support for community evidence (Issue #124).

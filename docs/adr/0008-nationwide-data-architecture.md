@@ -584,3 +584,7 @@ bootstrap of a fresh database.
 agreeing merge's audit when a later release changes a value (the publication block is re-evaluated live, the
 audit list is not), relinking or multi-entity spots, removal and relocation of merge survivors, merging
 across more than the current releases of the carried sources, an operator CLI, and OSM.
+
+## Amendment 2026-09 — additive `userReport` source (Issue #123)
+
+The community reconciliation source is **additive**: each applied release is one reviewed application, and no release is `current` or supersedes another (migration 0020, trigger `community_release_never_current`). The cross-release matcher (decision 3) and removal-by-absence (decision 5) therefore never apply to it. For cross-source recall (decision 4), migration 0020 redefines `cross_source_spot_sources` so that an applied release of a `userReport` source counts where other kinds need the current release. Everything else in that definition is unchanged, and no source kind gains precedence. Details: the ADR-0006 and ADR-0007 community amendments.

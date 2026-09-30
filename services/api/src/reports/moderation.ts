@@ -22,9 +22,10 @@ export const DECISION_REASONS = [
 export type DecisionReason = (typeof DECISION_REASONS)[number];
 
 /**
- * The reconciliation transitions that exist today. `applied` is absent on purpose: this slice has
- * no reconciliation implementation, so nothing here may claim that a report was applied. The
- * database enforces the same table (migration 0003).
+ * The reconciliation transitions this module can make. `applied` is absent on purpose: it is reached
+ * only by applyCommunityApplication (src/pipeline/community-reconciliation.ts), in the same batch that
+ * writes the evidence, and the database refuses it for a report without an applied application
+ * (migrations 0003, 0020).
  */
 export const RECONCILIATION_TRANSITIONS: Readonly<Record<ReconciliationState, readonly ReconciliationState[]>> = {
   notQueued: ["queued", "discarded"],
@@ -82,9 +83,9 @@ export async function recordModerationDecision(
 }
 
 /**
- * Moves an accepted report through the reconciliation states that exist today: queueing it for
- * review or discarding it. `applied` cannot be reached from here, because nothing applies reports
- * yet. The database rejects the same moves, plus any transition from a report that is not accepted.
+ * Moves an accepted report through the reconciliation states a moderator sets: queueing it for
+ * review or discarding it. `applied` cannot be reached from here; only the reconciliation apply
+ * reaches it. The database rejects the same moves, plus any transition from a report that is not accepted.
  */
 export async function setReconciliationState(
   db: Db,

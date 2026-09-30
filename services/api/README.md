@@ -6,7 +6,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 
 ## Contents
 
-- `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables. `0008` adds the immutable, derived `source_observations` layer the resolver reads (ADR-0008 decision 2). `0019` adds the cross-source review and merge tables and their promotion attestations (ADR-0008, Issue #107).
+- `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables. `0008` adds the immutable, derived `source_observations` layer the resolver reads (ADR-0008 decision 2). `0019` adds the cross-source review and merge tables and their promotion attestations (ADR-0008, Issue #107). `0020` adds community report reconciliation: immutable applications, their report links and the apply guards (ADR-0007 amendment, Issue #123).
 - `src/pipeline/`: source-agnostic ingest (raw evidence) and first-release reconciliation behind the `SourceAdapter` boundary (`source-adapter.ts`, `adapters.ts`, ADR-0008); Taito is the first adapter (`taito-adapter.ts`, field rules in `taito.ts`); the reviewed source registry is `registry.ts`.
 - `src/refresh/`: scheduled source checks — fetch, sha256 fingerprint, content-addressed R2 retention, drift probes and review candidates (`0017`, ADR-0008 source refresh amendment). Check-only: nothing here ingests, resolves or publishes.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
@@ -65,15 +65,24 @@ Only sources listed in `REVIEWED_SOURCES` can be registered or approved by this 
 
 `POST /v1/reports` stores an immutable proposal with moderation state `pending`. It never writes
 canonical or published tables, and an accepted report becomes evidence only through a separate
-reconciliation step that does not exist yet.
+reconciliation step. For new-spot (`missing`) reports that step is community reconciliation
+(`src/pipeline/community-reconciliation.ts`, Issue #123). A reviewer applies an explicit
+application of at least two accepted, queued reports from distinct submitters at one report's pin.
+The apply writes a sanitized single-record release of the reviewed, currently **blocked**
+`mannerpath-community-reports` source and resolves it in the same batch that marks the application
+and the reports `applied`. Other report types stay `queued`.
 
 Moderation and retention run locally; there is no authenticated admin HTTP surface.
 
 ```sh
 npm run local:reports                                         # pending queue (never shows the submitter key)
 npm run local:reports -- decide rp_... accepted reviewer-1 confirmed   # reason code, never free text
-npm run local:reports -- queue rp_... queued                  # accepted reports only; 'applied' is unreachable
+npm run local:reports -- queue rp_... queued                  # accepted reports only; 'applied' only via apply
 npm run local:reports -- retain                               # minimize reports past 90 days, purge rate counters
+npm run local:reports -- candidates 50                        # group queued missing reports within an explicit radius (m)
+npm run local:reports -- propose reviewer-1 rp_A rp_A rp_B    # decidedBy, adopted-pin report, evidence reports
+npm run local:reports -- apply ca_...                         # sanitized userReport release -> resolve, one batch
+npm run local:reports -- withdraw ca_...                      # terminal; its reports can back nothing else
 ```
 
 App Attest (ADR-0007 §6, Issue #37) lives in `src/attest/`: a minimal CBOR and DER/X.509 reader,
