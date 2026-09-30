@@ -35,6 +35,7 @@ export function buildReport(manifest, state, reviews = []) {
       resourceUrls: scan?.resourceUrls || [], fetches: scan?.fetches || [],
       liveFetches: scan?.liveFetches || scan?.fetches || [],
       priorResearchReferences: references(target.priorResearch),
+      passes: scan?.passes || {}, previousBlockerCodes: scan?.previousBlockerCodes || [],
     };
   });
   const resources = Object.entries(state.resources).map(([url, resource]) => ({
@@ -53,6 +54,10 @@ export function buildReport(manifest, state, reviews = []) {
     scanTimestamp: resource.scanTimestamp || null, status: resource.status,
     blockerCodes: resource.blockerCodes || [], truncated: resource.truncated || false,
     priorResearchReferences: references(resource.priorResearch),
+    placeKeywordRowCount: resource.placeKeywordRowCount ?? null, encoding: resource.encoding || null,
+    sheets: resource.sheets || [], matchingSheets: resource.matchingSheets || [], coordinateColumns: resource.coordinateColumns || [],
+    archiveMembers: resource.archiveMembers || [], duplicateOf: resource.duplicateOf || null,
+    discoveredBy: resource.discoveredBy || null, passes: resource.passes || [], history: resource.history || [],
   }));
   const prefectures = manifest.prefectures.map(prefecture => {
     const groups = targets.filter(target => target.prefecture === prefecture);
@@ -90,14 +95,39 @@ export function buildReport(manifest, state, reviews = []) {
       coveredCapitals: targets.filter(t => t.roles.includes('prefecturalCapital') && t.coverage === 'covered').length,
       coveredOrdinanceCities: targets.filter(t => t.roles.includes('ordinanceDesignatedCity') && t.coverage === 'covered').length,
       coveredTokyoWards: targets.filter(t => t.roles.includes('tokyoWard') && t.coverage === 'covered').length,
-    }, prefectures, targets, resources, reviews,
+    }, passSummary: passSummary(targets, resources), prefectures, targets, resources, reviews,
   };
+}
+
+/** Per-pass counters (e.g. v2 spreadsheet coverage); a hit is a triage signal, not a source. */
+function passSummary(targets, resources) {
+  const names = [...new Set(targets.flatMap(t => Object.keys(t.passes)))];
+  return Object.fromEntries(names.map(name => {
+    const own = resources.filter(r => r.passes.includes(name));
+    const workbooks = own.filter(r => ['xls', 'xlsx'].includes(r.format));
+    return [name, {
+      targetsCompleted: targets.filter(t => t.passes[name]).length, resourcesInspected: own.length,
+      xlsResources: own.filter(r => r.format === 'xls').length, xlsxResources: own.filter(r => r.format === 'xlsx').length,
+      workbooksParsed: workbooks.filter(r => r.rawRowCount != null).length,
+      sheetsInspected: workbooks.reduce((n, r) => n + r.sheets.length, 0),
+      spreadsheetRowsInspected: workbooks.reduce((n, r) => n + (r.rawRowCount || 0), 0),
+      rowsInspected: own.reduce((n, r) => n + (r.rawRowCount || 0), 0),
+      keywordHitResources: own.filter(r => r.matchingRowCount > 0).length,
+      placeKeywordHitResources: own.filter(r => r.placeKeywordRowCount > 0).length,
+      coordinateCandidates: own.filter(r => r.matchingRowCount > 0 && ['all', 'partial'].includes(r.coordinateAvailability)).length,
+      labelDiscoveredResources: own.filter(r => r.discoveredBy === 'linkLabel').length,
+      archiveMemberResources: own.filter(r => r.archiveMembers.length).length,
+      duplicateHashResources: own.filter(r => r.duplicateOf).length,
+      oversizedResources: own.filter(r => r.blockerCodes.includes('payloadTooLarge')).length,
+    }];
+  }));
 }
 
 export function markdownReport(report) {
   const rows = (headers, data) => [headers.join(' | '), headers.map(() => '---').join(' | '), ...data.map(row => row.map(value => String(value ?? '').replaceAll('|', '\\|')).join(' | ').trimEnd())].join('\n');
   const lines = ['# Nationwide discovery run', '', report.scanScope, '', report.coverageScope, '',
-    rows(['Metric', 'Count'], Object.entries(report.summary)), '', '## Prefectures', '',
+    rows(['Metric', 'Count'], Object.entries(report.summary)), '',
+    ...Object.entries(report.passSummary || {}).flatMap(([name, summary]) => [`## Pass ${name}`, '', rows(['Metric', 'Count'], Object.entries(summary)), '']), '## Prefectures', '',
     rows(['Prefecture', 'Coverage', 'Scanned / tracked groups', 'Reviewed source IDs'], report.prefectures.map(p => [p.prefecture, p.coverage, `${p.scannedGroups} / ${p.trackedGroups}`, p.reviewedSourceIds.join(', ')]))];
   for (const [role, label] of [['prefecturalCapital', 'Prefectural capitals'], ['ordinanceDesignatedCity', 'Ordinance cities'], ['tokyoWard', 'Tokyo wards'], ['operator', 'Operators']]) {
     lines.push('', `## ${label}`, '', rows(['Target', 'Coverage', 'Discovery', 'Truncated', 'Blocker codes'], report.targets.filter(t => role === 'operator' ? t.kind === role : t.roles.includes(role)).map(t => [t.jurisdiction, t.coverage, t.discoveryStatus, t.truncated, t.blockerCodes.join(', ')])));
