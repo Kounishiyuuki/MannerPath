@@ -97,6 +97,20 @@
           "hostPointOnly"
         ],
         "followupAttemptedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "noSmokingEvidence",
+          "hostPointOnly"
+        ],
+        "resolvedBlockers": [
+          "timeout on exact facility CSV"
+        ],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -2022,6 +2036,19 @@
           "currentOperationUnknown"
         ],
         "followupAttemptedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "pending",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "accessBlocked",
+          "coordinatesMissing",
+          "currentOperationUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -2500,7 +2527,18 @@
         "coordinatesMissing",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "pref-aichi",
@@ -2580,7 +2618,19 @@
       "seedStatus": "blocked",
       "blockerCodes": [
         "noSmokingEvidence"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "exactTermsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "pref-mie",
@@ -3260,7 +3310,19 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "exactTermsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "pref-yamaguchi",
@@ -4272,6 +4334,18 @@
           "reuseForbidden"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -4327,6 +4401,19 @@
           "licenseUnknown"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "reuseForbidden",
+          "exactTermsUnknown",
+          "currentOperationUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -4511,6 +4598,18 @@
           "licenseUnknown"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "exactTermsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -4638,6 +4737,19 @@
           "licenseUnknown"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "exactTermsUnknown",
+          "currentOperationUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -4779,6 +4891,18 @@
           "noSmokingEvidence"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "exactTermsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -4792,7 +4916,9 @@
       ],
       "urls": [
         "https://www.city.meguro.tokyo.jp/",
-        "https://www.city.meguro.tokyo.jp/kankyouhozen/kurashi/kankyou/tabako.html"
+        "https://www.city.meguro.tokyo.jp/kankyouhozen/kurashi/kankyou/tabako.html",
+        "https://www.city.meguro.tokyo.jp/kurashi/kankyou/kankyoubika/kitsuentaisaku/index.html",
+        "https://www.city.meguro.tokyo.jp/kankyouhozen/kurashi/kankyou/rojyokitsuentaisaku5.html"
       ],
       "homepageUrl": "https://www.city.meguro.tokyo.jp/",
       "catalogs": [],
@@ -4813,7 +4939,19 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "ward-ota",
@@ -4847,7 +4985,19 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "ward-setagaya",
@@ -4945,7 +5095,19 @@
         "coordinatesMissing",
         "hostPointOnly",
         "licenseUnknown"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "ward-nakano",
@@ -4990,6 +5152,18 @@
           "licenseUnknown"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -5055,7 +5229,21 @@
         "accessBlocked",
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "accessBlocked",
+          "rawUnavailable",
+          "coordinatesMissing",
+          "exactTermsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "ward-toshima",
@@ -5178,7 +5366,19 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
+      }
     },
     {
       "id": "ward-itabashi",
@@ -5223,6 +5423,18 @@
           "licenseUnknown"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "exactTermsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -5328,6 +5540,18 @@
           "redistributionBlocked"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "completed",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {
@@ -6669,6 +6893,20 @@
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.102911Z",
         "categoryVersionNote": "Attached2018 specification: F019 Policebox,F024 Smoking Area,F029 Post;2017 codes are not interchangeable. Actual Shinjuku features unknown."
+      },
+      "highValueReview": {
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+        "attemptCompleted": true,
+        "reviewStatus": "pending",
+        "verdict": "blocked",
+        "blockerCodes": [
+          "rawUnavailable",
+          "exactTermsUnknown",
+          "currentOperationUnknown",
+          "coordinateSemanticsUnknown"
+        ],
+        "resolvedBlockers": [],
+        "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
       }
     },
     {

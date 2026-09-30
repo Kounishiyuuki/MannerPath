@@ -1,0 +1,2489 @@
+[
+  {
+    "targetId": "ward-chuo",
+    "jurisdiction": "中央区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Exact publisher map/script/raw and rights rechecked. SHA unchanged: 771 CSV rows, 79 smoking-title rows = 76 exact13007003000 +3 parent13007000000, correcting #135. All79 supplied lat/lng valid. Scoped open-data terms and35-row catalog do not cover map_data.csv; ordinary website forbids unauthorized redistribution/adaptation. Current79-heading inventory has72 exact normalized heading matches,9 restriction/suspension notices and7 nonexact names, including relocation of old GS parking site. No row selected for publication.",
+    "blockerCodes": [
+      "reuseForbidden",
+      "exactTermsUnknown",
+      "currentOperationUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "f578abc79b2813f3cc95dfd38d316692e90b1a7b09eacf63d729b1c8039ce7b2",
+        "etag": "W/\"37af-657d1a6794654\"",
+        "lastModified": "Thu, 30 Jul 2026 10:36:53 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:24:48.339Z",
+        "byteLength": 14255,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/shisetsu/map/sonota/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "2bf4bc4c4eb623a74018b18412071f33e21e70818caf453c7819e8c0b0af13fb",
+        "etag": "W/\"4eaa-5f322dff69a3b\"",
+        "lastModified": "Thu, 26 Jan 2023 04:06:35 GMT",
+        "contentType": "application/javascript",
+        "fetchedAt": "2026-09-30T16:24:49.391Z",
+        "byteLength": 20138,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/shared/system/js/maps/prev_csv_gmap2.js"
+      },
+      {
+        "status": 200,
+        "sha256": "fa01ff6cd368dc32da68eca0148ca43ee31e8c823e5e8d0a692afc35d5edcbfe",
+        "etag": "W/\"2b6b4-65ca0df5db39e\"",
+        "lastModified": "Tue, 29 Sep 2026 15:31:12 GMT",
+        "contentType": "text/csv",
+        "fetchedAt": "2026-09-30T16:24:50.474Z",
+        "byteLength": 177844,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/shisetsu/chizu/csv/map_data.csv"
+      },
+      {
+        "status": 200,
+        "sha256": "a3bd5a0b51d916a1db196c06b9ac5214ca24c2bd452fa53195a92b945bda2a47",
+        "etag": "W/\"62b7-65ca9de25b591\"",
+        "lastModified": "Wed, 30 Sep 2026 02:15:06 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:24:51.539Z",
+        "byteLength": 25271,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/kusei/gaiyou/toukeidate/opendata.html"
+      },
+      {
+        "status": 200,
+        "sha256": "dd8a75fc39a5220fc0c65aca886284113b3caa8d8993d2137181e20cdf96bef3",
+        "etag": "W/\"1bee-65ca9de24b3c1\"",
+        "lastModified": "Wed, 30 Sep 2026 02:15:06 GMT",
+        "contentType": "text/csv",
+        "fetchedAt": "2026-09-30T16:24:52.588Z",
+        "byteLength": 7150,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/documents/984/open_data_list.csv"
+      },
+      {
+        "status": 200,
+        "sha256": "21e488605406cb74f656c36bce074b0631d957c4deaa3a7f310301e9b8c2045f",
+        "etag": "W/\"28316-5ead2cb385dd9\"",
+        "lastModified": "Wed, 12 Oct 2022 09:12:37 GMT",
+        "contentType": "application/pdf",
+        "fetchedAt": "2026-09-30T16:24:53.678Z",
+        "byteLength": 164630,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/documents/984/02termsofuse.pdf"
+      },
+      {
+        "status": 200,
+        "sha256": "84a2dd309de8aeb7696ffe9a7977c9ec56b27fd8a9cf666ae7763fcf5a4cc62c",
+        "etag": "W/\"5def-657dcdf76f399\"",
+        "lastModified": "Fri, 31 Jul 2026 00:00:13 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:24:54.708Z",
+        "byteLength": 24047,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html"
+      },
+      {
+        "status": 200,
+        "sha256": "2a530d391cf003b668c4c0c1780a625c3e0346f0fc28070dc33a1b2c38cdb196",
+        "etag": "W/\"2dcd-657d1a9a6b06c\"",
+        "lastModified": "Thu, 30 Jul 2026 10:37:46 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:24:55.760Z",
+        "byteLength": 11725,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/a0030/shisetsu/genre/sonota/sonota00092.html"
+      },
+      {
+        "status": 200,
+        "sha256": "4c99d8f4a2c3bdb847610fdbb447ce2cb76200e37e0affefa9c75a232e37f9f1",
+        "etag": "W/\"aa5b-65ca0df37b513\"",
+        "lastModified": "Tue, 29 Sep 2026 15:31:09 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:24:56.790Z",
+        "byteLength": 43611,
+        "cacheHit": false,
+        "url": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "Publisher map CSV,79 smoking-title rows",
+      "rawURL": "https://www.city.chuo.lg.jp/shisetsu/chizu/csv/map_data.csv",
+      "exactApplicableLicense": "No applicable open-data permission established; ordinary restriction",
+      "licenseApplicability": "Open-data terms scope only listed open-data page; exact map CSV absent in35-row catalog",
+      "redistributionAllowed": "Not permitted without permission under ordinary site policy",
+      "derivationAllowed": "Not permitted without permission under ordinary site policy",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "Supplied lat/lng for79 smoking-title rows; global bounds valid",
+      "coordinateSemantics": "Publisher map marker of smoking-labeled facility; positional/entrance accuracy undeclared",
+      "geometry": "CSV decimal coordinate pairs",
+      "crs": "Unstated; no CRS claim",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "Current79 headings;72 exact normalized-name matches,9 restriction keywords,7 nonexact names. Matching alone grants no confirmation/publication.",
+      "exactSmokingCategory": "76 exact13007003000 指定喫煙場所 +3 smoking-title rows at parent13007000000",
+      "publisherOwner": "中央区",
+      "geographicScope": "中央区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions.",
+    "rawAnalysis": {
+      "rawRows": 771,
+      "smokingTitleRows": 79,
+      "exactSmokingCategoryRows": 76,
+      "parentCategorySmokingTitleRows": 3,
+      "validCoordinatePairs": 79,
+      "rawSha256": "fa01ff6cd368dc32da68eca0148ca43ee31e8c823e5e8d0a692afc35d5edcbfe",
+      "parentCategoryPageIds": [
+        "17528",
+        "17549",
+        "18638"
+      ],
+      "currentHeadingCount": 79,
+      "exactHeadingMatchCount": 72,
+      "restrictionKeywordCount": 9,
+      "unmatchedCount": 7,
+      "currentChecks": [
+        {
+          "pageId": "13238",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13239",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13240",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13241",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13242",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13243",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13244",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13245",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13246",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13247",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13248",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13249",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13250",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13251",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13252",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13253",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13254",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13255",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13256",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13257",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13258",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13259",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13260",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13261",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13262",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13263",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13264",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13265",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13266",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13267",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13268",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13269",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13270",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13271",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13272",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13273",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13274",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "13275",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13276",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13277",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13278",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13279",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13280",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13281",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13282",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "13283",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "15460",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15461",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15462",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15463",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15464",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": [
+            "休止"
+          ]
+        },
+        {
+          "pageId": "15465",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15466",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15467",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15468",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15469",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15470",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15472",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15851",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15852",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15960",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "15984",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16349",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16430",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16555",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16669",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16720",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16900",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "16983",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "17320",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "17528",
+          "category": "13007000000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "17549",
+          "category": "13007000000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "17765",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "18198",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "18432",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 0,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "18491",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "18638",
+          "category": "13007000000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "18700",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        },
+        {
+          "pageId": "18802",
+          "category": "13007003000",
+          "currentHeadingExactMatch": 1,
+          "conflictKeywords": []
+        }
+      ],
+      "matchingRule": "Strip raw designated-place prefix and heading numbering; NFKC + whitespace removal; exact equality only. Restriction keyword scan is review triage,not a closure classifier or selection policy."
+    }
+  },
+  {
+    "targetId": "national-mlit-indoor",
+    "jurisdiction": "国土交通省 屋内地理空間情報",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "pending",
+    "deepReviewed": false,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Both official R2 standard and integrated resource pages inspected: registered login required; no anonymous ZIP download exposed. No browser execution tool is available in this session; no credential/session extraction or account creation attempted. Exact public terms and attached2018 specification read; schema F019=Policebox,F024=Smoking Area,F029=Post,JGD2011. Actual Point inventory/counts,archive-specific rights and current individual operation UNKNOWN. No mirror/recovered archive approval.",
+    "blockerCodes": [
+      "rawUnavailable",
+      "exactTermsUnknown",
+      "currentOperationUnknown",
+      "coordinateSemanticsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "5bd64c6df8c97a87bfa7cbfa3c8e5a101ab4cda749486b739ef223b1f572e197",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:24:57.155Z",
+        "byteLength": 177120,
+        "cacheHit": false,
+        "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+      },
+      {
+        "status": 200,
+        "sha256": "9b8feff1d5fe0354ae7e8d1cacfeaac1f02db6ed797a8c0fcd3467be5f6c2085",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:24:58.104Z",
+        "byteLength": 23132,
+        "cacheHit": false,
+        "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2/resource/f78d039e-7bb6-4b6a-9f5f-2b5a39e309d6"
+      },
+      {
+        "status": 200,
+        "sha256": "520542099fd159f318ec05f812dadd499d18efcc8ef64a80baeb6001bd206523",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:24:59.248Z",
+        "byteLength": 23134,
+        "cacheHit": false,
+        "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2/resource/33e78a35-c16a-4746-b451-47c6122ed51b"
+      },
+      {
+        "status": 200,
+        "sha256": "37105bbb2fa867eab50230f87c8a0e37a2c0cd74ef4dea5da15de3e8b165a4e3",
+        "etag": "\"8f815c89ffff17c560ac432524c72cbc\"",
+        "lastModified": "Wed, 30 Sep 2026 11:17:25 GMT",
+        "contentType": "application/octet-stream",
+        "fetchedAt": "2026-09-30T16:25:00.870Z",
+        "byteLength": 176387,
+        "cacheHit": false,
+        "url": "https://www.geospatial.jp/ckan/dataset/ecabe2e2-21a9-4a72-8dee-0b34e2c34fb6/resource/e3b28fde-5546-4c9d-956b-69363d707835/download/.pdf?preview=1"
+      },
+      {
+        "status": 200,
+        "sha256": "0741cfd6de43df0e9a313f3de7d72af93faccc7461eaac0bca190169c3cecc80",
+        "etag": "\"c2539a721afb378b0f3b8daf44c883bb\"",
+        "lastModified": "Wed, 30 Sep 2026 11:17:22 GMT",
+        "contentType": "application/pdf",
+        "fetchedAt": "2026-09-30T16:25:01.942Z",
+        "byteLength": 714043,
+        "cacheHit": false,
+        "url": "https://www.geospatial.jp/ckan/dataset/ecabe2e2-21a9-4a72-8dee-0b34e2c34fb6/resource/0c52874d-0954-4d69-b822-78cc6f5ec6c0/download/303.pdf?preview=1"
+      },
+      {
+        "status": 200,
+        "sha256": "5ec0f1605838eca561f4588909456df502f8e844108ab10d7cbeb29596040bbe",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:28:56.119Z",
+        "byteLength": 25856,
+        "cacheHit": false,
+        "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2/resource/e3b28fde-5546-4c9d-956b-69363d707835"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json"
+    ],
+    "approvalGate": {
+      "exactDataset": "MLIT Shinjuku R2 standard and integrated SHP resources",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "Dataset-scoped GST2.0-compatible terms and CC BY4.0 route read; exact archive/feature applicability unknown",
+      "licenseApplicability": "Scoped dataset terms subject to third-party rights/excluded-content notices; raw notices unread",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "Attached2018 schema JGD2011; actual archive PRJ unknown",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "Attached2018 schema F024 Smoking Area,F019 Policebox,F029 Post. Actual feature values/counts unknown",
+      "publisherOwner": "国土交通省 屋内地理空間情報",
+      "geographicScope": "国土交通省 屋内地理空間情報",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions.",
+    "rawAnalysis": {
+      "standardPointCount": null,
+      "integratedPointCount": null,
+      "F019FeatureCount": null,
+      "F024FeatureCount": null,
+      "actualCategoryInventory": null,
+      "officialArchiveAcquired": false
+    }
+  },
+  {
+    "targetId": "city-hiroshima",
+    "jurisdiction": "広島市",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual official six-booth inventory/body and links inspected; address descriptions,diagram/photo images only,no numeric smoking Point/raw. Reusable exact-coordinate resource not established; no park coordinate substitution. Current municipal listing is positive operation evidence,not geometry/license permission.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "exactTermsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "5dbebaef06aeb3452a47ba957dc2c79e999813575048573eb06f4ab2fa8ab24f",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 15:09:30 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:02.105Z",
+        "byteLength": 46530,
+        "cacheHit": false,
+        "url": "https://www.city.hiroshima.lg.jp/living/gomi-kankyo/1021281/1037470/1024206.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-30-n2-west-central-municipal-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "広島市",
+      "geographicScope": "広島市",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "city-nagoya",
+    "jurisdiction": "名古屋市",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Current official three-site list and exact copyright policy inspected. Followed official Nagoya Frontier delegation to current BODIK catalog. Bounded official BODIK smoking query returns5 packages;none Nagoya/Hiroshima and no eligible new smoking Point among this scoped inventory. Photos/relative station descriptions not coordinates. No adoption based on ordinary All-rights-reserved footer.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "exactTermsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "5aadd46591c256db8a138501f9b77614fad7e142e6cd7576501d2f71d2c46218",
+        "etag": "\"afac-65cb4a67bcf3b\"",
+        "lastModified": "Wed, 30 Sep 2026 15:06:57 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:02.266Z",
+        "byteLength": 44972,
+        "cacheHit": false,
+        "url": "https://www.city.nagoya.jp/bousai/anzen/1034530/1014489/1014490/1014491.html"
+      },
+      {
+        "status": 200,
+        "sha256": "660b1aea5d0f231304c1be4c5a82910433496e335186f11681817e1c53ba9169",
+        "etag": "\"a2ed-65cb4e8469821\"",
+        "lastModified": "Wed, 30 Sep 2026 15:25:21 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:56.367Z",
+        "byteLength": 41709,
+        "cacheHit": false,
+        "url": "https://www.city.nagoya.jp/about/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "d0f419fcef4bdc999c21821e9979b1126d17ccacd226bcfe6e11a7e43915eb93",
+        "etag": "\"c421-65cb4e84bc06d\"",
+        "lastModified": "Wed, 30 Sep 2026 15:25:21 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:57.396Z",
+        "byteLength": 50209,
+        "cacheHit": false,
+        "url": "https://www.city.nagoya.jp/about/1017985.html"
+      },
+      {
+        "status": 200,
+        "sha256": "59ac50343028062ee335f16057378268b6dbcd77f2d0f37e56e91cd5fa96d236",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:31:18.315Z",
+        "byteLength": 11904,
+        "cacheHit": false,
+        "url": "https://www.nagoya-frontier.city.nagoya.jp/info/3417/"
+      },
+      {
+        "status": 200,
+        "sha256": "dce7ace118a75de4b30e7b87a7f67747484eefb7ec2ad5097438aa09fa8fd296",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:32:31.994Z",
+        "byteLength": 44278,
+        "cacheHit": false,
+        "url": "https://odcs.bodik.jp/231002/"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-30-n2-west-central-municipal-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "名古屋市",
+      "geographicScope": "名古屋市",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "city-shizuoka",
+    "jurisdiction": "静岡市",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual official three-place inventory plus exact BODIK resource/terms/raw inspected. 2026_01opendata.csv has12 physical CSV records:three named site sections,dated usage counts throughR8.1.29,no coordinate/header geometry. Current official links are Google maps and excluded. No addresses geocoded; CC-declared survey cannot become Point source.",
+    "blockerCodes": [
+      "coordinatesMissing"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "065a22e0069bb53940dfac017097ef0ac49197261737b32040bd1c3bb9a942a0",
+        "etag": "\"4696-658f9a9258e85\"",
+        "lastModified": "Fri, 14 Aug 2026 03:46:08 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:02.500Z",
+        "byteLength": 18203,
+        "cacheHit": false,
+        "url": "https://www.city.shizuoka.lg.jp/s9623/s000042.html"
+      },
+      {
+        "status": 200,
+        "sha256": "d38ce17578e81ce5246eeeef3f996d91911a484d0d0adb849aa3e9f3328a128f",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:25:02.813Z",
+        "byteLength": 19421,
+        "cacheHit": false,
+        "url": "https://data.bodik.jp/dataset/221007_1590018309"
+      },
+      {
+        "status": 200,
+        "sha256": "2961c091bd4c8479e1ca989d03acad58e3b96c402ebb498e6e6518a1f03a1001",
+        "etag": "\"4f07-657bace9f2b5f\"",
+        "lastModified": "Wed, 29 Jul 2026 07:21:42 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:57.554Z",
+        "byteLength": 20364,
+        "cacheHit": false,
+        "url": "https://www.city.shizuoka.lg.jp/s009072.html"
+      },
+      {
+        "status": 200,
+        "sha256": "921f39246264259ec26c33830655449f1ae33db297c804b0aaa2d16f6de30ccd",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:28:58.032Z",
+        "byteLength": 36516,
+        "cacheHit": false,
+        "url": "https://odcs.bodik.jp/221007/tos/"
+      },
+      {
+        "status": 200,
+        "sha256": "4223ed7c8fda83d71870d9820276855433fcff610628b6d9ef4246994943dd27",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:29:01.754Z",
+        "byteLength": 27370,
+        "cacheHit": false,
+        "url": "https://data.bodik.jp/dataset/221007_1590018309/resource/80a923d4-948c-4bf5-bcc9-aab5995b2095"
+      },
+      {
+        "status": 200,
+        "sha256": "8b6435766dfc7a9fb90969755a760624603f0060ba2fa6f4b1a63c1033d5546e",
+        "etag": "\"1788934593.419574-2014-1137448405\"",
+        "lastModified": "Wed, 09 Sep 2026 06:16:33 GMT",
+        "contentType": "text/csv",
+        "fetchedAt": "2026-09-30T16:31:18.479Z",
+        "byteLength": 2014,
+        "cacheHit": false,
+        "url": "https://data.bodik.jp/dataset/c3926f21-1f87-45c0-9887-9208fb885fd5/resource/80a923d4-948c-4bf5-bcc9-aab5995b2095/download/2026_01opendata.csv"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-30-n2-west-central-municipal-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "静岡市",
+      "geographicScope": "静岡市",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions.",
+    "rawAnalysis": {
+      "physicalCsvRecords": 12,
+      "namedSiteSections": 3,
+      "coordinateColumns": 0,
+      "scope": "Usage-count time series; no site Point geometry"
+    }
+  },
+  {
+    "targetId": "pref-hokkaido",
+    "jurisdiction": "北海道",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Exact official4.64MiB facility CSV obtained once with30s timeout,retries0 and cached SHA. CP93235578 records,10 fields,zero smoking/ashtray/smoking strings. Source explicitly host positions assembled from older national/municipal facilities with closure/incompleteness warning. Raw timeout resolved; no eligible smoking source. Separate targeted HARP keyword search timed out once; jurisdiction-wide coverage remains incomplete.",
+    "blockerCodes": [
+      "noSmokingEvidence",
+      "hostPointOnly"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "a4763f6a119ff7eb70cd7ad57a1f674f9480811fd01556acffbc955f9e91ad44",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 15:47:03 GMT",
+        "contentType": "text/html; charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:25:03.032Z",
+        "byteLength": 19827,
+        "cacheHit": false,
+        "url": "https://www.harp.lg.jp/opendata/dataset/227.html"
+      },
+      {
+        "status": 200,
+        "sha256": "f341183ec01e2317ee14b707921a1e13a698fc80e9234e77233c166c713c7e05",
+        "etag": null,
+        "lastModified": "Fri, 05 Jul 2019 17:15:33 GMT",
+        "contentType": "text/comma-separated-values",
+        "fetchedAt": "2026-09-30T16:25:25.466Z",
+        "byteLength": 4860326,
+        "cacheHit": false,
+        "url": "https://www.harp.lg.jp/opendata/dataset/227/url_resource/41/Hokkaido_OD_GeoDataBase2018.csv"
+      },
+      {
+        "status": 200,
+        "sha256": "f8ed6755d73ebd7147265cff4aac2cd0cef94ed2b203e31a46fec43b8896c118",
+        "etag": null,
+        "lastModified": "Thu, 17 Jun 2021 13:37:02 GMT",
+        "contentType": "text/html; charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:28:58.184Z",
+        "byteLength": 11686,
+        "cacheHit": false,
+        "url": "https://www.harp.lg.jp/opendata/terms.html"
+      },
+      {
+        "status": null,
+        "blockerCodes": [
+          "rawUnavailable"
+        ],
+        "error": "This operation was aborted",
+        "byteLength": null,
+        "url": "https://www.harp.lg.jp/opendata/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "北海道",
+      "geographicScope": "北海道",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": true,
+    "resolvedBlockers": [
+      "timeout on exact facility CSV"
+    ],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions.",
+    "rawAnalysis": {
+      "encoding": "CP932",
+      "bytes": 4860326,
+      "rows": 35578,
+      "fieldCount": 10,
+      "smokingKeywordRows": 0,
+      "sha256": "f341183ec01e2317ee14b707921a1e13a698fc80e9234e77233c166c713c7e05",
+      "keywords": [
+        "喫煙",
+        "灰皿",
+        "smoking"
+      ],
+      "coordinateSemantics": "Host/building facility positions,not smoking Points"
+    }
+  },
+  {
+    "targetId": "pref-yamanashi",
+    "jurisdiction": "山梨県",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "pending",
+    "deepReviewed": false,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "One ordinary GET of /chosya/ returned403; prefectural host stopped. Legitimate separate Yamanshi data-platform catalog HTML and documented CKAN API succeeded,smoking query count0. No eligible raw found there. Existing rooftop/Kofu leads remain unverified; no bypass/mirror used.",
+    "blockerCodes": [
+      "accessBlocked",
+      "coordinatesMissing",
+      "currentOperationUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 403,
+        "blockerCodes": [
+          "accessBlocked"
+        ],
+        "byteLength": null,
+        "url": "https://www.pref.yamanashi.jp/chosya/"
+      },
+      {
+        "status": 200,
+        "sha256": "43c1215287b1a592b8cb9e477b072de58368c3ccb5d292856fd148ec7cf1e22d",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:25:26.075Z",
+        "byteLength": 11049,
+        "cacheHit": false,
+        "url": "https://catalog.dataplatform-yamanashi.jp/ja/dataset?q=%E5%96%AB%E7%85%99"
+      },
+      {
+        "status": 200,
+        "sha256": "53400391d72aace92e09c04e90001f3e11e75bb7c05c87b08fee47822e662655",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "application/json;charset=utf-8",
+        "fetchedAt": "2026-09-30T16:29:32.016Z",
+        "byteLength": 233,
+        "cacheHit": false,
+        "url": "https://catalog.dataplatform-yamanashi.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99&rows=100"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "山梨県",
+      "geographicScope": "山梨県",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-adachi",
+    "jurisdiction": "足立区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual current station inventory,17 named facility KML links,GIS guide/site policy and newly linked open-data entrance inspected. No smoking layer among those category labels. Ordinary website restricts unauthorized reuse; existing reviewed personal/commercial GIS restrictions retained. No unrelated facility KML redownload or host-coordinate substitution.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "68c23bd1c7f31fcef0ac55e36755009cb2051db51ba62fe850c2003a524b4dcb",
+        "etag": "W/\"58e6-64c3d4b8e8338\"",
+        "lastModified": "Thu, 05 Mar 2026 02:00:04 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:26.179Z",
+        "byteLength": 22758,
+        "cacheHit": false,
+        "url": "https://www.city.adachi.tokyo.jp/chiiki/kituenjo-seibi.html"
+      },
+      {
+        "status": 200,
+        "sha256": "78f1076b8f417fdc280ee8980bcb01cd9836ddcb0320a6e471eca293ad551279",
+        "etag": "W/\"5eb3-65c31016b573b\"",
+        "lastModified": "Thu, 24 Sep 2026 02:03:27 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:27.255Z",
+        "byteLength": 24243,
+        "cacheHit": false,
+        "url": "https://www.city.adachi.tokyo.jp/shisetsu/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "3758e4b666f40da6f619b2b47ded63ae92ce61eecb7a9bd11f9f9e2b26361c02",
+        "etag": "W/\"4835-643c004077e94\"",
+        "lastModified": "Mon, 17 Nov 2025 01:10:40 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:28.290Z",
+        "byteLength": 18485,
+        "cacheHit": false,
+        "url": "https://www.city.adachi.tokyo.jp/josys/20141027.html"
+      },
+      {
+        "status": 200,
+        "sha256": "2f45660bc5b334fffcc66a51dd8d748c0e6075fa0227a4e4d99d35197185aa51",
+        "etag": "W/\"583c-657cf75ad3e21\"",
+        "lastModified": "Thu, 30 Jul 2026 08:00:04 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:29.320Z",
+        "byteLength": 22588,
+        "cacheHit": false,
+        "url": "https://www.city.adachi.tokyo.jp/hodo/kangae/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "e8defcf7da05682f1910d7713924f0d60ba6726f8c2ae6452cf75d6f15cd30bc",
+        "etag": "W/\"5252-62d341738ba6e\"",
+        "lastModified": "Mon, 03 Feb 2025 03:00:11 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:58.326Z",
+        "byteLength": 21074,
+        "cacheHit": false,
+        "url": "https://www.city.adachi.tokyo.jp/ku/koho/opendata/index.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "足立区",
+      "geographicScope": "足立区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-arakawa",
+    "jurisdiction": "荒川区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Current specific nine-site inventory and linked original copyright page inspected. Geographic links are Google/short links,not publisher smoking Point export. September air-conditioning notice remains operation uncertainty for affected space; no reopening inferred from planned date. Ordinary copyright prohibits unauthorized reuse. ZENRIN map exclusion retained,not redownloaded.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "852fc349152be0166fab2e97ad8c45b7b17da8be446bc647c5d15f4156a89235",
+        "etag": "W/\"6071-65caf1e8bba21\"",
+        "lastModified": "Wed, 30 Sep 2026 08:31:01 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:29.480Z",
+        "byteLength": 24689,
+        "cacheHit": false,
+        "url": "https://www.city.arakawa.tokyo.jp/a024/kankyou/kankyoubika/shiteikitsuenbasyo.html"
+      },
+      {
+        "status": 200,
+        "sha256": "1080e74d96ee35ef64b9d345c13a567fa5dbbb097256d75bcb3c722f82219013",
+        "etag": "W/\"4635-6460668c54100\"",
+        "lastModified": "Tue, 16 Dec 2025 00:00:01 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:58.422Z",
+        "byteLength": 17973,
+        "cacheHit": false,
+        "url": "https://www.city.arakawa.tokyo.jp/aboutwebsite/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "11b8ea1b5eaa3552f3f6d959799619469dea98da3dc84a6c4e50c1ddc4a6e75c",
+        "etag": "W/\"44ab-64e6fce06c90a\"",
+        "lastModified": "Thu, 02 Apr 2026 01:06:05 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:31:17.692Z",
+        "byteLength": 17579,
+        "cacheHit": false,
+        "url": "https://www.city.arakawa.tokyo.jp/a004/aboutwebsite/tyosakuken.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "荒川区",
+      "geographicScope": "荒川区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-bunkyo",
+    "jurisdiction": "文京区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual designated/assisted smoking tables,general facility-map index and linked site policy inspected. Google geographic links explicitly excluded. Prior script audit reused: no exposed smoking export. No source-specific rights established for these tables; ordinary existence insufficient.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "exactTermsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "6b00c8ec40f0aebdeee42c97f28f7be40bb98476182e1da801cf99a1d79033e7",
+        "etag": "W/\"502e-6578eec176bd1\"",
+        "lastModified": "Mon, 27 Jul 2026 03:00:18 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:29.753Z",
+        "byteLength": 20526,
+        "cacheHit": false,
+        "url": "https://www.city.bunkyo.lg.jp/b003/p006762.html"
+      },
+      {
+        "status": 200,
+        "sha256": "591d4385879a3f1c1f47c95f721d17322982082885f28cd760a73f7224cd8ef7",
+        "etag": "W/\"4f4b-654cd94df6810\"",
+        "lastModified": "Mon, 22 Jun 2026 01:30:02 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:30.804Z",
+        "byteLength": 20299,
+        "cacheHit": false,
+        "url": "https://www.city.bunkyo.lg.jp/b037/p005122.html"
+      },
+      {
+        "status": 200,
+        "sha256": "0ad0ed84671b914b5d39b5f09e26d39453c352802191d37e78aaf2e1be857fd9",
+        "etag": "W/\"3ea7-646c39370ccc2\"",
+        "lastModified": "Thu, 25 Dec 2025 09:41:06 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:31.861Z",
+        "byteLength": 16039,
+        "cacheHit": false,
+        "url": "https://www.city.bunkyo.lg.jp/kuseijouhou/shisetsu/ichiran/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "96c8ba35c776c54b020c8b36868634f9ac1975b6b1b242ac4d48dd8ef7cc046f",
+        "etag": "W/\"5073-65b1b2f67bb03\"",
+        "lastModified": "Thu, 10 Sep 2026 06:36:17 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:58.541Z",
+        "byteLength": 20595,
+        "cacheHit": false,
+        "url": "https://www.city.bunkyo.lg.jp/b003/p006007/index.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "文京区",
+      "geographicScope": "文京区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-chiyoda",
+    "jurisdiction": "千代田区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual free/assisted-indoor smoking inventories,full catalog and smoking-map page inspected. Map-image secondary use is explicitly excluded even where general website reuse terms exist. Suspension/mobile site notices retained; no fixed smoking coordinates inferred.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "aadc7ae6ae52f0b1ac997ec0e862be7dbbddbe387f1ff50b8167d5628477a0cd",
+        "etag": "W/\"8675-65c2cc5dd840b\"",
+        "lastModified": "Wed, 23 Sep 2026 21:00:28 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:32.023Z",
+        "byteLength": 34421,
+        "cacheHit": false,
+        "url": "https://www.city.chiyoda.lg.jp/koho/machizukuri/sekatsu/jore/muryokitsuenjo.html"
+      },
+      {
+        "status": 200,
+        "sha256": "54ee923345b0d851625415bb95efe303a208cead766300e9e4694436064c7fe7",
+        "etag": "W/\"63b8-65c2cc5e10294\"",
+        "lastModified": "Wed, 23 Sep 2026 21:00:28 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:33.093Z",
+        "byteLength": 25528,
+        "cacheHit": false,
+        "url": "https://www.city.chiyoda.lg.jp/koho/machizukuri/sekatsu/jore/okunaikitsuenjo.html"
+      },
+      {
+        "status": 200,
+        "sha256": "a05411281219eeec25d92c095e1e3d179545cd3dbb62e0f6af81c3263b77ab9b",
+        "etag": "W/\"4bf1-657da5d7a4488\"",
+        "lastModified": "Thu, 30 Jul 2026 21:00:43 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:34.163Z",
+        "byteLength": 19441,
+        "cacheHit": false,
+        "url": "https://www.city.chiyoda.lg.jp/koho/kuse/shisaku/johosesaku/opendata-catalog.html"
+      },
+      {
+        "status": 200,
+        "sha256": "17380b79e5871379714ecc9c0e0738c88f01627f26054594cd7d09a618954134",
+        "etag": "W/\"4d7d-65c2cc5ecc267\"",
+        "lastModified": "Wed, 23 Sep 2026 21:00:29 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:35.236Z",
+        "byteLength": 19837,
+        "cacheHit": false,
+        "url": "https://www.city.chiyoda.lg.jp/koho/machizukuri/sekatsu/jore/kitsuenjo.html"
+      },
+      {
+        "status": 200,
+        "sha256": "51bd8af9b2def087f1cca24d61b897e71c6f1924c28f0193a529be9a28f88e30",
+        "etag": "W/\"5ae9-65a674e833ab0\"",
+        "lastModified": "Tue, 01 Sep 2026 08:00:05 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:58.661Z",
+        "byteLength": 23273,
+        "cacheHit": false,
+        "url": "https://www.city.chiyoda.lg.jp/koho/kuse/homepage/sitepolicy.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "千代田区",
+      "geographicScope": "千代田区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-itabashi",
+    "jurisdiction": "板橋区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual two-site public smoking inventory,facility GIS guide/scoped CSV category index and website policy inspected. Exact licensed mixed-facility raw23-row exclusion from #135 reused; current category list adds no smoking export. Guide personal-use restriction does not grant redistribution. Smoking address/diagram cannot borrow host Point.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "exactTermsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "fdd95b018868d59f6043bc9852b28ef6835264ed61c63fa8fd0b679f5f11fe25",
+        "etag": "W/\"4c5b-65cb4ac6612f4\"",
+        "lastModified": "Wed, 30 Sep 2026 15:08:36 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:35.422Z",
+        "byteLength": 19547,
+        "cacheHit": false,
+        "url": "https://www.city.itabashi.tokyo.jp/bousai/kougai/bika/kitsuen/1019824.html"
+      },
+      {
+        "status": 200,
+        "sha256": "7ef5d270371d3d736b2988c9f8dc14edbfb0da2725289eaa20127af5cf13d3ec",
+        "etag": "W/\"419d-65cb4b2741c7a\"",
+        "lastModified": "Wed, 30 Sep 2026 15:10:18 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:36.527Z",
+        "byteLength": 16797,
+        "cacheHit": false,
+        "url": "https://www.city.itabashi.tokyo.jp/kusei/joho/sisetsu/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "dad6120b215b3745a07c03d7504ac5ed8b722fd82769856a68c4c9b0853a1741",
+        "etag": "W/\"8c77-65cb4b274f353\"",
+        "lastModified": "Wed, 30 Sep 2026 15:10:18 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:37.589Z",
+        "byteLength": 35959,
+        "cacheHit": false,
+        "url": "https://www.city.itabashi.tokyo.jp/kusei/joho/sisetsu/1010234.html"
+      },
+      {
+        "status": 200,
+        "sha256": "25690db54c8ff31c86448eace40355759f2427464579089b906b66a5588e4366",
+        "etag": "W/\"a2d8-65cb4b27539a3\"",
+        "lastModified": "Wed, 30 Sep 2026 15:10:18 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:38.660Z",
+        "byteLength": 41688,
+        "cacheHit": false,
+        "url": "https://www.city.itabashi.tokyo.jp/kusei/joho/sisetsu/1031246.html"
+      },
+      {
+        "status": 200,
+        "sha256": "e6026a505259782d26565ec74f2dc9cea65efc86f753c6df9d9e75c9b8bbbd0b",
+        "etag": "W/\"4e3a-65cb4affc2ac0\"",
+        "lastModified": "Wed, 30 Sep 2026 15:09:36 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:58.855Z",
+        "byteLength": 20026,
+        "cacheHit": false,
+        "url": "https://www.city.itabashi.tokyo.jp/kusei/kouhou/about/index.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "板橋区",
+      "geographicScope": "板橋区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-meguro",
+    "jurisdiction": "目黒区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Old URL now a publisher relocation notice; followed exact replacement index then new designated-smoking list. Current19 named rows include newOctober1 opening-time qualifier; Google MyMaps and CLUBJT external references excluded. Original site policy restricts unauthorized reproduction. No smoking raw coordinate link. Manifest gains exact new current-list route; no map-content extraction.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "ab65382339e195192132529b50e61579b706d7826c2980994ba0401e5c45e70f",
+        "etag": "W/\"3d40-65932f42a5126\"",
+        "lastModified": "Mon, 17 Aug 2026 00:07:19 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:38.871Z",
+        "byteLength": 15680,
+        "cacheHit": false,
+        "url": "https://www.city.meguro.tokyo.jp/kankyouhozen/kurashi/kankyou/tabako.html"
+      },
+      {
+        "status": 200,
+        "sha256": "12c61015c1601e0b1f2717190919d93b4521d82bb74abbb16c0ac2973f390bda",
+        "etag": "W/\"4c73-659538f90173c\"",
+        "lastModified": "Tue, 18 Aug 2026 15:01:26 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:28:59.000Z",
+        "byteLength": 19571,
+        "cacheHit": false,
+        "url": "https://www.city.meguro.tokyo.jp/kurashi/kankyou/kankyoubika/kitsuentaisaku/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "21089b7b21983d57f20ab7b0b1876e9e66923e68ec47dd41baaf9de6f9eb7516",
+        "etag": "W/\"4d9f-658ad5aee567f\"",
+        "lastModified": "Mon, 10 Aug 2026 08:43:58 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:29:00.091Z",
+        "byteLength": 19871,
+        "cacheHit": false,
+        "url": "https://www.city.meguro.tokyo.jp/kusei/kouhou/aboutthissite/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "048d9e21cbe5a7c1422adc8ee3c5ad2d6661636536f78c553d2204a825e30cad",
+        "etag": "W/\"6504-65bbb9c902db0\"",
+        "lastModified": "Fri, 18 Sep 2026 06:00:03 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:31:17.465Z",
+        "byteLength": 25860,
+        "cacheHit": false,
+        "url": "https://www.city.meguro.tokyo.jp/kankyouhozen/kurashi/kankyou/rojyokitsuentaisaku5.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "目黒区",
+      "geographicScope": "目黒区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-nakano",
+    "jurisdiction": "中野区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual smoking inventory,renovation opening announcement and exact linked site policy inspected. October1 ordinance mentioned; locations remain image/PDF. Policy requires permission for secondary use. Current container existence does not resolve exact smoking geometry/right.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "9f500878a051082425195daa97d463e3d5135389ceb3dd6e7e3bc3386b4e3ad9",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 15:00:43 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:39.213Z",
+        "byteLength": 18625,
+        "cacheHit": false,
+        "url": "https://www.city.tokyo-nakano.lg.jp/machizukuri/douro/kitsuenjyo.html"
+      },
+      {
+        "status": 200,
+        "sha256": "37a275bb524a28e463be945b71f204dc0edcbbdd2c46dd3b13f5ea6bb6d57843",
+        "etag": null,
+        "lastModified": "Tue, 29 Sep 2026 17:00:28 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:40.257Z",
+        "byteLength": 14118,
+        "cacheHit": false,
+        "url": "https://www.city.tokyo-nakano.lg.jp/kurashi/kankyo/kitsuenjo_kaisyu.html"
+      },
+      {
+        "status": 200,
+        "sha256": "defddd5a911ba46e291ebf98a4cfa8f11cf1940a5040156db1c877b7c1384afb",
+        "etag": null,
+        "lastModified": "Tue, 29 Sep 2026 17:30:00 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:41.319Z",
+        "byteLength": 17997,
+        "cacheHit": false,
+        "url": "https://www.city.tokyo-nakano.lg.jp/about/policy.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "中野区",
+      "geographicScope": "中野区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-ota",
+    "jurisdiction": "大田区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual public-smoking table inspected:11 sites with hours/addresses and images; no numeric smoking export. Followed original website policy then scoped open-data entrance and complete current table:zero smoking/ashtray resource labels. Policy excludes unauthorized secondary use except explicitly open data. Facility/station Points not substituted.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "61f28447328d5c04fc8b25052360b6b380812de435d7e4792c3339d86054ece4",
+        "etag": null,
+        "lastModified": "Mon, 14 Sep 2026 00:35:00 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:41.498Z",
+        "byteLength": 21148,
+        "cacheHit": false,
+        "url": "https://www.city.ota.tokyo.jp/seikatsu/sumaimachinami/kankyou/bika/kitsuenjoseibi.html"
+      },
+      {
+        "status": 200,
+        "sha256": "882a43e3d6ded86671f2591215cf955e9219eb1fc8c865469e9072fdbffb74be",
+        "etag": null,
+        "lastModified": "Thu, 23 Jul 2026 00:38:00 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:29:00.320Z",
+        "byteLength": 22197,
+        "cacheHit": false,
+        "url": "https://www.city.ota.tokyo.jp/aboutweb/policy.html"
+      },
+      {
+        "status": 200,
+        "sha256": "e71e0ef42f15a729348924cb1652135fb88e11c5079c38ddc78fc767764c14bb",
+        "etag": null,
+        "lastModified": "Thu, 24 Sep 2026 05:35:00 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:31:17.993Z",
+        "byteLength": 10067,
+        "cacheHit": false,
+        "url": "https://www.city.ota.tokyo.jp/kuseijoho/opendata/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "940007473edfac551c905e98bfcc2d9238687be2e91d9f557353d5a0b729a5a6",
+        "etag": null,
+        "lastModified": "Thu, 24 Sep 2026 05:35:00 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:32:31.379Z",
+        "byteLength": 102644,
+        "cacheHit": false,
+        "url": "https://www.city.ota.tokyo.jp/kuseijoho/opendata/open-data.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "大田区",
+      "geographicScope": "大田区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-shibuya",
+    "jurisdiction": "渋谷区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Current categorized municipal/assisted/building/other smoking inventory,original open-data entrance and site policy inspected. Public ArcGIS organization pagination100+72=172 items;smoking item is enforcement statistics,no new smoking geometry. Catalog group first100/122 page not claimed exhaustive this run; prior full122-item review retained. Ordinary reproduction forbidden; unrelated facility527-row exclusion reused,no redownload.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "reuseForbidden"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "e79cb4a817bb0e96789c4fb1a47e408734e4a02de866ada7eddfbd2c4f68eea5",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html;charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:25:42.014Z",
+        "byteLength": 87115,
+        "cacheHit": false,
+        "url": "https://www.city.shibuya.tokyo.jp/kankyo/machi-seiso/kitsuen/smokingplace.html"
+      },
+      {
+        "status": 200,
+        "sha256": "1c9bafcd9162040669a1485381f93ead64c51d0bc9bf23f5608066eaec423861",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html;charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:25:43.536Z",
+        "byteLength": 74229,
+        "cacheHit": false,
+        "url": "https://www.city.shibuya.tokyo.jp/kusei/tokei_shibuya/kusei/open-data.html"
+      },
+      {
+        "status": 200,
+        "sha256": "c8c3e217b14466e6b59c346aaed96ba3d384ea2119099492177a7d4582128130",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "application/json;charset=utf-8",
+        "fetchedAt": "2026-09-30T16:25:44.497Z",
+        "byteLength": 201102,
+        "cacheHit": false,
+        "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=orgid%3AUtdeFTavkHfI94t2&num=100"
+      },
+      {
+        "status": 200,
+        "sha256": "6ac43db1a5a54013d44282489689d6caead713e8a7f4e1b764a4a62198ab4e4f",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "application/json;charset=utf-8",
+        "fetchedAt": "2026-09-30T16:25:45.907Z",
+        "byteLength": 200473,
+        "cacheHit": false,
+        "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=group%3A7af50d2b0ca547f698edf7370ff2337d&num=100"
+      },
+      {
+        "status": 200,
+        "sha256": "1e3eb2db5b4f78d98d69168efdba90bdf674983afe3a8a996b028d334a94d641",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html;charset=UTF-8",
+        "fetchedAt": "2026-09-30T16:29:00.806Z",
+        "byteLength": 86623,
+        "cacheHit": false,
+        "url": "https://www.city.shibuya.tokyo.jp/guide/website/list/site_policy.html"
+      },
+      {
+        "status": 200,
+        "sha256": "34249ffb287655b9c4230299dd33995abb11b1440c89e987e6ae9e2b0d65b9f7",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "application/json;charset=utf-8",
+        "fetchedAt": "2026-09-30T16:29:32.410Z",
+        "byteLength": 117695,
+        "cacheHit": false,
+        "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=orgid%3AUtdeFTavkHfI94t2&num=100&start=101"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "渋谷区",
+      "geographicScope": "渋谷区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-shinagawa",
+    "jurisdiction": "品川区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual smoking inventory,official GIS delegation and current OpenData download/category list inspected. No smoking category; previous exact mixed36+351 rows/no smoking retained as historical evidence,not falsely fresh raw. PDF/CLUBJT maps and GIS viewport centers excluded. Exact eligible smoking coordinate license unestablished.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "exactTermsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "bf7ac72748e5bfbc7bff8dbfeaa57b539e2c205b7363e7efd101a4330a4da6fb",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:46.070Z",
+        "byteLength": 70430,
+        "cacheHit": false,
+        "url": "https://www.city.shinagawa.tokyo.jp/PC/kankyo/kankyo-kankyo/hpg000011438.html"
+      },
+      {
+        "status": 200,
+        "sha256": "431ea2b73f6b64411367a90f6a287fadc682c2138817d5a1022e16d330a0e600",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:47.101Z",
+        "byteLength": 56086,
+        "cacheHit": false,
+        "url": "https://www.city.shinagawa.tokyo.jp/PC/shisetsu/shisetsu-map/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "49c49494a9fb892f22a8d0b10360de272aa1b80732d3de3462dd2a8be6f70270",
+        "etag": null,
+        "lastModified": null,
+        "contentType": "text/html; charset=utf-8",
+        "fetchedAt": "2026-09-30T16:25:48.619Z",
+        "byteLength": 53465,
+        "cacheHit": false,
+        "url": "https://www2.wagmap.jp/shinagawa/OpenData/"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "品川区",
+      "geographicScope": "品川区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-suginami",
+    "jurisdiction": "杉並区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual official smoking list andApril2026GIS-renewal notice inspected. Exactly linked new geocloud returned403;host stopped. Tokyo catalog HTML403 likewise stopped;oldWAGMAP resource404. No export/payload acquired;prior prohibition-only catalog resource retained,not smoking geometry. Alternate original site-policy index inspected without bypass.",
+    "blockerCodes": [
+      "accessBlocked",
+      "rawUnavailable",
+      "coordinatesMissing",
+      "exactTermsUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "a79f21a4835cb0d02a94c85180ca02a89b721247f4a6dfe0c530c30c07518fef",
+        "etag": "W/\"4711-65835490445fe\"",
+        "lastModified": "Tue, 04 Aug 2026 09:29:01 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:48.763Z",
+        "byteLength": 18193,
+        "cacheHit": false,
+        "url": "https://www.city.suginami.tokyo.jp/s102/688.html"
+      },
+      {
+        "status": 403,
+        "blockerCodes": [
+          "accessBlocked"
+        ],
+        "byteLength": null,
+        "url": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131156d0000000038"
+      },
+      {
+        "status": 404,
+        "blockerCodes": [
+          "rawUnavailable"
+        ],
+        "byteLength": null,
+        "url": "https://www2.wagmap.jp/suginami/OpenDataDetail?lid=205&mids=35"
+      },
+      {
+        "status": 200,
+        "sha256": "35ab973aed7c1479eb0f733153dcdc439e700285e58a97e96ae1195fd3034a28",
+        "etag": "W/\"3719-65835534a4594\"",
+        "lastModified": "Tue, 04 Aug 2026 09:31:54 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:49.825Z",
+        "byteLength": 14105,
+        "cacheHit": false,
+        "url": "https://www.city.suginami.tokyo.jp/s097/news/24721.html"
+      },
+      {
+        "status": 403,
+        "blockerCodes": [
+          "accessBlocked"
+        ],
+        "byteLength": null,
+        "url": "https://suginami.geocloud.jp/"
+      },
+      {
+        "status": 200,
+        "sha256": "7a9dd59b81e81dd209075294229b7e91122aec611b6d537e5c70139b5418ee7b",
+        "etag": "W/\"37f4-6583546985c15\"",
+        "lastModified": "Tue, 04 Aug 2026 09:28:21 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:29:01.154Z",
+        "byteLength": 14324,
+        "cacheHit": false,
+        "url": "https://www.city.suginami.tokyo.jp/kusei/kouhou/kouhou/about/index.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "杉並区",
+      "geographicScope": "杉並区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  },
+  {
+    "targetId": "ward-sumida",
+    "jurisdiction": "墨田区",
+    "reviewer": "Codex",
+    "reviewedAt": "2026-09-30T16:41:23.755693+00:00",
+    "verdict": "blocked",
+    "attemptCompleted": true,
+    "reviewStatus": "completed",
+    "deepReviewed": true,
+    "scope": "Bounded exact previous candidate and exposed publisher routes; not nationwide/jurisdiction-wide absence",
+    "reason": "Actual designated-site inventory,closure notice,map index,scoped open-data entrance and newly followed full open-data list inspected. Private-site trial period/old closure are not current permission; no smoking export on inspected list. Other catalog licenses not transferred to ordinary HTML. Current smoking names exist but raw/site-level operation chain incomplete.",
+    "blockerCodes": [
+      "coordinatesMissing",
+      "exactTermsUnknown",
+      "currentOperationUnknown"
+    ],
+    "evidence": [
+      {
+        "status": 200,
+        "sha256": "2694c4905d27ab38397d7c48b10ede2f97dce4a6b8794d60216de11bccf0d8f7",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 01:01:55 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:50.284Z",
+        "byteLength": 57733,
+        "cacheHit": false,
+        "url": "https://www.city.sumida.lg.jp/kurashi/volunteer/rojyou_kinnen/suishintiku.html"
+      },
+      {
+        "status": 200,
+        "sha256": "c86d0c0361fe73d06a3779b53310a7be8a051bf444dad983599a6e0bb428503f",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 15:03:13 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:51.390Z",
+        "byteLength": 58067,
+        "cacheHit": false,
+        "url": "https://www.city.sumida.lg.jp/kuseijoho/sumida_info/opendata/index.html"
+      },
+      {
+        "status": 200,
+        "sha256": "d6d1e1509a606e60a47b60bfae4b4c4bdacc2a7c9e1c3f4852ebf4ee1ef556f4",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 01:02:20 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:52.498Z",
+        "byteLength": 57037,
+        "cacheHit": false,
+        "url": "https://www.city.sumida.lg.jp/kuseijoho/sumida_info/various_maps.html"
+      },
+      {
+        "status": 200,
+        "sha256": "a0650c94b3edaf0d80aa8395ac583c8d8a0c844ee68de3803126401f5553b86b",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 01:01:55 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:25:53.601Z",
+        "byteLength": 54147,
+        "cacheHit": false,
+        "url": "https://www.city.sumida.lg.jp/kurashi/volunteer/rojyou_kinnen/hikihunekituenjo.html"
+      },
+      {
+        "status": 200,
+        "sha256": "52a6e6584cefb151781eefc469a0085c62e59e05a13cb7ce4bc748db5b3e88da",
+        "etag": null,
+        "lastModified": "Wed, 30 Sep 2026 15:03:14 GMT",
+        "contentType": "text/html",
+        "fetchedAt": "2026-09-30T16:29:01.344Z",
+        "byteLength": 49326,
+        "cacheHit": false,
+        "url": "https://www.city.sumida.lg.jp/kuseijoho/sumida_info/opendata/opendata_ichiran/index.html"
+      }
+    ],
+    "priorResearchReferences": [
+      "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+      "docs/research/2026-09-29-tokyo-n1-source-survey.md"
+    ],
+    "approvalGate": {
+      "exactDataset": "unknown for an eligible smoking Point release; no approval",
+      "rawURL": "unknown for an eligible smoking Point release; no approval",
+      "exactApplicableLicense": "unknown for an eligible smoking Point release; no approval",
+      "licenseApplicability": "unknown for an eligible smoking Point release; no approval",
+      "redistributionAllowed": "unknown for an eligible smoking Point release; no approval",
+      "derivationAllowed": "unknown for an eligible smoking Point release; no approval",
+      "attribution": "unknown for an eligible smoking Point release; no approval",
+      "shareAlike": "unknown for an eligible smoking Point release; no approval",
+      "publisherCoordinates": "unknown for an eligible smoking Point release; no approval",
+      "coordinateSemantics": "unknown for an eligible smoking Point release; no approval",
+      "geometry": "unknown for an eligible smoking Point release; no approval",
+      "crs": "unknown for an eligible smoking Point release; no approval",
+      "completeness": "unknown for an eligible smoking Point release; no approval",
+      "observationDateSemantics": "No observation date adopted; fetch/HTTP/page dates are not smoking observations",
+      "updateCadence": "unknown for an eligible smoking Point release; no approval",
+      "currentOperationEvidence": "unknown for an eligible smoking Point release; no approval",
+      "exactSmokingCategory": "unknown for an eligible smoking Point release; no approval",
+      "publisherOwner": "墨田区",
+      "geographicScope": "墨田区",
+      "exactExclusions": [
+        "general host Points",
+        "third-party map coordinates",
+        "polygon centroids",
+        "geocoding",
+        "PDF/image coordinate estimation"
+      ]
+    },
+    "blockerResolved": false,
+    "resolvedBlockers": [],
+    "resumeWhen": "A publisher-supplied smoking Point raw with exact applicable reusable rights and current site-level operation evidence; retain all exclusions."
+  }
+]

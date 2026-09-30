@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {buildHighValueQueue} from './high-value.mjs';
+const target = (id,evidence,extra={}) => ({id,name:id,publisher:id,prefecture:null,seedStatus:'blocked',blockerCodes:['licenseUnknown'],priorResearch:[{reference:'prior.md',evidence}],...extra});
+test('high-value selection rejects host-only/keyword negatives and implemented duplicates',()=>{
+ const items=buildHighValueQueue({targets:[target('host','facility smoking amenities; host Point only'),target('negative','No smoking dataset found'),target('positive','Direct official list; coordinates unknown'),target('done','Direct official list',{seedStatus:'implemented'})]},[]);
+ assert.deepEqual(items.map(i=>i.target),['positive']);
+ assert.equal(items[0].smokingEvidenceCount,null);
+ assert.equal(items[0].status,'queued');
+ assert.equal(items[0].blockerResolved,false);
+});
+test('committed queue distinguishes processed attempts, pending reviews and resolved access from approval',async()=>{
+ const read = async path => JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
+ const manifest=await read('./manifest.json');
+ const prior=await read('../../../docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json');
+ const queue=await read('../../../docs/research/nationwide-discovery/2026-10-01-high-value-blockers.json');
+ const reviews=await read('../../../docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json');
+ assert.deepEqual(queue.items.map(i=>i.target),buildHighValueQueue(manifest,prior).map(i=>i.target));
+ assert.equal(new Set(reviews.map(r=>r.targetId)).size,queue.items.length);
+ assert.ok(queue.items.length>=15);
+ assert.equal(queue.processed,queue.items.filter(i=>i.processingStatus==='attemptCompleted').length);
+ assert.equal(queue.pendingReviews,reviews.filter(r=>r.reviewStatus==='pending').length);
+ assert.equal(queue.blockerResolvedGroups,queue.items.filter(i=>i.blockerResolved).length);
+ assert.ok(queue.items.every(i=>i.status==='blocked' && i.reviewReference.endsWith('high-value-reviews.json')));
+ assert.ok(reviews.every(r=>r.evidence.length && r.approvalGate.licenseApplicability));
+ const chuo=reviews.find(r=>r.targetId==='ward-chuo').rawAnalysis;
+ assert.equal(chuo.smokingTitleRows,chuo.exactSmokingCategoryRows+chuo.parentCategorySmokingTitleRows);
+ assert.equal(chuo.exactSmokingCategoryRows,76);
+ assert.equal(chuo.parentCategorySmokingTitleRows,3);
+ assert.equal(chuo.currentChecks.length,chuo.smokingTitleRows);
+ assert.equal(manifest.targets.find(t=>t.id==='pref-yamaguchi').catalogs[0].url,'https://yamaguchi-opendata.jp/ckan/api/3/action/package_search');
+});
+test('mandatory access follow-ups preserve unknown eligibility and version-sensitive MLIT counts',()=>{
+ const items=buildHighValueQueue({targets:[target('national-mlit-indoor',''),target('pref-hokkaido',''),target('ward-chuo','')]},[]);
+ assert.equal(items.find(i=>i.target==='ward-chuo').priority,'P0');
+ assert.match(items.find(i=>i.target==='ward-chuo').evidenceCountSemantics,/Historical 79 smoking-title candidate rows/);
+ assert.equal(items.find(i=>i.target==='national-mlit-indoor').smokingEvidenceCount,null);
+ assert.equal(items.find(i=>i.target==='pref-hokkaido').priority,'P3');
+ assert.ok(items.every(i=>i.status!=='approved'));
+});
