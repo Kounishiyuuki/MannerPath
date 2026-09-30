@@ -126,9 +126,9 @@ No application, schema, adapter, registry, attribution, source observation, fixt
 | Command/check | Result |
 |---|---|
 | `make contract` | Pass |
-| `make api-validate` | Pass; TypeScript and 549 tests, no fail/skip |
+| `make api-validate` | Pass; TypeScript and 561 tests, no fail/skip |
 | `services/api: npx --no-install tsc -p .` | Pass |
-| Fresh local D1 migrations | 0001–0019 pass, isolated origin and target under `/tmp/mannerpath-mega-validation` |
+| Fresh local D1 migrations | 0001–0020 pass, isolated origin and target under `/tmp/mannerpath-mega-validation-after-rebase` |
 | All existing six reviewed fixtures, combined publication | 2,532 raw records; 515 canonical / 513 published / 81 tiles |
 | Origin quality | 14/14 pass |
 | Cross-source real-corpus regression | 0 candidates; generation idempotent; canonical/provenance/publication unchanged; republish changes0 tiles; promotion bytes unchanged |
@@ -137,4 +137,6 @@ No application, schema, adapter, registry, attribution, source observation, fixt
 | Fresh-target quality / deterministic re-export | 14/14 pass; SQL byte-identical |
 | `git diff --check`, `git diff origin/main --check` | Pass |
 
-Local harness command: `WRANGLER_REGISTRY_PATH=/tmp/mannerpath-mega-validation/registry WRANGLER_LOG_PATH=/tmp/mannerpath-mega-validation/logs node --experimental-strip-types --experimental-sqlite --no-warnings /tmp/mannerpath-mega-validation/run.mjs`. Evidence remains in that temporary directory. Fresh-target canonical count513 deliberately omits the two unpublished Taito origin spots under the existing promotion contract; observations do not travel. No remote D1, production deployment or Apple signing.
+Local harness command: `WRANGLER_REGISTRY_PATH=/tmp/mannerpath-mega-validation-after-rebase/registry WRANGLER_LOG_PATH=/tmp/mannerpath-mega-validation-after-rebase/logs node --experimental-strip-types --experimental-sqlite --no-warnings /tmp/mannerpath-mega-validation-after-rebase/run.mjs`. Evidence remains in that temporary directory. Fresh-target canonical count513 deliberately omits the two unpublished Taito origin spots under the existing promotion contract; observations do not travel. No remote D1, production deployment or Apple signing.
+
+Final rebase base: `0a23732779cc6e37afba5e3b204b8510cd516100` (Claude PR #126 retained). Full validation repeated against this base: 561/561 tests, migrations0001–0020, quality14/14 on origin and fresh target; all corpus/promotion/cross-source results above reproduced. Source review found no actionable findings; all52 raw audit SHA/byte counts independently matched the cached payloads.
