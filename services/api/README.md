@@ -83,6 +83,12 @@ npm run local:reports -- candidates 50                        # group queued mis
 npm run local:reports -- propose reviewer-1 rp_A rp_A rp_B    # decidedBy, adopted-pin report, evidence reports
 npm run local:reports -- apply ca_...                         # sanitized userReport release -> resolve, one batch
 npm run local:reports -- withdraw ca_...                      # terminal; its reports can back nothing else
+npm run local:reports -- summary                              # counts per state: pending -> accepted -> queued -> applied
+npm run local:reports -- effects                              # existing-spot reports: count, submitters, rights, stale, effect
+npm run local:reports -- effect-propose reviewer-1 rp_A rp_B  # one type, one spot; `other` has no effect (Issue #127)
+npm run local:reports -- effect-apply ce_...                  # records the review candidate; changes nothing canonical
+npm run local:reports -- effect-hold ce_...                   # prohibited only; `blocked` until community rights hold (#124)
+npm run local:reports -- effect-lift ce_... reviewer-2        # reviewed lift, then republish
 ```
 
 App Attest (ADR-0007 §6, Issue #37) lives in `src/attest/`: a minimal CBOR and DER/X.509 reader,

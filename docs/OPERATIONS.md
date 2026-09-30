@@ -136,6 +136,12 @@ npm run local:export -- --bundle v3 --out promotion.sql                         
 npm run local:export -- --bundle v3 --release 1 --release 2 --out promotion.sql   # an explicit set
 ```
 
+**The additive community source in v3** (migration 0021, Issue #124). Once `mannerpath-community-reports`
+is approved in the reviewed registry, `--bundle v3` without `--release` also carries every applied community
+release (it has no current one), declared as additive releases; its published spots must rest on a granted
+report terms version, whose row travels with them. The target then needs migrations through 0021. While the
+source is blocked, nothing about the bundle changes.
+
 **Several sources: `promotion-bundle.v3`.** A v2 bundle carries one release, and on a database whose
 tiles also publish another source it is refused ("draw existence evidence from another release") —
 there is no partial promotion. A v3 bundle (`buildMultiSourcePromotionBundle`) carries the current
