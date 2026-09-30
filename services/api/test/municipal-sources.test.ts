@@ -8,6 +8,8 @@ import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { ingestRelease, type ReleaseMetadata } from "../src/pipeline/ingest.ts";
 import { KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, KOTO_FIXTURE_SHA256 } from "../src/pipeline/koto-adapter.ts";
 import { KYOTO_ADAPTER, KYOTO_FIXTURE_RELEASE, KYOTO_FIXTURE_SHA256 } from "../src/pipeline/kyoto-adapter.ts";
+import { MINATO_ADAPTER, MINATO_FIXTURE_RELEASE, MINATO_FIXTURE_SHA256 } from "../src/pipeline/minato-adapter.ts";
+import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_FIXTURE_SHA256 } from "../src/pipeline/musashino-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_FIXTURE_SHA256 } from "../src/pipeline/osaka-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
@@ -22,6 +24,8 @@ import { SqliteD1 } from "./support/sqlite-d1.ts";
 interface Row {
   adapter: SourceAdapter; release: ReleaseMetadata; fixture: string; sha256: string;
   rawRows: number; selected: number; spots: number; published: number; refresh: boolean;
+  /** For sources whose raw row is not header-addressed (Musashino keeps each KML Placemark verbatim). */
+  withCoordinate?: (row: readonly string[], value: string) => string[];
 }
 const fixture = (path: string) => new Uint8Array(readFileSync(new URL(`../../data-pipeline/fixtures/${path}`, import.meta.url)));
 const SOURCES: readonly Row[] = [
@@ -31,6 +35,11 @@ const SOURCES: readonly Row[] = [
     sha256: OSAKA_FIXTURE_SHA256, rawRows: 524, selected: 344, spots: 344, published: 344, refresh: false },
   { adapter: KOTO_ADAPTER, release: KOTO_FIXTURE_RELEASE, fixture: "koto-station-smoking-areas/131083_237_public_smoking_area_station.csv",
     sha256: KOTO_FIXTURE_SHA256, rawRows: 3, selected: 3, spots: 3, published: 3, refresh: false },
+  { adapter: MUSASHINO_ADAPTER, release: MUSASHINO_FIXTURE_RELEASE, fixture: "musashino-public-smoking-areas/doc.kml",
+    sha256: MUSASHINO_FIXTURE_SHA256, rawRows: 25, selected: 3, spots: 3, published: 3, refresh: false,
+    withCoordinate: (row, value) => row.map((v) => v.replace(/<coordinates>[^<]*<\/coordinates>/, `<coordinates>${value}</coordinates>`)) },
+  { adapter: MINATO_ADAPTER, release: MINATO_FIXTURE_RELEASE, fixture: "minato-designated-smoking-areas/minatokushisetsujoho_fukugo.csv",
+    sha256: MINATO_FIXTURE_SHA256, rawRows: 169, selected: 114, spots: 114, published: 114, refresh: false },
   { adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE, fixture: "kyoto-public-smoking-places/20260903_shisetsu.csv",
     sha256: KYOTO_FIXTURE_SHA256, rawRows: 1777, selected: 17, spots: 17, published: 17, refresh: false },
 ];
@@ -54,9 +63,15 @@ for (const s of SOURCES) {
     const location = s.adapter.observe(inScope[0]).provenance.find((p) => p.field === "location")!;
     // Malformed syntax fails in every adapter; range checks are source-specific (see each source's test).
     for (const column of location.columns) {
-      for (const bad of ["35,6", "", "NaN"]) {
-        const invalid = [...inScope[0]];
-        invalid[header.indexOf(column)] = bad;
+      for (const bad of ["abc", "", "NaN"]) {
+        let invalid: string[];
+        if (s.withCoordinate) invalid = s.withCoordinate(inScope[0], bad);
+        else {
+          assert.notEqual(header.indexOf(column), -1, `${id} location column ${column} is in the header`);
+          invalid = [...inScope[0]];
+          invalid[header.indexOf(column)] = bad;
+        }
+        assert.notDeepEqual(invalid, inScope[0]);
         assert.throws(() => s.adapter.observe(invalid), undefined, `${id} ${column}=${bad}`);
       }
     }

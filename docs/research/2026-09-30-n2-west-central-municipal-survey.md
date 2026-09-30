@@ -101,3 +101,25 @@ is smoking-place evidence.
 
 No spot count is claimed for blocked sources, and no coordinates were taken from Google, MapKit,
 OSM or embedded web maps.
+
+## Local validation after rebasing onto #115 and #112 (2026-09-30)
+
+Fresh Wrangler local D1 (migrations 0001–0018), with all six reviewed sources ingested, resolved and
+published:
+
+| Pipeline | Raw | Canonical | Published |
+|---|---|---|---|
+| Taito | 34 | 34 | 32 |
+| Osaka | 524 | 344 | 344 |
+| Koto | 3 | 3 | 3 |
+| Musashino | 25 | 3 | 3 |
+| Minato | 169 | 114 | 114 |
+| Kyoto | 1,777 | 17 | 17 |
+| Combined | 2,532 | 515 | 513 (81 tiles) |
+
+Quality passes 14/14 on the pipeline DB. The promotion-bundle.v3 export verifies (content SHA-256
+`4feee988e676517af9b63ee8affb0abb76aa2108613898674f129ba884b923e9`). Applied to an empty local DB,
+it reproduces sources, releases, raw records, entities, tiles and every exported spot's rows
+exactly. The fresh target also passes quality 14/14 (513 published, 81 tiles). By the existing
+bundle contract, it omits the two unpublished Taito canonical rows. `make api-validate` passes
+529/529. No remote D1 was used.
