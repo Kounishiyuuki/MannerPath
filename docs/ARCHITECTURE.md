@@ -93,7 +93,7 @@ Spot (canonical, resolved)
 An absent `createdAt` or `updatedAt` means the current transport did not supply
 that value. Neither timestamp may be synthesized from fetch or sync time.
 
-`SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue` (post-v1), `unknown` (the source does not state it; migration 0002).
+`SpotType`: `designatedOutdoorArea`, `publicSmokingRoom`, `facilitySmokingRoom`, `ashtray`, `smokingPermittedVenue`, `unknown` (the source does not state it; migration 0002). Refinements `spotSubtype`, `accessDetail` and `hostType`, and the `verification` trust axes, are ADR-0012.
 `ashtray` describes the physical thing; whether it is confirmed is the verification axis.
 
 Unknown must be represented separately from false. Tri-state attributes use `yes | no | unknown`, not optional booleans, in the domain and in the API.

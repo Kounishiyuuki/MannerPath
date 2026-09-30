@@ -514,3 +514,15 @@ test("static boundary: the upgrade module's only canonical write is the guarded 
   assert.deepEqual([...update.matchAll(/([a-z_]+) = /g)].map((m) => m[1]),
     ["evidence_quality", "evidence_quality_version", "community_confirmations", "last_reviewed_on", "updated_at"]);
 });
+
+test("research replay separates rights blockers from data blockers, and relaxes only current-operation age", async () => {
+  const { classifyReview } = await import("../src/quality/coverage-replay.ts");
+  const c = (blockerCodes: string[] | string, kind?: string) => classifyReview({ jurisdiction: "x", verdict: "blocked", blockerCodes, kind });
+  assert.deepEqual([c(["reuseForbidden", "currentOperationUnknown"]).blockedBy, c(["reuseForbidden"]).route], ["rightsOnly", "D-referenceLead"]);
+  assert.deepEqual([c(["hostPointOnly"]).blockedBy, c(["hostPointOnly"]).route], ["dataOnly", "C-communityAcquisition"], "a host facility is never a spot; people on site can report one");
+  assert.deepEqual([c(["coordinatesMissing", "licenseUnknown"]).blockedBy, c(["coordinatesMissing", "licenseUnknown"]).route], ["rightsAndData", "D-referenceLead"]);
+  assert.equal(c(["currentOperationUnknown"]).blockedBy, "relaxedByAdr0012", "an old official listing publishes with its date");
+  assert.equal(c(["rawUnavailable"]).route, "retryAccess");
+  assert.equal(c(["duplicateKnownResearch"], "operator").route, "B-operatorReusable");
+  assert.deepEqual(c("['noSmokingPoint', 'coordinatesMissing']").blockers, ["noSmokingPoint", "coordinatesMissing"], "Python-repr lists parse");
+});

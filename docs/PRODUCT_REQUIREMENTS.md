@@ -4,7 +4,9 @@ Status: **Product completion baseline v2 — nationwide**
 
 ## 1. Product statement
 
-MannerPath helps adult users find a nearby place where smoking is permitted, with emphasis on speed, current usability and reliable navigation. Valid locations include official/designated smoking areas, facility smoking rooms and independently confirmed ashtray locations such as convenience-store exterior ashtrays.
+MannerPath helps adult users find a nearby place where smoking is permitted, with emphasis on speed, current usability and reliable navigation. Valid locations include official/designated smoking areas, public and facility smoking rooms, outdoor ashtrays and smoking points, station/airport/commercial-facility smoking rooms, convenience-store side ashtrays, tobacco-shop smoking spaces, cafés/kissaten/restaurants where smoking is permitted, customer-only and facility-user-only areas, time-limited places and other explicit smoking-permitted spaces.
+
+MannerPath is **coverage-first with explicit confidence** (ADR-0012): it aims to find as many permitted places as possible and to say, for each one, how far it can be trusted — who confirmed it exists, how exact the pin is, how recently it was reviewed and who may use it. False confidence is forbidden; lower-confidence places are not.
 
 The product is positioned as a compliance/navigation utility, not a tobacco-consumption product.
 
@@ -33,9 +35,11 @@ Users can filter by known attributes such as:
 - indoor/outdoor/covered;
 - open now, only when opening-hours data is known;
 - maximum distance / maximum detour;
-- verified recently / confidence threshold.
+- verified recently / confidence threshold;
+- quick scope: すべて (default) / 誰でも使える / 確認済みのみ (excludes single unconfirmed reports).
 
-Unknown values remain unknown and are not silently treated as allowed.
+The default is coverage: every usable listing, lower-confidence ones included, is searchable unless the user narrows
+the scope. Unknown values remain unknown and are not silently treated as allowed.
 
 ## 3. Supported spot types
 
@@ -43,8 +47,11 @@ Unknown values remain unknown and are not silently treated as allowed.
 - `publicSmokingRoom`
 - `facilitySmokingRoom`
 - `ashtray`
-- `smokingPermittedVenue` (post-v1 unless data quality is adequate)
+- `smokingPermittedVenue` — a café, kissaten, restaurant or shop where smoking is permitted, on explicit evidence
 - `unknown` — the source does not state the physical type (for example the Taito ward list); never guessed from a name (ADR-0006, Issue #12 amendment)
+
+Refinements (ADR-0012), never replacements: `spotSubtype` `smokingCorner` (喫煙コーナー) and
+`tobaccoShopSmokingSpace` (たばこ店の喫煙スペース).
 
 Spot type describes the physical location only. Whether it is confirmed is a separate verification/evidence axis (ADR-0006).
 
@@ -52,12 +59,23 @@ Host context is separate from spot type:
 
 - `municipality`
 - `station`
+- `airport`
 - `commercialBuilding`
 - `convenienceStore`
+- `tobaccoShop`
 - `restaurantOrCafe`
 - `other`
 
-A convenience store becomes a result only when the ashtray/smoking permission is confirmed from an approved source or verification workflow. A host never creates a published spot by itself (publication gate, ADR-0006).
+A convenience store becomes a result only when the ashtray/smoking permission is evidenced — by an approved source, or
+by a moderated community report that explicitly states the ashtray (then labelled 「利用者報告・未確認」until
+independently confirmed). A host never creates a published spot by itself (publication gate, ADR-0006/0012).
+
+Access: `public`, `customerOnly` (店舗利用者のみ), `facilityOnly` (施設利用者のみ), `unknown`, with `accessDetail`
+`ticketedUsersOnly` (チケット・入場者のみ). Staff-only or private places are not public search results.
+
+Evidence classes shown to users (ADR-0012): 公式確認済み (`official`), 運営者確認済み (`operator`), 利用者確認済み
+(`communityVerified`), 利用者報告・未確認 (`communityReported`). A pin that is not the publisher's own point says so
+(「位置は住所から推定」「位置は利用者のピン」). Labels are plain and calm: no red warnings for lower-confidence places.
 
 Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Access type includes `unknown`.
 
@@ -78,7 +96,11 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 - submit “exists / missing / changed” reports, after the app shows the report terms and the user
   explicitly agrees to their current version (ADR-0007 amendment 2026-09-30; the terms are a draft
   awaiting legal approval, Issue #124);
-- places backed only by reviewed user reports are labelled as such, never as official listings;
+- places backed only by reviewed user reports are labelled as such, never as official listings; a single report reads
+  「利用者報告・未確認」 and corroborated reports 「利用者確認済み」, on the list row, map pin and detail page;
+- new-spot reports carry a structured claim (kind of place — required, "not sure" allowed — plus optional access,
+  host, indoor/outdoor, tobacco support, shop name and hours note); names and hours notes are reviewer-only and
+  minimized after 90 days;
 - no account required to browse/search.
 
 ### Should
@@ -102,8 +124,8 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 ### Must
 
 - open directly to nearby usable spots;
-- show top 3 results with distance and spot type;
-- show freshness/confidence indicator;
+- show top 3 results with distance and spot type (plus the access condition when it restricts use);
+- show freshness/confidence indicator, and the evidence label for every non-official place;
 - quick filters based on saved iPhone preferences;
 - start navigation/handoff with as few taps as practical;
 - use cached spot snapshot when network/iPhone is unavailable;
@@ -144,7 +166,10 @@ Base score inputs:
 
 Distance must never override an explicit incompatibility.
 
-Ranking and confidence algorithms are versioned (ADR-0006).
+Ranking and confidence algorithms are versioned (ADR-0006). The current rule is `nearby-ranking.v2` (ADR-0012):
+straight-line distance multiplied by named factors — community verified 1.1, single report or unrecognised evidence
+1.3, stale 1.2, customer/facility-only 1.1 — ties by distance, then ID. The combined factor stays under 2×, so an
+official place is never ranked first merely for being official when a usable place is much closer.
 
 ## 7. Offline behavior
 

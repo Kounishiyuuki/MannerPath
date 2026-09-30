@@ -54,6 +54,7 @@ Rules:
 | Completeness | partial, additive: each release is one application, no release supersedes another, and none is current |
 | Reviewed by / date | Issue #123, 2026-09-30 |
 | Publication status | **blocked**. It is resolved into canonical spots and visible to cross-source review once approved, but it is excluded from tiles, spot detail and promotion. Even once approved, a community spot publishes only on reports consented under a `granted` terms version (ADR-0006 amendment 2026-09-30) |
+| Evidence tiers (ADR-0012) | `communityReported` (one moderated, consented report with an explicit known spot type) and `communityVerified` (≥ 2 independent submitters, or an independent `exists` confirmation). Artifact v3 (`community-artifact-csv.v3`) also carries the agreed structured claims (type, subtype, access, host, environment, tobacco); free text never. When Issue #124 is granted this entry needs its license name/URL (the granted terms) and attribution wording, like every published source |
 
 ### 台東区 公衆喫煙所 (Taito City public smoking areas)
 

@@ -379,3 +379,19 @@ and connects existing-spot reports (Issue #127). Code: `services/api/src/reports
 - Approval of the terms text (`docs/legal/REPORT_TERMS_DRAFT.md`) and its `REPORT_TERMS` entry.
 - The community source's license and attribution text in `docs/SOURCES.md` and `COMMUNITY_REGISTRY`.
 - Whether `lastVerifiedAt` of community spots stays unknown (Issue #124 item 3).
+
+## Amendment 2026-10-01 — structured new-spot claims and review months (ADR-0012, Issue #143)
+
+- A `missing` report may carry a `claim` (docs/API.md). Its categorical members — spot type, subtype, access, access
+  detail, host type, environment, tobacco support — describe a place, not a person: they are part of the immutable
+  proposal and survive redaction (the moderation skeleton keeps them so counts and review stay honest). Its free-text
+  members — `hostName`, `hoursNote` — are personal content like `note`: shown to moderators, redacted with the other
+  personal columns at 90 days (a trigger refuses a redaction that leaves them), never copied into evidence, promotion or
+  any published surface.
+- A single consented report may back a `communityReported` application. The report's submitter key is compared at
+  apply time and only a count is kept (`independent_submitters`, `spots.community_confirmations`); the key itself is
+  never copied. Upgrading to `communityVerified` needs every involved key to still exist, so independence can only be
+  shown inside the 90-day window.
+- The date a reviewer applied community evidence (`spots.last_reviewed_on`) is review metadata, not an observation;
+  it is published at month precision only (`verification.lastReviewedMonth`) because a single report's review day is
+  close to its submission day. `lastVerifiedAt` stays `null` for community spots.

@@ -17,6 +17,7 @@ it touches ingest or reconciliation.
 | D1 schema, migrations, or Worker/runtime setup | `services/api/README.md`, ADR-0003 |
 | tile generation, tile publication, or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
 | evidence, reconciliation, or publication gating | ADR-0006 |
+| evidence tiers, confidence axes, community reported/verified, freshness, ranking inputs | ADR-0012 |
 | ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
 | source adapters, multi-source/multi-release matching, nationwide pipeline boundaries | ADR-0008 |
 | relocation, natural keys, relocation holds | ADR-0009 |

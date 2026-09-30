@@ -390,3 +390,17 @@ The publication invariant gains two community conditions; nothing about other so
    community spot depends on travel with it, and the exporter checks them against the reviewed list
    in code. Report, moderation, reconciliation, effect and hold tables never travel; holds stay in
    the origin database like relocation holds. A blocked community source contributes nothing.
+
+## Amendment 2026-10-01 — coverage-first multi-confidence model (ADR-0012, Issue #143)
+
+The publication gate itself is unchanged: approved source, applied release, active, unmerged, unheld, and — for a
+community spot — a granted rights basis. What changes is what a published spot says about its trust:
+
+- `evidenceQuality` v3 (`evidence-quality.v3`) adds `communityReported`, `communityVerified` and `operatorListing`.
+  New community applications resolve as `communityReported` (one report) or `communityVerified` (≥ 2 independent
+  submitters); the v2 value `communityReviewed` remains valid for spots resolved before and reads as verified.
+- Every tile and detail spot carries `verification` (`spot-verification.v1`): existence evidence, location precision,
+  independent confirmations and review month, as separate axes (ADR-0012 decisions 2–4).
+- A spot's evidence tier changes only upward, only through `community_evidence_upgrades` (migration 0023), and only
+  in the four evidence columns; the resolver remains the only writer of every other canonical value.
+- Staleness never withdraws a spot; removal and holds keep their existing, evidence-driven paths.

@@ -60,7 +60,10 @@ Exit: real launch-region data flows from source to device.
 - report API;
 - App Attest/rate limits;
 - moderation/reconciliation workflow;
-- last-verified/confidence updates.
+- last-verified/confidence updates;
+- coverage-first multi-confidence model (ADR-0012, Issue #143): community tiers `communityReported` /
+  `communityVerified`, structured new-spot claims, confidence axes on tiles, iPhone/Watch labels and filters —
+  implemented; publishes nothing user-derived until Issue #124's rights are granted.
 
 ## Phase 6 — Nationwide data architecture
 
@@ -81,7 +84,9 @@ Exit: adding a second reviewed source no longer requires a Taito-specific pipeli
 - add reviewed sources through declarative adapters where practical;
 - decide OSM/ODbL adoption in a dedicated ADR before any OSM-derived production publication;
 - add raw release retention/fingerprinting and repeatable freshness checks;
-- add cross-source duplicate/review workflow.
+- add cross-source duplicate/review workflow;
+- acquisition order (ADR-0012, `NATIONWIDE_DATA_STRATEGY.md` §3, §12): reusable official/operator data → community
+  acquisition → venue/operator direct submissions → reference-only discovery → confidence upgrading.
 
 Rollout stages:
 
@@ -91,9 +96,10 @@ Rollout stages:
 
 ## Phase 8 — Nationwide quality and coverage gate
 
-- calculate station-area and population-weighted coverage;
+- calculate station-area and population-weighted coverage, reported as official-source coverage and all usable
+  coverage, with each community tier separate;
 - measure nearest-spot distance distributions;
-- require evidence for every published spot;
+- require an explicit evidence class for every published spot, and zero overstated labels;
 - require zero unresolved publication conflicts and zero unreviewed published sources;
 - enforce freshness reporting and per-source unknown-rate reporting;
 - validate tile density/payload thresholds at nationwide scale.
