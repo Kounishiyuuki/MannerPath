@@ -3,25 +3,25 @@
 // Synthetic independently reviewed sources: A is the real Taito release; B is TEST-ONLY — Taito-format rows derived
 // from A (copies, moved copies, renamed copies) under Koto's reviewed registry entry, parsed with Taito's rules, so
 // overlap is controlled and v3 promotion's registry gate passes. The real Taito / Osaka / Koto releases barely
-// overlap and are not used as identity evidence; their regression is the last test.
+// overlap and are not used as identity evidence; the last test runs every reviewed source's real pipeline.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import type { Db } from "../src/db.ts";
 import { COMPARED_FIELDS, CrossSourceError, applyCrossSourceMerge, generateCrossSourceCandidates, normalizeText,
   recallPairs, recordCrossSourceDecision } from "../src/pipeline/cross-source.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
-import { KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
-import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
+import { KOTO_ADAPTER, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
 import { PromotionError, buildMultiSourcePromotionBundle, buildPromotionBundle } from "../src/pipeline/promotion.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
+import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { TAITO_FIXTURE_RELEASE } from "../src/pipeline/taito.ts";
 import { readPublishedSpot } from "../src/spots/detail.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, importTaito, sequentialSpotIds } from "./support/fixture.ts";
+import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { rehashed } from "./support/promotion-tamper.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
@@ -389,21 +389,13 @@ test("18: a tampered merge in a v3 bundle is refused and rolls back the whole fi
 
 // ---------------------------------------------------------------------------------------------------------------
 
-test("19: Taito + Osaka + Koto real pipeline: 381 canonical / 379 published, candidates change nothing, v3 bundle has no merge key", async () => {
+test("19: every reviewed source's real pipeline: candidates change nothing, v3 bundle has no merge key", async () => {
   const db = new SqliteD1();
-  await importTaito(db, { newSpotId: sequentialSpotIds("0") });
-  for (const [adapter, release, file, prefix] of [
-    [OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, "osaka-designated-smoking-areas/opendata_1012.csv", "2"],
-    [KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, "koto-station-smoking-areas/131083_237_public_smoking_area_station.csv", "3"],
-  ] as const) {
-    await ensureReviewedSource(db, adapter.registry.sourceId, NOW);
-    const bytes = new Uint8Array(readFileSync(new URL(`../../data-pipeline/fixtures/${file}`, import.meta.url)));
-    const { releaseId } = await ingestRelease(db, adapter, bytes, release);
-    assert.equal((await resolveFirstRelease(db, adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds(prefix) })).status, "resolved");
-  }
+  await importAllReviewedSources(db, NOW);
   await publishTiles(db, { now: NOW });
-  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 381);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 379);
+  // All six reviewed sources (Taito, Osaka, Koto, Musashino, Minato, Kyoto); two Taito rows stay unpublished.
+  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 515);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 513);
   const bundleBefore = await buildMultiSourcePromotionBundle(db);
   const before = canonical(db);
   await generateCrossSourceCandidates(db, { now: NOW });
@@ -412,5 +404,5 @@ test("19: Taito + Osaka + Koto real pipeline: 381 canonical / 379 published, can
   const bundle = await buildMultiSourcePromotionBundle(db);
   assert.equal(bundle.sql, bundleBefore.sql, "the v3 bytes do not depend on unreviewed candidates");
   assert.equal("promotion_cross_source_merge_attestations" in bundle.manifest.rows, false);
-  assert.deepEqual(bundle.manifest.sources.map((s) => s.sourceId), [KOTO_SOURCE_ID, OSAKA_SOURCE_ID, TAITO_ADAPTER.registry.sourceId].sort());
+  assert.deepEqual(bundle.manifest.sources.map((s) => s.sourceId), SOURCE_ADAPTERS.map((a) => a.registry.sourceId).sort());
 });

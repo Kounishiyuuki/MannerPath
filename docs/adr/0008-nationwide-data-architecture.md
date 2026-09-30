@@ -573,8 +573,9 @@ reused unchanged: candidates are immutable, decisions append-only, the **latest 
    database, as for the other reviews.
 
 Tested with synthetic independently reviewed sources (the real Taito release, and a test-only Taito-format
-source under Koto's reviewed registry entry); the real Taito, Osaka and Koto releases are not identity
-evidence. The whole flow was also run on Wrangler's local D1 (D1's expression-depth limit), including a v3
+source under Koto's reviewed registry entry); the real releases of the reviewed sources are not identity evidence.
+A regression runs candidate generation over every reviewed source's real release and shows it changes
+nothing canonical. The whole flow was also run on Wrangler's local D1 (D1's expression-depth limit), including a v3
 bootstrap of a fresh database.
 
 **Not implemented:** a reviewed conflict-resolution rule (held survivors stay unpublished), re-evaluating an
