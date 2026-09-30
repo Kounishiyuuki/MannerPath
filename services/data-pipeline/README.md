@@ -56,6 +56,24 @@ policy. Scan bounds, failed requests and prior inspections are reported separate
 scan finding no eligible resource does not establish that a jurisdiction has no smoking sites.
 Reviewed coverage is derived solely from existing reviewed source IDs, never fetch success.
 
+Human deep follow-up is recorded separately from discovery status. The east/north/national
+batch's exact publisher/export evidence and unresolved approval gates are in
+`docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json`. Manifest/checkpoint
+`deepReview` fields point to those attestations; rescanning preserves them. Pending attempts
+have no `deepReviewedAt` and do not count as completed reviews. The report selects the latest
+valid timestamp per known target (last input wins ties), counts unique groups, and keeps
+legacy keyword-resource reviews separate. Even a manual approved verdict cannot create
+publication coverage or approve a registry entry.
+
+From the repository root, rebuild a local report without any downloads:
+
+```sh
+node services/data-pipeline/discovery/report.mjs --reviews docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json --out services/data-pipeline/discovery/.local/east-deep-report.json
+```
+
+The original #132 run remains historical evidence. Manifest regeneration is an initial
+discovery bootstrap, not a way to replace later human review annotations.
+
 Each host is serialized with a configurable delay, timeout and retry budget. HTTP 403 or
 429 stops that host; other hosts continue. There is no proxy rotation, authentication bypass,
 private endpoint guessing or block avoidance. Cache entries retain URL, SHA-256, ETag and

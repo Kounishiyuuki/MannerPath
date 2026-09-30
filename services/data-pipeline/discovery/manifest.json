@@ -87,7 +87,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "pending",
+        "deepReviewed": false,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "rawUnavailable",
+          "hostPointOnly"
+        ],
+        "followupAttemptedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-sapporo",
@@ -173,7 +183,16 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-aomori",
@@ -231,7 +250,16 @@
         "coordinatesMissing",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-iwate",
@@ -255,7 +283,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-morioka",
@@ -335,7 +373,16 @@
         "coordinatesMissing",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-miyagi",
@@ -359,7 +406,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-sendai",
@@ -548,7 +605,16 @@
         "hostPointOnly",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-akita",
@@ -572,7 +638,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-akita",
@@ -654,7 +730,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-yamagata",
@@ -735,7 +821,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingEvidence",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-fukushima",
@@ -793,7 +889,17 @@
         "coordinatesMissing",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-ibaraki",
@@ -817,7 +923,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "hostPointOnly",
+          "noSmokingEvidence"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-mito",
@@ -856,7 +972,18 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "currentOperationUnknown",
+          "incompatibleFormat"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-tochigi",
@@ -891,7 +1018,18 @@
       "seedStatus": "blocked",
       "blockerCodes": [
         "accessBlocked"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "accessBlocked",
+          "rawUnavailable",
+          "noSmokingPoint"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-utsunomiya",
@@ -1101,7 +1239,18 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "currentOperationUnknown",
+          "reuseForbidden"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-saitama",
@@ -1137,7 +1286,16 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-chiba",
@@ -1235,7 +1393,17 @@
         "hostPointOnly",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-tokyo",
@@ -1380,7 +1548,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "noSmokingPoint",
+          "coordinatesMissing"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-niigata",
@@ -1457,7 +1635,17 @@
         "coordinatesMissing",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "hostPointOnly"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "pref-toyama",
@@ -1823,7 +2011,18 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "pending",
+        "deepReviewed": false,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "accessBlocked",
+          "coordinatesMissing",
+          "currentOperationUnknown"
+        ],
+        "followupAttemptedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-kofu",
@@ -1892,7 +2091,17 @@
       "rawResources": [],
       "priorResearch": [],
       "seedStatus": "unscanned",
-      "blockerCodes": []
+      "blockerCodes": [],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "noSmokingEvidence"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-nagano",
@@ -3821,7 +4030,17 @@
         "hostPointOnly",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "rawUnavailable"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-sagamihara",
@@ -3879,7 +4098,16 @@
         "coordinatesMissing",
         "licenseUnknown",
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "city-hamamatsu",
@@ -4034,7 +4262,17 @@
         "coordinatesMissing",
         "licenseUnknown",
         "redistributionBlocked"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "reuseForbidden"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "ward-chuo",
@@ -4079,7 +4317,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "reuseForbidden",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "ward-minato",
@@ -4208,7 +4456,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "ward-bunkyo",
@@ -4243,7 +4501,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-taito",
@@ -4316,7 +4584,16 @@
       "blockerCodes": [],
       "reviewedSourceIds": [
         "taito-public-smoking-areas"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "duplicateKnownResearch"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "ward-sumida",
@@ -4351,7 +4628,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-koto",
@@ -4417,7 +4704,18 @@
       "blockerCodes": [],
       "reviewedSourceIds": [
         "koto-station-smoking-areas"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "accessBlocked",
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "ward-shinagawa",
@@ -4470,7 +4768,18 @@
         "coordinatesMissing",
         "hostPointOnly",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown",
+          "noSmokingEvidence"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "ward-meguro",
@@ -4671,7 +4980,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-suginami",
@@ -4770,7 +5089,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-kita",
@@ -4803,7 +5132,18 @@
       "seedStatus": "blocked",
       "blockerCodes": [
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown",
+          "redistributionBlocked"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-arakawa",
@@ -4873,7 +5213,17 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-nerima",
@@ -4906,7 +5256,17 @@
       "seedStatus": "blocked",
       "blockerCodes": [
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-adachi",
@@ -4957,7 +5317,18 @@
         "coordinatesMissing",
         "licenseUnknown",
         "redistributionBlocked"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown",
+          "redistributionBlocked"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-katsushika",
@@ -4990,7 +5361,18 @@
       "seedStatus": "blocked",
       "blockerCodes": [
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown",
+          "redistributionBlocked"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "ward-edogawa",
@@ -5023,7 +5405,17 @@
       "seedStatus": "blocked",
       "blockerCodes": [
         "noSmokingEvidence"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "coordinatesMissing",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
+      }
     },
     {
       "id": "operator-jr-hokkaido",
@@ -5704,7 +6096,18 @@
       "blockerCodes": [
         "coordinatesMissing",
         "redistributionBlocked"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "reuseForbidden",
+          "hostPointOnly",
+          "coordinatesMissing"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z"
+      }
     },
     {
       "id": "operator-narita",
@@ -6253,7 +6656,20 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
-      ]
+      ],
+      "deepReview": {
+        "status": "blocked",
+        "deepReviewed": true,
+        "reviewReference": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
+        "blockerCodes": [
+          "rawUnavailable",
+          "coordinatesMissing",
+          "currentOperationUnknown",
+          "licenseUnknown"
+        ],
+        "deepReviewedAt": "2026-09-30T16:00:40.102911Z",
+        "categoryVersionNote": "Attached2018 specification: F019 Policebox,F024 Smoking Area,F029 Post;2017 codes are not interchangeable. Actual Shinjuku features unknown."
+      }
     },
     {
       "id": "city-musashino",
