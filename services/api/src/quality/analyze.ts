@@ -243,6 +243,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const canonicalRows = await db.prepare(
     "SELECT count(*) AS n FROM spots WHERE merged_into IS NULL",
   ).first<{ n: number }>();
+  // Community (userReport) spots, Issue #124: they count as published coverage only once they are in a tile, which
+  // needs an approved source AND a granted terms version. Blocked or rights-less, they are canonical and publish 0.
+  const community = await db.prepare(
+    `SELECT count(*) AS canonical, coalesce(sum(c.rights_granted), 0) AS rights_granted,
+            coalesce(sum(CASE WHEN EXISTS (SELECT 1 FROM tile_snapshot_spots t WHERE t.spot_id = c.spot_id) THEN 1 ELSE 0 END), 0) AS published
+     FROM community_spot_rights c JOIN spots s ON s.spot_id = c.spot_id WHERE s.merged_into IS NULL`,
+  ).first<{ canonical: number; rights_granted: number; published: number }>();
+  const communityHolds = await db.prepare(
+    "SELECT count(*) AS n FROM community_publication_holds WHERE lifted_at IS NULL",
+  ).first<{ n: number }>();
 
   const { results: canonicalBySource } = await db.prepare(`SELECT rel.source_id, count(DISTINCT p.spot_id) AS n
     FROM spot_field_provenance p JOIN source_records r ON r.record_id = p.record_id
@@ -373,6 +383,12 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       },
       publishedSpots: spots.length,
       canonicalSpots: canonicalRows?.n ?? 0,
+      community: {
+        canonicalSpots: community?.canonical ?? 0,
+        withGrantedRights: community?.rights_granted ?? 0,
+        publishedSpots: community?.published ?? 0,
+        activePublicationHolds: communityHolds?.n ?? 0,
+      },
       evidenceQuality: tally(spots.map((spot) => `${spot.evidenceQualityVersion}:${spot.evidenceQuality}`)),
       unknownRates: Object.fromEntries(Object.entries(unknownRates).map(([field, value]) => [field, { ...value, rate: rate(value.unknown, value.total) }])),
     },

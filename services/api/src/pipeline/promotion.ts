@@ -37,7 +37,8 @@
 import { type Db, sha256Hex } from "../db.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
 import { type CandidateRow, spotDto } from "../tiles/publish.ts";
-import { reviewedSource } from "./registry.ts";
+import { type ReviewedTerms, reviewedTerms } from "../reports/terms.ts";
+import { type ReviewedSource, reviewedSource } from "./registry.ts";
 
 /** v2 (Issue #100): bootstrap/completion statements and review-match attestations; needs migration 0016. */
 export const PROMOTION_BUNDLE_VERSION = "promotion-bundle.v2";
@@ -265,19 +266,35 @@ export async function currentReleaseId(db: Db): Promise<number> {
   fail(`${results.length} current releases exist; name one with --release <id>`);
 }
 
-async function validateRelease(db: Db, releaseId: number, sources: Row[], release: Row | undefined): Promise<void> {
+/**
+ * The reviewed lists the exporter checks. Only tests pass anything but the defaults, to simulate a future approval
+ * of the community source or its terms (Issue #124); no script does.
+ */
+export interface PromotionRegistry {
+  source: (sourceId: string) => ReviewedSource;
+  terms: (version: string) => ReviewedTerms;
+}
+
+const REVIEWED_REGISTRY: PromotionRegistry = { source: reviewedSource, terms: reviewedTerms };
+
+async function validateRelease(
+  db: Db, releaseId: number, sources: Row[], release: Row | undefined, registry: PromotionRegistry = REVIEWED_REGISTRY,
+): Promise<void> {
   if (release === undefined) fail(`release ${releaseId} does not exist`);
   if (release.status !== "applied") fail(`release ${releaseId} has status ${String(release.status)}, not applied`);
-  // The receiving database holds this one release, so it must be its source's current one there as well.
-  if (release.is_current !== 1) fail(`release ${releaseId} is not its source's current release`);
   if (sources.length !== 1) fail(`release ${releaseId} resolved ${sources.length} source rows`);
   const source = sources[0];
+  // The receiving database holds this one release, so it must be its source's current one there as well. An
+  // additive (userReport) source has no current release: every applied release is live evidence (0020, 0021).
+  if (source.kind === "userReport" ? release.is_current !== 0 : release.is_current !== 1) {
+    fail(`release ${releaseId} is not its source's current release`);
+  }
 
   // The publication gate, checked against the reviewed registry in code — not just against the
   // row's own status column, which a local database could hold in any state (ADR-0006).
   let reviewed;
   try {
-    reviewed = reviewedSource(String(source.source_id));
+    reviewed = registry.source(String(source.source_id));
   } catch (e) {
     fail(e instanceof Error ? e.message : String(e));
   }
@@ -490,6 +507,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
   const rows = new Map<string, Row[]>();
   for (const spec of TABLES) rows.set(spec.table, await rowsOf(db, spec, releaseId));
 
+  if ((rows.get("sources") ?? [])[0]?.kind === "userReport") fail("an additive userReport source is promoted only with promotion-bundle.v3");
   await validateRelease(db, releaseId, rows.get("sources") ?? [], (rows.get("source_releases") ?? [])[0]);
   await validatePublishedState(db, [releaseId], rows);
   validateReviewAttestations(rows);
@@ -566,6 +584,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
 
 export interface MultiSourcePromotionSource {
   sourceId: string;
+  /** The declared release: the current one, or for an additive source its anchor (lowest release id). */
   releaseId: number;
   observedOn: string | null;
   releaseContentSha256: string;
@@ -576,6 +595,8 @@ export interface MultiSourcePromotionSource {
   /** This source's share of the source-scoped tables; the target re-checks each one. */
   rows: Record<string, number>;
   reviewDependencies: { recordId: number; previousReleaseId: number; previousReleaseContentSha256: string }[];
+  /** An additive (userReport) source only: every release it carries, the anchor included (migration 0021). */
+  additiveReleases?: { releaseId: number; releaseContentSha256: string }[];
 }
 
 export interface MultiSourcePromotionManifest {
@@ -596,60 +617,114 @@ export async function currentReleaseIds(db: Db): Promise<number[]> {
 }
 
 /**
+ * The applied releases of every additive (userReport) source that is approved in its row AND in the reviewed
+ * registry. A blocked community source contributes nothing, so its database exports exactly the bytes it would
+ * without it (Issue #124: blocked until approved).
+ */
+export async function additiveReleaseIds(db: Db, registry: PromotionRegistry = REVIEWED_REGISTRY): Promise<number[]> {
+  const { results } = await db.prepare(
+    `SELECT rel.release_id, rel.source_id FROM source_releases rel JOIN sources s ON s.source_id = rel.source_id
+     WHERE s.kind = 'userReport' AND s.publication_status = 'approved' AND rel.status = 'applied' ORDER BY rel.release_id`,
+  ).all<{ release_id: number; source_id: string }>();
+  return results.filter((r) => registry.source(r.source_id).publicationStatus === "approved").map((r) => r.release_id);
+}
+
+/**
+ * The terms rows a promoted community spot depends on (migration 0021): the granted versions its carried records
+ * name. Carried only when a community release is, so a bundle without one keeps its bytes.
+ */
+const REPORT_TERMS_ROWS: TableSpec = {
+  table: "report_terms_versions",
+  columns: ["terms_version", "document_path", "document_sha256", "publication_rights", "created_at", "updated_at"],
+  sql: `SELECT * FROM report_terms_versions WHERE publication_rights = 'granted' AND terms_version IN (
+          SELECT json_extract(r.raw_values_json, '$[6]') FROM source_records r
+          JOIN source_releases rel ON rel.release_id = r.release_id JOIN sources s ON s.source_id = rel.source_id
+          WHERE s.kind = 'userReport' AND rel.release_id = ?)
+        ORDER BY terms_version`,
+};
+
+/** v3 with an additive source: the terms rows right after the sources, before any release or tile. */
+const ADDITIVE_TABLES: readonly TableSpec[] = MULTI_SOURCE_TABLES.flatMap((t) => (t.table === "sources" ? [t, REPORT_TERMS_ROWS] : [t]));
+
+/**
  * promotion-bundle.v3: the current releases of several reviewed sources in ONE bootstrap. Every source passes
  * the same checks as a v2 export, and the bundle is refused as a whole when any one of them fails — there is
  * no partial export, and the target's completion (migration 0018) refuses a partial apply. Sources are ordered
  * by source id and rows keep the v2 per-table order, so the artifact is byte-deterministic.
+ *
+ * An approved additive (userReport) source travels with every applied release (migration 0021): one declaration
+ * whose release is its lowest release (the anchor), plus one additive declaration per release. Its published spots
+ * must rest on a terms version the reviewed list grants, and its terms rows travel with it. Report and review
+ * tables never do. Without an additive source the bytes are exactly the pre-0021 ones.
  */
 export async function buildMultiSourcePromotionBundle(
-  db: Db, options: { releaseIds?: number[] } = {},
+  db: Db, options: { releaseIds?: number[]; registry?: PromotionRegistry } = {},
 ): Promise<{ sql: string; manifest: MultiSourcePromotionManifest }> {
-  const requested = options.releaseIds ?? await currentReleaseIds(db);
+  const registry = options.registry ?? REVIEWED_REGISTRY;
+  const requested = options.releaseIds ?? [...await currentReleaseIds(db), ...await additiveReleaseIds(db, registry)];
   if (requested.length === 0) fail("no release was named");
   for (const id of requested) if (!Number.isInteger(id) || id < 1) fail(`release id must be a positive integer, got ${id}`);
   if (new Set(requested).size !== requested.length) fail("a release is named twice");
 
   // Validate each release on its own first (existence, applied, current, approved, registry identity), then order
-  // by source id, so the same set named in any order yields the same bytes.
+  // by source id (and release id), so the same set named in any order yields the same bytes.
   const releases: Row[] = [];
+  const additiveSources = new Set<string>();
   for (const id of requested) {
     const release = await db.prepare("SELECT * FROM source_releases WHERE release_id = ?").bind(id).first<Row>();
     const { results: sources } = await db.prepare(`SELECT * FROM sources WHERE source_id = (${RELEASE_SOURCE})`).bind(id).all<Row>();
-    await validateRelease(db, id, sources, release ?? undefined);
+    await validateRelease(db, id, sources, release ?? undefined, registry);
+    if (sources[0].kind === "userReport") additiveSources.add(String(sources[0].source_id));
     releases.push(release!);
   }
-  releases.sort((a, b) => String(a.source_id) < String(b.source_id) ? -1 : 1);
+  releases.sort((a, b) => String(a.source_id) < String(b.source_id) ? -1 : String(a.source_id) > String(b.source_id) ? 1
+    : Number(a.release_id) - Number(b.release_id));
   for (let i = 1; i < releases.length; i++) {
-    if (releases[i].source_id === releases[i - 1].source_id) fail(`source ${String(releases[i].source_id)} is named with two releases`);
+    if (releases[i].source_id === releases[i - 1].source_id && !additiveSources.has(String(releases[i].source_id))) {
+      fail(`source ${String(releases[i].source_id)} is named with two releases`);
+    }
   }
   const releaseIds = releases.map((r) => Number(r.release_id));
+  // The first (lowest) release of each source: the one release a source-scoped spec is read through.
+  const anchors = releases.filter((r, i) => i === 0 || releases[i - 1].source_id !== r.source_id);
+  const anchorIds = anchors.map((r) => Number(r.release_id));
 
+  const specs = additiveSources.size > 0 ? ADDITIVE_TABLES : MULTI_SOURCE_TABLES;
   const rows = new Map<string, Row[]>();
-  for (const spec of MULTI_SOURCE_TABLES) {
+  for (const spec of specs) {
     const scoped = spec.sql.includes("?");
+    const perSource = spec.sql.includes(RELEASE_SOURCE);
     const collected: Row[] = [];
-    for (const id of scoped ? releaseIds : [undefined]) collected.push(...await rowsOf(db, spec, id));
-    rows.set(spec.table, collected);
+    for (const id of !scoped ? [undefined] : perSource ? anchorIds : releaseIds) collected.push(...await rowsOf(db, spec, id));
+    // A terms version several community releases name is one row.
+    rows.set(spec.table, spec === REPORT_TERMS_ROWS
+      ? [...new Map(collected.map((r) => [String(r.terms_version), r])).values()]
+        .sort((a, b) => (String(a.terms_version) < String(b.terms_version) ? -1 : 1))
+      : collected);
   }
   await validatePublishedState(db, releaseIds, rows);
   validateReviewAttestations(rows);
   validateCrossSourceMerges(rows);
   await validateSnapshots(rows);
+  validateCommunityRights(rows, registry);
 
-  // The attestation count is declared only when there is one, so a bundle without merges keeps its v3 bytes.
-  const counts = Object.fromEntries(MULTI_SOURCE_TABLES
-    .filter((s) => s !== CROSS_SOURCE_ATTESTATIONS || (rows.get(s.table) ?? []).length > 0)
+  // The attestation and terms counts are declared only when there is one, so a bundle without them keeps its v3 bytes.
+  const counts = Object.fromEntries(specs
+    .filter((s) => (s !== CROSS_SOURCE_ATTESTATIONS && s !== REPORT_TERMS_ROWS) || (rows.get(s.table) ?? []).length > 0)
     .map((s) => [s.table, (rows.get(s.table) ?? []).length]));
   const of = (table: string) => rows.get(table) ?? [];
   const sourceRows = new Map(of("sources").map((s) => [String(s.source_id), s]));
   const entitySource = new Map(of("source_entities").map((e) => [Number(e.source_entity_id), String(e.source_id)]));
   const recordRelease = new Map(of("source_records").map((r) => [Number(r.record_id), Number(r.release_id)]));
-  const declared: MultiSourcePromotionSource[] = releases.map((release) => {
+  const declared: MultiSourcePromotionSource[] = anchors.map((release) => {
     const sourceId = String(release.source_id);
     const releaseId = Number(release.release_id);
+    const own = releases.filter((r) => r.source_id === sourceId);
+    const ownIds = new Set(own.map((r) => Number(r.release_id)));
     const source = sourceRows.get(sourceId)!;
-    const inRelease = (r: Row) => Number(r.release_id) === releaseId;
-    return {
+    const inRelease = (r: Row) => ownIds.has(Number(r.release_id));
+    const ofRecord = (recordId: unknown) => ownIds.has(recordRelease.get(Number(recordId)) ?? -1);
+    const declaration: MultiSourcePromotionSource = {
       sourceId,
       releaseId,
       observedOn: release.observed_on === null ? null : String(release.observed_on),
@@ -661,12 +736,12 @@ export async function buildMultiSourcePromotionBundle(
       rows: {
         source_releases: of("source_releases").filter((r) => r.source_id === sourceId).length,
         source_records: of("source_records").filter(inRelease).length,
-        source_record_match_keys: of("source_record_match_keys").filter((k) => recordRelease.get(Number(k.record_id)) === releaseId).length,
+        source_record_match_keys: of("source_record_match_keys").filter((k) => ofRecord(k.record_id)).length,
         source_entities: of("source_entities").filter((e) => e.source_id === sourceId).length,
         promotion_review_match_attestations: of("promotion_review_match_attestations").filter(inRelease).length,
         source_record_entities: of("source_record_entities").filter(inRelease).length,
         spot_source_entities: of("spot_source_entities").filter((l) => entitySource.get(Number(l.source_entity_id)) === sourceId).length,
-        spot_field_provenance: of("spot_field_provenance").filter((p) => recordRelease.get(Number(p.record_id)) === releaseId).length,
+        spot_field_provenance: of("spot_field_provenance").filter((p) => ofRecord(p.record_id)).length,
       },
       reviewDependencies: of("promotion_review_match_attestations").filter(inRelease).map((a) => ({
         recordId: Number(a.record_id),
@@ -674,7 +749,12 @@ export async function buildMultiSourcePromotionBundle(
         previousReleaseContentSha256: String(a.previous_release_content_sha256),
       })),
     };
+    if (additiveSources.has(sourceId)) {
+      declaration.additiveReleases = own.map((r) => ({ releaseId: Number(r.release_id), releaseContentSha256: String(r.content_sha256) }));
+    }
+    return declaration;
   });
+  const additive = declared.flatMap((d) => (d.additiveReleases ?? []).map((a) => ({ sourceId: d.sourceId, ...a })));
 
   const statements: string[] = [
     MULTI_SOURCE_BUNDLE_BODY_FIRST_LINE,
@@ -686,7 +766,13 @@ export async function buildMultiSourcePromotionBundle(
       [d.sourceId, 1, d.releaseId, d.releaseContentSha256, d.displayName, d.licenseName, d.licenseUrl, d.attributionText,
         JSON.stringify(d.reviewDependencies), JSON.stringify(d.rows)].map(literal).join(", ")});`),
     "",
-    ...tableStatements(rows, MULTI_SOURCE_TABLES),
+    ...(additive.length === 0 ? [] : [
+      `-- promotion_multi_bootstrap_additive_releases (${additive.length}): every release of an additive source, anchor included`,
+      ...additive.map((a) => `INSERT INTO promotion_multi_bootstrap_additive_releases (release_id, source_id, release_content_sha256) VALUES (${
+        [a.releaseId, a.sourceId, a.releaseContentSha256].map(literal).join(", ")});`),
+      "",
+    ]),
+    ...tableStatements(rows, specs),
     "-- promotion_multi_bootstrap_completions: the target re-checks every declared source and the row counts",
     "INSERT INTO promotion_multi_bootstrap_completions (promotion_bootstrap_id) VALUES (1);",
     "",
@@ -709,12 +795,14 @@ export async function buildMultiSourcePromotionBundle(
   const header = [
     "-- MannerPath promotion bundle. Generated from a validated LOCAL database; see docs/OPERATIONS.md.",
     `-- generator: ${MULTI_SOURCE_PROMOTION_BUNDLE_VERSION}`,
-    ...declared.map((d) => `-- source ${d.sourceId}: release ${d.releaseId} (observed ${d.observedOn ?? "unknown"}, bytes ${d.releaseContentSha256})`),
+    ...declared.map((d) => d.additiveReleases === undefined
+      ? `-- source ${d.sourceId}: release ${d.releaseId} (observed ${d.observedOn ?? "unknown"}, bytes ${d.releaseContentSha256})`
+      : `-- source ${d.sourceId}: additive, release(s) ${d.additiveReleases.map((a) => a.releaseId).join(", ")}`),
     `-- rows: ${Object.entries(manifest.rows).map(([t, n]) => `${t}=${n}`).join(" ")}`,
     ...manifest.tiles.map((t) => `-- tile ${t.tileId}: revision ${t.revision}, ${t.spotCount} spot(s), ${t.contentSha256}`),
     `-- contentSha256: ${contentSha256}`,
     "--",
-    "-- TARGET: an EMPTY, freshly migrated database (migrations through 0018). This bundle is INSERT-only and",
+    `-- TARGET: an EMPTY, freshly migrated database (migrations through ${additive.length === 0 ? "0018" : "0021"}). This bundle is INSERT-only and`,
     "-- cannot update a populated one. It carries SEVERAL sources and applies ALL OR NOTHING: if any one source's",
     "-- fingerprint, rows, attestations or publication status does not match its declaration, the completion",
     "-- statement fails and D1 rolls the whole file back. Do not split it, do not add BEGIN/COMMIT (D1 refuses",
@@ -729,6 +817,36 @@ export async function buildMultiSourcePromotionBundle(
     "",
   ].join("\n");
   return { sql: `${header}${body}`, manifest };
+}
+
+/**
+ * Every carried community spot that is published rests on a terms version the reviewed list grants, and its row
+ * travels. The target re-checks the row (0021 tile_snapshot_spots_community_rights); the reviewed list is checked
+ * only here, as REVIEWED_SOURCES is.
+ */
+function validateCommunityRights(rows: Map<string, Row[]>, registry: PromotionRegistry): void {
+  const communitySources = new Set((rows.get("sources") ?? []).filter((s) => s.kind === "userReport").map((s) => String(s.source_id)));
+  const communityReleases = new Set((rows.get("source_releases") ?? [])
+    .filter((r) => communitySources.has(String(r.source_id))).map((r) => Number(r.release_id)));
+  if (communityReleases.size === 0) return;
+  const records = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), r]));
+  const published = new Set((rows.get("tile_snapshot_spots") ?? []).map((m) => String(m.spot_id)));
+  const carriedTerms = new Set((rows.get("report_terms_versions") ?? []).map((t) => String(t.terms_version)));
+  for (const p of rows.get("spot_field_provenance") ?? []) {
+    const record = records.get(Number(p.record_id));
+    if (p.field !== "existence" || record === undefined || !communityReleases.has(Number(record.release_id))) continue;
+    if (!published.has(String(p.spot_id))) continue;
+    const terms = (JSON.parse(String(record.raw_values_json)) as string[])[6] ?? "";
+    let reviewed: ReviewedTerms | undefined;
+    try {
+      reviewed = terms === "" ? undefined : registry.terms(terms);
+    } catch {
+      reviewed = undefined;
+    }
+    if (reviewed?.publicationRights !== "granted" || !carriedTerms.has(terms)) {
+      fail(`published community spot ${String(p.spot_id)} does not rest on a granted terms version (Issue #124)`);
+    }
+  }
 }
 
 /**

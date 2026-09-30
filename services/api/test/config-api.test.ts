@@ -7,6 +7,7 @@ import { DATA_TILE_ZOOM } from "../src/geo/tile.ts";
 import {
   ATTESTED_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION, REPORT_SUBMISSION_MAX_BYTES, ReportRequestV1,
 } from "../src/reports/dto.ts";
+import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../src/spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../src/tiles/dto.ts";
 
@@ -18,7 +19,7 @@ function configBodyFixture(): unknown {
     dataTileZoom: DATA_TILE_ZOOM,
     schemaVersions: { tile: TILE_SCHEMA_VERSION, spotDetail: SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
     minimumSupportedSchemaVersions: { tile: MINIMUM_TILE_SCHEMA_VERSION, spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
-    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
+    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version },
   };
 }
 
@@ -47,7 +48,7 @@ test("/v1/config serves the canonical constants, and reaches no database", async
       spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
       report: REPORT_SCHEMA_VERSION,
     },
-    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX },
+    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version },
   });
   // The values are the ones the rest of the API actually enforces, not a second copy of them.
   assert.equal(body.dataTileZoom, 14);

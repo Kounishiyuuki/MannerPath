@@ -2,7 +2,9 @@
 // changed and writes all of them in one batch. A spot is published only if it is active, unmerged,
 // under no publication hold, has no pending relocation application (0015), and its existence evidence comes from an applied release of an
 // approved source; the tile_snapshot_spots trigger re-checks exactly that on insert. Spots from blocked sources are
-// reported as excluded, never published.
+// reported as excluded, never published. Two community gates sit on top (migration 0021, Issue #124/#127): a
+// community spot needs evidence consented under a granted terms version (else excluded as `rightsNotGranted`), and
+// a spot under an active community publication hold is not a candidate at all.
 
 import { type Db, sha256Hex } from "../db.ts";
 import { TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
@@ -34,6 +36,8 @@ export interface CandidateRow {
   license_url: string | null;
   attribution_text: string | null;
   publication_status: "approved" | "blocked";
+  /** 1 or 0 for a community (userReport) spot's rights basis (0021 community_spot_rights); null for any other spot. */
+  community_rights_granted?: number | null;
 }
 
 export interface PublishReport {
@@ -84,13 +88,16 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
             s.access_type, s.environment, s.supports_paper, s.supports_heated, s.opening_hours_raw,
             s.opening_hours_json, s.opening_hours_status, s.time_zone, s.evidence_quality,
             s.evidence_quality_version, s.last_verified_at,
-            src.source_id, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status
+            src.source_id, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
+            cr.rights_granted AS community_rights_granted
      FROM spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
+     LEFT JOIN community_spot_rights cr ON cr.spot_id = s.spot_id
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
+       AND s.spot_id NOT IN (SELECT spot_id FROM community_publication_holds WHERE lifted_at IS NULL)
        -- A survivor held by an unresolved cross-source merge conflict (0019) is not a candidate.
        AND s.spot_id NOT IN (SELECT spot_id FROM cross_source_publication_blocks)
        AND rel.status = 'applied'
@@ -101,10 +108,13 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
   const excluded = new Map<string, { sourceId: string; publicationStatus: string; spotCount: number }>();
   const tiles = new Map<string, { z: number; x: number; y: number; rows: CandidateRow[] }>();
   for (const row of candidates) {
-    if (row.publication_status !== "approved") {
-      const e = excluded.get(row.source_id) ?? { sourceId: row.source_id, publicationStatus: row.publication_status, spotCount: 0 };
+    const status = row.publication_status !== "approved" ? row.publication_status
+      : row.community_rights_granted === 0 ? "rightsNotGranted" : null;
+    if (status !== null) {
+      const key = `${row.source_id}\n${status}`;
+      const e = excluded.get(key) ?? { sourceId: row.source_id, publicationStatus: status, spotCount: 0 };
       e.spotCount++;
-      excluded.set(row.source_id, e);
+      excluded.set(key, e);
       continue;
     }
     const t = tiles.get(row.tile_id) ?? { z: row.tile_z, x: row.tile_x, y: row.tile_y, rows: [] };

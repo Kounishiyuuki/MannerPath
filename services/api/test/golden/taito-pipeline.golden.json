@@ -274,6 +274,12 @@
       },
       "publishedSpots": 32,
       "canonicalSpots": 34,
+      "community": {
+        "canonicalSpots": 0,
+        "withGrantedRights": 0,
+        "publishedSpots": 0,
+        "activePublicationHolds": 0
+      },
       "evidenceQuality": {
         "evidence-quality.v1:officialListing": 32
       },
@@ -622,6 +628,9 @@
   "tables": {
     "app_attest_challenges": [],
     "app_attest_keys": [],
+    "community_effect_applications": [],
+    "community_effect_evidence": [],
+    "community_publication_holds": [],
     "community_reconciliation_applications": [],
     "community_reconciliation_evidence": [],
     "cross_source_candidates": [],
@@ -630,6 +639,7 @@
     "promotion_bootstrap_completions": [],
     "promotion_bootstraps": [],
     "promotion_cross_source_merge_attestations": [],
+    "promotion_multi_bootstrap_additive_releases": [],
     "promotion_multi_bootstrap_completions": [],
     "promotion_multi_bootstrap_sources": [],
     "promotion_multi_bootstraps": [],
@@ -637,6 +647,7 @@
     "raw_artifacts": [],
     "report_moderation": [],
     "report_rate_windows": [],
+    "report_terms_versions": [],
     "reports": [],
     "review_decisions": [],
     "review_items": [],

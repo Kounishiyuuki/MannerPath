@@ -12,7 +12,10 @@
 // `tables.review_relocation_holds`, and Issue #97 only the empty
 // `tables.review_relocation_applications` / `tables.review_relocation_resolutions`, and Issue #107 only the
 // empty `tables.cross_source_candidates` / `cross_source_decisions` / `cross_source_merge_applications` /
-// `promotion_cross_source_merge_attestations`; every other byte was unchanged.
+// `promotion_cross_source_merge_attestations`, and Issue #124/#127 (0021) only the empty
+// `report_terms_versions` / `community_effect_applications` / `community_effect_evidence` /
+// `community_publication_holds` / `promotion_multi_bootstrap_additive_releases` plus the zero
+// `quality.nationwide.community` block; every other byte was unchanged.
 //
 // Compressed tile sizes depend on the zlib build (Issue #76), so the golden's quality analysis runs
 // with a deterministic stand-in sizer instead of node:zlib. Its `gzipBytes` figures are therefore

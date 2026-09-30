@@ -2,13 +2,15 @@
 // LOCAL D1 database (.wrangler/state). This is the upgrade path for a database created before a
 // source was reviewed — for example a `taito-public-smoking-areas` row still stored as 'blocked'
 // with no attribution text. It never talks to a remote database and can only set the status this
-// repository has reviewed for each listed source.
+// repository has reviewed for each listed source. It also re-applies the reviewed report terms list
+// (src/reports/terms.ts): a terms version's publication rights come only from this repository.
 //
 //   npx wrangler d1 migrations apply DB --local
 //   npm run local:registry      # then npm run local:pipeline to republish
 import { getPlatformProxy } from "wrangler";
 import { type Db, isoSeconds } from "../src/db.ts";
 import { REVIEWED_SOURCES, applyReviewedSourceRegistry } from "../src/pipeline/registry.ts";
+import { applyReportTermsRegistry } from "../src/reports/terms.ts";
 
 const proxy = await getPlatformProxy<{ DB: Db }>({ remoteBindings: false });
 try {
@@ -16,6 +18,7 @@ try {
   for (const s of REVIEWED_SOURCES) {
     console.log(s.sourceId, await applyReviewedSourceRegistry(proxy.env.DB, s.sourceId, now));
   }
+  console.log("report terms", await applyReportTermsRegistry(proxy.env.DB, now));
 } finally {
   await proxy.dispose();
 }
