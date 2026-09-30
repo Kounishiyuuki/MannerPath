@@ -36,7 +36,12 @@ restarting the command does not probe a blocked host again.
 
 Catalog connectors cover CKAN, ArcGIS REST, static dataset pages and CSV/JSON indexes.
 Inspectors cover CSV/TSV (UTF-8 and CP932), JSON/GeoJSON, a bounded KML subset,
-KMZ, SHP ZIP attributes/PRJ and GPKG attributes/CRS metadata. Standalone SHP without
+KMZ, SHP ZIP attributes/PRJ, GPKG attributes/CRS metadata, XLS/XLSX workbooks (sheets,
+headers after title rows, rows, coordinate columns) and plain ZIPs of those tabular members.
+Text decoding is BOM → declared charset → strict UTF-8 → strict CP932; undecodable bytes stay
+blocked rather than guessed. Static pages yield links by file extension or by a format label
+(`[CSV]`, `XLSX`) and follow ordinary `rel=next`/「次へ」 pagination on the same host.
+Workbooks above 10 MB / 2M cells and downloads above `maxBytes` are `payloadTooLarge`. Standalone SHP without
 its attribute sidecars is unsupported. GIS binary geometry is not decoded, and schemas,
 ZIP expansion, rows and downloads have bounds. Unsupported or malformed payloads remain
 blocked. ArcGIS transfer limits and catalog/resource caps are explicit partial scans.
@@ -70,6 +75,16 @@ From the repository root, rebuild a local report without any downloads:
 ```sh
 node services/data-pipeline/discovery/report.mjs --reviews docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json --out services/data-pipeline/discovery/.local/east-deep-report.json
 ```
+
+`--pass v2` is a resumable named rescan: an interrupted run skips targets already completed
+in that pass, keeps prior blockers as `previousBlockerCodes`, and inspects identical bytes once
+(`duplicateOf`). `--max-pages` / `--max-resources` bound each target. The v2 run (#136) is in
+`docs/research/nationwide-discovery/2026-10-01-v2-run.json` with reviews in `2026-10-01-v2-reviews.json`.
+The XLS/XLSX parser is SheetJS 0.20.3 (Apache-2.0, no dependencies), a pinned devDependency of
+`services/api` from the official tarball; the npm-registry 0.18.5 has unfixed advisories.
+
+`probe-endpoints.mjs` reports 404s and redirects for manifest catalog/home URLs without editing
+the manifest. Only a reviewed change to a publisher-official URL repairs an entry.
 
 The original #132 run remains historical evidence. Manifest regeneration is an initial
 discovery bootstrap, not a way to replace later human review annotations.

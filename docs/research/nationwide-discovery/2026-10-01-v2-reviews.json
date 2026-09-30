@@ -1,0 +1,236 @@
+{
+ "version": 1,
+ "issue": "#136",
+ "note": "Individual reviews of v2 keyword-hit resources. Keyword hits are triage only; none approved.",
+ "reviews": [
+  {
+   "jurisdiction": "札幌市",
+   "datasetUrl": "https://ckan.pf-sapporo.jp/dataset/public_facility",
+   "rawUrl": "https://ckan.pf-sapporo.jp/dataset/18355704-3066-44eb-b120-aeb0e81fe0e2/resource/acb47fa6-3247-404a-9996-083083472817/download/011005publicfacility.xlsx",
+   "sha256": "97ba28a95ad723e4b220967faf8794ef2c21ae725650acc3356241b5156b1b61",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "coordinatesMissing",
+    "hostPointOnly"
+   ],
+   "reason": "札幌市公共施設一覧 (4 annual workbooks, R4-R6): one asset-register row 「大通公園（喫煙所）」 with 所在地（地番） only. No latitude/longitude; parcel address must not be geocoded. Asset register row is not evidence of current operation."
+  },
+  {
+   "jurisdiction": "札幌市",
+   "datasetUrl": "https://ckan.pf-sapporo.jp/dataset/public_facility",
+   "rawUrl": "https://ckan.pf-sapporo.jp/dataset/18355704-3066-44eb-b120-aeb0e81fe0e2/resource/179c0742-ef52-431e-880d-1b9a62c88f1e/download/011004publicfacility.xls",
+   "sha256": "85c76c295351a0f4972722423f98e9f76054733e6a4abc290a0ff4289e93c758",
+   "format": "xls",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "coordinatesMissing",
+    "hostPointOnly"
+   ],
+   "reason": "札幌市公共施設一覧 (4 annual workbooks, R4-R6): one asset-register row 「大通公園（喫煙所）」 with 所在地（地番） only. No latitude/longitude; parcel address must not be geocoded. Asset register row is not evidence of current operation."
+  },
+  {
+   "jurisdiction": "札幌市",
+   "datasetUrl": "https://ckan.pf-sapporo.jp/dataset/public_facility",
+   "rawUrl": "https://ckan.pf-sapporo.jp/dataset/18355704-3066-44eb-b120-aeb0e81fe0e2/resource/ce39c2fb-4be4-4846-9a4b-13761b087abc/download/011003publicfacility.xls",
+   "sha256": "211d7e21f02df0ad3ab6c384f766b6b9870ef88c329c2dcbc9cb72a488d184d2",
+   "format": "xls",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "coordinatesMissing",
+    "hostPointOnly"
+   ],
+   "reason": "札幌市公共施設一覧 (4 annual workbooks, R4-R6): one asset-register row 「大通公園（喫煙所）」 with 所在地（地番） only. No latitude/longitude; parcel address must not be geocoded. Asset register row is not evidence of current operation."
+  },
+  {
+   "jurisdiction": "札幌市",
+   "datasetUrl": "https://ckan.pf-sapporo.jp/dataset/public_facility",
+   "rawUrl": "https://ckan.pf-sapporo.jp/dataset/18355704-3066-44eb-b120-aeb0e81fe0e2/resource/d331ee85-84ab-471d-bd3a-921861ec8dd5/download/011002publicfacility.xls",
+   "sha256": "85c0c6cd54cef980c94caa16f3aeed1ce85ed972e9aa762e98ee21dc994f8e09",
+   "format": "xls",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "coordinatesMissing",
+    "hostPointOnly"
+   ],
+   "reason": "札幌市公共施設一覧 (4 annual workbooks, R4-R6): one asset-register row 「大通公園（喫煙所）」 with 所在地（地番） only. No latitude/longitude; parcel address must not be geocoded. Asset register row is not evidence of current operation."
+  },
+  {
+   "jurisdiction": "青森市",
+   "datasetUrl": "https://www.city.aomori.aomori.jp/shisei/jouhokoukai/opendata/1006195/1009790.html",
+   "rawUrl": "https://www.city.aomori.aomori.jp/_res/projects/default_project/_page_/001/009/790/7isikityousakaitouitirann.csv",
+   "sha256": "31b208a153e86a37418316d8a31480f05941f9d0bd2394ab036c00d68fff87b2",
+   "format": "csv",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Citizen survey free-text answers mentioning 喫煙所/灰皿; no places."
+  },
+  {
+   "jurisdiction": "津市",
+   "datasetUrl": "https://www.info.city.tsu.mie.jp/kurashi/koseki_juuminhyou/1002332/1008442.html",
+   "rawUrl": "https://www.info.city.tsu.mie.jp/_res/projects/default_project/_page_/001/008/442/bunbetsu20240419.csv",
+   "sha256": "981cb76fb2504641064b09ac39dcf384d7a451a75705a08de9a20df854c58903",
+   "format": "csv",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Garbage-sorting item list (灰皿 as a disposal item)."
+  },
+  {
+   "jurisdiction": "文京区",
+   "datasetUrl": "https://www.city.bunkyo.lg.jp/b037/p005121.html",
+   "rawUrl": "https://www.city.bunkyo.lg.jp/documents/4937/sinseisyo.xlsx",
+   "sha256": "253f02e1e43ec9c4dad20d8e33396900bb855c2591ffc5d2df0ed9ba9544df37",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Application/pledge forms for smoking-area subsidy or manner volunteers; no site records."
+  },
+  {
+   "jurisdiction": "文京区",
+   "datasetUrl": "https://www.city.bunkyo.lg.jp/b037/p005121.html",
+   "rawUrl": "https://www.city.bunkyo.lg.jp/documents/4937/seiyakusyo.xlsx",
+   "sha256": "ed8e2658be9a032d627744fcc097ca55df3a2ce5d8e437b7702fbf037e7fe47f",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Application/pledge forms for smoking-area subsidy or manner volunteers; no site records."
+  },
+  {
+   "jurisdiction": "台東区",
+   "datasetUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/kitsuenjojosei.html",
+   "rawUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/kitsuenjojosei.files/youshiki01-03.xlsx",
+   "sha256": "2d6197b90803006fa7e9f25202e589bf438f39981a8ce4a37a5928e11340d91d",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Application/pledge forms for smoking-area subsidy or manner volunteers; no site records."
+  },
+  {
+   "jurisdiction": "台東区",
+   "datasetUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/kitsuenjojosei.html",
+   "rawUrl": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/kitsuenjojosei.files/youshiki02.xlsx",
+   "sha256": "09c86e3f93eb45fddd83301d84339805c1af7c63c117bc672b755704029ec0af",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Application/pledge forms for smoking-area subsidy or manner volunteers; no site records."
+  },
+  {
+   "jurisdiction": "板橋区",
+   "datasetUrl": "https://www.city.itabashi.tokyo.jp/bousai/kougai/bika/kitsuen/1006109.html",
+   "rawUrl": "https://www.city.itabashi.tokyo.jp/_res/projects/default_project/_page_/001/006/109/moshikomi2.xlsx",
+   "sha256": "6de597972915967f8ff3548c64d77cd2f3bc18384135e8dcb7da96bde52fd7f3",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Application/pledge forms for smoking-area subsidy or manner volunteers; no site records."
+  },
+  {
+   "jurisdiction": "高知県",
+   "datasetUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/",
+   "rawUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/file_contents/file_201512185112847_1.xls",
+   "sha256": "285e0e66ed5da481f39a17b7e6e1cf381705c7e00be3b83b32f0c0218a8ee301",
+   "format": "xls",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Fire annual report tables; 喫煙中 is a fire-cause category."
+  },
+  {
+   "jurisdiction": "高知県",
+   "datasetUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/",
+   "rawUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/file_contents/file_20165220204312_1.xls",
+   "sha256": "d81bfeca33e8f7547bec76e486a9b871e12f8cc2fa89294f046008fd86acb4ec",
+   "format": "xls",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Fire annual report tables; 喫煙中 is a fire-cause category."
+  },
+  {
+   "jurisdiction": "高知県",
+   "datasetUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/",
+   "rawUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/file_contents/file_20176132103643_1.xlsx",
+   "sha256": "8824dd0956d0e370074e31481d30ae26f9ab498cf418d16beea5fdd9d79f3f02",
+   "format": "xlsx",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Fire annual report tables; 喫煙中 is a fire-cause category."
+  },
+  {
+   "jurisdiction": "高知県",
+   "datasetUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/",
+   "rawUrl": "https://www.pref.kochi.lg.jp/opendata/bosai_anzen_machizukuri/file_contents/file_2018620391958_1.xls",
+   "sha256": "db0cf30a4c54bef4a4f551f4581d926fbc0bed95f96bb9aa2a1afbb52a684e5f",
+   "format": "xls",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "noSmokingPoint"
+   ],
+   "reason": "Fire annual report tables; 喫煙中 is a fire-cause category."
+  },
+  {
+   "jurisdiction": "大阪市",
+   "datasetUrl": "https://www.city.osaka.lg.jp/contents/wdu290/opendata/",
+   "rawUrl": "https://www.city.osaka.lg.jp/contents/wdu290/opendata/csv/resource.csv",
+   "sha256": "931857ff852a0e09e2ecf3ada99c752785b0495d69257446e1e8a6c884141372",
+   "format": "csv",
+   "reviewedAt": "2026-10-01",
+   "reviewer": "Claude",
+   "verdict": "blocked",
+   "blockerCodes": [
+    "duplicateKnownResearch"
+   ],
+   "reason": "Open-data index row pointing to opendata_1012.csv, already implemented as osaka-designated-smoking-areas."
+  }
+ ],
+ "unreviewedHits": []
+}
