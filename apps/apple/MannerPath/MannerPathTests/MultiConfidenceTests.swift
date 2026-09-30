@@ -133,6 +133,19 @@ struct MultiConfidenceTests {
         #expect(oldByID["reported"]?.existenceTier == "unknown")
     }
 
+    @Test func watchRankingUsesTheSameFactorsAsIPhone() throws {
+        let near = spot("reported-near", tier: .communityReported, meters: 100)
+        let far = spot("official-far", tier: .official, meters: 1_000)
+        let tieReported = spot("reported-tie", tier: .communityReported, meters: 400)
+        let tieOfficial = spot("official-tie", tier: .official, meters: 400)
+        let snapshot = WatchSnapshotBuilder.build(spots: [far, near, tieReported, tieOfficial], sources: [], near: origin, at: now)
+        let top = WatchRanking.topThree(snapshot, latitude: origin.latitude, longitude: origin.longitude,
+                                        preferences: .defaults(), at: now).map(\.spot.id)
+        let phone = NearbySearch.rank([far, near, tieReported, tieOfficial], from: origin, at: now).prefix(3).map(\.spot.id)
+        #expect(top == Array(phone))
+        #expect(top == ["reported-near", "official-tie", "reported-tie"])
+    }
+
     @Test func newSpotClaimIsSentOnlyWhereTheDeploymentAcceptsIt() throws {
         var draft = ReportDraft(type: .missing, proposedLocation: ReportCoordinate(latitude: 35.7, longitude: 139.7))
         draft.claim = ReportClaim(spotType: "ashtray", accessType: "public", hostType: "convenienceStore", hostName: "店")

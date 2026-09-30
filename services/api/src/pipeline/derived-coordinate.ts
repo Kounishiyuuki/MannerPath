@@ -16,6 +16,7 @@
 // Nothing in this module writes spots, field provenance or tiles.
 
 import { type Db, sha256Hex } from "../db.ts";
+import { withinJapan } from "../geo/japan.ts";
 import { haversineMeters } from "../geo/distance.ts";
 
 export const DERIVED_COORDINATE_GATE_VERSION = "derived-coordinate-gate.v1";
@@ -151,8 +152,7 @@ export interface DerivedCoordinateEvaluation {
   dataLicenses: readonly string[];
 }
 
-// Japan's extent, generously: a derived coordinate outside it is a geocoder failure, whatever the level says.
-const JAPAN = { minLat: 20, maxLat: 46, minLon: 122, maxLon: 154 };
+// A derived coordinate outside Japan is a geocoder failure, whatever the level says.
 
 function jurisdictionMatches(run: GeocodeRun, record: DerivedCoordinateInput["record"]): boolean {
   if (run.pref !== record.expectedPrefecture || run.city === null) return false;
@@ -193,7 +193,7 @@ export function evaluateDerivedCoordinate(
     if (precision === "insufficient") rejections.push("precisionTooLow");
     if (run.coordinateLevel !== run.matchLevel) rejections.push("coordinateCoarserThanMatch");
     if (run.latitude === null || run.longitude === null) rejections.push("noCoordinate");
-    else if (!(run.latitude >= JAPAN.minLat && run.latitude <= JAPAN.maxLat && run.longitude >= JAPAN.minLon && run.longitude <= JAPAN.maxLon)) {
+    else if (!withinJapan(run.latitude, run.longitude)) {
       rejections.push("coordinateInvalid");
     } else coordinate = { latitude: run.latitude, longitude: run.longitude };
     if (!jurisdictionMatches(run, record)) rejections.push("jurisdictionMismatch");

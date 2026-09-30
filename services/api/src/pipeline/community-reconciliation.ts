@@ -17,6 +17,7 @@
 // workflow stay exactly the ordinary ones.
 
 import { type Db, isoSeconds } from "../db.ts";
+import { withinJapan } from "../geo/japan.ts";
 import { distanceMetres } from "./cross-source.ts";
 import { type AgreedClaims, COMMUNITY_ADAPTER, COMMUNITY_SOURCE_ID, communityArtifact } from "./community-adapter.ts";
 import { ingestRelease } from "./ingest.ts";
@@ -107,6 +108,10 @@ function assertPremises(rows: readonly PremiseRow[], now: string, applicationId:
       throw new CommunityReconciliationError(`community: report ${r.report_id} is redacted; its proposal no longer exists`);
     }
     if (r.minimize_after <= now) throw new CommunityReconciliationError(`community: report ${r.report_id} is past its minimization deadline`);
+    // Coordinate sanity (ADR-0012): the API checks only the global range; a pin outside Japan is not a place here.
+    if (!withinJapan(r.proposed_latitude, r.proposed_longitude!)) {
+      throw new CommunityReconciliationError(`community: report ${r.report_id}'s pin is outside Japan`);
+    }
     if (r.state !== "accepted") throw new CommunityReconciliationError(`community: report ${r.report_id} is ${r.state}, not accepted`);
     if (r.reconciliation_state !== "queued") {
       throw new CommunityReconciliationError(`community: report ${r.report_id} is ${r.reconciliation_state}, not queued`);

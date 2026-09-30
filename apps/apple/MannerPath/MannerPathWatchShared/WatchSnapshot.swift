@@ -180,10 +180,25 @@ nonisolated enum WatchRanking {
                                    verificationAgeDays: ageSeconds.map { Int($0 / 86_400) })
         }
         guard latitude != nil, longitude != nil else { return Array(results.prefix(3)) }
-        return results.sorted {
-            $0.distanceMeters == $1.distanceMeters ? $0.spot.id < $1.spot.id :
-                $0.distanceMeters < $1.distanceMeters
-        }.prefix(3).map { $0 }
+        // nearby-ranking.v2, as on iPhone (NearbyRanking): distance lengthened by the same named factors.
+        let ranked = results.map { ($0, $0.distanceMeters * factor($0)) }
+        return ranked.sorted {
+            if $0.1 != $1.1 { return $0.1 < $1.1 }
+            return $0.0.distanceMeters == $1.0.distanceMeters ? $0.0.spot.id < $1.0.spot.id :
+                $0.0.distanceMeters < $1.0.distanceMeters
+        }.prefix(3).map(\.0)
+    }
+
+    static func factor(_ result: WatchRankedSpot) -> Double {
+        let evidence: Double = switch result.spot.existenceTier {
+        case "official", "operator": 1.0
+        case "communityVerified": 1.1
+        default: 1.3
+        }
+        // freshness.v1 "stale": more than 730 days since the observation date the Watch snapshot carries.
+        let stale = (result.verificationAgeDays ?? 0) > 730 ? 1.2 : 1.0
+        let access = ["customerOnly", "facilityOnly"].contains(result.spot.accessType) ? 1.1 : 1.0
+        return evidence * stale * access
     }
 
     private static let knownTypes: Set<String> = ["designatedOutdoorArea", "publicSmokingRoom",

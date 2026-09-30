@@ -526,3 +526,11 @@ test("research replay separates rights blockers from data blockers, and relaxes 
   assert.equal(c(["duplicateKnownResearch"], "operator").route, "B-operatorReusable");
   assert.deepEqual(c("['noSmokingPoint', 'coordinatesMissing']").blockers, ["noSmokingPoint", "coordinatesMissing"], "Python-repr lists parse");
 });
+
+test("coordinate sanity: a pin outside Japan never becomes a listing, whatever its tier", async () => {
+  const db = await world();
+  const honolulu = await newSpotReport(db, HASHES[0], ASHTRAY_AT_STORE, { at: { latitude: 21.30694, longitude: -157.85833 } });
+  await acceptAndQueue(db, honolulu);
+  await assert.rejects(proposeCommunityApplication(db, { reportIds: [honolulu], locationReportId: honolulu, decidedBy: "r", now: APPLY, tier: "communityReported" }),
+    /outside Japan/);
+});
