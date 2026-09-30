@@ -62,17 +62,42 @@ client-side; a site-restricted web search found no smoking dataset on either.
   entrances. Official evidence does not establish that smoking is permitted at any of them.
   Publication status: **blocked** until the publisher states the ashtrays' purpose.
 
+## Second pass: smoking categories inside general facility datasets
+
+Title search misses a smoking category that sits inside a general facility list, so the second pass
+downloaded the resources themselves and searched their contents: every cell, JSON/GeoJSON property
+and KML text, for 喫煙 / 灰皿 / たばこ / タバコ / 煙草 / smok. The scan took the latest two CSV/GeoJSON/KML/JSON
+resources of every package for 32 target cities (the priority list, the 19 added N2 cities and
+鹿児島市), with the following coverage:
+
+| Catalog | Resources scanned | Result |
+|---|---|---|
+| Aggregated non-BODIK catalogs (G空間情報センター, 金沢市, 岐阜県, 山口県, 鳥取県, 徳島県 Our Open Data, 愛媛県, ふじのくに/浜松市 odpf, ODP) | 569 | Kyoto facility list (below); otherwise tax, garbage-sorting, history and restaurant lists only |
+| 神戸市 CKAN (catalog.city.kobe.lg.jp, not aggregated) | 90 | Cargo statistics only |
+| 高松市 CKAN (opendata.smartcity-takamatsu.jp, not aggregated) | 218 | Tax, receipts, garbage; a tobacco shop selling garbage bags (a business, not a smoking place) |
+| 徳島県 Our Open Data (徳島市 section) | 4 more; portal search 喫煙 = 0 | No city facility list on the current portal |
+| BODIK (16 target cities with content) | 609 of 1,694 | Complete for 京都・静岡・名古屋・北九州, 福岡 120/121, 熊本 25/82: surveys and statistics only, no smoking-place category. **Not scanned:** 大津, 津, 和歌山, 堺, 佐賀, 長崎, 大分, 宮崎, 那覇, 鹿児島 (1,085 files). BODIK returned HTTP 403 after a too-parallel first download and was still 403 about nine hours later, including from a different network egress |
+
+Unreachable stale aggregator entries: 大津市's old catalog (436, connection timeout; the city now
+publishes on BODIK), 静岡市's old catalog (45, timeout; now on BODIK), ふじのくに CKAN (52, host no
+longer resolves) and 徳島市's old site (97, HTTP 404).
+
+**Found: 京都市「京都市等の施設に関する情報（一覧表）」** (https://data.city.kyoto.lg.jp/dataset/00003/,
+CC BY 4.0, 著作権者 京都市, updated 2026-09-03). Category 138 is 喫煙場所: 19 rows with publisher IDs
+and coordinates. The city's smoking page links 17 of them by the same ID at identical coordinates.
+The two 西大路 rows conflict with that page and are withheld. A 2017 mirror of the same list on
+G空間 led to the current official file. Approved and implemented: see `docs/SOURCES.md`.
+
+Every other hit was a business or host attribute (restaurants, a shop), statistics or text. None
+is smoking-place evidence.
+
 ## Next value
 
-The N2 bottleneck is licensing, not discovery: western/central cities publish smoking places as
-ordinary HTML (Kyoto 17, Hiroshima 6, Nagoya 3, Shizuoka 3) with no open-data resource. The most
-valuable next step is a publisher request rather than more scanning:
-
-1. 京都市: 17 places with coordinates already maintained, so ask for a CC BY resource on KYOTO OPEN DATA.
-2. 広島市 / 名古屋市 / 静岡市: small, stable official lists; ask for a CSV with publisher coordinates.
-3. 鹿児島市: ask the city whether the マナー灰皿 are smoking points or extinguishing points only.
-4. East Japan N2 cities (Sapporo, Sendai, Yokohama, Kawasaki, Chiba, Saitama, Sagamihara, Niigata)
-   were not in this batch's scope.
+1. 鹿児島市: ask the city whether the マナー灰皿 are smoking points or extinguishing points only.
+2. 京都市: ask the city to resolve the 西大路 north/south discrepancy, which would release 1–2 more rows.
+3. 広島市 / 名古屋市 / 静岡市 / 岡山市: small official HTML lists; ask for a CSV with publisher coordinates.
+4. Other ordinance-city facility maps built like Kyoto's (a category-coded list behind a city map)
+   are the most productive discovery pattern for later batches.
 
 No spot count is claimed for blocked sources, and no coordinates were taken from Google, MapKit,
 OSM or embedded web maps.
