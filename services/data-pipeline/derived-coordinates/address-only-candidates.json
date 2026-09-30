@@ -1,7 +1,7 @@
 {
   "version": "address-only-candidates.v1",
   "adr": "ADR-0011",
-  "generatedFrom": "committed research only (no new fetches); 2026-10-01",
+  "generatedFrom": "committed research only, including #139 high-value reviews (no new fetches); 2026-10-01",
   "note": "Mechanical extraction of official smoking-place candidates whose blocker is missing publisher coordinates. addressForm 'unverified' = research does not state the address form. spotCount null = research states no count. No address strings are copied: re-reading publisher pages is a later, source-specific review step.",
   "candidates": [
     {
@@ -37,11 +37,11 @@
       "majorCity": true,
       "addressForm": "streetAddress",
       "license": "unknown",
-      "currentOperation": "unknown",
+      "currentOperation": "confirmed",
       "spotCount": 6,
       "existence": "officialSmokingPlace",
-      "researchRef": "docs/research/2026-09-30-n2-west-central-municipal-survey.md",
-      "note": "6 park smoking booths by address on an HTML page dated 2025-02-16; reuse terms not reviewed"
+      "researchRef": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+      "note": "#139: current six-booth inventory with address descriptions and diagrams/photos; exact reuse terms unknown"
     },
     {
       "id": "okayama-station",
@@ -140,12 +140,12 @@
       "municipality": "渋谷区",
       "majorCity": true,
       "addressForm": "streetAddress",
-      "license": "unknown",
+      "license": "blocked",
       "currentOperation": "confirmed",
       "spotCount": null,
       "existence": "officialSmokingPlace",
-      "researchRef": "docs/research/2026-09-29-tokyo-n1-source-survey.md",
-      "note": "Current 2026-07-23 list with addresses/hours"
+      "researchRef": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+      "note": "Categorized current inventory with addresses/hours; #139: site policy restricts reuse (reuseForbidden)"
     },
     {
       "id": "sumida-sites",
@@ -192,12 +192,12 @@
       "municipality": "中野区",
       "majorCity": true,
       "addressForm": "imageOrPdf",
-      "license": "unknown",
+      "license": "blocked",
       "currentOperation": "confirmed",
       "spotCount": null,
       "existence": "officialSmokingPlace",
-      "researchRef": "docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json",
-      "note": "Site locations supplied as images/PDF"
+      "researchRef": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+      "note": "Locations as images/PDF; #139: policy requires permission for secondary use"
     },
     {
       "id": "toshima-designated",
@@ -295,13 +295,13 @@
       "prefecture": "東京都",
       "municipality": "大田区",
       "majorCity": true,
-      "addressForm": "unverified",
-      "license": "unknown",
+      "addressForm": "streetAddress",
+      "license": "blocked",
       "currentOperation": "confirmed",
-      "spotCount": null,
+      "spotCount": 11,
       "existence": "officialSmokingPlace",
-      "researchRef": "docs/research/2026-09-29-tokyo-n1-source-survey.md",
-      "note": "Detailed public smoking HTML (2025-06-23)"
+      "researchRef": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+      "note": "#139: 11 sites with hours/addresses and images; website policy excludes unauthorized reuse"
     },
     {
       "id": "arakawa-designated",
@@ -310,11 +310,11 @@
       "majorCity": true,
       "addressForm": "unverified",
       "license": "blocked",
-      "currentOperation": "confirmed",
-      "spotCount": null,
+      "currentOperation": "partial",
+      "spotCount": 9,
       "existence": "officialSmokingPlace",
-      "researchRef": "docs/research/2026-09-29-tokyo-n1-source-survey.md",
-      "note": "Map PDF carries ZENRIN copyright; HTML reuse not established"
+      "researchRef": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+      "note": "#139: nine-site inventory, Google links only, air-conditioning notice leaves operation uncertain; reuseForbidden"
     },
     {
       "id": "meguro-list",
@@ -322,12 +322,12 @@
       "municipality": "目黒区",
       "majorCity": true,
       "addressForm": "unverified",
-      "license": "unknown",
+      "license": "blocked",
       "currentOperation": "confirmed",
-      "spotCount": null,
+      "spotCount": 19,
       "existence": "officialSmokingPlace",
-      "researchRef": "docs/research/2026-09-29-tokyo-n1-source-survey.md",
-      "note": "Direct list with hours and Google links"
+      "researchRef": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
+      "note": "#139: 19 named rows in the relocated designated-smoking list; site policy restricts reuse (reuseForbidden)"
     },
     {
       "id": "setagaya-map",

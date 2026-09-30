@@ -2,8 +2,8 @@
   "total": {
     "candidates": 26,
     "spots": {
-      "stated": 51,
-      "withoutStatedCount": 15
+      "stated": 90,
+      "withoutStatedCount": 12
     },
     "prefectures": [
       "北海道",
@@ -54,9 +54,9 @@
     ]
   },
   "exactAddress": {
-    "candidates": 10,
+    "candidates": 11,
     "spots": {
-      "stated": 34,
+      "stated": 45,
       "withoutStatedCount": 4
     },
     "prefectures": [
@@ -80,13 +80,14 @@
       "渋谷区",
       "豊島区",
       "板橋区",
-      "足立区"
+      "足立区",
+      "大田区"
     ]
   },
   "likelyGeocodable": {
-    "candidates": 9,
+    "candidates": 10,
     "spots": {
-      "stated": 33,
+      "stated": 44,
       "withoutStatedCount": 4
     },
     "prefectures": [
@@ -107,7 +108,8 @@
       "渋谷区",
       "豊島区",
       "板橋区",
-      "足立区"
+      "足立区",
+      "大田区"
     ]
   },
   "insufficientAddress": {
@@ -137,10 +139,10 @@
     ]
   },
   "addressFormUnverified": {
-    "candidates": 8,
+    "candidates": 7,
     "spots": {
-      "stated": 3,
-      "withoutStatedCount": 7
+      "stated": 31,
+      "withoutStatedCount": 4
     },
     "prefectures": [
       "愛知県",
@@ -156,7 +158,6 @@
       "福島市",
       "墨田区",
       "江東区",
-      "大田区",
       "荒川区",
       "目黒区",
       "世田谷区"
@@ -165,39 +166,37 @@
   "currentOperationBlocked": {
     "candidates": 9,
     "spots": {
-      "stated": 23,
+      "stated": 26,
       "withoutStatedCount": 3
     },
     "prefectures": [
       "北海道",
-      "広島県",
       "岡山県",
       "愛知県",
       "東京都"
     ],
     "newPrefectures": [
       "北海道",
-      "広島県",
       "岡山県",
       "愛知県"
     ],
     "majorCities": [
       "札幌市",
-      "広島市",
       "岡山市",
       "名古屋市",
       "千代田区",
       "墨田区",
       "豊島区",
       "練馬区",
+      "荒川区",
       "世田谷区"
     ]
   },
   "licenseBlocked": {
-    "candidates": 6,
+    "candidates": 10,
     "spots": {
-      "stated": 3,
-      "withoutStatedCount": 5
+      "stated": 42,
+      "withoutStatedCount": 6
     },
     "prefectures": [
       "愛知県",
@@ -209,17 +208,21 @@
     "majorCities": [
       "名古屋市",
       "千代田区",
+      "渋谷区",
+      "中野区",
       "北区",
       "足立区",
       "葛飾区",
-      "荒川区"
+      "大田区",
+      "荒川区",
+      "目黒区"
     ]
   },
   "licenseUnknown": {
-    "candidates": 18,
+    "candidates": 14,
     "spots": {
       "stated": 44,
-      "withoutStatedCount": 10
+      "withoutStatedCount": 6
     },
     "prefectures": [
       "広島県",
@@ -241,38 +244,36 @@
       "福島市",
       "新宿区",
       "文京区",
-      "渋谷区",
       "墨田区",
       "江東区",
       "品川区",
-      "中野区",
       "豊島区",
       "板橋区",
       "練馬区",
       "江戸川区",
-      "大田区",
-      "目黒区",
       "世田谷区"
     ]
   },
   "exactAddressIfLicensesResolved": {
     "candidates": 5,
     "spots": {
-      "stated": 21,
-      "withoutStatedCount": 2
+      "stated": 27,
+      "withoutStatedCount": 1
     },
     "prefectures": [
+      "広島県",
       "神奈川県",
       "東京都"
     ],
     "newPrefectures": [
+      "広島県",
       "神奈川県"
     ],
     "majorCities": [
+      "広島市",
       "川崎市",
       "新宿区",
       "文京区",
-      "渋谷区",
       "板橋区"
     ]
   },
@@ -289,7 +290,6 @@
       ],
       "hiroshima-park-booths": [
         "sourceNotApproved",
-        "currentOperationNotConfirmed",
         "addressReuseNotReviewed"
       ],
       "okayama-station": [
@@ -388,11 +388,11 @@
       ],
       "ota-public": [
         "sourceNotApproved",
-        "addressReuseNotReviewed",
-        "noGeocodeResult"
+        "addressReuseNotReviewed"
       ],
       "arakawa-designated": [
         "sourceNotApproved",
+        "currentOperationNotConfirmed",
         "addressReuseNotReviewed",
         "noGeocodeResult"
       ],

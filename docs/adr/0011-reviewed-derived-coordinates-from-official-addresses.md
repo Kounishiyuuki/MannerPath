@@ -147,14 +147,14 @@ through ADR-0011's gate and an approving review; the coordinate is marked derive
 
 ## Impact (replay over committed research, `npm run replay:derived-coordinates`)
 
-26 address-only official smoking candidates (8 prefectures), 51 stated spots plus 15 candidates without a stated
-count. **0 pass the gate today, and 0 pass even in the simulated best case** (policy approved, every
-license-established source approved, every street address at residential detail). The binding blocker is
-license, not coordinates: 18 candidates have unknown reuse terms and 6 are explicitly blocked. The two
-license-established ones fail on other grounds — 札幌 大通公園 (current operation unknown; parcel precision) and
-静岡市 (no address at all). If the reuse terms of the exact-address, currently operating candidates were resolved,
-5 sources (川崎市, 新宿区, 文京区, 渋谷区, 板橋区; ≥21 spots) and one new prefecture (神奈川県) would reach the
-gate. Details: `docs/research/2026-10-01-derived-coordinate-impact.md`.
+26 address-only official smoking candidates (8 prefectures; committed research including #139), 90 stated
+spots plus 12 candidates without a stated count. **0 pass the gate today, and 0 pass even in the simulated best
+case** (policy approved, every license-established source approved, every street address at residential
+detail). The binding blocker is license, not coordinates: 14 candidates have unknown reuse terms and 10 are
+explicitly blocked. The two license-established ones fail on other grounds — 札幌 大通公園 (current operation
+unknown; parcel precision) and 静岡市 (no address at all). If the reuse terms of the exact-address, currently
+operating candidates were resolved, 5 sources (広島市, 川崎市, 新宿区, 文京区, 板橋区; ≥27 spots) and two new
+prefectures (広島県, 神奈川県) would reach the gate. Details: `docs/research/2026-10-01-derived-coordinate-impact.md`.
 
 ## Consequences
 
