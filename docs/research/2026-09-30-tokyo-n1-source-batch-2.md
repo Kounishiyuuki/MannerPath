@@ -42,36 +42,36 @@ All checks below were performed 2026-09-30. Retrieval dates and page update date
 
 No new municipal source beyond Minato meets the full gate in this batch. No maps were geocoded, no host records promoted, no restricted page/PDF payload redistributed.
 
-## Local validation
+## Local validation after rebasing onto #115 (2026-09-30)
 
-| Pipeline | Canonical | Published | Tiles | Quality failures |
+The published main baseline now includes Musashino and the completed-bootstrap Taito quality fix.
+Numbers below are from a fresh five-source local D1, not the earlier four-source branch.
+
+| Pipeline | Raw | Canonical | Published | Tiles |
 |---|---:|---:|---:|---:|
-| Taito | 34 | 32 | 5 | 0 |
-| Osaka | 344 | 344 | 55 | 0 |
-| Koto | 3 | 3 | 3 | 0 |
-| Minato | 114 | 114 | 9 | 0 |
-| Combined | 495 | 493 | 72 | 0 |
+| Taito | 34 | 34 | 32 | 5 |
+| Osaka | 524 | 344 | 344 | 55 |
+| Koto | 3 | 3 | 3 | 3 |
+| Musashino | 25 | 3 | 3 | 3 |
+| Minato | 169 | 114 | 114 | 9 |
+| Combined | 755 | 498 | 496 | 75 |
 
-The committed `minato-source.test.ts` checks four-source ingest/resolve/publish and v3→fresh
-migrated SQLite bootstrap: source counts, license/attribution, exact tile bytes and deterministic
-re-export. Separate isolated local validation also exercises the same functions, quality (14
-combined checks), content-hash verification and real Wrangler D1 fresh migrations / v3 SQL import.
-All migrations stop at main's 0018. Fresh promoted target: four sources, 493 canonical/published,
-72 tiles, one completed v3 bootstrap. Two unpublished Taito canonical rows are intentionally absent
-from publication bundles, preserving existing promotion behavior.
+Fresh Wrangler local D1 migrations 0001–0018, each source ingest/observation/resolution,
+combined publish, quality, promotion-bundle.v3 export, fresh-target bootstrap and deterministic
+re-export all pass. The origin contains 498 source observations; both origin and target quality
+pass all 14 checks. The target carries five sources/releases, 755 raw records, 496 published
+canonical spots and 75 tiles. The prior promoted-target Taito quality failure is resolved by
+#115: only intentionally withheld conflict rows may be absent in a completed, matching
+bootstrap; ordinary ingestion and incomplete bootstrap remain strict.
 
-Known limitation: applying the pipeline-oriented quality analyzer to the fresh promoted target
-fails `taito-public-smoking-areas-list-page-conflicts-resolved-conservatively` because that check
-expects those two excluded canonical rows. The original combined pipeline quality passes every
-check; target tile bytes/attribution survive. This pre-existing analyzer/promotion mismatch is
-reported, not hidden or bypassed. No remote D1, field visit, automatic-refresh/cross-release or
-cross-source merge validation is claimed. Fetch metadata is normalized to canonical JS ISO for
-pipeline quality, with original high-precision retrieval timestamp retained in `fetch.json`.
+The target has zero source_observations and omits two withheld Taito canonical rows under the
+unchanged ADR-0008/migration0018 publication-state bundle contract. This is not a full ingestion
+backup. No remote D1, field visit, automatic refresh, repeated-release or cross-source merge
+validation is claimed.
 
-Final checks: `make contract`, `make api-validate` (495/495 tests), API `npx tsc -p .`,
-`git diff --check`, `git diff origin/main --check` passed. Isolated harness command:
-`node --experimental-strip-types --experimental-sqlite --no-warnings /private/tmp/n1-batch2-validation-final/harness.ts`;
-Wrangler `d1 migrations apply DB --local` and `d1 execute DB --local --file <bundle>` used
-an isolated temporary config and `--persist-to`, never default user state. Final v3 content hash:
-`fd3ee7fc28336ddd2fb8e3bae5289b1dd4cb1fba91eb92000fa1aa68b66f908a`.
-Temporary validation artifacts are not repository fixtures or deployment artifacts.
+Final checks: `make contract`, `make api-validate` (511/511 tests), API `npx tsc -p .`,
+`git diff --check` and `git diff origin/main --check` pass. Fresh local D1 used an isolated
+Wrangler config and `--persist-to`; no default user state. Verified v3 content hash:
+`e97f29748bce69746148308efed179cb29add0ce1eb02dc90ec130646a97db1b`.
+Temporary validation artifacts under `/tmp/mannerpath-integration-112/` are not source
+fixtures or deployment artifacts.
