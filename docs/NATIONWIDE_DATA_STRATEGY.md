@@ -130,6 +130,8 @@ Reports remain evidence proposals, not direct canonical edits.
 - host/business existence is never sufficient evidence;
 - only reviewed community-derived records may count toward the nationwide release gate.
 
+Implemented for new spots by Issue #123 (ADR-0007 and ADR-0006 community amendments). A reviewer applies an explicit application of at least two accepted, queued reports from distinct submitters at one report's pin, and it enters the ordinary resolver as a `userReport` source with evidence quality `communityReviewed`. Such spots count toward the §6 gate only once they are published. They are not published today: the community source is blocked until user-submission reuse rights exist (Issue #124). Closure/move/restriction reports are not yet connected to attenuation or holds.
+
 ## 9. UI implications of nationwide data
 
 The product UI must handle:
