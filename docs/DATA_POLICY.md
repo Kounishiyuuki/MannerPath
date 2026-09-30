@@ -34,6 +34,8 @@ Public Overpass endpoints are ingestion sources, not production client APIs.
 
 The importer architecture may support OSM. **Production publication of OSM-derived canonical records remains blocked** until a dedicated ADR reviews ODbL attribution, database-combination, redistribution/share-alike and API/tile-distribution obligations and explicitly chooses an architecture. Nationwide coverage pressure by itself is not permission to unblock OSM. This document makes no legal conclusion on that question.
 
+ADR-0010 is that ADR. Its outcome: legal review is required before adoption; until then OSM is reference-only (no OSM value stored, published or used to attenuate an official claim); merging OSM into the canonical database is rejected; if adopted, only an isolated OSM-derived database is acceptable. Only `amenity=smoking_area` or a dedicated smoking place counts as existence evidence; `smoking=*` on a venue describes that venue's policy and is not a smoking spot.
+
 ## Source registry
 
 Every source is registered in `docs/SOURCES.md` before its data is published. License fields that have not been reviewed are marked `unreviewed`; an unreviewed source is not published.

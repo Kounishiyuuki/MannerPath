@@ -34,10 +34,11 @@ Rules:
 |---|---|
 | Source ID | `osm` |
 | Kind | osm |
-| License name | ODbL (obligations for MannerPath's combined dataset: unreviewed) |
-| Redistribution to clients allowed | unreviewed |
-| Share-alike obligations | unreviewed |
-| Publication status | blocked |
+| License name | ODbL 1.0 (https://opendatacommons.org/licenses/odbl/1-0/) |
+| Redistribution to clients allowed | unreviewed — requires legal review (ADR-0010 decision 1); tiles/API assumed to be databases |
+| Share-alike obligations | unreviewed — ODbL §4.4/§4.6 apply to any published Derivative Database; reach into the canonical DB is why architecture A is rejected (ADR-0010) |
+| Allowed use now | reference-only (ADR-0010 decision 3): no OSM value is stored, published or used as attenuation |
+| Publication status | blocked (ADR-0010: legal review required before adoption) |
 
 ### 台東区 公衆喫煙所 (Taito City public smoking areas)
 
