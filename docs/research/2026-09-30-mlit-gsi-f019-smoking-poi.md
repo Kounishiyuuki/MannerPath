@@ -23,11 +23,11 @@ authenticated raw acquisition in this environment is **not established**.
 
 | Dataset title / official dataset URL | Published release date in page history | Shapefile resource ID | Inspection extent |
 |---|---|---|---|
-| [東京駅周辺屋内地図オープンデータ（令和２年度更新版）](https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2) | 2021-01-27 | `d441c885-6a15-476b-836d-cddd9a5fa006` | Dataset, Shapefile detail, terms PDF, specification PDF |
-| [成田国際空港屋内地図オープンデータ（令和２年度更新版）](https://www.geospatial.jp/ckan/dataset/mlit-indoor-narita-airport-r2) | 2021-03-10 | `fd298023-506b-42b2-a567-03be4cc0a4d6` | Dataset, Shapefile detail, terms PDF, specification PDF |
+| [東京駅周辺屋内地図オープンデータ（令和２年度更新版）](https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2) | 2021-01-27 | `d441c885-6a15-476b-836d-cddd9a5fa006` | Dataset, Shapefile detail, terms/specification PDFs, recovered local Shapefiles scanned |
+| [成田国際空港屋内地図オープンデータ（令和２年度更新版）](https://www.geospatial.jp/ckan/dataset/mlit-indoor-narita-airport-r2) | 2021-03-10 | `fd298023-506b-42b2-a567-03be4cc0a4d6` | Dataset, Shapefile detail, terms/specification PDFs, recovered local Shapefiles scanned |
 | [新宿駅周辺屋内地図オープンデータ（令和２年度更新版）](https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2) | 2020-10-27 | `f78d039e-7bb6-4b6a-9f5f-2b5a39e309d6`; integrated ZIP `33e78a35-c16a-4746-b451-47c6122ed51b` | Dataset/resource inventory only; raw/terms not inspected |
-| [横浜国際総合競技場屋内地図オープンデータ](https://www.geospatial.jp/ckan/dataset/mlit-indoor-yokohama-arena) | 2019-01-18 | `9fb2efbf-776d-4d3a-aee0-ef058e123aea` | Dataset/resource inventory only; raw/terms not inspected |
-| [新横浜駅屋内地図オープンデータ](https://www.geospatial.jp/ckan/dataset/mlit-indoor-shin-yokohama) | 2019-11-15 | `3e4802ba-df95-4efd-87aa-47e0a70fce0b` | Dataset/resource inventory only; raw/terms not inspected |
+| [横浜国際総合競技場屋内地図オープンデータ](https://www.geospatial.jp/ckan/dataset/mlit-indoor-yokohama-arena) | 2019-01-18 | `9fb2efbf-776d-4d3a-aee0-ef058e123aea` | Dataset/resource inventory; recovered local Shapefiles scanned; terms not reviewed this session |
+| [新横浜駅屋内地図オープンデータ](https://www.geospatial.jp/ckan/dataset/mlit-indoor-shin-yokohama) | 2019-11-15 | `3e4802ba-df95-4efd-87aa-47e0a70fce0b` | Dataset/resource inventory; recovered local Shapefiles scanned; terms not reviewed this session |
 
 Resource detail URLs are the dataset URL followed by `/resource/<resource ID>`.
 Raw ZIP URLs remain **unavailable through the inspected anonymous UI**, not inferred
