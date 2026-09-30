@@ -15,6 +15,8 @@ An importer must have fixtures and tests before being scheduled.
 
 Six municipal adapters now enter the same ingest → observation → resolution → tile/detail path:
 Taito, Osaka City's designated smoking locations, Koto's station-front locations, Musashino's licensed KML public smoking sites, Minato's designated smoking points, and Kyoto City's public smoking places.
+The shared observation boundary rejects non-finite or out-of-range coordinates before storing an
+observation (latitude -90…90, longitude -180…180). Adapters retain any tighter source-specific bounds.
 Source review, licensing and exact attribution
 are in `docs/SOURCES.md`; immutable fixture evidence is under `fixtures/`.
 
