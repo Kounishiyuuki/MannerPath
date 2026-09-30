@@ -20,6 +20,7 @@ it touches ingest or reconciliation.
 | ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
 | source adapters, multi-source/multi-release matching, nationwide pipeline boundaries | ADR-0008 |
 | relocation, natural keys, relocation holds | ADR-0009 |
+| geocoding an official address, derived coordinates | ADR-0011 (Proposed; publication not approved) |
 | adding, approving, or changing a data source | `docs/SOURCES.md`, `docs/DATA_POLICY.md` |
 | the beta corpus's coverage, freshness, or measured quality | `docs/BETA_DATA_QUALITY.md` |
 

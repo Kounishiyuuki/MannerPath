@@ -15,7 +15,8 @@
 // `promotion_cross_source_merge_attestations`, and Issue #124/#127 (0021) only the empty
 // `report_terms_versions` / `community_effect_applications` / `community_effect_evidence` /
 // `community_publication_holds` / `promotion_multi_bootstrap_additive_releases` plus the zero
-// `quality.nationwide.community` block; every other byte was unchanged.
+// `quality.nationwide.community` block, and ADR-0011 (0022) only the empty `derived_coordinate_geocodes` /
+// `derived_coordinate_reviews`; every other byte was unchanged.
 //
 // Compressed tile sizes depend on the zlib build (Issue #76), so the golden's quality analysis runs
 // with a deterministic stand-in sizer instead of node:zlib. Its `gzipBytes` figures are therefore

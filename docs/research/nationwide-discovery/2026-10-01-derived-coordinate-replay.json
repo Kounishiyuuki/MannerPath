@@ -1,0 +1,412 @@
+{
+  "total": {
+    "candidates": 26,
+    "spots": {
+      "stated": 90,
+      "withoutStatedCount": 12
+    },
+    "prefectures": [
+      "北海道",
+      "静岡県",
+      "広島県",
+      "岡山県",
+      "愛知県",
+      "神奈川県",
+      "福島県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "北海道",
+      "静岡県",
+      "広島県",
+      "岡山県",
+      "愛知県",
+      "神奈川県",
+      "福島県"
+    ],
+    "majorCities": [
+      "札幌市",
+      "静岡市",
+      "広島市",
+      "岡山市",
+      "名古屋市",
+      "川崎市",
+      "福島市",
+      "千代田区",
+      "新宿区",
+      "文京区",
+      "渋谷区",
+      "墨田区",
+      "江東区",
+      "品川区",
+      "中野区",
+      "豊島区",
+      "北区",
+      "板橋区",
+      "練馬区",
+      "足立区",
+      "葛飾区",
+      "江戸川区",
+      "大田区",
+      "荒川区",
+      "目黒区",
+      "世田谷区"
+    ]
+  },
+  "exactAddress": {
+    "candidates": 11,
+    "spots": {
+      "stated": 45,
+      "withoutStatedCount": 4
+    },
+    "prefectures": [
+      "北海道",
+      "広島県",
+      "神奈川県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "北海道",
+      "広島県",
+      "神奈川県"
+    ],
+    "majorCities": [
+      "札幌市",
+      "広島市",
+      "川崎市",
+      "千代田区",
+      "新宿区",
+      "文京区",
+      "渋谷区",
+      "豊島区",
+      "板橋区",
+      "足立区",
+      "大田区"
+    ]
+  },
+  "likelyGeocodable": {
+    "candidates": 10,
+    "spots": {
+      "stated": 44,
+      "withoutStatedCount": 4
+    },
+    "prefectures": [
+      "広島県",
+      "神奈川県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "広島県",
+      "神奈川県"
+    ],
+    "majorCities": [
+      "広島市",
+      "川崎市",
+      "千代田区",
+      "新宿区",
+      "文京区",
+      "渋谷区",
+      "豊島区",
+      "板橋区",
+      "足立区",
+      "大田区"
+    ]
+  },
+  "insufficientAddress": {
+    "candidates": 8,
+    "spots": {
+      "stated": 14,
+      "withoutStatedCount": 4
+    },
+    "prefectures": [
+      "静岡県",
+      "岡山県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "静岡県",
+      "岡山県"
+    ],
+    "majorCities": [
+      "静岡市",
+      "岡山市",
+      "品川区",
+      "中野区",
+      "北区",
+      "練馬区",
+      "葛飾区",
+      "江戸川区"
+    ]
+  },
+  "addressFormUnverified": {
+    "candidates": 7,
+    "spots": {
+      "stated": 31,
+      "withoutStatedCount": 4
+    },
+    "prefectures": [
+      "愛知県",
+      "福島県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "愛知県",
+      "福島県"
+    ],
+    "majorCities": [
+      "名古屋市",
+      "福島市",
+      "墨田区",
+      "江東区",
+      "荒川区",
+      "目黒区",
+      "世田谷区"
+    ]
+  },
+  "currentOperationBlocked": {
+    "candidates": 9,
+    "spots": {
+      "stated": 26,
+      "withoutStatedCount": 3
+    },
+    "prefectures": [
+      "北海道",
+      "岡山県",
+      "愛知県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "北海道",
+      "岡山県",
+      "愛知県"
+    ],
+    "majorCities": [
+      "札幌市",
+      "岡山市",
+      "名古屋市",
+      "千代田区",
+      "墨田区",
+      "豊島区",
+      "練馬区",
+      "荒川区",
+      "世田谷区"
+    ]
+  },
+  "licenseBlocked": {
+    "candidates": 10,
+    "spots": {
+      "stated": 42,
+      "withoutStatedCount": 6
+    },
+    "prefectures": [
+      "愛知県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "愛知県"
+    ],
+    "majorCities": [
+      "名古屋市",
+      "千代田区",
+      "渋谷区",
+      "中野区",
+      "北区",
+      "足立区",
+      "葛飾区",
+      "大田区",
+      "荒川区",
+      "目黒区"
+    ]
+  },
+  "licenseUnknown": {
+    "candidates": 14,
+    "spots": {
+      "stated": 44,
+      "withoutStatedCount": 6
+    },
+    "prefectures": [
+      "広島県",
+      "岡山県",
+      "神奈川県",
+      "福島県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "広島県",
+      "岡山県",
+      "神奈川県",
+      "福島県"
+    ],
+    "majorCities": [
+      "広島市",
+      "岡山市",
+      "川崎市",
+      "福島市",
+      "新宿区",
+      "文京区",
+      "墨田区",
+      "江東区",
+      "品川区",
+      "豊島区",
+      "板橋区",
+      "練馬区",
+      "江戸川区",
+      "世田谷区"
+    ]
+  },
+  "exactAddressIfLicensesResolved": {
+    "candidates": 5,
+    "spots": {
+      "stated": 27,
+      "withoutStatedCount": 1
+    },
+    "prefectures": [
+      "広島県",
+      "神奈川県",
+      "東京都"
+    ],
+    "newPrefectures": [
+      "広島県",
+      "神奈川県"
+    ],
+    "majorCities": [
+      "広島市",
+      "川崎市",
+      "新宿区",
+      "文京区",
+      "板橋区"
+    ]
+  },
+  "gate": {
+    "currentPassing": [],
+    "bestCaseCandidate": [],
+    "bestCaseReviewRequired": [],
+    "bestCaseRejections": {
+      "sapporo-odori-park": [
+        "currentOperationNotConfirmed"
+      ],
+      "shizuoka-station-plazas": [
+        "noGeocodeResult"
+      ],
+      "hiroshima-park-booths": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "okayama-station": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressNotPublisherSupplied",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "nagoya-smoking-places": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "kawasaki-designated": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "fukushima-city": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "chiyoda-free-smoking": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed"
+      ],
+      "shinjuku-public": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "bunkyo-designated": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "shibuya-list": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "sumida-sites": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "koto-assisted": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "shinagawa-pdf": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "nakano-images": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "toshima-designated": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed"
+      ],
+      "kita-stations": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "itabashi-public": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "nerima-stations": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "adachi-stations": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "katsushika-sites": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "edogawa-stations": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "ota-public": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed"
+      ],
+      "arakawa-designated": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "meguro-list": [
+        "sourceNotApproved",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ],
+      "setagaya-map": [
+        "sourceNotApproved",
+        "currentOperationNotConfirmed",
+        "addressReuseNotReviewed",
+        "noGeocodeResult"
+      ]
+    }
+  }
+}
