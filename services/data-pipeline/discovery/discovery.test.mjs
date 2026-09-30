@@ -9,6 +9,16 @@ import {runDiscovery} from './cli.mjs';
 import {discoverResources} from './connectors.mjs';
 async function temporary(t){const dir=await mkdtemp(join(tmpdir(),'discovery-'));t.after(()=>rm(dir,{recursive:true,force:true}));return dir;}
 const reply=(text,headers={})=>new Response(text,{headers});
+test('rescanning preserves manual review metadata without changing discovery approval boundary', async t => {
+ const dir=await temporary(t), statePath=join(dir,'state.json');
+ const deepReview={status:'blocked',deepReviewed:true,reviewReference:'manual.json',blockerCodes:['reuseForbidden']};
+ await writeFile(statePath,JSON.stringify({version:1,targets:{a:{status:'metadataScanned',completedAt:'2026-09-30',deepReview}},resources:{}}));
+ const state=await runDiscovery({manifest:{targets:[{id:'a',name:'A',rawResources:[{url:'https://a.test/data.csv'}]}]},statePath,rescan:true,
+  fetcher:{get:async()=>({status:200,bytes:Buffer.from('name,lat,lng\n喫煙所,35,139')})}});
+ assert.deepEqual(state.targets.a.deepReview,deepReview);
+ assert.equal(state.targets.a.status,'candidate');
+ assert.deepEqual(JSON.parse(await readFile(statePath,'utf8')).targets.a.deepReview,deepReview);
+});
 test('cache hit, content hash deduplication, ETag and Last-Modified revalidation',async t=>{const dir=await temporary(t);let calls=0;const fetcher=new FetchCache({directory:dir,delayMs:0,validateUrl:async()=>{},fetchImpl:async(url,options)=>{calls++;if(calls===3){assert.equal(options.headers['If-None-Match'],'"v1"');assert.equal(options.headers['If-Modified-Since'],'today');return new Response(null,{status:304});}return reply('same',{etag:'"v1"','last-modified':'today'});}});const first=await fetcher.get('https://a.test/a');assert.equal((await fetcher.get('https://a.test/a')).cacheHit,true);assert.equal(calls,1);assert.equal((await fetcher.get('https://a.test/b')).sha256,first.sha256);assert.equal((await fetcher.get('https://a.test/a',{revalidate:true})).revalidated,true);assert.equal(calls,3);});
 test('per host concurrency one and configurable delay, distinct hosts progress',async t=>{const dir=await temporary(t);let active=0,max=0,time=0;const waits=[];const fetcher=new FetchCache({directory:dir,delayMs:20,now:()=>time,sleep:async ms=>{waits.push(ms);time+=ms;},validateUrl:async()=>{},fetchImpl:async()=>{active++;max=Math.max(active,max);await new Promise(r=>setTimeout(r,5));active--;return reply('ok');}});await Promise.all(['a','b','c'].map(p=>fetcher.get('https://a.test/'+p)));assert.equal(max,1);assert.deepEqual(waits,[20,20]);await Promise.all([fetcher.get('https://b.test/'),fetcher.get('https://c.test/')]);assert.equal(max,2);});
 for(const status of [403,429])test(status+' stops host, persists on resume, other host continues',async t=>{const dir=await temporary(t);let calls=0;const options={directory:dir,delayMs:0,validateUrl:async()=>{},fetchImpl:async url=>{calls++;return url.includes('bad')?new Response(null,{status}):reply('ok');}};const fetcher=new FetchCache(options);assert.equal((await fetcher.get('https://bad.test/a')).status,status);assert.equal((await fetcher.get('https://bad.test/b')).hostStopped,true);assert.equal((await new FetchCache(options).get('https://bad.test/c')).hostStopped,true);assert.equal((await fetcher.get('https://good.test/')).status,200);assert.equal(calls,2);});

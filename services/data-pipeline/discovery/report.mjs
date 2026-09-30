@@ -7,16 +7,28 @@ const references = evidence => [...new Set((evidence || []).map(item => item.ref
 
 /** Coverage means an existing reviewed publication source, never a discovery result. */
 export function buildReport(manifest, state, reviews = []) {
+  const legacyReviews = reviews.filter(review => !['targetId', 'deepReviewed', 'deepReviewedAt'].some(key => Object.hasOwn(review, key)));
+  const targetIds = new Set(manifest.targets.map(target => target.id));
+  const deepReviews = new Map();
+  for (const review of reviews) {
+    if (!targetIds.has(review.targetId) || review.deepReviewed === false || typeof review.deepReviewedAt !== 'string') continue;
+    const timestamp = Date.parse(review.deepReviewedAt);
+    if (!Number.isFinite(timestamp)) continue;
+    const previous = deepReviews.get(review.targetId);
+    if (!previous || timestamp >= Date.parse(previous.deepReviewedAt)) deepReviews.set(review.targetId, review);
+  }
   const targets = manifest.targets.map(target => {
     const scan = state.targets[target.id];
     const reviewedSourceIds = target.reviewedSourceIds || [];
     const candidateUrls = (scan?.resourceUrls || []).filter(url => state.resources[url]?.status === 'candidate');
-    const candidatesRejected = candidateUrls.length > 0 && candidateUrls.every(url => reviews.some(review => review.rawUrl === url && review.verdict === 'blocked'));
+    const deepReview = deepReviews.get(target.id) || null;
+    const candidatesRejected = candidateUrls.length > 0 && candidateUrls.every(url => legacyReviews.some(review => review.rawUrl === url && review.verdict === 'blocked'));
     const coverage = reviewedSourceIds.length ? 'covered' : !scan ? 'unscanned' :
-      candidatesRejected ? 'blocked' : scan.status === 'candidate' ? 'candidate' : scan.status === 'blocked' ? 'blocked' : 'scanned/no source';
+      deepReview?.verdict === 'blocked' || candidatesRejected ? 'blocked' : scan.status === 'candidate' ? 'candidate' : scan.status === 'blocked' ? 'blocked' : 'scanned/no source';
     return {
       id: target.id, jurisdiction: target.name, prefecture: target.prefecture, kind: target.kind,
       roles: target.roles, coverage, reviewedSourceIds, discoveryStatus: scan?.status || 'unscanned',
+      deepReview,
       completedAt: scan?.completedAt || null, priorState: target.seedStatus,
       firstScannedAt: scan?.firstScannedAt || scan?.completedAt || null,
       blockerCodes: scan?.blockerCodes || [], truncated: scan?.truncated || false,
@@ -64,10 +76,15 @@ export function buildReport(manifest, state, reviews = []) {
       blockedGroups: targets.filter(t => t.discoveryStatus === 'blocked').length,
       truncatedGroups: targets.filter(t => t.truncated).length,
       keywordCandidates: resources.filter(r => r.status === 'candidate').length,
-      individuallyReviewedCandidates: reviews.length,
-      rejectedKeywordCandidates: reviews.filter(r => r.verdict === 'blocked').length,
-      newApproved: reviews.filter(r => r.verdict === 'approved').length,
-      newImplemented: reviews.filter(r => r.implementedSourceId).length,
+      individuallyReviewedCandidates: legacyReviews.length,
+      rejectedKeywordCandidates: legacyReviews.filter(r => r.verdict === 'blocked').length,
+      newApproved: legacyReviews.filter(r => r.verdict === 'approved').length,
+      newImplemented: legacyReviews.filter(r => r.implementedSourceId).length,
+      deepReviewedGroups: deepReviews.size,
+      deepBlockedGroups: [...deepReviews.values()].filter(r => r.verdict === 'blocked').length,
+      deepCandidateGroups: [...deepReviews.values()].filter(r => r.verdict === 'candidate').length,
+      deepApprovedGroups: [...deepReviews.values()].filter(r => r.verdict === 'approved').length,
+      deepImplementedGroups: [...deepReviews.values()].filter(r => r.implementedSourceId).length,
       existingReviewedSources: new Set(targets.flatMap(t => t.reviewedSourceIds)).size,
       coveredPrefectures: prefectures.filter(p => p.coverage === 'covered').length,
       coveredCapitals: targets.filter(t => t.roles.includes('prefecturalCapital') && t.coverage === 'covered').length,

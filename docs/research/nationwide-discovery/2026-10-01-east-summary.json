@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "issue": 133,
+  "parentIssue": 67,
+  "reviewedBy": "Codex",
+  "originalDiscoveryRun": "2026-09-30-run.json",
+  "originalManifestSha256": "b772882d3fb28f3fa6563196b36fddecb72f6dc1bb2ac38f91a9d7ab326abd82",
+  "reviewAttestations": "2026-10-01-east-deep-reviews.json",
+  "summary": {
+    "assignedGroups": 41,
+    "deepReviewedGroups": 39,
+    "blockedGroups": 39,
+    "candidateGroups": 0,
+    "approvedGroups": 0,
+    "implementedGroups": 0,
+    "pendingGroups": [
+      "pref-hokkaido",
+      "pref-yamanashi"
+    ]
+  },
+  "newSources": [],
+  "newSpots": 0,
+  "newPrefectures": [],
+  "newMajorCities": [],
+  "scanScope": "Deep review scope is exact inspected exports/primary routes; blocked does not assert source absence; pending groups not counted.",
+  "approvalAutomated": false
+}
