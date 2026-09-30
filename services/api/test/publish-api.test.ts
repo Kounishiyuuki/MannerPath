@@ -101,6 +101,8 @@ test("tile body v1: exact shape, fixed key order, heated-only and unknown values
   assert.deepEqual(Object.keys(spots[0]), [
     "id", "name", "latitude", "longitude", "spotType", "accessType", "environment", "supportsPaper",
     "supportsHeated", "openingHours", "lifecycle", "evidenceQuality", "evidenceQualityVersion", "lastVerifiedAt", "sourceIds",
+    // ADR-0012, additive to schemaVersion 1.
+    "spotSubtype", "hostType", "accessDetail", "verification",
   ]);
   const heated = spots.find((s) => s.name === "e-booth御徒町　※加熱式たばこ専用");
   assert.deepEqual([heated.supportsPaper, heated.supportsHeated, heated.openingHours.status, heated.openingHours.parsed], ["no", "yes", "unparsed", null]);
@@ -111,6 +113,8 @@ test("tile body v1: exact shape, fixed key order, heated-only and unknown values
     openingHours: { status: "parsed", raw: "終日利用可能", parsed: { v: 1, kind: "allDay" }, timeZone: "Asia/Tokyo" },
     lifecycle: "active", evidenceQuality: "officialListing", evidenceQualityVersion: "evidence-quality.v1",
     lastVerifiedAt: "2026-08-18", sourceIds: [TAITO_SOURCE_ID],
+    spotSubtype: null, hostType: "unknown", accessDetail: null,
+    verification: { version: "spot-verification.v1", existence: "official", locationPrecision: "publisherPoint", confirmations: null, lastReviewedMonth: "2026-08" },
   });
   assert.ok(spots.every((s) => s.lastVerifiedAt === "2026-08-18"));
 });

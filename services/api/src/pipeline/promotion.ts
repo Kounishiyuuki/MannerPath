@@ -170,7 +170,7 @@ const TABLES: readonly TableSpec[] = [
   },
   {
     table: "spots",
-    columns: ["spot_id", "merged_into", "name", "latitude", "longitude", "tile_z", "tile_x", "tile_y", "tile_id", "spot_type", "host_type", "access_type", "environment", "supports_paper", "supports_heated", "opening_hours_raw", "opening_hours_json", "opening_hours_status", "time_zone", "fee_type", "floor", "entrance_note", "lifecycle", "publication_hold", "evidence_quality", "evidence_quality_version", "last_verified_at", "resolver_version", "created_at", "updated_at"],
+    columns: ["spot_id", "merged_into", "name", "latitude", "longitude", "tile_z", "tile_x", "tile_y", "tile_id", "spot_type", "host_type", "access_type", "environment", "supports_paper", "supports_heated", "opening_hours_raw", "opening_hours_json", "opening_hours_status", "time_zone", "fee_type", "floor", "entrance_note", "lifecycle", "publication_hold", "evidence_quality", "evidence_quality_version", "last_verified_at", "resolver_version", "created_at", "updated_at", "spot_subtype", "access_detail", "community_confirmations", "last_reviewed_on"],
     // Live spots first, so a redirect's target exists when the redirect is inserted (spots.merged_into is a foreign
     // key). Without merges every merged_into is NULL and this is exactly ORDER BY spot_id.
     sql: `SELECT * FROM spots WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY merged_into IS NOT NULL, spot_id`,
@@ -460,7 +460,7 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
     for (const bodySpot of raw.spots) {
       const spot = spots.find((s) => s.spot_id === bodySpot.id);
       const source = sources.find((s) => s.source_id === (bodySpot as { sourceIds?: string[] }).sourceIds?.[0]);
-      if (spot === undefined || source === undefined || JSON.stringify(spotDto({ ...spot, ...source } as unknown as CandidateRow)) !== JSON.stringify(bodySpot)) {
+      if (spot === undefined || source === undefined || JSON.stringify(spotDto({ ...spot, ...source, source_kind: source.kind } as unknown as CandidateRow)) !== JSON.stringify(bodySpot)) {
         fail(`tile ${tileId}: body for spot ${bodySpot.id} does not match its canonical row; republish before exporting`);
       }
     }

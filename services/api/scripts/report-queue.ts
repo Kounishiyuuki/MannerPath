@@ -9,7 +9,8 @@
 //
 // Community reconciliation of queued new-spot (`missing`) reports (Issue #123, migration 0020):
 //   npm run local:reports -- candidates <withinMetres>       # read-only grouping; the radius is always explicit
-//   npm run local:reports -- propose <decidedBy> <locationReportId> <reportId> <reportId>...
+//   npm run local:reports -- propose <decidedBy> <locationReportId> <reportId> <reportId>...   # communityVerified
+//   npm run local:reports -- propose-reported <decidedBy> <reportId>  # ONE consented, classified report (ADR-0012)
 //   npm run local:reports -- apply ca_...                     # sanitized userReport release -> resolve, one batch
 //   npm run local:reports -- withdraw ca_...
 //
@@ -20,6 +21,7 @@
 //   npm run local:reports -- effect-hold ce_...                # prohibited only; refused (blocked) until community rights hold (#124)
 //   npm run local:reports -- effect-lift ce_... <liftedBy>     # then npm run local:pipeline (or publish) to republish
 //   npm run local:reports -- effect-withdraw ce_...
+//   npm run local:reports -- upgrade ce_... <decidedBy>        # applied exists effect: communityReported -> communityVerified
 //   npm run local:reports -- summary                          # pending -> accepted -> queued -> application -> applied, counts only
 //
 // The queue view prints the claim under review; it never prints the hashed submitter key, and no
@@ -47,6 +49,7 @@ import {
   proposeCommunityApplication,
   withdrawCommunityApplication,
 } from "../src/pipeline/community-reconciliation.ts";
+import { upgradeCommunityEvidence } from "../src/pipeline/community-verification.ts";
 
 const [command = "list", ...args] = process.argv.slice(2);
 const proxy = await getPlatformProxy<{ DB: Db }>({ remoteBindings: false });
@@ -86,6 +89,16 @@ try {
       throw new Error("usage: propose <decidedBy> <locationReportId> <reportId> <reportId>...");
     }
     console.log("application", await proposeCommunityApplication(db, { reportIds, locationReportId, decidedBy, now }));
+  } else if (command === "propose-reported") {
+    const [decidedBy, reportId] = args;
+    if (!decidedBy || !reportId) throw new Error("usage: propose-reported <decidedBy> <reportId>");
+    console.log("application", await proposeCommunityApplication(db, {
+      reportIds: [reportId], locationReportId: reportId, decidedBy, now, tier: "communityReported",
+    }));
+  } else if (command === "upgrade") {
+    const [effectApplicationId, decidedBy] = args;
+    if (!effectApplicationId || !decidedBy) throw new Error("usage: upgrade <effectApplicationId> <decidedBy>");
+    console.log("upgrade", await upgradeCommunityEvidence(db, effectApplicationId, { decidedBy, now }));
   } else if (command === "apply") {
     const [applicationId] = args;
     if (!applicationId) throw new Error("usage: apply <applicationId>");

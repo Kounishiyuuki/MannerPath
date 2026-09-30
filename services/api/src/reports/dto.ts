@@ -53,6 +53,37 @@ const proposedLocation = z.object({
   longitude: z.number().min(-180).max(180),
 }).strict();
 
+export const CLAIM_HOST_NAME_MAX = 80;
+export const CLAIM_HOURS_NOTE_MAX = 120;
+
+/**
+ * What a new-spot (`missing`) report states about the place (ADR-0012). Only `spotType` is required once a claim
+ * is sent: the reporter says what kind of smoking place it is, or `unknown`. Every other member is optional and
+ * means "not stated". The host type is where the place is (a convenience store, a café) — never evidence that
+ * smoking is permitted there; the report itself is that claim. There is no staff-only/private access value:
+ * such a place is not a public search result and must not be reported as one.
+ */
+export const NewSpotClaim = z.object({
+  spotType: z.enum(["designatedOutdoorArea", "publicSmokingRoom", "facilitySmokingRoom", "ashtray", "smokingPermittedVenue", "unknown"]),
+  spotSubtype: z.enum(["smokingCorner", "tobaccoShopSmokingSpace"]).optional(),
+  accessType: z.enum(["public", "customerOnly", "facilityOnly", "unknown"]).optional(),
+  accessDetail: z.enum(["ticketedUsersOnly"]).optional(),
+  hostType: z.enum(["municipality", "station", "airport", "commercialBuilding", "convenienceStore", "tobaccoShop", "restaurantOrCafe", "other", "unknown"]).optional(),
+  environment: z.enum(["indoor", "outdoor", "covered", "unknown"]).optional(),
+  supportsPaper: z.enum(["yes", "no", "unknown"]).optional(),
+  supportsHeated: z.enum(["yes", "no", "unknown"]).optional(),
+  // Free text, personal content like `note`: shown to a reviewer, minimized after 90 days, never published.
+  hostName: z.string().min(1).max(CLAIM_HOST_NAME_MAX).optional(),
+  hoursNote: z.string().min(1).max(CLAIM_HOURS_NOTE_MAX).optional(),
+}).strict().superRefine((c, ctx) => {
+  if (c.spotSubtype !== undefined && c.spotType === "unknown") {
+    ctx.addIssue({ code: "custom", path: ["spotSubtype"], message: "a subtype refines a stated spot type" });
+  }
+  if (c.accessDetail !== undefined && c.accessType !== "facilityOnly") {
+    ctx.addIssue({ code: "custom", path: ["accessDetail"], message: "ticketedUsersOnly refines facilityOnly" });
+  }
+});
+
 const reportFields = <V extends number>(version: V) => z.object({
   schemaVersion: z.literal(version),
   type: z.enum(REPORT_TYPES),
@@ -69,6 +100,8 @@ const reportFields = <V extends number>(version: V) => z.object({
   // so a v2 assertion signs it. Optional for compatibility: a report without it is stored without consent and is
   // never a basis for community publication. When present it must be the deployment's current version.
   acceptedTermsVersion: z.string().regex(TERMS_VERSION).optional(),
+  // ADR-0012: what a `missing` report states about the new place. Optional, so every older client stays valid.
+  claim: NewSpotClaim.optional(),
   // No `attestation` field: v1 is the unattested version, and in v2 attestation material travels
   // in the envelope, outside the signed payload (ADR-0007 §6).
 }).strict().superRefine((r, ctx) => {
@@ -84,6 +117,9 @@ const reportFields = <V extends number>(version: V) => z.object({
   }
   if (!needsLocation && r.proposedLocation !== undefined) {
     ctx.addIssue({ code: "custom", path: ["proposedLocation"], message: "not accepted for this report type" });
+  }
+  if (r.type !== "missing" && r.claim !== undefined) {
+    ctx.addIssue({ code: "custom", path: ["claim"], message: "accepted only for a missing (new-spot) report" });
   }
 });
 

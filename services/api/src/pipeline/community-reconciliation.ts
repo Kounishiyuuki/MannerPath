@@ -4,8 +4,10 @@
 //
 //   listCommunityCandidates        read-only grouping of queued `missing` reports for a reviewer. Needs an
 //                                  explicit radius: no grouping distance is reviewed, so none is a default.
-//   proposeCommunityApplication    a reviewer's immutable decision: these reports (>= 2 distinct submitters),
-//                                  at this report's pin. Changes nothing canonical.
+//   proposeCommunityApplication    a reviewer's immutable decision: these reports, at this report's pin, as this
+//                                  evidence tier (ADR-0012): `communityVerified` needs >= 2 distinct submitters;
+//                                  `communityReported` is ONE consented report with an explicit, known spot-type claim.
+//                                  Changes nothing canonical.
 //   applyCommunityApplication      writes the sanitized single-record release of the userReport source and
 //                                  resolves it; the application and every report move to `applied` in the
 //                                  same batch, whose triggers re-check every premise (0020).
@@ -16,7 +18,7 @@
 
 import { type Db, isoSeconds } from "../db.ts";
 import { distanceMetres } from "./cross-source.ts";
-import { COMMUNITY_ADAPTER, COMMUNITY_SOURCE_ID, communityArtifact } from "./community-adapter.ts";
+import { type AgreedClaims, COMMUNITY_ADAPTER, COMMUNITY_SOURCE_ID, communityArtifact } from "./community-adapter.ts";
 import { ingestRelease } from "./ingest.ts";
 import { ensureReviewedSource } from "./registry.ts";
 import { resolveFirstRelease } from "./resolve.ts";
@@ -24,6 +26,9 @@ import { resolveFirstRelease } from "./resolve.ts";
 export const COMMUNITY_RECONCILIATION_VERSION = "community-reconciliation.v1";
 /** "Corroboration across independent evidence" (strategy §8): more than one submitter. Not a publication threshold. */
 export const MIN_INDEPENDENT_REPORTS = 2;
+/** The tier rule a new application declares (migration 0023, ADR-0012). */
+export const COMMUNITY_TIER_RULE_VERSION = "community-tiers.v1";
+export type CommunityTier = "communityReported" | "communityVerified";
 
 export class CommunityReconciliationError extends Error {}
 
@@ -54,6 +59,14 @@ interface PremiseRow {
   reconciliation_state: string | null;
   linked_application_id: string | null;
   accepted_terms_version: string | null;
+  claim_spot_type: AgreedClaims["spotType"] | null;
+  claim_spot_subtype: AgreedClaims["spotSubtype"];
+  claim_access_type: AgreedClaims["accessType"] | null;
+  claim_access_detail: AgreedClaims["accessDetail"];
+  claim_host_type: AgreedClaims["hostType"];
+  claim_environment: AgreedClaims["environment"] | null;
+  claim_supports_paper: AgreedClaims["supportsPaper"] | null;
+  claim_supports_heated: AgreedClaims["supportsHeated"] | null;
 }
 
 async function readPremises(db: Db, reportIds: readonly string[]): Promise<PremiseRow[]> {
@@ -61,7 +74,9 @@ async function readPremises(db: Db, reportIds: readonly string[]): Promise<Premi
   for (const id of reportIds) {
     const row = await db.prepare(
       `SELECT r.report_id, r.report_type, r.proposed_latitude, r.proposed_longitude, r.submitter_hash, r.minimize_after,
-              r.redacted_at, m.state, m.reconciliation_state, e.application_id AS linked_application_id, r.accepted_terms_version
+              r.redacted_at, m.state, m.reconciliation_state, e.application_id AS linked_application_id, r.accepted_terms_version,
+              r.claim_spot_type, r.claim_spot_subtype, r.claim_access_type, r.claim_access_detail, r.claim_host_type,
+              r.claim_environment, r.claim_supports_paper, r.claim_supports_heated
        FROM reports r LEFT JOIN report_moderation m ON m.report_id = r.report_id
        LEFT JOIN community_reconciliation_evidence e ON e.report_id = r.report_id
        WHERE r.report_id = ?`,
@@ -73,9 +88,18 @@ async function readPremises(db: Db, reportIds: readonly string[]): Promise<Premi
 }
 
 /** The premises both propose and apply need. Messages name report IDs only, never content or submitter. */
-function assertPremises(rows: readonly PremiseRow[], now: string, applicationId: string | null): void {
-  if (rows.length < MIN_INDEPENDENT_REPORTS) {
-    throw new CommunityReconciliationError(`community: ${rows.length} report(s); a new community spot needs at least ${MIN_INDEPENDENT_REPORTS}`);
+function assertPremises(rows: readonly PremiseRow[], now: string, applicationId: string | null, tier: CommunityTier): void {
+  if (tier === "communityVerified" && rows.length < MIN_INDEPENDENT_REPORTS) {
+    throw new CommunityReconciliationError(`community: ${rows.length} report(s); a communityVerified spot needs at least ${MIN_INDEPENDENT_REPORTS}`);
+  }
+  if (tier === "communityReported") {
+    if (rows.length !== 1) throw new CommunityReconciliationError(`community: a communityReported spot rests on exactly one report, got ${rows.length}`);
+    // A single report carries no corroboration, so it must carry the rest explicitly (0023).
+    if (rows[0].accepted_terms_version === null) throw new CommunityReconciliationError(`community: report ${rows[0].report_id} has no terms consent`);
+    // A host business alone is not a smoking place: the reporter must say what the smoking place is.
+    if (rows[0].claim_spot_type === null || rows[0].claim_spot_type === "unknown") {
+      throw new CommunityReconciliationError(`community: report ${rows[0].report_id} states no known spot type`);
+    }
   }
   for (const r of rows) {
     if (r.report_type !== "missing") throw new CommunityReconciliationError(`community: report ${r.report_id} is ${r.report_type}, not a new-spot proposal`);
@@ -94,6 +118,40 @@ function assertPremises(rows: readonly PremiseRow[], now: string, applicationId:
   if (new Set(rows.map((r) => r.submitter_hash)).size !== rows.length) {
     throw new CommunityReconciliationError("community: two reports come from the same submitter; they are not independent evidence");
   }
+}
+
+/**
+ * community-reconciliation.agreedClaims: a field takes a value only when every report that states it states the same
+ * value; no statement, or any disagreement, leaves it unknown. Nothing is ever inferred from a host business: a
+ * convenience store or a café is only a host, never evidence of a spot type or of smoking being permitted.
+ */
+export function agreedClaims(rows: readonly PremiseRow[]): AgreedClaims {
+  const agreed = <T>(values: readonly (T | null)[]): T | null => {
+    const stated = new Set(values.filter((v) => v !== null && v !== "unknown"));
+    return stated.size === 1 ? [...stated][0] as T : null;
+  };
+  const spotType = agreed(rows.map((r) => r.claim_spot_type)) ?? "unknown";
+  const accessType = agreed(rows.map((r) => r.claim_access_type)) ?? "unknown";
+  // A refinement survives only with the value it refines.
+  const spotSubtype = spotType === "unknown" ? null : agreed(rows.map((r) => r.claim_spot_subtype));
+  const accessDetail = accessType === "facilityOnly" ? agreed(rows.map((r) => r.claim_access_detail)) : null;
+  return {
+    spotType,
+    spotSubtype: spotSubtype !== null && compatibleSubtype(spotType, spotSubtype) ? spotSubtype : null,
+    accessType,
+    accessDetail,
+    hostType: agreed(rows.map((r) => r.claim_host_type)),
+    environment: agreed(rows.map((r) => r.claim_environment)) ?? "unknown",
+    supportsPaper: agreed(rows.map((r) => r.claim_supports_paper)) ?? "unknown",
+    supportsHeated: agreed(rows.map((r) => r.claim_supports_heated)) ?? "unknown",
+  };
+}
+
+/** The 0023 spots_refinements_consistent rule, so an incompatible pair is dropped rather than refused at resolve. */
+function compatibleSubtype(spotType: AgreedClaims["spotType"], subtype: NonNullable<AgreedClaims["spotSubtype"]>): boolean {
+  return subtype === "tobaccoShopSmokingSpace"
+    ? ["smokingPermittedVenue", "facilitySmokingRoom", "ashtray"].includes(spotType)
+    : ["designatedOutdoorArea", "facilitySmokingRoom", "ashtray"].includes(spotType);
 }
 
 /**
@@ -158,6 +216,8 @@ export async function listCommunityCandidates(db: Db, opts: { withinMetres: numb
 
 export interface ProposeInput {
   reportIds: readonly string[];
+  /** The evidence tier the reviewer decides. Defaults to communityVerified, the only tier before ADR-0012. */
+  tier?: CommunityTier;
   /** One of reportIds: its pin becomes the spot's location, exactly as submitted (rounded to ~1 m by the API). */
   locationReportId: string;
   decidedBy: string;
@@ -172,14 +232,16 @@ export async function proposeCommunityApplication(db: Db, input: ProposeInput): 
     throw new CommunityReconciliationError("community: the adopted location must be one of the application's reports");
   }
   const now = isoSeconds(input.now);
-  assertPremises(await readPremises(db, reportIds), now, null);
+  const tier = input.tier ?? "communityVerified";
+  assertPremises(await readPremises(db, reportIds), now, null, tier);
   const applicationId = (input.newApplicationId ?? newApplicationId)();
   await db.batch([
     db.prepare(
       `INSERT INTO community_reconciliation_applications
-         (application_id, claim_type, location_report_id, reconciliation_version, decided_by, decided_at, state)
-       VALUES (?, 'newSpot', ?, ?, ?, ?, 'proposed')`,
-    ).bind(applicationId, input.locationReportId, COMMUNITY_RECONCILIATION_VERSION, input.decidedBy, now),
+         (application_id, claim_type, location_report_id, reconciliation_version, decided_by, decided_at, state,
+          evidence_tier, tier_rule_version)
+       VALUES (?, 'newSpot', ?, ?, ?, ?, 'proposed', ?, ?)`,
+    ).bind(applicationId, input.locationReportId, COMMUNITY_RECONCILIATION_VERSION, input.decidedBy, now, tier, COMMUNITY_TIER_RULE_VERSION),
     ...reportIds.map((id) => db.prepare(
       "INSERT INTO community_reconciliation_evidence (report_id, application_id) VALUES (?, ?)",
     ).bind(id, applicationId)),
@@ -193,11 +255,12 @@ interface ApplicationRow {
   reconciliation_version: string;
   state: "proposed" | "applied" | "withdrawn";
   release_id: number | null;
+  evidence_tier: CommunityTier | null;
 }
 
 async function readApplication(db: Db, applicationId: string): Promise<ApplicationRow> {
   const row = await db.prepare(
-    `SELECT application_id, location_report_id, reconciliation_version, state, release_id
+    `SELECT application_id, location_report_id, reconciliation_version, state, release_id, evidence_tier
      FROM community_reconciliation_applications WHERE application_id = ?`,
   ).bind(applicationId).first<ApplicationRow>();
   if (!row) throw new CommunityReconciliationError(`community: application ${applicationId} does not exist`);
@@ -228,7 +291,11 @@ export async function applyCommunityApplication(
   ).bind(applicationId).all<{ report_id: string }>();
   const reportIds = links.map((l) => l.report_id);
   const premises = await readPremises(db, reportIds);
-  assertPremises(premises, now, applicationId);
+  // A legacy (pre-0023) application is a two-submitter decision, so it resolves as communityVerified. Its row keeps
+  // no count (it declared no tier); the artifact records the count the premises prove.
+  const tier = application.evidence_tier ?? "communityVerified";
+  assertPremises(premises, now, applicationId, tier);
+  const independentSubmitters = new Set(premises.map((p) => p.submitter_hash)).size;
   const pin = premises.find((p) => p.report_id === application.location_report_id);
   if (!pin) throw new CommunityReconciliationError(`community: application ${applicationId}'s location report is not its evidence`);
 
@@ -236,6 +303,7 @@ export async function applyCommunityApplication(
   const bytes = communityArtifact({
     applicationId, latitude: pin.proposed_latitude!, longitude: pin.proposed_longitude!, reportIds,
     version: application.reconciliation_version, termsVersion: commonTermsVersion(premises),
+    tier, independentSubmitters, claims: agreedClaims(premises),
   });
   // No observation date: the reports' own dates are personal and minimized after 90 days (ADR-0007 §4), and
   // the review date is not an observation, so lastVerifiedAt stays unknown (ADR-0006).
@@ -245,8 +313,10 @@ export async function applyCommunityApplication(
 
   const guards = [
     db.prepare(
-      "UPDATE community_reconciliation_applications SET state = 'applied', release_id = ?, applied_at = ? WHERE application_id = ? AND state = 'proposed'",
-    ).bind(releaseId, now, applicationId),
+      `UPDATE community_reconciliation_applications SET state = 'applied', release_id = ?, applied_at = ?,
+         independent_submitters = CASE WHEN evidence_tier IS NULL THEN NULL ELSE ? END
+       WHERE application_id = ? AND state = 'proposed'`,
+    ).bind(releaseId, now, independentSubmitters, applicationId),
     ...reportIds.map((id) => db.prepare(
       "UPDATE report_moderation SET reconciliation_state = 'applied', updated_at = ? WHERE report_id = ?",
     ).bind(now, id)),

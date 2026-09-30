@@ -20,8 +20,9 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
     `SELECT s.spot_id, s.name, s.latitude, s.longitude, s.tile_id, s.tile_z, s.tile_x, s.tile_y, s.spot_type,
             s.access_type, s.environment, s.supports_paper, s.supports_heated, s.opening_hours_raw,
             s.opening_hours_json, s.opening_hours_status, s.time_zone, s.evidence_quality,
-            s.evidence_quality_version, s.last_verified_at,
-            src.source_id, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
+            s.evidence_quality_version, s.last_verified_at, s.spot_subtype, s.host_type, s.access_detail,
+            s.community_confirmations, s.last_reviewed_on,
+            src.source_id, src.kind AS source_kind, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
             ts.tile_id AS tile_snapshot_id
      FROM tile_snapshot_spots ts
      JOIN spots s ON s.spot_id = ts.spot_id

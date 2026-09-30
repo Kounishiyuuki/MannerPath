@@ -1,6 +1,7 @@
 // Retention pass (ADR-0007 §4). Minimization does not wait for moderation: an unreviewed backlog
 // must not become a way to keep personal content indefinitely. What survives is the non-personal
-// skeleton -- id, type, subject, attestation verdict, timestamps -- so counts stay honest.
+// skeleton -- id, type, subject, attestation verdict, timestamps, and the categorical claims about a place (ADR-0012)
+// -- so counts stay honest. The free-text claims (host name, hours note) are personal content and go with the note.
 
 import { purgeExpiredChallengesStatement } from "../attest/store.ts";
 import { type Db, isoSeconds } from "../db.ts";
@@ -30,7 +31,7 @@ export async function applyReportRetention(db: Db, opts: { now: Date }): Promise
   const statements = due.results.map((row) => db.prepare(
     `UPDATE reports
         SET note = NULL, proposed_latitude = NULL, proposed_longitude = NULL,
-            observed_on = NULL, submitter_hash = NULL, redacted_at = ?
+            observed_on = NULL, submitter_hash = NULL, claim_host_name = NULL, claim_hours_note = NULL, redacted_at = ?
       WHERE report_id = ? AND redacted_at IS NULL`,
   ).bind(now, row.report_id));
   statements.push(db.prepare("DELETE FROM report_rate_windows WHERE expires_at <= ?").bind(now));

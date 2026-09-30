@@ -45,6 +45,7 @@ export async function createReport(
   const receivedAt = isoSeconds(opts.now);
   const location = request.proposedLocation;
   const terms = request.acceptedTermsVersion === undefined ? null : reviewedTerms(request.acceptedTermsVersion);
+  const claim = request.claim;
 
   await db.batch([
     ...(opts.guards ?? []),
@@ -54,8 +55,10 @@ export async function createReport(
       `INSERT INTO reports (
          report_id, schema_version, report_type, subject_spot_id,
          proposed_latitude, proposed_longitude, observed_on, note,
-         submitter_hash, attestation_status, received_at, minimize_after, redacted_at, accepted_terms_version
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+         submitter_hash, attestation_status, received_at, minimize_after, redacted_at, accepted_terms_version,
+         claim_spot_type, claim_spot_subtype, claim_access_type, claim_access_detail, claim_host_type, claim_environment,
+         claim_supports_paper, claim_supports_heated, claim_host_name, claim_hours_note
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
       reportId,
       request.schemaVersion,
@@ -70,6 +73,16 @@ export async function createReport(
       receivedAt,
       isoSeconds(minimizeAfter(opts.now)),
       terms?.version ?? null,
+      claim?.spotType ?? null,
+      claim?.spotSubtype ?? null,
+      claim?.accessType ?? null,
+      claim?.accessDetail ?? null,
+      claim?.hostType ?? null,
+      claim?.environment ?? null,
+      claim?.supportsPaper ?? null,
+      claim?.supportsHeated ?? null,
+      claim?.hostName ?? null,
+      claim?.hoursNote ?? null,
     ),
     db.prepare(
       `INSERT INTO report_moderation (report_id, state, reconciliation_state, updated_at)

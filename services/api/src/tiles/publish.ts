@@ -7,7 +7,7 @@
 // a spot under an active community publication hold is not a candidate at all.
 
 import { type Db, sha256Hex } from "../db.ts";
-import { TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
+import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
 
 export interface CandidateRow {
   spot_id: string;
@@ -30,7 +30,13 @@ export interface CandidateRow {
   evidence_quality: string;
   evidence_quality_version: string;
   last_verified_at: string | null;
+  spot_subtype: TileSpotV1["spotSubtype"];
+  host_type: TileSpotV1["hostType"] | null;
+  access_detail: TileSpotV1["accessDetail"];
+  community_confirmations: number | null;
+  last_reviewed_on: string | null;
   source_id: string;
+  source_kind: string;
   display_name: string;
   license_name: string | null;
   license_url: string | null;
@@ -44,6 +50,25 @@ export interface PublishReport {
   published: { tileId: string; revision: number; spotCount: number; contentSha256: string }[];
   unchanged: string[];
   excluded: { sourceId: string; publicationStatus: string; spotCount: number }[];
+}
+
+/**
+ * The ADR-0012 trust axes, derived from the evidence's source kind and the spot's recorded evidence. Nothing here
+ * is a score: each axis is a named fact, and an unknown stays unknown.
+ */
+export function verificationDto(r: CandidateRow): SpotVerificationV1 {
+  const community = r.source_kind === "userReport";
+  const existence = community
+    ? (r.evidence_quality === "communityReported" ? "communityReported" : "communityVerified")
+    : r.source_kind === "operator" ? "operator" : "official";
+  return {
+    version: SPOT_VERIFICATION_VERSION,
+    existence,
+    locationPrecision: community ? "communityPinned"
+      : r.evidence_quality === "officialListingDerivedLocation" ? "reviewedDerived" : "publisherPoint",
+    confirmations: community ? r.community_confirmations : null,
+    lastReviewedMonth: (community ? r.last_reviewed_on : r.last_verified_at)?.slice(0, 7) ?? null,
+  };
 }
 
 export function spotDto(r: CandidateRow): TileSpotV1 {
@@ -67,6 +92,10 @@ export function spotDto(r: CandidateRow): TileSpotV1 {
     evidenceQualityVersion: r.evidence_quality_version,
     lastVerifiedAt: r.last_verified_at,
     sourceIds: [r.source_id],
+    spotSubtype: r.spot_subtype,
+    hostType: r.host_type ?? "unknown",
+    accessDetail: r.access_detail,
+    verification: verificationDto(r),
   };
 }
 
@@ -87,8 +116,9 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
     `SELECT s.spot_id, s.name, s.latitude, s.longitude, s.tile_id, s.tile_z, s.tile_x, s.tile_y, s.spot_type,
             s.access_type, s.environment, s.supports_paper, s.supports_heated, s.opening_hours_raw,
             s.opening_hours_json, s.opening_hours_status, s.time_zone, s.evidence_quality,
-            s.evidence_quality_version, s.last_verified_at,
-            src.source_id, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
+            s.evidence_quality_version, s.last_verified_at, s.spot_subtype, s.host_type, s.access_detail,
+            s.community_confirmations, s.last_reviewed_on,
+            src.source_id, src.kind AS source_kind, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
             cr.rights_granted AS community_rights_granted
      FROM spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
