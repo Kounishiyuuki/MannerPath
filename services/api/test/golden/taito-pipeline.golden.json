@@ -636,6 +636,8 @@
     "cross_source_candidates": [],
     "cross_source_decisions": [],
     "cross_source_merge_applications": [],
+    "derived_coordinate_geocodes": [],
+    "derived_coordinate_reviews": [],
     "promotion_bootstrap_completions": [],
     "promotion_bootstraps": [],
     "promotion_cross_source_merge_attestations": [],
