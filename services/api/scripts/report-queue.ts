@@ -7,6 +7,12 @@
 //   npm run local:reports -- queue rp_... queued|discarded
 //   npm run local:reports -- retain                          # run the retention/minimization pass
 //
+// Community reconciliation of queued new-spot (`missing`) reports (Issue #123, migration 0020):
+//   npm run local:reports -- candidates <withinMetres>       # read-only grouping; the radius is always explicit
+//   npm run local:reports -- propose <decidedBy> <locationReportId> <reportId> <reportId>...
+//   npm run local:reports -- apply ca_...                     # sanitized userReport release -> resolve, one batch
+//   npm run local:reports -- withdraw ca_...
+//
 // The queue view prints the claim under review; it never prints the hashed submitter key, and no
 // raw install identifier or attestation material exists in the database to print.
 import { getPlatformProxy } from "wrangler";
@@ -21,6 +27,12 @@ import {
   setReconciliationState,
 } from "../src/reports/moderation.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
+import {
+  applyCommunityApplication,
+  listCommunityCandidates,
+  proposeCommunityApplication,
+  withdrawCommunityApplication,
+} from "../src/pipeline/community-reconciliation.ts";
 
 const [command = "list", ...args] = process.argv.slice(2);
 const proxy = await getPlatformProxy<{ DB: Db }>({ remoteBindings: false });
@@ -43,14 +55,32 @@ try {
   } else if (command === "queue") {
     const [reportId, state] = args;
     if (state !== "queued" && state !== "discarded") {
-      // 'applied' is deliberately unreachable: nothing in this slice applies a report, so the CLI
-      // must not be able to claim that reconciliation happened.
+      // 'applied' is never set by hand: only `apply` reaches it, in the batch that writes the evidence.
       throw new Error("usage: queue <reportId> <queued|discarded>");
     }
     if (!reportId) throw new Error("usage: queue <reportId> <queued|discarded>");
     // Rejected unless the report is accepted; queuing is still not publication.
     await setReconciliationState(db, reportId, state as ExposedReconciliationState, now);
     console.log("reconciliation", reportId, state);
+  } else if (command === "candidates") {
+    const [within] = args;
+    if (!within) throw new Error("usage: candidates <withinMetres>");
+    console.log(JSON.stringify(await listCommunityCandidates(db, { withinMetres: Number(within), now }), null, 2));
+  } else if (command === "propose") {
+    const [decidedBy, locationReportId, ...reportIds] = args;
+    if (!decidedBy || !locationReportId || reportIds.length === 0) {
+      throw new Error("usage: propose <decidedBy> <locationReportId> <reportId> <reportId>...");
+    }
+    console.log("application", await proposeCommunityApplication(db, { reportIds, locationReportId, decidedBy, now }));
+  } else if (command === "apply") {
+    const [applicationId] = args;
+    if (!applicationId) throw new Error("usage: apply <applicationId>");
+    console.log("apply", applicationId, await applyCommunityApplication(db, applicationId, { now }));
+  } else if (command === "withdraw") {
+    const [applicationId] = args;
+    if (!applicationId) throw new Error("usage: withdraw <applicationId>");
+    await withdrawCommunityApplication(db, applicationId, { now });
+    console.log("withdrawn", applicationId);
   } else if (command === "retain") {
     console.log("retention", await applyReportRetention(db, { now }));
   } else {

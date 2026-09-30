@@ -25,6 +25,14 @@ export const FIRST_RELEASE_MATCHER_VERSION = "first-release.v1";
 // official (municipal/government) source. Other values arrive with the sources that need them.
 export const EVIDENCE_QUALITY_VERSION = "evidence-quality.v1";
 export const OFFICIAL_LISTING = "officialListing";
+// v2 adds communityReviewed: backed by an applied community reconciliation application (Issue #123).
+// Adding a value bumps the version (ADR-0006); municipal spots keep writing their v1 value unchanged.
+export const EVIDENCE_QUALITY_V2 = "evidence-quality.v2";
+export const COMMUNITY_REVIEWED = "communityReviewed";
+const EVIDENCE_QUALITY_BY_KIND: Readonly<Record<string, { value: string; version: string }>> = {
+  municipal: { value: OFFICIAL_LISTING, version: EVIDENCE_QUALITY_VERSION },
+  userReport: { value: COMMUNITY_REVIEWED, version: EVIDENCE_QUALITY_V2 },
+};
 
 // The only publication hold the schema knows (migration 0004). A new hold reason arrives with its
 // own migration and attenuation effect.
@@ -52,6 +60,13 @@ export function resolveObservation(o: SourceObservation, attenuations: readonly 
 export interface ResolveOptions {
   now: string;
   newSpotId?: () => string;
+  /**
+   * Statements that must commit together with the canonical write, or not at all — a community
+   * reconciliation application and its reports moving to `applied` (./community-reconciliation.ts).
+   * They run first in the same batch, so an abort in their triggers writes nothing canonical.
+   * Only the first-release / additive path uses them.
+   */
+  guards?: DbStatement[];
 }
 
 export type ResolveResult =
@@ -90,10 +105,13 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     return { status: "alreadyApplied" };
   }
   if (release.status !== "ingested") throw new Error(`resolve: release ${releaseId} is ${release.status}`);
-  if (release.kind !== "municipal") {
-    throw new Error(`resolve: ${OFFICIAL_LISTING} requires a municipal source, ${release.source_id} is ${release.kind}`);
+  if (EVIDENCE_QUALITY_BY_KIND[release.kind] === undefined) {
+    throw new Error(`resolve: no evidence quality is reviewed for ${release.source_id}, a ${release.kind} source`);
   }
-  const previous = await db.prepare(
+  // A userReport source is additive (migration 0020): every release is one reviewed application, none
+  // continues or supersedes another, and none is current. The cross-release path never applies to it.
+  const additive = release.kind === "userReport";
+  const previous = additive ? null : await db.prepare(
     "SELECT release_id FROM source_releases WHERE source_id = ? AND status = 'applied' AND release_id <> ?",
   ).bind(release.source_id, releaseId).first<{ release_id: number }>();
   if (previous) {
@@ -103,6 +121,7 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
           "cross-release reconciliation is not implemented until a matcher is validated on two real releases",
       );
     }
+    if (opts.guards !== undefined) throw new Error(`resolve: guards are supported only for a first or additive release, not release ${releaseId}`);
     return resolveNextRelease(db, adapter, releaseId, release, opts);
   }
 
@@ -119,7 +138,7 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
   );
 
   const now = opts.now;
-  const statements = [];
+  const statements = [...(opts.guards ?? [])];
   const spotIds: string[] = [];
   for (const record of observations) {
     const spotId = newSpotId();
@@ -128,7 +147,8 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
       FIRST_RELEASE_MATCHER_VERSION, "first known release of this source; no cross-release match attempted"));
   }
   statements.push(
-    db.prepare("UPDATE source_releases SET status = 'applied', applied_at = ?, is_current = 1 WHERE release_id = ?").bind(now, releaseId),
+    db.prepare("UPDATE source_releases SET status = 'applied', applied_at = ?, is_current = ? WHERE release_id = ?")
+      .bind(now, additive ? 0 : 1, releaseId),
   );
   await db.batch(statements);
   return { status: "resolved", spotIds };
@@ -166,7 +186,7 @@ function newSpotStatements(
     ).bind(spotId, r.name, r.latitude, r.longitude, tile.z, tile.x, tile.y, formatTileId(tile),
       r.supportsPaper, r.supportsHeated, r.openingHours.raw,
       r.openingHours.parsed ? JSON.stringify(r.openingHours.parsed) : null, r.openingHours.status,
-      r.lifecycle, r.publicationHold, OFFICIAL_LISTING, EVIDENCE_QUALITY_VERSION, release.observed_on, resolverVersion, now, now),
+      r.lifecycle, r.publicationHold, EVIDENCE_QUALITY_BY_KIND[release.kind].value, EVIDENCE_QUALITY_BY_KIND[release.kind].version, release.observed_on, resolverVersion, now, now),
     db.prepare(
       `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
        VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,

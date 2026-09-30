@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
+import { COMMUNITY_REGISTRY } from "../src/pipeline/community-adapter.ts";
 import { MUSASHINO_ADAPTER } from "../src/pipeline/musashino-adapter.ts";
 import { MINATO_ADAPTER } from "../src/pipeline/minato-adapter.ts";
 import { KOTO_ADAPTER } from "../src/pipeline/koto-adapter.ts";
@@ -33,7 +34,9 @@ function insertBareRelease(db: SqliteD1, sourceId: string, parserVersion: string
 }
 
 test("the reviewed registry is exactly the independently reviewed adapters' registry entries", () => {
-  assert.deepEqual(REVIEWED_SOURCES, [TAITO_REGISTRY, OSAKA_ADAPTER.registry, KOTO_ADAPTER.registry, MUSASHINO_ADAPTER.registry, MINATO_ADAPTER.registry, KYOTO_ADAPTER.registry]);
+  // The community userReport source is reviewed but not fetched, so it is outside SOURCE_ADAPTERS (Issue #123).
+  assert.deepEqual(REVIEWED_SOURCES, [TAITO_REGISTRY, OSAKA_ADAPTER.registry, KOTO_ADAPTER.registry, MUSASHINO_ADAPTER.registry, MINATO_ADAPTER.registry, KYOTO_ADAPTER.registry, COMMUNITY_REGISTRY]);
+  assert.equal(COMMUNITY_REGISTRY.publicationStatus, "blocked", "no terms yet let MannerPath republish submissions (Issue #124)");
   assert.deepEqual(SOURCE_ADAPTERS, [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER]);
   assert.equal(new Set(SOURCE_ADAPTERS.map((a) => a.registry.sourceId)).size, SOURCE_ADAPTERS.length);
   assert.equal(SOURCE_ADAPTERS.includes(TEST_BLOCKED_TAITO_ADAPTER), false, "the test-only adapter is never reviewed");
