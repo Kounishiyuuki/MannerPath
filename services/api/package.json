@@ -28,6 +28,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260919.1",
     "typescript": "7.0.2",
-    "wrangler": "4.135.0"
+    "wrangler": "4.135.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }

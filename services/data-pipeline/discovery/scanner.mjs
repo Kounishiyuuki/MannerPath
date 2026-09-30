@@ -1,5 +1,7 @@
 import {sha256} from './fetch-cache.mjs';
 const keyword=/喫煙|灰皿|smoking(?:\s+(?:area|room|place))?/iu;
+// Place terms name a location; incidental text (喫煙可, 禁煙) never does. Both stay candidates only.
+const placeKeyword=/公衆喫煙所|指定喫煙所|公設喫煙場所|喫煙所|喫煙場所|喫煙スペース|喫煙コーナー|灰皿|smoking\s+(?:area|room|place)/iu;
 const category=/category|cate_id|type|class|code|description|カテゴリ|分類|種別|説明/iu;
 export function parseDelimited(text,delimiter=',') {
  const rows=[];let row=[],field='',quoted=false,closed=false;
@@ -22,26 +24,45 @@ export function parseKml(text){
 }
 function flatten(object,prefix=''){return Object.entries(object).flatMap(([key,value])=>value&&typeof value==='object'&&!Array.isArray(value)?flatten(value,prefix+key+'.'):[[prefix+key,value]]);}
 function coordinates(row){const props=row.properties||row.attributes||row;const geom=row.geometry;if(geom?.type==='Point')return geom.coordinates?.slice(0,2);
- const entries=Object.entries(props);const lat=entries.find(([k])=>/^(lat|latitude|緯度)$/iu.test(k));const lng=entries.find(([k])=>/^(lon|lng|longitude|経度)$/iu.test(k));if(!lat||!lng||String(lat[1]).trim()===''||String(lng[1]).trim()==='')return null;return [Number(lng[1]),Number(lat[1])];}
-export function inspectPayload(bytes,{url='',format='',contentType='',encoding}={}) {
- const result={sha256:sha256(bytes),format:format.toLowerCase(),rawRowCount:null,matchingRowCount:0,matchingValues:[],categoryInventory:{},coordinateAvailability:'unknown',geometryTypes:[],possibleCrs:null,blockerCodes:[]};
- try{
-  const ext=new URL(url||'https://local/payload').pathname.split('.').pop().toLowerCase();const f=result.format||ext;
-  if(['zip','kmz','shp','gpkg'].includes(f)||bytes.subarray(0,2).toString()==='PK'||bytes.subarray(0,15).toString()==='SQLite format 3'){result.format=['zip','kmz','shp','gpkg'].includes(f)?f:bytes.subarray(0,2).toString()==='PK'?'zip':'gpkg';result.blockerCodes=['incompatibleFormat'];result.inspectionNote='Binary archive/GIS metadata requires a separate local inspector; no CRS inference';return result;}
-  let text;try{text=new TextDecoder(encoding||'utf-8',{fatal:true}).decode(bytes);}catch{text=new TextDecoder('shift_jis',{fatal:true}).decode(bytes);result.encoding='shift_jis';}
-  text=text.replace(/^\uFEFF/,'');let rows;
-  if(f==='kml'||/<(?:\w+:)?kml\b/i.test(text)){rows=parseKml(text);result.format='kml';result.possibleCrs='EPSG:4326 (KML standard)';}
-  else if(['json','geojson'].includes(f)||/json/i.test(contentType)||/^[\s]*[\[{]/.test(text)){const data=JSON.parse(text);result.format=data.type==='FeatureCollection'?'geojson':'json';rows=data.type==='FeatureCollection'?data.features:Array.isArray(data)?data:data.features||data.records||data.data||(data.type==='Feature'?[data]:[data]);if(!Array.isArray(rows))throw Error('JSON records are not an array');result.truncated=data.exceededTransferLimit===true;result.possibleCrs=data.crs|| (result.format==='geojson'?'RFC7946 WGS84; publisher semantics unreviewed':null);}
-  else if(['csv','tsv'].includes(f)||/csv|tab-separated/.test(contentType)){result.format=f==='tsv'?'tsv':'csv';rows=parseDelimited(text,result.format==='tsv'?'\t':',');}
-  else {result.blockerCodes=['incompatibleFormat'];return result;}
-  const matches=[];const geometry=new Set();let pointCount=0;
+ const entries=Object.entries(props);const lat=entries.find(([k])=>/^(lat|latitude|緯度)(?:$|[\s(（_])/iu.test(k));const lng=entries.find(([k])=>/^(lon|lng|longitude|経度)(?:$|[\s(（_])/iu.test(k));if(!lat||!lng||String(lat[1]).trim()===''||String(lng[1]).trim()==='')return null;return [Number(lng[1]),Number(lat[1])];}
+/** BOM, then declared charset, then strict UTF-8, then strict Shift_JIS (WHATWG = CP932). Never a lossy guess. */
+export function decodeText(input,{encoding,contentType=''}={}){
+ const bytes=Buffer.from(input);
+ if(bytes[0]===0xef&&bytes[1]===0xbb&&bytes[2]===0xbf)return {text:new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(3)),encoding:'utf-8-bom'};
+ if(bytes[0]===0xff&&bytes[1]===0xfe)return {text:new TextDecoder('utf-16le',{fatal:true}).decode(bytes.subarray(2)),encoding:'utf-16le-bom'};
+ if(bytes[0]===0xfe&&bytes[1]===0xff)return {text:new TextDecoder('utf-16be',{fatal:true}).decode(bytes.subarray(2)),encoding:'utf-16be-bom'};
+ const declared=encoding||contentType.match(/charset=["']?([\w-]+)/i)?.[1];
+ if(declared)return {text:new TextDecoder(declared,{fatal:true}).decode(bytes),encoding:declared.toLowerCase()};
+ try{return {text:new TextDecoder('utf-8',{fatal:true}).decode(bytes),encoding:'utf-8'};}
+ catch{return {text:new TextDecoder('shift_jis',{fatal:true}).decode(bytes),encoding:'shift_jis'};}
+}
+/** Shared by delimited, JSON, KML, GIS and spreadsheet inspection. */
+export function analyzeRows(rows){
+ const result={rawRowCount:null,matchingRowCount:0,placeKeywordRowCount:0,matchingValues:[],categoryInventory:{},coordinateAvailability:'unknown',geometryTypes:[],blockerCodes:[]};
+  const matches=[];const matchedRows=new Set();const geometry=new Set();let pointCount=0;
   for(const row of rows){if(!row||typeof row!=='object')throw Error('Record is not an object');const props=row.properties||row.attributes||row;const values=flatten(props).filter(([,v])=>v!==null&&v!==undefined);const matching=values.filter(([,v])=>keyword.test(typeof v==='object'?JSON.stringify(v):String(v)));
-   if(matching.length){matches.push(row);for(const [field,value] of matching){const v={field,value};if(result.matchingValues.length<100&&!result.matchingValues.some(x=>JSON.stringify(x)===JSON.stringify(v)))result.matchingValues.push(v);}}
+   if(matching.length){matches.push(row);matchedRows.add(row);if(matching.some(([,v])=>placeKeyword.test(typeof v==='object'?JSON.stringify(v):String(v))))result.placeKeywordRowCount++;for(const [field,value] of matching){const v={field,value};if(result.matchingValues.length<100&&!result.matchingValues.some(x=>JSON.stringify(x)===JSON.stringify(v)))result.matchingValues.push(v);}}
    for(const [key,value] of values)if(category.test(key)){const inventory=result.categoryInventory[key]??={values:[],truncated:false};const label=typeof value==='object'?JSON.stringify(value):String(value);if(!inventory.values.includes(label)){if(inventory.values.length<200)inventory.values.push(label);else inventory.truncated=true;}}
    if(row.geometry?.type)geometry.add(row.geometry.type);const coord=coordinates(row);if(coord&&coord.length===2&&coord.every(Number.isFinite)&&Math.abs(coord[0])<=180&&Math.abs(coord[1])<=90)pointCount++;
   }
   result.rawRowCount=rows.length;result.matchingRowCount=matches.length;result.geometryTypes=[...geometry].sort();result.coordinateAvailability=pointCount===rows.length&&rows.length?'all':pointCount?'partial':'missing';
   if(!matches.length)result.blockerCodes.push('noSmokingEvidence');if(!matches.some(row=>{const c=coordinates(row);return c&&c.length===2&&c.every(Number.isFinite)&&Math.abs(c[0])<=180&&Math.abs(c[1])<=90;}))result.blockerCodes.push('coordinatesMissing');if(geometry.has('Polygon')&&!geometry.has('Point'))result.blockerCodes.push('polygonOnly');
+ result.matchedRows=matchedRows;return result;
+}
+export function inspectPayload(bytes,{url='',format='',contentType='',encoding}={}) {
+ const result={sha256:sha256(bytes),format:format.toLowerCase(),rawRowCount:null,matchingRowCount:0,matchingValues:[],categoryInventory:{},coordinateAvailability:'unknown',geometryTypes:[],possibleCrs:null,blockerCodes:[]};
+ try{
+  const ext=new URL(url||'https://local/payload').pathname.split('.').pop().toLowerCase();const f=result.format||ext;
+  // Spreadsheets are sniffed before generic ZIP so an XLSX is never mistaken for a GIS archive.
+  const cfb=bytes.subarray(0,4).toString('hex')==='d0cf11e0';const ooxml=bytes.subarray(0,2).toString()==='PK'&&bytes.includes('xl/workbook.xml');
+  if(cfb||ooxml||(['xls','xlsx'].includes(f)&&!/html/i.test(contentType))){result.format=cfb?'xls':ooxml?'xlsx':f;result.blockerCodes=['incompatibleFormat'];result.inspectionNote='Spreadsheet requires the workbook inspector';result.spreadsheet=Boolean(cfb||ooxml);return result;}
+  if(['zip','kmz','shp','gpkg'].includes(f)||bytes.subarray(0,2).toString()==='PK'||bytes.subarray(0,15).toString()==='SQLite format 3'){result.format=['zip','kmz','shp','gpkg'].includes(f)?f:bytes.subarray(0,2).toString()==='PK'?'zip':'gpkg';result.blockerCodes=['incompatibleFormat'];result.inspectionNote='Binary archive/GIS metadata requires a separate local inspector; no CRS inference';return result;}
+  const decoded=decodeText(bytes,{encoding,contentType});const text=decoded.text;result.encoding=decoded.encoding;let rows;
+  if(f==='kml'||/<(?:\w+:)?kml\b/i.test(text)){rows=parseKml(text);result.format='kml';result.possibleCrs='EPSG:4326 (KML standard)';}
+  else if(['json','geojson'].includes(f)||/json/i.test(contentType)||/^[\s]*[\[{]/.test(text)){const data=JSON.parse(text);result.format=data.type==='FeatureCollection'?'geojson':'json';rows=data.type==='FeatureCollection'?data.features:Array.isArray(data)?data:data.features||data.records||data.data||(data.type==='Feature'?[data]:[data]);if(!Array.isArray(rows))throw Error('JSON records are not an array');result.truncated=data.exceededTransferLimit===true;result.possibleCrs=data.crs|| (result.format==='geojson'?'RFC7946 WGS84; publisher semantics unreviewed':null);}
+  else if(['csv','tsv'].includes(f)||/csv|tab-separated/.test(contentType)){result.format=f==='tsv'?'tsv':'csv';rows=parseDelimited(text,result.format==='tsv'?'\t':',');}
+  else {result.blockerCodes=['incompatibleFormat'];return result;}
+  const analysis=analyzeRows(rows);delete analysis.matchedRows;Object.assign(result,analysis,{blockerCodes:[...result.blockerCodes,...analysis.blockerCodes]});
   result.blockerCodes.push('licenseUnknown','currentOperationUnknown');return result;
  }catch(error){return {...result,blockerCodes:['incompatibleFormat'],error:error.message};}
 }
