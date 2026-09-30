@@ -1,0 +1,100 @@
+[
+  {
+    "jurisdiction": "静岡市",
+    "publisher": "静岡市 生活安全安心課",
+    "datasetUrl": "https://opendata.pref.shizuoka.jp/dataset/12474.html",
+    "rawUrl": "https://opendata.pref.shizuoka.jp/dataset/12474/resource/103637/%E5%96%AB%E7%85%99%E6%89%80%E5%88%A9%E7%94%A8%E8%80%85%E6%95%B0%E5%AE%9F%E6%85%8B%E8%AA%BF%E6%9F%BB%E7%B5%90%E6%9E%9C%E6%8E%A8%E7%A7%BB.csv",
+    "sha256": "8b6435766dfc7a9fb90969755a760624603f0060ba2fa6f4b1a63c1033d5546e",
+    "reviewedAt": "2026-10-01",
+    "reviewer": "Claude",
+    "verdict": "blocked",
+    "blockerCodes": [
+      "coordinatesMissing"
+    ],
+    "reason": "Usage-count survey for three named station-plaza smoking areas (静岡駅南口・北口, 清水駅東口), surveyed through R8.1. Rows are counts by date; no latitude/longitude or geometry. Names must not be geocoded.",
+    "approvalGate": {
+      "publisherOwner": "静岡市",
+      "exactApplicableLicense": "not established for a smoking source; approval not reached",
+      "redistributionAllowed": "unreviewed; eligibility gate failed first",
+      "derivationAllowed": "unreviewed; eligibility gate failed first",
+      "attribution": "unreviewed; eligibility gate failed first",
+      "shareAlike": "unreviewed; eligibility gate failed first",
+      "publisherCoordinates": "absent",
+      "coordinateSemantics": "none; survey table",
+      "geometry": "none",
+      "geographicScope": "静岡市 (3 sites)",
+      "completeness": "unestablished",
+      "observationDateSemantics": "unknown; metadata dates not observations",
+      "updateCadence": "unreviewed; eligibility gate failed first",
+      "currentOperationEvidence": "not established for any eligible public smoking Point",
+      "exactSmokingCategory": "three named station-plaza 喫煙所 as text labels only"
+    },
+    "priorResearchReference": "docs/research/2026-09-30-n2-west-central-municipal-survey.md"
+  },
+  {
+    "jurisdiction": "岡山市",
+    "publisher": "岡山市 環境局 環境事業課 (via おかやま全県統合型GIS)",
+    "datasetUrl": "https://www.okayama-opendata.jp/datasets/2783",
+    "rawUrl": "https://www.gis.pref.okayama.jp/pref-okayama/pref-okayama/opendatafile/map_1513/SHAPE/opendata_1544.zip",
+    "sha256": "bd76d7ec4f81cf270557da1e486d8fce9af3bdf7373351d83c45f61d183823a6",
+    "reviewedAt": "2026-10-01",
+    "reviewer": "Claude",
+    "verdict": "blocked",
+    "blockerCodes": [
+      "noSmokingPoint",
+      "polygonOnly"
+    ],
+    "reason": "SHP shapeType 5 (Polygon), 2 records, fields 名称/備考 = 路上喫煙制限区域 (street-smoking prohibition zone). No permitted smoking-site Points; polygon centroids are forbidden. The GIS publishes 101 layers; none is a smoking-place layer.",
+    "approvalGate": {
+      "publisherOwner": "岡山市",
+      "exactApplicableLicense": "not established for a smoking source; approval not reached",
+      "redistributionAllowed": "unreviewed; eligibility gate failed first",
+      "derivationAllowed": "unreviewed; eligibility gate failed first",
+      "attribution": "unreviewed; eligibility gate failed first",
+      "shareAlike": "unreviewed; eligibility gate failed first",
+      "publisherCoordinates": "polygon vertices of prohibition zones only",
+      "coordinateSemantics": "prohibition zone, not a smoking place",
+      "geometry": "Polygon (prohibition zones)",
+      "geographicScope": "岡山市 central zones",
+      "completeness": "unestablished",
+      "observationDateSemantics": "unknown; metadata dates not observations",
+      "updateCadence": "unreviewed; eligibility gate failed first",
+      "currentOperationEvidence": "not established for any eligible public smoking Point",
+      "exactSmokingCategory": "none; prohibition zone"
+    },
+    "priorResearchReference": null
+  },
+  {
+    "jurisdiction": "下関市",
+    "publisher": "下関市",
+    "datasetUrl": "https://yamaguchi-opendata.jp/ckan/",
+    "rawUrl": "https://yamaguchi-opendata.jp/ckan/dataset/50c21bfa-4ee1-4553-b166-8ed2e625a6f5/resource/f61a61f9-a9ca-448f-8e48-38f647fd2539/download/352012_food_business_map.csv",
+    "sha256": "97ecb32ec68a9c321d1c70cfaa732d74f62f6d48319e9887b147fe1b49007ce0",
+    "reviewedAt": "2026-10-01",
+    "reviewer": "Claude",
+    "verdict": "blocked",
+    "blockerCodes": [
+      "noSmokingPoint",
+      "hostPointOnly"
+    ],
+    "reason": "One keyword row is a food-business permit for a coffee vending machine in a department store's staff smoking room (従食喫煙所). The Point is the permitted business premises, not a public smoking place.",
+    "approvalGate": {
+      "publisherOwner": "下関市",
+      "exactApplicableLicense": "not established for a smoking source; approval not reached",
+      "redistributionAllowed": "unreviewed; eligibility gate failed first",
+      "derivationAllowed": "unreviewed; eligibility gate failed first",
+      "attribution": "unreviewed; eligibility gate failed first",
+      "shareAlike": "unreviewed; eligibility gate failed first",
+      "publisherCoordinates": "present for permitted food business",
+      "coordinateSemantics": "business premises address point",
+      "geometry": "Point (business premises)",
+      "geographicScope": "下関市",
+      "completeness": "unestablished",
+      "observationDateSemantics": "unknown; metadata dates not observations",
+      "updateCadence": "unreviewed; eligibility gate failed first",
+      "currentOperationEvidence": "not established for any eligible public smoking Point",
+      "exactSmokingCategory": "none; food-business permit row"
+    },
+    "priorResearchReference": null
+  }
+]
