@@ -218,6 +218,13 @@ server responses, while the report body is the server's minimization boundary.)
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
   IDFV, IDFA, a DeviceCheck value or any other system identifier.
+- `acceptedTermsVersion`: optional. The report terms version the user **explicitly agreed to** in the
+  client before sending (Issue #124). When present it must equal `reports.termsVersion` from
+  `/v1/config`; any other version is refused with `409 termsVersionOutdated` and nothing is stored. A
+  report without it is stored without consent: it can be moderated and reconciled, but it is never a
+  basis for publishing community data, and consent is never added to it later. In schemaVersion 2 it
+  is part of the signed `payload`, so the App Attest assertion covers it; the envelope itself does not
+  accept it.
 - `attestation`: **not accepted in schemaVersion 1**, which is the unattested version: sending
   attestation material is a `400 invalidReport`. Attested reports use schemaVersion 2 below.
 - Nothing else is accepted: no account, no email, no device position, no position sequence, no
@@ -241,6 +248,7 @@ Responses:
 | Body is not JSON | `400` | `{"error":"invalidJson","detail":…}` |
 | Schema violation (unknown field, wrong type for the report type, oversized note, …) | `400` | `{"error":"invalidReport","detail":…}` — JSON paths and issue codes only, never the submitted values |
 | `schemaVersion` is a number other than the one this deployment accepts | `400` | `{"error":"reportSchemaUnsupported","detail":…}` |
+| `acceptedTermsVersion` is not the deployment's current terms version | `409` | `{"error":"termsVersionOutdated","detail":…}` — nothing stored; the client must show the current terms (update the app) |
 | Attestation policy unrecognised or incomplete (see ADR-0007 §6) | `503` | `{"error":"attestationUnavailable","detail":…}` — checked before the body is read; fails closed, and a typo never silently disables attestation |
 | Per-install rate limit exceeded (10/hour, 50/day) | `429` | `{"error":"reportRateLimited","detail":…}`; `Retry-After` seconds |
 
@@ -424,13 +432,13 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
   "dataTileZoom": 14,
   "schemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
   "minimumSupportedSchemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
-  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280 }
+  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft" }
 }
 ```
 
 On a deployment that requires App Attest, the report entries read
 `"schemaVersions": {…, "report": 2}`, `"minimumSupportedSchemaVersions": {…, "report": 2}` and
-`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280 }`.
+`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft" }`.
 
 - `schemaVersion`: the schema version of *this* body.
 - `apiVersion`: the base path this document describes (`v1`).
@@ -463,6 +471,11 @@ On a deployment that requires App Attest, the report entries read
   schemaVersion 1 body, or the decoded schemaVersion 2 `payload` — so a client can validate before
   submitting. `reports.maxSubmissionBytes`: the whole request body limit (equal to `maxBodyBytes`
   for schemaVersion 1, the envelope limit for 2). They are the same constants `POST /reports` uses.
+- `reports.termsVersion`: the report terms version (`services/api/src/reports/terms.ts`, document
+  `docs/legal/REPORT_TERMS_DRAFT.md`) that a client must show and a report's `acceptedTermsVersion`
+  must name (Issue #124). A client whose bundled terms document has another version cannot collect
+  informed consent and presents reporting as needing an update. The current version is a **draft**:
+  consent to it is recorded, but it grants no publication rights until a legal/maintainer approval.
 - Clients ignore unknown fields here as everywhere else; a value added later is additive.
 
 Responses:

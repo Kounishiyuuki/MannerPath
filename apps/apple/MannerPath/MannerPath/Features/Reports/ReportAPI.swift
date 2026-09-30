@@ -72,6 +72,8 @@ private nonisolated struct ConfigBody: Decodable {
         let maxBodyBytes: Int
         let maxSubmissionBytes: Int?
         let noteMaxLength: Int
+        /// Absent from a deployment that predates report terms (Issue #124).
+        let termsVersion: String?
     }
 }
 
@@ -131,13 +133,16 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
         case ("appAttest", (2, 2)): submissionProtocol = .appAttest
         default: return .incompatible
         }
+        // This build can show only its bundled terms document; consent to another version would not be informed.
+        if let termsVersion = config.reports.termsVersion, termsVersion != ReportTerms.bundledVersion { return .incompatible }
         guard config.reports.available else { return .unavailable }
         let maxSubmissionBytes = config.reports.maxSubmissionBytes ?? config.reports.maxBodyBytes
         guard maxSubmissionBytes >= config.reports.maxBodyBytes else { throw ReportAPIError.malformedResponse }
         return .available(ReportLimits(noteMaxLength: config.reports.noteMaxLength,
                                        maxBodyBytes: config.reports.maxBodyBytes,
                                        submissionProtocol: submissionProtocol,
-                                       maxSubmissionBytes: maxSubmissionBytes))
+                                       maxSubmissionBytes: maxSubmissionBytes,
+                                       termsVersion: config.reports.termsVersion))
     }
 
     func submit(_ body: Data) async throws -> AcceptedReport {
@@ -167,10 +172,11 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
             guard problem?.error == "reportRateLimited" else { throw ReportAPIError.incompatibleResponse }
             let seconds = response.retryAfter.flatMap(Int.init)
             throw ReportAPIError.rateLimited(seconds)
-        case 400, 413, 503:
+        case 400, 409, 413, 503:
             let code = problem?.error
             let isDefinite = (response.statusCode == 400 && (code == "invalidJson" || code == "invalidReport"
                                                              || code == "reportSchemaUnsupported"))
+                || (response.statusCode == 409 && code == "termsVersionOutdated")
                 || (response.statusCode == 413 && code == "reportTooLarge")
                 || (response.statusCode == 503 && code == "attestationUnavailable")
             guard isDefinite else { throw ReportAPIError.incompatibleResponse }

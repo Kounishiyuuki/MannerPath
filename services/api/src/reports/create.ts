@@ -5,6 +5,7 @@ import { type Db, type DbStatement, isoSeconds, sha256Hex } from "../db.ts";
 import type { AttestationStatus } from "./attestation.ts";
 import { type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate } from "./dto.ts";
 import { newReportId } from "./report-id.ts";
+import { ensureTermsStatement, reviewedTerms } from "./terms.ts";
 
 /** Personal content is minimized this long after arrival, whatever the moderation state. */
 export const REPORT_MINIMIZE_AFTER_DAYS = 90;
@@ -43,15 +44,18 @@ export async function createReport(
   const reportId = (opts.newReportId ?? newReportId)();
   const receivedAt = isoSeconds(opts.now);
   const location = request.proposedLocation;
+  const terms = request.acceptedTermsVersion === undefined ? null : reviewedTerms(request.acceptedTermsVersion);
 
   await db.batch([
     ...(opts.guards ?? []),
+    // The mirror row of the consented version exists before the report that names it.
+    ...(terms === null ? [] : [ensureTermsStatement(db, terms, receivedAt)]),
     db.prepare(
       `INSERT INTO reports (
          report_id, schema_version, report_type, subject_spot_id,
          proposed_latitude, proposed_longitude, observed_on, note,
-         submitter_hash, attestation_status, received_at, minimize_after, redacted_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+         submitter_hash, attestation_status, received_at, minimize_after, redacted_at, accepted_terms_version
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
     ).bind(
       reportId,
       request.schemaVersion,
@@ -65,6 +69,7 @@ export async function createReport(
       opts.attestationStatus,
       receivedAt,
       isoSeconds(minimizeAfter(opts.now)),
+      terms?.version ?? null,
     ),
     db.prepare(
       `INSERT INTO report_moderation (report_id, state, reconciliation_state, updated_at)

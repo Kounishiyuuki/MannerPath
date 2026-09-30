@@ -47,13 +47,13 @@ Rules:
 | Source ID | `mannerpath-community-reports` |
 | Kind | userReport |
 | Dataset URL | none: each release is the sanitized artifact of one applied community reconciliation application (`services/api/src/pipeline/community-adapter.ts`, migration 0020) |
-| License name | none. No terms or consent currently let MannerPath republish user submissions (Issue #124) |
+| License name | none yet. Consent is now recorded per report against a reviewed terms version (`docs/legal/REPORT_TERMS_DRAFT.md`, migration 0021), but that document is a **draft** awaiting legal/maintainer approval (Issue #124) |
 | Required attribution text | none reviewed |
 | Redistribution to clients allowed | **no**: not until Issue #124 is resolved |
 | Observation date available | none. Report dates are personal and minimized after 90 days (ADR-0007 §4), so `lastVerifiedAt` stays unknown |
 | Completeness | partial, additive: each release is one application, no release supersedes another, and none is current |
 | Reviewed by / date | Issue #123, 2026-09-30 |
-| Publication status | **blocked**. It is resolved into canonical spots and visible to cross-source review once approved, but it is excluded from tiles, spot detail and promotion |
+| Publication status | **blocked**. It is resolved into canonical spots and visible to cross-source review once approved, but it is excluded from tiles, spot detail and promotion. Even once approved, a community spot publishes only on reports consented under a `granted` terms version (ADR-0006 amendment 2026-09-30) |
 
 ### 台東区 公衆喫煙所 (Taito City public smoking areas)
 

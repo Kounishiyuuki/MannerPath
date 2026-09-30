@@ -5,20 +5,25 @@
 // registry row still comes from this repository and never from the importer.
 //
 // One release = one applied application = one record. The artifact carries only what the review decided: the
-// application ID, the claim, the adopted location, the evidence report IDs and the reconciliation version.
-// Nothing a reporter wrote, no submitter key and no observation date exists in it (ADR-0007 §3, §4).
+// application ID, the claim, the adopted location, the evidence report IDs, the reconciliation version and (v2)
+// the rights basis: the one terms version every evidence report consented to, or '' when they did not all
+// consent to the same version. Nothing a reporter wrote, no submitter key and no observation date exists in it
+// (ADR-0007 §3, §4). The publication gate reads the rights basis (migration 0021, Issue #124).
 
+import { TERMS_VERSION } from "../reports/terms.ts";
 import { parseCsv } from "./csv.ts";
 import type { ReviewedSource } from "./registry.ts";
 import type { SourceAdapter, SourceObservation } from "./source-adapter.ts";
 
 export const COMMUNITY_SOURCE_ID = "mannerpath-community-reports";
-export const COMMUNITY_PARSER_VERSION = "community-artifact-csv.v1";
+export const COMMUNITY_PARSER_VERSION = "community-artifact-csv.v2";
 export const COMMUNITY_MAPPING_VERSION = "community-mapping.v1";
 export const COMMUNITY_RESOLVER_VERSION = "community-resolver.v1";
-export const COMMUNITY_HEADER = [
+/** v1 (#126) had no rights basis; its records parse unchanged and never publish (0021 reads index 6). */
+export const COMMUNITY_HEADER_V1 = [
   "application_id", "claim_type", "latitude", "longitude", "evidence_report_ids", "reconciliation_version",
 ] as const;
+export const COMMUNITY_HEADER = [...COMMUNITY_HEADER_V1, "terms_version"] as const;
 
 /**
  * Blocked: no terms or consent currently let MannerPath republish user submissions (Issue #124), so there is no
@@ -45,11 +50,12 @@ function coordinate(text: string, column: string): number {
 }
 
 export function observeCommunityRecord(values: readonly string[]): SourceObservation {
-  const [applicationId, claimType, latitude, longitude, reportIds, version] = values;
+  const [applicationId, claimType, latitude, longitude, reportIds, version, terms = ""] = values;
   if (!/^ca_[0-9A-HJKMNP-TV-Z]{26}$/.test(applicationId)) throw new Error("community: malformed application_id");
   if (claimType !== "newSpot") throw new Error(`community: unsupported claim_type ${JSON.stringify(claimType)}`);
   if (!REPORT_IDS.test(reportIds)) throw new Error("community: evidence_report_ids must name at least two reports");
   if (version !== "community-reconciliation.v1") throw new Error(`community: unsupported reconciliation_version ${JSON.stringify(version)}`);
+  if (terms !== "" && !TERMS_VERSION.test(terms)) throw new Error(`community: malformed terms_version ${JSON.stringify(terms)}`);
   return {
     // A report proposes a place, not a name; nothing is invented for it.
     name: null,
@@ -74,7 +80,8 @@ export const COMMUNITY_ADAPTER: SourceAdapter = {
   mappingVersion: COMMUNITY_MAPPING_VERSION,
   parse(bytes) {
     const parsed = parseCsv(new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes));
-    if (JSON.stringify(parsed.header) !== JSON.stringify(COMMUNITY_HEADER)) {
+    const header = JSON.stringify(parsed.header);
+    if (header !== JSON.stringify(COMMUNITY_HEADER) && header !== JSON.stringify(COMMUNITY_HEADER_V1)) {
       throw new Error(`community: unexpected header ${JSON.stringify(parsed.header)}`);
     }
     if (parsed.rows.length !== 1) throw new Error(`community: a release carries exactly one application, got ${parsed.rows.length}`);
@@ -96,8 +103,10 @@ export const COMMUNITY_ADAPTER: SourceAdapter = {
 /** The artifact bytes for one application. Deterministic: same decision, same bytes. */
 export function communityArtifact(row: {
   applicationId: string; latitude: number; longitude: number; reportIds: readonly string[]; version: string;
+  /** The terms version every evidence report consented to, or null when there is no common consent. */
+  termsVersion: string | null;
 }): Uint8Array {
   const values = [row.applicationId, "newSpot", String(row.latitude), String(row.longitude),
-    [...row.reportIds].sort().join(" "), row.version];
+    [...row.reportIds].sort().join(" "), row.version, row.termsVersion ?? ""];
   return new TextEncoder().encode(`${COMMUNITY_HEADER.join(",")}\n${values.join(",")}\n`);
 }

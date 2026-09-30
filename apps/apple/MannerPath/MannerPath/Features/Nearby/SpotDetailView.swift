@@ -99,6 +99,13 @@ struct SpotDetailView: View {
             Section("Evidence and freshness") {
                 LabeledContent("Evidence quality", value: SpotPresentation.evidence(spot.verification.evidenceQuality,
                                                                                    version: spot.verification.evidenceQualityVersion))
+                if SpotPresentation.isCommunityReviewed(spot.verification.evidenceQuality,
+                                                        version: spot.verification.evidenceQualityVersion) {
+                    Label("Based on independent reports from users that MannerPath reviewed, not on an official listing. Check on-site signs.",
+                          systemImage: "person.2")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
                 LabeledContent("Last verified", value: SpotPresentation.verificationDate(spot.lastVerifiedAt))
                 LabeledContent("Freshness", value: SpotPresentation.freshness(result))
                 detailText("Sources", SpotPresentation.sourceNames(spot))

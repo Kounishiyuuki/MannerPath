@@ -13,6 +13,7 @@ import { z } from "zod";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { type AttestationBindings, attestationConfig } from "../reports/attestation.ts";
 import { REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SUBMISSION_MAX_BYTES, reportSchemaRange } from "../reports/dto.ts";
+import { CURRENT_REPORT_TERMS, TERMS_VERSION } from "../reports/terms.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../tiles/dto.ts";
 
@@ -52,6 +53,9 @@ export const ConfigBodyV1 = z.object({
     // The whole v2 envelope limit (base64 payload + assertion).
     maxSubmissionBytes: z.number().int().min(1),
     noteMaxLength: z.number().int().min(1),
+    // The report terms version a client must show and a report must accept (Issue #124). A client whose
+    // bundled terms document has another version cannot collect valid consent and must ask for an update.
+    termsVersion: z.string().regex(TERMS_VERSION),
   }).strict(),
 }).strict().refine(
   (c) => CONFIG_RESOURCES.every((r) => c.minimumSupportedSchemaVersions[r] <= c.schemaVersions[r]),
@@ -88,6 +92,7 @@ export function configBody(env: AttestationBindings): ConfigBodyV1 {
       maxBodyBytes: REPORT_BODY_MAX_BYTES,
       maxSubmissionBytes: attestation.kind === "disabled" ? REPORT_BODY_MAX_BYTES : REPORT_SUBMISSION_MAX_BYTES,
       noteMaxLength: REPORT_NOTE_MAX,
+      termsVersion: CURRENT_REPORT_TERMS.version,
     },
   };
 }

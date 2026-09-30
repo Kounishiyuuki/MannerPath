@@ -12,6 +12,7 @@ import { CHALLENGE_TTL_SECONDS, MAX_OUTSTANDING_REPORT_CHALLENGES_PER_KEY } from
 import { ReportAcceptedV2 } from "../src/reports/dto.ts";
 import { REPORT_RATE_LIMITS } from "../src/reports/rate-limit.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
+import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { type TestDevice, type TestPki, assert as makeAssertion, attest, testDevice, testPki } from "./support/app-attest-fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 
@@ -265,6 +266,32 @@ test("the assertion binds the exact payload bytes: the same assertion over anoth
   }
   assert.equal(count(h.db, "reports"), 0);
   assert.equal((await h.post("/v1/reports", signed)).status, 201, "the untampered submission still verifies");
+});
+
+test("the consented terms version is inside the signed payload: it is App Attest bound and stored", async () => {
+  const h = await harness();
+  const device = await registered(h);
+  const consented = await submission(h, device, reportPayload({ acceptedTermsVersion: CURRENT_REPORT_TERMS.version }));
+  // Stripping the consent, or claiming it for an unconsented payload, changes the signed bytes.
+  const unconsented = await submission(h, device, reportPayload());
+  for (const [signed, swapped] of [[consented, reportPayload()], [unconsented, reportPayload({ acceptedTermsVersion: CURRENT_REPORT_TERMS.version })]] as const) {
+    const body = await rejection(await h.post("/v1/reports", { ...signed, payload: base64Encode(swapped) }));
+    assert.equal(body.reason, "assertionInvalid");
+  }
+  // The version travels only in the payload: the envelope is strict.
+  const outside = await h.post("/v1/reports", { ...(await submission(h, device)), acceptedTermsVersion: CURRENT_REPORT_TERMS.version });
+  assert.equal(outside.status, 400);
+  assert.equal(count(h.db, "reports"), 0);
+
+  const accepted = await h.post("/v1/reports", await submission(h, device, reportPayload({ acceptedTermsVersion: CURRENT_REPORT_TERMS.version })));
+  assert.equal(accepted.status, 201);
+  const row = h.db.raw.prepare("SELECT accepted_terms_version, attestation_status FROM reports").get() as Row;
+  assert.deepEqual({ ...row }, { accepted_terms_version: CURRENT_REPORT_TERMS.version, attestation_status: "verified" });
+  // A verified signature over an outdated version is still not recorded consent.
+  const outdated = await h.post("/v1/reports", await submission(h, device, reportPayload({ acceptedTermsVersion: "report-terms.1999-01-01" })));
+  assert.equal(outdated.status, 409);
+  assert.equal(((await outdated.json()) as Row).error, "termsVersionOutdated");
+  assert.equal(count(h.db, "reports"), 1);
 });
 
 test("replay: a challenge is used once, and a stale or equal counter is refused", async () => {

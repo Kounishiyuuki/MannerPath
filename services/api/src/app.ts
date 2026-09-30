@@ -26,6 +26,7 @@ import {
   ReportPayloadV2, ReportRequestV1, ReportSubmissionV2, validationDetail,
 } from "./reports/dto.ts";
 import { consumeReportBudget } from "./reports/rate-limit.ts";
+import { CURRENT_REPORT_TERMS } from "./reports/terms.ts";
 import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
 import { tileEtag } from "./tiles/dto.ts";
@@ -225,6 +226,9 @@ export function createApp(options: AppOptions = {}) {
     if (!parsed.success) return problem(400, "invalidReport", validationDetail(parsed.error));
     const request = parsed.data;
 
+    const outdated = outdatedTerms(request.acceptedTermsVersion);
+    if (outdated !== null) return outdated;
+
     const now = clock();
     const hash = await submitterHash(request.installId, env.REPORT_SUBMITTER_PEPPER);
     const limited = await rateLimited(env.DB, hash, now);
@@ -263,6 +267,8 @@ export function createApp(options: AppOptions = {}) {
     // 3. Verify the assertion over those bytes. Pure: nothing is written.
     const verified = await verifyReportAssertion(ctx, material, payload);
     if (!verified.ok) return rejected(verified);
+    const outdated = outdatedTerms(report.data.acceptedTermsVersion);
+    if (outdated !== null) return outdated;
 
     // 4. Abuse boundary, then one batch: counter advance + report + moderation row. The trigger on
     // app_attest_keys aborts the batch if a concurrent request already advanced the counter.
@@ -293,6 +299,15 @@ export function createApp(options: AppOptions = {}) {
 function attestationUnavailable(attestation: AttestationConfig): Response {
   const detail = attestation.kind === "unsupported" ? attestation.detail : "App Attest is not enabled on this deployment (see /v1/config)";
   return problem(503, "attestationUnavailable", detail);
+}
+
+/**
+ * A report may name only the terms version this deployment currently shows (/v1/config). An older or unknown one
+ * means the client displayed a different document, so the consent it carries is not the one we would record.
+ */
+function outdatedTerms(accepted: string | undefined): Response | null {
+  if (accepted === undefined || accepted === CURRENT_REPORT_TERMS.version) return null;
+  return problem(409, "termsVersionOutdated", `this deployment records consent to terms version ${CURRENT_REPORT_TERMS.version} only (see /v1/config)`);
 }
 
 async function rateLimited(db: Db, hash: string, now: Date): Promise<Response | null> {

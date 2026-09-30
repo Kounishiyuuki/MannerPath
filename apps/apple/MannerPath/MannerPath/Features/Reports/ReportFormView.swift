@@ -10,6 +10,7 @@ struct ReportFormView: View {
     @State private var hasObservedDate = false
     @State private var choosingPin = false
     @State private var confirmingRetry = false
+    @State private var showingTerms = false
 
     private var isMissing: Bool { model.draft?.type == .missing }
 
@@ -87,11 +88,26 @@ struct ReportFormView: View {
                         }
                     }
 
+                    if let version = termsVersion {
+                        Section {
+                            Button("Read the report terms") { showingTerms = true }
+                            Toggle("I agree to the report terms", isOn: Binding(
+                                get: { draft.acceptedTermsVersion == version },
+                                set: { model.setTermsAccepted($0) }
+                            ))
+                            .disabled(isSubmitting)
+                        } header: {
+                            Text("Report terms")
+                        } footer: {
+                            Text("Required before submitting. Terms version \(version)")
+                        }
+                    }
+
                     Section {
                         if case .available = model.availability {
                             TimelineView(.periodic(from: .now, by: 1)) { _ in
                                 Button("Submit for review") { Task { await model.submit() } }
-                                    .disabled(isSubmitting || isAccepted || isAmbiguous ||
+                                    .disabled(isSubmitting || isAccepted || isAmbiguous || !termsAccepted ||
                                               (model.retryAfterSecondsRemaining ?? 0) > 0)
                             }
                             if model.canRetryAmbiguous {
@@ -126,6 +142,9 @@ struct ReportFormView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingTerms) {
+                if let version = termsVersion { ReportTermsSheet(version: version) }
+            }
             .sheet(isPresented: $choosingPin) {
                 ReportPinPicker(center: visualCenter, initial: model.draft?.proposedLocation) { pin in
                     editDraft { $0.proposedLocation = pin.quantized }
@@ -146,6 +165,17 @@ struct ReportFormView: View {
     }
 
     private var isSubmitting: Bool { model.isBusy }
+
+    /// The version this deployment records consent to; nil for a deployment that predates report terms.
+    private var termsVersion: String? {
+        if case .available(let limits) = model.availability { return limits.termsVersion }
+        return nil
+    }
+
+    private var termsAccepted: Bool {
+        guard let termsVersion else { return true }
+        return model.draft?.acceptedTermsVersion == termsVersion
+    }
 
     private var isAccepted: Bool {
         if case .accepted = model.submission { return true }

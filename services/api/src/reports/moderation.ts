@@ -49,6 +49,8 @@ export interface ModerationQueueRow {
   redacted_at: string | null;
   state: string;
   reconciliation_state: string;
+  /** The terms version the submitter consented to; null for a report without consent (never a publication basis). */
+  accepted_terms_version: string | null;
 }
 
 export async function listModerationQueue(
@@ -59,7 +61,7 @@ export async function listModerationQueue(
   const sql =
     `SELECT r.report_id, r.report_type, r.subject_spot_id, r.proposed_latitude, r.proposed_longitude,
             r.observed_on, r.note, r.attestation_status, r.received_at, r.redacted_at,
-            m.state, m.reconciliation_state
+            m.state, m.reconciliation_state, r.accepted_terms_version
        FROM reports r
        JOIN report_moderation m ON m.report_id = r.report_id
       WHERE (? IS NULL OR m.state = ?)
@@ -80,6 +82,31 @@ export async function recordModerationDecision(
         SET state = ?, decided_at = ?, decided_by = ?, decision_reason = ?, updated_at = ?
       WHERE report_id = ?`,
   ).bind(decision.state, at, decision.decidedBy, decision.reason ?? "unspecified", at, reportId).run();
+}
+
+export interface PipelineSummary {
+  /** Report counts by moderation state and reconciliation state, e.g. {"accepted/queued": 3}. */
+  reports: Record<string, number>;
+  newSpotApplications: Record<string, number>;
+  effectApplications: Record<string, number>;
+  activeCommunityHolds: number;
+}
+
+/**
+ * The whole moderation pipeline at a glance: pending -> accepted -> queued -> application -> applied. Counts only,
+ * so it is safe to paste into a ticket or a log (no note, pin, date or submitter key).
+ */
+export async function moderationPipelineSummary(db: Db): Promise<PipelineSummary> {
+  const tally = async (sql: string) => Object.fromEntries(
+    (await db.prepare(sql).all<{ k: string; n: number }>()).results.map((r) => [r.k, r.n]),
+  );
+  const holds = await db.prepare("SELECT count(*) AS n FROM community_publication_holds WHERE lifted_at IS NULL").first<{ n: number }>();
+  return {
+    reports: await tally(`SELECT m.state || '/' || m.reconciliation_state AS k, count(*) AS n FROM report_moderation m GROUP BY k ORDER BY k`),
+    newSpotApplications: await tally("SELECT state AS k, count(*) AS n FROM community_reconciliation_applications GROUP BY k ORDER BY k"),
+    effectApplications: await tally("SELECT effect || '/' || state AS k, count(*) AS n FROM community_effect_applications GROUP BY k ORDER BY k"),
+    activeCommunityHolds: holds?.n ?? 0,
+  };
 }
 
 /**

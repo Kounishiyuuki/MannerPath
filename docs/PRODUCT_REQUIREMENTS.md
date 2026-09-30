@@ -75,7 +75,10 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 - open system Maps navigation as fallback/hand-off;
 - local caching of spot data;
 - offline nearest search using cached data;
-- submit “exists / missing / changed” reports;
+- submit “exists / missing / changed” reports, after the app shows the report terms and the user
+  explicitly agrees to their current version (ADR-0007 amendment 2026-09-30; the terms are a draft
+  awaiting legal approval, Issue #124);
+- places backed only by reviewed user reports are labelled as such, never as official listings;
 - no account required to browse/search.
 
 ### Should

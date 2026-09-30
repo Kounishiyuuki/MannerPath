@@ -53,6 +53,7 @@ interface PremiseRow {
   state: string | null;
   reconciliation_state: string | null;
   linked_application_id: string | null;
+  accepted_terms_version: string | null;
 }
 
 async function readPremises(db: Db, reportIds: readonly string[]): Promise<PremiseRow[]> {
@@ -60,7 +61,7 @@ async function readPremises(db: Db, reportIds: readonly string[]): Promise<Premi
   for (const id of reportIds) {
     const row = await db.prepare(
       `SELECT r.report_id, r.report_type, r.proposed_latitude, r.proposed_longitude, r.submitter_hash, r.minimize_after,
-              r.redacted_at, m.state, m.reconciliation_state, e.application_id AS linked_application_id
+              r.redacted_at, m.state, m.reconciliation_state, e.application_id AS linked_application_id, r.accepted_terms_version
        FROM reports r LEFT JOIN report_moderation m ON m.report_id = r.report_id
        LEFT JOIN community_reconciliation_evidence e ON e.report_id = r.report_id
        WHERE r.report_id = ?`,
@@ -95,12 +96,25 @@ function assertPremises(rows: readonly PremiseRow[], now: string, applicationId:
   }
 }
 
+/**
+ * The rights basis of a set of reports: the one terms version all of them accepted, or null. A report without
+ * consent (every report stored before migration 0021) makes the whole set basis-less; nothing is inferred for it,
+ * and mixing versions is not a basis either, because no single document covers every report.
+ */
+export function commonTermsVersion(rows: readonly { accepted_terms_version: string | null }[]): string | null {
+  const versions = new Set(rows.map((r) => r.accepted_terms_version));
+  const [only] = versions;
+  return versions.size === 1 && only !== null && only !== undefined ? only : null;
+}
+
 export interface CommunityCandidateGroup {
   reportIds: string[];
   pins: { reportId: string; latitude: number; longitude: number }[];
   /** How many distinct submitters stand behind the group. The submitter keys themselves are never returned. */
   distinctSubmitters: number;
   maxPairDistanceMetres: number;
+  /** The terms version every report in the group consented to, or null: a group without it can never publish (Issue #124). */
+  commonTermsVersion: string | null;
 }
 
 /**
@@ -112,13 +126,13 @@ export async function listCommunityCandidates(db: Db, opts: { withinMetres: numb
     throw new CommunityReconciliationError("community: an explicit positive grouping radius in metres is required");
   }
   const { results } = await db.prepare(
-    `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude, r.submitter_hash
+    `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude, r.submitter_hash, r.accepted_terms_version
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
        AND m.state = 'accepted' AND m.reconciliation_state = 'queued'
        AND NOT EXISTS (SELECT 1 FROM community_reconciliation_evidence e WHERE e.report_id = r.report_id)
      ORDER BY r.report_id`,
-  ).bind(isoSeconds(opts.now)).all<{ report_id: string; latitude: number; longitude: number; submitter_hash: string }>();
+  ).bind(isoSeconds(opts.now)).all<{ report_id: string; latitude: number; longitude: number; submitter_hash: string; accepted_terms_version: string | null }>();
 
   const parent = results.map((_, i) => i);
   const root = (i: number): number => (parent[i] === i ? i : (parent[i] = root(parent[i])));
@@ -137,6 +151,7 @@ export async function listCommunityCandidates(db: Db, opts: { withinMetres: numb
       pins: members.map((m) => ({ reportId: m.report_id, latitude: m.latitude, longitude: m.longitude })),
       distinctSubmitters: new Set(members.map((m) => m.submitter_hash)).size,
       maxPairDistanceMetres: Math.round(max * 10) / 10,
+      commonTermsVersion: commonTermsVersion(members),
     };
   });
 }
@@ -220,7 +235,7 @@ export async function applyCommunityApplication(
   await ensureReviewedSource(db, COMMUNITY_SOURCE_ID, now);
   const bytes = communityArtifact({
     applicationId, latitude: pin.proposed_latitude!, longitude: pin.proposed_longitude!, reportIds,
-    version: application.reconciliation_version,
+    version: application.reconciliation_version, termsVersion: commonTermsVersion(premises),
   });
   // No observation date: the reports' own dates are personal and minimized after 90 days (ADR-0007 §4), and
   // the review date is not an observation, so lastVerifiedAt stays unknown (ADR-0006).

@@ -21,6 +21,7 @@ import { observeSourceRecord } from "../src/pipeline/source-adapter.ts";
 import { createReport, minimizeAfter } from "../src/reports/create.ts";
 import { recordModerationDecision, setReconciliationState } from "../src/reports/moderation.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
+import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
@@ -41,16 +42,17 @@ const HASH_C = "0f1e2d3c4b5a6978".repeat(4);
 const PIN = { latitude: 35.71201, longitude: 139.77701 };
 const NEAR = { latitude: 35.71205, longitude: 139.77706 };
 
-async function report(db: SqliteD1, hash: string, at = PIN, type = "missing"): Promise<string> {
+async function report(db: SqliteD1, hash: string, at = PIN, type = "missing", consent?: string): Promise<string> {
+  const terms = consent === undefined ? {} : { acceptedTermsVersion: consent };
   const request = type === "missing"
-    ? { schemaVersion: 1, type, proposedLocation: at, installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f", note: NOTE, observedOn: OBSERVED }
-    : { schemaVersion: 1, type, spotId: "sp_01V64NN31G72E5KJJ5W22W1A1J", installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f", note: NOTE };
+    ? { schemaVersion: 1, type, proposedLocation: at, installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f", note: NOTE, observedOn: OBSERVED, ...terms }
+    : { schemaVersion: 1, type, spotId: "sp_01V64NN31G72E5KJJ5W22W1A1J", installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f", note: NOTE, ...terms };
   const { reportId } = await createReport(db, request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash });
   return reportId;
 }
 
-async function queuedReport(db: SqliteD1, hash: string, at = PIN): Promise<string> {
-  const id = await report(db, hash, at);
+async function queuedReport(db: SqliteD1, hash: string, at = PIN, consent?: string): Promise<string> {
+  const id = await report(db, hash, at, "missing", consent);
   await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
   await setReconciliationState(db, id, "queued", RECEIVED);
   return id;
@@ -71,6 +73,11 @@ const canonicalCounts = (db: SqliteD1) => Object.fromEntries(
 const approveCommunityForSimulation = (db: SqliteD1) => db.raw.prepare(
   "UPDATE sources SET publication_status = 'approved', attribution_text = 'TEST ONLY simulated community attribution' WHERE source_id = ?",
 ).run(COMMUNITY_SOURCE_ID);
+// TEST ONLY: simulates the legal/maintainer approval of the draft terms (Issue #124), which only a reviewed change to
+// REPORT_TERMS may make in reality.
+const grantTermsForSimulation = (db: SqliteD1) => db.raw.prepare(
+  "UPDATE report_terms_versions SET publication_rights = 'granted' WHERE terms_version = ?",
+).run(CURRENT_REPORT_TERMS.version);
 
 // 1-3 ------------------------------------------------------------------------------------------------------
 test("pending, rejected and accepted-but-not-queued reports cannot back an application", async () => {
@@ -144,7 +151,8 @@ test("apply writes one sanitized userReport release and spot in one batch; nothi
   assert.deepEqual([release.source_id, release.status, release.is_current, release.observed_on, release.record_count], [COMMUNITY_SOURCE_ID, "applied", 0, null, 1]);
   const record = one(db, "SELECT * FROM source_records WHERE release_id = ?", result.releaseId);
   assert.deepEqual(JSON.parse(record.raw_values_json),
-    [applicationId, "newSpot", String(PIN.latitude), String(PIN.longitude), [a, b].sort().join(" "), "community-reconciliation.v1"]);
+    [applicationId, "newSpot", String(PIN.latitude), String(PIN.longitude), [a, b].sort().join(" "), "community-reconciliation.v1", ""],
+    "reports stored without consent leave the rights basis empty (Issue #124)");
   const spot = one(db, "SELECT * FROM spots WHERE spot_id = ?", spotId);
   assert.deepEqual([spot.latitude, spot.longitude, spot.evidence_quality, spot.last_verified_at, spot.name, spot.supports_paper, spot.opening_hours_status],
     [PIN.latitude, PIN.longitude, "communityReviewed", null, null, "unknown", "none"]);
@@ -280,8 +288,8 @@ test("simulated approval: a community spot passes the ordinary publication gate,
     JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id
     WHERE rel.source_id = 'taito-public-smoking-areas' AND s.publication_hold IS NULL ORDER BY s.spot_id LIMIT 1`);
   const nearTaito = { latitude: Math.round((taito.latitude + 0.0002) * 1e5) / 1e5, longitude: taito.longitude };
-  const a = await queuedReport(db, HASH_A, nearTaito);
-  const b = await queuedReport(db, HASH_B, nearTaito);
+  const a = await queuedReport(db, HASH_A, nearTaito, CURRENT_REPORT_TERMS.version);
+  const b = await queuedReport(db, HASH_B, nearTaito, CURRENT_REPORT_TERMS.version);
   const applicationId = await proposeCommunityApplication(db, { reportIds: [a, b], locationReportId: a, decidedBy: "reviewer-1", now: APPLY });
   const { spotId } = await applyCommunityApplication(db, applicationId, { now: APPLY, newSpotId: sequentialSpotIds("C") }) as { spotId: string };
 
@@ -290,6 +298,11 @@ test("simulated approval: a community spot passes the ordinary publication gate,
     && all(db, "SELECT 1 FROM cross_source_candidates WHERE ? IN (spot_a_id, spot_b_id)", spotId).length > 0, false);
 
   approveCommunityForSimulation(db);
+  // Source approved, terms still the draft: the rights gate holds the spot back (Issue #124).
+  const draft = await publishTiles(db, { now: isoSeconds(APPLY) });
+  assert.ok(draft.excluded.some((e) => e.sourceId === COMMUNITY_SOURCE_ID && e.publicationStatus === "rightsNotGranted"));
+  assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n, 0);
+  grantTermsForSimulation(db);
   await publishTiles(db, { now: isoSeconds(APPLY) });
   assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n, 1, "passes the ordinary publication trigger");
   const detail = await (await app.request(`/v1/spots/${spotId}`, {}, { DB: db })).json() as any;
@@ -323,7 +336,11 @@ test("promotion: report and reconciliation tables never travel; a blocked commun
   }
   // Naming the community release is refused (not current, not approved); so is a published community spot.
   await assert.rejects(buildMultiSourcePromotionBundle(db, { releaseIds: [releaseId] }), /not its source's current release|blocked|not approved/);
+  // A hand-approved row alone publishes nothing (no consent, terms not granted) and adds nothing to the bundle:
+  // the reviewed registry in code still says blocked. The approved simulation is test/community-publication-readiness.test.ts.
   approveCommunityForSimulation(db);
   await publishTiles(db, { now: isoSeconds(APPLY) });
-  await assert.rejects(buildMultiSourcePromotionBundle(db), /draw existence evidence from another release/);
+  assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n, 0);
+  assert.equal((await buildMultiSourcePromotionBundle(db)).sql, bundle.sql, "a blocked community source leaves the bundle bytes unchanged");
+  await assert.rejects(buildMultiSourcePromotionBundle(db, { releaseIds: [releaseId] }), /not approved in REVIEWED_SOURCES/);
 });

@@ -314,3 +314,68 @@ evidence plus moderation"). Code: `services/api/src/pipeline/community-reconcili
 - Existing-spot report types (`exists`, `moved`, `prohibited`, `hoursChanged`, `accessChanged`,
   `tobaccoTypeChanged`, `other`) as attenuation or hold candidates. They stay `queued`.
 - Any rights, license, attribution or promotion support for community evidence (Issue #124).
+
+## Amendment 2026-09-30 — report terms consent and existing-spot effects (Issues #124, #127)
+
+Implements every technical prerequisite of Issue #124 except the legal approval of the terms text,
+and connects existing-spot reports (Issue #127). Code: `services/api/src/reports/terms.ts`,
+`src/pipeline/community-effects.ts`, `src/pipeline/promotion.ts`. Migration:
+`0021_community_publication_readiness.sql`. Tests: `test/community-publication-readiness.test.ts`,
+`test/app-attest-api.test.ts`. Draft document: `docs/legal/REPORT_TERMS_DRAFT.md`.
+
+### Decisions
+
+1. **Consent is part of the immutable report.** `reports.accepted_terms_version` records the terms
+   version the submitter explicitly agreed to, sent as `acceptedTermsVersion` inside the payload (so
+   a schemaVersion 2 assertion signs it). It is not personal: it survives redaction and is frozen by
+   the immutability trigger. A report stored without it — every report received before 0021 —
+   **never gains consent**: nothing is applied retroactively. Only the deployment's current version
+   is accepted (`409 termsVersionOutdated` otherwise), so a stored version always names the document
+   the client showed.
+2. **Terms versions are reviewed in the repository.** `REPORT_TERMS` lists each version with its
+   document path, the SHA-256 of the exact document bytes (pinned by a test) and its publication
+   rights: `pending` (draft), `granted` or `revoked`. `report_terms_versions` mirrors it the way
+   `sources` mirrors `REVIEWED_SOURCES`; `npm run local:registry` re-applies it. The current version
+   `report-terms.2026-09-30.draft` is **pending**: approving the same bytes flips it to `granted` in a
+   reviewed PR; approving different text is a new version, and reports consented to the draft keep
+   no rights.
+3. **Community publication needs a rights basis, not only an approved source.** An application's
+   sanitized record now carries the one terms version every evidence report consented to, or nothing
+   when the reports do not share one (artifact v2; a v1 record has none). A community spot enters a
+   tile only when that version is `granted` **and** the source is approved (trigger
+   `tile_snapshot_spots_community_rights` plus `publishTiles`, which reports the rest as
+   `rightsNotGranted`). Mixing a consented report with an unconsented one is not a basis. Revoking the
+   terms or blocking the source removes the spots at the next publish.
+4. **Existing-spot reports lead to exactly one reviewed effect per type** (Issue #127), and none of
+   them mutates a canonical value:
+
+   | Report type | Effect | What applying it does |
+   | --- | --- | --- |
+   | `moved` | `relocationReview` | review candidate for the ADR-0009 relocation workflow |
+   | `prohibited` | `publicationHoldReview` | review candidate; a separate hold step may withhold the spot |
+   | `hoursChanged` | `hoursReview` | review candidate (hours attenuation stays source-driven, Issue #42) |
+   | `accessChanged` | `accessReview` | review candidate |
+   | `tobaccoTypeChanged` | `tobaccoTypeReview` | review candidate |
+   | `exists` | `existenceVerification` | verification candidate; `lastVerifiedAt` is not touched |
+   | `other` | none | no application can be made; it is read in the moderation queue only |
+
+   The chain is `accepted → queued → immutable effect application (one type, one spot, explicit
+   reports) → applied`, re-checked inside the apply batch like 0020. A report backs at most one
+   application of either kind, ever.
+5. **The one public-facing effect is a fail-closed hold.** `holdCommunityEffect` withholds the spot
+   of an applied `publicationHoldReview` (a `community_publication_holds` row; no canonical column
+   changes, the spot is unpublished first). The database refuses it unless the community rights hold:
+   the source approved, every evidence report consented to one granted terms version, at least two
+   reports from distinct submitters, all unredacted and inside their minimization window. While
+   Issue #124 is open the step returns `blocked` with its reasons and writes nothing. A hold is
+   lifted once, by a reviewed lift; a lifted hold is not re-applied.
+6. **Moderation stays local and counts-only where it summarizes.** `npm run local:reports` gains
+   `effects`, `effect-propose|apply|hold|lift|withdraw` and `summary`. The effects view and the
+   summary show report counts, independent submitters, redacted/stale counts, rights blockers and
+   the target effect; no note, pin, date or submitter key. There is still no admin HTTP surface.
+
+### Still open (legal/maintainer only)
+
+- Approval of the terms text (`docs/legal/REPORT_TERMS_DRAFT.md`) and its `REPORT_TERMS` entry.
+- The community source's license and attribution text in `docs/SOURCES.md` and `COMMUNITY_REGISTRY`.
+- Whether `lastVerifiedAt` of community spots stays unknown (Issue #124 item 3).

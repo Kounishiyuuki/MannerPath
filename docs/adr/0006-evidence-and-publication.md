@@ -368,3 +368,25 @@ become evidence" line above concrete. The publication invariant is unchanged.
    community release out, and refuses to export while a published spot draws evidence from one.
    Carrying community evidence to a promoted database is part of Issue #124. Report and
    reconciliation tables never travel.
+
+## Amendment 2026-09-30 — community rights gate, community holds, additive promotion (Issues #124, #127)
+
+The publication invariant gains two community conditions; nothing about other sources changes.
+
+1. **Rights gate.** A `userReport` spot is publishable only when its sanitized record names a terms
+   version whose `report_terms_versions` row is `granted` (ADR-0007 amendment 2026-09-30, decision
+   3), in addition to its source being approved. `publishTiles` excludes it as `rightsNotGranted`;
+   the `tile_snapshot_spots_community_rights` trigger refuses it on insert.
+2. **Community publication hold.** An active `community_publication_holds` row keeps its spot out of
+   every tile (`publishTiles` and the `tile_snapshot_spots_community_hold` trigger). It is a separate
+   axis from `spots.publication_hold`, so no canonical column changes and the 0014 column needs no
+   rebuild.
+3. **Promotion of the additive source** (replaces decision 6 of the Issue #123 amendment). An
+   approved `userReport` source travels in `promotion-bundle.v3` with every applied release: one
+   declaration anchored on its lowest release plus one `promotion_multi_bootstrap_additive_releases`
+   row per release. The target's per-source checks (0018) are recreated over
+   `promotion_multi_declared_releases`, which for every other source is exactly its one current
+   release, so municipal bundles keep their bytes and their checks. The terms rows a published
+   community spot depends on travel with it, and the exporter checks them against the reviewed list
+   in code. Report, moderation, reconciliation, effect and hold tables never travel; holds stay in
+   the origin database like relocation holds. A blocked community source contributes nothing.

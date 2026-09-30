@@ -12,6 +12,7 @@
 import { z } from "zod";
 import { SPOT_ID } from "../spot-id.ts";
 import type { AttestationConfig } from "./attestation.ts";
+import { TERMS_VERSION } from "./terms.ts";
 
 /** The unattested report request (and response) version. */
 export const REPORT_SCHEMA_VERSION = 1;
@@ -64,6 +65,10 @@ const reportFields = <V extends number>(version: V) => z.object({
   note: z.string().min(1).max(REPORT_NOTE_MAX).optional(),
   // Client-generated per install, used only to derive the hashed abuse key. Never stored as sent.
   installId: z.string().regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/),
+  // The report terms version the submitter explicitly accepted before sending (Issue #124). Inside the payload,
+  // so a v2 assertion signs it. Optional for compatibility: a report without it is stored without consent and is
+  // never a basis for community publication. When present it must be the deployment's current version.
+  acceptedTermsVersion: z.string().regex(TERMS_VERSION).optional(),
   // No `attestation` field: v1 is the unattested version, and in v2 attestation material travels
   // in the envelope, outside the signed payload (ADR-0007 §6).
 }).strict().superRefine((r, ctx) => {

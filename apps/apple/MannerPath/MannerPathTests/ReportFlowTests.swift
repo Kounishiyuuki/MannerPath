@@ -487,3 +487,108 @@ extension ReportFlowTests {
         #expect(await transport.count() == 1)
     }
 }
+
+/// Report terms consent (Issue #124): shown, explicitly agreed, bound into the payload, never assumed.
+struct ReportTermsConsentTests {
+    let terms = ReportTerms.bundledVersion
+    var consentLimits: ReportLimits { ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096, termsVersion: terms) }
+
+    private func config(_ reports: String) -> Data {
+        #"{"schemaVersion":1,"apiVersion":"v1","schemaVersions":{"report":1},"minimumSupportedSchemaVersions":{"report":1},"reports":"#
+            .appending(reports).appending("}").data(using: .utf8)!
+    }
+
+    @Test func configPublishesTheTermsVersionAndAnotherVersionNeedsAnUpdate() async throws {
+        let current = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: MockReportTransport([
+            ReportHTTPResponse(statusCode: 200, body: config(#"{"available":true,"maxBodyBytes":4096,"noteMaxLength":280,"termsVersion":"\#(terms)"}"#), retryAfter: nil)
+        ]))
+        #expect(try await current.fetchAvailability() == .available(ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096,
+                                                                                  maxSubmissionBytes: 4096, termsVersion: terms)))
+        let other = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: MockReportTransport([
+            ReportHTTPResponse(statusCode: 200, body: config(#"{"available":true,"maxBodyBytes":4096,"noteMaxLength":280,"termsVersion":"report-terms.2099-01-01"}"#), retryAfter: nil)
+        ]))
+        #expect(try await other.fetchAvailability() == .incompatible)
+        let legacy = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: MockReportTransport([
+            ReportHTTPResponse(statusCode: 200, body: config(#"{"available":true,"maxBodyBytes":4096,"noteMaxLength":280}"#), retryAfter: nil)
+        ]))
+        #expect(try await legacy.fetchAvailability() == .available(ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096, maxSubmissionBytes: 4096)))
+    }
+
+    @Test func consentIsRequiredAndTravelsInsideThePayload() throws {
+        let draft = ReportDraft(type: .exists, spotId: "sp_123")
+        #expect(throws: ReportValidationError.termsNotAccepted) {
+            try ReportRequest.encoded(draft: draft, installId: FixedInstallID().installID(), limits: consentLimits)
+        }
+        var stale = draft
+        stale.acceptedTermsVersion = "report-terms.1999-01-01"
+        #expect(throws: ReportValidationError.termsNotAccepted) {
+            try ReportRequest.encoded(draft: stale, installId: FixedInstallID().installID(), limits: consentLimits)
+        }
+        var agreed = draft
+        agreed.acceptedTermsVersion = terms
+        let body = try ReportRequest.encoded(draft: agreed, installId: FixedInstallID().installID(), limits: consentLimits)
+        let object = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        #expect(object["acceptedTermsVersion"] as? String == terms)
+        // A deployment that predates terms never receives the field (its strict schema would refuse it).
+        let legacy = try ReportRequest.encoded(draft: agreed, installId: FixedInstallID().installID(),
+                                               limits: ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096))
+        #expect((try #require(JSONSerialization.jsonObject(with: legacy) as? [String: Any]))["acceptedTermsVersion"] == nil)
+    }
+
+    @Test @MainActor func consentIsExplicitPerDraftAndSubmitsOnlyAfterAgreeing() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let store = FileReportDraftStore(directory: directory)
+        let submitter = MockSubmitter(.success(AcceptedReport(schemaVersion: 1, reportId: "rp_01V64NN31G72E5KJJ5W22W1A1J",
+                                                               state: "pending", receivedAt: "2026-09-30T00:00:00Z")))
+        let model = ReportModel(configClient: StaticConfig(value: .available(consentLimits)), reportClient: submitter,
+                                store: store, installIDs: FixedInstallID())
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: "sp_123")
+        #expect(model.draft?.acceptedTermsVersion == nil, "consent is never assumed")
+        await model.submit()
+        #expect(await submitter.calls() == 0)
+        if case .failed(let message) = model.submission {
+            #expect(message == String(localized: "Read and agree to the report terms before submitting."))
+        } else { Issue.record("Expected a consent failure") }
+        model.setTermsAccepted(true)
+        #expect(try store.load()?.acceptedTermsVersion == terms, "consent is saved with the draft")
+        model.setTermsAccepted(false)
+        #expect(model.draft?.acceptedTermsVersion == nil)
+        model.setTermsAccepted(true)
+        await model.submit()
+        #expect(await submitter.calls() == 1)
+    }
+
+    @Test @MainActor func outdatedTermsRejectionAsksForAnUpdateAndKeepsTheDraft() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let store = FileReportDraftStore(directory: directory)
+        let submitter = MockSubmitter(.failure(ReportAPIError.rejected(409, "termsVersionOutdated")))
+        let model = ReportModel(configClient: StaticConfig(value: .available(consentLimits)), reportClient: submitter,
+                                store: store, installIDs: FixedInstallID())
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: "sp_123")
+        model.setTermsAccepted(true)
+        await model.submit()
+        #expect(model.availability == .incompatible)
+        #expect(try store.load() != nil)
+        let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: MockReportTransport([
+            ReportHTTPResponse(statusCode: 409, body: Data(#"{"error":"termsVersionOutdated"}"#.utf8), retryAfter: nil)
+        ]))
+        await #expect(throws: ReportAPIError.rejected(409, "termsVersionOutdated")) { _ = try await client.submit(Data()) }
+    }
+
+    @Test func draftsSavedBeforeTermsDecodeWithoutConsent() throws {
+        let old = #"{"type":"exists","spotId":"sp_123"}"#.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(ReportDraft.self, from: old)
+        #expect(decoded.acceptedTermsVersion == nil)
+    }
+
+    @Test func communityReviewedIsNeverPresentedAsOfficial() {
+        let label = SpotPresentation.evidence("communityReviewed", version: "evidence-quality.v2")
+        #expect(label == String(localized: "Reviewed user reports (not official)"))
+        #expect(label != SpotPresentation.evidence("officialListing", version: "evidence-quality.v1"))
+        #expect(SpotPresentation.isCommunityReviewed("communityReviewed", version: "evidence-quality.v2"))
+        #expect(!SpotPresentation.isCommunityReviewed("officialListing", version: "evidence-quality.v1"))
+        #expect(!SpotPresentation.isCommunityReviewed("communityReviewed", version: "evidence-quality.v9"))
+    }
+}

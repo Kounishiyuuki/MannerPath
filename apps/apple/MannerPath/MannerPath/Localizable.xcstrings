@@ -3072,6 +3072,196 @@
           }
         }
       }
+    },
+    "Draft terms awaiting legal review. Reports are stored for review, but nothing you submit is published on the basis of these draft terms.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "法務確認前の規約草案です。報告は審査のため保存されますが、この草案に基づいて送信内容が公開されることはありません。"
+          }
+        }
+      }
+    },
+    "What MannerPath does with a report": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MannerPath が報告に対して行うこと"
+          }
+        }
+      }
+    },
+    "Stores and reviews it (moderation), and compares it with other reports and sources.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告を保存して確認（モデレーション）し、ほかの報告や情報源と照合します。"
+          }
+        }
+      }
+    },
+    "A report is never published immediately. Only reviewed information can become map data.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告がすぐに掲載されることはありません。審査を経た情報だけが地図のデータになります。"
+          }
+        }
+      }
+    },
+    "After review, the resulting information (the adopted place and its confirmed state) may be published and redistributed through the app, the API, map tiles and data exports, labelled as reviewed user reports, separately from official data.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "審査後に得られた情報（採用された場所と確認された状態）は、公式情報とは区別して「利用者報告（審査済み）」として、アプリ、API、地図タイル、データの配布物を通じて公開・再配布されることがあります。"
+          }
+        }
+      }
+    },
+    "What is never published": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開されない情報"
+          }
+        }
+      }
+    },
+    "Your note, observation day, submission time, report reference or anything that could identify you.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモ、確認日、送信日時、報告番号、あなたを特定し得る情報。"
+          }
+        }
+      }
+    },
+    "No account is needed. Your device location and location history are not sent.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントは不要です。端末の現在地や位置の履歴は送信されません。"
+          }
+        }
+      }
+    },
+    "Retention": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存期間"
+          }
+        }
+      }
+    },
+    "Personal content in a report (note, proposed pin, observation day) is deleted within 90 days of receipt.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告に含まれる個人に関わる内容（メモ、指定した位置、確認日）は、受信から90日以内に削除されます。"
+          }
+        }
+      }
+    },
+    "Terms version": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "規約の版"
+          }
+        }
+      }
+    },
+    "Report terms": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告に関する規約"
+          }
+        }
+      }
+    },
+    "Read the report terms": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告に関する規約を読む"
+          }
+        }
+      }
+    },
+    "I agree to the report terms": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告に関する規約に同意する"
+          }
+        }
+      }
+    },
+    "Required before submitting. Terms version %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信前に同意が必要です。規約の版: %@"
+          }
+        }
+      }
+    },
+    "Read and agree to the report terms before submitting.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信する前に、報告に関する規約を読んで同意してください。"
+          }
+        }
+      }
+    },
+    "The report terms have changed. Update the app to read them. Your draft remains saved.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告に関する規約が更新されました。アプリをアップデートして確認してください。下書きは保存されています。"
+          }
+        }
+      }
+    },
+    "Reviewed user reports (not official)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者報告（審査済み・公式情報ではありません）"
+          }
+        }
+      }
+    },
+    "Based on independent reports from users that MannerPath reviewed, not on an official listing. Check on-site signs.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公的機関の掲載情報ではなく、MannerPath が審査した複数の利用者からの報告に基づいています。現地の表示を確認してください。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
