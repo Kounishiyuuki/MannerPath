@@ -166,3 +166,27 @@ states all ward parks became smoke-free on 2022-01-01. No applicable exception w
 Publication status: **blocked**; no adapter, ingest or canonical values. Do not equate a later
 catalog timestamp with current smoking permission. Remaining surveyed candidates with unresolved
 license/raw coordinates are also blocked, with per-ward reasons in the survey linked above.
+
+### 武蔵野市 公衆喫煙所（地域生活環境指標）
+
+Approved pinned first release, Codex primary-source review 2026-09-30, Issue #113.
+The complete approval gate, exact resource-level license applicability, retrieval hashes,
+current-operation check and field semantics are in
+[PROVENANCE.md](../services/data-pipeline/fixtures/musashino-public-smoking-areas/PROVENANCE.md).
+
+| Field | Value |
+|---|---|
+| Source ID / publisher | `musashino-public-smoking-areas` / 武蔵野市 |
+| Dataset | [4(2)トイレおよび路上禁煙エリア・公衆喫煙所 令和4年版地域生活環境指標](https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html) |
+| Raw resource | https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip ; exact KML/KMZ member, not projected CSV |
+| License | Exact item explicitly CC BY 4.0, https://creativecommons.org/licenses/by/4.0/ ; sharing/adaptation allowed with attribution/change notices, no share-alike |
+| Attribution | `出典：武蔵野市「4(2)トイレおよび路上禁煙エリア・公衆喫煙所 令和4年版地域生活環境指標」 https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html 元データ https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが公衆喫煙所のKML Pointを抽出・正規化して作成。武蔵野市による推奨・保証を意味しません。` |
+| Reviewed hash / count | KML SHA-256 `fc6986b986ec315691299a12583f14a8fd942e34075fd1e9e44837dc72c57a7c`; 25 raw Placemarks → 3 exact public-smoking Points → 3 published spots |
+| Scope | 吉祥寺・三鷹・武蔵境 station sites; `partial`. Toilets and prohibited-area polygons excluded. Newer fourth official site lacks coordinates in this fixture and is excluded |
+| Coordinate semantics | Publisher-supplied WGS1984 KML smoking-site Points; positional/entrance accuracy unstated; no geocoding |
+| Dates / cadence | Exact observation date unstated: `observedOn`/`lastVerifiedAt` NULL. Annual edition, no update SLA. Fetch/HTTP/page dates retained separately |
+| Publication / refresh | First reviewed SHA/URL/NULL date only; `crossReleaseValidated=false`; no refresh target |
+
+No canonical attributes come from the ordinary current-operation page. Field uncertainty and
+excluded categories are enforced in the dedicated pinned reader; existing SourceAdapter contracts
+and schema remain unchanged.

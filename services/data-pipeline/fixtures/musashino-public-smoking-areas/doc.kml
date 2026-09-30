@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<kml xmlns:kml="http://www.opengis.net/kml/2.2" xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name/>
+    <Schema id="AttributeSchema" name="">
+      <SimpleField name="UserID" type="int"/>
+      <SimpleField name="凡例区分" type="string"/>
+      <SimpleField name="リンクID" type="int"/>
+    </Schema>
+    <Style id="inline0">
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>3.0</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>84ecd1ba</color>
+      </PolyStyle>
+    </Style>
+    <Folder>
+      <name/>
+      <Placemark>
+        <styleUrl>#inline0</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <coordinates>139.57964227068388,35.70211583294914,0.0 139.57909937891327,35.702306543226065,0.0 139.57830988393624,35.7006839828385,0.0 139.57826732995971,35.70069750330053,0.0 139.57904377956757,35.70232508405161,0.0 139.5786742543292,35.70244421151385,0.0 139.5770896459923,35.70290711602786,0.0 139.57934692214093,35.707271975976894,0.0 139.58184004063799,35.70603101965861,0.0 139.58087024231352,35.70400317055305,0.0 139.5809119408598,35.70293625737273,0.0 139.5803604103481,35.7018483677846,0.0 139.5797355047965,35.702077396875374,0.0 139.57964227068388,35.70211583294914,0.0</coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">3</SimpleData>
+            <SimpleData name="凡例区分">禁煙エリア</SimpleData>
+            <SimpleData name="リンクID">3</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline0</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <coordinates>139.54527089329181,35.70417406013159,0.0 139.54515303077721,35.703386237566825,0.0 139.54556003301474,35.703237972344525,0.0 139.54554938606742,35.70220001613986,0.0 139.5427432321583,35.70218981302365,0.0 139.54275684847153,35.70299023989402,0.0 139.54328896404928,35.70297760622373,0.0 139.54333934756906,35.70436514429484,0.0 139.54527089329181,35.70417406013159,0.0</coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">4</SimpleData>
+            <SimpleData name="凡例区分">禁煙エリア</SimpleData>
+            <SimpleData name="リンクID">4</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline0</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <coordinates>139.56219762877285,35.702904209835864,0.0 139.56061069841653,35.7029347053086,0.0 139.55891843323897,35.703590306928994,0.0 139.56036698480062,35.705995359839875,0.0 139.5618427696713,35.70547883547744,0.0 139.56339814347356,35.7048748137004,0.0 139.56219762877285,35.702904209835864,0.0</coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">2</SimpleData>
+            <SimpleData name="凡例区分">禁煙エリア</SimpleData>
+            <SimpleData name="リンクID">2</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline0</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <coordinates>139.543232055151,35.70080193448705,0.0 139.5433197643021,35.70187550942551,0.0 139.54654210052317,35.701945505472004,0.0 139.54665452530784,35.70074878736748,0.0 139.54540299668992,35.70074061730331,0.0 139.54462214213788,35.7007528172377,0.0 139.5438541801441,35.70077197461048,0.0 139.543232055151,35.70080193448705,0.0</coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">1</SimpleData>
+            <SimpleData name="凡例区分">禁煙エリア</SimpleData>
+            <SimpleData name="リンクID">1</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+    </Folder>
+    <name/>
+    <Schema id="AttributeSchema" name="">
+      <SimpleField name="UserID" type="int"/>
+      <SimpleField name="SYMBOL" type="int"/>
+      <SimpleField name="ANGLE" type="double"/>
+      <SimpleField name="SIZE" type="double"/>
+      <SimpleField name="番号" type="int"/>
+      <SimpleField name="所在地" type="string"/>
+      <SimpleField name="名称" type="string"/>
+      <SimpleField name="設備" type="string"/>
+      <SimpleField name="電話番号" type="string"/>
+      <SimpleField name="利用時間" type="string"/>
+      <SimpleField name="リンクID" type="int"/>
+      <SimpleField name="凡例" type="string"/>
+    </Schema>
+    <Style id="inline1">
+      <IconStyle>
+        <scale>0.46875</scale>
+        <heading>0.0</heading>
+        <hotSpot x="0.5" xunits="fraction" y="0.5" yunits="fraction"/>
+        <Icon>
+          <href>image0.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Folder>
+      <name/>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.57174698230617,35.70543682503964,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">13</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">12</SimpleData>
+            <SimpleData name="所在地">吉祥寺本町3-10</SimpleData>
+            <SimpleData name="名称">中道公園</SimpleData>
+            <SimpleData name="設備">両用（子ども用）　１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">夏季のみ（10：00～17:00）</SimpleData>
+            <SimpleData name="リンクID">13</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.54037761462115,35.71168109512971,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">12</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">10</SimpleData>
+            <SimpleData name="所在地">関前5-19</SimpleData>
+            <SimpleData name="名称">農業ふれあい公園</SimpleData>
+            <SimpleData name="設備">両用トイレ１、小１、身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">9:00～17:00</SimpleData>
+            <SimpleData name="リンクID">12</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.54596149293016,35.707974628594144,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">11</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">11</SimpleData>
+            <SimpleData name="所在地">境3-20</SimpleData>
+            <SimpleData name="名称">境冒険遊び場公園</SimpleData>
+            <SimpleData name="設備">身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">（月・火休）</SimpleData>
+            <SimpleData name="リンクID">11</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.5378559832366,35.70606463500712,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">10</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">13</SimpleData>
+            <SimpleData name="所在地">境2-22</SimpleData>
+            <SimpleData name="名称">武蔵川公園</SimpleData>
+            <SimpleData name="設備">両用トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">9:00～17:00</SimpleData>
+            <SimpleData name="リンクID">10</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.5422358330043,35.707102195694766,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">9</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">8</SimpleData>
+            <SimpleData name="所在地">境4-1</SimpleData>
+            <SimpleData name="名称">第２しろがね公園</SimpleData>
+            <SimpleData name="設備">両用トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">9</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.54137587656916,35.69948238179737,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">8</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">7</SimpleData>
+            <SimpleData name="所在地">境南町3-14</SimpleData>
+            <SimpleData name="名称">境本公園</SimpleData>
+            <SimpleData name="設備">両用トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">8</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.55066604000604,35.71407277838301,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">7</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">9</SimpleData>
+            <SimpleData name="所在地">関前3-32・35</SimpleData>
+            <SimpleData name="名称">市民の森公園</SimpleData>
+            <SimpleData name="設備">両用トイレ１、身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">9:00～17:00</SimpleData>
+            <SimpleData name="リンクID">7</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.55423190137358,35.71299260503083,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">6</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">6</SimpleData>
+            <SimpleData name="所在地">関前3-14</SimpleData>
+            <SimpleData name="名称">関前公園</SimpleData>
+            <SimpleData name="設備">小２、大１、女２、身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">9:00～17:00</SimpleData>
+            <SimpleData name="リンクID">6</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.58062523812404,35.698766242840854,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">5</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">5</SimpleData>
+            <SimpleData name="所在地">吉祥寺南町1-22</SimpleData>
+            <SimpleData name="名称">鎌田公園</SimpleData>
+            <SimpleData name="設備">両用トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">10:00～16:00（貸出時のみ）</SimpleData>
+            <SimpleData name="リンクID">5</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.59425533521545,35.70395680551649,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">4</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">4</SimpleData>
+            <SimpleData name="所在地">吉祥寺東町4-18</SimpleData>
+            <SimpleData name="名称">本田東公園</SimpleData>
+            <SimpleData name="設備">小１、身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">9:00～17:00</SimpleData>
+            <SimpleData name="リンクID">4</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.52786954963287,35.710707281381644,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">3</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">3</SimpleData>
+            <SimpleData name="所在地">桜堤2-13</SimpleData>
+            <SimpleData name="名称">上水南公園</SimpleData>
+            <SimpleData name="設備">両用トイレ1</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">3</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.56582867325085,35.71665982671554,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">2</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">2</SimpleData>
+            <SimpleData name="所在地">緑町2-2</SimpleData>
+            <SimpleData name="名称">むさしの市民公園</SimpleData>
+            <SimpleData name="設備">小２、大１、女２、身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">2</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.55354142764077,35.70653016822328,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">1</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">1</SimpleData>
+            <SimpleData name="所在地">西久保1-43</SimpleData>
+            <SimpleData name="名称">西久保公園</SimpleData>
+            <SimpleData name="設備">身障者用１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">9:00～17:00</SimpleData>
+            <SimpleData name="リンクID">1</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline1</styleUrl>
+        <Point>
+          <coordinates>139.576569429346,35.71565526142428,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">14</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">14</SimpleData>
+            <SimpleData name="所在地">吉祥寺北町3-12</SimpleData>
+            <SimpleData name="名称">むさしの自然観察園</SimpleData>
+            <SimpleData name="設備">両用トイレ2</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">14</SimpleData>
+            <SimpleData name="凡例">公園のトイレ</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+    </Folder>
+    <name/>
+    <Schema id="AttributeSchema" name="">
+      <SimpleField name="UserID" type="int"/>
+      <SimpleField name="SYMBOL" type="int"/>
+      <SimpleField name="ANGLE" type="double"/>
+      <SimpleField name="SIZE" type="double"/>
+      <SimpleField name="番号" type="int"/>
+      <SimpleField name="所在地" type="string"/>
+      <SimpleField name="名称" type="string"/>
+      <SimpleField name="設備" type="string"/>
+      <SimpleField name="電話番号" type="string"/>
+      <SimpleField name="利用時間" type="string"/>
+      <SimpleField name="リンクID" type="int"/>
+      <SimpleField name="凡例" type="string"/>
+    </Schema>
+    <Style id="inline2">
+      <IconStyle>
+        <scale>0.625</scale>
+        <heading>0.0</heading>
+        <hotSpot x="0.5" xunits="fraction" y="0.5" yunits="fraction"/>
+        <Icon>
+          <href>image1.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Folder>
+      <name/>
+      <Placemark>
+        <styleUrl>#inline2</styleUrl>
+        <Point>
+          <coordinates>139.5801933615821,35.702343948089776,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">1</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">1</SimpleData>
+            <SimpleData name="所在地">吉祥寺南町2-1</SimpleData>
+            <SimpleData name="名称">きちじょうじ</SimpleData>
+            <SimpleData name="設備">男子 大３、小３／女子２／多目的トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">1</SimpleData>
+            <SimpleData name="凡例">ミカレット</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline2</styleUrl>
+        <Point>
+          <coordinates>139.54346123896585,35.70156567247161,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">3</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">3</SimpleData>
+            <SimpleData name="所在地">境南町2-3</SimpleData>
+            <SimpleData name="名称">さかい　みなみ</SimpleData>
+            <SimpleData name="設備">男子 大２､小３／女子 ２（小児用小便器１）／多目的トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">3</SimpleData>
+            <SimpleData name="凡例">ミカレット</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline2</styleUrl>
+        <Point>
+          <coordinates>139.56115755368054,35.70283725262444,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">2</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">2</SimpleData>
+            <SimpleData name="所在地">中町1-14</SimpleData>
+            <SimpleData name="名称">みたか</SimpleData>
+            <SimpleData name="設備">男子 大２､小３／女子 ２／多目的トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">2</SimpleData>
+            <SimpleData name="凡例">ミカレット</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline2</styleUrl>
+        <Point>
+          <coordinates>139.5330876449066,35.709225193957955,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="UserID">4</SimpleData>
+            <SimpleData name="SYMBOL">4</SimpleData>
+            <SimpleData name="ANGLE">0.0</SimpleData>
+            <SimpleData name="SIZE">10.0</SimpleData>
+            <SimpleData name="番号">4</SimpleData>
+            <SimpleData name="所在地">桜堤2-1</SimpleData>
+            <SimpleData name="名称">さくらづつみ</SimpleData>
+            <SimpleData name="設備">男子 大１､小２／女子 ２／多目的トイレ１</SimpleData>
+            <SimpleData name="電話番号">　</SimpleData>
+            <SimpleData name="利用時間">　</SimpleData>
+            <SimpleData name="リンクID">4</SimpleData>
+            <SimpleData name="凡例">ミカレット</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+    </Folder>
+    <name/>
+    <Schema id="AttributeSchema" name="">
+      <SimpleField name="名称" type="string"/>
+      <SimpleField name="番号" type="string"/>
+      <SimpleField name="所在地" type="string"/>
+    </Schema>
+    <Style id="inline3">
+      <IconStyle>
+        <scale>0.625</scale>
+        <heading>0.0</heading>
+        <hotSpot x="0.5" xunits="fraction" y="0.5" yunits="fraction"/>
+        <Icon>
+          <href>image2.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Folder>
+      <name/>
+      <Placemark>
+        <styleUrl>#inline3</styleUrl>
+        <Point>
+          <coordinates>139.58007563093057,35.7021543595292,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="名称">吉祥寺駅喫煙所</SimpleData>
+            <SimpleData name="番号">1</SimpleData>
+            <SimpleData name="所在地">吉祥寺南町１－２</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline3</styleUrl>
+        <Point>
+          <coordinates>139.54285740368346,35.70180990186404,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="名称">武蔵境駅喫煙所</SimpleData>
+            <SimpleData name="番号">3</SimpleData>
+            <SimpleData name="所在地">境南町２－１</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+      <Placemark>
+        <styleUrl>#inline3</styleUrl>
+        <Point>
+          <coordinates>139.56127985646458,35.70370762600757,0.0</coordinates>
+        </Point>
+        <ExtendedData>
+          <SchemaData schemaUrl="AttributeSchema">
+            <SimpleData name="名称">三鷹駅北口喫煙所</SimpleData>
+            <SimpleData name="番号">2</SimpleData>
+            <SimpleData name="所在地">中町１－１６</SimpleData>
+          </SchemaData>
+        </ExtendedData>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

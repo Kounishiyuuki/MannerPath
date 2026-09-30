@@ -17,15 +17,19 @@ import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
+import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_SOURCE_ID } from "../src/pipeline/musashino-adapter.ts";
 
 // Preserve the original no-argument command. Import other reviewed sources into the same local DB:
 //   npm run local:pipeline -- osaka-designated-smoking-areas
 //   npm run local:pipeline -- koto-station-smoking-areas
 const sourceId = process.argv[2] ?? TAITO_SOURCE_ID;
-if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID].includes(sourceId)) {
-  throw new Error(`local:pipeline: expected source ${TAITO_SOURCE_ID}, ${OSAKA_SOURCE_ID} or ${KOTO_SOURCE_ID}`);
+if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID].includes(sourceId)) {
+  throw new Error(`local:pipeline: expected source ${TAITO_SOURCE_ID}, ${OSAKA_SOURCE_ID}, ${KOTO_SOURCE_ID} or ${MUSASHINO_SOURCE_ID}`);
 }
-const selected = sourceId === KOTO_SOURCE_ID ? {
+const selected = sourceId === MUSASHINO_SOURCE_ID ? {
+  adapter: MUSASHINO_ADAPTER, release: MUSASHINO_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/musashino-public-smoking-areas/doc.kml",
+} : sourceId === KOTO_SOURCE_ID ? {
   adapter: KOTO_ADAPTER, release: KOTO_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/koto-station-smoking-areas/131083_237_public_smoking_area_station.csv",
 } : sourceId === OSAKA_SOURCE_ID ? {
