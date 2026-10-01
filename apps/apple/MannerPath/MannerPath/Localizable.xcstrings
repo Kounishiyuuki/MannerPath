@@ -4222,6 +4222,36 @@
           }
         }
       }
+    },
+    "A report may not be used. It is shown as a user report, never as official information.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告が採用されない場合もあります。採用された情報は利用者報告として表示され、公式情報としては表示されません。"
+          }
+        }
+      }
+    },
+    "Read the full terms": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "規約の全文を読む"
+          }
+        }
+      }
+    },
+    "Full terms": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "規約の全文"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

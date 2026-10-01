@@ -48,12 +48,32 @@ nonisolated struct ReportCoordinate: Codable, Equatable, Sendable {
     }
 }
 
-/// The report terms document this build shows (docs/legal/REPORT_TERMS_DRAFT.md, Issue #124). A deployment that
-/// publishes another version in /v1/config cannot receive valid consent from this build.
+/// The report terms documents this build can show (docs/legal/, Issue #124). Each version is bundled as
+/// `Terms/<version>.md`, byte-identical to the repository document (services/api test/community-activation.test.ts),
+/// so the full text shown is exactly what consent records. A deployment whose /v1/config names a version this build
+/// does not bundle cannot receive informed consent from it: the report entry point asks for an app update instead.
+/// The community activation PR adds the approved version here (docs/legal/COMMUNITY_PUBLICATION_DECISION.md §8).
 nonisolated enum ReportTerms {
-    static let bundledVersion = "report-terms.2026-09-30.draft"
-    /// The bundled document is a draft awaiting legal/maintainer approval; the sheet says so.
-    static let isDraft = true
+    struct Document: Equatable, Sendable {
+        let version: String
+        /// A draft awaiting legal/maintainer approval: nothing is published on consent to it, and the sheet says so.
+        let isDraft: Bool
+    }
+
+    static let documents: [Document] = [
+        Document(version: "report-terms.2026-09-30.draft", isDraft: true),
+    ]
+
+    static func document(for version: String) -> Document? {
+        documents.first { $0.version == version }
+    }
+
+    /// The bundled full text of a version, or nil when this build does not carry it.
+    static func fullText(for version: String, in bundle: Bundle = .main) -> String? {
+        guard document(for: version) != nil,
+              let url = bundle.url(forResource: version, withExtension: "md") else { return nil }
+        return try? String(contentsOf: url, encoding: .utf8)
+    }
 }
 
 /// What a new-spot report states about the place (ADR-0012, docs/API.md `claim`). Values are wire strings; `nil`

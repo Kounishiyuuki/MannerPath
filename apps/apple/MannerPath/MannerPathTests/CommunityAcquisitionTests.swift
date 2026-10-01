@@ -36,7 +36,7 @@ private final class MemoryConsent: ReportConsentRemembering, @unchecked Sendable
 @MainActor
 struct CommunityAcquisitionTests {
     private let spotID = "sp_01V64NN31G72E5KJJ5W22W1A1J"
-    private let terms = ReportTerms.bundledVersion
+    private let terms = ReportTerms.documents[0].version
     private let now = ISO8601DateFormatter().date(from: "2026-10-01T00:00:00Z")!
 
     private var current: ReportLimits {
