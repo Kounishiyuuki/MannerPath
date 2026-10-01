@@ -44,7 +44,9 @@ Context: `docs/legal/COMMUNITY_PUBLICATION_DECISION.md` (what is approved), `doc
 4. [ ] Deploy the Worker; smoke: `scripts/smoke.ts --base-url https://<worker-host> --remote --expect-reports appAttest`; `/v1/config`
        `reports.termsVersion` = `<version>`; a community tile shows `MannerPath 利用者報告（審査済み）`; official
        spot count equals the pre-launch quality baseline
-5. [ ] First week: daily moderation flow (`docs/OPERATIONS.md`); watch `communityAcquisition.moderation`
+5. [ ] Campaign baseline: `npm run community:seed` on the launch quality report's aggregate coverage (seed campaign, #149) — record active P0/P1 areas; their
+       `coverageGap` tasks are what `/v1/coverage/tasks` already serves to contributors
+6. [ ] First week: daily moderation flow (`docs/OPERATIONS.md`); watch `communityAcquisition.moderation`
        (`pending`, `oldestPendingHours`, `rejectedRate`, `duplicateRate`, `abuseRejections`)
 
 ## E. Rollback ready (before step D.3)
