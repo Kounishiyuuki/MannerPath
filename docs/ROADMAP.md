@@ -92,6 +92,11 @@ Exit: adding a second reviewed source no longer requires a Taito-specific pipeli
 - add cross-source duplicate/review workflow;
 - acquisition order (ADR-0012, `NATIONWIDE_DATA_STRATEGY.md` §3, §12): reusable official/operator data → community
   acquisition → venue/operator direct submissions → reference-only discovery → confidence upgrading.
+- nationwide community seed campaign (#149): 249 geographic collection areas across 47/47 prefectures, 52/52 #145
+  official-information groups reflected; deterministic `npm run community:seed` JSON/Markdown campaign, P0–P3,
+  station/airport/downtown gap metrics and the existing ADR-0013 coverage-task connection. This is an implemented
+  collection channel, not 249 new spots. Execution/publication still needs #124; the first 1,000-spot rollout is in
+  `services/data-pipeline/research/community-acquisition/README.md`.
 
 Rollout stages:
 

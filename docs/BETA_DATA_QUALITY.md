@@ -90,9 +90,11 @@ Measured on a fresh local D1 (all 23 migrations, the six reviewed fixtures):
 The report adds `nationwide.communityAcquisition` (`community-acquisition-metrics.v1`): published `officialVerified` /
 `reportedSpots` / `visitedConfirmed` / `communityVerified` / `allVisible`, `canonicalCommunity` (held back by rights),
 `spotsNeedingConfirmation`, `staleSpots`, `locationCorrectionsPending`, `coverageGaps` by tier, confirmations in the
-last 7/30 days, `prefectureCoverage` (47 rows: official, communityVerified, communityReported, allVisible; assignment by
-source jurisdiction, community spots only inside a seed area, else `unassigned`) and `seedStationCoverage` (52 hand-
-entered seed stations within 1 km, official-only vs all-visible). The licensed top-50/top-300 `stationCoverage` stays
+last 7/30 days, `prefectureCoverage` (47 rows: official, communityVerified, visitedConfirmed, communityReported,
+allVisible; visitedConfirmed is a subset of verified; assignment by source jurisdiction, community spots only inside
+a seed area, else `unassigned`) and `seedStationCoverage` (140 hand-entered seed stations within 1 km, official-only
+vs all-visible after #149; 52 in the original #148 measurement below). `seedAreaCoverage` adds per-area tier counts;
+area circles overlap and must not be summed. The licensed top-50/top-300 `stationCoverage` stays
 `notComputableYet`.
 
 Measured on a fresh local D1 (all 24 migrations, the six reviewed fixtures, then simulated reports: one reported spot
@@ -110,6 +112,29 @@ official spot, one duplicate new-spot proposal):
 | Location corrections pending / duplicate candidates | 1 relocationCandidate / 1 | — |
 | Triage rightsBlocked | 8 of 8 accepted | 0 |
 | Failed checks | none | `registry-row-matches-reviewed-entry` only (the simulation edits the local row by hand) |
+
+### Nationwide seed campaign baseline (#149)
+
+`services/data-pipeline/research/community-acquisition/{current-coverage,campaign}.json` measures a fresh local
+SQLite/D1-compatible corpus at 2026-10-01T00:00:00Z, all real migrations and six pinned first-release fixtures,
+published tiles only. It is a reproducible repository baseline, not current production telemetry. Rebuild from
+`services/api` with `npm run community:seed -- --fixtures --out ../data-pipeline/research/community-acquisition --write-seeds`.
+
+| Metric | Repository baseline |
+| --- | --- |
+| Published official / verified / visited / reported / all-visible | 513 / 0 / 0 / 0 / 513 |
+| Prefectures with published spots | 3/47 (Tokyo, Kyoto, Osaka); 44 still zero |
+| Collection seeds / represented prefectures | 249 / 47; not spot coverage |
+| P0 / P1 / P2 / P3 | 67 / 134 / 35 / 13 |
+| Stations / airports / downtown / official-lead category / other gaps | 140 / 46 / 56 / 5 / 2 |
+| #145 explicit official-information groups reflected | 52/52 (98 seeds carry official lead reasons across categories) |
+| Seed stations covered / zero-visible | 8 / 132 of 140, approximate 1 km |
+| Zero-visible acquisition areas / active / sufficiently covered | 232 / 238 / 11 |
+
+Only two-decimal public geographic centres are used for area matching/tasks; no exact reference smoking point or OSM
+value enters the manifest or coverage snapshot. Seed dashboards preserve official, verified, visited-confirmed and
+reported columns, active seeds and P0 seeds for all 47 prefectures. Rights-blocked official information can guide
+independent collection, but no seed is a canonical spot, source approval or community publication permission.
 
 The v3 promotion bundle from the blocked state verified against its manifest hash and bootstrapped a fresh D1: 513
 spots, 0 reports, 0 absence applications, sealed.

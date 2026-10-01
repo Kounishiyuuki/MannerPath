@@ -11,11 +11,12 @@
 // 3 = other districts.
 
 import type { PrefectureCode } from "./prefectures.ts";
+import { CAMPAIGN_AREAS } from "./campaign-areas.ts";
 
 export const SEED_AREAS_VERSION = "seed-areas.v1";
 export const SEED_RADIUS_METRES = 1000;
 
-export type SeedKind = "majorStation" | "airport" | "downtown" | "nightlife" | "touristHub" | "university";
+export type SeedKind = "majorStation" | "airport" | "downtown" | "nightlife" | "touristHub" | "university" | "officialLead";
 
 export interface SeedArea {
   id: string;
@@ -105,4 +106,5 @@ export const SEED_AREAS: readonly SeedArea[] = [
   // Universities (tier 3).
   s("tokyo-hongo", "本郷・東京大学周辺", "13", "university", 3, 35.71, 139.76),
   s("kyoto-yoshida", "京都大学吉田周辺", "26", "university", 3, 35.03, 135.78),
+  ...CAMPAIGN_AREAS,
 ];

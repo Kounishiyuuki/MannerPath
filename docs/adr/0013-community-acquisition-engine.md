@@ -91,5 +91,24 @@ device from tiles it already holds; no request carries the user's location.
 - When #124 is granted and the community source approved, reported spots publish, confirmations promote them, absence
   holds can withdraw them and recheck tasks become public — with no further code.
 - The quality report and `npm run coverage:targets` give the first seed campaign its targets.
+
+## Amendment 2026-10-01 — nationwide community seed campaign (#149)
+
+The collection channel now has a coordinate-free, machine-readable 249-area manifest spanning 47 prefectures and
+all 52 #145 official-information groups. `npm run community:seed` deterministically combines aggregate published
+counts, station-area metrics and projected official review verdicts. Priority is an explicit P0–P3 decision table
+(sparse coverage plus public urban/transport roles and official lead evidence), never an AI/population/passenger score.
+Missing metrics stay unknown; sufficiently covered areas reactivate when coverage falls, and blocked/retired are
+operator states. Exact rules, input schemas and first-1,000 rollout are in the campaign README.
+
+Existing `SEED_AREAS` / `gapTasks` and `GET /v1/coverage/tasks` carry the campaign's zero-visible areas as `coverageGap`;
+no wire/task/UI model is replaced. The operator adapter maps P0→1, P1→2, P2/P3→3. Existence/location/access/type
+requests remain local campaign instructions until a contributor independently observes an actual spot and submits
+its exact pin. Additional approximate centres are two-decimal, hand-authored public geographic units, never copied
+official smoking-room/OSM/third-party coordinates. Seeds cannot enter canonical spots or tile publication.
+
+`seedAreaCoverage` reports overlapping per-area official/verified/visited-confirmed/reported/all-visible counts;
+prefecture rows now also expose visited-confirmed as a subset of verified. The licensed top-50/top-300 and population
+coverage gates, source approval and Issue #124 remain unchanged. 47/47 seeds does not establish 47/47 spot coverage.
 - A deployment before 0024 keeps working with new clients: they read `existingSpotFindings` as false and fall back to
   the earlier report types.
