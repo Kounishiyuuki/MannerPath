@@ -1,10 +1,15 @@
 // Worker configuration. The top level is the LOCAL development environment; `env.staging` and
 // `env.production` are the staging / production-like shapes described in `../../docs/OPERATIONS.md`.
 //
-// No environment here can reach a real database: every `database_id` is the all-zero placeholder, so
-// a `--remote` or `deploy` command fails until a maintainer creates the database and lands the real
-// ID in a reviewed change (`services/AGENTS.md`). That is deliberate, and `test/deploy-config.test.ts`
-// enforces it. Secrets (REPORT_SUBMITTER_PEPPER) are never `vars`; they are set with
+// No environment here can reach a real database: every `database_id` is a placeholder (all zeros for the canonical
+// `DB`, all zeros but a final 1 for `REPORTS_DB`, so the two never share local state), and a `--remote` or `deploy`
+// command fails until a maintainer creates the database and lands the real ID in a reviewed change
+// (`services/AGENTS.md`). That is deliberate, and `test/deploy-config.test.ts` enforces it.
+//
+// Two D1 bindings (ADR-0014). `DB` is the canonical DATA_DB: tiles, spots, provenance, publication; it is replaced by
+// every blue/green cutover, and a cutover changes ONLY this binding. `REPORTS_DB` is the durable report store:
+// reports, moderation, App Attest keys and challenges, rate limits; it is created once per environment, migrated
+// in place from `migrations-reports`, and never switched by a cutover or a rollback. Secrets (REPORT_SUBMITTER_PEPPER) are never `vars`; they are set with
 // `wrangler secret put` per environment and are not committed.
 //
 // Remote reports require App Attest: staging and production set REPORT_ATTESTATION=required, which
@@ -38,6 +43,12 @@
       "database_name": "mannerpath",
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
+    },
+    {
+      "binding": "REPORTS_DB",
+      "database_name": "mannerpath-reports",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "migrations-reports"
     }
   ],
   // Named environments are not merged with the top level for these keys: each one repeats its own
@@ -59,6 +70,12 @@
           "database_name": "mannerpath-staging",
           "database_id": "00000000-0000-0000-0000-000000000000",
           "migrations_dir": "migrations"
+        },
+        {
+          "binding": "REPORTS_DB",
+          "database_name": "mannerpath-staging-reports",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations-reports"
         }
       ]
     },
@@ -75,6 +92,12 @@
           "database_name": "mannerpath-production",
           "database_id": "00000000-0000-0000-0000-000000000000",
           "migrations_dir": "migrations"
+        },
+        {
+          "binding": "REPORTS_DB",
+          "database_name": "mannerpath-production-reports",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations-reports"
         }
       ]
     }

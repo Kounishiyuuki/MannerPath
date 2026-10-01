@@ -51,7 +51,18 @@ export function reviewedTerms(version: string): ReviewedTerms {
   return terms;
 }
 
-/** Creates the mirror row of a reviewed version if it is missing; an existing row is never touched here. */
+/**
+ * REPORTS_DB (ADR-0014): records the document a submitter consented to, if it is not recorded yet. Rights are never
+ * written to the report store; they are the canonical mirror's (ensureTermsStatement, DATA_DB).
+ */
+export function ensureConsentDocumentStatement(db: Db, terms: ReviewedTerms, now: string): DbStatement {
+  return db.prepare(
+    `INSERT INTO report_terms_documents (terms_version, document_path, document_sha256, created_at)
+     VALUES (?, ?, ?, ?) ON CONFLICT (terms_version) DO NOTHING`,
+  ).bind(terms.version, terms.documentPath, terms.documentSha256, now);
+}
+
+/** DATA_DB: creates the mirror row of a reviewed version if it is missing; an existing row is never touched here. */
 export function ensureTermsStatement(db: Db, terms: ReviewedTerms, now: string): DbStatement {
   return db.prepare(
     `INSERT INTO report_terms_versions (terms_version, document_path, document_sha256, publication_rights, created_at, updated_at)

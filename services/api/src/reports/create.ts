@@ -7,7 +7,7 @@ import {
   type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate, storedReportType,
 } from "./dto.ts";
 import { newReportId } from "./report-id.ts";
-import { type ReviewedTerms, ensureTermsStatement, reviewedTerms } from "./terms.ts";
+import { type ReviewedTerms, ensureConsentDocumentStatement, reviewedTerms } from "./terms.ts";
 
 /** Personal content is minimized this long after arrival, whatever the moderation state. */
 export const REPORT_MINIMIZE_AFTER_DAYS = 90;
@@ -64,8 +64,8 @@ export async function createReport(
 
   await db.batch([
     ...(opts.guards ?? []),
-    // The mirror row of the consented version exists before the report that names it.
-    ...(terms === null ? [] : [ensureTermsStatement(db, terms, receivedAt)]),
+    // The consent document row exists before the report that names it (REPORTS_DB, ADR-0014).
+    ...(terms === null ? [] : [ensureConsentDocumentStatement(db, terms, receivedAt)]),
     db.prepare(
       `INSERT INTO reports (
          report_id, schema_version, report_type, subject_spot_id,

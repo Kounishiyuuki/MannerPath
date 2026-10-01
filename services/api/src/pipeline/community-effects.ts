@@ -1,17 +1,18 @@
-// Existing-spot report effects (Issue #127, migration 0021; NATIONWIDE_DATA_STRATEGY §8, ADR-0007 amendment
-// 2026-09-30): the step between an accepted, queued report about a published spot and the existing review/hold
+// Existing-spot report effects (Issue #127, migrations 0021, 0025; NATIONWIDE_DATA_STRATEGY §8, ADR-0007 amendment
+// 2026-09-30, ADR-0014): the step between a reviewed decision about a published spot and the existing review/hold
 // machinery. A report never mutates canonical data on its own.
 //
-//   proposeCommunityEffect   a reviewer's immutable decision: these reports, all of one type about one spot, back
-//                            the one effect that type allows. Changes nothing canonical.
-//   applyCommunityEffect     records the review candidate: the application and its reports move to `applied` in one
-//                            batch whose triggers re-check every premise. Still changes nothing canonical.
+// The decision is made in the durable REPORTS_DB (src/reports/review.ts proposeEffectReview) and arrives here only as a
+// sanitized artifact, imported as a proposed application (src/pipeline/community-artifact.ts). Here:
+//
+//   applyCommunityEffect     records the review candidate: the application moves to `applied` in one batch whose
+//                            triggers re-check every premise against the imported evidence. Changes nothing canonical.
 //   holdCommunityEffect      the ONE public-facing effect: withholds the spot of an applied publicationHoldReview
 //                            (`prohibited`) from every published surface. The database refuses it unless the
 //                            community rights hold (Issue #124): source approved, terms granted, consent on every
-//                            report, two independent submitters, fresh unredacted evidence.
+//                            report, two attested independent submitters, fresh evidence.
 //   liftCommunityHold        a reviewed lift; publishTiles republishes the spot afterwards.
-//   withdrawCommunityEffect  terminal; its reports can never back another application.
+//   withdrawCommunityEffect  terminal; its evidence can never back another application.
 //
 // Every other effect is a review candidate only: a maintainer acts on it with the source-driven machinery that
 // already exists (relocation review, ADR-0009; field attenuation, Issue #42) or with a new source release. No
@@ -20,7 +21,8 @@
 
 import { type Db, isoSeconds } from "../db.ts";
 import { COMMUNITY_SOURCE_ID } from "./community-adapter.ts";
-import { commonTermsVersion } from "./community-reconciliation.ts";
+import { attestedIndependence, commonTermsVersion, usable } from "./community-reconciliation.ts";
+import { COMMUNITY_EFFECTS, type EffectReportType } from "../reports/review.ts";
 import { reviewedSource } from "./registry.ts";
 
 export const COMMUNITY_EFFECT_VERSION = "community-effects.v1";
@@ -28,19 +30,7 @@ export const COMMUNITY_HOLD_EXECUTOR_VERSION = "community-hold.v1";
 /** A public-facing effect needs corroboration across independent evidence (strategy §8), as a new spot does. */
 export const MIN_HOLD_SUBMITTERS = 2;
 
-/**
- * The only effect each existing-spot report type can lead to. `other` has none: it stays a moderation-queue item
- * a human reads, and no application can be made from it. `missing` is the new-spot path (community-reconciliation).
- */
-export const COMMUNITY_EFFECTS = {
-  moved: "relocationReview",
-  prohibited: "publicationHoldReview",
-  hoursChanged: "hoursReview",
-  accessChanged: "accessReview",
-  tobaccoTypeChanged: "tobaccoTypeReview",
-  exists: "existenceVerification",
-} as const;
-export type EffectReportType = keyof typeof COMMUNITY_EFFECTS;
+export { COMMUNITY_EFFECTS, type EffectReportType };
 export type CommunityEffect = (typeof COMMUNITY_EFFECTS)[EffectReportType];
 
 /** Whether an applied effect of this kind can change anything public. Only a hold can, and only through holdCommunityEffect. */
@@ -48,108 +38,8 @@ export const PUBLIC_FACING_EFFECTS: readonly CommunityEffect[] = ["publicationHo
 
 export class CommunityEffectError extends Error {}
 
-const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-
-export function newEffectApplicationId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  let value = 0n;
-  for (const b of bytes) value = (value << 8n) | BigInt(b);
-  let out = "";
-  for (let i = 0; i < 26; i++) {
-    out = CROCKFORD[Number(value & 31n)] + out;
-    value >>= 5n;
-  }
-  return `ce_${out}`;
-}
-
 export function effectOf(reportType: string): CommunityEffect | null {
   return Object.hasOwn(COMMUNITY_EFFECTS, reportType) ? COMMUNITY_EFFECTS[reportType as EffectReportType] : null;
-}
-
-interface PremiseRow {
-  report_id: string;
-  report_type: string;
-  subject_spot_id: string | null;
-  submitter_hash: string | null;
-  minimize_after: string;
-  redacted_at: string | null;
-  accepted_terms_version: string | null;
-  state: string | null;
-  reconciliation_state: string | null;
-  effect_application_id: string | null;
-  new_spot_application_id: string | null;
-}
-
-async function readPremises(db: Db, reportIds: readonly string[]): Promise<PremiseRow[]> {
-  const rows: PremiseRow[] = [];
-  for (const id of reportIds) {
-    const row = await db.prepare(
-      `SELECT r.report_id, r.report_type, r.subject_spot_id, r.submitter_hash, r.minimize_after, r.redacted_at,
-              r.accepted_terms_version, m.state, m.reconciliation_state,
-              e.application_id AS effect_application_id, n.application_id AS new_spot_application_id
-       FROM reports r LEFT JOIN report_moderation m ON m.report_id = r.report_id
-       LEFT JOIN community_effect_evidence e ON e.report_id = r.report_id
-       LEFT JOIN community_reconciliation_evidence n ON n.report_id = r.report_id
-       WHERE r.report_id = ?`,
-    ).bind(id).first<PremiseRow>();
-    if (!row) throw new CommunityEffectError(`community effect: report ${id} does not exist`);
-    rows.push(row);
-  }
-  return rows;
-}
-
-/** Messages name report IDs, types and states only, never content or submitter. */
-function assertPremises(rows: readonly PremiseRow[], now: string, applicationId: string | null): { spotId: string; reportType: EffectReportType } {
-  if (rows.length === 0) throw new CommunityEffectError("community effect: at least one report is required");
-  const types = new Set(rows.map((r) => r.report_type));
-  const spots = new Set(rows.map((r) => r.subject_spot_id));
-  if (types.size !== 1) throw new CommunityEffectError("community effect: every report must be of the same type");
-  if (spots.size !== 1) throw new CommunityEffectError("community effect: every report must name the same spot");
-  const [reportType] = types;
-  const [spotId] = spots;
-  if (effectOf(reportType) === null) {
-    throw new CommunityEffectError(`community effect: ${reportType} reports have no automatic effect; they are reviewed in the moderation queue only`);
-  }
-  for (const r of rows) {
-    if (r.redacted_at !== null) throw new CommunityEffectError(`community effect: report ${r.report_id} is redacted`);
-    if (r.minimize_after <= now) throw new CommunityEffectError(`community effect: report ${r.report_id} is past its minimization deadline`);
-    if (r.state !== "accepted") throw new CommunityEffectError(`community effect: report ${r.report_id} is ${r.state}, not accepted`);
-    if (r.reconciliation_state !== "queued") throw new CommunityEffectError(`community effect: report ${r.report_id} is ${r.reconciliation_state}, not queued`);
-    if (r.new_spot_application_id !== null) throw new CommunityEffectError(`community effect: report ${r.report_id} backs a new-spot application`);
-    if (r.effect_application_id !== applicationId) {
-      throw new CommunityEffectError(`community effect: report ${r.report_id} already backs application ${r.effect_application_id}`);
-    }
-  }
-  return { spotId: spotId!, reportType: reportType as EffectReportType };
-}
-
-export interface ProposeEffectInput {
-  reportIds: readonly string[];
-  decidedBy: string;
-  now: Date;
-  newApplicationId?: () => string;
-}
-
-export async function proposeCommunityEffect(db: Db, input: ProposeEffectInput): Promise<{ applicationId: string; effect: CommunityEffect }> {
-  const reportIds = [...input.reportIds].sort();
-  if (new Set(reportIds).size !== reportIds.length) throw new CommunityEffectError("community effect: a report is named twice");
-  const now = isoSeconds(input.now);
-  const { spotId, reportType } = assertPremises(await readPremises(db, reportIds), now, null);
-  const spot = await db.prepare("SELECT spot_id FROM spots WHERE spot_id = ? AND merged_into IS NULL").bind(spotId).first();
-  if (!spot) throw new CommunityEffectError(`community effect: ${spotId} is not a live canonical spot`);
-  const effect = COMMUNITY_EFFECTS[reportType];
-  const applicationId = (input.newApplicationId ?? newEffectApplicationId)();
-  await db.batch([
-    db.prepare(
-      `INSERT INTO community_effect_applications
-         (application_id, subject_spot_id, report_type, effect, effect_version, decided_by, decided_at, state)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'proposed')`,
-    ).bind(applicationId, spotId, reportType, effect, COMMUNITY_EFFECT_VERSION, input.decidedBy, now),
-    ...reportIds.map((id) => db.prepare(
-      "INSERT INTO community_effect_evidence (report_id, application_id) VALUES (?, ?)",
-    ).bind(id, applicationId)),
-  ]);
-  return { applicationId, effect };
 }
 
 interface ApplicationRow {
@@ -168,11 +58,33 @@ async function readApplication(db: Db, applicationId: string): Promise<Applicati
   return row;
 }
 
-async function linkedReportIds(db: Db, applicationId: string): Promise<string[]> {
+interface EvidenceRow {
+  report_id: string;
+  report_type: string;
+  subject_spot_id: string | null;
+  accepted_terms_version: string | null;
+  usable_until: string;
+}
+
+/** The sanitized evidence an imported application links to (migration 0025). */
+export async function linkedEvidence(db: Db, evidenceTable: string, applicationId: string): Promise<EvidenceRow[]> {
   const { results } = await db.prepare(
-    "SELECT report_id FROM community_effect_evidence WHERE application_id = ? ORDER BY report_id",
-  ).bind(applicationId).all<{ report_id: string }>();
-  return results.map((r) => r.report_id);
+    `SELECT r.report_id, r.report_type, r.subject_spot_id, r.accepted_terms_version, r.usable_until
+     FROM ${evidenceTable} e JOIN community_evidence_reports r ON r.report_id = e.report_id
+     WHERE e.application_id = ? ORDER BY r.report_id`,
+  ).bind(applicationId).all<EvidenceRow>();
+  return results;
+}
+
+/** Messages name report IDs, types and states only. */
+function assertPremises(rows: readonly EvidenceRow[], application: ApplicationRow, now: string): void {
+  if (rows.length === 0) throw new CommunityEffectError("community effect: at least one report is required");
+  for (const r of rows) {
+    if (r.report_type !== application.report_type || r.subject_spot_id !== application.subject_spot_id) {
+      throw new CommunityEffectError(`community effect: report ${r.report_id} is not a ${application.report_type} report about ${application.subject_spot_id}`);
+    }
+    if (!usable(r, now)) throw new CommunityEffectError(`community effect: report ${r.report_id} is past its minimization deadline`);
+  }
 }
 
 export type ApplyEffectResult =
@@ -180,24 +92,18 @@ export type ApplyEffectResult =
   | { status: "alreadyApplied"; effect: CommunityEffect; spotId: string };
 
 /**
- * Records the review candidate. The premises are checked before anything is written, then again by the 0021
- * triggers inside the one batch. Nothing canonical or published changes, for any effect.
+ * Records the review candidate. The premises are checked before anything is written, then again by the 0021/0025
+ * triggers inside the statement. Nothing canonical or published changes, for any effect.
  */
 export async function applyCommunityEffect(db: Db, applicationId: string, opts: { now: Date }): Promise<ApplyEffectResult> {
   const application = await readApplication(db, applicationId);
   if (application.state === "applied") return { status: "alreadyApplied", effect: application.effect, spotId: application.subject_spot_id };
   if (application.state === "withdrawn") throw new CommunityEffectError(`community effect: application ${applicationId} was withdrawn`);
   const now = isoSeconds(opts.now);
-  const reportIds = await linkedReportIds(db, applicationId);
-  assertPremises(await readPremises(db, reportIds), now, applicationId);
-  await db.batch([
-    db.prepare(
-      "UPDATE community_effect_applications SET state = 'applied', applied_at = ? WHERE application_id = ? AND state = 'proposed'",
-    ).bind(now, applicationId),
-    ...reportIds.map((id) => db.prepare(
-      "UPDATE report_moderation SET reconciliation_state = 'applied', updated_at = ? WHERE report_id = ?",
-    ).bind(now, id)),
-  ]);
+  assertPremises(await linkedEvidence(db, "community_effect_evidence", applicationId), application, now);
+  await db.prepare(
+    "UPDATE community_effect_applications SET state = 'applied', applied_at = ? WHERE application_id = ? AND state = 'proposed'",
+  ).bind(now, applicationId).run();
   return { status: "applied", effect: application.effect, spotId: application.subject_spot_id };
 }
 
@@ -221,13 +127,14 @@ export interface CommunityRights {
 }
 
 /**
- * Whether a set of reports may be the basis of a public-facing community change right now. It reads the source
- * row and the terms mirror (the publication authority, ADR-0006) AND the reviewed lists in code, so a hand-edited
- * local row alone cannot make a report publishable. `sourceApprovedInCode` exists only so tests can simulate the
- * future approval; no script passes it.
+ * Whether an imported application's evidence may be the basis of a public-facing community change right now. It
+ * reads the source row and the terms mirror (the publication authority, ADR-0006) AND the reviewed lists in code, so
+ * a hand-edited local row alone cannot make a report publishable; independence is the attested count from the
+ * application's artifact (REPORTS_DB judged it; no submitter key exists here). `sourceApprovedInCode` exists only so
+ * tests can simulate the future approval; no script passes it.
  */
 export async function communityRights(
-  db: Db, reportIds: readonly string[], opts: { now: Date; minSubmitters: number; sourceApprovedInCode?: boolean },
+  db: Db, evidenceTable: string, applicationId: string, opts: { now: Date; minSubmitters: number; sourceApprovedInCode?: boolean },
 ): Promise<CommunityRights> {
   const now = isoSeconds(opts.now);
   const blockers: RightsBlocker[] = [];
@@ -236,13 +143,8 @@ export async function communityRights(
   const approvedInCode = opts.sourceApprovedInCode ?? reviewedSource(COMMUNITY_SOURCE_ID).publicationStatus === "approved";
   if (source?.publication_status !== "approved" || !approvedInCode) blockers.push("sourceNotApproved");
 
-  const rows: { accepted_terms_version: string | null; submitter_hash: string | null; redacted_at: string | null; minimize_after: string }[] = [];
-  for (const id of reportIds) {
-    const row = await db.prepare("SELECT accepted_terms_version, submitter_hash, redacted_at, minimize_after FROM reports WHERE report_id = ?")
-      .bind(id).first<(typeof rows)[number]>();
-    if (row) rows.push(row);
-  }
-  const termsVersion = rows.length === reportIds.length ? commonTermsVersion(rows) : null;
+  const rows = await linkedEvidence(db, evidenceTable, applicationId);
+  const termsVersion = rows.length > 0 ? commonTermsVersion(rows) : null;
   if (termsVersion === null) {
     blockers.push("noCommonConsent");
   } else {
@@ -250,10 +152,12 @@ export async function communityRights(
       .bind(termsVersion).first<{ publication_rights: string }>();
     if (terms?.publication_rights !== "granted") blockers.push("termsNotGranted");
   }
-  if (rows.some((r) => r.redacted_at !== null || r.minimize_after <= now)) blockers.push("staleOrRedacted");
-  const hashes = rows.map((r) => r.submitter_hash).filter((h): h is string => h !== null);
-  // Every report from a distinct submitter, as the 0021 hold trigger requires: a repeat is not independent evidence.
-  if (rows.length < opts.minSubmitters || new Set(hashes).size !== rows.length) blockers.push("tooFewIndependentSubmitters");
+  if (rows.some((r) => !usable(r, now))) blockers.push("staleOrRedacted");
+  const attested = await attestedIndependence(db, applicationId);
+  // Every report from a distinct submitter, as the hold triggers require: a repeat is not independent evidence.
+  if (rows.length < opts.minSubmitters || attested.submitters !== rows.length || attested.evidence !== rows.length) {
+    blockers.push("tooFewIndependentSubmitters");
+  }
   return { eligible: blockers.length === 0, termsVersion, blockers };
 }
 
@@ -281,7 +185,7 @@ export async function holdCommunityEffect(
     if (existing.lifted_at === null) return { status: "alreadyHeld", spotId };
     throw new CommunityEffectError(`community effect: application ${applicationId}'s hold was lifted; a lifted hold is not re-applied`);
   }
-  const rights = await communityRights(db, await linkedReportIds(db, applicationId), {
+  const rights = await communityRights(db, "community_effect_evidence", applicationId, {
     now: opts.now, minSubmitters: MIN_HOLD_SUBMITTERS, sourceApprovedInCode: opts.sourceApprovedInCode,
   });
   if (!rights.eligible) return { status: "blocked", spotId, blockers: rights.blockers };
@@ -309,13 +213,13 @@ export async function liftCommunityHold(db: Db, applicationId: string, opts: { l
 }
 
 export interface EffectQueueRow {
-  applicationId: string | null;
+  applicationId: string;
   spotId: string;
   reportType: string;
   effect: CommunityEffect | null;
-  state: "queued" | "proposed" | "applied" | "withdrawn";
+  state: "proposed" | "applied" | "withdrawn";
   reportCount: number;
-  /** Distinct submitters behind the reports still carrying a submitter key. The keys themselves are never returned. */
+  /** The attested count of distinct submitters behind the evidence (judged in REPORTS_DB). */
   independentSubmitters: number;
   redactedOrStale: number;
   rights: CommunityRights;
@@ -323,44 +227,30 @@ export interface EffectQueueRow {
 }
 
 /**
- * The moderation view of existing-spot reports: queued reports grouped by (spot, type) that no application backs
- * yet, and every effect application. Counts and states only; no note, pin, date or submitter key is returned.
+ * The canonical view of imported existing-spot effect applications. Counts and states only; no pin, date or
+ * submitter key exists here. Queued reports that no review backs yet are a REPORTS_DB view (src/reports/review.ts).
  */
 export async function listCommunityEffects(db: Db, opts: { now: Date; sourceApprovedInCode?: boolean }): Promise<EffectQueueRow[]> {
   const now = isoSeconds(opts.now);
   const { results } = await db.prepare(
-    `SELECT r.report_id, r.report_type, r.subject_spot_id, r.submitter_hash, r.redacted_at, r.minimize_after,
-            coalesce(a.application_id, '') AS application_id, coalesce(a.state, 'queued') AS state
-     FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
-     LEFT JOIN community_effect_evidence e ON e.report_id = r.report_id
-     LEFT JOIN community_effect_applications a ON a.application_id = e.application_id
-     WHERE r.report_type <> 'missing' AND m.state = 'accepted'
-       AND (a.application_id IS NOT NULL OR m.reconciliation_state = 'queued')
-     ORDER BY r.subject_spot_id, r.report_type, r.report_id`,
-  ).all<{ report_id: string; report_type: string; subject_spot_id: string; submitter_hash: string | null;
-    redacted_at: string | null; minimize_after: string; application_id: string; state: EffectQueueRow["state"] }>();
-  const groups = new Map<string, typeof results>();
-  for (const r of results) {
-    const key = `${r.application_id}\n${r.subject_spot_id}\n${r.report_type}`;
-    groups.set(key, [...(groups.get(key) ?? []), r]);
-  }
+    `SELECT application_id, subject_spot_id, report_type, state FROM community_effect_applications ORDER BY subject_spot_id, report_type, application_id`,
+  ).all<{ application_id: string; subject_spot_id: string; report_type: string; state: EffectQueueRow["state"] }>();
   const out: EffectQueueRow[] = [];
-  for (const members of groups.values()) {
-    const first = members[0];
-    const applicationId = first.application_id === "" ? null : first.application_id;
-    const effect = effectOf(first.report_type);
-    const hold = applicationId === null ? null : await db.prepare("SELECT lifted_at FROM community_publication_holds WHERE application_id = ?")
-      .bind(applicationId).first<{ lifted_at: string | null }>();
+  for (const a of results) {
+    const effect = effectOf(a.report_type);
+    const evidence = await linkedEvidence(db, "community_effect_evidence", a.application_id);
+    const hold = await db.prepare("SELECT lifted_at FROM community_publication_holds WHERE application_id = ?")
+      .bind(a.application_id).first<{ lifted_at: string | null }>();
     out.push({
-      applicationId,
-      spotId: first.subject_spot_id,
-      reportType: first.report_type,
+      applicationId: a.application_id,
+      spotId: a.subject_spot_id,
+      reportType: a.report_type,
       effect,
-      state: first.state,
-      reportCount: members.length,
-      independentSubmitters: new Set(members.map((m) => m.submitter_hash).filter((h) => h !== null)).size,
-      redactedOrStale: members.filter((m) => m.redacted_at !== null || m.minimize_after <= now).length,
-      rights: await communityRights(db, members.map((m) => m.report_id), {
+      state: a.state,
+      reportCount: evidence.length,
+      independentSubmitters: (await attestedIndependence(db, a.application_id)).submitters,
+      redactedOrStale: evidence.filter((r) => !usable(r, now)).length,
+      rights: await communityRights(db, "community_effect_evidence", a.application_id, {
         now: opts.now, minSubmitters: effect !== null && PUBLIC_FACING_EFFECTS.includes(effect) ? MIN_HOLD_SUBMITTERS : 1,
         sourceApprovedInCode: opts.sourceApprovedInCode,
       }),

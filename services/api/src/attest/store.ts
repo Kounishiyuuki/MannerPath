@@ -131,8 +131,3 @@ export function advanceCounterStatement(db: Db, keyId: string, counter: number) 
 export function isCounterRace(e: unknown): boolean {
   return e instanceof Error && e.message.includes(COUNTER_RACE_MESSAGE);
 }
-
-/** Retention (ADR-0007 §4): an expired challenge is useless either way, consumed or not. */
-export function purgeExpiredChallengesStatement(db: Db, now: Date) {
-  return db.prepare("DELETE FROM app_attest_challenges WHERE expires_at <= ?").bind(isoSeconds(now));
-}

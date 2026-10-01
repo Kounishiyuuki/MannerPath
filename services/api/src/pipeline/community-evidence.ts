@@ -9,6 +9,10 @@
 //
 // Majority is never a rule: three "still there" reports do not outvote a newer "removed", and the reverse holds too.
 // What decides is recency, independence, moderation and — outside this module — official evidence.
+//
+// Reports live in the durable REPORTS_DB and canonical spots in DATA_DB (ADR-0014), so the three report views take
+// both databases and never join across them in SQL: they read reports from one and look canonical facts up in the
+// other. They are moderation tools, not request paths. communityRelocationCandidates reads DATA_DB only.
 
 import { type Db, isoSeconds } from "../db.ts";
 import { haversineMeters } from "../geo/distance.ts";
@@ -69,9 +73,9 @@ interface EvidenceRow {
  * day a report arrived orders them; that day is used here and never returned. Redacted reports still count as
  * reports but no longer as independent submitters (their key is gone).
  */
-export async function spotEvidenceStates(db: Db, opts: { now: Date; spotIds?: readonly string[] }): Promise<SpotEvidenceState[]> {
+export async function spotEvidenceStates(reportsDb: Db, dataDb: Db, opts: { now: Date; spotIds?: readonly string[] }): Promise<SpotEvidenceState[]> {
   const now = isoSeconds(opts.now);
-  const { results } = await db.prepare(
+  const { results } = await reportsDb.prepare(
     `SELECT r.subject_spot_id AS spot_id,
             CASE WHEN r.report_type = 'exists' THEN 'positive' ELSE 'negative' END AS polarity,
             r.received_at, r.submitter_hash,
@@ -81,7 +85,7 @@ export async function spotEvidenceStates(db: Db, opts: { now: Date; spotIds?: re
        AND (r.report_type = 'exists' OR (r.report_type = 'other' AND r.finding IN ('notFound', 'removed')))
      ORDER BY r.subject_spot_id, r.received_at, r.report_id`,
   ).bind(now).all<EvidenceRow>();
-  const held = new Set((await db.prepare("SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL")
+  const held = new Set((await dataDb.prepare("SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL")
     .all<{ spot_id: string }>()).results.map((r) => r.spot_id));
   const bySpot = new Map<string, EvidenceRow[]>();
   for (const r of results) {
@@ -131,17 +135,20 @@ export interface CorrectionCandidate {
 }
 
 /** Accepted, fresh, unredacted `moved` reports per spot. A single correction never changes a canonical coordinate. */
-export async function correctionCandidates(db: Db, opts: { now: Date }): Promise<CorrectionCandidate[]> {
-  const { results } = await db.prepare(
-    `SELECT r.report_id, r.subject_spot_id AS spot_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude,
-            r.submitter_hash, s.latitude AS spot_latitude, s.longitude AS spot_longitude
+export async function correctionCandidates(reportsDb: Db, dataDb: Db, opts: { now: Date }): Promise<CorrectionCandidate[]> {
+  const { results: reports } = await reportsDb.prepare(
+    `SELECT r.report_id, r.subject_spot_id AS spot_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude, r.submitter_hash
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
-     LEFT JOIN spots s ON s.spot_id = r.subject_spot_id
      WHERE r.report_type = 'moved' AND m.state = 'accepted' AND m.reconciliation_state <> 'discarded'
        AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
      ORDER BY r.subject_spot_id, r.report_id`,
-  ).bind(isoSeconds(opts.now)).all<{ report_id: string; spot_id: string; latitude: number; longitude: number; submitter_hash: string;
-    spot_latitude: number | null; spot_longitude: number | null }>();
+  ).bind(isoSeconds(opts.now)).all<{ report_id: string; spot_id: string; latitude: number; longitude: number; submitter_hash: string }>();
+  const results = [];
+  for (const r of reports) {
+    // The opaque spot reference resolves against the current canonical database; an unknown one has no location.
+    const s = await dataDb.prepare("SELECT latitude, longitude FROM spots WHERE spot_id = ?").bind(r.spot_id).first<{ latitude: number; longitude: number }>();
+    results.push({ ...r, spot_latitude: s?.latitude ?? null, spot_longitude: s?.longitude ?? null });
+  }
   const bySpot = new Map<string, typeof results>();
   for (const r of results) bySpot.set(r.spot_id, [...(bySpot.get(r.spot_id) ?? []), r]);
   const out: CorrectionCandidate[] = [];
@@ -180,9 +187,9 @@ export interface DuplicateCandidate {
  * DUPLICATE_RADIUS_METRES. The reviewer decides; nothing is merged, and an existing spot nearby may well be a
  * different place (two ashtrays at one station).
  */
-export async function duplicateCandidates(db: Db, opts: { now: Date; radiusMetres?: number }): Promise<DuplicateCandidate[]> {
+export async function duplicateCandidates(reportsDb: Db, dataDb: Db, opts: { now: Date; radiusMetres?: number }): Promise<DuplicateCandidate[]> {
   const radius = opts.radiusMetres ?? DUPLICATE_RADIUS_METRES;
-  const { results: proposals } = await db.prepare(
+  const { results: proposals } = await reportsDb.prepare(
     `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
@@ -194,7 +201,7 @@ export async function duplicateCandidates(db: Db, opts: { now: Date; radiusMetre
   const pad = (radius / 111_000) * 2;
   const out: DuplicateCandidate[] = [];
   for (const p of proposals) {
-    const { results: spots } = await db.prepare(
+    const { results: spots } = await dataDb.prepare(
       `SELECT spot_id, latitude, longitude FROM spots
        WHERE merged_into IS NULL AND lifecycle = 'active' AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?`,
     ).bind(p.latitude - pad, p.latitude + pad, p.longitude - pad * 1.5, p.longitude + pad * 1.5)
@@ -205,6 +212,48 @@ export async function duplicateCandidates(db: Db, opts: { now: Date; radiusMetre
       .map((q) => ({ reportId: q.report_id, distanceMetres: Math.round(haversineMeters(p, q)) }))
       .filter((q) => q.distanceMetres <= radius).sort((a, b) => a.distanceMetres - b.distanceMetres);
     if (nearbySpots.length > 0 || nearbyReports.length > 0) out.push({ reportId: p.report_id, nearbySpots, nearbyReports });
+  }
+  return out;
+}
+
+// ---- reviewed relocations (canonical side) ------------------------------------------------------------------------
+
+export interface CommunityRelocationCandidate {
+  applicationId: string;
+  spotId: string;
+  /** The reviewed pins (sanitized evidence of an applied relocationReview) and the attested distinct submitters. */
+  pins: { reportId: string; latitude: number; longitude: number }[];
+  independentSubmitters: number;
+  distanceFromCurrentMetres: number | null;
+  status: "awaitingIndependentConfirmation" | "relocationCandidate";
+}
+
+/**
+ * Applied relocationReview effects, as the input to ADR-0009 relocation review. Nothing here moves a spot: a canonical
+ * coordinate changes only through the reviewed relocation machinery, never from a report or an artifact.
+ */
+export async function communityRelocationCandidates(dataDb: Db): Promise<CommunityRelocationCandidate[]> {
+  const { results: applications } = await dataDb.prepare(
+    `SELECT a.application_id, a.subject_spot_id, l.independent_submitters, s.latitude, s.longitude
+     FROM community_effect_applications a JOIN community_artifact_ledger l ON l.review_id = a.application_id
+     LEFT JOIN spots s ON s.spot_id = a.subject_spot_id
+     WHERE a.effect = 'relocationReview' AND a.state = 'applied' ORDER BY a.subject_spot_id, a.application_id`,
+  ).all<{ application_id: string; subject_spot_id: string; independent_submitters: number; latitude: number | null; longitude: number | null }>();
+  const out: CommunityRelocationCandidate[] = [];
+  for (const a of applications) {
+    const { results: pins } = await dataDb.prepare(
+      `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude
+       FROM community_effect_evidence e JOIN community_evidence_reports r ON r.report_id = e.report_id
+       WHERE e.application_id = ? AND r.proposed_latitude IS NOT NULL ORDER BY r.report_id`,
+    ).bind(a.application_id).all<{ report_id: string; latitude: number; longitude: number }>();
+    const current = a.latitude === null ? null : { latitude: a.latitude, longitude: a.longitude! };
+    out.push({
+      applicationId: a.application_id, spotId: a.subject_spot_id,
+      pins: pins.map((p) => ({ reportId: p.report_id, latitude: p.latitude, longitude: p.longitude })),
+      independentSubmitters: a.independent_submitters,
+      distanceFromCurrentMetres: current === null || pins.length === 0 ? null : Math.round(haversineMeters(current, pins[0])),
+      status: a.independent_submitters >= 2 ? "relocationCandidate" : "awaitingIndependentConfirmation",
+    });
   }
   return out;
 }

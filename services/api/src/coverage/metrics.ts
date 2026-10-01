@@ -49,14 +49,20 @@ export function prefectureOf(spot: PublishedSpot, seeds: readonly SeedArea[] = S
   return best === null ? null : { code: best.code, method: "seedArea" };
 }
 
-export async function communityAcquisitionMetrics(db: Db, spots: readonly PublishedSpot[], opts: { now: string }) {
+/**
+ * `db` is the canonical DATA_DB. Report-derived measures (confirmations, corrections, moderation load) come from the
+ * durable REPORTS_DB (ADR-0014) and only when it is passed: a canonical-only analysis reports them as null rather than
+ * reading the inert legacy report tables of the canonical database.
+ */
+export async function communityAcquisitionMetrics(db: Db, spots: readonly PublishedSpot[], opts: { now: string; reportsDb?: Db }) {
   const now = new Date(opts.now);
   const days = (n: number) => new Date(now.getTime() - n * 86_400_000).toISOString().slice(0, 19) + "Z";
   const upgraded = new Set((await db.prepare("SELECT spot_id FROM community_evidence_upgrades").all<{ spot_id: string }>()).results.map((r) => r.spot_id));
   const stage = (s: PublishedSpot) => communityStage({
     existence: s.verification?.existence ?? "", confirmations: s.verification?.confirmations ?? null, upgradedByVisit: upgraded.has(s.id),
   });
-  const confirmations = async (since: string) => (await db.prepare(
+  const reportsDb = opts.reportsDb;
+  const confirmations = async (since: string) => reportsDb === undefined ? null : (await reportsDb.prepare(
     `SELECT count(*) AS n FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type = 'exists' AND m.state = 'accepted' AND r.received_at >= ?`,
   ).bind(since).first<{ n: number }>())?.n ?? 0;
@@ -105,10 +111,10 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
     canonicalCommunity: Object.fromEntries(canonicalByStage.map((r) => [r.k, r.n])),
     spotsNeedingConfirmation: needsConfirmation,
     staleSpots: spots.filter((s) => spotFreshness(s, opts.now) === "stale").length,
-    locationCorrectionsPending: (await correctionCandidates(db, { now })).length,
+    locationCorrectionsPending: reportsDb === undefined ? null : (await correctionCandidates(reportsDb, db, { now })).length,
     coverageGaps: { total: gaps.length, byPriority: { 1: gaps.filter((g) => g.priority === 1).length, 2: gaps.filter((g) => g.priority === 2).length, 3: gaps.filter((g) => g.priority === 3).length } },
-    confirmations: { last7Days: await confirmations(days(7)), last30Days: await confirmations(days(30)) },
-    moderation: await moderationMetrics(db, now),
+    confirmations: reportsDb === undefined ? null : { last7Days: await confirmations(days(7)), last30Days: await confirmations(days(30)) },
+    moderation: reportsDb === undefined ? null : await moderationMetrics(reportsDb, db, now),
     prefectureCoverage: {
       assignment: "official spots by source jurisdiction; community spots only within a seed area (approximate), else unassigned",
       prefecturesWithUsableSpots: prefectures.filter((p) => p.allVisible > 0).length,
@@ -133,7 +139,7 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
  * v2 (Issue #150): the moderation load a community launch creates, for the daily runbook (docs/OPERATIONS.md).
  * Informational only: a large or growing queue is a staffing signal, never a quality failure.
  */
-async function moderationMetrics(db: Db, now: Date) {
+async function moderationMetrics(db: Db, dataDb: Db, now: Date) {
   const decided = (await db.prepare(
     `SELECT m.state AS state, m.decision_reason AS reason, count(*) AS n FROM report_moderation m GROUP BY m.state, m.decision_reason`,
   ).all<{ state: string; reason: string | null; n: number }>()).results;
@@ -145,7 +151,7 @@ async function moderationMetrics(db: Db, now: Date) {
   const oldest = await db.prepare(
     "SELECT min(r.received_at) AS at FROM reports r JOIN report_moderation m ON m.report_id = r.report_id WHERE m.state = 'pending'",
   ).first<{ at: string | null }>();
-  const states = await spotEvidenceStates(db, { now });
+  const states = await spotEvidenceStates(db, dataDb, { now });
   return {
     pending,
     oldestPendingHours: oldest?.at == null ? null : Math.floor((now.getTime() - Date.parse(oldest.at)) / 3_600_000),
@@ -158,6 +164,6 @@ async function moderationMetrics(db: Db, now: Date) {
     absenceReviewCandidates: states.filter((s) => s.state === "reviewCandidate").length,
     heldSpots: states.filter((s) => s.state === "held").length,
     conflictingSpots: states.filter((s) => s.conflicting).length,
-    duplicateCandidates: (await duplicateCandidates(db, { now })).length,
+    duplicateCandidates: (await duplicateCandidates(db, dataDb, { now })).length,
   };
 }

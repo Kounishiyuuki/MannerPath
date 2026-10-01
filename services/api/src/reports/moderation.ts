@@ -1,5 +1,6 @@
 // Moderation queue and decisions (ADR-0007 §2, §8). There is no authenticated admin HTTP surface
-// in this slice; these functions run against local D1 (see services/api/README.md).
+// in this slice; these functions run against REPORTS_DB, the durable report store (ADR-0014), through the
+// maintainer's moderation tool (scripts/report-queue.ts; local by default, remote only by explicit flags).
 //
 // Nothing here writes spots, spot_field_provenance or any published table. Accepting a report
 // records a judgement; queuing it for reconciliation is a second, explicit step, and even then the
@@ -23,9 +24,8 @@ export type DecisionReason = (typeof DECISION_REASONS)[number];
 
 /**
  * The reconciliation transitions this module can make. `applied` is absent on purpose: it is reached
- * only by applyCommunityApplication (src/pipeline/community-reconciliation.ts), in the same batch that
- * writes the evidence, and the database refuses it for a report without an applied application
- * (migrations 0003, 0020).
+ * only by exportReview (src/reports/review.ts), in the same batch that exports the sanitized artifact, and
+ * the database refuses it for a report without an exported review (migrations-reports/0001).
  */
 export const RECONCILIATION_TRANSITIONS: Readonly<Record<ReconciliationState, readonly ReconciliationState[]>> = {
   notQueued: ["queued", "discarded"],
@@ -101,8 +101,12 @@ export async function recordModerationDecision(
 }
 
 export interface PipelineSummary {
-  /** Report counts by moderation state and reconciliation state, e.g. {"accepted/queued": 3}. */
+  /** Report counts by moderation state and reconciliation state, e.g. {"accepted/queued": 3}. REPORTS_DB. */
   reports: Record<string, number>;
+  /** Reviews by kind and state, e.g. {"newSpot/exported": 1}. REPORTS_DB. */
+  reviews: Record<string, number>;
+  /** Imported artifacts and the applications they created. DATA_DB. */
+  importedArtifacts: number;
   newSpotApplications: Record<string, number>;
   effectApplications: Record<string, number>;
   activeCommunityHolds: number;
@@ -111,27 +115,30 @@ export interface PipelineSummary {
 }
 
 /**
- * The whole moderation pipeline at a glance: pending -> accepted -> queued -> application -> applied. Counts only,
- * so it is safe to paste into a ticket or a log (no note, pin, date or submitter key).
+ * The whole moderation pipeline at a glance: pending -> accepted -> queued -> review -> exported artifact -> imported
+ * application -> applied. Counts only, so it is safe to paste into a ticket or a log (no note, pin, date or submitter
+ * key). `db` is REPORTS_DB and `dataDb` the canonical database; nothing is joined across them.
  */
-export async function moderationPipelineSummary(db: Db): Promise<PipelineSummary> {
-  const tally = async (sql: string) => Object.fromEntries(
-    (await db.prepare(sql).all<{ k: string; n: number }>()).results.map((r) => [r.k, r.n]),
+export async function moderationPipelineSummary(db: Db, dataDb: Db): Promise<PipelineSummary> {
+  const tally = async (on: Db, sql: string) => Object.fromEntries(
+    (await on.prepare(sql).all<{ k: string; n: number }>()).results.map((r) => [r.k, r.n]),
   );
-  const holds = await db.prepare("SELECT count(*) AS n FROM community_publication_holds WHERE lifted_at IS NULL").first<{ n: number }>();
+  const count = async (sql: string) => (await dataDb.prepare(sql).first<{ n: number }>())?.n ?? 0;
   return {
-    reports: await tally(`SELECT m.state || '/' || m.reconciliation_state AS k, count(*) AS n FROM report_moderation m GROUP BY k ORDER BY k`),
-    newSpotApplications: await tally("SELECT state AS k, count(*) AS n FROM community_reconciliation_applications GROUP BY k ORDER BY k"),
-    effectApplications: await tally("SELECT effect || '/' || state AS k, count(*) AS n FROM community_effect_applications GROUP BY k ORDER BY k"),
-    activeCommunityHolds: holds?.n ?? 0,
-    absenceApplications: await tally("SELECT state AS k, count(*) AS n FROM community_absence_applications GROUP BY k ORDER BY k"),
-    activeAbsenceHolds: (await db.prepare("SELECT count(*) AS n FROM community_absence_holds WHERE lifted_at IS NULL").first<{ n: number }>())?.n ?? 0,
+    reports: await tally(db, `SELECT m.state || '/' || m.reconciliation_state AS k, count(*) AS n FROM report_moderation m GROUP BY k ORDER BY k`),
+    reviews: await tally(db, "SELECT review_kind || '/' || state AS k, count(*) AS n FROM report_reviews GROUP BY k ORDER BY k"),
+    importedArtifacts: await count("SELECT count(*) AS n FROM community_artifact_ledger"),
+    newSpotApplications: await tally(dataDb, "SELECT state AS k, count(*) AS n FROM community_reconciliation_applications GROUP BY k ORDER BY k"),
+    effectApplications: await tally(dataDb, "SELECT effect || '/' || state AS k, count(*) AS n FROM community_effect_applications GROUP BY k ORDER BY k"),
+    activeCommunityHolds: await count("SELECT count(*) AS n FROM community_publication_holds WHERE lifted_at IS NULL"),
+    absenceApplications: await tally(dataDb, "SELECT state AS k, count(*) AS n FROM community_absence_applications GROUP BY k ORDER BY k"),
+    activeAbsenceHolds: await count("SELECT count(*) AS n FROM community_absence_holds WHERE lifted_at IS NULL"),
   };
 }
 
 /**
  * Moves an accepted report through the reconciliation states a moderator sets: queueing it for
- * review or discarding it. `applied` cannot be reached from here; only the reconciliation apply
+ * review or discarding it. `applied` cannot be reached from here; only exporting a review
  * reaches it. The database rejects the same moves, plus any transition from a report that is not accepted.
  */
 export async function setReconciliationState(

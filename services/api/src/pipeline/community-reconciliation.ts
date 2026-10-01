@@ -1,29 +1,28 @@
-// Community report reconciliation (ADR-0007 §2, NATIONWIDE_DATA_STRATEGY §8, Issue #123; migration 0020): the
-// step that turns reviewed, queued new-spot reports into evidence through the ordinary pipeline, never by
-// writing canonical rows from a report.
+// Community report reconciliation (ADR-0007 §2, NATIONWIDE_DATA_STRATEGY §8, Issue #123; migrations 0020, 0025): the
+// step that turns a reviewed new-spot decision into evidence through the ordinary pipeline, never by writing
+// canonical rows from a report.
 //
-//   listCommunityCandidates        read-only grouping of queued `missing` reports for a reviewer. Needs an
-//                                  explicit radius: no grouping distance is reviewed, so none is a default.
-//   proposeCommunityApplication    a reviewer's immutable decision: these reports, at this report's pin, as this
-//                                  evidence tier (ADR-0012): `communityVerified` needs >= 2 distinct submitters;
-//                                  `communityReported` is ONE consented report with an explicit, known spot-type claim.
-//                                  Changes nothing canonical.
+// The decision itself is made in the durable REPORTS_DB (src/reports/review.ts, ADR-0014): that is where the reports
+// and their submitter keys live, so that is where independence is judged. It reaches this canonical database only as
+// a sanitized artifact, imported by src/pipeline/community-artifact.ts as a proposed application. Here:
+//
 //   applyCommunityApplication      writes the sanitized single-record release of the userReport source and
-//                                  resolves it; the application and every report move to `applied` in the
-//                                  same batch, whose triggers re-check every premise (0020).
-//   withdrawCommunityApplication   terminal; its reports can never back another application.
+//                                  resolves it; the application moves to `applied` in the same batch, whose
+//                                  triggers re-check every premise against the imported evidence (0025).
+//   withdrawCommunityApplication   terminal; its evidence can never back another application.
 //
 // No threshold here decides publication. The source is blocked (Issue #124); publication and the cross-source
 // workflow stay exactly the ordinary ones.
 
 import { type Db, isoSeconds } from "../db.ts";
 import { withinJapan } from "../geo/japan.ts";
-import { distanceMetres } from "./cross-source.ts";
+import { commonTermsVersion } from "../reports/review.ts";
 import { type AgreedClaims, COMMUNITY_ADAPTER, COMMUNITY_SOURCE_ID, communityArtifact } from "./community-adapter.ts";
 import { ingestRelease } from "./ingest.ts";
 import { ensureReviewedSource } from "./registry.ts";
 import { resolveFirstRelease } from "./resolve.ts";
 
+export { commonTermsVersion };
 export const COMMUNITY_RECONCILIATION_VERSION = "community-reconciliation.v1";
 /** "Corroboration across independent evidence" (strategy §8): more than one submitter. Not a publication threshold. */
 export const MIN_INDEPENDENT_REPORTS = 2;
@@ -33,32 +32,13 @@ export type CommunityTier = "communityReported" | "communityVerified";
 
 export class CommunityReconciliationError extends Error {}
 
-const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-
-/** "ca_" + 26 Crockford base32 characters from a CSPRNG, the report-ID shape in its own namespace. */
-export function newApplicationId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  let value = 0n;
-  for (const b of bytes) value = (value << 8n) | BigInt(b);
-  let out = "";
-  for (let i = 0; i < 26; i++) {
-    out = CROCKFORD[Number(value & 31n)] + out;
-    value >>= 5n;
-  }
-  return `ca_${out}`;
-}
-
-interface PremiseRow {
+/** A sanitized evidence row (migration 0025): no note, submitter key, observation date or receipt time exists. */
+export interface EvidenceRow {
   report_id: string;
   report_type: string;
   proposed_latitude: number | null;
   proposed_longitude: number | null;
-  submitter_hash: string | null;
-  minimize_after: string;
-  redacted_at: string | null;
-  state: string | null;
-  reconciliation_state: string | null;
-  linked_application_id: string | null;
+  usable_until: string;
   accepted_terms_version: string | null;
   claim_spot_type: AgreedClaims["spotType"] | null;
   claim_spot_subtype: AgreedClaims["spotSubtype"];
@@ -70,58 +50,44 @@ interface PremiseRow {
   claim_supports_heated: AgreedClaims["supportsHeated"] | null;
 }
 
-async function readPremises(db: Db, reportIds: readonly string[]): Promise<PremiseRow[]> {
-  const rows: PremiseRow[] = [];
-  for (const id of reportIds) {
-    const row = await db.prepare(
-      `SELECT r.report_id, r.report_type, r.proposed_latitude, r.proposed_longitude, r.submitter_hash, r.minimize_after,
-              r.redacted_at, m.state, m.reconciliation_state, e.application_id AS linked_application_id, r.accepted_terms_version,
-              r.claim_spot_type, r.claim_spot_subtype, r.claim_access_type, r.claim_access_detail, r.claim_host_type,
-              r.claim_environment, r.claim_supports_paper, r.claim_supports_heated
-       FROM reports r LEFT JOIN report_moderation m ON m.report_id = r.report_id
-       LEFT JOIN community_reconciliation_evidence e ON e.report_id = r.report_id
-       WHERE r.report_id = ?`,
-    ).bind(id).first<PremiseRow>();
-    if (!row) throw new CommunityReconciliationError(`community: report ${id} does not exist`);
-    rows.push(row);
-  }
-  return rows;
+/** The imported evidence of an application, in report-ID order. */
+export async function applicationEvidence(db: Db, evidenceTable: string, applicationId: string): Promise<EvidenceRow[]> {
+  const { results } = await db.prepare(
+    `SELECT r.report_id, r.report_type, r.proposed_latitude, r.proposed_longitude, r.usable_until, r.accepted_terms_version,
+            r.claim_spot_type, r.claim_spot_subtype, r.claim_access_type, r.claim_access_detail, r.claim_host_type,
+            r.claim_environment, r.claim_supports_paper, r.claim_supports_heated
+     FROM ${evidenceTable} e JOIN community_evidence_reports r ON r.report_id = e.report_id
+     WHERE e.application_id = ? ORDER BY r.report_id`,
+  ).bind(applicationId).all<EvidenceRow>();
+  return results;
 }
 
-/** The premises both propose and apply need. Messages name report IDs only, never content or submitter. */
-function assertPremises(rows: readonly PremiseRow[], now: string, applicationId: string | null, tier: CommunityTier): void {
-  if (tier === "communityVerified" && rows.length < MIN_INDEPENDENT_REPORTS) {
-    throw new CommunityReconciliationError(`community: ${rows.length} report(s); a communityVerified spot needs at least ${MIN_INDEPENDENT_REPORTS}`);
+/** The attested independence of an imported review (community_artifact_ledger). */
+export async function attestedIndependence(db: Db, applicationId: string): Promise<{ evidence: number; submitters: number }> {
+  const row = await db.prepare("SELECT evidence_count, independent_submitters FROM community_artifact_ledger WHERE review_id = ?")
+    .bind(applicationId).first<{ evidence_count: number; independent_submitters: number }>();
+  if (!row) throw new CommunityReconciliationError(`community: ${applicationId} was not imported from a reviewed artifact`);
+  return { evidence: row.evidence_count, submitters: row.independent_submitters };
+}
+
+/** Evidence may back a canonical change only on days before its usable_until day. */
+export const usable = (row: { usable_until: string }, now: string) => now.slice(0, 10) < row.usable_until;
+
+function assertPremises(rows: readonly EvidenceRow[], attested: { evidence: number; submitters: number }, now: string, tier: CommunityTier): void {
+  if (rows.length === 0 || rows.length !== attested.evidence) throw new CommunityReconciliationError("community: the imported evidence is incomplete");
+  if (tier === "communityVerified" && (rows.length < MIN_INDEPENDENT_REPORTS || attested.submitters !== rows.length)) {
+    throw new CommunityReconciliationError(`community: ${attested.submitters} independent submitter(s) behind ${rows.length} report(s); a communityVerified spot needs at least ${MIN_INDEPENDENT_REPORTS}, one each`);
   }
   if (tier === "communityReported") {
     if (rows.length !== 1) throw new CommunityReconciliationError(`community: a communityReported spot rests on exactly one report, got ${rows.length}`);
-    // A single report carries no corroboration, so it must carry the rest explicitly (0023).
     if (rows[0].accepted_terms_version === null) throw new CommunityReconciliationError(`community: report ${rows[0].report_id} has no terms consent`);
-    // A host business alone is not a smoking place: the reporter must say what the smoking place is.
     if (rows[0].claim_spot_type === null || rows[0].claim_spot_type === "unknown") {
       throw new CommunityReconciliationError(`community: report ${rows[0].report_id} states no known spot type`);
     }
   }
   for (const r of rows) {
     if (r.report_type !== "missing") throw new CommunityReconciliationError(`community: report ${r.report_id} is ${r.report_type}, not a new-spot proposal`);
-    if (r.redacted_at !== null || r.submitter_hash === null || r.proposed_latitude === null) {
-      throw new CommunityReconciliationError(`community: report ${r.report_id} is redacted; its proposal no longer exists`);
-    }
-    if (r.minimize_after <= now) throw new CommunityReconciliationError(`community: report ${r.report_id} is past its minimization deadline`);
-    // Coordinate sanity (ADR-0012): the API checks only the global range; a pin outside Japan is not a place here.
-    if (!withinJapan(r.proposed_latitude, r.proposed_longitude!)) {
-      throw new CommunityReconciliationError(`community: report ${r.report_id}'s pin is outside Japan`);
-    }
-    if (r.state !== "accepted") throw new CommunityReconciliationError(`community: report ${r.report_id} is ${r.state}, not accepted`);
-    if (r.reconciliation_state !== "queued") {
-      throw new CommunityReconciliationError(`community: report ${r.report_id} is ${r.reconciliation_state}, not queued`);
-    }
-    if (r.linked_application_id !== applicationId) {
-      throw new CommunityReconciliationError(`community: report ${r.report_id} already backs application ${r.linked_application_id}`);
-    }
-  }
-  if (new Set(rows.map((r) => r.submitter_hash)).size !== rows.length) {
-    throw new CommunityReconciliationError("community: two reports come from the same submitter; they are not independent evidence");
+    if (!usable(r, now)) throw new CommunityReconciliationError(`community: report ${r.report_id} is past its minimization deadline`);
   }
 }
 
@@ -130,7 +96,7 @@ function assertPremises(rows: readonly PremiseRow[], now: string, applicationId:
  * value; no statement, or any disagreement, leaves it unknown. Nothing is ever inferred from a host business: a
  * convenience store or a café is only a host, never evidence of a spot type or of smoking being permitted.
  */
-export function agreedClaims(rows: readonly PremiseRow[]): AgreedClaims {
+export function agreedClaims(rows: readonly Omit<EvidenceRow, "report_id" | "report_type" | "proposed_latitude" | "proposed_longitude" | "usable_until" | "accepted_terms_version">[]): AgreedClaims {
   const agreed = <T>(values: readonly (T | null)[]): T | null => {
     const stated = new Set(values.filter((v) => v !== null && v !== "unknown"));
     return stated.size === 1 ? [...stated][0] as T : null;
@@ -159,101 +125,6 @@ function compatibleSubtype(spotType: AgreedClaims["spotType"], subtype: NonNulla
     : ["designatedOutdoorArea", "facilitySmokingRoom", "ashtray"].includes(spotType);
 }
 
-/**
- * The rights basis of a set of reports: the one terms version all of them accepted, or null. A report without
- * consent (every report stored before migration 0021) makes the whole set basis-less; nothing is inferred for it,
- * and mixing versions is not a basis either, because no single document covers every report.
- */
-export function commonTermsVersion(rows: readonly { accepted_terms_version: string | null }[]): string | null {
-  const versions = new Set(rows.map((r) => r.accepted_terms_version));
-  const [only] = versions;
-  return versions.size === 1 && only !== null && only !== undefined ? only : null;
-}
-
-export interface CommunityCandidateGroup {
-  reportIds: string[];
-  pins: { reportId: string; latitude: number; longitude: number }[];
-  /** How many distinct submitters stand behind the group. The submitter keys themselves are never returned. */
-  distinctSubmitters: number;
-  maxPairDistanceMetres: number;
-  /** The terms version every report in the group consented to, or null: a group without it can never publish (Issue #124). */
-  commonTermsVersion: string | null;
-}
-
-/**
- * Queued, accepted, unredacted, unlinked `missing` reports, grouped by single linkage within `withinMetres`. A
- * reading aid for the reviewer, not a decision: nothing here is written, and a group is never applied as is.
- */
-export async function listCommunityCandidates(db: Db, opts: { withinMetres: number; now: Date }): Promise<CommunityCandidateGroup[]> {
-  if (!Number.isFinite(opts.withinMetres) || opts.withinMetres <= 0) {
-    throw new CommunityReconciliationError("community: an explicit positive grouping radius in metres is required");
-  }
-  const { results } = await db.prepare(
-    `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude, r.submitter_hash, r.accepted_terms_version
-     FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
-     WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
-       AND m.state = 'accepted' AND m.reconciliation_state = 'queued'
-       AND NOT EXISTS (SELECT 1 FROM community_reconciliation_evidence e WHERE e.report_id = r.report_id)
-     ORDER BY r.report_id`,
-  ).bind(isoSeconds(opts.now)).all<{ report_id: string; latitude: number; longitude: number; submitter_hash: string; accepted_terms_version: string | null }>();
-
-  const parent = results.map((_, i) => i);
-  const root = (i: number): number => (parent[i] === i ? i : (parent[i] = root(parent[i])));
-  for (let i = 0; i < results.length; i++) {
-    for (let j = i + 1; j < results.length; j++) {
-      if (distanceMetres(results[i], results[j]) <= opts.withinMetres) parent[root(j)] = root(i);
-    }
-  }
-  const groups = new Map<number, typeof results>();
-  results.forEach((r, i) => groups.set(root(i), [...(groups.get(root(i)) ?? []), r]));
-  return [...groups.values()].map((members) => {
-    let max = 0;
-    for (const a of members) for (const b of members) max = Math.max(max, distanceMetres(a, b));
-    return {
-      reportIds: members.map((m) => m.report_id),
-      pins: members.map((m) => ({ reportId: m.report_id, latitude: m.latitude, longitude: m.longitude })),
-      distinctSubmitters: new Set(members.map((m) => m.submitter_hash)).size,
-      maxPairDistanceMetres: Math.round(max * 10) / 10,
-      commonTermsVersion: commonTermsVersion(members),
-    };
-  });
-}
-
-export interface ProposeInput {
-  reportIds: readonly string[];
-  /** The evidence tier the reviewer decides. Defaults to communityVerified, the only tier before ADR-0012. */
-  tier?: CommunityTier;
-  /** One of reportIds: its pin becomes the spot's location, exactly as submitted (rounded to ~1 m by the API). */
-  locationReportId: string;
-  decidedBy: string;
-  now: Date;
-  newApplicationId?: () => string;
-}
-
-export async function proposeCommunityApplication(db: Db, input: ProposeInput): Promise<string> {
-  const reportIds = [...input.reportIds].sort();
-  if (new Set(reportIds).size !== reportIds.length) throw new CommunityReconciliationError("community: a report is named twice");
-  if (!reportIds.includes(input.locationReportId)) {
-    throw new CommunityReconciliationError("community: the adopted location must be one of the application's reports");
-  }
-  const now = isoSeconds(input.now);
-  const tier = input.tier ?? "communityVerified";
-  assertPremises(await readPremises(db, reportIds), now, null, tier);
-  const applicationId = (input.newApplicationId ?? newApplicationId)();
-  await db.batch([
-    db.prepare(
-      `INSERT INTO community_reconciliation_applications
-         (application_id, claim_type, location_report_id, reconciliation_version, decided_by, decided_at, state,
-          evidence_tier, tier_rule_version)
-       VALUES (?, 'newSpot', ?, ?, ?, ?, 'proposed', ?, ?)`,
-    ).bind(applicationId, input.locationReportId, COMMUNITY_RECONCILIATION_VERSION, input.decidedBy, now, tier, COMMUNITY_TIER_RULE_VERSION),
-    ...reportIds.map((id) => db.prepare(
-      "INSERT INTO community_reconciliation_evidence (report_id, application_id) VALUES (?, ?)",
-    ).bind(id, applicationId)),
-  ]);
-  return applicationId;
-}
-
 interface ApplicationRow {
   application_id: string;
   location_report_id: string;
@@ -277,9 +148,10 @@ export type ApplyResult =
   | { status: "alreadyApplied"; releaseId: number };
 
 /**
- * Applies a proposed application. Every premise is checked before anything is written (a stale application
- * writes nothing), then again by the 0020 triggers inside the one batch that writes the canonical spot, the
- * applied release, the applied application and the applied reports — all of it or none of it. The only write
+ * Applies a proposed (imported) application. Every premise is checked before anything is written (a stale application
+ * writes nothing), then again by the 0020/0025 triggers inside the one batch that writes the canonical spot, the
+ * applied release and the applied application — all of it or none of it. The reports themselves were marked
+ * applied in REPORTS_DB when their review was exported; nothing here touches a report store. The only write
  * outside that batch is the ingest of the sanitized release: raw evidence that is not canonical, is never
  * applied without its application, and is re-used unchanged by a retry.
  */
@@ -291,18 +163,17 @@ export async function applyCommunityApplication(
   if (application.state === "withdrawn") throw new CommunityReconciliationError(`community: application ${applicationId} was withdrawn`);
 
   const now = isoSeconds(opts.now);
-  const { results: links } = await db.prepare(
-    "SELECT report_id FROM community_reconciliation_evidence WHERE application_id = ? ORDER BY report_id",
-  ).bind(applicationId).all<{ report_id: string }>();
-  const reportIds = links.map((l) => l.report_id);
-  const premises = await readPremises(db, reportIds);
-  // A legacy (pre-0023) application is a two-submitter decision, so it resolves as communityVerified. Its row keeps
-  // no count (it declared no tier); the artifact records the count the premises prove.
+  const premises = await applicationEvidence(db, "community_reconciliation_evidence", applicationId);
+  const reportIds = premises.map((p) => p.report_id);
+  // A legacy (pre-0023) application is a two-submitter decision, so it resolves as communityVerified.
   const tier = application.evidence_tier ?? "communityVerified";
-  assertPremises(premises, now, applicationId, tier);
-  const independentSubmitters = new Set(premises.map((p) => p.submitter_hash)).size;
+  const attested = await attestedIndependence(db, applicationId);
+  assertPremises(premises, attested, now, tier);
+  const independentSubmitters = attested.submitters;
   const pin = premises.find((p) => p.report_id === application.location_report_id);
-  if (!pin) throw new CommunityReconciliationError(`community: application ${applicationId}'s location report is not its evidence`);
+  if (!pin || pin.proposed_latitude === null) throw new CommunityReconciliationError(`community: application ${applicationId}'s location report is not its evidence`);
+  // Coordinate sanity (ADR-0012): the API checks only the global range; a pin outside Japan is not a place here.
+  if (!withinJapan(pin.proposed_latitude, pin.proposed_longitude!)) throw new CommunityReconciliationError(`community: report ${pin.report_id}'s pin is outside Japan`);
 
   await ensureReviewedSource(db, COMMUNITY_SOURCE_ID, now);
   const bytes = communityArtifact({
@@ -322,9 +193,6 @@ export async function applyCommunityApplication(
          independent_submitters = CASE WHEN evidence_tier IS NULL THEN NULL ELSE ? END
        WHERE application_id = ? AND state = 'proposed'`,
     ).bind(releaseId, now, independentSubmitters, applicationId),
-    ...reportIds.map((id) => db.prepare(
-      "UPDATE report_moderation SET reconciliation_state = 'applied', updated_at = ? WHERE report_id = ?",
-    ).bind(now, id)),
   ];
   const result = await resolveFirstRelease(db, COMMUNITY_ADAPTER, releaseId, { now, newSpotId: opts.newSpotId, guards });
   if (result.status !== "resolved" || result.spotIds.length !== 1) {
