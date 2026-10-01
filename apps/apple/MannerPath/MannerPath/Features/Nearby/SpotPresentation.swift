@@ -64,6 +64,32 @@ enum SpotPresentation {
         }
     }
 
+    /// ADR-0013 headline of how far the place has been confirmed, in plain words: who confirmed it, how many people,
+    /// and whether anyone else has yet. Never above the evidence; no database terms.
+    static func confirmationSummary(_ spot: Spot) -> String {
+        switch spot.verification.existenceTier {
+        case .official: String(localized: "Officially confirmed")
+        case .operator: String(localized: "Confirmed by the operator")
+        case .communityVerified:
+            if let count = spot.verification.confirmations, count >= 2 {
+                String(localized: "Confirmed by \(count) users")
+            } else {
+                String(localized: "Confirmed by users")
+            }
+        case .communityReported: String(localized: "Reported by one user · no one else has confirmed it yet")
+        case .unknown: String(localized: "Confirmation status unknown")
+        }
+    }
+
+    static func task(_ kind: CoverageTaskKind) -> String {
+        switch kind {
+        case .needsConfirmation: String(localized: "Waiting for someone to confirm it's still here")
+        case .needsLocationCheck: String(localized: "The exact spot could use a check")
+        case .needsTypeCheck: String(localized: "What kind of place it is is unknown")
+        case .needsAccessCheck: String(localized: "Who can use it is unknown")
+        }
+    }
+
     static func existenceSymbol(_ value: ExistenceEvidence) -> String {
         switch value {
         case .official: "checkmark.seal"

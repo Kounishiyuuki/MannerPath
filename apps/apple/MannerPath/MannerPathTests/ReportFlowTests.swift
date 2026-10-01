@@ -94,8 +94,12 @@ struct ReportFlowTests {
     let pin = ReportCoordinate(latitude: 35.71123456, longitude: 139.77377654)
 
     @Test func allTypesMapExactlyAndRespectPrivacyBoundary() throws {
-        let types = ["exists", "missing", "moved", "hoursChanged", "tobaccoTypeChanged", "accessChanged", "prohibited", "other"]
+        let types = ["exists", "missing", "moved", "hoursChanged", "tobaccoTypeChanged", "accessChanged", "prohibited", "other",
+                     "notFound", "removed", "typeChanged"]
         #expect(ReportType.allCases.map(\.rawValue) == types)
+        // The ADR-0013 findings exist only on a deployment that advertises them.
+        var limits = limits
+        limits.acceptsExistingSpotFindings = true
         for type in ReportType.allCases {
             let draft = ReportDraft(type: type, spotId: type == .missing ? nil : "sp_123",
                                     subjectName: type == .missing ? nil : "Display-only place name",

@@ -16,6 +16,20 @@ nonisolated enum ReportSubmissionState: Equatable, Sendable {
     case failed(String)
 }
 
+/// The terms version the user last agreed to on this device, so a one-tap confirmation can show "agreed to version X"
+/// instead of asking again for the same document. Only an explicit toggle records it; a different version is never
+/// treated as agreed.
+nonisolated protocol ReportConsentRemembering: Sendable {
+    func agreedVersion() -> String?
+    func remember(_ version: String?)
+}
+
+nonisolated struct UserDefaultsReportConsent: ReportConsentRemembering {
+    private static let key = "reportTermsAgreedVersion"
+    func agreedVersion() -> String? { UserDefaults.standard.string(forKey: Self.key) }
+    func remember(_ version: String?) { UserDefaults.standard.set(version, forKey: Self.key) }
+}
+
 @MainActor @Observable
 final class ReportModel {
     private let configClient: any ReportConfigFetching
@@ -24,6 +38,7 @@ final class ReportModel {
     private let installIDs: any InstallIDProviding
     private let attestedClient: (any AttestedReportSubmitting)?
     private let authorizer: (any ReportAuthorizing)?
+    private let consent: (any ReportConsentRemembering)?
     private var retryAllowedAt: Date?
     private var acceptedCleanupPending = false
     private var recoveredSubmissionAttempt = false
@@ -44,7 +59,9 @@ final class ReportModel {
     init(configClient: any ReportConfigFetching, reportClient: any ReportSubmitting,
          store: any ReportDraftStoring, installIDs: any InstallIDProviding,
          attestedClient: (any AttestedReportSubmitting)? = nil,
-         authorizer: (any ReportAuthorizing)? = nil) {
+         authorizer: (any ReportAuthorizing)? = nil,
+         consent: (any ReportConsentRemembering)? = nil) {
+        self.consent = consent
         self.configClient = configClient
         self.reportClient = reportClient
         self.store = store
@@ -102,6 +119,37 @@ final class ReportModel {
         saveDraft(newDraft)
     }
 
+    /// Whether a new report can be started right now (one draft at a time, nothing in flight).
+    var canStartReport: Bool { !acceptedCleanupPending && !recoveredSubmissionAttempt && !isBusy && draft == nil }
+
+    /// ADR-0013 "add a smoking place": a new-spot draft, optionally with a pin the user already placed on the map.
+    func startNewSpot(pin: ReportCoordinate?) {
+        guard canStartReport else { return }
+        var newDraft = ReportDraft(type: .missing, proposedLocation: pin?.quantized)
+        newDraft.claim = ReportClaim()
+        saveDraft(newDraft)
+    }
+
+    /// ADR-0013 one-tap "still here": an `exists` draft with no free text. Agreement to the terms carries over only for
+    /// the exact version the user agreed to before; otherwise the confirmation sheet asks.
+    func startQuickConfirm(spotId: String, subjectName: String?) {
+        guard canStartReport else { return }
+        var newDraft = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName)
+        if case .available(let limits) = availability, let version = limits.termsVersion, consent?.agreedVersion() == version {
+            newDraft.acceptedTermsVersion = version
+        }
+        saveDraft(newDraft)
+    }
+
+    /// "Is it one of these?": the user picked an existing nearby place instead of adding a new one. The new-spot draft
+    /// becomes a still-here confirmation of that place; consent stays as given, the pin and claim are dropped.
+    func confirmExistingInstead(spotId: String, subjectName: String?) {
+        guard var current = draft, current.type == .missing else { return }
+        current = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName,
+                              acceptedTermsVersion: current.acceptedTermsVersion)
+        saveDraft(current)
+    }
+
     func saveDraft(_ updated: ReportDraft) {
         guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy else { return }
         var updated = updated
@@ -121,6 +169,7 @@ final class ReportModel {
         guard case .available(let limits) = availability, let version = limits.termsVersion, var edited = draft else { return }
         edited.acceptedTermsVersion = accepted ? version : nil
         saveDraft(edited)
+        consent?.remember(accepted ? version : nil)
     }
 
     func cancel() {
@@ -298,6 +347,8 @@ final class ReportModel {
         case .termsNotAccepted: String(localized: "Read and agree to the report terms before submitting.")
         case .unexpectedClaim: String(localized: "Place details can only be added to a missing-place suggestion.")
         case .invalidClaim: String(localized: "Check the place details: a detail must match the type or access you chose, and text must fit its limit.")
+        case .unsupportedReportType: String(localized: "This kind of report isn't available yet. Choose another report type or use Other correction.")
+        case .invalidCorrection: String(localized: "Check the correction: choose the value you saw, or remove it.")
         }
     }
 
@@ -343,6 +394,7 @@ enum ReportComposition {
                            store: FileReportDraftStore(directory: directory.appending(path: "Reports", directoryHint: .isDirectory)),
                            installIDs: UserDefaultsInstallID(),
                            attestedClient: client as? ReportAPIClient,
-                           authorizer: authorizer)
+                           authorizer: authorizer,
+                           consent: UserDefaultsReportConsent())
     }
 }

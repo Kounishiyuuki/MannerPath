@@ -9,7 +9,10 @@ struct SpotDetailView: View {
     let nearbySources: [SpotSource]
     let reportAvailability: ReportAvailability
     let hasSavedReport: Bool
-    let onReport: () -> Void
+    /// ADR-0013: start a structured report of this type about this place.
+    let onReport: (ReportType) -> Void
+    /// ADR-0013 one-tap "it was here".
+    let onConfirmStillHere: () -> Void
 
     @State private var previewRouter = MapKitWalkingRouter()
     @State private var previewRoute: WalkingRoute?
@@ -34,6 +37,40 @@ struct SpotDetailView: View {
                 Text(estimateFromPreviousLocation
                      ? "Distance and bearing are estimates from a previous device location, not a walking route."
                      : "Distance and bearing are estimates from your device location, not a walking route.")
+            }
+
+            Section {
+                Label(SpotPresentation.confirmationSummary(spot), systemImage: SpotPresentation.existenceSymbol(spot.verification.existenceTier))
+                    .font(.headline)
+                Text(SpotPresentation.confirmation(result))
+                    .foregroundStyle(.secondary)
+                if case .available = reportAvailability {
+                    Button {
+                        onConfirmStillHere()
+                    } label: {
+                        Label("It was here", systemImage: "checkmark.circle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(hasSavedReport)
+                    .accessibilityHint("Sends a confirmation that this place still exists, for review")
+                    Menu {
+                        ForEach(ReportType.corrections(acceptsFindings: acceptsFindings), id: \.self) { type in
+                            Button(type.title) { onReport(type) }
+                        }
+                    } label: {
+                        Label("Something is different", systemImage: "exclamationmark.bubble")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(hasSavedReport)
+                }
+            } header: {
+                Text("On-site check")
+            } footer: {
+                Text(hasSavedReport
+                     ? "Finish or discard your saved report first."
+                     : "Been here recently? Your check helps others. It is reviewed before anything changes.")
             }
 
             Section("Walking directions") {
@@ -137,7 +174,7 @@ struct SpotDetailView: View {
             Section("Suggest a correction") {
                 switch reportAvailability {
                 case .available:
-                    Button(hasSavedReport ? "Continue saved report" : "Report information about this place", action: onReport)
+                    Button(hasSavedReport ? "Continue saved report" : "Report information about this place") { onReport(.exists) }
                     if hasSavedReport {
                         Text("The saved report may concern another place. Review its details before submitting.")
                             .font(.footnote).foregroundStyle(.secondary)
@@ -161,6 +198,11 @@ struct SpotDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: previewKey) { await loadPreview() }
         .onDisappear { previewRouter.cancel() }
+    }
+
+    private var acceptsFindings: Bool {
+        if case .available(let limits) = reportAvailability { return limits.acceptsExistingSpotFindings }
+        return false
     }
 
     private var previewKey: String {

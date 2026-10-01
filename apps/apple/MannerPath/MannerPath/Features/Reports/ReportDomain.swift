@@ -2,6 +2,8 @@ import Foundation
 
 nonisolated enum ReportType: String, CaseIterable, Codable, Sendable {
     case exists, missing, moved, hoursChanged, tobaccoTypeChanged, accessChanged, prohibited, other
+    // ADR-0013 structured findings; sent only to a deployment that advertises `existingSpotFindings`.
+    case notFound, removed, typeChanged
 
     var title: String {
         switch self {
@@ -13,10 +15,23 @@ nonisolated enum ReportType: String, CaseIterable, Codable, Sendable {
         case .accessChanged: String(localized: "Access changed")
         case .prohibited: String(localized: "Smoking is prohibited here")
         case .other: String(localized: "Other correction")
+        case .notFound: String(localized: "I couldn't find it")
+        case .removed: String(localized: "It has been removed")
+        case .typeChanged: String(localized: "It's a different kind of place")
         }
     }
 
     var needsProposedLocation: Bool { self == .missing || self == .moved }
+
+    /// Types an older deployment's strict schema would reject.
+    var isExistingSpotFinding: Bool { self == .notFound || self == .removed || self == .typeChanged }
+
+    /// The structured corrections offered on an existing place, in the order the detail menu shows them.
+    static func corrections(acceptsFindings: Bool) -> [ReportType] {
+        let all: [ReportType] = [.notFound, .removed, .moved, .typeChanged, .accessChanged, .hoursChanged,
+                                 .tobaccoTypeChanged, .prohibited, .other]
+        return all.filter { acceptsFindings || !$0.isExistingSpotFinding }
+    }
 }
 
 nonisolated struct ReportCoordinate: Codable, Equatable, Sendable {
@@ -59,6 +74,17 @@ nonisolated struct ReportClaim: Codable, Equatable, Sendable {
     static let hoursNoteMaxLength = 120
 }
 
+/// ADR-0013: what an existing-spot correction proposes instead (docs/API.md `claim` on typeChanged / accessChanged /
+/// tobaccoTypeChanged). Categorical wire strings only; `nil` means "not stated".
+nonisolated struct ReportCorrection: Codable, Equatable, Sendable {
+    var spotType: String? = nil
+    var spotSubtype: String? = nil
+    var accessType: String? = nil
+    var accessDetail: String? = nil
+    var supportsPaper: String? = nil
+    var supportsHeated: String? = nil
+}
+
 nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var type: ReportType
     var spotId: String?
@@ -71,6 +97,8 @@ nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var acceptedTermsVersion: String?
     /// ADR-0012 structured claim; only a `missing` report carries one. Drafts saved earlier decode with nil.
     var claim: ReportClaim? = nil
+    /// ADR-0013 correction claim of an existing-spot report. Drafts saved earlier decode with nil.
+    var correction: ReportCorrection? = nil
 
     init(type: ReportType, spotId: String? = nil, subjectName: String? = nil,
          proposedLocation: ReportCoordinate? = nil,
@@ -105,6 +133,8 @@ nonisolated struct ReportLimits: Equatable, Sendable {
     var termsVersion: String? = nil
     /// Whether the deployment accepts `claim` on a new-spot report; its strict schema rejects it otherwise.
     var acceptsNewSpotClaim = false
+    /// Whether the deployment accepts the ADR-0013 finding types and correction claims.
+    var acceptsExistingSpotFindings = false
 }
 
 nonisolated enum ReportAvailability: Equatable, Sendable {
@@ -119,7 +149,20 @@ nonisolated enum ReportAvailability: Equatable, Sendable {
 nonisolated enum ReportValidationError: Error, Equatable, Sendable {
     case missingSpotID, unexpectedSpotID, missingProposedLocation, unexpectedProposedLocation
     case invalidCoordinate, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge, termsNotAccepted
-    case unexpectedClaim, invalidClaim
+    case unexpectedClaim, invalidClaim, unsupportedReportType, invalidCorrection
+}
+
+/// The `claim` member on the wire: a new-spot claim or an existing-spot correction, never both.
+nonisolated enum ReportClaimPayload: Encodable, Sendable {
+    case newSpot(ReportClaim)
+    case correction(ReportCorrection)
+
+    func encode(to encoder: any Encoder) throws {
+        switch self {
+        case .newSpot(let claim): try claim.encode(to: encoder)
+        case .correction(let correction): try correction.encode(to: encoder)
+        }
+    }
 }
 
 nonisolated struct ReportRequest: Encodable, Sendable {
@@ -132,7 +175,7 @@ nonisolated struct ReportRequest: Encodable, Sendable {
     let installId: UUID
     /// Inside the payload, so for schemaVersion 2 the App Attest assertion signs the consent too.
     let acceptedTermsVersion: String?
-    let claim: ReportClaim?
+    let claim: ReportClaimPayload?
 
     enum CodingKeys: String, CodingKey {
         case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId, acceptedTermsVersion, claim
@@ -167,11 +210,22 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         // The claim travels only on a new-spot report, and only to a deployment that accepts it.
         if draft.claim != nil && draft.type != .missing { throw ReportValidationError.unexpectedClaim }
         if let claim = draft.claim, limits.acceptsNewSpotClaim, !isValid(claim) { throw ReportValidationError.invalidClaim }
+        if draft.type.isExistingSpotFinding && !limits.acceptsExistingSpotFindings { throw ReportValidationError.unsupportedReportType }
+        // A correction travels only on its own report type, only to a deployment that accepts it; to an older one the
+        // report goes without it (the note can still say it).
+        if let correction = draft.correction, !isValid(correction, for: draft.type) { throw ReportValidationError.invalidCorrection }
+        let claimPayload: ReportClaimPayload? = if let claim = draft.claim, limits.acceptsNewSpotClaim {
+            .newSpot(claim)
+        } else if let correction = draft.correction, limits.acceptsExistingSpotFindings {
+            .correction(correction)
+        } else {
+            nil
+        }
         let request = Self(schemaVersion: limits.submissionProtocol.schemaVersion, type: draft.type, spotId: draft.spotId,
                            proposedLocation: draft.proposedLocation?.quantized,
                            observedOn: draft.observedOn, note: draft.note, installId: installId,
                            acceptedTermsVersion: limits.termsVersion,
-                           claim: limits.acceptsNewSpotClaim ? draft.claim : nil)
+                           claim: claimPayload)
         let data = try JSONEncoder().encode(request)
         guard data.count <= limits.maxBodyBytes else { throw ReportValidationError.bodyTooLarge }
         return data
@@ -184,6 +238,25 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         if let name = claim.hostName, name.isEmpty || name.count > ReportClaim.hostNameMaxLength { return false }
         if let hours = claim.hoursNote, hours.isEmpty || hours.count > ReportClaim.hoursNoteMaxLength { return false }
         return true
+    }
+
+    /// The server's per-type correction shapes (services/api/src/reports/dto.ts).
+    private static func isValid(_ c: ReportCorrection, for type: ReportType) -> Bool {
+        switch type {
+        case .typeChanged:
+            guard let spotType = c.spotType, c.accessType == nil, c.accessDetail == nil,
+                  c.supportsPaper == nil, c.supportsHeated == nil else { return false }
+            return !(c.spotSubtype != nil && spotType == "unknown")
+        case .accessChanged:
+            guard let access = c.accessType, c.spotType == nil, c.spotSubtype == nil,
+                  c.supportsPaper == nil, c.supportsHeated == nil else { return false }
+            return c.accessDetail == nil || access == "facilityOnly"
+        case .tobaccoTypeChanged:
+            return c.spotType == nil && c.spotSubtype == nil && c.accessType == nil && c.accessDetail == nil
+                && (c.supportsPaper != nil || c.supportsHeated != nil)
+        default:
+            return false
+        }
     }
 
     private static func isValidDay(_ value: String) -> Bool {

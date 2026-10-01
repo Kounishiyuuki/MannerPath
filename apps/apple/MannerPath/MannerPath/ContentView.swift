@@ -10,6 +10,8 @@ struct ContentView: View {
     @State private var model = NearbyComposition.makeModel()
     @State private var reportModel = ReportComposition.makeModel()
     @State private var showingReport = false
+    @State private var showingQuickConfirm = false
+    @AppStorage("nearbyConfirmationTasksHidden") private var nearbyTasksHidden = false
     @State private var path: [String] = []
     @State private var mapPosition: MapCameraPosition = .automatic
     @State private var selectedSnapshot: DetailSelection?
@@ -28,6 +30,7 @@ struct ContentView: View {
                         dataStatus
                         if !model.results.isEmpty { mapSection }
                         listSection
+                        nearbyTasksSection
                         destinationSection
                     }
 
@@ -43,6 +46,13 @@ struct ContentView: View {
                         showingFilters = true
                     }
                     .accessibilityHint("Adjust nearby result filters")
+                }
+                ToolbarItem(placement: .bottomBar) {
+                    if case .available = reportModel.availability {
+                        Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
+                            .disabled(!reportModel.canStartReport)
+                            .accessibilityHint("Pin a smoking place that is missing from the map. It is reviewed before it can appear.")
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
@@ -66,10 +76,15 @@ struct ContentView: View {
                         nearbySources: selection.nearbySources,
                         reportAvailability: reportModel.availability,
                         hasSavedReport: reportModel.draft != nil,
-                        onReport: {
-                            reportModel.start(type: .exists, spotId: selection.result.spot.id,
+                        onReport: { type in
+                            reportModel.start(type: type, spotId: selection.result.spot.id,
                                               subjectName: SpotPresentation.name(selection.result.spot))
                             showingReport = true
+                        },
+                        onConfirmStillHere: {
+                            reportModel.startQuickConfirm(spotId: selection.result.spot.id,
+                                                          subjectName: SpotPresentation.name(selection.result.spot))
+                            if reportModel.draft?.type == .exists { showingQuickConfirm = true }
                         }
                     )
                 } else {
@@ -86,7 +101,11 @@ struct ContentView: View {
             if phase == .active && eligibilityNoticeAccepted { activateNearby() }
         }
         .sheet(isPresented: $showingReport) {
-            ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate)
+            ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate,
+                           nearbySpots: model.results.map(\.spot))
+        }
+        .sheet(isPresented: $showingQuickConfirm) {
+            QuickConfirmView(model: reportModel)
         }
         .sheet(isPresented: $showingFilters) {
             NavigationStack {
@@ -140,6 +159,56 @@ struct ContentView: View {
         Task { await reportModel.refreshAvailability() }
     }
 
+    private func startAddingPlace() {
+        reportModel.startNewSpot(pin: nil)
+        showingReport = true
+    }
+
+    /// ADR-0013 nearby tasks: a light, ignorable prompt inside the Nearby screen — no push, no streaks, no tracking.
+    /// Derived from the results already on screen (coverage-tasks.v1); nothing is sent to find them.
+    @ViewBuilder
+    private var nearbyTasksSection: some View {
+        let waiting = CoverageTasks.nearbyConfirmations(model.results, at: .now)
+        if !waiting.isEmpty, case .available = reportModel.availability {
+            VStack(alignment: .leading, spacing: 8) {
+                if nearbyTasksHidden {
+                    Button("Show places waiting for confirmation") { nearbyTasksHidden = false }
+                        .font(.footnote)
+                } else {
+                    HStack {
+                        Text("Places nearby waiting for confirmation")
+                            .font(.headline)
+                            .accessibilityAddTraits(.isHeader)
+                        Spacer()
+                        Button("Hide") { nearbyTasksHidden = true }
+                            .font(.footnote)
+                    }
+                    Text("If you pass one, you can tell others whether it is still there.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    ForEach(waiting, id: \.spot.id) { result in
+                        Button {
+                            openDetail(result)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(SpotPresentation.name(result.spot)).font(.subheadline.weight(.semibold))
+                                    Text("\(SpotPresentation.distance(result.distanceMeters)) · \(SpotPresentation.confirmationSummary(result.spot))")
+                                        .font(.footnote).foregroundStyle(.secondary)
+                                }
+                                Spacer(minLength: 0)
+                                Image(systemName: "chevron.forward").font(.footnote).foregroundStyle(.tertiary)
+                                    .accessibilityHidden(true)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("nearbyConfirmationTask")
+                    }
+                }
+            }
+        }
+    }
+
     private var mapCenter: SpotCoordinate? {
         (model.resultsLocation ?? model.displayLocation)?.coordinate
     }
@@ -161,11 +230,10 @@ struct ContentView: View {
         switch reportModel.availability {
         case .available:
             if reportModel.draft == nil {
-                Button("Suggest missing place") {
-                    reportModel.start(type: .missing, spotId: nil)
-                    showingReport = true
-                }
-                .buttonStyle(.bordered)
+                Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
+                    .buttonStyle(.bordered)
+                Text("Know a smoking place that isn't listed? Pin it and say what is there. It is reviewed before it can appear.")
+                    .font(.footnote).foregroundStyle(.secondary)
             }
         case .unknown:
             VStack(alignment: .leading, spacing: 8) {
@@ -350,7 +418,16 @@ struct ContentView: View {
         case .cacheUnavailable:
             ContentUnavailableView("Saved nearby data unavailable", systemImage: "externaldrive.badge.exclamationmark")
         case .refreshed:
-            ContentUnavailableView("No published spots in this nearby area", systemImage: "mappin.slash")
+            ContentUnavailableView {
+                Label("No published spots in this nearby area", systemImage: "mappin.slash")
+            } description: {
+                Text("If you know a smoking place here, you can add it for review.")
+            } actions: {
+                if case .available = reportModel.availability, reportModel.canStartReport {
+                    Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
+                        .buttonStyle(.bordered)
+                }
+            }
         case .refreshFailed:
             ContentUnavailableView("Could not load nearby data", systemImage: "wifi.exclamationmark",
                                    description: Text("No saved places are available. Published places may still exist nearby."))
