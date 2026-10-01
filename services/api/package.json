@@ -23,7 +23,9 @@
     "replay:coverage": "node --experimental-strip-types --no-warnings scripts/coverage-replay.ts",
     "coverage:targets": "node --experimental-strip-types --no-warnings scripts/coverage-targets.ts",
     "e2e:config": "node --experimental-strip-types --no-warnings scripts/disposable-env.ts",
-    "community:seed": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/community-seed.ts"
+    "community:seed": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/community-seed.ts",
+    "community:status": "node --experimental-strip-types --no-warnings scripts/community-activation.ts status",
+    "community:activate": "node --experimental-strip-types --no-warnings scripts/community-activation.ts activate"
   },
   "dependencies": {
     "hono": "4.13.8",

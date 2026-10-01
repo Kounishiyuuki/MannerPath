@@ -10,6 +10,7 @@
 // consent to the same version. Nothing a reporter wrote, no submitter key and no observation date exists in it
 // (ADR-0007 §3, §4). The publication gate reads the rights basis (migration 0021, Issue #124).
 
+import { COMMUNITY_PUBLICATION, decisionSourceFields } from "../reports/community-publication.ts";
 import { TERMS_VERSION } from "../reports/terms.ts";
 import { parseCsv } from "./csv.ts";
 import type { ReviewedSource } from "./registry.ts";
@@ -33,18 +34,16 @@ export const COMMUNITY_HEADER = [...COMMUNITY_HEADER_V2, "evidence_tier", "indep
   "access_type", "access_detail", "host_type", "environment", "supports_paper", "supports_heated"] as const;
 
 /**
- * Blocked: no terms or consent currently let MannerPath republish user submissions (Issue #124), so there is no
- * license or attribution to review yet. Reconciliation, resolution and cross-source review work; publication and
- * promotion refuse this source until that amendment and a docs/SOURCES.md review change this entry.
+ * Derived from the maintainer decision (src/reports/community-publication.ts, Issue #124). While it is `pending`
+ * the source is blocked with no license or attribution: reconciliation, resolution and cross-source review work;
+ * publication and promotion refuse this source. Approval fills in the reviewed terms as the license and
+ * `COMMUNITY_ATTRIBUTION_CANDIDATE` as the attribution; docs/SOURCES.md records the same decision.
  */
 export const COMMUNITY_REGISTRY: ReviewedSource = {
   sourceId: COMMUNITY_SOURCE_ID,
   displayName: "MannerPath 利用者報告（審査済み）",
   kind: "userReport",
-  licenseName: null,
-  licenseUrl: null,
-  attributionText: null,
-  publicationStatus: "blocked",
+  ...decisionSourceFields(COMMUNITY_PUBLICATION),
 };
 
 // Decimal degrees exactly as JavaScript prints a finite number: no exponent, no NaN/Infinity, no padding.

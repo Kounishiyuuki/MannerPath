@@ -4,14 +4,14 @@
 
 import { type Db } from "../db.ts";
 import { haversineMeters } from "../geo/distance.ts";
-import { communityStage, correctionCandidates } from "../pipeline/community-evidence.ts";
+import { communityStage, correctionCandidates, duplicateCandidates, spotEvidenceStates } from "../pipeline/community-evidence.ts";
 import { spotFreshness } from "../quality/freshness.ts";
 import type { TileSpotV1 } from "../tiles/dto.ts";
 import { PREFECTURES, SEED_ASSIGNMENT_METRES, SOURCE_PREFECTURES } from "./prefectures.ts";
 import { SEED_AREAS, SEED_RADIUS_METRES, type SeedArea } from "./seed-areas.ts";
 import { COVERAGE_TASKS_VERSION, gapTasks, spotTaskKinds } from "./tasks.ts";
 
-export const ACQUISITION_METRICS_VERSION = "community-acquisition-metrics.v1";
+export const ACQUISITION_METRICS_VERSION = "community-acquisition-metrics.v2";
 
 type PublishedSpot = TileSpotV1;
 type Tier = "official" | "communityVerified" | "communityReported";
@@ -108,6 +108,7 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
     locationCorrectionsPending: (await correctionCandidates(db, { now })).length,
     coverageGaps: { total: gaps.length, byPriority: { 1: gaps.filter((g) => g.priority === 1).length, 2: gaps.filter((g) => g.priority === 2).length, 3: gaps.filter((g) => g.priority === 3).length } },
     confirmations: { last7Days: await confirmations(days(7)), last30Days: await confirmations(days(30)) },
+    moderation: await moderationMetrics(db, now),
     prefectureCoverage: {
       assignment: "official spots by source jurisdiction; community spots only within a seed area (approximate), else unassigned",
       prefecturesWithUsableSpots: prefectures.filter((p) => p.allVisible > 0).length,
@@ -125,5 +126,38 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
       allVisible: { covered: allCovered, rate: stations.length === 0 ? null : Math.round((allCovered / stations.length) * 1000) / 1000 },
     },
     seedAreaCoverage: { radiusMeters: SEED_RADIUS_METRES, overlapping: true, areas: seedAreaMetrics(spots, upgraded) },
+  };
+}
+
+/**
+ * v2 (Issue #150): the moderation load a community launch creates, for the daily runbook (docs/OPERATIONS.md).
+ * Informational only: a large or growing queue is a staffing signal, never a quality failure.
+ */
+async function moderationMetrics(db: Db, now: Date) {
+  const decided = (await db.prepare(
+    `SELECT m.state AS state, m.decision_reason AS reason, count(*) AS n FROM report_moderation m GROUP BY m.state, m.decision_reason`,
+  ).all<{ state: string; reason: string | null; n: number }>()).results;
+  const sum = (pred: (r: { state: string; reason: string | null }) => boolean) => decided.filter(pred).reduce((a, r) => a + r.n, 0);
+  const pending = sum((r) => r.state === "pending");
+  const rejected = sum((r) => r.state === "rejected");
+  const decidedCount = sum((r) => r.state !== "pending");
+  const ratio = (n: number) => (decidedCount === 0 ? null : Math.round((n / decidedCount) * 1000) / 1000);
+  const oldest = await db.prepare(
+    "SELECT min(r.received_at) AS at FROM reports r JOIN report_moderation m ON m.report_id = r.report_id WHERE m.state = 'pending'",
+  ).first<{ at: string | null }>();
+  const states = await spotEvidenceStates(db, { now });
+  return {
+    pending,
+    oldestPendingHours: oldest?.at == null ? null : Math.floor((now.getTime() - Date.parse(oldest.at)) / 3_600_000),
+    accepted: sum((r) => r.state === "accepted"),
+    rejected,
+    rejectedRate: ratio(rejected),
+    duplicateRate: ratio(sum((r) => r.reason === "duplicateOfExistingReport")),
+    abuseRejections: sum((r) => r.reason === "abuse"),
+    spotsNeedingRecheck: states.filter((s) => s.state === "needsRecheck").length,
+    absenceReviewCandidates: states.filter((s) => s.state === "reviewCandidate").length,
+    heldSpots: states.filter((s) => s.state === "held").length,
+    conflictingSpots: states.filter((s) => s.conflicting).length,
+    duplicateCandidates: (await duplicateCandidates(db, { now })).length,
   };
 }
