@@ -89,6 +89,40 @@ the manifest. Only a reviewed change to a publisher-official URL repairs an entr
 The original #132 run remains historical evidence. Manifest regeneration is an initial
 discovery bootstrap, not a way to replace later human review annotations.
 
+### Reference-only official review queue
+
+ADR-0010 decision 3 permits local OSM reference analysis to choose where to search for
+independent official evidence. Download a public extract to an external temporary directory;
+filter and group it locally. No public Overpass queries, canonical matching or automatic
+OSM-to-official spot merge are part of this mode. Extract parsing is an external analysis
+step, not an importer or a new production dependency.
+
+From `services/api`:
+
+```sh
+npm run discover:sources -- --reference-leads osm \
+  --reference-input /tmp/research/reference-input.json \
+  --reference-queue /tmp/research/official-queue.json
+```
+
+The ephemeral JSON input has `candidates: [{tags, targetIds}]`, where a local analyst
+assigns existing manifest target IDs as search hints. Only `amenity=smoking_area`, or a
+bare dedicated smoking place, selects targets; venue-policy, ashtray and tobacco-shop
+tags do not. The conservative dedicated filter rejects host-facility tags. Additional
+input fields are discarded. The queue contains only independently maintained official
+manifest IDs, jurisdictions, publishers, prefectures and roles; it contains no OSM
+feature values or ranking. Aggregate counts are printed only to the local terminal.
+Both paths must be absolute and physically outside this repository, including symlink
+ancestors. Queue creation refuses to overwrite an existing file. This mode returns before
+the scanner, cache, discovery state, report, adapter, database or publication code runs.
+
+Keep extracts, reference input, intermediate analysis and queue outside git and out of
+public outputs. Only independently inspected publisher evidence belongs in committed
+official review records. A queued jurisdiction/operator is neither proof of a smoking
+place nor source approval. Publisher coordinates and exact reuse/current-operation
+review remain mandatory unless an accepted production policy explicitly permits a
+different official-only coordinate method.
+
 Each host is serialized with a configurable delay, timeout and retry budget. HTTP 403 or
 429 stops that host; other hosts continue. There is no proxy rotation, authentication bypass,
 private endpoint guessing or block avoidance. Cache entries retain URL, SHA-256, ETag and

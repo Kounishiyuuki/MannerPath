@@ -11,5 +11,13 @@ node_modules/
 .wrangler/
 .dev.vars
 services/data-pipeline/discovery/.local/
+# Reference extracts are never repository artifacts (ADR-0010 decision 3).
+*.osm
+*.osm.pbf
+*.osm.gz
+*.osm.bz2
+*.osc
+*.osc.gz
+osm-reference/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcworkspace/xcuserdata/
