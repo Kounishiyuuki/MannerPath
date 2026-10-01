@@ -6,11 +6,12 @@
 // way `sources` mirrors REVIEWED_SOURCES, and the publication gates read that table.
 //
 // The current document is a DRAFT. Consent to it is recorded, but it grants no publication rights: `pending`
-// until a legal/maintainer approval changes this list in a reviewed PR. Approving the same bytes flips
-// `publicationRights` here; approving different text is a new version, and reports consented to the draft stay
-// without rights. Nothing is ever applied retroactively: a report stored without a version never gains one.
+// forever. Approval never flips the draft: the draft told submitters nothing publishes on it, so approval is a NEW
+// version added by the maintainer decision (./community-publication.ts), and only reports consented to that exact
+// version may publish. Nothing is ever applied retroactively: a report stored without a version never gains one.
 
 import { type Db, type DbStatement } from "../db.ts";
+import { COMMUNITY_PUBLICATION, decisionTerms } from "./community-publication.ts";
 
 export type TermsPublicationRights = "pending" | "granted" | "revoked";
 
@@ -34,6 +35,9 @@ export const REPORT_TERMS: readonly ReviewedTerms[] = [
     // DRAFT — requires legal/maintainer approval before production (Issue #124).
     publicationRights: "pending",
   },
+  // The approved final version, if any, comes only from the maintainer decision (./community-publication.ts). It is
+  // a new version: reports consented to the draft above never gain rights from it.
+  ...decisionTerms(COMMUNITY_PUBLICATION),
 ];
 
 /** The version a client must show and a new report must accept; /v1/config publishes it. */

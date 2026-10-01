@@ -417,3 +417,17 @@ and connects existing-spot reports (Issue #127). Code: `services/api/src/reports
   agreed to, only to show it as agreed on a later quick confirmation of the same version; any other version asks again,
   and turning the agreement off forgets it.
 
+## Amendment 2026-10-01 — attested submitter key and community launch readiness (Issue #150)
+
+- **The attested abuse key is the App Attest key.** For a schemaVersion 2 report the submitter hash is
+  `SHA-256(pepper ‖ "appattest-key:" ‖ hex(keyId))`, not the payload's `installId`, which the client chooses freely.
+  One attested install can therefore neither rotate `installId` to escape §5's limits nor appear as several
+  independent submitters in community corroboration. The hash has the same shape, lifetime and redaction as before
+  (§4, §5); the key ID itself is still never stored on a report. Reports stored before this change keep their
+  installId-derived hash until it is minimized, so for at most 90 days a device's older and newer reports can look
+  like two submitters; reviewers treat same-area reports from that window with the usual care.
+- **Approval is a new terms version.** The draft (`report-terms.2026-09-30.draft`) stays `pending` forever; a
+  maintainer approval adds a new version through `COMMUNITY_PUBLICATION` (`services/api/src/reports/community-publication.ts`),
+  and only reports consented to that exact version can publish (§ amendment 2026-09-30, no retroactive rights).
+- **Withdrawal stays undecided.** The options and their fit with §4's 90-day minimization are in
+  `docs/legal/COMMUNITY_PUBLICATION_DECISION.md` §5; choosing B or C amends this ADR.

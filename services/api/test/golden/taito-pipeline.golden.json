@@ -345,7 +345,7 @@
         "communityCanonicalByTier": {}
       },
       "communityAcquisition": {
-        "version": "community-acquisition-metrics.v1",
+        "version": "community-acquisition-metrics.v2",
         "taskRules": "coverage-tasks.v1",
         "published": {
           "officialVerified": 32,
@@ -369,6 +369,20 @@
         "confirmations": {
           "last7Days": 0,
           "last30Days": 0
+        },
+        "moderation": {
+          "pending": 0,
+          "oldestPendingHours": null,
+          "accepted": 0,
+          "rejected": 0,
+          "rejectedRate": null,
+          "duplicateRate": null,
+          "abuseRejections": 0,
+          "spotsNeedingRecheck": 0,
+          "absenceReviewCandidates": 0,
+          "heldSpots": 0,
+          "conflictingSpots": 0,
+          "duplicateCandidates": 0
         },
         "prefectureCoverage": {
           "assignment": "official spots by source jurisdiction; community spots only within a seed area (approximate), else unassigned",

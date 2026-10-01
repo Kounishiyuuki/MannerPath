@@ -137,8 +137,8 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
         case ("appAttest", (2, 2)): submissionProtocol = .appAttest
         default: return .incompatible
         }
-        // This build can show only its bundled terms document; consent to another version would not be informed.
-        if let termsVersion = config.reports.termsVersion, termsVersion != ReportTerms.bundledVersion { return .incompatible }
+        // This build can show only its bundled terms documents; consent to another version would not be informed.
+        if let termsVersion = config.reports.termsVersion, ReportTerms.document(for: termsVersion) == nil { return .incompatible }
         guard config.reports.available else { return .unavailable }
         let maxSubmissionBytes = config.reports.maxSubmissionBytes ?? config.reports.maxBodyBytes
         guard maxSubmissionBytes >= config.reports.maxBodyBytes else { throw ReportAPIError.malformedResponse }

@@ -19,6 +19,7 @@ it touches ingest or reconciliation.
 | evidence, reconciliation, or publication gating | ADR-0006 |
 | evidence tiers, confidence axes, community reported/verified, freshness, ranking inputs | ADR-0012 |
 | community findings, confirmations, absence review, coverage tasks, seed areas, acquisition metrics | ADR-0013 |
+| report terms versions, community publication activation/rollback (`COMMUNITY_PUBLICATION`) | `docs/legal/COMMUNITY_PUBLICATION_DECISION.md`, `docs/COMMUNITY_LAUNCH_CHECKLIST.md` |
 | ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
 | source adapters, multi-source/multi-release matching, nationwide pipeline boundaries | ADR-0008 |
 | relocation, natural keys, relocation holds | ADR-0009 |

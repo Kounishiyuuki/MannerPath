@@ -186,6 +186,28 @@ struct ReportFlowTests {
         #expect(try await futureClient.fetchAvailability() == .incompatible)
     }
 
+    /// Issue #150: consent is informed only for a version this build can show in full. A deployment that moved to
+    /// new terms (or a mismatched config) makes reporting ask for an update; a bundled version stays available.
+    @Test func termsVersionMustBeBundledInFull() async throws {
+        func availability(terms: String) async throws -> ReportAvailability {
+            let body = #"{"schemaVersion":1,"apiVersion":"v1","schemaVersions":{"report":1},"minimumSupportedSchemaVersions":{"report":1},"reports":{"available":true,"maxBodyBytes":4096,"noteMaxLength":280,"termsVersion":"\#(terms)"}}"#.data(using: .utf8)!
+            let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!,
+                                         transport: MockReportTransport([ReportHTTPResponse(statusCode: 200, body: body, retryAfter: nil)]))
+            return try await client.fetchAvailability()
+        }
+        #expect(try await availability(terms: "report-terms.2099-01-01") == .incompatible)
+        for document in ReportTerms.documents {
+            guard case .available(let limits) = try await availability(terms: document.version) else {
+                Issue.record("bundled \(document.version) must be accepted"); continue
+            }
+            #expect(limits.termsVersion == document.version)
+            let text = try #require(ReportTerms.fullText(for: document.version), "the full text of \(document.version) is bundled")
+            #expect(text.contains(document.version), "the bundled document names its own version")
+            #expect(text.contains("DRAFT") == document.isDraft, "a draft is labelled a draft, and only a draft is")
+        }
+        #expect(ReportTerms.fullText(for: "report-terms.2099-01-01") == nil)
+    }
+
     @Test @MainActor func configFailurePreservesDraftAndUnknownAvailability() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let store = FileReportDraftStore(directory: directory)
@@ -494,7 +516,7 @@ extension ReportFlowTests {
 
 /// Report terms consent (Issue #124): shown, explicitly agreed, bound into the payload, never assumed.
 struct ReportTermsConsentTests {
-    let terms = ReportTerms.bundledVersion
+    let terms = ReportTerms.documents[0].version
     var consentLimits: ReportLimits { ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096, termsVersion: terms) }
 
     private func config(_ reports: String) -> Data {

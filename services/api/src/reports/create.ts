@@ -7,7 +7,7 @@ import {
   type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate, storedReportType,
 } from "./dto.ts";
 import { newReportId } from "./report-id.ts";
-import { ensureTermsStatement, reviewedTerms } from "./terms.ts";
+import { type ReviewedTerms, ensureTermsStatement, reviewedTerms } from "./terms.ts";
 
 /** Personal content is minimized this long after arrival, whatever the moderation state. */
 export const REPORT_MINIMIZE_AFTER_DAYS = 90;
@@ -25,6 +25,14 @@ export function submitterHash(installId: string, pepper: string | undefined): Pr
   return sha256Hex(`${pepper ?? ""}\n${installId.toLowerCase()}`);
 }
 
+/**
+ * The abuse key input for an attested report: the verified App Attest key ID (standard base64), as lowercase hex
+ * so submitterHash's lowercasing loses nothing, prefixed so it can never equal a UUID installId.
+ */
+export function attestedSubmitter(keyId: string): string {
+  return `appattest-key:${Array.from(atob(keyId), (c) => c.charCodeAt(0).toString(16).padStart(2, "0")).join("")}`;
+}
+
 export interface CreateReportOptions {
   now: Date;
   attestationStatus: AttestationStatus;
@@ -36,6 +44,8 @@ export interface CreateReportOptions {
    * report.
    */
   guards?: DbStatement[];
+  /** Resolves a consented terms version; only tests replace it, to simulate a future approved version. */
+  reviewedTerms?: (version: string) => ReviewedTerms;
 }
 
 export async function createReport(
@@ -46,7 +56,7 @@ export async function createReport(
   const reportId = (opts.newReportId ?? newReportId)();
   const receivedAt = isoSeconds(opts.now);
   const location = request.proposedLocation;
-  const terms = request.acceptedTermsVersion === undefined ? null : reviewedTerms(request.acceptedTermsVersion);
+  const terms = request.acceptedTermsVersion === undefined ? null : (opts.reviewedTerms ?? reviewedTerms)(request.acceptedTermsVersion);
   // Every claim shape's members, read by name; the request schema already allowed only this type's shape.
   const claim = request.claim as { [K in "spotType" | "spotSubtype" | "accessType" | "accessDetail" | "hostType" | "environment"
     | "supportsPaper" | "supportsHeated" | "hostName" | "hoursNote"]?: string } | undefined;

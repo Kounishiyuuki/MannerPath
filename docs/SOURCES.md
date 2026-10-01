@@ -56,6 +56,26 @@ Rules:
 | Publication status | **blocked**. It is resolved into canonical spots and visible to cross-source review once approved, but it is excluded from tiles, spot detail and promotion. Even once approved, a community spot publishes only on reports consented under a `granted` terms version (ADR-0006 amendment 2026-09-30) |
 | Evidence tiers (ADR-0012) | `communityReported` (one moderated, consented report with an explicit known spot type) and `communityVerified` (≥ 2 independent submitters, or an independent `exists` confirmation). Artifact v3 (`community-artifact-csv.v3`) also carries the agreed structured claims (type, subtype, access, host, environment, tobacco); free text never. When Issue #124 is granted this entry needs its license name/URL (the granted terms) and attribution wording, like every published source |
 
+
+#### Approval candidate — NOT in effect (Issue #124, Issue #150)
+
+What this entry becomes when a maintainer approves `docs/legal/COMMUNITY_PUBLICATION_DECISION.md`. The values are
+derived in code from `COMMUNITY_PUBLICATION` (`services/api/src/reports/community-publication.ts`); the activation PR
+replaces the rows above with these and records the reviewer and date. Until then the status above (**blocked**) holds.
+
+| Field | Candidate value |
+| --- | --- |
+| License name | `MannerPath 利用者報告規約 (<approved version>)` — the approved report terms, `docs/legal/report-terms/<version>.md` (candidate text: `docs/legal/REPORT_TERMS_CANDIDATE.md`) |
+| License URL | the public URL of the approved terms (`COMMUNITY_PUBLICATION.termsUrl`; maintainer input) |
+| Required attribution text | `MannerPath 利用者報告（審査済み）` — no contributor names or IDs. Sent as `sources[].attributionText`, so tiles, spot detail, iPhone and Watch show the same text |
+| Redistribution to clients allowed | yes, for reviewed facts from reports consented to the approved version only (terms §4.1). Third-party reuse: per terms §4.2, maintainer input |
+| Modification/derivation allowed | yes: normalization, structured claims, merging, format conversion (terms §2, §4.1) |
+| Share-alike obligations | none (MannerPath's own terms, not a share-alike license) |
+| Observation date | none. `lastVerifiedAt` stays unknown; `lastReviewedMonth` is the month the review applied (ADR-0012) |
+| Evidence tiers | `communityReported` (one moderated report) / `communityVerified` (≥ 2 independent submitters, or a reviewed independent confirmation; shown as visited-confirmed), always distinct from official/operator |
+| Not covered | reports without consent, reports consented to `report-terms.2026-09-30.draft`, notes and every personal field (terms §5) |
+| Publication status | approved — **only** after the maintainer decision; reversible by `state: "suspended"` (rollback) |
+
 ### 台東区 公衆喫煙所 (Taito City public smoking areas)
 
 Research and evidence: `docs/research/2026-09-launch-dataset-and-tile-zoom.md`. Fixture and provenance: `services/data-pipeline/fixtures/taito-public-smoking-areas/`.
