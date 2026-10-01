@@ -12,6 +12,7 @@ import {publishTiles} from "../src/tiles/publish.ts";
 import {buildMultiSourcePromotionBundle, verifyPromotionBundle} from "../src/pipeline/promotion.ts";
 import {analyzeCorpus} from "../src/quality/analyze.ts";
 import {generateCrossSourceCandidates} from "../src/pipeline/cross-source.ts";
+import {app} from "../src/app.ts";
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const now = "2026-10-01T00:00:00Z";
 const queryRows = (db: SqliteD1, table: string) => db.raw.prepare(`SELECT * FROM ${table} ORDER BY 1`).all();
@@ -52,6 +53,13 @@ test("OSM reference CLI cannot change approved corpus, fixtures, registry, tiles
  assert.equal(afterBundle.sql, beforeBundle.sql);
  assert.doesNotMatch(afterBundle.sql, /REFERENCE_ONLY|938742938742|23\.456789|123\.456789|OpenStreetMap|ODbL/);
  assert.equal(db.raw.prepare("SELECT count(*) n FROM sources WHERE kind = 'osm'").get()?.n, 0);
+ for (const tile of db.raw.prepare("SELECT tile_id, body_json FROM tile_snapshots").all()) {
+  const response = await app.request(`/v1/tiles/${tile.tile_id}`, {}, {DB: db});
+  assert.equal(response.status, 200);
+  const body = await response.text();
+  assert.equal(body, tile.body_json);
+  assert.doesNotMatch(body, /REFERENCE_ONLY|938742938742|23\.456789|123\.456789|OpenStreetMap|ODbL/);
+ }
  const quality = await analyzeCorpus(db, {now});
  assert.ok(quality.checks.every(check => check.status === "pass"), JSON.stringify(quality.checks));
  assert.equal(quality.checks.find(check => check.id === "osm-blocked")?.status, "pass");
