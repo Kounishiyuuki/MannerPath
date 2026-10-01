@@ -248,7 +248,9 @@ server responses, while the report body is the server's minimization boundary.)
 - `note`: optional, 1–280 characters.
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
-  IDFV, IDFA, a DeviceCheck value or any other system identifier.
+  IDFV, IDFA, a DeviceCheck value or any other system identifier. On an App Attest deployment
+  (schemaVersion 2) the abuse key is derived from the verified App Attest key instead, so changing
+  `installId` neither resets the rate limit nor makes a second "independent" submitter (Issue #150).
 - `claim`: optional, **only for `missing`** (rejected for every other type), and only where `/v1/config`
   `reports.newSpotClaims` is `true` (ADR-0012). What the reporter states about the new place:
   `{ "spotType": required — designatedOutdoorArea | publicSmokingRoom | facilitySmokingRoom | ashtray | smokingPermittedVenue | unknown,

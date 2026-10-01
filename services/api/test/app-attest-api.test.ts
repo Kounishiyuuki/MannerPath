@@ -547,3 +547,19 @@ test("attestation material and report content are never logged", async () => {
   }
   assert.deepEqual(captured, []);
 });
+
+test("the submitter is the attested key: rotating installId neither escapes the rate limit nor fakes independence (Issue #150)", async () => {
+  const h = await harness();
+  const device = await registered(h);
+  const other = await registered(h);
+  const OTHER_INSTALL = "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d";
+  assert.equal((await h.post("/v1/reports", await submission(h, device))).status, 201);
+  assert.equal((await h.post("/v1/reports", await submission(h, device, reportPayload({ installId: OTHER_INSTALL })))).status, 201);
+  assert.equal((await h.post("/v1/reports", await submission(h, other))).status, 201);
+  const hashes = h.db.raw.prepare("SELECT submitter_hash FROM reports ORDER BY rowid").all().map((r) => (r as Row).submitter_hash);
+  assert.equal(hashes[0], hashes[1], "one key with two installIds is one submitter");
+  assert.notEqual(hashes[0], hashes[2], "two keys sharing an installId are two submitters");
+  // The shared counter: the hourly budget is spent per key, whatever installId the payload names.
+  const counted = h.db.raw.prepare("SELECT report_count FROM report_rate_windows WHERE submitter_hash = ? AND window_kind = 'hour'").get(hashes[0]) as Row;
+  assert.equal(counted.report_count, 2);
+});

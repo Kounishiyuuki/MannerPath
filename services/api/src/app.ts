@@ -24,7 +24,7 @@ import {
 } from "./attest/protocol.ts";
 import { CHALLENGE_TTL_SECONDS, advanceCounterStatement, isCounterRace, issueChallenge, readKey } from "./attest/store.ts";
 import { ATTESTATION_STATUS_V1, type AttestationConfig, attestationConfig } from "./reports/attestation.ts";
-import { createReport, submitterHash } from "./reports/create.ts";
+import { attestedSubmitter, createReport, submitterHash } from "./reports/create.ts";
 import {
   ATTESTED_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_SCHEMA_VERSION, REPORT_SUBMISSION_MAX_BYTES,
   ReportPayloadV2, ReportRequestV1, ReportSubmissionV2, validationDetail,
@@ -293,7 +293,10 @@ export function createApp(options: AppOptions = {}) {
 
     // 4. Abuse boundary, then one batch: counter advance + report + moderation row. The trigger on
     // app_attest_keys aborts the batch if a concurrent request already advanced the counter.
-    const hash = await submitterHash(report.data.installId, env.REPORT_SUBMITTER_PEPPER);
+    // The submitter is the verified App Attest key, not the payload's installId: the client chooses installId
+    // freely, so one attested install could otherwise rotate it to escape the rate limit and to pass as several
+    // "independent" submitters in community corroboration (Issue #150).
+    const hash = await submitterHash(attestedSubmitter(material.keyId), env.REPORT_SUBMITTER_PEPPER);
     const limited = await rateLimited(env.DB, hash, now);
     if (limited !== null) return limited;
     try {
