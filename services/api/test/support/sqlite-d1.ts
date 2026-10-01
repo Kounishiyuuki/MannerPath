@@ -5,9 +5,15 @@ import { DatabaseSync, type StatementSync } from "node:sqlite";
 import type { Db, DbStatement } from "../../src/db.ts";
 
 const MIGRATIONS_DIR = new URL("../../migrations/", import.meta.url);
+/** The REPORTS_DB stream (ADR-0014): its own directory and numbering, never mixed with the canonical one. */
+const REPORT_MIGRATIONS_DIR = new URL("../../migrations-reports/", import.meta.url);
 
 export function migrationFiles(): string[] {
   return readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort();
+}
+
+export function reportMigrationFiles(): string[] {
+  return readdirSync(REPORT_MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort();
 }
 
 /** Like `wrangler d1 migrations apply`, each migration runs in one transaction. */
@@ -29,6 +35,14 @@ export function migratedSqlite(upTo?: string): DatabaseSync {
     applyMigration(db, readFileSync(new URL(file, MIGRATIONS_DIR), "utf8"));
     if (file === upTo) break;
   }
+  return db;
+}
+
+/** A fresh REPORTS_DB: only the report-store stream, none of the canonical tables. */
+export function migratedReportsSqlite(): DatabaseSync {
+  const db = new DatabaseSync(":memory:");
+  db.exec("PRAGMA foreign_keys = ON;");
+  for (const file of reportMigrationFiles()) applyMigration(db, readFileSync(new URL(file, REPORT_MIGRATIONS_DIR), "utf8"));
   return db;
 }
 
@@ -112,4 +126,9 @@ export class SqliteD1 implements Db {
       throw e;
     }
   }
+}
+
+/** A REPORTS_DB double: the same adapter over a database migrated with the report-store stream only. */
+export function reportsD1(): SqliteD1 {
+  return new SqliteD1(migratedReportsSqlite());
 }

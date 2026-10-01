@@ -10,6 +10,8 @@ import { configBody } from "../src/config/dto.ts";
 import { attestationConfig } from "../src/reports/attestation.ts";
 
 const PLACEHOLDER_DATABASE_ID = "00000000-0000-0000-0000-000000000000";
+/** REPORTS_DB's placeholder differs from DB's only so the two never share wrangler's local state (ADR-0014). */
+const PLACEHOLDER_REPORTS_DATABASE_ID = "00000000-0000-0000-0000-000000000001";
 const CONFIG = new URL("../wrangler.jsonc", import.meta.url);
 
 /** Minimal JSONC reader: strips // and /* *\/ comments outside of string literals. */
@@ -49,12 +51,32 @@ test("staging and production-like environments exist and are distinctly named", 
 test("no committed environment can reach a real database", () => {
   for (const [name, env] of environments) {
     const databases = env.d1_databases;
-    assert.equal(Array.isArray(databases) && databases.length === 1, true, `${name}: one D1 binding`);
-    const [db] = databases;
+    assert.equal(Array.isArray(databases) && databases.length === 2, true, `${name}: two D1 bindings (DB, REPORTS_DB)`);
+    const [db, reports] = databases;
     assert.equal(db.binding, "DB", `${name}: binding name`);
     assert.equal(db.migrations_dir, "migrations", `${name}: migrations dir`);
     assert.equal(db.database_id, PLACEHOLDER_DATABASE_ID, `${name}: database_id must stay the placeholder`);
+    assert.equal(reports.binding, "REPORTS_DB", `${name}: report store binding name`);
+    assert.equal(reports.migrations_dir, "migrations-reports", `${name}: report store migrations dir`);
+    assert.equal(reports.database_id, PLACEHOLDER_REPORTS_DATABASE_ID, `${name}: REPORTS_DB database_id must stay the placeholder`);
   }
+});
+
+// ADR-0014 §23: a blue/green cutover changes the canonical `DB` binding and nothing else. These hold for any future
+// committed IDs too: the two bindings never name one database, never share a migration stream, and the report store
+// is never named like a blue/green slot, so a config edit that swaps REPORTS_DB along with DB stands out in review.
+test("DB and REPORTS_DB are separate databases with separate migration streams in every environment (ADR-0014)", () => {
+  for (const [name, env] of environments) {
+    const [db, reports] = env.d1_databases;
+    assert.notEqual(db.database_id, reports.database_id, `${name}: DB and REPORTS_DB must never be one database`);
+    assert.notEqual(db.database_name, reports.database_name, `${name}: distinct database names`);
+    assert.notEqual(db.migrations_dir, reports.migrations_dir, `${name}: distinct migration streams`);
+    assert.equal(reports.database_name, `${db.database_name.replace(/-(blue|green)$/, "")}-reports`, `${name}: REPORTS_DB name is stable, not a blue/green slot`);
+    assert.doesNotMatch(reports.database_name, /(blue|green)/i, `${name}: the report store is never a blue/green slot`);
+  }
+  const reportIds = environments.map(([, env]) => env.d1_databases[1].database_id);
+  const dataIds = environments.map(([, env]) => env.d1_databases[0].database_id);
+  for (const id of reportIds) assert.equal(dataIds.includes(id), false, "a REPORTS_DB id is never any environment's DB id");
 });
 
 test("no environment commits a secret, and every var is non-secret", () => {

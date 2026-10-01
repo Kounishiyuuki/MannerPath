@@ -19,6 +19,7 @@ it touches ingest or reconciliation.
 | evidence, reconciliation, or publication gating | ADR-0006 |
 | evidence tiers, confidence axes, community reported/verified, freshness, ranking inputs | ADR-0012 |
 | community findings, confirmations, absence review, coverage tasks, seed areas, acquisition metrics | ADR-0013 |
+| the report store, the community artifact boundary, blue/green with reports, report moderation tooling | ADR-0014 |
 | report terms versions, community publication activation/rollback (`COMMUNITY_PUBLICATION`) | `docs/legal/COMMUNITY_PUBLICATION_DECISION.md`, `docs/COMMUNITY_LAUNCH_CHECKLIST.md` |
 | ingest, importers, normalization, or provenance | `services/data-pipeline/README.md`, `docs/DATA_POLICY.md`, ADR-0002 |
 | source adapters, multi-source/multi-release matching, nationwide pipeline boundaries | ADR-0008 |
@@ -34,7 +35,10 @@ it touches ingest or reconciliation.
 
 ## Database and migrations
 
-- D1 schema changes are new numbered files under `services/api/migrations/`. Never edit an applied migration in place.
+- D1 schema changes are new numbered files under `services/api/migrations/` (canonical `DB`) or
+  `services/api/migrations-reports/` (durable `REPORTS_DB`, ADR-0014). Never edit an applied migration in place, never
+  put a canonical table in the report stream or a report table in the canonical stream, and never write a destructive
+  statement in the report stream: that database is long-lived and is never rebuilt.
 - Only local D1 is configured. Nothing here may target a remote database; every environment in `wrangler.jsonc` — local, `staging` and `production` — keeps the all-zero placeholder `database_id`, and `test/deploy-config.test.ts` fails if one is replaced. Standing up a real environment is `docs/OPERATIONS.md`, and a maintainer's action.
 - Tests run the real migrations through the node:sqlite D1-shaped adapter in `test/`.
 

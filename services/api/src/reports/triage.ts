@@ -57,7 +57,8 @@ export interface TriageOptions {
 }
 
 /** Flagged rows first (more flags first), then oldest first: a fixed, explainable order, not a score. */
-export async function triageQueue(db: Db, opts: TriageOptions): Promise<TriageRow[]> {
+/** `db` is REPORTS_DB; `dataDb` (the canonical database) is read only for duplicate and held-spot lookups. */
+export async function triageQueue(db: Db, dataDb: Db, opts: TriageOptions): Promise<TriageRow[]> {
   const now = isoSeconds(opts.now);
   const oldBefore = isoSeconds(new Date(opts.now.getTime() - OLD_AFTER_DAYS * 86_400_000));
   const minimizeSoon = isoSeconds(new Date(opts.now.getTime() + OLD_AFTER_DAYS * 86_400_000));
@@ -77,8 +78,8 @@ export async function triageQueue(db: Db, opts: TriageOptions): Promise<TriageRo
      GROUP BY r.subject_spot_id`,
   ).all<{ spot_id: string; n: number }>();
   for (const o of open) openPerSpot.set(o.spot_id, o.n);
-  const duplicates = new Set((await duplicateCandidates(db, { now: opts.now, radiusMetres: DUPLICATE_RADIUS_METRES })).map((d) => d.reportId));
-  const conflicting = new Set((await spotEvidenceStates(db, { now: opts.now })).filter((s) => s.conflicting).map((s) => s.spotId));
+  const duplicates = new Set((await duplicateCandidates(db, dataDb, { now: opts.now, radiusMetres: DUPLICATE_RADIUS_METRES })).map((d) => d.reportId));
+  const conflicting = new Set((await spotEvidenceStates(db, dataDb, { now: opts.now })).filter((s) => s.conflicting).map((s) => s.spotId));
 
   const wanted = new Set((opts.categories ?? []).flatMap((c) => (c === "correction" ? CORRECTION_CATEGORIES : [c])));
   const rows: (TriageRow & { receivedAt: string })[] = [];
@@ -115,14 +116,23 @@ export interface TriageSummary {
   rightsBlocked: number;
 }
 
-/** Counts only, by category and moderation state. */
-export async function triageSummary(db: Db): Promise<TriageSummary> {
-  const { results } = await db.prepare(
-    `SELECT r.report_type, r.finding, m.state, m.reconciliation_state, r.accepted_terms_version,
-            (SELECT t.publication_rights FROM report_terms_versions t WHERE t.terms_version = r.accepted_terms_version) AS rights
+/**
+ * Counts only, by category and moderation state. Reports come from REPORTS_DB; the rights basis (terms mirror and
+ * community source row) is the canonical database's, so it is looked up there per terms version, never joined.
+ */
+export async function triageSummary(db: Db, dataDb: Db): Promise<TriageSummary> {
+  const { results: reports } = await db.prepare(
+    `SELECT r.report_type, r.finding, m.state, m.reconciliation_state, r.accepted_terms_version
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id`,
-  ).all<{ report_type: string; finding: string | null; state: string; reconciliation_state: string; accepted_terms_version: string | null; rights: string | null }>();
-  const source = await db.prepare("SELECT publication_status FROM sources WHERE kind = 'userReport' LIMIT 1").first<{ publication_status: string }>();
+  ).all<{ report_type: string; finding: string | null; state: string; reconciliation_state: string; accepted_terms_version: string | null }>();
+  const rightsOf = new Map<string | null, string | null>();
+  for (const version of new Set(reports.map((r) => r.accepted_terms_version))) {
+    const t = version === null ? null : await dataDb.prepare("SELECT publication_rights FROM report_terms_versions WHERE terms_version = ?")
+      .bind(version).first<{ publication_rights: string }>();
+    rightsOf.set(version, t?.publication_rights ?? null);
+  }
+  const results = reports.map((r) => ({ ...r, rights: rightsOf.get(r.accepted_terms_version) ?? null }));
+  const source = await dataDb.prepare("SELECT publication_status FROM sources WHERE kind = 'userReport' LIMIT 1").first<{ publication_status: string }>();
   const sourceApproved = source?.publication_status === "approved";
   const byCategory: Record<string, Record<string, number>> = {};
   let rightsBlocked = 0;

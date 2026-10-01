@@ -3,8 +3,9 @@
 // The one place outside the resolver that writes a canonical spot column from community evidence, and deliberately
 // narrow: it changes only a spot's evidence tier columns (evidence_quality, evidence_quality_version,
 // community_confirmations, last_reviewed_on) — never a coordinate, name, type, access, hours or lifecycle — and only
-// together with the immutable community_evidence_upgrades row the 0023 triggers verify (an applied `exists` effect,
-// independent submitters, consent, unredacted evidence). The spots trigger refuses any other change to those columns.
+// together with the immutable community_evidence_upgrades row the 0023/0025 triggers verify (an applied `exists` effect,
+// attested independent submitters over the spot's own evidence, consent). The spots trigger refuses any other change
+// to those columns.
 // Everything a report says about the place still reaches canonical data only through a resolved release.
 
 import { type Db, isoSeconds } from "../db.ts";
@@ -13,11 +14,11 @@ import { CommunityReconciliationError } from "./community-reconciliation.ts";
 export const COMMUNITY_VERIFICATION_VERSION = "community-verification.v1";
 
 /**
- * An applied `exists` effect whose reports come
- * from a submitter other than the spot's original reporter corroborates the spot. Independence is compared while
- * every key involved still exists (a redacted report can no longer prove it); the keys are compared and counted in
- * SQL and never leave the database. The tier, the confirmation count and the review day change together with the
- * immutable upgrade row, in one batch; the next publish republishes the spot's tile.
+ * An applied `exists` effect whose reports come from a submitter other than the spot's original reporter corroborates
+ * the spot. Independence is judged in REPORTS_DB, where the submitter keys exist, while every key involved still
+ * exists, and is attested in the effect's artifact over the spot's own evidence reports (ADR-0014 §11). Here the
+ * attestation is bound to this spot: the base report IDs must be exactly the spot's evidence, and the base count the
+ * spot's own. The tier, the confirmation count and the review day change together with the immutable upgrade row.
  */
 export async function upgradeCommunityEvidence(
   db: Db, effectApplicationId: string, opts: { decidedBy: string; now: Date },
@@ -30,24 +31,24 @@ export async function upgradeCommunityEvidence(
     throw new CommunityReconciliationError(`community: ${effectApplicationId} is a ${effect.state} ${effect.report_type} effect, not an applied exists confirmation`);
   }
   const spotId = effect.subject_spot_id;
-  const spot = await db.prepare("SELECT evidence_quality FROM spots WHERE spot_id = ? AND merged_into IS NULL AND lifecycle = 'active'")
-    .bind(spotId).first<{ evidence_quality: string }>();
+  const spot = await db.prepare("SELECT evidence_quality, community_confirmations FROM spots WHERE spot_id = ? AND merged_into IS NULL AND lifecycle = 'active'")
+    .bind(spotId).first<{ evidence_quality: string; community_confirmations: number | null }>();
   if (spot?.evidence_quality !== "communityReported") throw new CommunityReconciliationError(`community: ${spotId} is not a live communityReported spot`);
 
-  const keys = await db.prepare(
-    `SELECT count(*) AS reports, count(r.submitter_hash) AS present, count(DISTINCT r.submitter_hash) AS distinct_all,
-            (SELECT count(DISTINCT r2.submitter_hash) FROM community_spot_evidence_reports x JOIN reports r2 ON r2.report_id = x.report_id
-             WHERE x.spot_id = ?) AS distinct_original
-     FROM (SELECT report_id FROM community_spot_evidence_reports WHERE spot_id = ?
-           UNION SELECT report_id FROM community_effect_evidence WHERE application_id = ?) ids
-     JOIN reports r ON r.report_id = ids.report_id`,
-  ).bind(spotId, spotId, effectApplicationId).first<{ reports: number; present: number; distinct_all: number; distinct_original: number }>();
-  if (!keys || keys.present !== keys.reports) {
-    throw new CommunityReconciliationError(`community: a report behind ${spotId} is redacted; independence can no longer be shown`);
+  const attested = await db.prepare(
+    "SELECT base_report_ids, base_independent_submitters, confirmations_after FROM community_artifact_ledger WHERE review_id = ?",
+  ).bind(effectApplicationId).first<{ base_report_ids: string | null; base_independent_submitters: number | null; confirmations_after: number | null }>();
+  if (!attested || attested.base_report_ids === null || attested.confirmations_after === null) {
+    throw new CommunityReconciliationError(`community: ${effectApplicationId} carries no attested independence over ${spotId}'s evidence; it is not independent evidence`);
   }
-  if (keys.distinct_all <= keys.distinct_original) {
-    throw new CommunityReconciliationError(`community: the confirmation of ${spotId} comes from the original submitter; it is not independent evidence`);
+  const { results } = await db.prepare("SELECT report_id FROM community_spot_evidence_reports WHERE spot_id = ? ORDER BY report_id")
+    .bind(spotId).all<{ report_id: string }>();
+  const own = results.map((r) => r.report_id);
+  const base = JSON.parse(attested.base_report_ids) as string[];
+  if (own.length !== base.length || own.some((id, i) => id !== base[i]) || attested.base_independent_submitters !== spot.community_confirmations) {
+    throw new CommunityReconciliationError(`community: the confirmation of ${spotId} was attested against other evidence; re-review`);
   }
+  const keys = { distinct_all: attested.confirmations_after };
   const now = isoSeconds(opts.now);
   await db.batch([
     db.prepare(

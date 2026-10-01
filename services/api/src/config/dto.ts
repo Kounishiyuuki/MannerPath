@@ -75,7 +75,7 @@ export type ConfigBodyV1 = z.infer<typeof ConfigBodyV1>;
  * are exposed — availability, protocol and schema range — never a configured value (the App ID
  * and environment in particular stay server-side).
  */
-export function configBody(env: AttestationBindings): ConfigBodyV1 {
+export function configBody(env: AttestationBindings, opts: { reportStore?: boolean } = {}): ConfigBodyV1 {
   const attestation = attestationConfig(env);
   const report = reportSchemaRange(attestation);
   return {
@@ -93,7 +93,8 @@ export function configBody(env: AttestationBindings): ConfigBodyV1 {
       report: report.minimum,
     },
     reports: {
-      available: attestation.kind !== "unsupported",
+      // A deployment without its durable report store (REPORTS_DB, ADR-0014) takes no report at all.
+      available: attestation.kind !== "unsupported" && opts.reportStore !== false,
       attestation: attestation.kind === "disabled" ? "none" : "appAttest",
       maxBodyBytes: REPORT_BODY_MAX_BYTES,
       maxSubmissionBytes: attestation.kind === "disabled" ? REPORT_BODY_MAX_BYTES : REPORT_SUBMISSION_MAX_BYTES,

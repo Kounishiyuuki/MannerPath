@@ -13,14 +13,15 @@ import { readFileSync } from "node:fs";
 import { app } from "../src/app.ts";
 import { isoSeconds } from "../src/db.ts";
 import { COMMUNITY_REGISTRY, COMMUNITY_SOURCE_ID } from "../src/pipeline/community-adapter.ts";
-import { applyCommunityAbsence, holdCommunityAbsence, proposeCommunityAbsence } from "../src/pipeline/community-absence.ts";
-import { applyCommunityEffect, proposeCommunityEffect } from "../src/pipeline/community-effects.ts";
+import { applyCommunityAbsence, holdCommunityAbsence } from "../src/pipeline/community-absence.ts";
+import { applyCommunityEffect } from "../src/pipeline/community-effects.ts";
 import { communityStage, correctionCandidates, spotEvidenceStates } from "../src/pipeline/community-evidence.ts";
-import { applyCommunityApplication, proposeCommunityApplication } from "../src/pipeline/community-reconciliation.ts";
+import { applyCommunityApplication } from "../src/pipeline/community-reconciliation.ts";
 import { upgradeCommunityEvidence } from "../src/pipeline/community-verification.ts";
 import { type PromotionRegistry, buildMultiSourcePromotionBundle } from "../src/pipeline/promotion.ts";
 import { reviewedSource } from "../src/pipeline/registry.ts";
 import { analyzeCorpus } from "../src/quality/analyze.ts";
+import { communityAcquisitionMetrics } from "../src/coverage/metrics.ts";
 import {
   COMMUNITY_ATTRIBUTION_CANDIDATE, COMMUNITY_PUBLICATION, COMMUNITY_TERMS_CANDIDATE_PATH, type CommunityPublicationDecision,
   MAINTAINER_INPUT_MARKER, decisionProblems, decisionSourceFields, decisionTerms, planActivation,
@@ -33,6 +34,7 @@ import { publishTiles } from "../src/tiles/publish.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
+import { type Stores, proposeAbsence, proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf } from "./support/community.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -133,6 +135,8 @@ function applyDecisionToRows(db: SqliteD1, decision: CommunityPublicationDecisio
     db.raw.prepare("UPDATE report_terms_versions SET publication_rights = ? WHERE terms_version = ?").run(t.publicationRights, t.version);
   }
 }
+/** The paired stores, resolving the simulated version on import exactly as on intake. */
+const sim = (db: SqliteD1): Stores => ({ data: db, reports: reportsOf(db), reviewedTerms: simTerms(SIM_APPROVED) });
 const simRegistry = (decision: CommunityPublicationDecision): PromotionRegistry => ({
   source: (id) => (id === COMMUNITY_SOURCE_ID ? { ...COMMUNITY_REGISTRY, ...decisionSourceFields(decision) } : reviewedSource(id)),
   terms: simTerms(decision),
@@ -140,19 +144,19 @@ const simRegistry = (decision: CommunityPublicationDecision): PromotionRegistry 
 
 async function report(db: SqliteD1, hash: string, body: Record<string, unknown>, consent: string | null = SIM_VERSION) {
   const request = { schemaVersion: 1, installId: INSTALL, note: NOTE, observedOn: OBSERVED, ...body, ...(consent === null ? {} : { acceptedTermsVersion: consent }) };
-  const { reportId } = await createReport(db, request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash, reviewedTerms: simTerms(SIM_APPROVED) });
+  const { reportId } = await createReport(reportsOf(db), request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash, reviewedTerms: simTerms(SIM_APPROVED) });
   return reportId;
 }
 async function accept(db: SqliteD1, ...ids: string[]) {
   for (const id of ids) {
-    await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
-    await setReconciliationState(db, id, "queued", RECEIVED);
+    await recordModerationDecision(reportsOf(db), id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
+    await setReconciliationState(reportsOf(db), id, "queued", RECEIVED);
   }
 }
 async function newSpot(db: SqliteD1, hash: string, at: { latitude: number; longitude: number }, prefix: string, consent: string | null = SIM_VERSION) {
   const id = await report(db, hash, { type: "missing", proposedLocation: at, claim: { spotType: "ashtray", hostType: "convenienceStore" } }, consent);
   await accept(db, id);
-  const applicationId = await proposeCommunityApplication(db, { reportIds: [id], locationReportId: id, decidedBy: "reviewer-1", now: APPLY, tier: "communityReported" });
+  const applicationId = await proposeNewSpot(sim(db), { reportIds: [id], locationReportId: id, decidedBy: "reviewer-1", now: APPLY, tier: "communityReported" });
   const { spotId } = await applyCommunityApplication(db, applicationId, { now: APPLY, newSpotId: sequentialSpotIds(prefix) }) as { spotId: string };
   return { spotId, reportId: id };
 }
@@ -203,7 +207,7 @@ test("simulated activation: new version → consent → moderation → community
   // A second, independent confirmation: visitedConfirmed (communityVerified tier).
   const confirm = await report(db, HASHES[3], { type: "exists", spotId: fresh.spotId, note: undefined, observedOn: undefined });
   await accept(db, confirm);
-  const effect = await proposeCommunityEffect(db, { reportIds: [confirm], decidedBy: "reviewer-1", now: APPLY });
+  const effect = await proposeConfirmation(sim(db), { spotId: fresh.spotId, reportIds: [confirm], decidedBy: "reviewer-1", now: APPLY });
   await applyCommunityEffect(db, effect.applicationId, { now: APPLY });
   assert.equal((await upgradeCommunityEvidence(db, effect.applicationId, { decidedBy: "reviewer-1", now: APPLY })).confirmations, 2);
   await publishTiles(db, { now: isoSeconds(APPLY) });
@@ -214,7 +218,9 @@ test("simulated activation: new version → consent → moderation → community
   // Quality reads the launch volume without failing on it.
   const quality = await analyzeCorpus(db, { now: isoSeconds(APPLY) });
   assert.equal(quality.nationwide.community.publishedSpots, 1);
-  const moderation = quality.nationwide.communityAcquisition.moderation;
+  // Moderation load is a REPORTS_DB measure (ADR-0014): the operator reads it with both stores.
+  assert.equal(quality.nationwide.communityAcquisition.moderation, null, "a canonical-only analysis reads no report store");
+  const moderation = (await communityAcquisitionMetrics(db, [], { now: isoSeconds(APPLY), reportsDb: reportsOf(db) })).moderation!;
   assert.deepEqual([moderation.pending, moderation.rejected, moderation.rejectedRate], [0, 0, 0], "community moderation metrics are reported");
   // The only failing check is the one that catches this very simulation: the rows were approved by hand while the
   // repository decision is still pending. A real activation changes both, so it passes; nothing fails on volume.
@@ -231,14 +237,16 @@ test("simulated activation: new version → consent → moderation → community
   assert.equal((await buildMultiSourcePromotionBundle(target, { registry: simRegistry(SIM_APPROVED) })).sql, bundle.sql);
 
   // Rollback: suspend. Community leaves the tiles; official spots and all evidence stay.
-  const evidence = ["reports", "report_moderation", "community_reconciliation_applications", "spots", "source_records"]
-    .map((t) => one(db, `SELECT count(*) AS n FROM ${t}`).n);
+  const counts = () => [
+    ...["reports", "report_moderation", "report_reviews"].map((t) => one(reportsOf(db), `SELECT count(*) AS n FROM ${t}`).n),
+    ...["community_artifact_ledger", "community_reconciliation_applications", "spots", "source_records"].map((t) => one(db, `SELECT count(*) AS n FROM ${t}`).n),
+  ];
+  const evidence = counts();
   applyDecisionToRows(db, SIM_SUSPENDED);
   await publishTiles(db, { now: isoSeconds(APPLY) });
   assert.equal(published(db, fresh.spotId), false, "suspended: community spots leave the tiles");
   assert.deepEqual(officialPublished(db), officialBefore, "rollback blocks community only");
-  assert.deepEqual(["reports", "report_moderation", "community_reconciliation_applications", "spots", "source_records"]
-    .map((t) => one(db, `SELECT count(*) AS n FROM ${t}`).n), evidence, "nothing is deleted");
+  assert.deepEqual(counts(), evidence, "nothing is deleted, in either database");
   // The rollback bundle (a new blue/green database) carries no community source and the same official spots.
   const rollbackBundle = await buildMultiSourcePromotionBundle(db, { registry: simRegistry(SIM_SUSPENDED) });
   assert.ok(!rollbackBundle.manifest.sources.some((s) => s.sourceId === COMMUNITY_SOURCE_ID));
@@ -268,9 +276,9 @@ test("simulated activation: negatives, correction, relocation candidate and abse
   const m1 = await report(db, HASHES[1], { type: "moved", spotId, proposedLocation: pin });
   const m2 = await report(db, HASHES[2], { type: "moved", spotId, proposedLocation: { latitude: pin.latitude + 0.0001, longitude: pin.longitude } });
   await accept(db, m1, m2);
-  const [candidate] = await correctionCandidates(db, { now: APPLY });
+  const [candidate] = await correctionCandidates(reportsOf(db), db, { now: APPLY });
   assert.deepEqual([candidate.spotId, candidate.status], [spotId, "relocationCandidate"]);
-  const relocation = await proposeCommunityEffect(db, { reportIds: [m1, m2], decidedBy: "reviewer-1", now: APPLY });
+  const relocation = await proposeEffect(sim(db), { reportIds: [m1, m2], decidedBy: "reviewer-1", now: APPLY });
   assert.equal(relocation.effect, "relocationReview");
   await applyCommunityEffect(db, relocation.applicationId, { now: APPLY });
   assert.deepEqual(one(db, "SELECT latitude, longitude FROM spots WHERE spot_id = ?", spotId), before);
@@ -279,8 +287,8 @@ test("simulated activation: negatives, correction, relocation candidate and abse
   const n1 = await report(db, HASHES[3], { type: "notFound", spotId, note: undefined, observedOn: undefined });
   const nDraft = await report(db, HASHES[4], { type: "removed", spotId, note: undefined, observedOn: undefined }, DRAFT);
   await accept(db, n1, nDraft);
-  assert.equal((await spotEvidenceStates(db, { now: APPLY, spotIds: [spotId] }))[0].state, "reviewCandidate");
-  const mixed = await proposeCommunityAbsence(db, { reportIds: [n1, nDraft], decidedBy: "reviewer-1", now: APPLY });
+  assert.equal((await spotEvidenceStates(reportsOf(db), db, { now: APPLY, spotIds: [spotId] }))[0].state, "reviewCandidate");
+  const mixed = await proposeAbsence(sim(db), { reportIds: [n1, nDraft], decidedBy: "reviewer-1", now: APPLY });
   await applyCommunityAbsence(db, mixed, { now: APPLY });
   const refused = await holdCommunityAbsence(db, mixed, { now: APPLY, sourceApprovedInCode: true });
   assert.ok(refused.status === "blocked" && refused.blockers.includes("noCommonConsent"), JSON.stringify(refused));

@@ -21,3 +21,7 @@ services/data-pipeline/discovery/.local/
 osm-reference/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcworkspace/xcuserdata/
+# Sanitized community evidence artifacts (ADR-0014) are operator files, never repository artifacts.
+community-artifacts/
+# REPORTS_DB exports contain personal data until minimization; never in the repository.
+reports-*.sql

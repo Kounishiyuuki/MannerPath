@@ -357,7 +357,7 @@
         "canonicalCommunity": {},
         "spotsNeedingConfirmation": 0,
         "staleSpots": 0,
-        "locationCorrectionsPending": 0,
+        "locationCorrectionsPending": null,
         "coverageGaps": {
           "total": 244,
           "byPriority": {
@@ -366,24 +366,8 @@
             "3": 10
           }
         },
-        "confirmations": {
-          "last7Days": 0,
-          "last30Days": 0
-        },
-        "moderation": {
-          "pending": 0,
-          "oldestPendingHours": null,
-          "accepted": 0,
-          "rejected": 0,
-          "rejectedRate": null,
-          "duplicateRate": null,
-          "abuseRejections": 0,
-          "spotsNeedingRecheck": 0,
-          "absenceReviewCandidates": 0,
-          "heldSpots": 0,
-          "conflictingSpots": 0,
-          "duplicateCandidates": 0
-        },
+        "confirmations": null,
+        "moderation": null,
         "prefectureCoverage": {
           "assignment": "official spots by source jurisdiction; community spots only within a seed area (approximate), else unassigned",
           "prefecturesWithUsableSpots": 1,
@@ -3648,8 +3632,10 @@
     "community_absence_applications": [],
     "community_absence_evidence": [],
     "community_absence_holds": [],
+    "community_artifact_ledger": [],
     "community_effect_applications": [],
     "community_effect_evidence": [],
+    "community_evidence_reports": [],
     "community_evidence_upgrades": [],
     "community_publication_holds": [],
     "community_reconciliation_applications": [],

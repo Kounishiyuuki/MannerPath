@@ -324,8 +324,9 @@ archive inspection still needs the physical S1–S4, P21–P23, widget, and Watc
   and does not yet read `dataTileZoom` or the tile / spot-detail schema ranges (`OPERATIONS.md`
   "Apple beta build → API base URL"). Safe while the server stays at zoom 14 and tile schema 1.
 - **L4** No offline turn-by-turn routing (ADR-0004): offline users get straight-line distance and bearing.
-- **L5** Remote report acceptance stays closed until the App Attest values are set, which
-  `OPERATIONS.md` step 6 makes conditional on deciding how reports survive a blue/green switch.
-  P21/P23 run on the disposable E2E environment (#55) instead, so they do not wait for that decision.
+- **L5** Remote report acceptance stays closed until the App Attest values are set. Reports now live in
+  the durable `REPORTS_DB`, which a blue/green switch never replaces (ADR-0014), so that is no longer a
+  precondition; setting the values remains a maintainer step tied to #124. P21/P23 run on the
+  disposable E2E environment (#55).
 - **L6** Widgets (#32) show only the single nearest cached place and refresh hourly at best; they
   never fetch or locate on their own, so they go stale until the app is opened.

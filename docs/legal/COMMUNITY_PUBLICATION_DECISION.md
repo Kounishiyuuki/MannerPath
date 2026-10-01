@@ -108,15 +108,13 @@ database (blue/green). Stop accepting reports: remove `REPORT_APP_ATTEST_APP_ID`
 4. Whether the operator must be named / a contact published under 特定商取引法 or other law for a free app.
 5. Governing law and jurisdiction clause.
 
-## 11. Not legal, but also blocking
+## 11. Not legal: the report path (resolved)
 
-Production reports are written to the live remote D1; moderation and publication run locally and reach production
-only as a promotion bundle that never carries reports, and a blue/green cut-over replaces the database that holds
-them (`docs/OPERATIONS.md` step 7, Community publication). Before launch, decide how live reports reach moderation
-and survive a cut-over — e.g. (a) a reviewed remote moderation command against the live database, (b) an export of
-pending reports to the moderator's machine under the 90-day rule, or (c) a separate long-lived reports database
-next to the blue/green data database. Each has privacy consequences; each needs its own engineering PR. Legal
-approval alone does not start community publication.
+Decided and implemented as option (c): a separate long-lived reports database (`REPORTS_DB`) next to the blue/green
+data database, with moderation against it and a sanitized, replay-protected artifact as the only boundary into
+canonical data (ADR-0014, `docs/OPERATIONS.md` "Community publication" and "Report store"). Raw reports stay in the
+report store and are minimized there after 90 days. This item no longer blocks; the legal and maintainer decisions
+above still do.
 
 ## 12. Decide
 

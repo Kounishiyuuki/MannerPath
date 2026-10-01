@@ -16,7 +16,7 @@ import {
 import { applyReportRetention } from "../src/reports/retention.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).get(...p) as Row;
@@ -33,7 +33,7 @@ async function storeReport(db: SqliteD1, overrides: Record<string, unknown> = {}
 }
 
 test("a stored report cannot be rewritten into a different claim", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const id = await storeReport(db);
   const update = (sql: string, ...p: any[]) => () => db.raw.prepare(sql).run(...p, id);
 
@@ -50,7 +50,7 @@ test("a stored report cannot be rewritten into a different claim", async () => {
 });
 
 test("retention minimizes personal content after 90 days whatever the moderation state", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const due = await storeReport(db, { type: "moved", proposedLocation: { latitude: 35.7112, longitude: 139.77377 } });
   const fresh = await storeReport(db, {}, new Date(AT.getTime() + 86_400_000));
   const decided = await storeReport(db);
@@ -87,7 +87,7 @@ test("retention minimizes personal content after 90 days whatever the moderation
 });
 
 test("expired rate-limit counters are purged by the retention pass", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   db.raw.prepare(
     "INSERT INTO report_rate_windows (submitter_hash, window_kind, window_start, report_count, expires_at) VALUES (?, 'hour', ?, 3, ?)",
   ).run(HASH, isoSeconds(AT), isoSeconds(new Date(AT.getTime() + 3600_000)));
@@ -106,7 +106,7 @@ test("the submitter hash depends on the pepper and never contains the install id
 });
 
 test("moderation state is explicit and acceptance alone never queues reconciliation", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const id = await storeReport(db);
 
   // Reconciliation cannot start from a pending report.
@@ -133,7 +133,7 @@ test("moderation state is explicit and acceptance alone never queues reconciliat
 });
 
 test("the moderation queue shows the claim, never the submitter", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const id = await storeReport(db);
   await storeReport(db, {}, new Date(AT.getTime() + 1000)).then((other) =>
     recordModerationDecision(db, other, { state: "duplicate", decidedBy: "reviewer-1", now: AT }));
@@ -148,18 +148,15 @@ test("the moderation queue shows the claim, never the submitter", async () => {
 });
 
 test("reports never mutate canonical or published data", async () => {
-  const db = new SqliteD1();
-  await importTaito(db, { newSpotId: sequentialSpotIds("0") });
-  await publishTiles(db, { now: NOW });
-  const canonical = () => JSON.stringify([
-    all(db, "SELECT * FROM spots ORDER BY spot_id"),
-    all(db, "SELECT * FROM spot_field_provenance ORDER BY spot_id, field"),
-    all(db, "SELECT * FROM tile_snapshots ORDER BY tile_id"),
-    all(db, "SELECT * FROM tile_snapshot_spots ORDER BY spot_id"),
-    all(db, "SELECT * FROM source_records ORDER BY record_id"),
-  ]);
+  const data = new SqliteD1();
+  const db = reportsD1();
+  await importTaito(data, { newSpotId: sequentialSpotIds("0") });
+  await publishTiles(data, { now: NOW });
+  // The whole canonical database, every table: a report touches none of it (ADR-0014).
+  const canonical = () => JSON.stringify((data.raw.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all() as Row[])
+    .map(({ name }) => all(data, `SELECT * FROM ${name}`)));
   const before = canonical();
-  const publishedId = one(db, "SELECT spot_id FROM tile_snapshot_spots LIMIT 1").spot_id;
+  const publishedId = one(data, "SELECT spot_id FROM tile_snapshot_spots LIMIT 1").spot_id;
 
   const res = await app.request(
     "/v1/reports",
@@ -168,7 +165,7 @@ test("reports never mutate canonical or published data", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ schemaVersion: 1, type: "prohibited", spotId: publishedId, installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f", note: "撤去されていました" }),
     },
-    { DB: db },
+    { DB: data, REPORTS_DB: db },
   );
   assert.equal(res.status, 201);
   const { reportId } = await res.json() as Row;
@@ -183,7 +180,7 @@ test("reports never mutate canonical or published data", async () => {
 });
 
 test("moderation metadata cannot carry reporter content past the retention deadline", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const id = await storeReport(db, { note: "報告者の自由記述" });
 
   // There is no free-text column to copy a report into: the vocabulary is closed (ADR-0007 §4).
@@ -210,7 +207,7 @@ test("moderation metadata cannot carry reporter content past the retention deadl
 });
 
 test("reconciliation transitions: forward skips, backward steps and terminal states are refused", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const accept = async (now = AT) => {
     const id = await storeReport(db, {}, now);
     await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now });
@@ -266,7 +263,7 @@ test("reconciliation transitions: forward skips, backward steps and terminal sta
 });
 
 test("the database refuses an impossible observed_on even if the API is bypassed", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   let n = 0;
   const insert = (observedOn: string) => () => db.raw.prepare(
     `INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, proposed_latitude,

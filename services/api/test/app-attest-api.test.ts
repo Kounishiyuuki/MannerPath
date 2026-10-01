@@ -14,7 +14,7 @@ import { REPORT_RATE_LIMITS } from "../src/reports/rate-limit.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { type TestDevice, type TestPki, assert as makeAssertion, attest, testDevice, testPki } from "./support/app-attest-fixture.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const APP_ID = "ABCDE12345.com.example.mannerpath";
@@ -33,14 +33,14 @@ interface Harness {
 }
 
 async function harness(): Promise<Harness> {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const pki = await testPki();
   const clock = { now: new Date() };
   const app = createApp({ appAttestTrustAnchor: pki.root, now: () => clock.now });
   const post = (path: string, body: unknown, env: Record<string, string> = ENV) => app.request(
     path,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: typeof body === "string" ? body : JSON.stringify(body) },
-    { DB: db, ...env } as any,
+    { DB: new SqliteD1(), REPORTS_DB: db, ...env } as any,
   );
   return { db, pki, clock, post };
 }
