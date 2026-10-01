@@ -666,3 +666,52 @@ npx wrangler delete --config $C                 # the mannerpath-api-e2e-<s> Wor
 npx wrangler d1 delete mannerpath-e2e-<s>       # the disposable database, reports and keys included
 rm $C
 ```
+
+## Community publication (Issue #124, Issue #150)
+
+The decision, the exact code switch and the launch order are in `docs/legal/COMMUNITY_PUBLICATION_DECISION.md` and
+`docs/COMMUNITY_LAUNCH_CHECKLIST.md`. This section is the operating procedure once community publication is live.
+Everything here is local tooling (`npm run local:reports`, `local:pipeline`, `local:quality`); production changes
+only through the reviewed promotion bundle (steps 4–6).
+
+**Open prerequisite (not decided):** production reports are written to the live remote D1, while moderation runs
+against local D1 and the promotion bundle never carries reports. How reports reach moderation, and survive a
+blue/green cut-over (step 7 caveat), must be decided and implemented before launch. Until then this runbook applies
+to the local/disposable environments only.
+
+### Daily moderation flow
+
+Work top to bottom; stop at the end of the time box rather than skimming. Never accept in bulk: every `decide` is one
+report and one person's judgement, with a reason code. Read counts first:
+
+```sh
+npm run local:reports -- triage-summary        # pending / accepted / rejected / rightsBlocked by category
+npm run local:quality                          # nationwide.communityAcquisition.moderation: backlog age, rates
+```
+
+| # | Queue | Command(s) | Rule |
+| --- | --- | --- | --- |
+| 1 | Abuse first | `triage pending` (look for repeats, impossible pins, insults in notes) | `decide <id> rejected <you> abuse`. Notes are never quoted anywhere |
+| 2 | Negatives (`notFound`, `removed`, `prohibited`) | `triage pending missing,prohibited`, then `evidence`, `effects` | one negative = `needsRecheck` only. ≥ 2 independent → `absence-propose` / `absence-apply`; `absence-hold` only on a reviewed decision |
+| 3 | Absence candidates | `evidence` (`reviewCandidate`) | hold or dismiss; a hold hides, never deletes. Lift with `absence-lift` |
+| 4 | Conflicts | `evidence` (`conflicting`) | no voting: newer positive vs older negatives is a recheck, not a removal |
+| 5 | Corrections / relocation | `triage pending moved,typeChange,accessChange,hoursChange,tobaccoChange`, `corrections` | one pin = `awaitingIndependentConfirmation`; agreeing pins → `effect-propose` (relocationReview). Nothing moves without ADR-0009 review |
+| 6 | Confirmations (`exists`) | `triage pending stillExists`, `effects` | accept → `effect-propose` → `effect-apply` → `upgrade` (communityReported → communityVerified) |
+| 7 | Duplicates | `duplicates` | merge into the live spot or `decide … rejected … duplicateOfExistingReport` |
+| 8 | New spots | `triage pending newSpot`, `candidates <metres>` | type must be known; a shop alone is not a smoking place. `propose-reported` (one report) or `propose` (≥ 2 independent) → `apply` |
+| 9 | Rights blocked | `triage-summary` `rightsBlocked` | reports without consent to the granted version: usable as review signals only, never publish. No action can fix them |
+
+Then `npm run local:pipeline` (republish) and `npm run local:quality`. A large queue is a staffing signal, not a
+quality failure; no check fails on community volume.
+
+### Community rollback (no deletes)
+
+| Goal | Action | Effect |
+| --- | --- | --- |
+| Stop accepting reports | `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>` (step 7) | `/v1/config` `available: false`; the app hides reporting. Never switch to `disabled` |
+| Stop publication quickly | switch `database_id` back to the pre-launch database (step 7, reviewed PR) | official data exactly as before launch; community evidence stays in the newer database |
+| Hold the community source | PR: `COMMUNITY_PUBLICATION.state = "suspended"` → `npm run local:registry && npm run local:pipeline` → new bundle → blue/green | terms `revoked`, source `blocked`, community spots leave tiles; reports, applications and canonical rows remain |
+| Resume | PR back to `approved`, same steps | community spots return from the preserved evidence |
+
+Official sources are never part of a community rollback (`test/community-activation.test.ts` checks the official
+published set is unchanged).
