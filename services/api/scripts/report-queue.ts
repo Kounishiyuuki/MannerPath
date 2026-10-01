@@ -24,6 +24,21 @@
 //   npm run local:reports -- upgrade ce_... <decidedBy>        # applied exists effect: communityReported -> communityVerified
 //   npm run local:reports -- summary                          # pending -> accepted -> queued -> application -> applied, counts only
 //
+// Community acquisition triage (ADR-0013, migration 0024). Read-only views; there is no bulk accept:
+//   npm run local:reports -- triage [state] [category,...] [flag]   # categories: newSpot stillExists missing moved correction
+//                                                             #   typeChange accessChange hoursChange tobaccoChange prohibited other
+//                                                             # flags: duplicateCandidate highReportCount conflicting old
+//   npm run local:reports -- triage-summary                   # pending / accepted / rejected / applied / rightsBlocked by category
+//   npm run local:reports -- evidence                         # per spot: normal | needsRecheck | reviewCandidate | held, conflicting
+//   npm run local:reports -- corrections                      # "moved" pins: awaitingIndependentConfirmation | relocationCandidate
+//   npm run local:reports -- duplicates                       # new-spot proposals near a live spot or another proposal
+// Negative evidence (notFound / removed). One report never removes anything:
+//   npm run local:reports -- absence-propose <decidedBy> <reportId>...
+//   npm run local:reports -- absence-apply cn_...             # records the review candidate; changes nothing canonical
+//   npm run local:reports -- absence-hold cn_...              # refused (blocked) until 2 independent submitters AND rights (#124)
+//   npm run local:reports -- absence-lift cn_... <liftedBy>
+//   npm run local:reports -- absence-withdraw cn_...
+//
 // The queue view prints the claim under review; it never prints the hashed submitter key, and no
 // raw install identifier or attestation material exists in the database to print.
 import { getPlatformProxy } from "wrangler";
@@ -50,6 +65,11 @@ import {
   withdrawCommunityApplication,
 } from "../src/pipeline/community-reconciliation.ts";
 import { upgradeCommunityEvidence } from "../src/pipeline/community-verification.ts";
+import {
+  applyCommunityAbsence, holdCommunityAbsence, liftCommunityAbsence, proposeCommunityAbsence, withdrawCommunityAbsence,
+} from "../src/pipeline/community-absence.ts";
+import { correctionCandidates, duplicateCandidates, spotEvidenceStates } from "../src/pipeline/community-evidence.ts";
+import { TRIAGE_CATEGORIES, TRIAGE_FLAGS, type TriageCategory, type TriageFlag, triageQueue, triageSummary } from "../src/reports/triage.ts";
 
 const [command = "list", ...args] = process.argv.slice(2);
 const proxy = await getPlatformProxy<{ DB: Db }>({ remoteBindings: false });
@@ -136,6 +156,44 @@ try {
     console.log("withdrawn", applicationId);
   } else if (command === "summary") {
     console.log(JSON.stringify(await moderationPipelineSummary(db), null, 2));
+  } else if (command === "triage") {
+    const [state = "pending", categoryArg, flagArg] = args;
+    const categories = categoryArg === undefined || categoryArg === "all" ? [] : categoryArg.split(",");
+    for (const c of categories) {
+      if (c !== "correction" && !TRIAGE_CATEGORIES.includes(c as TriageCategory)) throw new Error(`category must be one of: correction, ${TRIAGE_CATEGORIES.join(", ")}`);
+    }
+    if (flagArg !== undefined && !TRIAGE_FLAGS.includes(flagArg as TriageFlag)) throw new Error(`flag must be one of: ${TRIAGE_FLAGS.join(", ")}`);
+    console.log(JSON.stringify(await triageQueue(db, { now, state, categories: categories as TriageCategory[], flag: flagArg as TriageFlag | undefined }), null, 2));
+  } else if (command === "triage-summary") {
+    console.log(JSON.stringify(await triageSummary(db), null, 2));
+  } else if (command === "evidence") {
+    console.log(JSON.stringify(await spotEvidenceStates(db, { now }), null, 2));
+  } else if (command === "corrections") {
+    console.log(JSON.stringify(await correctionCandidates(db, { now }), null, 2));
+  } else if (command === "duplicates") {
+    console.log(JSON.stringify(await duplicateCandidates(db, { now }), null, 2));
+  } else if (command === "absence-propose") {
+    const [decidedBy, ...reportIds] = args;
+    if (!decidedBy || reportIds.length === 0) throw new Error("usage: absence-propose <decidedBy> <reportId>...");
+    console.log("absence application", await proposeCommunityAbsence(db, { reportIds, decidedBy, now }));
+  } else if (command === "absence-apply") {
+    const [applicationId] = args;
+    if (!applicationId) throw new Error("usage: absence-apply <applicationId>");
+    console.log("absence apply", applicationId, await applyCommunityAbsence(db, applicationId, { now }));
+  } else if (command === "absence-hold") {
+    const [applicationId] = args;
+    if (!applicationId) throw new Error("usage: absence-hold <applicationId>");
+    console.log("absence hold", applicationId, await holdCommunityAbsence(db, applicationId, { now }));
+  } else if (command === "absence-lift") {
+    const [applicationId, liftedBy] = args;
+    if (!applicationId || !liftedBy) throw new Error("usage: absence-lift <applicationId> <liftedBy>");
+    await liftCommunityAbsence(db, applicationId, { liftedBy, now });
+    console.log("absence hold lifted", applicationId, "- republish to show the spot again");
+  } else if (command === "absence-withdraw") {
+    const [applicationId] = args;
+    if (!applicationId) throw new Error("usage: absence-withdraw <applicationId>");
+    await withdrawCommunityAbsence(db, applicationId, { now });
+    console.log("withdrawn", applicationId);
   } else if (command === "retain") {
     console.log("retention", await applyReportRetention(db, { now }));
   } else {

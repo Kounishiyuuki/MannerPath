@@ -3,7 +3,9 @@
 
 import { type Db, type DbStatement, isoSeconds, sha256Hex } from "../db.ts";
 import type { AttestationStatus } from "./attestation.ts";
-import { type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate } from "./dto.ts";
+import {
+  type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate, storedReportType,
+} from "./dto.ts";
 import { newReportId } from "./report-id.ts";
 import { ensureTermsStatement, reviewedTerms } from "./terms.ts";
 
@@ -45,7 +47,10 @@ export async function createReport(
   const receivedAt = isoSeconds(opts.now);
   const location = request.proposedLocation;
   const terms = request.acceptedTermsVersion === undefined ? null : reviewedTerms(request.acceptedTermsVersion);
-  const claim = request.claim;
+  // Every claim shape's members, read by name; the request schema already allowed only this type's shape.
+  const claim = request.claim as { [K in "spotType" | "spotSubtype" | "accessType" | "accessDetail" | "hostType" | "environment"
+    | "supportsPaper" | "supportsHeated" | "hostName" | "hoursNote"]?: string } | undefined;
+  const { reportType, finding } = storedReportType(request.type);
 
   await db.batch([
     ...(opts.guards ?? []),
@@ -57,12 +62,12 @@ export async function createReport(
          proposed_latitude, proposed_longitude, observed_on, note,
          submitter_hash, attestation_status, received_at, minimize_after, redacted_at, accepted_terms_version,
          claim_spot_type, claim_spot_subtype, claim_access_type, claim_access_detail, claim_host_type, claim_environment,
-         claim_supports_paper, claim_supports_heated, claim_host_name, claim_hours_note
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         claim_supports_paper, claim_supports_heated, claim_host_name, claim_hours_note, finding
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
       reportId,
       request.schemaVersion,
-      request.type,
+      reportType,
       request.spotId ?? null,
       location === undefined ? null : quantizeCoordinate(location.latitude),
       location === undefined ? null : quantizeCoordinate(location.longitude),
@@ -83,6 +88,7 @@ export async function createReport(
       claim?.supportsHeated ?? null,
       claim?.hostName ?? null,
       claim?.hoursNote ?? null,
+      finding,
     ),
     db.prepare(
       `INSERT INTO report_moderation (report_id, state, reconciliation_state, updated_at)

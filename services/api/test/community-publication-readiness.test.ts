@@ -474,6 +474,7 @@ test("the effects queue shows counts, submitters, rights, staleness and target e
   const after = await listCommunityEffects(db, { now: APPLY });
   assert.deepEqual(after.map((r) => [r.applicationId, r.state, r.reportCount]).sort(), [[applicationId, "proposed", 2], [null, "queued", 1]].sort());
   const summary = await moderationPipelineSummary(db);
-  assert.deepEqual(summary, { reports: { "accepted/queued": 3 }, newSpotApplications: {}, effectApplications: { "publicationHoldReview/proposed": 1 }, activeCommunityHolds: 0 });
+  assert.deepEqual(summary, { reports: { "accepted/queued": 3 }, newSpotApplications: {}, effectApplications: { "publicationHoldReview/proposed": 1 }, activeCommunityHolds: 0,
+    absenceApplications: {}, activeAbsenceHolds: 0 });
   assert.doesNotMatch(JSON.stringify(summary), new RegExp(`${NOTE}|${HASHES[0]}|rp_`));
 });

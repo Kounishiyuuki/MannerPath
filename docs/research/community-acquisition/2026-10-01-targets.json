@@ -1,0 +1,1185 @@
+{
+  "generator": "community-acquisition-targets.v1",
+  "seedAreas": "seed-areas.v1",
+  "input": {
+    "replay": "coverage-replay.v1",
+    "reviewedTargets": 61
+  },
+  "meaning": "collection priority only; no entry claims that a smoking place exists",
+  "alwaysCollect": [
+    "convenienceStoreAshtray",
+    "cafeOrRestaurantSmokingPermitted",
+    "smallOutdoorAshtray",
+    "tobaccoShopSmokingSpace"
+  ],
+  "summary": {
+    "communityTargets": 33,
+    "linkedToSeedArea": 24,
+    "withoutSeedArea": [
+      "city-kawasaki",
+      "city-sagamihara",
+      "city-saitama",
+      "下関市",
+      "台東区",
+      "文京区",
+      "杉並区",
+      "板橋区",
+      "津市"
+    ],
+    "seedAreas": 69,
+    "seedAreasByPriority": {
+      "1": 21,
+      "2": 45,
+      "3": 3
+    }
+  },
+  "targets": [
+    {
+      "key": "city-sendai",
+      "jurisdiction": "仙台市",
+      "kind": "municipality",
+      "prefecture": "04",
+      "blockers": [
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost"
+      ],
+      "seedAreaIds": [
+        "miyagi-sendai"
+      ],
+      "priority": 1
+    },
+    {
+      "key": "pref-hokkaido",
+      "jurisdiction": "北海道",
+      "kind": "prefecture",
+      "prefecture": "01",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "hokkaido-sapporo",
+        "hokkaido-susukino",
+        "hokkaido-new-chitose"
+      ],
+      "priority": 1
+    },
+    {
+      "key": "pref-miyagi",
+      "jurisdiction": "宮城県",
+      "kind": "prefecture",
+      "prefecture": "04",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "miyagi-sendai"
+      ],
+      "priority": 1
+    },
+    {
+      "key": "札幌市",
+      "jurisdiction": "札幌市",
+      "kind": "municipality",
+      "prefecture": "01",
+      "blockers": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "pinSmokingPointAtKnownHost"
+      ],
+      "seedAreaIds": [
+        "hokkaido-sapporo"
+      ],
+      "priority": 1
+    },
+    {
+      "key": "city-aomori",
+      "jurisdiction": "青森市",
+      "kind": "municipality",
+      "prefecture": "02",
+      "blockers": [
+        "noSmokingEvidence"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "aomori-aomori"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "city-chiba",
+      "jurisdiction": "千葉市",
+      "kind": "municipality",
+      "prefecture": "12",
+      "blockers": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "pinSmokingPointAtKnownHost"
+      ],
+      "seedAreaIds": [
+        "chiba-chiba"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "city-mito",
+      "jurisdiction": "水戸市",
+      "kind": "municipality",
+      "prefecture": "08",
+      "blockers": [
+        "coordinatesMissing",
+        "currentOperationUnknown",
+        "incompatibleFormat"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [
+        "ibaraki-mito"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "city-morioka",
+      "jurisdiction": "盛岡市",
+      "kind": "municipality",
+      "prefecture": "03",
+      "blockers": [
+        "noSmokingEvidence"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "iwate-morioka"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "city-niigata",
+      "jurisdiction": "新潟市",
+      "kind": "municipality",
+      "prefecture": "15",
+      "blockers": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "pinSmokingPointAtKnownHost"
+      ],
+      "seedAreaIds": [
+        "niigata-niigata"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "city-shizuoka",
+      "jurisdiction": "静岡市",
+      "kind": "municipality",
+      "prefecture": "22",
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [
+        "shizuoka-shizuoka"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-akita",
+      "jurisdiction": "秋田県",
+      "kind": "prefecture",
+      "prefecture": "05",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "akita-akita"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-aomori",
+      "jurisdiction": "青森県",
+      "kind": "prefecture",
+      "prefecture": "02",
+      "blockers": [
+        "noSmokingEvidence"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "aomori-aomori"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-fukushima",
+      "jurisdiction": "福島県",
+      "kind": "prefecture",
+      "prefecture": "07",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "fukushima-koriyama"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-ibaraki",
+      "jurisdiction": "茨城県",
+      "kind": "prefecture",
+      "prefecture": "08",
+      "blockers": [
+        "hostPointOnly",
+        "noSmokingEvidence"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "ibaraki-mito"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-iwate",
+      "jurisdiction": "岩手県",
+      "kind": "prefecture",
+      "prefecture": "03",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "iwate-morioka"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-nagano",
+      "jurisdiction": "長野県",
+      "kind": "prefecture",
+      "prefecture": "20",
+      "blockers": [
+        "coordinatesMissing",
+        "noSmokingEvidence"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "nagano-nagano"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-niigata",
+      "jurisdiction": "新潟県",
+      "kind": "prefecture",
+      "prefecture": "15",
+      "blockers": [
+        "noSmokingPoint",
+        "coordinatesMissing"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "niigata-niigata"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-tochigi",
+      "jurisdiction": "栃木県",
+      "kind": "prefecture",
+      "prefecture": "09",
+      "blockers": [
+        "accessBlocked",
+        "rawUnavailable",
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "tochigi-utsunomiya"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-yamagata",
+      "jurisdiction": "山形県",
+      "kind": "prefecture",
+      "prefecture": "06",
+      "blockers": [
+        "noSmokingEvidence",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "yamagata-yamagata"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "pref-yamanashi",
+      "jurisdiction": "山梨県",
+      "kind": "prefecture",
+      "prefecture": "19",
+      "blockers": [
+        "accessBlocked",
+        "coordinatesMissing",
+        "currentOperationUnknown"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [
+        "yamanashi-kofu"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "岡山市",
+      "jurisdiction": "岡山市",
+      "kind": "municipality",
+      "prefecture": "33",
+      "blockers": [
+        "noSmokingPoint",
+        "polygonOnly"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "okayama-okayama"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "青森市",
+      "jurisdiction": "青森市",
+      "kind": "municipality",
+      "prefecture": "02",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "aomori-aomori"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "静岡市",
+      "jurisdiction": "静岡市",
+      "kind": "municipality",
+      "prefecture": "22",
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [
+        "shizuoka-shizuoka"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "高知県",
+      "jurisdiction": "高知県",
+      "kind": "municipality",
+      "prefecture": "39",
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [
+        "kochi-kochi"
+      ],
+      "priority": 2
+    },
+    {
+      "key": "city-kawasaki",
+      "jurisdiction": "川崎市",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "coordinatesMissing",
+        "rawUnavailable"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "city-sagamihara",
+      "jurisdiction": "相模原市",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "city-saitama",
+      "jurisdiction": "さいたま市",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "coordinatesMissing"
+      ],
+      "askFor": [
+        "pinListedPlace"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "下関市",
+      "jurisdiction": "下関市",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "noSmokingPoint",
+        "hostPointOnly"
+      ],
+      "askFor": [
+        "pinSmokingPointAtKnownHost",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "台東区",
+      "jurisdiction": "台東区",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "文京区",
+      "jurisdiction": "文京区",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "杉並区",
+      "jurisdiction": "杉並区",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "noSmokingPoint",
+        "coordinatesMissing"
+      ],
+      "askFor": [
+        "pinListedPlace",
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "板橋区",
+      "jurisdiction": "板橋区",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    },
+    {
+      "key": "津市",
+      "jurisdiction": "津市",
+      "kind": "municipality",
+      "prefecture": null,
+      "blockers": [
+        "noSmokingPoint"
+      ],
+      "askFor": [
+        "reportSmokingPoint"
+      ],
+      "seedAreaIds": [],
+      "priority": null
+    }
+  ],
+  "seedPriority": [
+    {
+      "id": "aichi-nagoya",
+      "name": "名古屋駅周辺",
+      "prefecture": "23",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "aichi-sakae",
+      "name": "栄周辺",
+      "prefecture": "23",
+      "kind": "downtown",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "fukuoka-hakata",
+      "name": "博多駅周辺",
+      "prefecture": "40",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "fukuoka-tenjin",
+      "name": "天神・中洲周辺",
+      "prefecture": "40",
+      "kind": "nightlife",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "hiroshima-hiroshima",
+      "name": "広島駅周辺",
+      "prefecture": "34",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "hokkaido-sapporo",
+      "name": "札幌駅周辺",
+      "prefecture": "01",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": [
+        "pref-hokkaido",
+        "札幌市"
+      ]
+    },
+    {
+      "id": "hokkaido-susukino",
+      "name": "すすきの周辺",
+      "prefecture": "01",
+      "kind": "nightlife",
+      "priority": 1,
+      "researchTargets": [
+        "pref-hokkaido"
+      ]
+    },
+    {
+      "id": "hyogo-sannomiya",
+      "name": "三宮駅周辺",
+      "prefecture": "28",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "kanagawa-yokohama",
+      "name": "横浜駅周辺",
+      "prefecture": "14",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "kyoto-kyoto",
+      "name": "京都駅周辺",
+      "prefecture": "26",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "miyagi-sendai",
+      "name": "仙台駅周辺",
+      "prefecture": "04",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": [
+        "city-sendai",
+        "pref-miyagi"
+      ]
+    },
+    {
+      "id": "osaka-namba",
+      "name": "なんば・道頓堀周辺",
+      "prefecture": "27",
+      "kind": "nightlife",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "osaka-umeda",
+      "name": "大阪・梅田駅周辺",
+      "prefecture": "27",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "saitama-omiya",
+      "name": "大宮駅周辺",
+      "prefecture": "11",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-ikebukuro",
+      "name": "池袋駅周辺",
+      "prefecture": "13",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-shibuya",
+      "name": "渋谷駅周辺",
+      "prefecture": "13",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-shimbashi",
+      "name": "新橋駅周辺",
+      "prefecture": "13",
+      "kind": "downtown",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-shinagawa",
+      "name": "品川駅周辺",
+      "prefecture": "13",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-shinjuku",
+      "name": "新宿駅・歌舞伎町周辺",
+      "prefecture": "13",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-tokyo",
+      "name": "東京駅周辺",
+      "prefecture": "13",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-ueno",
+      "name": "上野駅周辺",
+      "prefecture": "13",
+      "kind": "majorStation",
+      "priority": 1,
+      "researchTargets": []
+    },
+    {
+      "id": "aichi-chubu",
+      "name": "中部国際空港",
+      "prefecture": "23",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "akita-akita",
+      "name": "秋田駅周辺",
+      "prefecture": "05",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "pref-akita"
+      ]
+    },
+    {
+      "id": "aomori-aomori",
+      "name": "青森駅周辺",
+      "prefecture": "02",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "city-aomori",
+        "pref-aomori",
+        "青森市"
+      ]
+    },
+    {
+      "id": "chiba-chiba",
+      "name": "千葉駅周辺",
+      "prefecture": "12",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "city-chiba"
+      ]
+    },
+    {
+      "id": "chiba-narita",
+      "name": "成田空港",
+      "prefecture": "12",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "ehime-matsuyama",
+      "name": "松山駅周辺",
+      "prefecture": "38",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "fukui-fukui",
+      "name": "福井駅周辺",
+      "prefecture": "18",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "fukuoka-airport",
+      "name": "福岡空港",
+      "prefecture": "40",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "fukushima-koriyama",
+      "name": "郡山駅周辺",
+      "prefecture": "07",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "pref-fukushima"
+      ]
+    },
+    {
+      "id": "gifu-gifu",
+      "name": "岐阜駅周辺",
+      "prefecture": "21",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "gunma-takasaki",
+      "name": "高崎駅周辺",
+      "prefecture": "10",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "hokkaido-new-chitose",
+      "name": "新千歳空港",
+      "prefecture": "01",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": [
+        "pref-hokkaido"
+      ]
+    },
+    {
+      "id": "ibaraki-mito",
+      "name": "水戸駅周辺",
+      "prefecture": "08",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "city-mito",
+        "pref-ibaraki"
+      ]
+    },
+    {
+      "id": "ishikawa-kanazawa",
+      "name": "金沢駅周辺",
+      "prefecture": "17",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "iwate-morioka",
+      "name": "盛岡駅周辺",
+      "prefecture": "03",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "city-morioka",
+        "pref-iwate"
+      ]
+    },
+    {
+      "id": "kagawa-takamatsu",
+      "name": "高松駅周辺",
+      "prefecture": "37",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "kagoshima-chuo",
+      "name": "鹿児島中央駅周辺",
+      "prefecture": "46",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "kochi-kochi",
+      "name": "高知駅周辺",
+      "prefecture": "39",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "高知県"
+      ]
+    },
+    {
+      "id": "kumamoto-kumamoto",
+      "name": "熊本駅周辺",
+      "prefecture": "43",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "kyoto-shijo",
+      "name": "四条河原町・祇園周辺",
+      "prefecture": "26",
+      "kind": "touristHub",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "mie-yokkaichi",
+      "name": "四日市駅周辺",
+      "prefecture": "24",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "miyazaki-miyazaki",
+      "name": "宮崎駅周辺",
+      "prefecture": "45",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "nagano-nagano",
+      "name": "長野駅周辺",
+      "prefecture": "20",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "pref-nagano"
+      ]
+    },
+    {
+      "id": "nagasaki-nagasaki",
+      "name": "長崎駅周辺",
+      "prefecture": "42",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "nara-nara",
+      "name": "奈良駅周辺",
+      "prefecture": "29",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "niigata-niigata",
+      "name": "新潟駅周辺",
+      "prefecture": "15",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "city-niigata",
+        "pref-niigata"
+      ]
+    },
+    {
+      "id": "oita-oita",
+      "name": "大分駅周辺",
+      "prefecture": "44",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "okayama-okayama",
+      "name": "岡山駅周辺",
+      "prefecture": "33",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "岡山市"
+      ]
+    },
+    {
+      "id": "okinawa-kokusai",
+      "name": "国際通り周辺",
+      "prefecture": "47",
+      "kind": "touristHub",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "okinawa-naha-airport",
+      "name": "那覇空港",
+      "prefecture": "47",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "osaka-kansai",
+      "name": "関西国際空港",
+      "prefecture": "27",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "saga-saga",
+      "name": "佐賀駅周辺",
+      "prefecture": "41",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "shiga-kusatsu",
+      "name": "草津駅周辺",
+      "prefecture": "25",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "shimane-matsue",
+      "name": "松江駅周辺",
+      "prefecture": "32",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "shizuoka-shizuoka",
+      "name": "静岡駅周辺",
+      "prefecture": "22",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "city-shizuoka",
+        "静岡市"
+      ]
+    },
+    {
+      "id": "tochigi-utsunomiya",
+      "name": "宇都宮駅周辺",
+      "prefecture": "09",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "pref-tochigi"
+      ]
+    },
+    {
+      "id": "tokushima-tokushima",
+      "name": "徳島駅周辺",
+      "prefecture": "36",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-asakusa",
+      "name": "浅草周辺",
+      "prefecture": "13",
+      "kind": "touristHub",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-haneda",
+      "name": "羽田空港",
+      "prefecture": "13",
+      "kind": "airport",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "tottori-tottori",
+      "name": "鳥取駅周辺",
+      "prefecture": "31",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "toyama-toyama",
+      "name": "富山駅周辺",
+      "prefecture": "16",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "wakayama-wakayama",
+      "name": "和歌山駅周辺",
+      "prefecture": "30",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "yamagata-yamagata",
+      "name": "山形駅周辺",
+      "prefecture": "06",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "pref-yamagata"
+      ]
+    },
+    {
+      "id": "yamaguchi-shin-yamaguchi",
+      "name": "新山口駅周辺",
+      "prefecture": "35",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": []
+    },
+    {
+      "id": "yamanashi-kofu",
+      "name": "甲府駅周辺",
+      "prefecture": "19",
+      "kind": "majorStation",
+      "priority": 2,
+      "researchTargets": [
+        "pref-yamanashi"
+      ]
+    },
+    {
+      "id": "kyoto-yoshida",
+      "name": "京都大学吉田周辺",
+      "prefecture": "26",
+      "kind": "university",
+      "priority": 3,
+      "researchTargets": []
+    },
+    {
+      "id": "shizuoka-hamamatsu",
+      "name": "浜松駅周辺",
+      "prefecture": "22",
+      "kind": "majorStation",
+      "priority": 3,
+      "researchTargets": []
+    },
+    {
+      "id": "tokyo-hongo",
+      "name": "本郷・東京大学周辺",
+      "prefecture": "13",
+      "kind": "university",
+      "priority": 3,
+      "researchTargets": []
+    }
+  ]
+}

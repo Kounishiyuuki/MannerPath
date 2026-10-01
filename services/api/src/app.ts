@@ -1,14 +1,18 @@
-// Public API v1 (docs/API.md). Three reads and three writes exist in this slice. The config handler
+// Public API v1 (docs/API.md). Four reads and three writes exist in this slice. The config handler
 // answers from the canonical constants alone and touches no database.
 // The tile handler serves the stored snapshot body byte-for-byte; the ETag is derived from the stored hash, never recomputed here.
 // The spot detail handler builds its body from canonical rows, gated on published snapshot
-// membership; it carries no ETag, because no stored hash describes that body.
+// membership; it carries no ETag, because no stored hash describes that body. The coverage-task handler (ADR-0013)
+// derives gap tasks from published spots and the seed-area list only.
 // The report write stores an immutable proposal and never touches canonical data (ADR-0007); the two
 // App Attest writes (challenge issuance, key registration) exist only to authorize it (§6).
 
 import { Hono } from "hono";
 import { z } from "zod";
 import { configBody } from "./config/dto.ts";
+import { COVERAGE_TASKS_SCHEMA_VERSION, CoverageTasksBodyV1 } from "./coverage/dto.ts";
+import { SEED_AREAS_VERSION } from "./coverage/seed-areas.ts";
+import { COVERAGE_TASKS_VERSION, gapTasks } from "./coverage/tasks.ts";
 import { type Db, isoSeconds } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { APPLE_APP_ATTEST_ROOT_DER } from "./attest/apple-root.ts";
@@ -145,6 +149,23 @@ export function createApp(options: AppOptions = {}) {
     // is the read gate, and the response must never reveal that an unpublished canonical row exists.
     const body = SPOT_ID.test(id) ? await readPublishedSpot(c.env.DB, id) : null;
     if (body === null) return problem(404, "spotNotFound", "no published spot with this id");
+    return new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
+    });
+  });
+
+  // GET /v1/coverage/tasks: public, read-only coverage-gap tasks (ADR-0013). Derived from the published corpus and
+  // the seed-area list only — never from reports — so it carries no user-derived data while Issue #124 is open.
+  app.get("/v1/coverage/tasks", async (c) => {
+    const { results } = await c.env.DB.prepare(
+      "SELECT s.latitude, s.longitude FROM tile_snapshot_spots t JOIN spots s ON s.spot_id = t.spot_id",
+    ).all<{ latitude: number; longitude: number }>();
+    const body = CoverageTasksBodyV1.parse({
+      schemaVersion: COVERAGE_TASKS_SCHEMA_VERSION, rules: COVERAGE_TASKS_VERSION, seedAreas: SEED_AREAS_VERSION,
+      meaning: "information around this area is thin; this is not a claim that a smoking place exists",
+      tasks: gapTasks(results),
+    });
     return new Response(JSON.stringify(body), {
       status: 200,
       headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
