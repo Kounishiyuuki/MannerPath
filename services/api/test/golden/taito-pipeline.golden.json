@@ -359,11 +359,11 @@
         "staleSpots": 0,
         "locationCorrectionsPending": 0,
         "coverageGaps": {
-          "total": 66,
+          "total": 244,
           "byPriority": {
             "1": 20,
-            "2": 44,
-            "3": 2
+            "2": 214,
+            "3": 10
           }
         },
         "confirmations": {
@@ -383,6 +383,7 @@
               "name": "北海道",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -391,6 +392,7 @@
               "name": "青森県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -399,6 +401,7 @@
               "name": "岩手県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -407,6 +410,7 @@
               "name": "宮城県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -415,6 +419,7 @@
               "name": "秋田県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -423,6 +428,7 @@
               "name": "山形県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -431,6 +437,7 @@
               "name": "福島県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -439,6 +446,7 @@
               "name": "茨城県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -447,6 +455,7 @@
               "name": "栃木県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -455,6 +464,7 @@
               "name": "群馬県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -463,6 +473,7 @@
               "name": "埼玉県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -471,6 +482,7 @@
               "name": "千葉県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -479,6 +491,7 @@
               "name": "東京都",
               "official": 32,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 32
             },
@@ -487,6 +500,7 @@
               "name": "神奈川県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -495,6 +509,7 @@
               "name": "新潟県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -503,6 +518,7 @@
               "name": "富山県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -511,6 +527,7 @@
               "name": "石川県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -519,6 +536,7 @@
               "name": "福井県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -527,6 +545,7 @@
               "name": "山梨県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -535,6 +554,7 @@
               "name": "長野県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -543,6 +563,7 @@
               "name": "岐阜県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -551,6 +572,7 @@
               "name": "静岡県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -559,6 +581,7 @@
               "name": "愛知県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -567,6 +590,7 @@
               "name": "三重県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -575,6 +599,7 @@
               "name": "滋賀県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -583,6 +608,7 @@
               "name": "京都府",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -591,6 +617,7 @@
               "name": "大阪府",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -599,6 +626,7 @@
               "name": "兵庫県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -607,6 +635,7 @@
               "name": "奈良県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -615,6 +644,7 @@
               "name": "和歌山県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -623,6 +653,7 @@
               "name": "鳥取県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -631,6 +662,7 @@
               "name": "島根県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -639,6 +671,7 @@
               "name": "岡山県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -647,6 +680,7 @@
               "name": "広島県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -655,6 +689,7 @@
               "name": "山口県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -663,6 +698,7 @@
               "name": "徳島県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -671,6 +707,7 @@
               "name": "香川県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -679,6 +716,7 @@
               "name": "愛媛県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -687,6 +725,7 @@
               "name": "高知県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -695,6 +734,7 @@
               "name": "福岡県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -703,6 +743,7 @@
               "name": "佐賀県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -711,6 +752,7 @@
               "name": "長崎県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -719,6 +761,7 @@
               "name": "熊本県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -727,6 +770,7 @@
               "name": "大分県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -735,6 +779,7 @@
               "name": "宮崎県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -743,6 +788,7 @@
               "name": "鹿児島県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             },
@@ -751,6 +797,7 @@
               "name": "沖縄県",
               "official": 0,
               "communityVerified": 0,
+              "visitedConfirmed": 0,
               "communityReported": 0,
               "allVisible": 0
             }
@@ -759,15 +806,2511 @@
         "seedStationCoverage": {
           "note": "hand-entered seed stations (seed-areas.v1), not the licensed top-50/top-300 reference; stationCoverage stays notComputableYet",
           "radiusMeters": 1000,
-          "stations": 52,
+          "stations": 140,
           "officialOnly": {
-            "covered": 1,
-            "rate": 0.019
+            "covered": 2,
+            "rate": 0.014
           },
           "allVisible": {
-            "covered": 1,
-            "rate": 0.019
+            "covered": 2,
+            "rate": 0.014
           }
+        },
+        "seedAreaCoverage": {
+          "radiusMeters": 1000,
+          "overlapping": true,
+          "areas": [
+            {
+              "seedAreaId": "aichi-chubu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aichi-kanayama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aichi-nagoya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aichi-nagoya-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aichi-okazaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aichi-sakae",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aichi-toyohashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "akita-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "akita-akita",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "akita-kawabata",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "akita-omagari",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aomori-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aomori-aomori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aomori-hachinohe",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aomori-honcho",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aomori-misawa-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "aomori-shin-aomori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "chiba-chiba",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "chiba-chuo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "chiba-funabashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "chiba-kaihin-makuhari",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "chiba-kashiwa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "chiba-narita",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ehime-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ehime-matsuyama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ehime-matsuyamashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ehime-okaido",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukui-fukui",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukui-katamachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukui-tsuruga",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-hakata",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-kitakyushu-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-kokura",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-kurume",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-nishijin",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukuoka-tenjin",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukushima-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukushima-aizuwakamatsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukushima-downtown",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukushima-fukushima",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukushima-iwaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "fukushima-koriyama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gifu-gifu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gifu-hashima",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gifu-ogaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gifu-yanagase",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gunma-chuo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gunma-maebashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gunma-ota",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "gunma-takasaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hiroshima-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hiroshima-fukuyama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hiroshima-hatchobori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hiroshima-hiroshima",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-asahikawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-asahikawa-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-hakodate",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-hakodate-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-kushiro",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-new-chitose",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-obihiro",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-odori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-otaru",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-sapporo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hokkaido-susukino",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hyogo-himeji",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hyogo-kobe-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hyogo-motomachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hyogo-sannomiya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "hyogo-shinkobe",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ibaraki-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ibaraki-mito",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ibaraki-otsu-dori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ibaraki-tsukuba",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ishikawa-kanazawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ishikawa-katamachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ishikawa-komatsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "ishikawa-komatsu-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "iwate-hanamaki-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "iwate-ichinoseki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "iwate-kitakami",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "iwate-morioka",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "iwate-odori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagawa-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagawa-kawaramachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagawa-takamatsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagoshima-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagoshima-chuo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagoshima-sendai",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kagoshima-tenmonkan",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-hashimoto",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-kannai",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-kawasaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-musashikosugi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-odawara",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-sagamihara",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-shinyokohama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kanagawa-yokohama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kochi-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kochi-kochi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kochi-obiyamachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kumamoto-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kumamoto-kumamoto",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kumamoto-shimotori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kumamoto-shinyatsushiro",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kyoto-fukuchiyama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kyoto-kyoto",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kyoto-sanjo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kyoto-shijo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "kyoto-yoshida",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "mie-ise",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "mie-tsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "mie-tsu-daimon",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "mie-yokkaichi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyagi-ishinomaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyagi-kokubuncho",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyagi-sendai",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyagi-sendai-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyazaki-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyazaki-miyakonojo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyazaki-miyazaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "miyazaki-nishitachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagano-gondo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagano-karuizawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagano-matsumoto",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagano-matsumoto-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagano-nagano",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagano-ueda",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagasaki-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagasaki-hamamachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagasaki-nagasaki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nagasaki-sasebo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nara-kintetsunara",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nara-nara",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nara-sanjo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "nara-yamatoyagi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "niigata-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "niigata-furumachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "niigata-joetsumyoko",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "niigata-nagaoka",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "niigata-niigata",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "oita-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "oita-beppu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "oita-miyakomachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "oita-oita",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okayama-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okayama-kurashiki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okayama-okayama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okayama-omotecho",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okinawa-ishigaki-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okinawa-kenchomae",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okinawa-kokusai",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okinawa-miyako-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okinawa-naha-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "okinawa-omoromachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-itami-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-kansai",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-namba",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-sakai",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-sakai-downtown",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-shinosaka",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-tennoji",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "osaka-umeda",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saga-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saga-chuo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saga-saga",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saga-shintosu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saitama-kawagoe",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saitama-kumagaya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saitama-omiya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saitama-omiya-east",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "saitama-urawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shiga-hamaotsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shiga-kusatsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shiga-maibara",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shiga-otsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shimane-ise-miya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shimane-izumo-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shimane-izumoshi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shimane-matsue",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shizuoka-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shizuoka-atami",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shizuoka-gofukucho",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shizuoka-hamamatsu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shizuoka-numazu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "shizuoka-shizuoka",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tochigi-nikko",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tochigi-orion",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tochigi-oyama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tochigi-utsunomiya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokushima-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokushima-akita-machi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokushima-tokushima",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-akabane",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-akihabara",
+              "counts": {
+                "official": 3,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 3
+              }
+            },
+            {
+              "seedAreaId": "tokyo-asakusa",
+              "counts": {
+                "official": 8,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 8
+              }
+            },
+            {
+              "seedAreaId": "tokyo-ginza",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-hachioji",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-haneda",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-hongo",
+              "counts": {
+                "official": 2,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 2
+              }
+            },
+            {
+              "seedAreaId": "tokyo-ikebukuro",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-itabashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-kamata",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-kameari",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-kameido",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-kichijoji",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-kitasenju",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-koiwa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-nakano",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-nerima",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-nihonbashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-nippori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-oimachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-roppongi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-ryogoku",
+              "counts": {
+                "official": 1,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 1
+              }
+            },
+            {
+              "seedAreaId": "tokyo-shibuya",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-shimbashi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-shinagawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-shinjuku",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-tachikawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-tokyo",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tokyo-ueno",
+              "counts": {
+                "official": 18,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 18
+              }
+            },
+            {
+              "seedAreaId": "tottori-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tottori-downtown",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tottori-tottori",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tottori-yonago",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "tottori-yonago-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "toyama-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "toyama-shintakaoka",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "toyama-sogawa",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "toyama-toyama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "wakayama-burakuricho",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "wakayama-shirahama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "wakayama-shirahama-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "wakayama-wakayama",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamagata-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamagata-nanokamachi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamagata-shonai-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamagata-tsuruoka",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamagata-yamagata",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamaguchi-downtown",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamaguchi-shimonoseki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamaguchi-shin-yamaguchi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamaguchi-ube-airport",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamaguchi-yamaguchi",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamanashi-downtown",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamanashi-kofu",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            },
+            {
+              "seedAreaId": "yamanashi-otsuki",
+              "counts": {
+                "official": 0,
+                "communityVerified": 0,
+                "visitedConfirmed": 0,
+                "communityReported": 0,
+                "allVisible": 0
+              }
+            }
+          ]
         }
       }
     },

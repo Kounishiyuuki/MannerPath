@@ -16,6 +16,20 @@ export const ACQUISITION_METRICS_VERSION = "community-acquisition-metrics.v1";
 type PublishedSpot = TileSpotV1;
 type Tier = "official" | "communityVerified" | "communityReported";
 
+/** Per-area station/campaign metrics. Overlapping areas are not a partition and must never be summed. */
+export function seedAreaMetrics(spots: readonly PublishedSpot[], visitedSpotIds: ReadonlySet<string> = new Set(), seeds: readonly SeedArea[] = SEED_AREAS) {
+  return seeds.map((seed) => {
+    const nearby = spots.filter((s) => haversineMeters(seed, s) <= SEED_RADIUS_METRES);
+    return { seedAreaId: seed.id, counts: {
+      official: nearby.filter((s) => tierOf(s) === "official").length,
+      communityVerified: nearby.filter((s) => tierOf(s) === "communityVerified").length,
+      visitedConfirmed: nearby.filter((s) => communityStage({ existence: s.verification?.existence ?? "", confirmations: s.verification?.confirmations ?? null, upgradedByVisit: visitedSpotIds.has(s.id) }) === "visitedConfirmed").length,
+      communityReported: nearby.filter((s) => tierOf(s) === "communityReported").length,
+      allVisible: nearby.length,
+    } };
+  }).sort((a, b) => a.seedAreaId < b.seedAreaId ? -1 : a.seedAreaId > b.seedAreaId ? 1 : 0);
+}
+
 function tierOf(spot: PublishedSpot): Tier {
   const e = spot.verification?.existence;
   return e === "communityVerified" ? "communityVerified" : e === "communityReported" ? "communityReported" : "official";
@@ -56,7 +70,7 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
   const gaps = gapTasks(spots);
 
   // 47 prefectures, each tier on its own column.
-  const perPrefecture = new Map(PREFECTURES.map(([code, name]) => [code as string, { code, name, official: 0, communityVerified: 0, communityReported: 0, allVisible: 0 }]));
+  const perPrefecture = new Map(PREFECTURES.map(([code, name]) => [code as string, { code, name, official: 0, communityVerified: 0, visitedConfirmed: 0, communityReported: 0, allVisible: 0 }]));
   let unassigned = 0;
   let assignedBySeedArea = 0;
   for (const s of spots) {
@@ -65,6 +79,7 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
     if (p.method === "seedArea") assignedBySeedArea++;
     const row = perPrefecture.get(p.code)!;
     row[tierOf(s)]++;
+    if (stage(s) === "visitedConfirmed") row.visitedConfirmed++;
     row.allVisible++;
   }
   const prefectures = [...perPrefecture.values()];
@@ -109,5 +124,6 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
       officialOnly: { covered: officialCovered, rate: stations.length === 0 ? null : Math.round((officialCovered / stations.length) * 1000) / 1000 },
       allVisible: { covered: allCovered, rate: stations.length === 0 ? null : Math.round((allCovered / stations.length) * 1000) / 1000 },
     },
+    seedAreaCoverage: { radiusMeters: SEED_RADIUS_METRES, overlapping: true, areas: seedAreaMetrics(spots, upgraded) },
   };
 }

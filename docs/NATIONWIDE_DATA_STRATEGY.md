@@ -255,3 +255,41 @@ rights are granted:
   usable spots); official coverage is reported beside it and never inflated.
 - **Later:** venue/operator self-registration as its own operator source; photo evidence as its own issue.
 
+## 14. Nationwide community seed campaign (#149)
+
+The next nationwide channel is community collection, using #145's research as **area-selection evidence**, rather
+than repeating increasingly fine source-approval searches. `services/data-pipeline/research/community-acquisition/`
+contains the coordinate-free manifest, aggregate coverage snapshot, deterministic campaign JSON/Markdown and first
+1,000-spot rollout plan. `services/api: npm run community:seed` joins current published-coverage counts, major-station
+area metrics, review verdicts and the manifest. Optional station metrics must share the coverage snapshot date/revision.
+
+The initial campaign has **249 seeds / 47 prefectures**, including 140 stations, 46 airports, 56 downtown areas,
+5 official-lead districts and 2 other coverage gaps. All **52 official-information groups** are reflected (98 seeds
+across categories); JR East's incomplete and JR Central's pending research remain weaker investigation context.
+Seed names identify independently authored public geographic units, not copied smoking-place inventories. Airport
+requests explicitly separate existence, exact location and public/ticketed/facility access. Contributors investigate
+station rooms, public areas, facilities, independently confirmed konbini ashtrays, tobacco-shop spaces, cafés,
+smoking-permitted restaurants and small outdoor places; a host never proves permission.
+
+Priority follows a reviewable decision table: 0–2 visible spots in national/metropolitan/large-transfer/Shinkansen
+hubs → P0; capital station/downtown, airport or explicit official lead → P1; other sparse regions → P2; 3+ visible →
+P3; 5+ visible with 3+ official/verified → sufficientlyCovered. Missing counts mean unknown; no population/passenger
+figures or AI score is invented. Full reasons and thresholds live in the campaign README and generated report.
+
+The fixed repository baseline has **232 zero-coverage areas**, 132 uncovered major stations, P0/P1/P2/P3 =
+67/134/35/13; 44 prefectures still have zero published spots. This is measured from six pinned reviewed-source
+fixtures in a fresh local migrated corpus, **not live production telemetry**. The published baseline remains 513
+official / 0 community spots in three prefectures; 47/47 **seed representation never counts as spot coverage**.
+
+PR #148's engine is reused: all campaign units extend the existing seed universe and zero-visible units generate
+`coverageGap` tasks; the campaign adapter maps P0→1, P1→2, P2/P3→3 to the existing wire vocabulary. Evidence requests
+remain campaign instructions until contributors supply observed exact pins; ordinary spot confirmation/location/type/
+access tasks then apply. No new UI/API, canonical seed-import path, source approval or rights waiver is introduced.
+The geographic-centre list uses hand-authored two-decimal approximate public geography, never official smoking pins,
+OSM feature values or third-party map/app values. Area circles overlap and are not a licensed station-volume metric.
+
+Execution plan: pilot 100 unique accepted spots in five zero-coverage P0 markets, expand by 600 in the remaining
+top-20 areas, add a distinct 235 across all 47 prefectures, then 65 via airport/access sweeps or replacement P1 gaps.
+Track deduplicated community-origin published spots and independent confirmations separately; review individually,
+refresh aggregate coverage weekly, and rotate sufficiently covered areas toward current gaps. Issue #124's terms /
+rights approval remains required before community publication; until then published community coverage stays zero.

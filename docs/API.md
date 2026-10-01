@@ -553,6 +553,12 @@ published spot within the radius. The request carries nothing — no location, n
 is the same for every caller. It is derived from the published corpus and the seed-area list only, never from reports,
 so it contains no user-derived data while Issue #124 is open.
 
+The nationwide campaign (#149) extends this same seed universe to 249 approximate public geographic units
+(140 stations, 46 airports, 56 downtown areas, 5 official-lead districts and 2 other gaps). No campaign unit is a
+smoking spot. `npm run community:seed` produces an operator plan with counts, evidence requests and P0–P3 priorities;
+its adapter maps P0→1, P1→2, P2/P3→3 for `coverage-tasks.v1`. The public endpoint retains its geographic 1/2/3 display
+tiers and derives gaps directly from published spots; it does not serve operator research, counts or evidence text.
+
 ```json
 {
   "schemaVersion": 1,
