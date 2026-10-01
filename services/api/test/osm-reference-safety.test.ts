@@ -20,6 +20,13 @@ function trackedPublicationFiles() {
  assert.equal(files.status, 0, files.stderr);
  return files.stdout.trim().split("\n").filter(Boolean).map(file => [file, createHash("sha256").update(readFileSync(join(root, file))).digest("hex")]);
 }
+function workspaceChanges() {
+ return [["diff", "--raw"], ["ls-files", "--others", "--exclude-standard"]].map(args => {
+  const result = spawnSync("git", args, {cwd: root, encoding: "utf8"});
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout;
+ });
+}
 test("OSM reference CLI cannot change approved corpus, fixtures, registry, tiles or promotion", async t => {
  const dir = mkdtempSync(join(tmpdir(), "osm-reference-safety-"));
  t.after(() => rmSync(dir, {recursive: true, force: true}));
@@ -28,6 +35,7 @@ test("OSM reference CLI cannot change approved corpus, fixtures, registry, tiles
  const tables = ["sources", "source_releases", "source_records", "source_observations", "spots", "spot_field_provenance", "tile_snapshots", "tile_snapshot_spots"];
  const beforeRows = tables.map(table => queryRows(db, table));
  const beforeFiles = trackedPublicationFiles();
+ const beforeWorkspace = workspaceChanges();
  const beforeBundle = await buildMultiSourcePromotionBundle(db);
  const input = join(dir, "reference.json"), output = join(dir, "queue.json");
  writeFileSync(input, JSON.stringify({candidates: [{id: 938742938742, latitude: 23.456789, longitude: 123.456789,
@@ -39,6 +47,7 @@ test("OSM reference CLI cannot change approved corpus, fixtures, registry, tiles
  assert.doesNotMatch(readFileSync(output, "utf8"), /REFERENCE_ONLY|938742938742|23\.456789|123\.456789|opening_hours|amenity/);
  assert.deepEqual(tables.map(table => queryRows(db, table)), beforeRows);
  assert.deepEqual(trackedPublicationFiles(), beforeFiles);
+ assert.deepEqual(workspaceChanges(), beforeWorkspace);
  const afterBundle = await buildMultiSourcePromotionBundle(db);
  assert.equal(afterBundle.sql, beforeBundle.sql);
  assert.doesNotMatch(afterBundle.sql, /REFERENCE_ONLY|938742938742|23\.456789|123\.456789|OpenStreetMap|ODbL/);
