@@ -395,3 +395,25 @@ and connects existing-spot reports (Issue #127). Code: `services/api/src/reports
 - The date a reviewer applied community evidence (`spots.last_reviewed_on`) is review metadata, not an observation;
   it is published at month precision only (`verification.lastReviewedMonth`) because a single report's review day is
   close to its submission day. `lastVerifiedAt` stays `null` for community spots.
+
+## Amendment 2026-10-01 — community acquisition engine (ADR-0013)
+
+- **A confirmation is evidence about a spot, not about a person.** The one-tap "it was here" is an `exists` report with
+  the spot ID only: no note, no observed day, no pin. MannerPath records no device position, route, dwell time,
+  arrival time or per-user visit list for it; migration 0024 adds no coordinate, device or time-of-movement column
+  (asserted in `test/community-acquisition.test.ts`).
+- **Findings are categorical place facts.** `notFound`, `removed` and `wrongType` (`reports.finding`) and the
+  correction claims (proposed spot type, access, tobacco support) describe a place: they are part of the immutable
+  proposal and survive redaction, like the ADR-0012 categorical claims. No new free text is accepted.
+- **Retention is unchanged.** Notes, pins, observed days, free-text claims and submitter keys are minimized at 90 days.
+  Independence (distinct submitters) can therefore only be shown inside that window; after it, reports still count as
+  reports but never as independent evidence.
+- **Read-only views expose no personal data.** Evidence state, correction and duplicate candidates, triage and
+  coverage tasks return IDs, categories, states, flags and counts — never a note, a submitter key or a report's date.
+  Report dates order evidence inside the database and are never returned.
+- **Nothing location-revealing leaves the device for tasks.** Nearby confirmation tasks and duplicate suggestions are
+  computed on the iPhone from tiles it already holds. `GET /v1/coverage/tasks` takes no parameters.
+- **Remembered consent is per version and explicit.** The iPhone remembers the terms version the user explicitly
+  agreed to, only to show it as agreed on a later quick confirmation of the same version; any other version asks again,
+  and turning the agreement off forgets it.
+

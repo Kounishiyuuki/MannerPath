@@ -64,6 +64,11 @@ Exit: real launch-region data flows from source to device.
 - coverage-first multi-confidence model (ADR-0012, Issue #143): community tiers `communityReported` /
   `communityVerified`, structured new-spot claims, confidence axes on tiles, iPhone/Watch labels and filters —
   implemented; publishes nothing user-derived until Issue #124's rights are granted.
+- community acquisition engine (ADR-0013): add-a-place entry, one-tap "it was here", structured corrections and
+  negative findings, absence review/hold, relocation and duplicate candidates, moderation triage, coverage tasks and
+  seed areas, acquisition targets, prefecture and seed-station metrics — implemented; still gated by Issue #124.
+  Follow-ups: community evidence photo attachments; venue/operator self-registration source; licensed station
+  reference dataset for top-50/top-300 coverage.
 
 ## Phase 6 — Nationwide data architecture
 

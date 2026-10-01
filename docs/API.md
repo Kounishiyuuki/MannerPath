@@ -259,6 +259,17 @@ server responses, while the report body is the server's minimization boundary.)
   `hoursNote` are personal content like `note`: shown to reviewers, minimized after 90 days, never published. A single
   report becomes a `communityReported` listing only with consent and a known `spotType`; a host type alone (a
   convenience store, a café) never does.
+- ADR-0013 existing-spot findings (only where `/v1/config` `reports.existingSpotFindings` is `true`): `type` may also be
+  `notFound` ("I looked and could not find it"), `removed` ("it has been removed") or `typeChanged` ("it is a different
+  kind of place"). Each needs `spotId` and rejects `proposedLocation`. They are stored as report type `other` plus a
+  closed `finding` (migration 0024), are part of the immutable proposal and survive redaction. A wrong location stays
+  `moved` with its pin.
+- ADR-0013 correction `claim` on an existing-spot report (same config flag), validated per type and categorical only —
+  no free text: `typeChanged` → `{ "spotType": required, "spotSubtype"? }`; `accessChanged` → `{ "accessType": required,
+  "accessDetail"? (needs facilityOnly) }`; `tobaccoTypeChanged` → `{ "supportsPaper"?, "supportsHeated"? }`. Every other
+  existing-spot type (`exists`, `notFound`, `removed`, `moved`, `hoursChanged`, `prohibited`, `other`) rejects `claim`.
+  A correction is a proposal for a reviewer; no canonical field is ever written from it. A one-tap "still here" is
+  `exists` with `spotId` only: no note, date or location is needed.
 - `acceptedTermsVersion`: optional. The report terms version the user **explicitly agreed to** in the
   client before sending (Issue #124). When present it must equal `reports.termsVersion` from
   `/v1/config`; any other version is refused with `409 termsVersionOutdated` and nothing is stored. A
@@ -473,13 +484,13 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
   "dataTileZoom": 14,
   "schemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
   "minimumSupportedSchemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
-  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true }
+  "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true, "existingSpotFindings": true }
 }
 ```
 
 On a deployment that requires App Attest, the report entries read
 `"schemaVersions": {…, "report": 2}`, `"minimumSupportedSchemaVersions": {…, "report": 2}` and
-`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true }`.
+`"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true, "existingSpotFindings": true }`.
 
 - `schemaVersion`: the schema version of *this* body.
 - `apiVersion`: the base path this document describes (`v1`).
@@ -519,6 +530,8 @@ On a deployment that requires App Attest, the report entries read
   consent to it is recorded, but it grants no publication rights until a legal/maintainer approval.
 - `reports.newSpotClaims`: whether a `missing` report may carry `claim` (ADR-0012). A deployment before migration 0023
   omits it; read absence as `false` and never send `claim` there (the report schema is strict).
+- `reports.existingSpotFindings`: whether `notFound` / `removed` / `typeChanged` and the existing-spot correction `claim`
+  are accepted (ADR-0013). A deployment before migration 0024 omits it; read absence as `false`.
 - Clients ignore unknown fields here as everywhere else; a value added later is additive.
 
 Responses:
@@ -530,6 +543,42 @@ Responses:
 The handler reads no database, so `/config` stays available while data is being republished. It is
 deliberately not cached for longer than a revalidation: a stale `reports.available` would advertise
 an entry point the server refuses (`docs/OPERATIONS.md`).
+
+## GET `/coverage/tasks`
+
+### schemaVersion 1 (implemented, ADR-0013)
+
+Public, read-only **coverage-gap** tasks: seed areas (`services/api/src/coverage/seed-areas.ts`, `seed-areas.v1`) with no
+published spot within the radius. The request carries nothing — no location, no identifier, no query — and the body
+is the same for every caller. It is derived from the published corpus and the seed-area list only, never from reports,
+so it contains no user-derived data while Issue #124 is open.
+
+```json
+{
+  "schemaVersion": 1,
+  "rules": "coverage-tasks.v1",
+  "seedAreas": "seed-areas.v1",
+  "meaning": "information around this area is thin; this is not a claim that a smoking place exists",
+  "tasks": [
+    { "kind": "coverageGap", "seedAreaId": "tokyo-shinjuku", "name": "新宿駅・歌舞伎町周辺", "prefecture": "13", "priority": 1,
+      "area": { "latitude": 35.69, "longitude": 139.70, "radiusMeters": 1000 } }
+  ]
+}
+```
+
+- A gap is **an area whose information is thin**, never a place and never a claim that smoking is permitted there.
+  Clients must not draw it as a spot.
+- Centres are approximate (two decimals); `priority` is a campaign tier (1 national hubs, 2 prefectural main stations,
+  airports and tourist hubs, 3 other districts), not a score.
+- **Spot tasks are not served here.** `needsConfirmation`, `needsLocationCheck`, `needsTypeCheck` and `needsAccessCheck`
+  follow from each published spot's own tile fields (`coverage-tasks.v1`, `contracts/coverage/coverage-tasks.v1.json`),
+  so a client derives them from tiles it already holds and never tells the server where it is. `needsRecheck` follows
+  from moderated reports and is produced only for operators, and for the public only once community rights are granted.
+- `Cache-Control: public, no-cache`. Unknown fields are ignored by clients, as everywhere.
+
+| Case | Status | Body / headers |
+|---|---|---|
+| Always | `200` | Body above |
 
 ## Versioning
 

@@ -85,6 +85,35 @@ Measured on a fresh local D1 (all 23 migrations, the six reviewed fixtures):
 | Community, rights blocked (simulated reports) | 2 canonical (1 reported, 1 verified); coverage unchanged at 513; spot detail 404 |
 | Community, rights simulated granted | `allVisible` 515 = 513 official + 2 community; after an independent `exists` confirmation both are `communityVerified`; the only failing check is `registry-row-matches-reviewed-entry`, because the simulation edits the local row by hand |
 
+## Community acquisition metrics (ADR-0013) **[measured 2026-10-01]**
+
+The report adds `nationwide.communityAcquisition` (`community-acquisition-metrics.v1`): published `officialVerified` /
+`reportedSpots` / `visitedConfirmed` / `communityVerified` / `allVisible`, `canonicalCommunity` (held back by rights),
+`spotsNeedingConfirmation`, `staleSpots`, `locationCorrectionsPending`, `coverageGaps` by tier, confirmations in the
+last 7/30 days, `prefectureCoverage` (47 rows: official, communityVerified, communityReported, allVisible; assignment by
+source jurisdiction, community spots only inside a seed area, else `unassigned`) and `seedStationCoverage` (52 hand-
+entered seed stations within 1 km, official-only vs all-visible). The licensed top-50/top-300 `stationCoverage` stays
+`notComputableYet`.
+
+Measured on a fresh local D1 (all 24 migrations, the six reviewed fixtures, then simulated reports: one reported spot
+confirmed by a second person, one reported spot with two independent negative findings, two agreeing `moved` pins on an
+official spot, one duplicate new-spot proposal):
+
+| | Rights blocked (#124 as is) | Rights simulated granted |
+| --- | --- | --- |
+| Published / official / community | 513 / 513 / 0 | 514 / 513 / 1 (`visitedConfirmed`) |
+| Canonical community spots | 2 (1 reported, 1 verified), detail 404 | 2; 1 withdrawn by the absence hold |
+| Absence hold | `blocked`: sourceNotApproved, termsNotGranted | `held`; the spot left the tiles, the row stays |
+| Prefectures with usable spots / with official | 3 / 3 (東京都, 京都府, 大阪府) | 3 / 3; 1 community spot placed by seed area |
+| Seed stations covered, official-only / all-visible | 4 / 4 of 52 (7.7%) | 4 / 5 of 52 (9.6%) |
+| Coverage-gap tasks | 60 (15 tier 1, 43 tier 2, 2 tier 3) | 59 |
+| Location corrections pending / duplicate candidates | 1 relocationCandidate / 1 | — |
+| Triage rightsBlocked | 8 of 8 accepted | 0 |
+| Failed checks | none | `registry-row-matches-reviewed-entry` only (the simulation edits the local row by hand) |
+
+The v3 promotion bundle from the blocked state verified against its manifest hash and bootstrapped a fresh D1: 513
+spots, 0 reports, 0 absence applications, sealed.
+
 The freshness gate in `NATIONWIDE_DATA_STRATEGY.md` §6 is measured on official spots; the four undated sources are
 reported as `unknown`, not as stale and not as fresh.
 

@@ -101,6 +101,14 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 - new-spot reports carry a structured claim (kind of place — required, "not sure" allowed — plus optional access,
   host, indoor/outdoor, tobacco support, shop name and hours note); names and hours notes are reviewer-only and
   minimized after 90 days;
+- an "Add a smoking place" entry on the Nearby screen (toolbar, and the empty state) that starts the pin-first
+  new-spot report, and shows listed places within 50 m ("Is it one of these?") before adding (ADR-0013);
+- on every place: "It was here" — a one-tap confirmation that sends no free text, date or location — and "Something
+  is different" with structured findings (not found, removed, location, type, access, hours, tobacco, prohibited);
+- the detail page states how far the place is confirmed in plain words (officially confirmed / confirmed by N users,
+  last confirmed month / reported by one user, no one else yet / not confirmed for a while);
+- a light, dismissible "places nearby waiting for confirmation" block in Nearby — no push, no streaks, no rewards;
+- after submitting: "Thanks for your report. It may be reflected after review" — never a promise of listing;
 - no account required to browse/search.
 
 ### Should
@@ -129,7 +137,9 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 - quick filters based on saved iPhone preferences;
 - start navigation/handoff with as few taps as practical;
 - use cached spot snapshot when network/iPhone is unavailable;
-- offline distance + bearing to selected spot.
+- offline distance + bearing to selected spot;
+- no report form on Watch: a place's detail says that confirmations are sent from iPhone (ADR-0013; App Attest, terms
+  and the review notice live on iPhone).
 
 ### Should
 

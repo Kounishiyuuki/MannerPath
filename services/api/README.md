@@ -89,6 +89,16 @@ npm run local:reports -- effect-propose reviewer-1 rp_A rp_B  # one type, one sp
 npm run local:reports -- effect-apply ce_...                  # records the review candidate; changes nothing canonical
 npm run local:reports -- effect-hold ce_...                   # prohibited only; `blocked` until community rights hold (#124)
 npm run local:reports -- effect-lift ce_... reviewer-2        # reviewed lift, then republish
+# ADR-0013 community acquisition (migration 0024). Read-only triage; there is no bulk accept.
+npm run local:reports -- triage pending missing,correction     # filter by category; optional flag: duplicateCandidate|highReportCount|conflicting|old
+npm run local:reports -- triage-summary                       # pending / accepted / rejected / applied / rightsBlocked per category
+npm run local:reports -- evidence                             # per spot: normal | needsRecheck | reviewCandidate | held, + conflicting
+npm run local:reports -- corrections                          # moved pins: awaitingIndependentConfirmation | relocationCandidate
+npm run local:reports -- duplicates                           # new-spot proposals within 50 m of a live spot or another proposal
+npm run local:reports -- absence-propose reviewer-1 rp_A rp_B  # notFound/removed reports about one spot
+npm run local:reports -- absence-apply cn_...                 # review candidate only; nothing canonical changes
+npm run local:reports -- absence-hold cn_...                  # unpublish; `blocked` until 2 independent submitters AND rights (#124)
+npm run coverage:targets -- --json                            # research replay -> community acquisition targets + seed priority
 ```
 
 App Attest (ADR-0007 §6, Issue #37) lives in `src/attest/`: a minimal CBOR and DER/X.509 reader,

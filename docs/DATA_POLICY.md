@@ -54,6 +54,12 @@ labelled 「利用者報告・未確認」, and `communityVerified` after an ind
 **host**; it is never the evidence. The same holds for cafés and restaurants: a report that smoking is permitted
 there can create a `smokingPermittedVenue` listing, a café's existence cannot.
 
+ADR-0013 adds the collection side: structured existing-spot findings (`notFound`, `removed`, `typeChanged`, corrections)
+and on-site confirmations. A finding is evidence for review, never an edit; one negative report never removes a place,
+and a corroborated absence hold needs the same community rights (Issue #124) as publication. Seed areas and coverage
+gaps are collection priorities, never smoking-place data, and are never published as spots. Future venue/operator
+self-submissions will arrive as their own operator source, distinguishable from community reports by provenance.
+
 ## Contradicting official publications
 
 A publisher may publish the same facts twice — an open-data release and an ordinary web page, say —
