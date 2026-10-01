@@ -28,7 +28,9 @@
     "e2e:config": "node --experimental-strip-types --no-warnings scripts/disposable-env.ts",
     "community:seed": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/community-seed.ts",
     "community:status": "node --experimental-strip-types --no-warnings scripts/community-activation.ts status",
-    "community:activate": "node --experimental-strip-types --no-warnings scripts/community-activation.ts activate"
+    "community:activate": "node --experimental-strip-types --no-warnings scripts/community-activation.ts activate",
+    "scale:community": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/scale-community.ts",
+    "campaign:progress": "node --experimental-strip-types --no-warnings scripts/campaign-progress.ts"
   },
   "dependencies": {
     "hono": "4.13.8",

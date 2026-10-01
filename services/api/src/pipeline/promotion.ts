@@ -240,7 +240,7 @@ const MULTI_SOURCE_TABLES: readonly TableSpec[] = TABLES.flatMap((t) => (t.table
 
 type Row = Record<string, unknown>;
 
-async function rowsOf(db: Db, spec: TableSpec, releaseId: number | undefined): Promise<Row[]> {
+async function rowsOf(db: Db, spec: TableSpec, releaseId: number | string | undefined): Promise<Row[]> {
   // Two specs carry no parameter (the published tiles are whole-database state), and binding a
   // value to a statement that has no placeholder is an error; the attestation spec has two.
   const placeholders = spec.sql.split("?").length - 1;
@@ -340,8 +340,8 @@ async function validatePublishedState(db: Db, releaseIds: readonly number[], row
     `SELECT s.spot_id FROM tile_snapshot_spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id
-     WHERE r.release_id NOT IN (${releaseIds.map(() => "?").join(", ")}) ORDER BY s.spot_id`,
-  ).bind(...releaseIds).all<{ spot_id: string }>();
+     WHERE r.release_id NOT IN (SELECT value FROM json_each(?)) ORDER BY s.spot_id`,
+  ).bind(JSON.stringify(releaseIds)).all<{ spot_id: string }>();
   if (outside.results.length > 0) {
     fail(`${outside.results.length} published spot(s) draw existence evidence from another release (first: ${outside.results[0].spot_id}); export that release instead, or republish`);
   }
@@ -428,10 +428,16 @@ function validateCrossSourceMerges(rows: Map<string, Row[]>): void {
     }
     if (!spots.has(String(a.survivor_spot_id)) || !spots.has(String(a.loser_spot_id))) fail(`cross-source merge of ${String(a.loser_spot_id)}: its spots are not carried`);
   }
+  const justifiedRedirects = new Map<string, Set<string>>();
+  for (const a of attestations) {
+    const survivor = String(a.survivor_spot_id), redirected = justifiedRedirects.get(survivor) ?? new Set<string>();
+    redirected.add(String(a.loser_spot_id));
+    for (const id of JSON.parse(String(a.redirected_spot_ids_json)) as string[]) redirected.add(id);
+    justifiedRedirects.set(survivor, redirected);
+  }
   for (const s of spots.values()) {
     if (s.merged_into === null) continue;
-    const justified = attestations.some((a) => a.survivor_spot_id === s.merged_into && (a.loser_spot_id === s.spot_id
-      || (JSON.parse(String(a.redirected_spot_ids_json)) as string[]).includes(String(s.spot_id))));
+    const justified = justifiedRedirects.get(String(s.merged_into))?.has(String(s.spot_id));
     if (!justified) fail(`spot ${String(s.spot_id)} redirects to ${String(s.merged_into)} without an attested cross-source merge`);
   }
 }
@@ -440,6 +446,13 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
   const spots = rows.get("spots") ?? [];
+  const spotsById = new Map(spots.map((s) => [String(s.spot_id), s]));
+  const sourcesById = new Map(sources.map((s) => [String(s.source_id), s]));
+  const membersByTile = new Map<string, string[]>();
+  for (const member of members) {
+    const tileId = String(member.tile_id), ids = membersByTile.get(tileId) ?? [];
+    ids.push(String(member.spot_id)); membersByTile.set(tileId, ids);
+  }
   for (const tile of rows.get("tile_snapshots") ?? []) {
     const tileId = String(tile.tile_id);
     const body = String(tile.body_json);
@@ -449,7 +462,7 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
     if (parsed.data.tile !== tileId) fail(`tile ${tileId}: body names tile ${parsed.data.tile}`);
     if (parsed.data.spots.length !== tile.spot_count) fail(`tile ${tileId}: spot_count does not match the body`);
 
-    const published = members.filter((m) => m.tile_id === tileId).map((m) => String(m.spot_id)).sort();
+    const published = (membersByTile.get(tileId) ?? []).sort();
     const inBody = parsed.data.spots.map((s) => s.id).sort();
     if (published.join(",") !== inBody.join(",")) fail(`tile ${tileId}: snapshot membership does not match the body`);
 
@@ -458,8 +471,8 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
     // what publishTiles would write from the canonical rows this bundle carries, or the tiles are stale.
     const raw = JSON.parse(body) as { spots: { id: string }[] };
     for (const bodySpot of raw.spots) {
-      const spot = spots.find((s) => s.spot_id === bodySpot.id);
-      const source = sources.find((s) => s.source_id === (bodySpot as { sourceIds?: string[] }).sourceIds?.[0]);
+      const spot = spotsById.get(bodySpot.id);
+      const source = sourcesById.get((bodySpot as { sourceIds?: string[] }).sourceIds?.[0] ?? "");
       if (spot === undefined || source === undefined || JSON.stringify(spotDto({ ...spot, ...source, source_kind: source.kind } as unknown as CandidateRow)) !== JSON.stringify(bodySpot)) {
         fail(`tile ${tileId}: body for spot ${bodySpot.id} does not match its canonical row; republish before exporting`);
       }
@@ -467,7 +480,7 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
 
     // Attribution travels with the data or the data does not travel (DATA_POLICY.md).
     for (const bodySource of parsed.data.sources) {
-      const row = sources.find((s) => s.source_id === bodySource.id);
+      const row = sourcesById.get(bodySource.id);
       if (row === undefined) fail(`tile ${tileId}: body cites source ${bodySource.id}, which this bundle does not carry`);
       if (bodySource.attributionText === null || bodySource.attributionText !== row.attribution_text) {
         fail(`tile ${tileId}: attribution for ${bodySource.id} is missing or does not match the registry row`);
@@ -668,12 +681,20 @@ export async function buildMultiSourcePromotionBundle(
 
   // Validate each release on its own first (existence, applied, current, approved, registry identity), then order
   // by source id (and release id), so the same set named in any order yields the same bytes.
+  const { results: requestedReleases } = await db.prepare(
+    "SELECT * FROM source_releases WHERE release_id IN (SELECT value FROM json_each(?))",
+  ).bind(JSON.stringify(requested)).all<Row>();
+  const { results: requestedSources } = await db.prepare(
+    "SELECT * FROM sources WHERE source_id IN (SELECT source_id FROM source_releases WHERE release_id IN (SELECT value FROM json_each(?)))",
+  ).bind(JSON.stringify(requested)).all<Row>();
+  const releaseById = new Map(requestedReleases.map((r) => [Number(r.release_id), r]));
+  const sourceById = new Map(requestedSources.map((r) => [String(r.source_id), r]));
   const releases: Row[] = [];
   const additiveSources = new Set<string>();
   for (const id of requested) {
-    const release = await db.prepare("SELECT * FROM source_releases WHERE release_id = ?").bind(id).first<Row>();
-    const { results: sources } = await db.prepare(`SELECT * FROM sources WHERE source_id = (${RELEASE_SOURCE})`).bind(id).all<Row>();
-    await validateRelease(db, id, sources, release ?? undefined, registry);
+    const release = releaseById.get(id), source = sourceById.get(String(release?.source_id));
+    const sources = source ? [source] : [];
+    await validateRelease(db, id, sources, release, registry);
     if (sources[0].kind === "userReport") additiveSources.add(String(sources[0].source_id));
     releases.push(release!);
   }
@@ -691,16 +712,28 @@ export async function buildMultiSourcePromotionBundle(
 
   const specs = additiveSources.size > 0 ? ADDITIVE_TABLES : MULTI_SOURCE_TABLES;
   const rows = new Map<string, Row[]>();
+  const releaseOrder = new Map(releaseIds.map((id, i) => [id, i]));
+  const sourceOrder = new Map(anchors.map((r, i) => [String(r.source_id), i]));
+  const recordRelease = new Map<number, number>();
   for (const spec of specs) {
     const scoped = spec.sql.includes("?");
     const perSource = spec.sql.includes(RELEASE_SOURCE);
-    const collected: Row[] = [];
-    for (const id of !scoped ? [undefined] : perSource ? anchorIds : releaseIds) collected.push(...await rowsOf(db, spec, id));
-    // A terms version several community releases name is one row.
-    rows.set(spec.table, spec === REPORT_TERMS_ROWS
-      ? [...new Map(collected.map((r) => [String(r.terms_version), r])).values()]
-        .sort((a, b) => (String(a.terms_version) < String(b.terms_version) ? -1 : 1))
-      : collected);
+    let sql = spec.sql;
+    // The original table specifications remain the source of truth for columns and ordering.
+    // Replace only their release/source predicates with a single JSON-set parameter.
+    if (perSource) sql = sql.replace(`= (${RELEASE_SOURCE})`,
+      "IN (SELECT source_id FROM source_releases WHERE release_id IN (SELECT value FROM json_each(?)))");
+    else if (scoped) sql = sql.replace(/release_id = \?/g, "release_id IN (SELECT value FROM json_each(?))");
+    const collected = await rowsOf(db, { ...spec, sql }, scoped ? JSON.stringify(perSource ? anchorIds : releaseIds) : undefined);
+    if (spec.table === "source_records") for (const row of collected) recordRelease.set(Number(row.record_id), Number(row.release_id));
+    // Stable sort restores the historical source/release concatenation order while retaining each
+    // specification's SQL order within one scope. Existing bundles therefore remain byte-identical.
+    if (scoped && spec !== REPORT_TERMS_ROWS) collected.sort((a, b) => {
+      const rank = (r: Row) => perSource ? sourceOrder.get(String(r.source_id)) ?? 0
+        : releaseOrder.get(Number(r.release_id ?? recordRelease.get(Number(r.record_id)))) ?? 0;
+      return rank(a) - rank(b);
+    });
+    rows.set(spec.table, collected);
   }
   await validatePublishedState(db, releaseIds, rows);
   validateReviewAttestations(rows);
@@ -715,7 +748,7 @@ export async function buildMultiSourcePromotionBundle(
   const of = (table: string) => rows.get(table) ?? [];
   const sourceRows = new Map(of("sources").map((s) => [String(s.source_id), s]));
   const entitySource = new Map(of("source_entities").map((e) => [Number(e.source_entity_id), String(e.source_id)]));
-  const recordRelease = new Map(of("source_records").map((r) => [Number(r.record_id), Number(r.release_id)]));
+  const carriedRecordRelease = new Map(of("source_records").map((r) => [Number(r.record_id), Number(r.release_id)]));
   const declared: MultiSourcePromotionSource[] = anchors.map((release) => {
     const sourceId = String(release.source_id);
     const releaseId = Number(release.release_id);
@@ -723,7 +756,7 @@ export async function buildMultiSourcePromotionBundle(
     const ownIds = new Set(own.map((r) => Number(r.release_id)));
     const source = sourceRows.get(sourceId)!;
     const inRelease = (r: Row) => ownIds.has(Number(r.release_id));
-    const ofRecord = (recordId: unknown) => ownIds.has(recordRelease.get(Number(recordId)) ?? -1);
+    const ofRecord = (recordId: unknown) => ownIds.has(carriedRecordRelease.get(Number(recordId)) ?? -1);
     const declaration: MultiSourcePromotionSource = {
       sourceId,
       releaseId,

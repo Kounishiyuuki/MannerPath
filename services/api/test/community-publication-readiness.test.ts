@@ -9,7 +9,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
-import { isoSeconds } from "../src/db.ts";
+import { type Db, isoSeconds } from "../src/db.ts";
 import { COMMUNITY_REGISTRY, COMMUNITY_SOURCE_ID } from "../src/pipeline/community-adapter.ts";
 import {
   COMMUNITY_EFFECTS, CommunityEffectError, applyCommunityEffect, communityRights, holdCommunityEffect, liftCommunityHold,
@@ -262,7 +262,17 @@ test("promotion v3 carries several additive community releases to a fresh databa
   // The reviewed lists in code still say blocked/pending: without the simulated registry the export refuses the published spots.
   await assert.rejects(buildMultiSourcePromotionBundle(db), /draw existence evidence from another release/);
 
-  const bundle = await buildMultiSourcePromotionBundle(db, { registry: SIMULATED_REGISTRY });
+  let statements = 0;
+  const boundedDb: Db = {
+    prepare(sql) {
+      statements++;
+      assert.ok((sql.match(/\?/g) ?? []).length <= 2, "release sets must not grow SQL bind counts");
+      return db.prepare(sql);
+    },
+    batch: (queries) => db.batch(queries),
+  };
+  const bundle = await buildMultiSourcePromotionBundle(boundedDb, { registry: SIMULATED_REGISTRY });
+  assert.ok(statements <= 25, `promotion must read tables as sets, got ${statements} statements`);
   const community = bundle.manifest.sources.find((s) => s.sourceId === COMMUNITY_SOURCE_ID)!;
   assert.deepEqual(community.additiveReleases!.map((r) => r.releaseId), [first.releaseId, second.releaseId].sort((a, b) => a - b));
   assert.equal(community.releaseId, Math.min(first.releaseId, second.releaseId), "the anchor is the lowest release");
@@ -491,7 +501,7 @@ test("the effects queue shows counts, submitters, rights, staleness and target e
   await acceptAndQueue(s.reports, a, b, c);
   // REPORTS_DB: what a reviewer could decide next.
   const queue = await listExistingSpotQueue(s.reports, { now: APPLY });
-  assert.deepEqual(queue, [{ spotId, reportType: "prohibited", finding: null, effect: "publicationHoldReview", reportCount: 3,
+  assert.deepEqual(queue, [{ spotId, reportType: "prohibited", finding: null, cursor: `${spotId}/prohibited/`, effect: "publicationHoldReview", reportCount: 3,
     independentSubmitters: 2, redactedOrStale: 0, commonTermsVersion: TERMS }], "two reports of one submitter count once");
   assert.doesNotMatch(JSON.stringify(queue), new RegExp(`${NOTE}|${OBSERVED}|${HASHES[0]}|${HASHES[1]}`));
   const { applicationId } = await proposeEffect(s, { reportIds: [a, b], decidedBy: "r", now: APPLY });

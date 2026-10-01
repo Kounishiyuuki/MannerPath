@@ -560,7 +560,8 @@ The nationwide campaign (#149) extends this same seed universe to 249 approximat
 (140 stations, 46 airports, 56 downtown areas, 5 official-lead districts and 2 other gaps). No campaign unit is a
 smoking spot. `npm run community:seed` produces an operator plan with counts, evidence requests and P0–P3 priorities;
 its adapter maps P0→1, P1→2, P2/P3→3 for `coverage-tasks.v1`. The public endpoint retains its geographic 1/2/3 display
-tiers and derives gaps directly from published spots; it does not serve operator research, counts or evidence text.
+tiers and derives gaps directly from published spots using indexed spatial probes in one SQL statement. The response
+is bounded by the 249 configured seed areas (no unbounded spot list); it does not serve operator research, counts or evidence text.
 
 ```json
 {
@@ -587,7 +588,14 @@ tiers and derives gaps directly from published spots; it does not serve operator
 
 | Case | Status | Body / headers |
 |---|---|---|
-| Always | `200` | Body above |
+| Within spatial probe budget | `200` | Body above |
+| Spatial candidate budget exceeded | `503` | Problem `coverageTemporarilyUnavailable`; no truncated coverage claim |
+
+Coverage task spatial probes retain at most 4,096 candidate/sentinel rows. A pathological corpus concentrated only
+in uncertain bounding-box corners can exceed this operational budget; the endpoint then returns HTTP 503
+`coverageTemporarilyUnavailable`, never a truncated task list or a falsely uncovered seed. Operators should inspect
+and refresh the corpus rather than raise the bound to conceal a pathological layout. Normal dense seed centres
+short-circuit to one covered sentinel per seed. No caller location is used.
 
 ## Versioning
 

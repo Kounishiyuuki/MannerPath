@@ -45,10 +45,10 @@ import { join, resolve } from "node:path";
 import { getPlatformProxy } from "wrangler";
 import type { Db } from "../src/db.ts";
 import {
-  DECISION_REASONS, type DecisionReason, type ExposedReconciliationState, type ModerationState, listModerationQueue,
+  DECISION_REASONS, type DecisionReason, type ExposedReconciliationState, type ModerationState, listModerationQueue, moderationQueuePage,
   moderationPipelineSummary, recordModerationDecision, setReconciliationState,
 } from "../src/reports/moderation.ts";
-import { runReportRetention } from "../src/reports/retention.ts";
+import { applyReportRetention, runReportRetention } from "../src/reports/retention.ts";
 import { type ModerationTarget, moderationTarget, targetBanner } from "../src/reports/moderation-target.ts";
 import {
   exportReview, listExistingSpotQueue, listNewSpotCandidates, listReviews, proposeAbsenceReview, proposeEffectReview,
@@ -63,11 +63,24 @@ import { upgradeCommunityEvidence } from "../src/pipeline/community-verification
 import {
   applyCommunityAbsence, holdCommunityAbsence, liftCommunityAbsence, withdrawCommunityAbsence,
 } from "../src/pipeline/community-absence.ts";
-import { communityRelocationCandidates, correctionCandidates, duplicateCandidates, spotEvidenceStates } from "../src/pipeline/community-evidence.ts";
+import { communityRelocationCandidates, correctionCandidatePage, duplicateCandidatePage, evidenceStatePage } from "../src/pipeline/community-evidence.ts";
 import { importCommunityArtifact, listImportedArtifacts, spotEvidenceReportIds } from "../src/pipeline/community-artifact.ts";
-import { TRIAGE_CATEGORIES, TRIAGE_FLAGS, type TriageCategory, type TriageFlag, triageQueue, triageSummary } from "../src/reports/triage.ts";
+import { TRIAGE_CATEGORIES, TRIAGE_FLAGS, type TriageCategory, type TriageFlag, triageQueue, triageQueuePage, triageSummary } from "../src/reports/triage.ts";
 
-const parsed = moderationTarget(process.argv.slice(2), { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) });
+const rawArgs = process.argv.slice(2);
+const targetArgs: string[] = [];
+let limit: number | undefined;
+let cursor: string | undefined;
+for (let i = 0; i < rawArgs.length; i++) {
+  if (rawArgs[i] === "--limit") {
+    limit = Number(rawArgs[++i]);
+    if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("--limit needs a positive integer");
+  } else if (rawArgs[i] === "--cursor") {
+    cursor = rawArgs[++i];
+    if (!cursor || cursor.startsWith("--")) throw new Error("--cursor needs a value");
+  } else targetArgs.push(rawArgs[i]);
+}
+const parsed = moderationTarget(targetArgs, { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) });
 if (!parsed.ok) {
   console.error(`refused: ${parsed.error}`);
   process.exit(2);
@@ -86,7 +99,7 @@ try {
   const json = (v: unknown) => console.log(JSON.stringify(v, null, 2));
 
   if (command === "list") {
-    json(await listModerationQueue(reports, { state: (args[0] as ModerationState) ?? "pending" }));
+    json(await moderationQueuePage(reports, { state: (args[0] as ModerationState) ?? "pending", limit, cursor }));
   } else if (command === "decide") {
     const [reportId, state, decidedBy, reason] = args;
     if (!reportId || !state || !decidedBy) throw new Error(`usage: decide <reportId> <state> <decidedBy> [reason: ${DECISION_REASONS.join("|")}]`);
@@ -103,7 +116,8 @@ try {
   } else if (command === "candidates") {
     const [within] = args;
     if (!within) throw new Error("usage: candidates <withinMetres>");
-    json(await listNewSpotCandidates(reports, { withinMetres: Number(within), now }));
+    const items = await listNewSpotCandidates(reports, { withinMetres: Number(within), now, limit, afterReportId: cursor });
+    json({ items, scope: "pageLocal", nextCursor: items[0]?.nextReportId ?? null });
   } else if (command === "propose") {
     const [decidedBy, locationReportId, ...reportIds] = args;
     if (!decidedBy || !locationReportId || reportIds.length === 0) throw new Error("usage: propose <decidedBy> <locationReportId> <reportId> <reportId>...");
@@ -126,9 +140,11 @@ try {
     await withdrawReview(reports, reviewId, { now });
     console.log("withdrawn", reviewId);
   } else if (command === "reviews") {
-    json(await listReviews(reports));
+    const items = await listReviews(reports, { limit, cursor });
+    json({ items, nextCursor: items.length === Math.min(limit ?? 200, 1000) ? items.at(-1)!.reviewId : null });
   } else if (command === "effects-queue") {
-    json(await listExistingSpotQueue(reports, { now }));
+    const items = await listExistingSpotQueue(reports, { now, limit, cursor });
+    json({ items, nextCursor: items.length === Math.min(limit ?? 200, 1000) ? items.at(-1)!.cursor : null });
   } else if (command === "export") {
     const [reviewId, outDir = "community-artifacts"] = args;
     if (!reviewId) throw new Error("usage: export <reviewId> [outDir]");
@@ -187,15 +203,16 @@ try {
       if (c !== "correction" && !TRIAGE_CATEGORIES.includes(c as TriageCategory)) throw new Error(`category must be one of: correction, ${TRIAGE_CATEGORIES.join(", ")}`);
     }
     if (flagArg !== undefined && !TRIAGE_FLAGS.includes(flagArg as TriageFlag)) throw new Error(`flag must be one of: ${TRIAGE_FLAGS.join(", ")}`);
-    json(await triageQueue(reports, data, { now, state, categories: categories as TriageCategory[], flag: flagArg as TriageFlag | undefined }));
+    const options = { now, state, categories: categories as TriageCategory[], flag: flagArg as TriageFlag | undefined, limit, cursor };
+    json(flagArg ? await triageQueue(reports, data, options) : await triageQueuePage(reports, data, options));
   } else if (command === "triage-summary") {
     json(await triageSummary(reports, data));
   } else if (command === "evidence") {
-    json(await spotEvidenceStates(reports, data, { now }));
+    json(await evidenceStatePage(reports, data, { now, limit, cursor }));
   } else if (command === "corrections") {
-    json(await correctionCandidates(reports, data, { now }));
+    json(await correctionCandidatePage(reports, data, { now, limit, cursor }));
   } else if (command === "duplicates") {
-    json(await duplicateCandidates(reports, data, { now }));
+    json(await duplicateCandidatePage(reports, data, { now, limit, cursor }));
   } else if (command === "absence-apply") {
     const [applicationId] = args;
     if (!applicationId) throw new Error("usage: absence-apply <applicationId>");
@@ -215,7 +232,9 @@ try {
     await withdrawCommunityAbsence(data, applicationId, { now });
     console.log("withdrawn", applicationId);
   } else if (command === "retain") {
-    console.log("retention", await runReportRetention(reports, { now }));
+    // Default drains bounded atomic passes. Explicit page flags return a resumable one-pass result.
+    console.log("retention", limit !== undefined || cursor !== undefined
+      ? await applyReportRetention(reports, { now, limit, cursor }) : await runReportRetention(reports, { now }));
   } else {
     throw new Error(`unknown command: ${command}`);
   }

@@ -76,24 +76,37 @@ interface EvidenceRow {
 export async function spotEvidenceStates(reportsDb: Db, dataDb: Db, opts: { now: Date; spotIds?: readonly string[] }): Promise<SpotEvidenceState[]> {
   const now = isoSeconds(opts.now);
   const { results } = await reportsDb.prepare(
-    `SELECT r.subject_spot_id AS spot_id,
-            CASE WHEN r.report_type = 'exists' THEN 'positive' ELSE 'negative' END AS polarity,
-            r.received_at, r.submitter_hash,
-            CASE WHEN r.redacted_at IS NULL AND r.minimize_after > ? THEN 1 ELSE 0 END AS fresh
-     FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
-     WHERE m.state = 'accepted' AND m.reconciliation_state <> 'discarded'
-       AND (r.report_type = 'exists' OR (r.report_type = 'other' AND r.finding IN ('notFound', 'removed')))
-     ORDER BY r.subject_spot_id, r.received_at, r.report_id`,
-  ).bind(now).all<EvidenceRow>();
-  const held = new Set((await dataDb.prepare("SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL")
+    `WITH evidence AS (
+       SELECT r.subject_spot_id AS spot_id, r.report_type = 'exists' AS positive, r.received_at, r.submitter_hash,
+              r.redacted_at IS NULL AND r.minimize_after > ? AS fresh
+       FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
+       WHERE m.state = 'accepted' AND m.reconciliation_state <> 'discarded' AND r.subject_spot_id IS NOT NULL
+         AND (r.report_type = 'exists' OR (r.report_type = 'other' AND r.finding IN ('notFound', 'removed')))
+         AND (? IS NULL OR r.subject_spot_id IN (SELECT value FROM json_each(?)))
+     ), latest AS (SELECT spot_id, max(CASE WHEN positive THEN received_at END) AS last_positive FROM evidence GROUP BY spot_id)
+     SELECT e.spot_id, sum(e.positive) AS positives, sum(NOT e.positive) AS negatives,
+            sum(NOT e.positive AND (l.last_positive IS NULL OR e.received_at > l.last_positive)) AS since,
+            count(DISTINCT CASE WHEN NOT e.positive AND (l.last_positive IS NULL OR e.received_at > l.last_positive) THEN e.submitter_hash END) AS independent_since,
+            CASE WHEN count(CASE WHEN e.positive AND e.fresh THEN e.submitter_hash END) > 0
+                      AND count(CASE WHEN NOT e.positive AND e.fresh THEN e.submitter_hash END) > 0
+                      AND (min(CASE WHEN e.positive AND e.fresh THEN e.submitter_hash END) <> max(CASE WHEN NOT e.positive AND e.fresh THEN e.submitter_hash END)
+                        OR max(CASE WHEN e.positive AND e.fresh THEN e.submitter_hash END) <> min(CASE WHEN NOT e.positive AND e.fresh THEN e.submitter_hash END))
+                 THEN 1 ELSE 0 END AS conflicting
+     FROM evidence e JOIN latest l ON l.spot_id = e.spot_id GROUP BY e.spot_id ORDER BY e.spot_id`,
+  ).bind(now, opts.spotIds ? JSON.stringify(opts.spotIds) : null, opts.spotIds ? JSON.stringify(opts.spotIds) : null)
+    .all<{ spot_id: string; positives: number; negatives: number; since: number; independent_since: number; conflicting: number }>();
+  const held = new Set((await dataDb.prepare("SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL AND (? IS NULL OR spot_id IN (SELECT value FROM json_each(?)))")
+    .bind(opts.spotIds ? JSON.stringify(opts.spotIds) : null, opts.spotIds ? JSON.stringify(opts.spotIds) : null)
     .all<{ spot_id: string }>()).results.map((r) => r.spot_id));
-  const bySpot = new Map<string, EvidenceRow[]>();
-  for (const r of results) {
-    if (opts.spotIds && !opts.spotIds.includes(r.spot_id)) continue;
-    bySpot.set(r.spot_id, [...(bySpot.get(r.spot_id) ?? []), r]);
-  }
-  for (const id of held) if (!bySpot.has(id) && (!opts.spotIds || opts.spotIds.includes(id))) bySpot.set(id, []);
-  return [...bySpot.entries()].map(([spotId, rows]) => evidenceState(spotId, rows, held.has(spotId)));
+  const out = results.map((r): SpotEvidenceState => ({
+    spotId: r.spot_id, positiveReports: r.positives, negativeReports: r.negatives,
+    negativesSinceLastPositive: r.since, independentNegativesSinceLastPositive: r.independent_since, conflicting: r.conflicting === 1,
+    state: held.has(r.spot_id) ? "held" : r.independent_since >= NEGATIVE_REVIEW_SUBMITTERS ? "reviewCandidate" : r.since > 0 ? "needsRecheck" : "normal",
+  }));
+  const seen = new Set(out.map((r) => r.spotId));
+  for (const id of held) if (!seen.has(id)) out.push(evidenceState(id, [], true));
+  return out;
+
 }
 
 export function evidenceState(spotId: string, rows: readonly EvidenceRow[], isHeld: boolean): SpotEvidenceState {
@@ -104,7 +117,8 @@ export function evidenceState(spotId: string, rows: readonly EvidenceRow[], isHe
   const independentSince = new Set(since.map((r) => r.submitter_hash).filter((h) => h !== null)).size;
   const freshPositive = positives.filter((r) => r.fresh === 1 && r.submitter_hash !== null);
   const freshNegative = negatives.filter((r) => r.fresh === 1 && r.submitter_hash !== null);
-  const conflicting = freshPositive.some((p) => freshNegative.some((n) => n.submitter_hash !== p.submitter_hash));
+  const negativeHashes = new Set(freshNegative.map((n) => n.submitter_hash));
+  const conflicting = freshPositive.some((p) => negativeHashes.size > 1 || (negativeHashes.size === 1 && !negativeHashes.has(p.submitter_hash)));
   const state: EvidenceState = isHeld ? "held"
     : independentSince >= NEGATIVE_REVIEW_SUBMITTERS ? "reviewCandidate"
     : since.length > 0 ? "needsRecheck"
@@ -135,22 +149,35 @@ export interface CorrectionCandidate {
 }
 
 /** Accepted, fresh, unredacted `moved` reports per spot. A single correction never changes a canonical coordinate. */
-export async function correctionCandidates(reportsDb: Db, dataDb: Db, opts: { now: Date }): Promise<CorrectionCandidate[]> {
+export async function correctionCandidates(reportsDb: Db, dataDb: Db, opts: { now: Date; limit?: number; afterSpotId?: string }): Promise<CorrectionCandidate[]> {
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("invalid correction limit");
   const { results: reports } = await reportsDb.prepare(
     `SELECT r.report_id, r.subject_spot_id AS spot_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude, r.submitter_hash
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type = 'moved' AND m.state = 'accepted' AND m.reconciliation_state <> 'discarded'
        AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
-     ORDER BY r.subject_spot_id, r.report_id`,
-  ).bind(isoSeconds(opts.now)).all<{ report_id: string; spot_id: string; latitude: number; longitude: number; submitter_hash: string }>();
+       AND r.subject_spot_id IN (
+         SELECT DISTINCT q.subject_spot_id FROM reports q JOIN report_moderation qm ON qm.report_id = q.report_id
+         WHERE q.report_type = 'moved' AND qm.state = 'accepted' AND qm.reconciliation_state <> 'discarded'
+           AND q.redacted_at IS NULL AND q.proposed_latitude IS NOT NULL AND q.minimize_after > ? AND q.subject_spot_id > ?
+         ORDER BY q.subject_spot_id LIMIT ?)
+     ORDER BY r.subject_spot_id, r.report_id LIMIT 1001`,
+  ).bind(isoSeconds(opts.now), isoSeconds(opts.now), opts.afterSpotId ?? "", limit).all<{ report_id: string; spot_id: string; latitude: number; longitude: number; submitter_hash: string }>();
+  if (reports.length > 1000) throw new Error("correction page exceeds 1000 reports; reduce --limit or review this dense spot separately");
   const results = [];
+  const canonical = new Map<string, { latitude: number; longitude: number } | null>();
   for (const r of reports) {
     // The opaque spot reference resolves against the current canonical database; an unknown one has no location.
-    const s = await dataDb.prepare("SELECT latitude, longitude FROM spots WHERE spot_id = ?").bind(r.spot_id).first<{ latitude: number; longitude: number }>();
+    if (!canonical.has(r.spot_id)) canonical.set(r.spot_id, await dataDb.prepare("SELECT latitude, longitude FROM spots WHERE spot_id = ?").bind(r.spot_id).first<{ latitude: number; longitude: number }>());
+    const s = canonical.get(r.spot_id);
     results.push({ ...r, spot_latitude: s?.latitude ?? null, spot_longitude: s?.longitude ?? null });
   }
   const bySpot = new Map<string, typeof results>();
-  for (const r of results) bySpot.set(r.spot_id, [...(bySpot.get(r.spot_id) ?? []), r]);
+  for (const r of results) {
+    if (!bySpot.has(r.spot_id)) bySpot.set(r.spot_id, []);
+    bySpot.get(r.spot_id)!.push(r);
+  }
   const out: CorrectionCandidate[] = [];
   for (const [spotId, rows] of bySpot) {
     // For each pin, the pins that agree with it; the group with the most distinct submitters wins (ties: first).
@@ -180,6 +207,8 @@ export interface DuplicateCandidate {
   reportId: string;
   nearbySpots: { spotId: string; distanceMetres: number }[];
   nearbyReports: { reportId: string; distanceMetres: number }[];
+  nearbySpotsTruncated: boolean;
+  nearbyReportsTruncated: boolean;
 }
 
 /**
@@ -187,15 +216,19 @@ export interface DuplicateCandidate {
  * DUPLICATE_RADIUS_METRES. The reviewer decides; nothing is merged, and an existing spot nearby may well be a
  * different place (two ashtrays at one station).
  */
-export async function duplicateCandidates(reportsDb: Db, dataDb: Db, opts: { now: Date; radiusMetres?: number }): Promise<DuplicateCandidate[]> {
+export async function duplicateCandidates(reportsDb: Db, dataDb: Db, opts: { now: Date; radiusMetres?: number; reportIds?: readonly string[]; limit?: number; afterReportId?: string }): Promise<DuplicateCandidate[]> {
   const radius = opts.radiusMetres ?? DUPLICATE_RADIUS_METRES;
+  if (!Number.isFinite(radius) || radius <= 0 || radius > 1000) throw new Error("duplicate radius must be between 0 and 1000 metres");
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("invalid duplicate limit");
   const { results: proposals } = await reportsDb.prepare(
     `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
        AND m.state IN ('pending', 'accepted', 'needsInfo') AND m.reconciliation_state IN ('notQueued', 'queued')
-     ORDER BY r.report_id`,
-  ).bind(isoSeconds(opts.now)).all<{ report_id: string; latitude: number; longitude: number }>();
+       AND (? IS NULL OR r.report_id IN (SELECT value FROM json_each(?))) AND r.report_id > ?
+     ORDER BY r.report_id LIMIT ?`,
+  ).bind(isoSeconds(opts.now), opts.reportIds ? JSON.stringify(opts.reportIds) : null, opts.reportIds ? JSON.stringify(opts.reportIds) : null, opts.afterReportId ?? "", limit).all<{ report_id: string; latitude: number; longitude: number }>();
   if (proposals.length === 0) return [];
   // A degree of latitude is ~111 km; a generous box pre-filter keeps the haversine to nearby rows.
   const pad = (radius / 111_000) * 2;
@@ -203,15 +236,23 @@ export async function duplicateCandidates(reportsDb: Db, dataDb: Db, opts: { now
   for (const p of proposals) {
     const { results: spots } = await dataDb.prepare(
       `SELECT spot_id, latitude, longitude FROM spots
-       WHERE merged_into IS NULL AND lifecycle = 'active' AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?`,
+       WHERE merged_into IS NULL AND lifecycle = 'active' AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ? ORDER BY spot_id LIMIT 201`,
     ).bind(p.latitude - pad, p.latitude + pad, p.longitude - pad * 1.5, p.longitude + pad * 1.5)
       .all<{ spot_id: string; latitude: number; longitude: number }>();
-    const nearbySpots = spots.map((s) => ({ spotId: s.spot_id, distanceMetres: Math.round(haversineMeters(p, s)) }))
+    const nearbySpots = spots.slice(0, 200).map((s) => ({ spotId: s.spot_id, distanceMetres: Math.round(haversineMeters(p, s)) }))
       .filter((s) => s.distanceMetres <= radius).sort((a, b) => a.distanceMetres - b.distanceMetres);
-    const nearbyReports = proposals.filter((q) => q.report_id !== p.report_id)
-      .map((q) => ({ reportId: q.report_id, distanceMetres: Math.round(haversineMeters(p, q)) }))
-      .filter((q) => q.distanceMetres <= radius).sort((a, b) => a.distanceMetres - b.distanceMetres);
-    if (nearbySpots.length > 0 || nearbyReports.length > 0) out.push({ reportId: p.report_id, nearbySpots, nearbyReports });
+    const { results: nearbyProposals } = await reportsDb.prepare(
+      `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude
+       FROM reports r INDEXED BY reports_proposal_spatial CROSS JOIN report_moderation m ON m.report_id = r.report_id
+       WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.minimize_after > ? AND r.report_id <> ?
+         AND r.proposed_latitude BETWEEN ? AND ? AND r.proposed_longitude BETWEEN ? AND ?
+         AND m.state IN ('pending', 'accepted', 'needsInfo') AND m.reconciliation_state IN ('notQueued', 'queued')
+       ORDER BY r.report_id LIMIT 201`,
+    ).bind(isoSeconds(opts.now), p.report_id, p.latitude - pad, p.latitude + pad, p.longitude - pad * 1.5, p.longitude + pad * 1.5)
+      .all<{ report_id: string; latitude: number; longitude: number }>();
+    const nearbyReports = nearbyProposals.slice(0, 200).map((q) => ({ reportId: q.report_id, distanceMetres: Math.round(haversineMeters(p, q)) }))
+      .filter((q) => q.distanceMetres <= radius).sort((a, b) => a.distanceMetres - b.distanceMetres || a.reportId.localeCompare(b.reportId));
+    if (nearbySpots.length > 0 || nearbyReports.length > 0 || spots.length > 200 || nearbyProposals.length > 200) out.push({ reportId: p.report_id, nearbySpots, nearbyReports, nearbySpotsTruncated: spots.length > 200, nearbyReportsTruncated: nearbyProposals.length > 200 });
   }
   return out;
 }
@@ -256,4 +297,51 @@ export async function communityRelocationCandidates(dataDb: Db): Promise<Communi
     });
   }
   return out;
+}
+
+/** Scanned rows, rather than candidate matches, advance the cursor even across empty candidate pages. */
+export async function duplicateCandidatePage(reportsDb: Db, dataDb: Db, opts: { now: Date; limit?: number; cursor?: string }) {
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("invalid duplicate limit");
+  const rows = (await reportsDb.prepare(
+    `SELECT r.report_id FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
+     WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
+       AND m.state IN ('pending', 'accepted', 'needsInfo') AND m.reconciliation_state IN ('notQueued', 'queued')
+       AND r.report_id > ? ORDER BY r.report_id LIMIT ?`,
+  ).bind(isoSeconds(opts.now), opts.cursor ?? "", limit + 1).all<{ report_id: string }>()).results;
+  const page = rows.slice(0, limit);
+  return {
+    items: await duplicateCandidates(reportsDb, dataDb, { now: opts.now, limit, reportIds: page.map((r) => r.report_id) }),
+    scanned: page.length,
+    nextCursor: rows.length > limit ? page.at(-1)!.report_id : null,
+  };
+}
+
+export async function correctionCandidatePage(reportsDb: Db, dataDb: Db, opts: { now: Date; limit?: number; cursor?: string }) {
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("invalid correction limit");
+  const rows = (await reportsDb.prepare(
+    `SELECT DISTINCT r.subject_spot_id AS spot_id FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
+     WHERE r.report_type = 'moved' AND m.state = 'accepted' AND m.reconciliation_state <> 'discarded'
+       AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ? AND r.subject_spot_id > ?
+     ORDER BY r.subject_spot_id LIMIT ?`,
+  ).bind(isoSeconds(opts.now), opts.cursor ?? "", limit + 1).all<{ spot_id: string }>()).results;
+  return { items: await correctionCandidates(reportsDb, dataDb, { now: opts.now, limit, afterSpotId: opts.cursor }),
+    nextCursor: rows.length > limit ? rows[limit - 1].spot_id : null };
+}
+
+export async function evidenceStatePage(reportsDb: Db, dataDb: Db, opts: { now: Date; limit?: number; cursor?: string }) {
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("invalid evidence limit");
+  const reports = (await reportsDb.prepare(
+    `SELECT DISTINCT r.subject_spot_id AS spot_id FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
+     WHERE m.state = 'accepted' AND m.reconciliation_state <> 'discarded' AND r.subject_spot_id > ?
+       AND (r.report_type = 'exists' OR (r.report_type = 'other' AND r.finding IN ('notFound', 'removed')))
+     ORDER BY r.subject_spot_id LIMIT ?`,
+  ).bind(opts.cursor ?? "", limit + 1).all<{ spot_id: string }>()).results;
+  const holds = (await dataDb.prepare("SELECT DISTINCT spot_id FROM community_absence_holds WHERE lifted_at IS NULL AND spot_id > ? ORDER BY spot_id LIMIT ?")
+    .bind(opts.cursor ?? "", limit + 1).all<{ spot_id: string }>()).results;
+  const ids = [...new Set([...reports, ...holds].map((r) => r.spot_id))].sort();
+  return { items: await spotEvidenceStates(reportsDb, dataDb, { now: opts.now, spotIds: ids.slice(0, limit) }),
+    nextCursor: ids.length > limit ? ids[limit - 1] : null };
 }

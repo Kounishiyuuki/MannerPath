@@ -133,3 +133,40 @@ provenance is also a review obligation, not something a regex can establish on i
    Success is 1,000 unique published community-origin spots after rights approval, 47/47 spot representation, transparent
    tier/access/freshness labels, and a rising independently confirmed share. If rights remain blocked, measure consented reviewed
    collection separately and state published community = 0; do not claim the public coverage milestone.
+
+## Scale measurements and campaign progress
+
+See [scale runbook](../../../../docs/COMMUNITY_SCALE_RUNBOOK.md). The explicit synthetic scale suite
+uses this 249-seed universe; its approved simulation database never changes operational publication rights.
+Campaign phase progress counts 100 + 600 + 235 + 65 unique community spots separately from confirmations.
+
+### Aggregate progress command and versioned seed rules
+
+Run from `services/api`:
+
+```sh
+node --experimental-strip-types --no-warnings scripts/campaign-progress.ts --spots /tmp/public-spots.json --out /tmp/campaign-progress
+```
+
+Input is a deduplicated array of public `TileSpotV1` records, never raw report data. Outputs `progress.json` and
+`progress.md` include cumulative first-1,000 phases (100, 700, 935, 1,000), collected and verified counts,
+remaining seeds, zero coverage, 47 prefectures, station coverage and airport coverage. The public-only CLI cannot
+identify the visited-confirmed subset; it reports zero for that subset. The in-process `campaignProgress(spots,
+visitedSpotIds)` adapter accepts the sanitized upgrade ID set when available. Simulation approval never activates
+community publication; while #124 is open, published community progress remains zero.
+
+`community-seed-progress.v1` recomputes `active` (zero visible), `progressing` (some visible), or
+`sufficientlyCovered` from current overlapping 1 km coverage. Station thresholds are 5 visible / 3 official-or-verified;
+airports are 3 / 2; downtown/nightlife are 8 / 4; other seed kinds are 3 / 2. Falling coverage deterministically
+reactivates a seed. These are operational capacity rules, not evidence independence rules. The existing
+`community-seed-campaign.v1` P0–P3 priority table and operator blocked/retired states retain their existing semantics;
+the new progress dashboard exposes its separate, explicitly versioned capacity assessment.
+
+Spatial grids prefilter coverage and prefecture assignment before exact haversine checks. Public coverage tasks use
+one SQL statement with two bound values (JSON seed manifest and radius), indexed coordinate probes and snapshot
+membership checks. A guaranteed inner path proves coverage cheaply; ambiguous boundary candidates still receive
+exact distance checks. Response cardinality remains at most 249 tasks, preserving no-query client compatibility.
+
+The public task query caps temporary candidate materialization at 4,096 rows plus one overflow detector.
+Overflow yields an explicit HTTP 503, never a truncated coverage claim. This guard handles adversarial outer-ring
+layouts that have no guaranteed inner coverage; regular dense areas short-circuit to a single sentinel.

@@ -2,9 +2,10 @@
 // what is waiting for a person to check. Counts only. Official coverage is always reported on its own line and is
 // never inflated by community counts; `allVisible` is the user-facing KPI next to it.
 
-import { type Db } from "../db.ts";
+import { CoverageSpatialIndex } from "./spatial-index.ts";
+import { type Db, isoSeconds } from "../db.ts";
 import { haversineMeters } from "../geo/distance.ts";
-import { communityStage, correctionCandidates, duplicateCandidates, spotEvidenceStates } from "../pipeline/community-evidence.ts";
+import { communityStage, spotEvidenceStates } from "../pipeline/community-evidence.ts";
 import { spotFreshness } from "../quality/freshness.ts";
 import type { TileSpotV1 } from "../tiles/dto.ts";
 import { PREFECTURES, SEED_ASSIGNMENT_METRES, SOURCE_PREFECTURES } from "./prefectures.ts";
@@ -18,8 +19,9 @@ type Tier = "official" | "communityVerified" | "communityReported";
 
 /** Per-area station/campaign metrics. Overlapping areas are not a partition and must never be summed. */
 export function seedAreaMetrics(spots: readonly PublishedSpot[], visitedSpotIds: ReadonlySet<string> = new Set(), seeds: readonly SeedArea[] = SEED_AREAS) {
+  const index = new CoverageSpatialIndex(spots);
   return seeds.map((seed) => {
-    const nearby = spots.filter((s) => haversineMeters(seed, s) <= SEED_RADIUS_METRES);
+    const nearby = index.within(seed, SEED_RADIUS_METRES);
     return { seedAreaId: seed.id, counts: {
       official: nearby.filter((s) => tierOf(s) === "official").length,
       communityVerified: nearby.filter((s) => tierOf(s) === "communityVerified").length,
@@ -36,13 +38,18 @@ function tierOf(spot: PublishedSpot): Tier {
 }
 
 /** The prefecture a published spot is counted in, and how that was decided (prefectures.ts). */
+const seedIndexes = new WeakMap<readonly SeedArea[], CoverageSpatialIndex<SeedArea>>();
+const seedRanks = new WeakMap<readonly SeedArea[], Map<SeedArea, number>>();
 export function prefectureOf(spot: PublishedSpot, seeds: readonly SeedArea[] = SEED_AREAS): { code: string; method: "sourceJurisdiction" | "seedArea" } | null {
   for (const id of spot.sourceIds) {
     const code = SOURCE_PREFECTURES[id];
     if (code !== undefined) return { code, method: "sourceJurisdiction" };
   }
   let best: { code: string; d: number } | null = null;
-  for (const seed of seeds) {
+  let index = seedIndexes.get(seeds);
+  if (!index) { index = new CoverageSpatialIndex(seeds); seedIndexes.set(seeds,index); seedRanks.set(seeds,new Map(seeds.map((seed,i)=>[seed,i]))); }
+  const ranks = seedRanks.get(seeds)!;
+  for (const seed of index.within(spot, SEED_ASSIGNMENT_METRES).sort((a,b)=>ranks.get(a)!-ranks.get(b)!)) {
     const d = haversineMeters(seed, spot);
     if (d <= SEED_ASSIGNMENT_METRES && (best === null || d < best.d)) best = { code: seed.prefecture, d };
   }
@@ -92,8 +99,9 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
 
   // Seed stations: covered when a visible spot lies within the seed radius. Official-only and all-visible apart.
   const stations = SEED_AREAS.filter((a) => a.kind === "majorStation");
+  const spatial = new CoverageSpatialIndex(spots);
   const covered = (pred: (s: PublishedSpot) => boolean) =>
-    stations.filter((st) => spots.some((s) => pred(s) && haversineMeters(st, s) <= SEED_RADIUS_METRES)).length;
+    stations.filter((st) => spatial.within(st, SEED_RADIUS_METRES).some(pred)).length;
   const officialCovered = covered((s) => tierOf(s) === "official");
   const allCovered = covered(() => true);
 
@@ -111,7 +119,11 @@ export async function communityAcquisitionMetrics(db: Db, spots: readonly Publis
     canonicalCommunity: Object.fromEntries(canonicalByStage.map((r) => [r.k, r.n])),
     spotsNeedingConfirmation: needsConfirmation,
     staleSpots: spots.filter((s) => spotFreshness(s, opts.now) === "stale").length,
-    locationCorrectionsPending: reportsDb === undefined ? null : (await correctionCandidates(reportsDb, db, { now })).length,
+    locationCorrectionsPending: reportsDb === undefined ? null : (await reportsDb.prepare(
+      `SELECT count(DISTINCT r.subject_spot_id) AS n FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
+       WHERE r.report_type = 'moved' AND m.state = 'accepted' AND m.reconciliation_state <> 'discarded'
+         AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?`,
+    ).bind(isoSeconds(now)).first<{ n: number }>())!.n,
     coverageGaps: { total: gaps.length, byPriority: { 1: gaps.filter((g) => g.priority === 1).length, 2: gaps.filter((g) => g.priority === 2).length, 3: gaps.filter((g) => g.priority === 3).length } },
     confirmations: reportsDb === undefined ? null : { last7Days: await confirmations(days(7)), last30Days: await confirmations(days(30)) },
     moderation: reportsDb === undefined ? null : await moderationMetrics(reportsDb, db, now),
@@ -164,6 +176,8 @@ async function moderationMetrics(db: Db, dataDb: Db, now: Date) {
     absenceReviewCandidates: states.filter((s) => s.state === "reviewCandidate").length,
     heldSpots: states.filter((s) => s.state === "held").length,
     conflictingSpots: states.filter((s) => s.conflicting).length,
-    duplicateCandidates: (await duplicateCandidates(db, dataDb, { now })).length,
+    // Spatial candidates require explicit bounded review, rather than a misleading page-length national total.
+    duplicateCandidates: null,
+    duplicateCandidatesStatus: "notComputedUseBoundedDuplicateQueue",
   };
 }

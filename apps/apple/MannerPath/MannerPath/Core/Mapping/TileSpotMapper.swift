@@ -30,6 +30,8 @@ nonisolated enum TileSpotMapper {
             throw TileSyncError.malformedResponse
         }
 
+        // Formatter setup is expensive; keep it local to this mapping call for concurrency safety.
+        let observationFormat = observationDayFormatter()
         let spots = try body.spots.map { wire -> Spot in
             guard validSpotID(wire.id),
                   SpotCoordinate(latitude: wire.latitude, longitude: wire.longitude).isValid,
@@ -44,7 +46,7 @@ nonisolated enum TileSpotMapper {
             let hours = try mapHours(wire.openingHours)
             let observationDate: Date?
             if let day = wire.lastVerifiedAt {
-                guard let parsed = observationDay(day) else { throw TileSyncError.malformedResponse }
+                guard let parsed = observationDay(day, format: observationFormat) else { throw TileSyncError.malformedResponse }
                 observationDate = parsed
             } else {
                 observationDate = nil
@@ -154,14 +156,18 @@ nonisolated enum TileSpotMapper {
         return date
     }
 
-    private static func observationDay(_ value: String) -> Date? {
-        guard value.count == 10 else { return nil }
+    private static func observationDayFormatter() -> DateFormatter {
         let format = DateFormatter()
         format.calendar = Calendar(identifier: .gregorian)
         format.locale = Locale(identifier: "en_US_POSIX")
         format.timeZone = TimeZone(secondsFromGMT: 0)!
         format.dateFormat = "yyyy-MM-dd"
         format.isLenient = false
+        return format
+    }
+
+    private static func observationDay(_ value: String, format: DateFormatter) -> Date? {
+        guard value.count == 10 else { return nil }
         guard let date = format.date(from: value), format.string(from: date) == value else { return nil }
         return date
     }

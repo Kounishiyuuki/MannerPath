@@ -8,7 +8,7 @@
 // the published corpus. `needsRecheck` follows from moderated reports and is therefore user-derived: it is produced
 // only when the caller states that community rights are granted (Issue #124), and never by the public endpoint today.
 
-import { haversineMeters } from "../geo/distance.ts";
+import { CoverageSpatialIndex } from "./spatial-index.ts";
 import { spotFreshness } from "../quality/freshness.ts";
 import type { TileSpotV1 } from "../tiles/dto.ts";
 import { SEED_AREAS, SEED_RADIUS_METRES, type SeedArea } from "./seed-areas.ts";
@@ -70,8 +70,9 @@ export function gapTasks(
   visible: readonly { latitude: number; longitude: number }[], opts: { seedAreas?: readonly SeedArea[]; radiusMeters?: number } = {},
 ): GapTask[] {
   const radius = opts.radiusMeters ?? SEED_RADIUS_METRES;
+  const index = new CoverageSpatialIndex(visible);
   return (opts.seedAreas ?? SEED_AREAS)
-    .filter((seed) => !visible.some((p) => haversineMeters(seed, p) <= radius))
+    .filter((seed) => index.within(seed, radius).length === 0)
     .sort((a, b) => a.priority - b.priority || (a.id < b.id ? -1 : 1))
     .map((seed) => ({
       kind: "coverageGap", seedAreaId: seed.id, name: seed.name, prefecture: seed.prefecture, priority: seed.priority,

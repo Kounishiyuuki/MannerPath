@@ -14,6 +14,7 @@
 // merge; until then the export refuses (membership no longer matches the tile bodies).
 
 import { type Db } from "../db.ts";
+import { nearbyCrossSourcePairs } from "../geo/spherical-index.ts";
 
 export const CROSS_SOURCE_CANDIDATE_VERSION = "cross-source-candidate.v1";
 export const CROSS_SOURCE_DECISION_VERSION = "cross-source-decision.v1";
@@ -71,23 +72,23 @@ export function recallPairs(input: readonly RecallSpot[]): RecallPair[] {
   if (new Set(input.map((s) => s.spotId)).size !== input.length) throw new CrossSourceError("cross-source: duplicate spot id");
   const spots = [...input].sort((x, y) => (x.spotId < y.spotId ? -1 : 1));
   const pairs: RecallPair[] = [];
-  for (let i = 0; i < spots.length; i++) {
-    for (let j = i + 1; j < spots.length; j++) {
-      const a = spots[i], b = spots[j];
-      if (a.sourceId === b.sourceId) continue;
-      const d = distanceMetres(a, b);
-      if (d > NAME_OR_LOCATION_METRES) continue;
-      const reasons: CandidateReason[] = [];
-      if (d <= PROXIMITY_ONLY_METRES) reasons.push("proximity100m");
-      const na = normalizeText(a.name), nb = normalizeText(b.name);
-      if (na !== "" && na === nb) reasons.push("normalizedName");
-      const la = normalizeText(a.location), lb = normalizeText(b.location);
-      if (la !== "" && la === lb) reasons.push("normalizedLocation");
-      if (reasons.length === 0) continue;
-      pairs.push({ a, b, distanceMetres: d, reasons });
-    }
+  for (const [i, j] of nearbyCrossSourcePairs(spots, NAME_OR_LOCATION_METRES)) {
+    const a = spots[i], b = spots[j];
+    if (a.sourceId === b.sourceId) continue;
+    const d = distanceMetres(a, b);
+    if (d > NAME_OR_LOCATION_METRES) continue;
+    const reasons: CandidateReason[] = [];
+    if (d <= PROXIMITY_ONLY_METRES) reasons.push("proximity100m");
+    const na = normalizeText(a.name), nb = normalizeText(b.name);
+    if (na !== "" && na === nb) reasons.push("normalizedName");
+    const la = normalizeText(a.location), lb = normalizeText(b.location);
+    if (la !== "" && la === lb) reasons.push("normalizedLocation");
+    if (reasons.length === 0) continue;
+    pairs.push({ a, b, distanceMetres: d, reasons });
   }
-  return pairs;
+  // Preserve v1 pair order independently of spatial cell visitation.
+  return pairs.sort((x, y) => x.a.spotId < y.a.spotId ? -1 : x.a.spotId > y.a.spotId ? 1
+    : x.b.spotId < y.b.spotId ? -1 : x.b.spotId > y.b.spotId ? 1 : 0);
 }
 
 /**

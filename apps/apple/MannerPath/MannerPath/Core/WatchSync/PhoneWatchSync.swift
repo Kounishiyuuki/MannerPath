@@ -8,6 +8,7 @@ enum WatchSnapshotBuilder {
         let candidates = NearbySearch.rank(spots, from: origin, at: now).prefix(500).map(\.spot)
         let allSources = Set(sources + candidates.flatMap { $0.verification.sources ?? [] })
             .filter { !$0.id.isEmpty }
+        let allSourceIDs = Set(allSources.map(\.id))
         let referenced = Set(candidates.flatMap { $0.verification.sources?.map(\.id) ?? [] })
         return WatchSnapshot(
             schemaVersion: WatchSnapshot.schemaVersion, revision: 1,
@@ -26,7 +27,7 @@ enum WatchSnapshotBuilder {
                                    version: $0.parsed?.version, opens: $0.parsed?.opens,
                                    closes: $0.parsed?.closes, timeZone: $0.timeZone)
                     }, sourceIDs: Array(Set(spot.verification.sources?.map(\.id) ?? [])
-                        .intersection(Set(allSources.map(\.id)))).sorted(),
+                        .intersection(allSourceIDs)).sorted(),
                     existence: spot.verification.existenceTier.rawValue,
                     accessDetail: spot.accessDetail?.rawValue
                 )
