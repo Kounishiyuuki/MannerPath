@@ -7,7 +7,7 @@ import { type DatabaseSync } from "node:sqlite";
 import { buildMultiSourcePromotionBundle, buildPromotionBundle } from "../src/pipeline/promotion.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
-import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite, withoutTrigger } from "./support/sqlite-d1.ts";
 
 const REFUSED = /promotion_(multi_)?bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database/;
 const GUARDS = ["promotion_bootstraps_empty_target", "promotion_multi_bootstraps_empty_target"];
@@ -34,7 +34,7 @@ function refusedWithNothingWritten(target: DatabaseSync, sql: string, seeded: st
 test("both bootstrap guards (v2 and v3) name every table of a freshly migrated schema", () => {
   const db = migratedSqlite();
   const tables = TABLES(db);
-  assert.equal(tables.length, 52);
+  assert.equal(tables.length, 54);
   for (const guard of GUARDS) {
     const trigger = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?").get(guard) as { sql: string }).sql;
     for (const t of tables) assert.match(trigger, new RegExp(`EXISTS \\(SELECT 1 FROM ${t}\\)`), `${guard}: ${t} is not checked`);
@@ -54,7 +54,9 @@ test("a freshly migrated database accepts either bundle version, and neither ove
   assert.throws(() => applyPromotionBundle(other, v2), REFUSED);
 });
 
-// Rows the application itself writes into tables that hang off no canonical row, through their real constraints.
+// Rows that hang off no canonical row, through their real constraints. The legacy report tables are inert since 0025
+// (ADR-0014: reports live in REPORTS_DB), so these rows stand for a pre-0025 local database that still holds some;
+// the inert trigger is lifted only to write them. The artifact ledger row is what an import writes today.
 const APPLICATION_ROWS: [string, string[]][] = [
   ["report_rate_windows", [`INSERT INTO report_rate_windows VALUES ('${"a".repeat(64)}', 'hour', '2026-09-01T00:00:00Z', 3, '2026-09-01T01:00:00Z')`]],
   ["reports", [`INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, attestation_status, received_at, minimize_after)
@@ -67,10 +69,22 @@ const APPLICATION_ROWS: [string, string[]][] = [
     VALUES ('${"B".repeat(43)}=', 'registration', '2026-09-01T00:00:00Z', '2026-09-01T00:05:00Z')`]],
 ];
 
+const INERT = ["reports", "report_moderation", "report_rate_windows", "app_attest_keys", "app_attest_challenges"];
+APPLICATION_ROWS.push(["community_artifact_ledger", [`INSERT INTO community_artifact_ledger (artifact_sha256, artifact_schema_version, report_store_schema,
+    review_id, review_kind, review_key, decision_version, rule_version, independence_version, evidence_count, independent_submitters, imported_at)
+    VALUES ('${"e".repeat(64)}', 1, 'reports-store.v1', 'ca_${"0".repeat(26)}', 'newSpot', 'newSpot:rp_${"0".repeat(26)}', 1,
+      'community-reconciliation.v1', 'community-independence.v1', 2, 2, '2026-10-01T00:00:00Z')`]]);
+
 for (const [table, statements] of APPLICATION_ROWS) {
   test(`application data in ${table} refuses the bootstrap`, async () => {
     const target = migratedSqlite();
-    for (const s of statements) target.exec(s);
+    const write = () => { for (const s of statements) target.exec(s); };
+    const inert = INERT.filter((t) => statements.some((s) => s.includes(`INTO ${t} `)));
+    const lift = (names: string[]): void => {
+      if (names.length === 0) return write();
+      withoutTrigger(target, `legacy_${names[0]}_inert`, () => lift(names.slice(1)));
+    };
+    lift(inert);
     for (const sql of await bundles) refusedWithNothingWritten(target, sql, table);
   });
 }

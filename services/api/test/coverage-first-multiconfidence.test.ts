@@ -2,6 +2,9 @@
 // but every published spot carries its separate trust axes — existence evidence, location precision, review month,
 // spot taxonomy and access — and no axis is ever stated above its evidence.
 //
+// Reports live in the durable REPORTS_DB paired with each canonical test database (test/support/community.ts,
+// ADR-0014); the canonical side sees only imported, sanitized review artifacts.
+//
 // The community source is BLOCKED and the report terms are a DRAFT (Issue #124 is open). Every test that needs a
 // published community spot simulates the future approval explicitly — the local rows by hand and the reviewed lists
 // through the injection points only tests use — and says so. Nothing here approves anything for real.
@@ -11,10 +14,11 @@ import { readFileSync } from "node:fs";
 import { app } from "../src/app.ts";
 import { isoSeconds } from "../src/db.ts";
 import { COMMUNITY_REGISTRY, COMMUNITY_SOURCE_ID } from "../src/pipeline/community-adapter.ts";
-import { applyCommunityEffect, holdCommunityEffect, proposeCommunityEffect } from "../src/pipeline/community-effects.ts";
-import {
-  applyCommunityApplication, proposeCommunityApplication,
-} from "../src/pipeline/community-reconciliation.ts";
+import { applyCommunityEffect, holdCommunityEffect } from "../src/pipeline/community-effects.ts";
+import { applyCommunityApplication } from "../src/pipeline/community-reconciliation.ts";
+import { importCommunityArtifact } from "../src/pipeline/community-artifact.ts";
+import { sealArtifact } from "../src/reports/evidence-artifact.ts";
+import { proposeNewSpotReview } from "../src/reports/review.ts";
 import { upgradeCommunityEvidence } from "../src/pipeline/community-verification.ts";
 import { generateCrossSourceCandidates } from "../src/pipeline/cross-source.ts";
 import { type PromotionRegistry, buildMultiSourcePromotionBundle } from "../src/pipeline/promotion.ts";
@@ -30,7 +34,8 @@ import { type CandidateRow, publishTiles, verificationDto } from "../src/tiles/p
 import { TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
-import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
+import { proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -76,27 +81,27 @@ async function newSpotReport(db: SqliteD1, hash: string, claim: Claim | null, op
     ...(opts.consent === false ? {} : { acceptedTermsVersion: TERMS }),
     ...(claim === null ? {} : { claim }),
   };
-  const { reportId } = await createReport(db, request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash });
+  const { reportId } = await createReport(reportsOf(db), request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash });
   return reportId;
 }
 
 async function existingSpotReport(db: SqliteD1, hash: string, spotId: string, type: "exists" | "prohibited") {
   const request = { schemaVersion: 1, type, spotId, installId: INSTALL, note: NOTE, acceptedTermsVersion: TERMS };
-  const { reportId } = await createReport(db, request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash });
+  const { reportId } = await createReport(reportsOf(db), request as any, { now: RECEIVED, attestationStatus: "notProvided", submitterHash: hash });
   return reportId;
 }
 
 async function acceptAndQueue(db: SqliteD1, ...ids: string[]) {
   for (const id of ids) {
-    await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
-    await setReconciliationState(db, id, "queued", RECEIVED);
+    await recordModerationDecision(reportsOf(db), id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
+    await setReconciliationState(reportsOf(db), id, "queued", RECEIVED);
   }
 }
 
 async function reportedSpot(db: SqliteD1, claim: Claim, prefix = "R", hash = HASHES[0], at = HERE) {
   const id = await newSpotReport(db, hash, claim, { at });
   await acceptAndQueue(db, id);
-  const applicationId = await proposeCommunityApplication(db, { reportIds: [id], locationReportId: id, decidedBy: "reviewer-1", now: APPLY, tier: "communityReported" });
+  const applicationId = await proposeNewSpot(storesOf(db), { reportIds: [id], locationReportId: id, decidedBy: "reviewer-1", now: APPLY, tier: "communityReported" });
   const result = await applyCommunityApplication(db, applicationId, { now: APPLY, newSpotId: sequentialSpotIds(prefix) }) as { spotId: string; releaseId: number };
   return { ...result, reportId: id };
 }
@@ -105,7 +110,7 @@ async function verifiedSpot(db: SqliteD1, claims: [Claim | null, Claim | null], 
   const a = await newSpotReport(db, HASHES[0], claims[0], { at });
   const b = await newSpotReport(db, HASHES[1], claims[1], { at });
   await acceptAndQueue(db, a, b);
-  const applicationId = await proposeCommunityApplication(db, { reportIds: [a, b], locationReportId: a, decidedBy: "reviewer-1", now: APPLY });
+  const applicationId = await proposeNewSpot(storesOf(db), { reportIds: [a, b], locationReportId: a, decidedBy: "reviewer-1", now: APPLY });
   return await applyCommunityApplication(db, applicationId, { now: APPLY, newSpotId: sequentialSpotIds(prefix) }) as { spotId: string; releaseId: number };
 }
 
@@ -183,13 +188,13 @@ test("one moderated, explicit convenience-store ashtray report becomes a communi
 test("raw or unmoderated reports stay invisible: a pending, rejected or unqueued report cannot become a listing", async () => {
   const db = await world();
   const pending = await newSpotReport(db, HASHES[0], ASHTRAY_AT_STORE);
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [pending], locationReportId: pending, decidedBy: "r", now: APPLY, tier: "communityReported" }), /not accepted/);
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [pending], locationReportId: pending, decidedBy: "r", now: APPLY, tier: "communityReported" }), /not accepted/);
   const rejected = await newSpotReport(db, HASHES[1], ASHTRAY_AT_STORE);
-  await recordModerationDecision(db, rejected, { state: "rejected", decidedBy: "r", reason: "insufficientDetail", now: RECEIVED });
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [rejected], locationReportId: rejected, decidedBy: "r", now: APPLY, tier: "communityReported" }), /not accepted/);
+  await recordModerationDecision(reportsOf(db), rejected, { state: "rejected", decidedBy: "r", reason: "insufficientDetail", now: RECEIVED });
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [rejected], locationReportId: rejected, decidedBy: "r", now: APPLY, tier: "communityReported" }), /not accepted/);
   const accepted = await newSpotReport(db, HASHES[2], ASHTRAY_AT_STORE);
-  await recordModerationDecision(db, accepted, { state: "accepted", decidedBy: "r", reason: "confirmed", now: RECEIVED });
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [accepted], locationReportId: accepted, decidedBy: "r", now: APPLY, tier: "communityReported" }), /not queued/);
+  await recordModerationDecision(reportsOf(db), accepted, { state: "accepted", decidedBy: "r", reason: "confirmed", now: RECEIVED });
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [accepted], locationReportId: accepted, decidedBy: "r", now: APPLY, tier: "communityReported" }), /not queued/);
   simulateRightsGranted(db);
   await publishTiles(db, { now: isoSeconds(APPLY) });
   assert.equal(one(db, "SELECT count(*) AS n FROM spots s JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence' JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id WHERE rel.source_id = ?", COMMUNITY_SOURCE_ID).n, 0);
@@ -205,10 +210,10 @@ test("two independent reports verify; one submitter twice does not", async () =>
   const a = await newSpotReport(db, HASHES[2], ASHTRAY_AT_STORE, { at: { latitude: 35.5, longitude: 139.5 } });
   const again = await newSpotReport(db, HASHES[2], ASHTRAY_AT_STORE, { at: { latitude: 35.5, longitude: 139.5 } });
   await acceptAndQueue(db, a, again);
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [a, again], locationReportId: a, decidedBy: "r", now: APPLY }), /same submitter/);
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [a, again], locationReportId: a, decidedBy: "r", now: APPLY }), /same submitter/);
   // Nor can a single report be applied as verified, or two reports as reported.
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [a], locationReportId: a, decidedBy: "r", now: APPLY }), /needs at least 2/);
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [a, again], locationReportId: a, decidedBy: "r", now: APPLY, tier: "communityReported" }), /exactly one report/);
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [a], locationReportId: a, decidedBy: "r", now: APPLY }), /needs at least 2/);
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [a, again], locationReportId: a, decidedBy: "r", now: APPLY, tier: "communityReported" }), /exactly one report/);
 });
 
 // 6, 8
@@ -217,19 +222,27 @@ test("a host business alone is never a smoking place: no convenience store or ca
   for (const [hash, claim] of [[HASHES[0], { spotType: "unknown", hostType: "convenienceStore" }], [HASHES[1], { spotType: "unknown", hostType: "restaurantOrCafe" }]] as const) {
     const id = await newSpotReport(db, hash, claim);
     await acceptAndQueue(db, id);
-    await assert.rejects(proposeCommunityApplication(db, { reportIds: [id], locationReportId: id, decidedBy: "r", now: APPLY, tier: "communityReported" }),
+    await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [id], locationReportId: id, decidedBy: "r", now: APPLY, tier: "communityReported" }),
       /states no known spot type/);
   }
   // A report without any claim (every client before ADR-0012) cannot be a single-report listing either.
   const bare = await newSpotReport(db, HASHES[2], null);
   await acceptAndQueue(db, bare);
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [bare], locationReportId: bare, decidedBy: "r", now: APPLY, tier: "communityReported" }), /states no known spot type/);
-  // The database refuses the same bypass inside the apply batch.
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [bare], locationReportId: bare, decidedBy: "r", now: APPLY, tier: "communityReported" }), /states no known spot type/);
+  // A hand-built artifact that skips the review (its digest is valid: a digest proves integrity, not a review) is still
+  // refused by the canonical guards inside the apply batch.
   const app1 = "ca_" + "7".repeat(26);
-  db.raw.prepare(`INSERT INTO community_reconciliation_applications (application_id, claim_type, location_report_id, reconciliation_version,
-    decided_by, decided_at, state, evidence_tier, tier_rule_version) VALUES (?, 'newSpot', ?, 'community-reconciliation.v1', 'r', ?, 'proposed', 'communityReported', 'community-tiers.v1')`)
-    .run(app1, bare, isoSeconds(APPLY));
-  db.raw.prepare("INSERT INTO community_reconciliation_evidence (report_id, application_id) VALUES (?, ?)").run(bare, app1);
+  const forged = await sealArtifact({
+    artifact: "mannerpath.community-evidence", artifactSchemaVersion: 1, reportStoreSchema: "reports-store.v1",
+    review: { reviewId: app1, kind: "newSpot", reviewKey: `newSpot:${bare}`, decisionVersion: 1, ruleVersion: "community-reconciliation.v1", decidedBy: "r",
+      decidedAt: isoSeconds(APPLY), subjectSpotId: null, reportType: null, evidenceTier: "communityReported", locationReportId: bare },
+    termsVersion: TERMS,
+    independence: { version: "community-independence.v1", evidenceCount: 1, independentSubmitters: 1, baseReportIds: null, baseIndependentSubmitters: null, confirmationsAfter: null },
+    evidence: [{ reportId: bare, reportType: "missing", finding: null, subjectSpotId: null, latitude: HERE.latitude, longitude: HERE.longitude, acceptedTermsVersion: TERMS,
+      claims: { spotType: null, spotSubtype: null, accessType: null, accessDetail: null, hostType: null, environment: null, supportsPaper: null, supportsHeated: null },
+      usableUntil: "2026-12-20" }],
+  });
+  assert.equal((await importCommunityArtifact(db, forged.bytes, { now: APPLY })).status, "imported");
   await assert.rejects(applyCommunityApplication(db, app1, { now: APPLY }), /no known spot type/);
 
   // Corroborated reports that agree only on the host: the spot exists (two people said a smoking place is here), but
@@ -260,8 +273,8 @@ test("explicit claims round-trip: smoking-permitted café, customersOnly access,
 });
 
 test("the report API accepts a structured claim only on a new-spot report, and validates it", async () => {
-  const db = new SqliteD1();
-  const post = (body: unknown) => app.request("/v1/reports", { method: "POST", body: JSON.stringify(body) }, { DB: db } as any);
+  const db = reportsD1();
+  const post = (body: unknown) => app.request("/v1/reports", { method: "POST", body: JSON.stringify(body) }, { DB: new SqliteD1(), REPORTS_DB: db } as any);
   const base = { schemaVersion: 1, type: "missing", proposedLocation: HERE, installId: INSTALL, acceptedTermsVersion: TERMS };
   const ok = await post({ ...base, claim: { ...ASHTRAY_AT_STORE, hostName: HOST_NAME, hoursNote: HOURS_NOTE, supportsPaper: "yes" } });
   assert.equal(ok.status, 201);
@@ -307,7 +320,7 @@ test("stale stays visible; a single negative report deletes nothing; only a revi
   // 17: one `prohibited` report: reviewed into a hold candidate, but a hold needs two independent submitters.
   const one1 = await existingSpotReport(db, HASHES[1], spotId, "prohibited");
   await acceptAndQueue(db, one1);
-  const single = await proposeCommunityEffect(db, { reportIds: [one1], decidedBy: "r", now: APPLY });
+  const single = await proposeEffect(storesOf(db), { reportIds: [one1], decidedBy: "r", now: APPLY });
   await applyCommunityEffect(db, single.applicationId, { now: APPLY });
   const refused = await holdCommunityEffect(db, single.applicationId, { now: APPLY, sourceApprovedInCode: true });
   assert.equal(refused.status, "blocked");
@@ -319,7 +332,7 @@ test("stale stays visible; a single negative report deletes nothing; only a revi
   const p2 = await existingSpotReport(db, HASHES[2], spotId, "prohibited");
   const p3 = await existingSpotReport(db, HASHES[3], spotId, "prohibited");
   await acceptAndQueue(db, p2, p3);
-  const pair = await proposeCommunityEffect(db, { reportIds: [p2, p3], decidedBy: "r", now: APPLY });
+  const pair = await proposeEffect(storesOf(db), { reportIds: [p2, p3], decidedBy: "r", now: APPLY });
   await applyCommunityEffect(db, pair.applicationId, { now: APPLY });
   assert.equal((await holdCommunityEffect(db, pair.applicationId, { now: APPLY, sourceApprovedInCode: true })).status, "held");
   await publishTiles(db, { now: isoSeconds(APPLY) });
@@ -351,19 +364,18 @@ test("an independent `exists` confirmation upgrades communityReported to communi
 
   const self = await existingSpotReport(db, HASHES[0], spotId, "exists");
   await acceptAndQueue(db, self);
-  const selfEffect = await proposeCommunityEffect(db, { reportIds: [self], decidedBy: "r", now: APPLY });
-  await applyCommunityEffect(db, selfEffect.applicationId, { now: APPLY });
-  await assert.rejects(upgradeCommunityEvidence(db, selfEffect.applicationId, { decidedBy: "r", now: LATER }), /original submitter/);
-  // The database refuses the same shortcut, and the tier cannot be edited by hand.
-  assert.throws(() => db.raw.prepare(`INSERT INTO community_evidence_upgrades VALUES (?, ?, 'community-verification.v1', 2, 'r', ?)`)
-    .run(spotId, selfEffect.applicationId, isoSeconds(LATER)), /not independent evidence/);
-  assert.throws(() => db.raw.prepare("UPDATE spots SET evidence_quality = 'communityVerified', evidence_quality_version = 'evidence-quality.v3' WHERE spot_id = ?").run(spotId),
-    /only through a recorded community evidence upgrade/);
+  // Independence is judged in REPORTS_DB, where the keys exist: the original reporter's confirmation is refused there.
+  await assert.rejects(proposeConfirmation(storesOf(db), { spotId, reportIds: [self], decidedBy: "r", now: APPLY }), /original submitter/);
 
   const other = await existingSpotReport(db, HASHES[1], spotId, "exists");
   await acceptAndQueue(db, other);
-  const effect = await proposeCommunityEffect(db, { reportIds: [other], decidedBy: "r", now: APPLY });
+  const effect = await proposeConfirmation(storesOf(db), { spotId, reportIds: [other], decidedBy: "r", now: APPLY });
   await applyCommunityEffect(db, effect.applicationId, { now: APPLY });
+  // The database refuses any upgrade the attestation does not state, and the tier cannot be edited by hand.
+  assert.throws(() => db.raw.prepare(`INSERT INTO community_evidence_upgrades VALUES (?, ?, 'community-verification.v1', 3, 'r', ?)`)
+    .run(spotId, effect.applicationId, isoSeconds(LATER)), /not independent evidence/);
+  assert.throws(() => db.raw.prepare("UPDATE spots SET evidence_quality = 'communityVerified', evidence_quality_version = 'evidence-quality.v3' WHERE spot_id = ?").run(spotId),
+    /only through a recorded community evidence upgrade/);
   assert.deepEqual(await upgradeCommunityEvidence(db, effect.applicationId, { decidedBy: "reviewer-2", now: LATER }), { spotId, confirmations: 2 });
   await publishTiles(db, { now: isoSeconds(LATER) });
   const t = await tileSpot(db, spotId);
@@ -375,13 +387,15 @@ test("an independent `exists` confirmation upgrades communityReported to communi
 
 test("an upgrade cannot rest on a redacted report: independence is provable only while every key exists", async () => {
   const db = await world();
-  const { spotId } = await reportedSpot(db, ASHTRAY_AT_STORE);
+  const { spotId, reportId } = await reportedSpot(db, ASHTRAY_AT_STORE);
   const other = await existingSpotReport(db, HASHES[1], spotId, "exists");
   await acceptAndQueue(db, other);
-  const effect = await proposeCommunityEffect(db, { reportIds: [other], decidedBy: "r", now: APPLY });
-  await applyCommunityEffect(db, effect.applicationId, { now: APPLY });
-  await applyReportRetention(db, { now: new Date("2027-01-01T00:00:00Z") });
-  await assert.rejects(upgradeCommunityEvidence(db, effect.applicationId, { decidedBy: "r", now: new Date("2027-01-01T00:00:00Z") }), /redacted/);
+  // Only the spot's own report is minimized in REPORTS_DB (the redaction update the retention pass issues): its key is
+  // gone, so no confirmation over it can be attested any more, though the confirming report itself is fresh.
+  reportsOf(db).raw.prepare(`UPDATE reports SET note = NULL, proposed_latitude = NULL, proposed_longitude = NULL, observed_on = NULL,
+    submitter_hash = NULL, claim_host_name = NULL, claim_hours_note = NULL, redacted_at = ? WHERE report_id = ?`).run(isoSeconds(APPLY), reportId);
+  await assert.rejects(proposeConfirmation(storesOf(db), { spotId, reportIds: [other], decidedBy: "r", now: APPLY }), /base report .* is redacted/);
+  // An exists effect without an attestation over the spot's evidence (an official or verified spot) upgrades nothing.
   assert.equal(one(db, "SELECT evidence_quality FROM spots WHERE spot_id = ?", spotId).evidence_quality, "communityReported", "the listing stays, at its tier");
 });
 
@@ -424,19 +438,19 @@ test("promotion v3 carries a sanitized communityReported spot; no report, note, 
   const { spotId } = await reportedSpot(db, { ...ASHTRAY_AT_STORE });
   const withText = await newSpotReport(db, HASHES[3], { ...SMOKING_CAFE, hostName: HOST_NAME, hoursNote: HOURS_NOTE }, { at: { latitude: 35.56, longitude: 139.56 } });
   await acceptAndQueue(db, withText);
-  const app2 = await proposeCommunityApplication(db, { reportIds: [withText], locationReportId: withText, decidedBy: "r", now: APPLY, tier: "communityReported" });
+  const app2 = await proposeNewSpot(storesOf(db), { reportIds: [withText], locationReportId: withText, decidedBy: "r", now: APPLY, tier: "communityReported" });
   const cafe = await applyCommunityApplication(db, app2, { now: APPLY, newSpotId: sequentialSpotIds("T") }) as { spotId: string };
   simulateRightsGranted(db);
   await publishTiles(db, { now: isoSeconds(APPLY) });
 
-  // 22: free text exists only in the report tables, and retention removes it there.
+  // 22: free text exists only in REPORTS_DB, and retention removes it there. No canonical table holds it.
   for (const { name } of all(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")) {
-    if (name === "reports") continue;
     const dump = JSON.stringify(all(db, `SELECT * FROM ${name}`));
     for (const needle of [NOTE, HOST_NAME, HOURS_NOTE, ...HASHES]) assert.ok(!dump.includes(needle), `${name} holds ${needle}`);
   }
   const bundle = await buildMultiSourcePromotionBundle(db, { registry: SIMULATED_REGISTRY });
-  for (const needle of [NOTE, HOST_NAME, HOURS_NOTE, ...HASHES, "INSERT INTO reports", "community_reconciliation", "community_evidence_upgrades", "submitter"]) {
+  for (const needle of [NOTE, HOST_NAME, HOURS_NOTE, ...HASHES, "INSERT INTO reports", "community_reconciliation", "community_evidence_upgrades", "submitter",
+    "community_artifact_ledger", "community_evidence_reports"]) {
     assert.ok(!bundle.sql.includes(needle), `bundle carries ${needle}`);
   }
   const target = migratedSqlite();
@@ -447,8 +461,8 @@ test("promotion v3 carries a sanitized communityReported spot; no report, note, 
     assert.equal(t.spot.verification.existence, "communityReported");
     assert.deepEqual(t.spot, (await detail(db, id)).spot, "the target serves the same spot, axes included");
   }
-  await applyReportRetention(db, { now: new Date("2027-01-01T00:00:00Z") });
-  assert.deepEqual(Object.values(one(db, "SELECT claim_host_name, claim_hours_note, claim_spot_type FROM reports WHERE report_id = ?", withText)),
+  await applyReportRetention(reportsOf(db), { now: new Date("2027-01-01T00:00:00Z") });
+  assert.deepEqual(Object.values(one(reportsOf(db), "SELECT claim_host_name, claim_hours_note, claim_spot_type FROM reports WHERE report_id = ?", withText)),
     [null, null, "smokingPermittedVenue"], "free text is minimized; the categorical claim about the place survives");
 });
 
@@ -531,6 +545,6 @@ test("coordinate sanity: a pin outside Japan never becomes a listing, whatever i
   const db = await world();
   const honolulu = await newSpotReport(db, HASHES[0], ASHTRAY_AT_STORE, { at: { latitude: 21.30694, longitude: -157.85833 } });
   await acceptAndQueue(db, honolulu);
-  await assert.rejects(proposeCommunityApplication(db, { reportIds: [honolulu], locationReportId: honolulu, decidedBy: "r", now: APPLY, tier: "communityReported" }),
+  await assert.rejects(proposeNewSpotReview(reportsOf(db), { reportIds: [honolulu], locationReportId: honolulu, decidedBy: "r", now: APPLY, tier: "communityReported" }),
     /outside Japan/);
 });

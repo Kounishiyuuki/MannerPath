@@ -361,17 +361,16 @@ test("v3 completion seals promoted state; runtime report, App Attest and source-
   assert.throws(() => target.exec("INSERT INTO promotion_multi_bootstrap_sources SELECT * FROM promotion_multi_bootstrap_sources LIMIT 1"),
     /declarations precede the data|UNIQUE|PRIMARY KEY/);
 
-  // Runtime tables: a report and an App Attest challenge, and a source check with its retained artifact (0017).
-  target.prepare(`INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, attestation_status, received_at, minimize_after)
-    VALUES (?, 1, 'exists', ?, 'notProvided', '2026-09-01T00:00:00Z', '2026-11-30T00:00:00Z')`).run(`rp_${"0".repeat(26)}`, `sp_${"0".repeat(26)}`);
-  target.prepare("INSERT INTO app_attest_challenges (challenge, purpose, issued_at, expires_at) VALUES (?, 'registration', '2026-09-01T00:00:00Z', '2026-09-01T00:05:00Z')")
-    .run(`${"B".repeat(43)}=`);
+  // Runtime tables: a source check with its retained artifact (0017). Reports and App Attest state are not runtime
+  // tables of this database any more: they live in the durable REPORTS_DB (ADR-0014), and the legacy ones are inert.
+  assert.throws(() => target.prepare(`INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, attestation_status, received_at, minimize_after)
+    VALUES (?, 1, 'exists', ?, 'notProvided', '2026-09-01T00:00:00Z', '2026-11-30T00:00:00Z')`).run(`rp_${"0".repeat(26)}`, `sp_${"0".repeat(26)}`), /REPORTS_DB/);
   const artifact = "c".repeat(64);
   target.prepare("INSERT INTO raw_artifacts VALUES (?, ?, 1, '2026-10-01T00:00:00Z')").run(artifact, `raw/sha256/${artifact}`);
   target.prepare(`INSERT INTO source_checks (check_key, source_id, trigger_kind, policy_version, request_url, started_at, finished_at,
     content_sha256, byte_length, artifact_sha256, outcome) VALUES ('run:1', ?, 'manual', 'p1', 'https://example.invalid/', 'a', 'b', ?, 1, ?, 'changed')`)
     .run(OSAKA_SOURCE_ID, artifact, artifact);
-  for (const t of ["reports", "app_attest_challenges", "raw_artifacts", "source_checks"]) assert.equal(count(target, t), 1, t);
+  for (const t of ["raw_artifacts", "source_checks"]) assert.equal(count(target, t), 1, t);
 });
 
 test("while a v3 bootstrap is open, pipeline, review and source-check writes are refused", () => {

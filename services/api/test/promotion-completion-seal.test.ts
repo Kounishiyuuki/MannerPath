@@ -45,40 +45,21 @@ test("completion seals every promoted and derived table for INSERT, UPDATE and D
   }
 });
 
-test("completion leaves report, moderation, rate window and App Attest writes available", async () => {
+test("after completion the canonical database still takes no report, moderation, rate window or App Attest write (ADR-0014)", async () => {
+  // Those writes belong to the durable REPORTS_DB, which a promotion never touches; in the canonical database the
+  // legacy tables are inert before and after completion alike, and the refusal is the inert one, not the seal.
   const db = await completed();
   const reportId = `rp_${"0".repeat(26)}`;
-  db.prepare(`INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, attestation_status, received_at, minimize_after)
-    VALUES (?, 1, 'exists', ?, 'notProvided', '2026-09-01T00:00:00Z', '2026-11-30T00:00:00Z')`)
-    .run(reportId, `sp_${"0".repeat(26)}`);
-  db.prepare("INSERT INTO report_moderation (report_id, state, updated_at) VALUES (?, 'pending', '2026-09-01T00:00:00Z')").run(reportId);
-  db.prepare("INSERT INTO report_rate_windows VALUES (?, 'hour', '2026-09-01T00:00:00Z', 1, '2026-09-01T01:00:00Z')")
-    .run("a".repeat(64));
-  db.prepare("INSERT INTO app_attest_keys VALUES (?, ?, 'production', 0, '2026-09-01T00:00:00Z')")
-    .run(`${"A".repeat(43)}=`, `04${"a".repeat(128)}`);
-  db.prepare("INSERT INTO app_attest_challenges (challenge, purpose, issued_at, expires_at) VALUES (?, 'registration', '2026-09-01T00:00:00Z', '2026-09-01T00:05:00Z')")
-    .run(`${"B".repeat(43)}=`);
+  const refused = /lives? in REPORTS_DB \(ADR-0014\)/;
+  assert.throws(() => db.prepare(`INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, attestation_status, received_at, minimize_after)
+    VALUES (?, 1, 'exists', ?, 'notProvided', '2026-09-01T00:00:00Z', '2026-11-30T00:00:00Z')`).run(reportId, `sp_${"0".repeat(26)}`), refused);
+  assert.throws(() => db.prepare("INSERT INTO report_rate_windows VALUES (?, 'hour', '2026-09-01T00:00:00Z', 1, '2026-09-01T01:00:00Z')")
+    .run("a".repeat(64)), refused);
+  assert.throws(() => db.prepare("INSERT INTO app_attest_keys VALUES (?, ?, 'production', 0, '2026-09-01T00:00:00Z')")
+    .run(`${"A".repeat(43)}=`, `04${"a".repeat(128)}`), refused);
+  assert.throws(() => db.prepare("INSERT INTO app_attest_challenges (challenge, purpose, issued_at, expires_at) VALUES (?, 'registration', '2026-09-01T00:00:00Z', '2026-09-01T00:05:00Z')")
+    .run(`${"B".repeat(43)}=`), refused);
   for (const table of ["reports", "report_moderation", "report_rate_windows", "app_attest_keys", "app_attest_challenges"]) {
-    assert.equal((db.prepare(`SELECT count(*) n FROM ${table}`).get() as { n: number }).n, 1, table);
+    assert.equal((db.prepare(`SELECT count(*) n FROM ${table}`).get() as { n: number }).n, 0, table);
   }
-
-  // The runtime's own updates and purges, in the shapes src/ issues them, stay available too: no over-seal.
-  const at = "2026-12-01T00:00:00Z";
-  db.prepare(`INSERT INTO report_rate_windows (submitter_hash, window_kind, window_start, report_count, expires_at)
-    VALUES (?, 'hour', '2026-09-01T00:00:00Z', 1, '2026-09-01T01:00:00Z')
-    ON CONFLICT (submitter_hash, window_kind, window_start) DO UPDATE SET report_count = report_count + 1`).run("a".repeat(64));
-  assert.equal((db.prepare("SELECT report_count n FROM report_rate_windows").get() as { n: number }).n, 2, "rate-limit upsert");
-  db.prepare(`UPDATE report_moderation SET state = 'rejected', decided_at = ?, decided_by = 'moderator', decision_reason = 'unspecified', updated_at = ?
-    WHERE report_id = ?`).run(at, at, reportId);
-  db.prepare(`UPDATE reports SET note = NULL, proposed_latitude = NULL, proposed_longitude = NULL, observed_on = NULL,
-    submitter_hash = NULL, redacted_at = ? WHERE report_id = ? AND redacted_at IS NULL`).run(at, reportId);
-  db.prepare("UPDATE app_attest_challenges SET consumed_at = ? WHERE challenge = ? AND consumed_at IS NULL").run(at, `${"B".repeat(43)}=`);
-  db.prepare("UPDATE app_attest_keys SET sign_count = 1 WHERE key_id = ?").run(`${"A".repeat(43)}=`);
-  db.prepare("DELETE FROM report_rate_windows WHERE expires_at <= ?").run(at);
-  db.prepare("DELETE FROM app_attest_challenges WHERE expires_at <= ?").run(at);
-  assert.deepEqual(
-    ["report_rate_windows", "app_attest_challenges"].map((t) => (db.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n),
-    [0, 0], "retention purges");
-  assert.equal((db.prepare("SELECT redacted_at FROM reports").get() as { redacted_at: string }).redacted_at, at);
-  assert.equal((db.prepare("SELECT sign_count FROM app_attest_keys").get() as { sign_count: number }).sign_count, 1);
 });

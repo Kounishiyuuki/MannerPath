@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
 import { REPORT_BODY_MAX_BYTES, ReportAcceptedV1 } from "../src/reports/dto.ts";
 import { REPORT_RATE_LIMITS } from "../src/reports/rate-limit.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).get(...p) as Row;
@@ -18,14 +18,14 @@ const post = (db: SqliteD1, body: unknown, env: Record<string, unknown> = {}) =>
   app.request(
     "/v1/reports",
     { method: "POST", headers: { "Content-Type": "application/json" }, body: typeof body === "string" ? body : JSON.stringify(body) },
-    { DB: db, ...env },
+    { DB: new SqliteD1(), REPORTS_DB: db, ...env },
   );
 
 const existsReport = (extra: Record<string, unknown> = {}) =>
   ({ schemaVersion: 1, type: "exists", spotId: SPOT, installId: INSTALL, ...extra });
 
 test("a valid report is stored as a pending proposal and the response reveals nothing else", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const res = await post(db, existsReport({ observedOn: "2026-09-19", note: "灰皿ありました" }));
   assert.equal(res.status, 201);
   assert.equal(res.headers.get("Cache-Control"), "no-store");
@@ -53,7 +53,7 @@ test("a valid report is stored as a pending proposal and the response reveals no
 });
 
 test("a location proposal is quantized to ~1m and only the location types may send one", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const missing = await post(db, {
     schemaVersion: 1, type: "missing", installId: INSTALL,
     proposedLocation: { latitude: 35.711234567, longitude: 139.773771234 },
@@ -70,7 +70,7 @@ test("a location proposal is quantized to ~1m and only the location types may se
 });
 
 test("invalid payloads are rejected and the error never echoes a submitted value", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const cases: Array<[string, unknown]> = [
     ["unknown field", existsReport({ deviceLocation: { latitude: 35.7, longitude: 139.7 } })],
     ["missing installId", { schemaVersion: 1, type: "exists", spotId: SPOT }],
@@ -113,7 +113,7 @@ test("invalid payloads are rejected and the error never echoes a submitted value
 });
 
 test("a real calendar date is accepted, including a leap day", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   for (const observedOn of ["2024-02-29", "2026-09-19", "2026-01-01", "2026-12-31", "2000-02-29"]) {
     const res = await post(db, existsReport({ observedOn }));
     assert.equal(res.status, 201, observedOn);
@@ -123,7 +123,7 @@ test("a real calendar date is accepted, including a leap day", async () => {
 });
 
 test("malformed JSON and oversized bodies are refused before parsing", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const bad = await post(db, "{not json");
   assert.equal(bad.status, 400);
   assert.equal((await bad.json() as Row).error, "invalidJson");
@@ -136,7 +136,7 @@ test("malformed JSON and oversized bodies are refused before parsing", async () 
 });
 
 test("an unknown or unpublished spot id is accepted exactly like a known one", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const unknown = await post(db, existsReport({ spotId: "sp_00000000000000000000000001" }));
   assert.equal(unknown.status, 201);
   const known = await post(db, existsReport());
@@ -148,7 +148,7 @@ test("an unknown or unpublished spot id is accepted exactly like a known one", a
 });
 
 test("the per-install hourly budget refuses further reports with Retry-After and writes nothing", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const hourly = REPORT_RATE_LIMITS.find((l) => l.kind === "hour")!;
   for (let i = 0; i < hourly.max; i++) assert.equal((await post(db, existsReport())).status, 201, `report ${i + 1}`);
 
@@ -168,7 +168,7 @@ test("the per-install hourly budget refuses further reports with Retry-After and
 });
 
 test("an incomplete or unrecognised attestation policy fails closed and nothing is stored", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
 
   // "required" without the App ID and environment it verifies against cannot verify anything, so
   // the endpoint refuses to run rather than storing unverifiable device claims.
@@ -192,7 +192,7 @@ test("an incomplete or unrecognised attestation policy fails closed and nothing 
 });
 
 test("a report submission logs nothing", async () => {
-  const db = new SqliteD1();
+  const db = reportsD1();
   const captured: unknown[] = [];
   const methods = ["log", "info", "warn", "error", "debug"] as const;
   const originals = methods.map((m) => console[m]);

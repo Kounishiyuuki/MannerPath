@@ -8,6 +8,7 @@ import {
   ATTESTED_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SCHEMA_VERSION, REPORT_SUBMISSION_MAX_BYTES, ReportRequestV1,
 } from "../src/reports/dto.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
+import { reportsD1 } from "./support/sqlite-d1.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../src/spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../src/tiles/dto.ts";
 
@@ -23,8 +24,10 @@ function configBodyFixture(): unknown {
   };
 }
 
-// The handler is synchronous (it touches no database), so app.request returns a Response directly.
-const config = async (env: Record<string, string> = {}) => await app.request("/v1/config", {}, env as any);
+// The handler touches no database. The report store binding is present (a deployment has one, ADR-0014) but is a
+// tripwire: any use of it throws.
+const TRIPWIRE = new Proxy({}, { get: () => { throw new Error("/v1/config must not touch a database"); } });
+const config = async (env: Record<string, unknown> = {}) => await app.request("/v1/config", {}, { REPORTS_DB: TRIPWIRE, ...env } as any);
 
 test("/v1/config serves the canonical constants, and reaches no database", async () => {
   // No DB binding is provided at all: a handler that touched D1 would throw here.
@@ -54,6 +57,17 @@ test("/v1/config serves the canonical constants, and reaches no database", async
   assert.equal(body.dataTileZoom, 14);
   assert.equal(body.reports.maxBodyBytes, 4096);
   assert.equal(body.reports.noteMaxLength, 280);
+});
+
+test("/v1/config reports reports as unavailable when the deployment has no report store binding (ADR-0014)", async () => {
+  const body = ConfigBodyV1.parse(await (await app.request("/v1/config", {}, {} as any)).json());
+  assert.equal(body.reports.available, false);
+  // And the report endpoints agree: they fail closed without touching anything.
+  for (const path of ["/v1/reports", "/v1/app-attest/challenges", "/v1/app-attest/keys"]) {
+    const res = await app.request(path, { method: "POST", body: "{}" }, {} as any);
+    assert.equal(res.status, 503, path);
+    assert.equal(((await res.json()) as any).error, "reportStoreUnavailable", path);
+  }
 });
 
 test("compatibility is per resource, and each range is one the server really serves", async () => {
@@ -106,13 +120,13 @@ test("/v1/config reports the report endpoint as unavailable exactly when it fail
     const label = JSON.stringify(env);
     // The App Attest endpoints answer exactly when the deployment advertises App Attest.
     const attested = ConfigBodyV1.parse(await config(env).then((r) => r.json())).reports;
-    const challenge = await app.request("/v1/app-attest/challenges", { method: "POST", body: "{}" }, env as any);
+    const challenge = await app.request("/v1/app-attest/challenges", { method: "POST", body: "{}" }, { REPORTS_DB: reportsD1(), ...env } as any);
     assert.equal(challenge.status === 503, !(attested.available && attested.attestation === "appAttest"), `challenges ${label}`);
     const body = ConfigBodyV1.parse(await config(env).then((r) => r.json()));
     assert.equal(body.reports.available, available, label);
 
     // The advertised availability must match what the endpoint really does.
-    const post = await app.request("/v1/reports", { method: "POST", body: "{}" }, env as any);
+    const post = await app.request("/v1/reports", { method: "POST", body: "{}" }, { REPORTS_DB: reportsD1(), ...env } as any);
     assert.equal(post.status === 503, !available, label);
   }
 });
@@ -135,7 +149,7 @@ test("/v1/config names the one report protocol and schema version the deployment
 
   // And the endpoint refuses the other version explicitly, whichever mode it is in.
   for (const [env, other] of [[{}, ATTESTED_REPORT_SCHEMA_VERSION], [{ REPORT_ATTESTATION: "required", ...APP_ATTEST }, REPORT_SCHEMA_VERSION]] as const) {
-    const res = await app.request("/v1/reports", { method: "POST", body: JSON.stringify({ schemaVersion: other }) }, env as any);
+    const res = await app.request("/v1/reports", { method: "POST", body: JSON.stringify({ schemaVersion: other }) }, { REPORTS_DB: reportsD1(), ...env } as any);
     assert.equal(res.status, 400);
     assert.equal((await res.json() as any).error, "reportSchemaUnsupported");
   }
