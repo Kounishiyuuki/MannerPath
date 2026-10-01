@@ -305,6 +305,7 @@ Responses:
 | `acceptedTermsVersion` is not the deployment's current terms version | `409` | `{"error":"termsVersionOutdated","detail":…}` — nothing stored; the client must show the current terms (update the app) |
 | Attestation policy unrecognised or incomplete (see ADR-0007 §6) | `503` | `{"error":"attestationUnavailable","detail":…}` — checked before the body is read; fails closed, and a typo never silently disables attestation |
 | Per-install rate limit exceeded (10/hour, 50/day) | `429` | `{"error":"reportRateLimited","detail":…}`; `Retry-After` seconds |
+| The durable report store (`REPORTS_DB`, ADR-0014) is not bound or not reachable | `503` | `{"error":"reportStoreUnavailable","detail":…}`; `Retry-After: 60`. Also answered by both App Attest endpoints. The client keeps the report and retries; nothing is ever written to the canonical database instead. `/v1/config` reports `reports.available = false` when the store is not bound |
 
 **An unknown, unpublished or merged-away `spotId` is accepted exactly like a known one**, with an
 identical response. The endpoint deliberately does not validate the ID against canonical data, so

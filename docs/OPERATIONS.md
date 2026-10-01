@@ -20,7 +20,8 @@ Two vocabularies, deliberately not mixed.
 | `npm test`, `npm run typecheck` | Nothing outside the repository |
 | `npm run local:migrate` | `.wrangler/state` local D1 |
 | `npm run local:registry`, `npm run local:pipeline` | `.wrangler/state` local D1 |
-| `npm run local:reports` | `.wrangler/state` local D1 |
+| `npm run local:reports:migrate` | `.wrangler/state` local REPORTS_DB (report store, ADR-0014) |
+| `npm run local:reports`, `npm run local:reports:redact` | local REPORTS_DB, plus the local canonical D1 for artifact import/apply |
 | `npm run dev` (`wrangler dev --local`) | Local Worker on `127.0.0.1:8787` |
 | `npm run local:smoke` | HTTP GETs against `127.0.0.1:8787` |
 | `npm run local:export` | Reads `.wrangler/state` local D1; writes a file only when asked |
@@ -40,6 +41,8 @@ target; `local:pipeline`, `local:registry` and `local:export` open their binding
 | `node --experimental-strip-types --no-warnings scripts/smoke.ts --base-url https://… --remote` | Refuses a non-loopback target without `--remote`, and refuses non-HTTPS |
 | `npx wrangler delete --env staging` | Typed by hand; the disable step |
 | `npm run e2e:config -- --suffix <s> --database-id <uuid>` | Writes a git-ignored config only; runs nothing remote. See "Disposable App Attest E2E environment" |
+| `npx wrangler d1 migrations apply REPORTS_DB --env staging --remote` | Needs `--remote` and a real REPORTS_DB `database_id`. In-place, append-only; the report store is never rebuilt |
+| `npm run reports:moderate -- --remote --env <env> --database-id <uuid> …` | Refuses without every flag, outside an interactive terminal, or in CI; production also needs `--confirm-production mannerpath-production-reports`; binds only REPORTS_DB; no fallback (ADR-0014) |
 
 `scripts/smoke.ts` defaults to `http://127.0.0.1:8787` and **refuses** any non-loopback host unless
 both `--base-url` and `--remote` are given. It sends only GETs plus one deliberately invalid
@@ -84,7 +87,14 @@ secret exists.
 ```sh
 npx wrangler d1 migrations apply DB --env staging --remote
 npx wrangler d1 migrations list DB --env staging --remote      # expect: no pending migrations
+# The durable report store (ADR-0014): its own database and stream, created ONCE per environment.
+npx wrangler d1 create mannerpath-staging-reports              # first time only; its id lands by reviewed PR
+npx wrangler d1 migrations apply REPORTS_DB --env staging --remote
+npx wrangler d1 migrations list REPORTS_DB --env staging --remote
 ```
+
+`DB` (canonical, replaceable) and `REPORTS_DB` (reports, moderation, App Attest, rate limits; durable) never share a
+database or a migration stream; `test/deploy-config.test.ts` enforces it.
 
 Migrations are append-only numbered files; an applied migration is never edited
 (`services/AGENTS.md`).
@@ -406,16 +416,13 @@ Notes:
   does not touch the green database.
 - The cut-over is not atomic across the two databases, but each tile is: clients revalidate with
   `ETag` and replace a tile wholesale, so a client sees the old tile or the new one, never a mix.
-- User reports and registered App Attest keys live in the database being replaced. While the App
-  Attest values are unset, remote report acceptance is closed, so a green database starts with no
-  reports or keys to carry and nothing is lost. **This stops being true the moment a remote
-  environment is configured to accept attested reports**: a blue/green switch would then drop the
-  reports and keys written to the blue database since the bundle was built. Dropped keys are
-  recoverable (clients get `keyNotRegistered` and register again); dropped reports are not. How
-  reports are carried across — or a replacement for this model — must be decided before the App
-  Attest values are set on any long-lived remote environment. Issue #37 implements the protocol
-  only; it does not decide that. The disposable E2E environment (end of this document) is exempt
-  because it is never switched onto or promoted from.
+- **A cutover changes the `DB` binding only. `REPORTS_DB` is never switched (ADR-0014).** Reports,
+  moderation decisions, App Attest keys and rate-limit windows live in the durable report store, so
+  green starts with none of them and needs none: the live Worker keeps writing reports to the same
+  REPORTS_DB before, during and after the switch, registered devices keep their keys (no
+  `keyNotRegistered`), and rate-limit identity continues. In the cut-over PR, the diff must touch the
+  `DB` `database_id` only; a change to the `REPORTS_DB` entry is a review stop. Green is migrated with
+  the canonical stream only (`migrations apply mannerpath-staging-2`), never with `migrations-reports`.
 
 ### 7. Rollback / disable
 
@@ -423,8 +430,9 @@ Notes:
   (`npm run local:pipeline`), regenerate and review a bundle, and run the blue/green promotion in
   step 6 onto a new database. Within one database, tiles are replaced atomically per tile with a
   monotonic `revision`, so a client always sees a whole old tile or a whole new one.
-- **Bad data just promoted:** switch the Worker's `database_id` back to the previous (blue)
-  database in a reviewed change and redeploy, then smoke verify:
+- **Bad data just promoted:** switch the Worker's `DB` `database_id` back to the previous (blue)
+  database in a reviewed change and redeploy, then smoke verify. `REPORTS_DB` is not touched: report
+  history, moderation and keys do not roll back (published community state may, with its release):
 
   ```sh
   # restore the previous database_id in services/api/wrangler.jsonc (reviewed PR)
@@ -671,13 +679,14 @@ rm $C
 
 The decision, the exact code switch and the launch order are in `docs/legal/COMMUNITY_PUBLICATION_DECISION.md` and
 `docs/COMMUNITY_LAUNCH_CHECKLIST.md`. This section is the operating procedure once community publication is live.
-Everything here is local tooling (`npm run local:reports`, `local:pipeline`, `local:quality`); production changes
+Everything here is maintainer tooling (`npm run local:reports` / `reports:moderate`, `local:pipeline`, `local:quality`); production changes
 only through the reviewed promotion bundle (steps 4–6).
 
-**Open prerequisite (not decided):** production reports are written to the live remote D1, while moderation runs
-against local D1 and the promotion bundle never carries reports. How reports reach moderation, and survive a
-blue/green cut-over (step 7 caveat), must be decided and implemented before launch. Until then this runbook applies
-to the local/disposable environments only.
+**Report path (ADR-0014).** Production reports are written to the environment's durable `REPORTS_DB`, which no
+cut-over or rollback switches. Moderation and review run against that store (`npm run reports:moderate -- --remote
+…`, maintainer's terminal only; `npm run local:reports` for local). A review is exported as a sanitized artifact file
+(`export <reviewId> <dir>`), imported into the LOCAL canonical pipeline (`import <file>`), applied there, and reaches
+production only through the reviewed promotion bundle and a blue/green cut-over. Raw reports never leave REPORTS_DB.
 
 ### Daily moderation flow
 
@@ -686,7 +695,7 @@ report and one person's judgement, with a reason code. Read counts first:
 
 ```sh
 npm run local:reports -- triage-summary        # pending / accepted / rejected / rightsBlocked by category
-npm run local:quality                          # nationwide.communityAcquisition.moderation: backlog age, rates
+npm run local:reports -- summary               # reports -> reviews -> imported artifacts -> applications, counts only
 ```
 
 | # | Queue | Command(s) | Rule |
@@ -698,8 +707,14 @@ npm run local:quality                          # nationwide.communityAcquisition
 | 5 | Corrections / relocation | `triage pending moved,typeChange,accessChange,hoursChange,tobaccoChange`, `corrections` | one pin = `awaitingIndependentConfirmation`; agreeing pins → `effect-propose` (relocationReview). Nothing moves without ADR-0009 review |
 | 6 | Confirmations (`exists`) | `triage pending stillExists`, `effects` | accept → `effect-propose` → `effect-apply` → `upgrade` (communityReported → communityVerified) |
 | 7 | Duplicates | `duplicates` | merge into the live spot or `decide … rejected … duplicateOfExistingReport` |
-| 8 | New spots | `triage pending newSpot`, `candidates <metres>` | type must be known; a shop alone is not a smoking place. `propose-reported` (one report) or `propose` (≥ 2 independent) → `apply` |
+| 8 | New spots | `triage pending newSpot`, `candidates <metres>` | type must be known; a shop alone is not a smoking place. `propose-reported` (one report) or `propose` (≥ 2 independent) → `export` → `import` → `apply` |
 | 9 | Rights blocked | `triage-summary` `rightsBlocked` | reports without consent to the granted version: usable as review signals only, never publish. No action can fix them |
+
+Every `*-propose` above is a REPORTS_DB review; follow it with `export <reviewId> <dir>` and, against the local
+canonical pipeline, `import <dir>/<sha256>.json` before any `*-apply`. Import answers `imported`, `alreadyImported`
+(same bytes: nothing written), `conflict`, `stale` or `refused` (spot merged/unknown, base changed, unknown terms):
+the last three write nothing and need a fresh review. Run `retain` (or `npm run local:reports:redact`) daily; it
+works in bounded, resumable batches.
 
 Then `npm run local:pipeline` (republish) and `npm run local:quality`. A large queue is a staffing signal, not a
 quality failure; no check fails on community volume.
@@ -709,9 +724,52 @@ quality failure; no check fails on community volume.
 | Goal | Action | Effect |
 | --- | --- | --- |
 | Stop accepting reports | `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>` (step 7) | `/v1/config` `available: false`; the app hides reporting. Never switch to `disabled` |
-| Stop publication quickly | switch `database_id` back to the pre-launch database (step 7, reviewed PR) | official data exactly as before launch; community evidence stays in the newer database |
+| Stop publication quickly | switch the `DB` `database_id` back to the pre-launch database (step 7, reviewed PR) | official data exactly as before launch; reports and moderation stay in REPORTS_DB, untouched |
 | Hold the community source | PR: `COMMUNITY_PUBLICATION.state = "suspended"` → `npm run local:registry && npm run local:pipeline` → new bundle → blue/green | terms `revoked`, source `blocked`, community spots leave tiles; reports, applications and canonical rows remain |
 | Resume | PR back to `approved`, same steps | community spots return from the preserved evidence |
 
 Official sources are never part of a community rollback (`test/community-activation.test.ts` checks the official
 published set is unchanged).
+
+## Report store (REPORTS_DB): backup and recovery (ADR-0014)
+
+REPORTS_DB is the one database that is not rebuilt from the repository: a lost report cannot be re-derived. It is
+therefore protected by Cloudflare's own D1 features, checked against the current Cloudflare documentation
+(`developers.cloudflare.com/d1/reference/time-travel/`, `…/d1/best-practices/import-export-data/`, read 2026-10-01).
+Retention windows and limits are set by Cloudflare per plan and change; read the current page before relying on one.
+Every command here is a maintainer's remote action; none is run by automation.
+
+- **Point-in-time recovery (Time Travel).** Always on for production-backend D1, no configuration. Before any risky
+  operation on the report store (a new `migrations-reports` file, a bulk moderation session), record a bookmark:
+
+  ```sh
+  npx wrangler d1 time-travel info mannerpath-production-reports            # note the bookmark in the deployment record
+  ```
+
+  Restoring **overwrites the database in place and cancels in-flight queries** (Cloudflare docs). It is a destructive,
+  last-resort step: stop report intake first (step 7, "Stop accepting reports"), then
+
+  ```sh
+  npx wrangler d1 time-travel info mannerpath-production-reports --timestamp=<RFC 3339>   # find the bookmark
+  npx wrangler d1 time-travel restore mannerpath-production-reports --bookmark=<bookmark>
+  ```
+
+  A restore can itself be undone by restoring the bookmark printed before it. Reports accepted after the restore point
+  are lost; record the window in the incident.
+- **Offline export.** For a copy outside Cloudflare (and beyond the Time Travel window), export to a file kept
+  under the same access control as personal data (it contains notes, pins and submitter hashes until 90-day
+  minimization):
+
+  ```sh
+  npx wrangler d1 export mannerpath-production-reports --remote --output=reports-<date>.sql
+  ```
+
+  A running export blocks other requests to the database (Cloudflare docs): run it in a low-traffic window. An export
+  is personal data: it inherits the 90-day minimization (delete exports older than that), and it is never committed,
+  attached to an issue or copied into the canonical pipeline.
+- **Restore from an export** (only if Time Travel cannot help): create a NEW database, apply `migrations-reports`,
+  `npx wrangler d1 execute <new-name> --remote --file=reports-<date>.sql`, verify the `report_store_meta` row and
+  counts, then switch only the `REPORTS_DB` `database_id` in a reviewed PR. This is the one case in which REPORTS_DB is
+  re-pointed, and it is never combined with a canonical cut-over.
+- **What is not a backup:** the canonical database (it holds no reports), promotion bundles (they carry no report
+  state), and community artifacts (sanitized decisions, not reports).

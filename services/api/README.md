@@ -6,7 +6,8 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 
 ## Contents
 
-- `migrations/`: D1 schema. `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables. `0008` adds the immutable, derived `source_observations` layer the resolver reads (ADR-0008 decision 2). `0019` adds the cross-source review and merge tables and their promotion attestations (ADR-0008, Issue #107). `0020` adds community report reconciliation: immutable applications, their report links and the apply guards (ADR-0007 amendment, Issue #123).
+- `migrations-reports/`: the durable report store's own stream (`REPORTS_DB`, ADR-0014): reports, moderation, review decisions, App Attest state, rate limits, store identity. Append-only and non-destructive; never applied to the canonical database.
+- `migrations/`: canonical D1 schema (`DB`). `0025` makes the legacy report tables inert and adds the community artifact ledger and sanitized evidence (ADR-0014). `0001` is the initial schema. `0002` adds spotType `unknown` and must run before any spot exists. `0003` adds the user-report tables. `0008` adds the immutable, derived `source_observations` layer the resolver reads (ADR-0008 decision 2). `0019` adds the cross-source review and merge tables and their promotion attestations (ADR-0008, Issue #107). `0020` adds community report reconciliation: immutable applications, their report links and the apply guards (ADR-0007 amendment, Issue #123).
 - `src/pipeline/`: source-agnostic ingest (raw evidence) and first-release reconciliation behind the `SourceAdapter` boundary (`source-adapter.ts`, `adapters.ts`, ADR-0008); Taito is the first adapter (`taito-adapter.ts`, field rules in `taito.ts`); the reviewed source registry is `registry.ts`.
 - `src/refresh/`: scheduled source checks — fetch, sha256 fingerprint, content-addressed R2 retention, drift probes and review candidates (`0017`, ADR-0008 source refresh amendment). Check-only: nothing here ingests, resolves or publishes.
 - `src/tiles/`: tile DTO v1 (Zod) and the publish step.
@@ -24,6 +25,7 @@ npm ci
 npm test                 # all tests
 npm run typecheck        # tsc on src/ (Worker types)
 npm run local:migrate    # wrangler d1 migrations apply DB --local
+npm run local:reports:migrate   # wrangler d1 migrations apply REPORTS_DB --local (the report store, ADR-0014)
 npm run local:pipeline   # ingest -> resolve -> publish the Taito fixture into local D1
 npm run dev              # wrangler dev --local
 npm run local:reports    # moderation queue / decisions / retention pass (local D1 only)
@@ -63,16 +65,16 @@ Only sources listed in `REVIEWED_SOURCES` can be registered or approved by this 
 
 ## User reports (ADR-0007)
 
-`POST /v1/reports` stores an immutable proposal with moderation state `pending`. It never writes
-canonical or published tables, and an accepted report becomes evidence only through a separate
-reconciliation step. For new-spot (`missing`) reports that step is community reconciliation
-(`src/pipeline/community-reconciliation.ts`, Issue #123). A reviewer applies an explicit
-application of at least two accepted, queued reports from distinct submitters at one report's pin.
-The apply writes a sanitized single-record release of the reviewed, currently **blocked**
-`mannerpath-community-reports` source and resolves it in the same batch that marks the application
-and the reports `applied`. Other report types stay `queued`.
+`POST /v1/reports` stores an immutable proposal with moderation state `pending` in the durable report
+store (`REPORTS_DB`, ADR-0014). It never writes the canonical database. A reviewer decides in the
+report store (`src/reports/review.ts`) and exports the decision as a sanitized, deterministic artifact;
+the canonical pipeline imports it (`src/pipeline/community-artifact.ts`: replay-protected ledger) as a
+proposed application, which the existing apply steps turn into a sanitized `userReport` release of the
+currently **blocked** `mannerpath-community-reports` source.
 
-Moderation and retention run locally; there is no authenticated admin HTTP surface.
+Moderation and retention run against the report store, local by default (`npm run local:reports`);
+remote only via `npm run reports:moderate -- --remote …` from a maintainer's terminal. There is no
+authenticated admin HTTP surface. The full command list is at the top of `scripts/report-queue.ts`.
 
 ```sh
 npm run local:reports                                         # pending queue (never shows the submitter key)
@@ -81,10 +83,13 @@ npm run local:reports -- queue rp_... queued                  # accepted reports
 npm run local:reports -- retain                               # minimize reports past 90 days, purge rate counters
 npm run local:reports -- candidates 50                        # group queued missing reports within an explicit radius (m)
 npm run local:reports -- propose reviewer-1 rp_A rp_A rp_B    # decidedBy, adopted-pin report, evidence reports
+npm run local:reports -- export ca_... community-artifacts    # seal the sanitized artifact (REPORTS_DB)
+npm run local:reports -- import community-artifacts/<sha256>.json   # imported | alreadyImported | conflict | stale | refused
 npm run local:reports -- apply ca_...                         # sanitized userReport release -> resolve, one batch
 npm run local:reports -- withdraw ca_...                      # terminal; its reports can back nothing else
 npm run local:reports -- summary                              # counts per state: pending -> accepted -> queued -> applied
-npm run local:reports -- effects                              # existing-spot reports: count, submitters, rights, stale, effect
+npm run local:reports -- effects-queue                        # queued existing-spot reports (REPORTS_DB): counts, submitters, consent
+npm run local:reports -- effects                              # imported effect applications: attested submitters, rights, stale, hold
 npm run local:reports -- effect-propose reviewer-1 rp_A rp_B  # one type, one spot; `other` has no effect (Issue #127)
 npm run local:reports -- effect-apply ce_...                  # records the review candidate; changes nothing canonical
 npm run local:reports -- effect-hold ce_...                   # prohibited only; `blocked` until community rights hold (#124)
