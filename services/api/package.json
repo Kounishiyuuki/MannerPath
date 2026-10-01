@@ -21,6 +21,7 @@
     "local:quality": "node --experimental-strip-types --no-warnings scripts/data-quality.ts",
     "replay:derived-coordinates": "node --experimental-strip-types --no-warnings scripts/derived-coordinate-replay.ts",
     "replay:coverage": "node --experimental-strip-types --no-warnings scripts/coverage-replay.ts",
+    "coverage:targets": "node --experimental-strip-types --no-warnings scripts/coverage-targets.ts",
     "e2e:config": "node --experimental-strip-types --no-warnings scripts/disposable-env.ts"
   },
   "dependencies": {

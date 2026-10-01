@@ -3842,6 +3842,386 @@
           }
         }
       }
+    },
+    "A reviewer compares this with other reports and sources. One report never changes the listing by itself.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "審査担当者が他の報告や情報源と照らし合わせます。1件の報告だけで掲載内容が変わることはありません。"
+          }
+        }
+      }
+    },
+    "About %lld m from your pin · tap to confirm it is still here instead": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピンから約%lldm · タップすると新規追加の代わりに「ここにありました」を送ります"
+          }
+        }
+      }
+    },
+    "Add a smoking place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙場所を追加"
+          }
+        }
+      }
+    },
+    "Been here recently? Your check helps others. It is reviewed before anything changes.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近ここに来ましたか？あなたの確認が他の人の役に立ちます。掲載内容は審査の後にのみ変わります。"
+          }
+        }
+      }
+    },
+    "Before adding a new place, check whether it is already listed. If it is a different place nearby, keep adding it.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しく追加する前に、すでに載っていないか確認してください。近くの別の場所なら、そのまま追加を続けてください。"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
+        }
+      }
+    },
+    "Check the correction: choose the value you saw, or remove it.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修正内容を確認してください。見た内容を選ぶか、削除してください。"
+          }
+        }
+      }
+    },
+    "Confirmed by %lld users": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者%lld人が確認"
+          }
+        }
+      }
+    },
+    "Delivery could not be confirmed. The confirmation may already have been received; it stays saved on this device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信を確認できませんでした。すでに受信されている可能性があります。この端末に保存されたままです。"
+          }
+        }
+      }
+    },
+    "Finish or discard your saved report first.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先に保存中の報告を送信するか破棄してください。"
+          }
+        }
+      }
+    },
+    "Hide": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示"
+          }
+        }
+      }
+    },
+    "I couldn't find it": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "見つかりませんでした"
+          }
+        }
+      }
+    },
+    "If you know a smoking place here, you can add it for review.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この付近の喫煙場所を知っていれば、審査用に追加できます。"
+          }
+        }
+      }
+    },
+    "If you pass one, you can tell others whether it is still there.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通りかかったら、まだあるかどうかを他の人に伝えられます。"
+          }
+        }
+      }
+    },
+    "Is it one of these?": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これではありませんか？"
+          }
+        }
+      }
+    },
+    "It has been removed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤去されています"
+          }
+        }
+      }
+    },
+    "It was here": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ここにありました"
+          }
+        }
+      }
+    },
+    "It's a different kind of place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "種類が違います"
+          }
+        }
+      }
+    },
+    "Know a smoking place that isn't listed? Pin it and say what is there. It is reviewed before it can appear.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "載っていない喫煙場所を知っていますか？ピンを置いて何があるかを教えてください。掲載前に審査されます。"
+          }
+        }
+      }
+    },
+    "On-site check": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現地確認"
+          }
+        }
+      }
+    },
+    "Pin a smoking place that is missing from the map. It is reviewed before it can appear.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図にない喫煙場所をピンで追加します。掲載前に審査されます。"
+          }
+        }
+      }
+    },
+    "Places nearby waiting for confirmation": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近くに確認待ちの場所があります"
+          }
+        }
+      }
+    },
+    "Reported by one user · no one else has confirmed it yet": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者報告 · まだ他の利用者による確認なし"
+          }
+        }
+      }
+    },
+    "Send confirmation": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認を送信"
+          }
+        }
+      }
+    },
+    "Sends a confirmation that this place still exists, for review": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所がまだあることを確認として送ります（審査されます）"
+          }
+        }
+      }
+    },
+    "Show places waiting for confirmation": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認待ちの場所を表示"
+          }
+        }
+      }
+    },
+    "Something is different": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "違う点を報告"
+          }
+        }
+      }
+    },
+    "Thanks for checking. Confirmations may be reflected after review.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認ありがとうございます。審査後に反映される場合があります。"
+          }
+        }
+      }
+    },
+    "Thanks for your report. It may be reflected after review; the listing has not changed yet.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告ありがとうございます。確認後に反映される場合があります。掲載内容はまだ変わっていません。"
+          }
+        }
+      }
+    },
+    "The exact spot could use a check": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正確な位置の確認待ち"
+          }
+        }
+      }
+    },
+    "This kind of report isn't available yet. Choose another report type or use Other correction.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この種類の報告はまだ利用できません。別の種類か「その他の修正」を選んでください。"
+          }
+        }
+      }
+    },
+    "Waiting for someone to confirm it's still here": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだあるかの確認待ち"
+          }
+        }
+      }
+    },
+    "What did you see? (optional)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際はどうでしたか？（任意）"
+          }
+        }
+      }
+    },
+    "What it actually is": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際の種類"
+          }
+        }
+      }
+    },
+    "What kind of place it is is unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "種類が不明"
+          }
+        }
+      }
+    },
+    "Who can actually use it": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際の利用条件"
+          }
+        }
+      }
+    },
+    "Who can use it is unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用条件が不明"
+          }
+        }
+      }
+    },
+    "You're confirming that this smoking place is still here. Nothing else about you or your location is sent.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この喫煙場所がまだあることを確認します。あなた自身や現在地の情報は送信されません。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

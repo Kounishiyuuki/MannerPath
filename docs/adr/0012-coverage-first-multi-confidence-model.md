@@ -114,3 +114,13 @@ new report `claim` only to a deployment whose strict schema accepts it.
   allVisible`); official coverage is never inflated by community counts.
 - Upgrading a spot's tier is the one write to a canonical spot outside the resolver
   (`community-verification.ts`), limited by trigger to the four evidence-tier columns.
+
+## Amendment 2026-10-01 — acquisition lifecycle (ADR-0013)
+
+The published tiers are unchanged. ADR-0013 names the lifecycle inside them: `reported` (communityReported) →
+`visitedConfirmed` (communityVerified reached through one independent on-site `exists` confirmation, two submitters)
+→ `communityVerified` (two submitters at creation, or three or more). Negative findings follow decision 4: a single
+`notFound`/`removed` is a recheck signal, never a removal; only a reviewed, corroborated, rights-gated absence hold
+(migration 0024) withdraws a community-evidenced or official spot from publication, and stale evidence is never
+treated as negative evidence.
+

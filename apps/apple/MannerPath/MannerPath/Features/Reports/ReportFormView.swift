@@ -5,6 +5,8 @@ struct ReportFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: ReportModel
     let visualCenter: SpotCoordinate?
+    /// Places already on the map near the user, for "is it one of these?" before adding a new one (ADR-0013).
+    var nearbySpots: [Spot] = []
 
     @State private var observedDate = Date()
     @State private var hasObservedDate = false
@@ -34,10 +36,11 @@ struct ReportFormView: View {
                                     var edited = draft
                                     edited.type = type
                                     if type != .moved { edited.proposedLocation = nil }
+                                    edited.correction = nil
                                     model.saveDraft(edited)
                                 }
                             )) {
-                                ForEach(ReportType.allCases.filter { $0 != .missing }, id: \.self) { type in
+                                ForEach(ReportType.corrections(acceptsFindings: acceptsFindings) + [.exists], id: \.self) { type in
                                     Text(type.title).tag(type)
                                 }
                             }
@@ -60,6 +63,37 @@ struct ReportFormView: View {
                                     .font(.footnote).foregroundStyle(.secondary)
                             }
                         }
+                    }
+
+                    if isMissing, let pin = draft.proposedLocation {
+                        let candidates = DuplicateCandidates.near(pin, in: nearbySpots)
+                        if !candidates.isEmpty {
+                            Section {
+                                ForEach(candidates, id: \.spot.id) { candidate in
+                                    Button {
+                                        model.confirmExistingInstead(spotId: candidate.spot.id, subjectName: SpotPresentation.name(candidate.spot))
+                                    } label: {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(SpotPresentation.name(candidate.spot))
+                                            Text("About \(Int(candidate.distanceMeters.rounded())) m from your pin · tap to confirm it is still here instead")
+                                                .font(.footnote).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    .disabled(isSubmitting)
+                                }
+                            } header: {
+                                Text("Is it one of these?")
+                            } footer: {
+                                Text("Before adding a new place, check whether it is already listed. If it is a different place nearby, keep adding it.")
+                            }
+                        }
+                    }
+
+                    if !isMissing, acceptsFindings, let kind = CorrectionKind(draft.type) {
+                        CorrectionSection(kind: kind, correction: Binding(
+                            get: { model.draft?.correction ?? ReportCorrection() },
+                            set: { value in editDraft { $0.correction = value.isEmpty ? nil : value } }
+                        ))
                     }
 
                     if isMissing, case .available(let limits) = model.availability, limits.acceptsNewSpotClaim {
@@ -133,7 +167,7 @@ struct ReportFormView: View {
                 }
                 Section { status }
             }
-            .navigationTitle(isMissing ? "Suggest missing place" : "Report place information")
+            .navigationTitle(isMissing ? "Add a smoking place" : "Report place information")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -173,6 +207,11 @@ struct ReportFormView: View {
 
     private var isSubmitting: Bool { model.isBusy }
 
+    private var acceptsFindings: Bool {
+        if case .available(let limits) = model.availability { return limits.acceptsExistingSpotFindings }
+        return false
+    }
+
     /// The version this deployment records consent to; nil for a deployment that predates report terms.
     private var termsVersion: String? {
         if case .available(let limits) = model.availability { return limits.termsVersion }
@@ -207,7 +246,7 @@ struct ReportFormView: View {
             Text(message)
         case .accepted(let receipt):
             VStack(alignment: .leading) {
-                Text("Your report was received for review. The listing has not changed.")
+                Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
                 LabeledContent("Report reference", value: receipt.reportId)
                     .textSelection(.enabled)
                 if let cleanupError = model.cleanupError { Text(cleanupError).foregroundStyle(.red) }
@@ -429,6 +468,76 @@ private struct NewSpotClaimSection: View {
             Text("About this place")
         } footer: {
             Text("Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and hours are only for the reviewer and are deleted after 90 days.")
+        }
+    }
+}
+
+/// Which correction claim a report type carries (docs/API.md `claim` on existing-spot reports).
+private enum CorrectionKind {
+    case type, access, tobacco
+
+    init?(_ type: ReportType) {
+        switch type {
+        case .typeChanged: self = .type
+        case .accessChanged: self = .access
+        case .tobaccoTypeChanged: self = .tobacco
+        default: return nil
+        }
+    }
+}
+
+private extension ReportCorrection {
+    var isEmpty: Bool { self == ReportCorrection() }
+}
+
+/// ADR-0013: what the user saw instead. Optional; "Not stated" sends no claim.
+private struct CorrectionSection: View {
+    let kind: CorrectionKind
+    @Binding var correction: ReportCorrection
+
+    var body: some View {
+        Section {
+            switch kind {
+            case .type:
+                Picker("What it actually is", selection: $correction.spotType) {
+                    Text("Not stated").tag(String?.none)
+                    Text("Ashtray").tag(String?.some("ashtray"))
+                    Text("Designated outdoor area").tag(String?.some("designatedOutdoorArea"))
+                    Text("Public smoking room").tag(String?.some("publicSmokingRoom"))
+                    Text("Smoking room in a facility").tag(String?.some("facilitySmokingRoom"))
+                    Text("Smoking permitted inside a shop or café").tag(String?.some("smokingPermittedVenue"))
+                }
+                .onChange(of: correction.spotType) { _, type in if type == nil { correction.spotSubtype = nil } }
+            case .access:
+                Picker("Who can actually use it", selection: $correction.accessType) {
+                    Text("Not stated").tag(String?.none)
+                    Text("Anyone").tag(String?.some("public"))
+                    Text("Customers only").tag(String?.some("customerOnly"))
+                    Text("Facility users only").tag(String?.some("facilityOnly"))
+                }
+                .onChange(of: correction.accessType) { _, access in if access != "facilityOnly" { correction.accessDetail = nil } }
+                if correction.accessType == "facilityOnly" {
+                    Toggle("Ticket holders only", isOn: Binding(
+                        get: { correction.accessDetail == "ticketedUsersOnly" },
+                        set: { correction.accessDetail = $0 ? "ticketedUsersOnly" : nil }
+                    ))
+                }
+            case .tobacco:
+                Picker("Paper cigarettes", selection: $correction.supportsPaper) {
+                    Text("Not stated").tag(String?.none)
+                    Text("Allowed").tag(String?.some("yes"))
+                    Text("Not allowed").tag(String?.some("no"))
+                }
+                Picker("Heated tobacco", selection: $correction.supportsHeated) {
+                    Text("Not stated").tag(String?.none)
+                    Text("Allowed").tag(String?.some("yes"))
+                    Text("Not allowed").tag(String?.some("no"))
+                }
+            }
+        } header: {
+            Text("What did you see? (optional)")
+        } footer: {
+            Text("A reviewer compares this with other reports and sources. One report never changes the listing by itself.")
         }
     }
 }

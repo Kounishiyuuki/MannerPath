@@ -233,3 +233,25 @@ Ordering from here:
 4. **Reference-only discovery** keeps pointing reviewers and reporters at likely places; it never publishes.
 5. **Confidence upgrading** — independent confirmations, cross-source review against official data, re-checks.
 
+## 13. Community acquisition engine — the nationwide collection channel (ADR-0013)
+
+Official open data stays the preferred evidence, but it cannot carry the places most smokers actually use: konbini side
+ashtrays, café and restaurant smoking, tobacco-shop spaces, small corners at stations and facilities. Community
+contribution is therefore a **first-class acquisition channel**, built so that collection can begin the day Issue #124's
+rights are granted:
+
+- **Contribute:** "Add a smoking place" (toolbar and empty state) → map pin → what is there (the one required answer) →
+  optional access/host/details → terms → submit. "Is it one of these?" shows listed places within 50 m first.
+- **Confirm:** "It was here" on every place (two taps once the terms are agreed); "Something is different" for
+  not found / removed / moved / type / access / hours / tobacco / prohibited / other.
+- **Promote and correct by evidence, not votes:** reported → visitedConfirmed → communityVerified; negatives →
+  needsRecheck → reviewCandidate → reviewed, rights-gated hold; agreeing independent pins → relocation candidate.
+- **Ask for what matters:** coverage tasks (`coverage-tasks.v1`) — spot tasks derived on the device, coverage gaps
+  from seed areas (`GET /v1/coverage/tasks`), shown lightly in Nearby, never pushed.
+- **Aim the first campaigns:** `npm run coverage:targets` turns the 33 route-C research targets into a plan linked to
+  seed areas (`docs/research/community-acquisition/2026-10-01-targets.json`: 24 linked, 9 needing a seed area).
+- **Measure honestly:** `nationwide.communityAcquisition` in the quality report — tiers apart, 47 prefectures, seed
+  stations official-only vs all-visible. The user-facing KPI is all-visible coverage (target: 47/47 prefectures with
+  usable spots); official coverage is reported beside it and never inflated.
+- **Later:** venue/operator self-registration as its own operator source; photo evidence as its own issue.
+

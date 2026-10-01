@@ -940,6 +940,36 @@
           }
         }
       }
+    },
+    "On-site check": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現地確認"
+          }
+        }
+      }
+    },
+    "Reported by one user and waiting for confirmation. If it is here, confirm it on iPhone.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者1人の報告で、確認待ちです。ここにあれば、iPhoneで確認を送れます。"
+          }
+        }
+      }
+    },
+    "To confirm it is still here or report a change, open this place on iPhone.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだあることの確認や変更の報告は、iPhoneでこの場所を開いて行えます。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

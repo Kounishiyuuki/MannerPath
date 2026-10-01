@@ -59,6 +59,9 @@ export const ConfigBodyV1 = z.object({
     // Whether a `missing` report may carry the ADR-0012 `claim` object. The report schema is strict, so a client
     // sends it only where this is true; a deployment before migration 0023 omits the field (read it as false).
     newSpotClaims: z.boolean(),
+    // ADR-0013: whether POST /v1/reports accepts the existing-spot finding types (`notFound`, `removed`,
+    // `typeChanged`) and correction claims. A client sends them only when this is true.
+    existingSpotFindings: z.boolean(),
   }).strict(),
 }).strict().refine(
   (c) => CONFIG_RESOURCES.every((r) => c.minimumSupportedSchemaVersions[r] <= c.schemaVersions[r]),
@@ -97,6 +100,7 @@ export function configBody(env: AttestationBindings): ConfigBodyV1 {
       noteMaxLength: REPORT_NOTE_MAX,
       termsVersion: CURRENT_REPORT_TERMS.version,
       newSpotClaims: true,
+      existingSpotFindings: true,
     },
   };
 }

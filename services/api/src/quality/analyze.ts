@@ -16,6 +16,7 @@ import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
 import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
 import { TileBodyV1 } from "../tiles/dto.ts";
+import { communityAcquisitionMetrics } from "../coverage/metrics.ts";
 import { FRESHNESS_POLICY_VERSION, spotFreshness } from "./freshness.ts";
 
 export const ANALYSIS_VERSION = "nationwide-data-quality.v1";
@@ -432,6 +433,8 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
         hostType: tally(spots.map((s) => s.hostType)),
         communityCanonicalByTier: Object.fromEntries(communityTiers.map((t) => [t.tier, { canonical: t.canonical, unpublished: t.unpublished }])),
       },
+      // ADR-0013: what the community channel adds and what waits for a person to check, nationwide and per prefecture.
+      communityAcquisition: await communityAcquisitionMetrics(db, spots, { now: opts.now }),
     },
     sourceMetrics,
     evidenceQuality: tally(spots.map((s) => `${s.evidenceQualityVersion}:${s.evidenceQuality}`)),

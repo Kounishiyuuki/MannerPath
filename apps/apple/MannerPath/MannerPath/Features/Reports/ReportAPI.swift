@@ -76,6 +76,8 @@ private nonisolated struct ConfigBody: Decodable {
         let termsVersion: String?
         /// Absent from a deployment that predates ADR-0012 claims: read as false.
         let newSpotClaims: Bool?
+        /// Absent from a deployment that predates ADR-0013 findings: read as false.
+        let existingSpotFindings: Bool?
     }
 }
 
@@ -145,7 +147,8 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
                                        submissionProtocol: submissionProtocol,
                                        maxSubmissionBytes: maxSubmissionBytes,
                                        termsVersion: config.reports.termsVersion,
-                                       acceptsNewSpotClaim: config.reports.newSpotClaims == true))
+                                       acceptsNewSpotClaim: config.reports.newSpotClaims == true,
+                                       acceptsExistingSpotFindings: config.reports.existingSpotFindings == true))
     }
 
     func submit(_ body: Data) async throws -> AcceptedReport {

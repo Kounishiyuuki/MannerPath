@@ -184,6 +184,14 @@ struct ContentView: View {
                 Text("Follow posted signs, on-site rules, and local law. Unknown details are not confirmation.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+            // ADR-0013: confirmations are sent from iPhone, where App Attest, the report terms and the review notice
+            // live. The Watch only says where to do it; it has no report form and sends nothing.
+            Section("On-site check") {
+                Text(result.spot.existenceTier == "communityReported"
+                     ? "Reported by one user and waiting for confirmation. If it is here, confirm it on iPhone."
+                     : "To confirm it is still here or report a change, open this place on iPhone.")
+                    .font(.footnote)
+            }
             Section("Source") {
                 ForEach(model.snapshot?.sources(for: result.spot) ?? [], id: \.self) { source in
                     Text(source.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

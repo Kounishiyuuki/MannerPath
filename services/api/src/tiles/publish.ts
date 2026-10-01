@@ -4,7 +4,7 @@
 // approved source; the tile_snapshot_spots trigger re-checks exactly that on insert. Spots from blocked sources are
 // reported as excluded, never published. Two community gates sit on top (migration 0021, Issue #124/#127): a
 // community spot needs evidence consented under a granted terms version (else excluded as `rightsNotGranted`), and
-// a spot under an active community publication hold is not a candidate at all.
+// a spot under an active community publication hold (0021) or absence hold (0024) is not a candidate at all.
 
 import { type Db, sha256Hex } from "../db.ts";
 import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
@@ -128,6 +128,7 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
      LEFT JOIN community_spot_rights cr ON cr.spot_id = s.spot_id
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND s.spot_id NOT IN (SELECT spot_id FROM community_publication_holds WHERE lifted_at IS NULL)
+       AND s.spot_id NOT IN (SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL)
        -- A survivor held by an unresolved cross-source merge conflict (0019) is not a candidate.
        AND s.spot_id NOT IN (SELECT spot_id FROM cross_source_publication_blocks)
        AND rel.status = 'applied'

@@ -62,6 +62,8 @@ export interface ModerationQueueRow {
   claim_supports_heated: string | null;
   claim_host_name: string | null;
   claim_hours_note: string | null;
+  /** ADR-0013 existing-spot finding of an `other` report (notFound, removed, wrongType); null otherwise. */
+  finding: string | null;
 }
 
 export async function listModerationQueue(
@@ -74,7 +76,8 @@ export async function listModerationQueue(
             r.observed_on, r.note, r.attestation_status, r.received_at, r.redacted_at,
             m.state, m.reconciliation_state, r.accepted_terms_version,
             r.claim_spot_type, r.claim_spot_subtype, r.claim_access_type, r.claim_access_detail, r.claim_host_type,
-            r.claim_environment, r.claim_supports_paper, r.claim_supports_heated, r.claim_host_name, r.claim_hours_note
+            r.claim_environment, r.claim_supports_paper, r.claim_supports_heated, r.claim_host_name, r.claim_hours_note,
+            r.finding
        FROM reports r
        JOIN report_moderation m ON m.report_id = r.report_id
       WHERE (? IS NULL OR m.state = ?)
@@ -103,6 +106,8 @@ export interface PipelineSummary {
   newSpotApplications: Record<string, number>;
   effectApplications: Record<string, number>;
   activeCommunityHolds: number;
+  absenceApplications: Record<string, number>;
+  activeAbsenceHolds: number;
 }
 
 /**
@@ -119,6 +124,8 @@ export async function moderationPipelineSummary(db: Db): Promise<PipelineSummary
     newSpotApplications: await tally("SELECT state AS k, count(*) AS n FROM community_reconciliation_applications GROUP BY k ORDER BY k"),
     effectApplications: await tally("SELECT effect || '/' || state AS k, count(*) AS n FROM community_effect_applications GROUP BY k ORDER BY k"),
     activeCommunityHolds: holds?.n ?? 0,
+    absenceApplications: await tally("SELECT state AS k, count(*) AS n FROM community_absence_applications GROUP BY k ORDER BY k"),
+    activeAbsenceHolds: (await db.prepare("SELECT count(*) AS n FROM community_absence_holds WHERE lifted_at IS NULL").first<{ n: number }>())?.n ?? 0,
   };
 }
 

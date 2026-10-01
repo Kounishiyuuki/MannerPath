@@ -283,7 +283,7 @@ test("the report API accepts a structured claim only on a new-spot report, and v
   // The database refuses a claim on another report type even around the API.
   assert.throws(() => db.raw.prepare(`INSERT INTO reports (report_id, schema_version, report_type, subject_spot_id, attestation_status,
     received_at, minimize_after, claim_spot_type) VALUES ('rp_${"9".repeat(26)}', 1, 'exists', 'sp_01V64NN31G72E5KJJ5W22W1A1J', 'notProvided', 'a', 'b', 'ashtray')`).run(),
-  /structured claims are accepted only on a missing/);
+  /this claim is not accepted on this report type/);
 });
 
 // 15, 16, 17
