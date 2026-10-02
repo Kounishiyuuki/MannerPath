@@ -22,6 +22,8 @@ GitHub issues are not specification. A decision made in an issue binds only once
 | Data-quality evidence for the beta corpus | `docs/BETA_DATA_QUALITY.md` |
 | Chosen technologies | `docs/TECH_STACK.md` |
 | Sequencing and status | `docs/ROADMAP.md` |
+| Community photo evidence (private, default off) | `docs/adr/0016-community-photo-evidence-foundation.md` |
+| Approximate area locations | `docs/adr/0017-approximate-area-locations.md` |
 | Why/when architectural decisions were made | `docs/adr/*` |
 | Agent rules and validation workflow | `AGENTS.md`, `apps/apple/AGENTS.md`, `services/AGENTS.md`, `docs/AGENT_WORKFLOWS.md` |
 | Research records (positive and negative) | `docs/research/**` |
@@ -29,7 +31,7 @@ GitHub issues are not specification. A decision made in an issue binds only once
 Category coverage (audit 2026-10-02): privacy policy → ADR-0007 + PRODUCT_REQUIREMENTS §8 (photos: ADR-0016); security/abuse model →
 ADR-0007 §6 (App Attest, abuse keys) + ADR-0014 + OPERATIONS; moderation → ADR-0013 + ADR-0016 (photo review) + OPERATIONS "Community
 publication"; source onboarding → DATA_POLICY "Nationwide source onboarding" + SOURCES; evidence/confidence model →
-ADR-0006 + ADR-0012 + DATA_POLICY "Confidence"; coordinate/location model → ADR-0011 + **ADR-0017**; offline →
+ADR-0006 + ADR-0012 + DATA_POLICY "Confidence"; coordinate/location model → ADR-0011 + **ADR-0017**; photo evidence → **ADR-0016**; offline →
 ADR-0004 + PRODUCT_REQUIREMENTS §7; release/deployment → PRODUCT_REQUIREMENTS §12 + OPERATIONS; testing/quality gates
 → AGENTS.md + AGENT_WORKFLOWS + BETA_DATA_QUALITY; contributor/AI workflow → AGENTS.md + AGENT_WORKFLOWS.
 
@@ -239,5 +241,5 @@ document (and ADR) in the same change.
 - [ ] Re-run the coverage replay (NATIONWIDE §12) to count research targets newly eligible under ADR-0017.
 - [x] Photo evidence ADR: ADR-0016 (technical foundation, disabled by default).
 - [ ] Photo intake prerequisites (ADR-0016): reviewed photo-consent terms version, fenced private storage adapter
-      with expiry, deletion scheduler/alerting, Workers CPU/memory and adversarial-corpus testing; #124 for any
-      publication.
+      with expiry, deletion scheduler/alerting, Apple production transport, real-device accessibility, Workers
+      CPU/memory and adversarial-corpus testing; #124 for any publication.
