@@ -36,8 +36,11 @@ would create false confidence. Neither serves the coverage-first model.
    あることが確認されています。正確な位置は未確認のため、ピンは目安です。」; navigation 「この付近へ案内」 instead of
    「この場所へ案内」; distance may read 「約○m」. VoiceOver, widgets and Watch say the same.
 6. **Upgrades keep identity.** When a publisher point, community pin or approved derived coordinate arrives, the
-   same spot ID is kept and the precision upgrades; this is a precision change, not a relocation, unless the new
-   point falls outside the area (then ADR-0009 review applies).
+   same spot ID is kept. If the canonical coordinate is unchanged, only the location-precision metadata changes. If
+   latitude or longitude changes at all, the coordinate mutation follows ADR-0009's reviewed relocation/application
+   path, with no distance threshold, even when the new point stays inside the same area. The product-level reason may
+   be "precision upgrade", but it never bypasses ADR-0009. A new point outside the original area additionally needs
+   review of the area/identity premise itself and is never upgraded automatically.
 7. **Ranking/filters** may treat approximate distance as approximate but must not hide the spot for it.
 
 ## Example
