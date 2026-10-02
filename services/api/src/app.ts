@@ -42,6 +42,7 @@ import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
 import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag } from "./tiles/dto.ts";
 import { assembleTileV1 } from "./tiles/parts.ts";
+import { promotionReadiness } from "./pipeline/promotion-readiness.ts";
 
 export interface Env {
   /** The canonical DATA_DB (tiles, spots, provenance, publication). Swapped by blue/green cutover. */
@@ -136,6 +137,18 @@ export function createApp(options: AppOptions = {}) {
       status: 200,
       headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
     }));
+
+  app.get("/v1/readiness", async (c) => {
+    try {
+      const body = await promotionReadiness(c.env.DB);
+      return new Response(JSON.stringify(body), {
+        status: body.completed ? 200 : 503,
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      });
+    } catch {
+      return problem(503, "promotionIncomplete", "promotion completion could not be verified");
+    }
+  });
 
   // Tiles (ADR-0005, ADR-0015). Every tile route takes a canonical tile ID at DATA_TILE_ZOOM.
   function requestedTileId(param: Record<string, string>): string | Response {

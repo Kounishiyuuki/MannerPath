@@ -20,6 +20,12 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 
 ## Commands (Node >= 23.3)
 
+Segmented v4 filesystem tools require **Node >=24**. See
+[SEGMENTED_PROMOTION_RUNBOOK](../../docs/SEGMENTED_PROMOTION_RUNBOOK.md) for
+`promotion:v4:build`, `promotion:v4:verify`, `promotion:v4:apply-local`, resumability and capacity policy.
+They never connect to remote D1. v2/v3 commands and artifact verification remain available.
+The full API test suite now includes v4 cursor tests, so run `make api-validate` with Node >=24 on PATH.
+
 ```sh
 npm ci
 npm test                 # all tests

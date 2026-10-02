@@ -1,5 +1,12 @@
 # Beta operations runbook — staging / production-like backend
 
+For nationwide segmented bootstrap, use [promotion v4](SEGMENTED_PROMOTION_RUNBOOK.md).
+V2/v3 remain available; their whole-file transaction procedure below does not apply to v4 payloads.
+Before a DATA_DB binding cutover, GREEN must pass `/v1/readiness` and remote smoke. An unfinished
+segmented GREEN is never eligible; REPORTS_DB is never switched. V4 import-plan tools generate and verify atomic chunk/receipt wrappers locally; remote execution remains
+a separate maintainer action with duration checks, and is forbidden in this task.
+
+
 How a maintainer stands up, verifies, and disables a staging or production-like MannerPath API.
 
 **Nothing in this repository performs any of it.** Every command in the "Remote" sections is typed
@@ -779,3 +786,9 @@ Every command here is a maintainer's remote action; none is run by automation.
 See [Community scale runbook](COMMUNITY_SCALE_RUNBOOK.md) for deterministic local scale profiles,
 capacity review after the first 1,000, bounded moderation/retention and D1 measurement limitations.
 Simulation does not approve community publication: #124, terms and source rights remain pending.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.

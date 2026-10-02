@@ -27,6 +27,9 @@ Status: **Accepted baseline**
 
 ## Backend
 
+Local segmented promotion v4 tools require Node >=24 for `node:sqlite` row cursors.
+Existing v2/v3 tooling retains Node >=23.3. No production dependency or Worker runtime changes.
+
 | Concern | Choice |
 |---|---|
 | Runtime | Cloudflare Workers |

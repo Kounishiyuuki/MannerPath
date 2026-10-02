@@ -2,6 +2,11 @@
 
 ## 1. System overview
 
+Canonical blue/green bootstrap also supports segmented `promotion-bundle.v4` (ADR-0008 amendment).
+It commits bounded chunks to an isolated GREEN, then verifies and seals completion before readiness/smoke.
+REPORTS_DB remains durable and outside promotion. An unfinished GREEN cannot pass the smoke prerequisite
+for a DATA_DB cutover. See [the runbook](SEGMENTED_PROMOTION_RUNBOOK.md).
+
 ```text
 Municipal Open Data ─┐
 OpenStreetMap ───────┼─> data-pipeline -> canonical D1 database
@@ -198,3 +203,9 @@ Privacy and retention of report data (proposed location, attestation identifiers
 The first optimization axis is data partitioning + caching, not adding infrastructure.
 
 Move to PostGIS only if the migration triggers in `TECH_STACK.md` occur.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.

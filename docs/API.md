@@ -14,6 +14,18 @@ Every response body carries an explicit `schemaVersion` (DTO schema version). `/
 - Clients must ignore unknown JSON fields.
 - Tri-state attributes are strings `"yes" | "no" | "unknown"`, never booleans or null.
 
+## GET `/readiness`
+
+Read-only DATA_DB bootstrap gate; never reads REPORTS_DB. Responses carry `Cache-Control: no-store`.
+A completed v2/v3 promotion answers `200` with
+`{"schemaVersion":1,"completed":true,"state":"completed"}`. If a v4 manifest exists,
+its matching manifest digest completion is also required; a legacy completion alone is insufficient.
+An unfinished promotion answers `503` with
+`{"schemaVersion":1,"completed":false,"state":"promotionIncomplete"}`.
+A database with no bootstrap answers `503` with `state:"localPipeline"` and `completed:false`;
+only loopback smoke accepts this development state. Remote smoke requires completed readiness
+before any other probe. Database errors fail closed with `503 promotionIncomplete`.
+
 ## GET `/tiles/{z}/{x}/{y}`
 
 Returns the complete canonical snapshot for one data tile (ADR-0005) as the schemaVersion 1 body below. `z` must equal the server's `DATA_TILE_ZOOM`; other values are rejected.
@@ -673,3 +685,9 @@ short-circuit to one covered sentinel per seed. No caller location is used.
 ## Versioning
 
 Breaking changes require `/v2` or a negotiated data schema version. Existing App Store binaries may remain in use for long periods, so `/v1` must not silently change semantic meaning.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.
