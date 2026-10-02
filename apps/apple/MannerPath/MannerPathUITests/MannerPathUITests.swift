@@ -135,11 +135,18 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
     }
 
-    func testMapPinOpensDetail() {
+    func testMapPinOpensDetail() throws {
         launch()
         waitForResults()
-        let pin = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'")).firstMatch
-        XCTAssertTrue(pin.waitForExistence(timeout: 10))
+        // Pins are clustered (ADR-0015); a cluster tap zooms in until a single pin can be tapped.
+        let pins = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'"))
+        let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'"))
+        XCTAssertTrue(pins.firstMatch.waitForExistence(timeout: 10) || clusters.firstMatch.waitForExistence(timeout: 10))
+        for _ in 0..<4 where !pins.allElementsBoundByIndex.contains(where: \.isHittable) {
+            clusters.allElementsBoundByIndex.first(where: \.isHittable)?.tap()
+            sleep(2)
+        }
+        let pin = try XCTUnwrap(pins.allElementsBoundByIndex.first(where: \.isHittable), "no single pin after expanding clusters")
         pin.tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
     }
