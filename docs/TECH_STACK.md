@@ -36,6 +36,7 @@ Existing v2/v3 tooling retains Node >=23.3. No production dependency or Worker r
 | Language | TypeScript |
 | HTTP framework | Hono |
 | Validation | Zod |
+| Private evidence image codecs | pinned `jpeg-js` 0.4.4 and `fast-png` 8.0.0; pure JavaScript, bounded server decode and fresh PNG encoding (ADR-0016); intake disabled |
 | Database | Cloudflare D1 |
 | Geo indexing | Web Mercator Slippy XYZ data tiles at one fixed `DATA_TILE_ZOOM` for v1 (`DATA_TILE_ZOOM = 14`, from the launch-region benchmark); tile ID `"{z}/{x}/{y}"`; indexed tile-ID column (ADR-0005) |
 | Public API | versioned REST `/v1/...` |

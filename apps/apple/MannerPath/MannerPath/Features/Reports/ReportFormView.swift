@@ -165,13 +165,14 @@ struct ReportFormView: View {
                         }
                     }
                 }
+                if model.photos.enabled { ReportPhotoSection(photos: model.photos) }
                 Section { status }
             }
             .navigationTitle(isMissing ? "Add a smoking place" : "Report place information")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") { dismiss() }
+                    Button("Close") { dismiss() }.disabled(model.photos.enabled && model.isBusy)
                 }
                 if model.draft != nil {
                     ToolbarItem(placement: .topBarTrailing) {

@@ -40,7 +40,9 @@
     "promotion:v4:verify-import-plan": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts verify-import-plan"
   },
   "dependencies": {
+    "fast-png": "8.0.0",
     "hono": "4.13.8",
+    "jpeg-js": "0.4.4",
     "zod": "4.6.5"
   },
   "devDependencies": {

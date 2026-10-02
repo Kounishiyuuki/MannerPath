@@ -13,6 +13,23 @@ kind of evidence it rests on (ADR-0012). No single source is assumed complete. A
 
 Nationwide coverage does not weaken the evidence gate. A host POI, business category, convenience-store presence or geographic guess never creates a smoking spot.
 
+## Community evidence photos (#147)
+
+ADR-0016 permits a disabled technical foundation, not production collection or publication. Current
+accepted terms do not cover photo processing; an explicit reviewed photo-consent version is required
+before intake. #124 remains the independent publication gate and is not approved by this work.
+Photos are private moderation attachments; no photo, storage key or hash enters public tiles, canonical
+spot publication or community promotion artifacts. An approved photo is one advisory strength signal;
+ash disposal equipment is not permission to smoke, and a photograph alone cannot establish that right.
+
+Only a freshly re-encoded, validated derivative is persisted. Original metadata is not retained:
+EXIF GPS, device and capture timestamps are removed, never used as a spot coordinate, copied into D1,
+returned through the API, logged or retained as object metadata. Raw uploads last only for the request.
+Visible faces, plates and unintended surroundings require private review/rejection; metadata stripping
+does not claim to anonymize pixels. Every photo shares its report's original 90-day ceiling regardless
+of moderation, with deletion on parent erase/redaction, rejection and abandoned upload cleanup. Storage
+deletion failures retain retryable work rather than losing object references. No permanent image retention.
+
 ## Apple Maps data
 
 MapKit/Apple Maps is used for presentation, destination search and routing. Apple Maps POI/search output is not bulk-harvested or used to construct the canonical MannerPath spot database.

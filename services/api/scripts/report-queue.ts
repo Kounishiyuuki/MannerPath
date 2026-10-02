@@ -48,6 +48,7 @@ import {
   DECISION_REASONS, type DecisionReason, type ExposedReconciliationState, type ModerationState, listModerationQueue, moderationQueuePage,
   moderationPipelineSummary, recordModerationDecision, setReconciliationState,
 } from "../src/reports/moderation.ts";
+import { photoEvidenceStrength, moderateEvidencePhoto, PHOTO_DECISION_REASONS, type PhotoDecisionReason } from "../src/reports/photos.ts";
 import { applyReportRetention, runReportRetention } from "../src/reports/retention.ts";
 import { type ModerationTarget, moderationTarget, targetBanner } from "../src/reports/moderation-target.ts";
 import {
@@ -107,6 +108,14 @@ try {
     if (reason !== undefined && !DECISION_REASONS.includes(reason as DecisionReason)) throw new Error(`reason must be one of: ${DECISION_REASONS.join(", ")}`);
     await recordModerationDecision(reports, reportId, { state: state as Exclude<ModerationState, "pending">, decidedBy, reason: reason as DecisionReason | undefined, now });
     json(await listModerationQueue(reports, { state: state as ModerationState }));
+  } else if (command === "photo-summary") {
+    if (!args[0]) throw new Error("usage: photo-summary <reportId>");
+    json(await photoEvidenceStrength(reports,args[0]));
+  } else if (command === "photo-decide") {
+    const [photoId,state,decidedBy,reason] = args;
+    if (!photoId || (state !== "approved" && state !== "rejected") || !decidedBy || !PHOTO_DECISION_REASONS.includes(reason as PhotoDecisionReason)) throw new Error("usage: photo-decide <photoId> <approved|rejected> <decidedBy> <usableEvidence|privacyRisk|unrelated|unsafeContent|insufficientDetail>");
+    await moderateEvidencePhoto(reports,photoId,state,{now,decidedBy,reason:reason as PhotoDecisionReason});
+    json({photoId,state,publicationEnabled:false});
   } else if (command === "queue") {
     const [reportId, state] = args;
     // 'applied' is never set by hand: only `export` reaches it, in the batch that seals the artifact.

@@ -11,6 +11,8 @@
 
 import { decodeReportCursor, encodeReportCursor, pageLimit } from "./moderation.ts";
 import { type Db, isoSeconds } from "../db.ts";
+import type { EvidencePhotoStorage } from "./photo-storage.ts";
+import { cleanupEvidencePhotos } from "./photos.ts";
 
 export interface RetentionResult {
   redactedReports: number;
@@ -22,7 +24,7 @@ export interface RetentionResult {
   hasMore: boolean;
 }
 
-export async function applyReportRetention(db: Db, opts: { now: Date; batchSize?: number; limit?: number; cursor?: string }): Promise<RetentionResult> {
+export async function applyReportRetention(db: Db, opts: { now: Date; batchSize?: number; limit?: number; cursor?: string; photoStorage?: EvidencePhotoStorage }): Promise<RetentionResult> {
   const now = isoSeconds(opts.now);
   const limit = pageLimit(opts.limit ?? opts.batchSize, 200, 200);
   const cursor = decodeReportCursor(opts.cursor);
@@ -56,19 +58,20 @@ export async function applyReportRetention(db: Db, opts: { now: Date; batchSize?
   ).bind(row.challenge, now));
 
   if (statements.length > 0) await db.batch(statements);
+  const photos = opts.photoStorage ? await cleanupEvidencePhotos(db, opts.photoStorage, { now: opts.now, limit }) : null;
   return {
-    complete: due.results.length <= limit && expired.results.length <= limit && expiredChallenges.results.length <= limit,
+    complete: due.results.length <= limit && expired.results.length <= limit && expiredChallenges.results.length <= limit && !photos?.hasMore,
     redactedReports: rows.length,
     purgedRateWindows: Math.min(expired.results.length, limit),
     purgedAttestChallenges: Math.min(expiredChallenges.results.length, limit),
     nextCursor: due.results.length > limit && rows.length > 0
       ? encodeReportCursor({ receivedAt: rows.at(-1)!.minimize_after, reportId: rows.at(-1)!.report_id }) : null,
-    hasMore: due.results.length > limit || expired.results.length > limit || expiredChallenges.results.length > limit,
+    hasMore: due.results.length > limit || expired.results.length > limit || expiredChallenges.results.length > limit || Boolean(photos?.hasMore),
   };
 }
 
 /** Runs bounded passes until nothing due is left (or `maxBatches` is reached), and sums them. */
-export async function runReportRetention(db: Db, opts: { now: Date; batchSize?: number; maxBatches?: number }): Promise<RetentionResult & { batches: number }> {
+export async function runReportRetention(db: Db, opts: { now: Date; batchSize?: number; maxBatches?: number; photoStorage?: EvidencePhotoStorage }): Promise<RetentionResult & { batches: number }> {
   const total = { redactedReports: 0, purgedRateWindows: 0, purgedAttestChallenges: 0, complete: false, hasMore: true, nextCursor: null as string | null, batches: 0 };
   const max = opts.maxBatches ?? Number.POSITIVE_INFINITY;
   while (!total.complete && total.batches < max) {

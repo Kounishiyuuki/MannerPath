@@ -38,6 +38,10 @@ import {
 } from "./reports/dto.ts";
 import { consumeReportBudget } from "./reports/rate-limit.ts";
 import { CURRENT_REPORT_TERMS } from "./reports/terms.ts";
+import { PHOTO_PAYLOAD_MAX_BYTES, PHOTO_SUBMISSION_MAX_BYTES, PhotoPayloadV2, PhotoSubmissionV2 } from "./reports/photo-dto.ts";
+import { attachEvidencePhoto, PhotoAttachmentError } from "./reports/photos.ts";
+import { PhotoSanitizationError } from "./reports/photo-sanitizer.ts";
+import type { EvidencePhotoStorage } from "./reports/photo-storage.ts";
 import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
 import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag } from "./tiles/dto.ts";
@@ -72,7 +76,7 @@ const TileParams = z.object({ z: z.string(), x: z.string(), y: z.string() });
 const CACHE_CONTROL = "public, no-cache";
 
 function problem(
-  status: 400 | 403 | 404 | 409 | 413 | 429 | 503,
+  status: 400 | 403 | 404 | 409 | 413 | 415 | 422 | 429 | 503,
   code: string,
   detail: string,
   headers: Record<string, string> = {},
@@ -121,6 +125,8 @@ export interface AppOptions {
   appAttestTrustAnchor?: Uint8Array;
   /** Clock override for tests of expiry. */
   now?: () => Date;
+  /** Technical tests only. The exported Worker has neither storage nor reviewed photo consent. */
+  photoEvidence?: { storage: EvidencePhotoStorage; enabled: boolean; photoTermsCovered: (version: string) => boolean };
 }
 
 export function createApp(options: AppOptions = {}) {
@@ -297,6 +303,80 @@ export function createApp(options: AppOptions = {}) {
   // A deployment accepts exactly one request version: 1 where attestation is disabled, 2 (App Attest
   // verified) where it is required.
   app.post("/v1/reports", (c) => withReportStore(c.env, (reports) => report(c.req.raw, c.env, reports)));
+
+  app.post("/v1/reports/:reportId/photos", (c) => {
+    if (!options.photoEvidence?.enabled) return problem(503, "photoEvidenceDisabled", "photo intake is not enabled");
+    return withReportStore(c.env, (reports) => photo(c.req.raw, c.req.param("reportId"), c.env, reports));
+  });
+
+  async function photo(req: Request, reportId: string, env: Env, reports: Db): Promise<Response> {
+    const policy = attestationConfig(env);
+    if (policy.kind !== "appAttest") return attestationUnavailable(policy);
+    // Read incrementally: a hostile chunked body cannot allocate unbounded memory before rejection.
+    const reader = req.body?.getReader();
+    const chunks: Uint8Array[] = [];
+    let length = 0;
+    if (reader) {
+      try {
+        while (true) {
+          const next = await reader.read();
+          if (next.done) break;
+          length += next.value.byteLength;
+          if (length > PHOTO_SUBMISSION_MAX_BYTES) {
+            await reader.cancel();
+            return problem(413, "photoTooLarge", "attachment submission exceeds its byte limit");
+          }
+          chunks.push(next.value);
+        }
+      } finally { reader.releaseLock(); }
+    }
+    const body = new Uint8Array(length);
+    let offset = 0;
+    for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.length; }
+    let json: unknown;
+    try { json = JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(body)); }
+    catch { return problem(400, "invalidPhoto", "submission: invalid_json"); }
+    const envelope = PhotoSubmissionV2.safeParse(json);
+    if (!envelope.success) return problem(400, "invalidPhoto", validationDetail(envelope.error));
+    const material = envelope.data.attestation;
+    if (decode32(material.keyId) === null || decode32(material.challenge) === null) return problem(400, "invalidPhoto", "attestation: invalid_base64");
+    const now = clock();
+    const ctx = context(reports, policy, now);
+    const burned = await consumeReportChallenge(ctx, material.challenge, material.keyId);
+    if (burned !== null) return rejected(burned);
+    const payload = base64Decode(envelope.data.payload);
+    if (payload === null) return problem(400, "invalidPhoto", "payload: invalid_base64");
+    if (payload.length > PHOTO_PAYLOAD_MAX_BYTES) return problem(413, "photoTooLarge", "payload exceeds its byte limit");
+    let decoded: unknown;
+    try { decoded = JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(payload)); }
+    catch { return problem(400, "invalidPhoto", "payload: invalid_json"); }
+    const input = PhotoPayloadV2.safeParse(decoded);
+    if (!input.success) return problem(400, "invalidPhoto", validationDetail(input.error));
+    if (input.data.reportId !== reportId) return problem(400, "invalidPhoto", "reportId: path_mismatch");
+    const verified = await verifyReportAssertion(ctx, material, payload);
+    if (!verified.ok) return rejected(verified);
+    if (input.data.acceptedTermsVersion !== CURRENT_REPORT_TERMS.version) return problem(409, "termsVersionOutdated", "current terms consent is required");
+    const bytes = base64Decode(input.data.image);
+    if (bytes === null) return problem(400, "invalidPhoto", "image: invalid_base64");
+    const hash = await submitterHash(attestedSubmitter(material.keyId), env.REPORT_SUBMITTER_PEPPER);
+    try {
+      const accepted = await attachEvidencePhoto(reports, options.photoEvidence!.storage, {
+        ...input.data, bytes, submitterHash: hash,
+      }, { now, enabled: true, photoTermsCovered: options.photoEvidence!.photoTermsCovered,
+        guards: [advanceCounterStatement(reports, material.keyId, verified.counter)] });
+      return created({ schemaVersion: 2, ...accepted });
+    } catch (error) {
+      if (isCounterRace(error)) return rejected({ ok: false, reason: "counterNotIncreasing", detail: "counterNotIncreasing" });
+      if (error instanceof PhotoAttachmentError) return new Response(JSON.stringify({ error: error.code }), {
+        status: error.status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      });
+      if (error instanceof PhotoSanitizationError) return problem(
+        error.code === "photo_too_large" ? 413 : error.code === "unsupported_photo_type" ? 415 : 422,
+        error.code, "image validation failed",
+      );
+      throw error;
+    }
+  }
 
   async function report(req: Request, env: Env, reports: Db): Promise<Response> {
     // Configuration is checked before anything is read: a misconfigured policy must not accept a

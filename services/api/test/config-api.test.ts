@@ -20,7 +20,7 @@ function configBodyFixture(): unknown {
     dataTileZoom: DATA_TILE_ZOOM,
     schemaVersions: { tile: TILE_SCHEMA_VERSION, spotDetail: SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
     minimumSupportedSchemaVersions: { tile: MINIMUM_TILE_SCHEMA_VERSION, spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
-    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version, newSpotClaims: true, existingSpotFindings: true },
+    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version, newSpotClaims: true, existingSpotFindings: true, photoEvidenceEnabled: false },
   };
 }
 
@@ -51,7 +51,7 @@ test("/v1/config serves the canonical constants, and reaches no database", async
       spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
       report: REPORT_SCHEMA_VERSION,
     },
-    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version, newSpotClaims: true, existingSpotFindings: true },
+    reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version, newSpotClaims: true, existingSpotFindings: true, photoEvidenceEnabled: false },
   });
   // The values are the ones the rest of the API actually enforces, not a second copy of them.
   assert.equal(body.dataTileZoom, 14);
