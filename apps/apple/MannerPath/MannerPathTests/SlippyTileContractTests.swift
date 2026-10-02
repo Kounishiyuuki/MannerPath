@@ -53,7 +53,7 @@ struct SlippyTileContractTests {
         #expect(vectors.contract == "mannerpath-slippy-xyz-tile-vectors")
         #expect(vectors.version == 1)
         #expect(!vectors.coordinateToTile.isEmpty)
-        #expect(SlippyTile.dataZoom == 14)
+        #expect(SlippyTile.defaultDataZoom == 14)
     }
 
     @Test func everyCoordinateVector() throws {
@@ -95,10 +95,10 @@ struct SlippyTileContractTests {
     @Test func nonFiniteInputsAndOverflowIDsAreRejected() {
         for value in [Double.nan, .infinity, -.infinity] {
             #expect(throws: SlippyTileError.self) {
-                try SlippyTile.forCoordinate(latitude: value, longitude: 0, zoom: SlippyTile.dataZoom)
+                try SlippyTile.forCoordinate(latitude: value, longitude: 0, zoom: SlippyTile.defaultDataZoom)
             }
             #expect(throws: SlippyTileError.self) {
-                try SlippyTile.forCoordinate(latitude: 0, longitude: value, zoom: SlippyTile.dataZoom)
+                try SlippyTile.forCoordinate(latitude: 0, longitude: value, zoom: SlippyTile.defaultDataZoom)
             }
         }
         #expect(SlippyTile.parse(id: "30/999999999999999999999999999999/0") == nil)

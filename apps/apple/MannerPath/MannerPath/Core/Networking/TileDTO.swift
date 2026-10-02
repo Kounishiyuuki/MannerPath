@@ -117,3 +117,29 @@ nonisolated struct TileSourceV1: Decodable, Sendable {
         attributionText = try c.decode(String?.self, forKey: .attributionText)
     }
 }
+
+// ADR-0015 schemaVersion 2: a multi-part tile is a manifest that pins each bounded part by SHA-256.
+nonisolated struct TileManifestV2: Decodable, Sendable {
+    struct Part: Decodable, Sendable {
+        let index: Int
+        let spotCount: Int
+        let sha256: String
+    }
+
+    let schemaVersion: Int
+    let tile: String
+    let revision: Int
+    let generatedAt: String
+    let partPolicy: String
+    let spotCount: Int
+    let parts: [Part]
+}
+
+nonisolated struct TilePartBodyV2: Decodable, Sendable {
+    let schemaVersion: Int
+    let tile: String
+    let part: Int
+    let partCount: Int
+    let spots: [TileSpotV1]
+    let sources: [TileSourceV1]
+}

@@ -18,7 +18,8 @@ enum NearbyComposition {
 
         let refresher: TileSyncService?
         if let store, let baseURL = apiBaseURL {
-            refresher = TileSyncService(client: TileAPIClient(baseURL: baseURL), store: store)
+            refresher = TileSyncService(client: TileAPIClient(baseURL: baseURL), store: store,
+                                        config: TileConfigClient(baseURL: baseURL))
         } else {
             refresher = nil
         }

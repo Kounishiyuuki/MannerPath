@@ -31,6 +31,8 @@ final class NearbyModel {
     private var searchGeneration = 0
     private var routeGeneration = 0
     private var activeTileIDs: Set<String> = []
+    /// The zoom tiles are read and synced at: the cache's namespace offline, GET /v1/config online (ADR-0015).
+    private var dataZoom = SlippyTile.defaultDataZoom
     private var cachedSpots: [Spot] = []
     private var lastCacheReadFailed = false
     private var lastRouteKey: RouteRequestKey?
@@ -209,11 +211,7 @@ final class NearbyModel {
             dataState = .cacheUnavailable
             return
         }
-        guard let currentTile = try? SlippyTile.forCoordinate(
-            latitude: deviceLocation.coordinate.latitude,
-            longitude: deviceLocation.coordinate.longitude,
-            zoom: SlippyTile.dataZoom
-        ) else {
+        guard let initialTiles = Self.neighborhood(of: deviceLocation, zoom: dataZoom) else {
             results = []
             resultsLocation = nil
             sources = []
@@ -222,18 +220,19 @@ final class NearbyModel {
             return
         }
 
-        let tiles = currentTile.neighborhood3x3()
-        let tileIDs = Set(tiles.map(\.id))
-        if tileIDs != activeTileIDs {
-            results = []
-            cachedSpots = []
-            resultsLocation = nil
-            sources = []
-        }
-        activeTileIDs = tileIDs
+        enter(initialTiles)
         dataState = .readingCache
         loadTask = Task { [weak self] in
             guard let self else { return }
+            var tiles = initialTiles
+            // Offline reads follow the cache's own namespace, whatever zoom this model last used.
+            if let cachedZoom = try? await repository.dataZoom(), cachedZoom != dataZoom,
+               let moved = Self.neighborhood(of: deviceLocation, zoom: cachedZoom) {
+                guard currentGeneration == generation else { return }
+                dataZoom = cachedZoom
+                tiles = moved
+                enter(tiles)
+            }
             var cachedByTile: [String: [Spot]] = [:]
             var sourcesByTile: [String: [SpotSource]] = [:]
             var cacheReadFailed = false
@@ -254,8 +253,27 @@ final class NearbyModel {
                 return
             }
             dataState = .refreshing
+            // The server's zoom is the single source of truth. Unreachable or unsupported config fails closed: no tile
+            // is synced, and the cached tiles already shown stay as they are.
+            let serverZoom: Int
+            do {
+                serverZoom = try await refresher.prepare()
+            } catch {
+                guard currentGeneration == generation else { return }
+                dataState = .refreshFailed
+                return
+            }
+            guard currentGeneration == generation else { return }
+            if serverZoom != dataZoom, let moved = Self.neighborhood(of: deviceLocation, zoom: serverZoom) {
+                dataZoom = serverZoom
+                tiles = moved
+                enter(tiles)
+                cachedByTile = [:]
+                sourcesByTile = [:]
+            }
+            let refreshTiles = tiles
             let refreshFailed = await withTaskGroup(of: Bool.self, returning: Bool.self) { group in
-                for tile in tiles {
+                for tile in refreshTiles {
                     group.addTask {
                         do {
                             try await refresher.refresh(tile)
@@ -284,6 +302,25 @@ final class NearbyModel {
                     cacheReadFailed: cacheReadFailed, generation: currentGeneration)
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
         }
+    }
+
+    private static func neighborhood(of deviceLocation: DeviceLocation, zoom: Int) -> [SlippyTile]? {
+        (try? SlippyTile.forCoordinate(
+            latitude: deviceLocation.coordinate.latitude,
+            longitude: deviceLocation.coordinate.longitude,
+            zoom: zoom
+        ))?.neighborhood3x3()
+    }
+
+    private func enter(_ tiles: [SlippyTile]) {
+        let tileIDs = Set(tiles.map(\.id))
+        if tileIDs != activeTileIDs {
+            results = []
+            cachedSpots = []
+            resultsLocation = nil
+            sources = []
+        }
+        activeTileIDs = tileIDs
     }
 
     private func publish(

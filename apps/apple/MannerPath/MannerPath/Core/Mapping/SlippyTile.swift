@@ -7,7 +7,12 @@ nonisolated enum SlippyTileError: Error {
 
 // Shared with services/api/src/geo/tile.ts through the JSON vectors in contracts/tiles.
 nonisolated struct SlippyTile: Equatable, Hashable, Sendable {
-    static let dataZoom = 14
+    /// GET /v1/config `dataTileZoom` is authoritative (ADR-0015). This is the zoom every cache written before the
+    /// client read config was built at, and the zoom assumed until config is first known.
+    static let defaultDataZoom = 14
+    /// The data zooms this build can sync: the range the ADR-0015 benchmark measured. Any other configured zoom
+    /// fails closed to the cached tiles.
+    static let supportedDataZooms = 14...16
     static let maximumZoom = 30
     private static let maximumMercatorLatitude = 85.05112877980659
 

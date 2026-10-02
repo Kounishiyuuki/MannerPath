@@ -13,7 +13,7 @@ Apple task; a pure UI/layout change inside an existing feature needs none of it.
 | adding files, targets, or capabilities | `apps/apple/README.md` |
 | map display, search, or routing | ADR-0001 |
 | caching or offline behavior | ADR-0004 |
-| tile math or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
+| tile math or sync | ADR-0005, ADR-0015, `contracts/tiles/slippy-xyz-vectors.v1.json` |
 | spot fields, freshness, or publication state shown in the UI | `docs/API.md`, ADR-0006 |
 | evidence labels, confidence/freshness display, ranking or "confirmed only" filtering | ADR-0012 |
 | add-a-place, one-tap confirmation, correction findings, nearby confirmation tasks | ADR-0013 |

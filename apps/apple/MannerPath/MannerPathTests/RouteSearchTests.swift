@@ -267,7 +267,7 @@ struct RouteSearchTests {
                            search: (any DestinationSearching)? = nil,
                            location: TestLocation? = nil) throws -> NearbyModel {
         let tile = try SlippyTile.forCoordinate(latitude: origin.latitude,
-            longitude: origin.longitude, zoom: SlippyTile.dataZoom)
+            longitude: origin.longitude, zoom: SlippyTile.defaultDataZoom)
         return NearbyModel(location: location ?? TestLocation(state: .usable(deviceLocation(origin))),
             repository: TestCache(tileID: tile.id, spots: spots), refresher: nil,
             destinationSearch: search, walkingRouter: router)
@@ -299,6 +299,7 @@ private struct TestCache: CachedSpotRepository {
     let spots: [Spot]
     func spots(inTile id: String) async throws -> [Spot] { id == tileID ? spots : [] }
     func sources(inTile id: String) async throws -> [SpotSource] { [] }
+    func dataZoom() async throws -> Int { SlippyTile.defaultDataZoom }
 }
 
 @MainActor
