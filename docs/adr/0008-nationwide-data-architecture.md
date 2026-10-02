@@ -588,3 +588,35 @@ across more than the current releases of the carried sources, an operator CLI, a
 ## Amendment 2026-09 — additive `userReport` source (Issue #123)
 
 The community reconciliation source is **additive**: each applied release is one reviewed application, and no release is `current` or supersedes another (migration 0020, trigger `community_release_never_current`). The cross-release matcher (decision 3) and removal-by-absence (decision 5) therefore never apply to it. For cross-source recall (decision 4), migration 0020 redefines `cross_source_spot_sources` so that an applied release of a `userReport` source counts where other kinds need the current release. Everything else in that definition is unchanged, and no source kind gains precedence. Details: the ADR-0006 and ADR-0007 community amendments.
+
+
+## Amendment 2026-10 — segmented promotion (`promotion-bundle.v4`, Issue #157)
+
+Nationwide bootstrap must fit D1's per-statement capacity without holding the complete SQL in memory.
+V2/v3 artifacts remain unchanged. V4 writes a deterministic manifest, bounded SQL chunks and finalize SQL.
+The versioned capacity policy and operational procedure are in `docs/SEGMENTED_PROMOTION_RUNBOOK.md`.
+
+1. **GREEN isolation replaces whole-corpus atomicity.** Each chunk and its receipt commit atomically to an
+   empty, freshly migrated GREEN. A partial GREEN is resumable with the same reviewed manifest or discardable;
+   it must never become live. REPORTS_DB stays outside the artifact and every cutover (ADR-0014).
+2. **Identity and order.** An immutable manifest identity fixes ordered expected chunk hashes and tile state.
+   A duplicate applied chunk returns alreadyApplied; a different digest/manifest refuses. Out-of-order chunks
+   refuse. Apply through the reviewed filesystem executor or verified import-plan wrappers; raw file imports
+   bypass the receipt contract.
+3. **Finalization.** Stream-verify all files and actual target tile hashes/canonical bodies, then run the existing
+   multi-source completion triggers for release fingerprints, identities, counts, provenance, attribution,
+   community rights/evidence and review/merge attestations. DB-side v4 checks require every manifest-bound
+   receipt and expected tile. Insert the v4 completion marker in the same transaction as the existing seal.
+   Readiness/remote smoke require that marker whenever v4 staging exists.
+4. **Trust.** D1 has no native SHA-256 function. The trusted executor verifies file/body bytes against the
+   independently reviewed digest; SQL checks bind receipts and final state to declarations. A consistent rewrite
+   cannot be detected solely by target constraints, just as in v3. This does not claim server-side SHA computation.
+5. **Capacity.** Exporter/verifier stream rows/files with explicit statement and metadata budgets. Oversized values
+   fail closed; changing tile architecture belongs to its separate ADR-0005 work. No escaping/fragmentation
+   workaround makes an oversized tile appear safe. Remote duration/concurrency remain deployment prerequisites.
+6. **No remote execution in this slice.** Filesystem local simulation implements the contract. A deterministic
+   import-plan generator wraps each payload with its atomic receipt and prepares initialization/finalization SQL;
+   its verifier pins both reviewed source and plan digests, checking exact wrappers and copied payload hashes.
+   SQL source declarations also bind observations, identity, semantic counts/dependencies and exact additive sets.
+   Future remote execution follows the isolated GREEN runbook and needs actual duration validation. Raw payload
+   files must not be imported directly. The source registry and Issue #124 remain unchanged.

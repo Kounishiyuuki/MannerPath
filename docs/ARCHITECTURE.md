@@ -2,6 +2,11 @@
 
 ## 1. System overview
 
+Canonical blue/green bootstrap also supports segmented `promotion-bundle.v4` (ADR-0008 amendment).
+It commits bounded chunks to an isolated GREEN, then verifies and seals completion before readiness/smoke.
+REPORTS_DB remains durable and outside promotion. An unfinished GREEN cannot pass the smoke prerequisite
+for a DATA_DB cutover. See [the runbook](SEGMENTED_PROMOTION_RUNBOOK.md).
+
 ```text
 Municipal Open Data ─┐
 OpenStreetMap ───────┼─> data-pipeline -> canonical D1 database

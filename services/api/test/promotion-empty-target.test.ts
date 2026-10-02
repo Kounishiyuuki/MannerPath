@@ -34,8 +34,8 @@ function refusedWithNothingWritten(target: DatabaseSync, sql: string, seeded: st
 test("both bootstrap guards (v2 and v3) name every table of a freshly migrated schema", () => {
   const db = migratedSqlite();
   const tables = TABLES(db);
-  assert.equal(tables.length, 55);
-  for (const guard of GUARDS) {
+  assert.equal(tables.length, 63);
+  for (const guard of [...GUARDS, "promotion_v4_empty_target"]) {
     const trigger = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?").get(guard) as { sql: string }).sql;
     for (const t of tables) assert.match(trigger, new RegExp(`EXISTS \\(SELECT 1 FROM ${t}\\)`), `${guard}: ${t} is not checked`);
   }
@@ -86,6 +86,7 @@ for (const [table, statements] of APPLICATION_ROWS) {
     };
     lift(inert);
     for (const sql of await bundles) refusedWithNothingWritten(target, sql, table);
+    assert.throws(() => target.exec(`INSERT INTO promotion_v4_manifests VALUES (1,'${"a".repeat(64)}','d1-capacity.v1',1)`), /v4 requires a fresh GREEN database/);
   });
 }
 
@@ -94,6 +95,7 @@ for (const [table, statements] of APPLICATION_ROWS) {
 for (const table of TABLES(migratedSqlite())) {
   test(`a row in ${table} alone refuses the bootstrap`, async () => {
     const target = migratedSqlite();
+    const v4Guard = (target.prepare("SELECT sql FROM sqlite_master WHERE name='promotion_v4_empty_target'").get() as { sql: string }).sql;
     for (const { name } of target.prepare(`SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = ? AND name NOT IN ('${GUARDS.join("', '")}')`).all(table) as { name: string }[]) {
       target.exec(`DROP TRIGGER ${name}`);
     }
@@ -101,7 +103,29 @@ for (const table of TABLES(migratedSqlite())) {
     target.exec("PRAGMA foreign_keys = OFF; PRAGMA ignore_check_constraints = ON;");
     target.prepare(`INSERT INTO ${table} (${columns.join(", ")}) VALUES (${columns.map(() => "1").join(", ")})`).run();
     target.exec("PRAGMA foreign_keys = ON; PRAGMA ignore_check_constraints = OFF;");
+    if (table === "promotion_v4_manifests") target.exec(v4Guard);
     assert.deepEqual(TABLES(target).filter((t) => (target.prepare(`SELECT count(*) n FROM ${t}`).get() as { n: number }).n > 0), [table]);
     for (const sql of await bundles) refusedWithNothingWritten(target, sql, table);
+    assert.throws(() => target.exec(`INSERT INTO promotion_v4_manifests VALUES (1,'${"a".repeat(64)}','d1-capacity.v1',1)`), /v4 requires a fresh GREEN database/);
   });
 }
+
+// v4 admission requires an explicit first-chunk authorization scoped to the reviewed manifest.
+test("v4 staging refuses standalone v3 and requires a matching first-chunk authorization", async () => {
+  const target = migratedSqlite();
+  const digest = "a".repeat(64);
+  const chunk = "b".repeat(64);
+  target.exec(`INSERT INTO promotion_v4_manifests VALUES (1,'${digest}','d1-capacity.v1',1);
+    INSERT INTO promotion_v4_expected_chunks VALUES (1,1,'${chunk}',1,1,'{}');`);
+  for (const sql of await bundles) refusedWithNothingWritten(target, sql, "promotion_v4_manifests");
+  assert.throws(() => target.exec(`INSERT INTO promotion_v4_chunk_sessions VALUES (1,1,'${"c".repeat(64)}','${chunk}')`), /authorization mismatch/);
+  assert.throws(() => target.exec(`INSERT INTO promotion_v4_chunk_sessions VALUES (1,1,'${digest}','${"c".repeat(64)}')`), /authorization mismatch/);
+  target.exec("BEGIN");
+  target.exec(`INSERT INTO promotion_v4_chunk_sessions VALUES (1,1,'${digest}','${chunk}')`);
+  const bootstrap = (await bundles)[1].split("\n").find(line => line.startsWith("INSERT INTO promotion_multi_bootstraps "));
+  assert.ok(bootstrap);
+  assert.doesNotThrow(() => target.exec(bootstrap));
+  target.exec("ROLLBACK");
+  assert.equal(target.prepare("SELECT count(*) n FROM promotion_v4_chunk_sessions").get()?.n, 0);
+  for (const sql of await bundles) refusedWithNothingWritten(target, sql, "promotion_v4_manifests");
+});

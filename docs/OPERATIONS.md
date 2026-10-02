@@ -1,5 +1,12 @@
 # Beta operations runbook — staging / production-like backend
 
+For nationwide segmented bootstrap, use [promotion v4](SEGMENTED_PROMOTION_RUNBOOK.md).
+V2/v3 remain available; their whole-file transaction procedure below does not apply to v4 payloads.
+Before a DATA_DB binding cutover, GREEN must pass `/v1/readiness` and remote smoke. An unfinished
+segmented GREEN is never eligible; REPORTS_DB is never switched. V4 import-plan tools generate and verify atomic chunk/receipt wrappers locally; remote execution remains
+a separate maintainer action with duration checks, and is forbidden in this task.
+
+
 How a maintainer stands up, verifies, and disables a staging or production-like MannerPath API.
 
 **Nothing in this repository performs any of it.** Every command in the "Remote" sections is typed

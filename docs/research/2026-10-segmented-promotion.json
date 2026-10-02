@@ -1,0 +1,1119 @@
+{
+  "version": "segmented-promotion-research.v1",
+  "baseRevision": "299782a90758a19a69f8e2d93db853078afc0118",
+  "status": "tile-capacity-blocked; not nationwide bootstrap success",
+  "timingCaveat": "Full profile generation overlapped API/Apple validation; isolatedExport is a separate process and excludes generation/publish/quality/cross-source. No remote D1 measurements.",
+  "profiles": [
+    {
+      "profile": "small",
+      "corpus": {
+        "version": "synthetic-community.v1",
+        "seed": 151152,
+        "sha256": "5da700632a7029544600da5837c364eb881de21f9993c9338a949cdd729d8094",
+        "spots": 1000,
+        "reports": 5000,
+        "official": 513
+      },
+      "environment": {
+        "runtime": "v24.10.0",
+        "database": "disk-backed local SQLite; not remote D1",
+        "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
+      },
+      "complete": true,
+      "capacityBlocked": null,
+      "timingsMs": {
+        "officialImport": 315.82,
+        "corpusLoad": 3201.66,
+        "blockedPublish": 69.89,
+        "publish": 162.9,
+        "qualityBefore": 32.62,
+        "crossSourceBefore": 63.07,
+        "build:1048576": 1186.63,
+        "verify:1048576": 434.69,
+        "statementAndPrivacyAudit:1048576": 405.17,
+        "initialize:1048576": 422.41,
+        "apply:1048576": 1482.11,
+        "finalize:1048576": 487.68,
+        "qualityAfter:1048576": 31.72,
+        "crossSourceAfter:1048576": 54.88,
+        "repeat:1048576": 1180.25,
+        "bootstrapReexport:1048576": 1190.07,
+        "build:4194304": 1178.59,
+        "verify:4194304": 422.29,
+        "statementAndPrivacyAudit:4194304": 399.57,
+        "initialize:4194304": 418.7,
+        "apply:4194304": 1400.01,
+        "finalize:4194304": 500.65,
+        "qualityAfter:4194304": 25.51,
+        "crossSourceAfter:4194304": 51.71,
+        "repeat:4194304": 1225.33,
+        "bootstrapReexport:4194304": 1260.46,
+        "build:16777216": 1268.06,
+        "verify:16777216": 436.76,
+        "statementAndPrivacyAudit:16777216": 410.49,
+        "initialize:16777216": 431.59,
+        "apply:16777216": 1509.42,
+        "finalize:16777216": 499,
+        "qualityAfter:16777216": 27.61,
+        "crossSourceAfter:16777216": 63.58,
+        "repeat:16777216": 1232.56,
+        "bootstrapReexport:16777216": 1389.82
+      },
+      "peakRssBytes": 418562048,
+      "tileCapacity": [
+        {
+          "tile_id": "14/14358/6506",
+          "spot_count": 61,
+          "body_bytes": 46544
+        },
+        {
+          "tile_id": "14/14358/6508",
+          "spot_count": 45,
+          "body_bytes": 37531
+        },
+        {
+          "tile_id": "14/14552/6453",
+          "spot_count": 36,
+          "body_bytes": 28145
+        },
+        {
+          "tile_id": "14/14127/6567",
+          "spot_count": 33,
+          "body_bytes": 23617
+        },
+        {
+          "tile_id": "14/14552/6452",
+          "spot_count": 30,
+          "body_bytes": 23366
+        },
+        {
+          "tile_id": "14/14549/6452",
+          "spot_count": 33,
+          "body_bytes": 23354
+        },
+        {
+          "tile_id": "14/14550/6448",
+          "spot_count": 32,
+          "body_bytes": 22918
+        },
+        {
+          "tile_id": "14/14549/6451",
+          "spot_count": 31,
+          "body_bytes": 22217
+        },
+        {
+          "tile_id": "14/14359/6509",
+          "spot_count": 22,
+          "body_bytes": 18543
+        },
+        {
+          "tile_id": "14/14624/6016",
+          "spot_count": 24,
+          "body_bytes": 17096
+        }
+      ],
+      "qualityBefore": {
+        "published": 1513,
+        "tiles": 366,
+        "missingExistence": 0,
+        "missingAttribution": 0,
+        "unpublishedEvidence": 0,
+        "tiers": [
+          {
+            "evidence_quality": "communityReported",
+            "n": 582
+          },
+          {
+            "evidence_quality": "communityVerified",
+            "n": 418
+          },
+          {
+            "evidence_quality": "officialListing",
+            "n": 513
+          }
+        ],
+        "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+        "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+      },
+      "crossSourceBefore": {
+        "candidates": 91,
+        "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305",
+        "merges": 0
+      },
+      "sourceDatabaseBytes": 13537280,
+      "reportsDatabaseBytes": 4665344,
+      "artifacts": [
+        {
+          "chunkBytes": 1048576,
+          "artifactBytes": 10350237,
+          "chunks": 10,
+          "digest": "65408bbb02b9922e0adf7359d3de11f3605aba7250c9230a9034ee719fc0af3a",
+          "maxStatementBytes": 46817,
+          "privateDataAbsent": true,
+          "bootstrapMs": 2392.98,
+          "chunkApplyMs": [
+            138.47,
+            93.28,
+            100.4,
+            156.77,
+            189.73,
+            174.62,
+            166.56,
+            166.49,
+            97.7,
+            198.04
+          ],
+          "maxChunkApplyMs": 198.04,
+          "qualityAfter": {
+            "published": 1513,
+            "tiles": 366,
+            "missingExistence": 0,
+            "missingAttribution": 0,
+            "unpublishedEvidence": 0,
+            "tiers": [
+              {
+                "evidence_quality": "communityReported",
+                "n": 582
+              },
+              {
+                "evidence_quality": "communityVerified",
+                "n": 418
+              },
+              {
+                "evidence_quality": "officialListing",
+                "n": 513
+              }
+            ],
+            "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+            "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+          },
+          "crossSourceAfter": {
+            "candidates": 91,
+            "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+          },
+          "deterministic": true,
+          "endToEndMs": 6964.69
+        },
+        {
+          "chunkBytes": 4194304,
+          "artifactBytes": 10348461,
+          "chunks": 3,
+          "digest": "f044ba89858651c4fba7880613ee405c2b8d51bd1fc77c6b5b814211548768bb",
+          "maxStatementBytes": 46817,
+          "privateDataAbsent": true,
+          "bootstrapMs": 2320.29,
+          "chunkApplyMs": [
+            472.25,
+            647.13,
+            280.59
+          ],
+          "maxChunkApplyMs": 647.13,
+          "qualityAfter": {
+            "published": 1513,
+            "tiles": 366,
+            "missingExistence": 0,
+            "missingAttribution": 0,
+            "unpublishedEvidence": 0,
+            "tiers": [
+              {
+                "evidence_quality": "communityReported",
+                "n": 582
+              },
+              {
+                "evidence_quality": "communityVerified",
+                "n": 418
+              },
+              {
+                "evidence_quality": "officialListing",
+                "n": 513
+              }
+            ],
+            "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+            "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+          },
+          "crossSourceAfter": {
+            "candidates": 91,
+            "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+          },
+          "deterministic": true,
+          "endToEndMs": 6971.17
+        },
+        {
+          "chunkBytes": 16777216,
+          "artifactBytes": 10347960,
+          "chunks": 1,
+          "digest": "fd2eee50e2aee652da6537b61c6bd292c83e9a69eb6d0b0b6f5d7c41532c1f3d",
+          "maxStatementBytes": 46817,
+          "privateDataAbsent": true,
+          "bootstrapMs": 2440.88,
+          "chunkApplyMs": [
+            1509.41
+          ],
+          "maxChunkApplyMs": 1509.41,
+          "qualityAfter": {
+            "published": 1513,
+            "tiles": 366,
+            "missingExistence": 0,
+            "missingAttribution": 0,
+            "unpublishedEvidence": 0,
+            "tiers": [
+              {
+                "evidence_quality": "communityReported",
+                "n": 582
+              },
+              {
+                "evidence_quality": "communityVerified",
+                "n": 418
+              },
+              {
+                "evidence_quality": "officialListing",
+                "n": 513
+              }
+            ],
+            "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+            "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+          },
+          "crossSourceAfter": {
+            "candidates": 91,
+            "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+          },
+          "deterministic": true,
+          "endToEndMs": 7364.35
+        }
+      ]
+    },
+    {
+      "profile": "medium",
+      "corpus": {
+        "version": "synthetic-community.v1",
+        "seed": 151152,
+        "sha256": "ce147e8e9401b253ee219ad4f498ba0d16ce32e0bb675239eaf4ed4e9bb35f9e",
+        "spots": 10000,
+        "reports": 50000,
+        "official": 513
+      },
+      "environment": {
+        "runtime": "v24.10.0",
+        "database": "disk-backed local SQLite; not remote D1",
+        "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
+      },
+      "complete": false,
+      "capacityBlocked": true,
+      "timingsMs": {
+        "officialImport": 316.99,
+        "corpusLoad": 107759.39,
+        "blockedPublish": 477.62,
+        "publish": 2094.19,
+        "qualityBefore": 297.82,
+        "crossSourceBefore": 995.07,
+        "build:4194304": 10429.57
+      },
+      "peakRssBytes": 814252032,
+      "tileCapacity": [
+        {
+          "tile_id": "14/14358/6506",
+          "spot_count": 468,
+          "body_bytes": 329979
+        },
+        {
+          "tile_id": "14/14127/6567",
+          "spot_count": 420,
+          "body_bytes": 296240
+        },
+        {
+          "tile_id": "14/14549/6451",
+          "spot_count": 412,
+          "body_bytes": 290649
+        },
+        {
+          "tile_id": "14/14550/6448",
+          "spot_count": 410,
+          "body_bytes": 289251
+        },
+        {
+          "tile_id": "14/14549/6452",
+          "spot_count": 414,
+          "body_bytes": 288532
+        },
+        {
+          "tile_id": "14/14624/6016",
+          "spot_count": 274,
+          "body_bytes": 191188
+        },
+        {
+          "tile_id": "14/14625/6016",
+          "spot_count": 186,
+          "body_bytes": 129955
+        },
+        {
+          "tile_id": "14/14358/6508",
+          "spot_count": 94,
+          "body_bytes": 71880
+        },
+        {
+          "tile_id": "14/14373/6507",
+          "spot_count": 91,
+          "body_bytes": 64108
+        },
+        {
+          "tile_id": "14/14552/6452",
+          "spot_count": 85,
+          "body_bytes": 61943
+        }
+      ],
+      "qualityBefore": {
+        "published": 10513,
+        "tiles": 439,
+        "missingExistence": 0,
+        "missingAttribution": 0,
+        "unpublishedEvidence": 0,
+        "tiers": [
+          {
+            "evidence_quality": "communityReported",
+            "n": 5832
+          },
+          {
+            "evidence_quality": "communityVerified",
+            "n": 4168
+          },
+          {
+            "evidence_quality": "officialListing",
+            "n": 513
+          }
+        ],
+        "tileDigest": "6f53ad0f007f50a045959f7e866618ea66c3b7f9f86df86f196ba843338fdc76",
+        "publishedRowsDigest": "89454f65d92db915b030512f742821f95a1d7b710f1d42ed2148e40e097d9e3f"
+      },
+      "crossSourceBefore": {
+        "candidates": 1536,
+        "digest": "628bd6a8bccb2c151e5910df54cb228cad59dfa642433f254e516f376a49ae5c",
+        "merges": 0
+      },
+      "sourceDatabaseBytes": 93388800,
+      "reportsDatabaseBytes": 45252608,
+      "artifacts": [
+        {
+          "chunkBytes": 4194304,
+          "refused": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes; tile/value capacity must be fixed before promotion"
+        }
+      ],
+      "isolatedExport": {
+        "profile": "medium",
+        "scope": "isolated export only; source already generated/published; no full artifact on capacity refusal",
+        "elapsedMs": 14700.893542,
+        "peakRssBytes": 166936576,
+        "maxExistingTileStatementBytes": 330254,
+        "error": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes (296515 bytes); tile/value capacity must be fixed before promotion"
+      }
+    },
+    {
+      "profile": "large",
+      "corpus": {
+        "version": "synthetic-community.v1",
+        "seed": 151152,
+        "sha256": "e8b7bb43c47bba69ef33b40c1b40d9f03cc5039d16c6489b2fb8dcb203063642",
+        "spots": 50000,
+        "reports": 250000,
+        "official": 513
+      },
+      "environment": {
+        "runtime": "v24.10.0",
+        "database": "disk-backed local SQLite; not remote D1",
+        "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
+      },
+      "complete": false,
+      "capacityBlocked": true,
+      "timingsMs": {
+        "officialImport": 360.27,
+        "corpusLoad": 295462.77,
+        "blockedPublish": 661.08,
+        "publish": 6571.68,
+        "qualityBefore": 1060.21,
+        "crossSourceBefore": 3390.62,
+        "build:4194304": 32246.75
+      },
+      "peakRssBytes": 2534096896,
+      "tileCapacity": [
+        {
+          "tile_id": "14/14358/6506",
+          "spot_count": 2223,
+          "body_bytes": 1551737
+        },
+        {
+          "tile_id": "14/14127/6567",
+          "spot_count": 2139,
+          "body_bytes": 1507195
+        },
+        {
+          "tile_id": "14/14549/6451",
+          "spot_count": 2100,
+          "body_bytes": 1479916
+        },
+        {
+          "tile_id": "14/14550/6448",
+          "spot_count": 2089,
+          "body_bytes": 1472204
+        },
+        {
+          "tile_id": "14/14549/6452",
+          "spot_count": 2094,
+          "body_bytes": 1457952
+        },
+        {
+          "tile_id": "14/14624/6016",
+          "spot_count": 1389,
+          "body_bytes": 967766
+        },
+        {
+          "tile_id": "14/14625/6016",
+          "spot_count": 958,
+          "body_bytes": 667613
+        },
+        {
+          "tile_id": "14/14373/6507",
+          "spot_count": 447,
+          "body_bytes": 313379
+        },
+        {
+          "tile_id": "14/14552/6452",
+          "spot_count": 366,
+          "body_bytes": 259023
+        },
+        {
+          "tile_id": "14/14553/6450",
+          "spot_count": 329,
+          "body_bytes": 231983
+        }
+      ],
+      "qualityBefore": {
+        "published": 50513,
+        "tiles": 453,
+        "missingExistence": 0,
+        "missingAttribution": 0,
+        "unpublishedEvidence": 0,
+        "tiers": [
+          {
+            "evidence_quality": "communityReported",
+            "n": 29167
+          },
+          {
+            "evidence_quality": "communityVerified",
+            "n": 20833
+          },
+          {
+            "evidence_quality": "officialListing",
+            "n": 513
+          }
+        ],
+        "tileDigest": "adc63cfa1a6c3e20ad556f264348218064a1ad64319f3cd08f34c70c600ecd99",
+        "publishedRowsDigest": "1338628e93830d2af8532571d96aff2dbb7e891ee89bbd08a1f6f7cc5e05f03a"
+      },
+      "crossSourceBefore": {
+        "candidates": 6613,
+        "digest": "75be9689e966856588557b4661e90a57bebbca8da8a528ace0f5bc24ade8425f",
+        "merges": 0
+      },
+      "sourceDatabaseBytes": 437743616,
+      "reportsDatabaseBytes": 227119104,
+      "artifacts": [
+        {
+          "chunkBytes": 4194304,
+          "refused": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes; tile/value capacity must be fixed before promotion"
+        }
+      ],
+      "isolatedExport": {
+        "profile": "large",
+        "scope": "isolated export only; source already generated/published; no full artifact on capacity refusal",
+        "elapsedMs": 29698.94625,
+        "peakRssBytes": 268763136,
+        "maxExistingTileStatementBytes": 1552013,
+        "error": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes (104984 bytes); tile/value capacity must be fixed before promotion"
+      }
+    }
+  ],
+  "productionPublication": "pending; source blocked; approval simulation only",
+  "authoritativeSmallFinal": {
+    "version": "promotion-scale.v4",
+    "profile": "small",
+    "corpus": {
+      "version": "synthetic-community.v1",
+      "seed": 151152,
+      "sha256": "5da700632a7029544600da5837c364eb881de21f9993c9338a949cdd729d8094",
+      "spots": 1000,
+      "reports": 5000,
+      "official": 513
+    },
+    "environment": {
+      "runtime": "v24.10.0",
+      "database": "disk-backed local SQLite; not remote D1",
+      "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
+    },
+    "publication": {
+      "productionDecision": "pending",
+      "source": "blocked",
+      "simulationOnly": true
+    },
+    "timingsMs": {
+      "officialImport": 319.09,
+      "corpusLoad": 3135.66,
+      "blockedPublish": 68.56,
+      "publish": 160.71,
+      "qualityBefore": 26.56,
+      "crossSourceBefore": 56.6,
+      "build:1048576": 1178.78,
+      "verify:1048576": 434.37,
+      "statementAndPrivacyAudit:1048576": 397.79,
+      "initialize:1048576": 426.12,
+      "apply:1048576": 1419.45,
+      "finalize:1048576": 486.45,
+      "qualityAfter:1048576": 31.7,
+      "crossSourceAfter:1048576": 49.01,
+      "repeat:1048576": 1154.91,
+      "bootstrapReexport:1048576": 1165.95
+    },
+    "memory": {
+      "officialImport": {
+        "rss": 234192896,
+        "heapTotal": 58933248,
+        "heapUsed": 36563400,
+        "external": 10724551,
+        "arrayBuffers": 1561186
+      },
+      "corpusLoad": {
+        "rss": 293715968,
+        "heapTotal": 92602368,
+        "heapUsed": 27780440,
+        "external": 9239667,
+        "arrayBuffers": 97894
+      },
+      "blockedPublish": {
+        "rss": 294715392,
+        "heapTotal": 92864512,
+        "heapUsed": 38894560,
+        "external": 9717069,
+        "arrayBuffers": 572704
+      },
+      "publish": {
+        "rss": 302563328,
+        "heapTotal": 165740544,
+        "heapUsed": 26693776,
+        "external": 9364770,
+        "arrayBuffers": 221941
+      },
+      "qualityBefore": {
+        "rss": 309198848,
+        "heapTotal": 165740544,
+        "heapUsed": 59162608,
+        "external": 9364770,
+        "arrayBuffers": 221941
+      },
+      "crossSourceBefore": {
+        "rss": 328433664,
+        "heapTotal": 165740544,
+        "heapUsed": 75148592,
+        "external": 9364770,
+        "arrayBuffers": 221941
+      },
+      "build:1048576": {
+        "rss": 411779072,
+        "heapTotal": 168329216,
+        "heapUsed": 92476456,
+        "external": 12507016,
+        "arrayBuffers": 3354043
+      },
+      "verify:1048576": {
+        "rss": 411172864,
+        "heapTotal": 166789120,
+        "heapUsed": 39170152,
+        "external": 9413061,
+        "arrayBuffers": 271800
+      },
+      "statementAndPrivacyAudit:1048576": {
+        "rss": 411287552,
+        "heapTotal": 166789120,
+        "heapUsed": 33640640,
+        "external": 9363709,
+        "arrayBuffers": 222448
+      },
+      "initialize:1048576": {
+        "rss": 411418624,
+        "heapTotal": 167051264,
+        "heapUsed": 46335712,
+        "external": 9462213,
+        "arrayBuffers": 320952
+      },
+      "apply:1048576": {
+        "rss": 418742272,
+        "heapTotal": 162594816,
+        "heapUsed": 75314224,
+        "external": 9827278,
+        "arrayBuffers": 686881
+      },
+      "finalize:1048576": {
+        "rss": 419430400,
+        "heapTotal": 162594816,
+        "heapUsed": 59276472,
+        "external": 10544513,
+        "arrayBuffers": 1392724
+      },
+      "qualityAfter:1048576": {
+        "rss": 419430400,
+        "heapTotal": 162594816,
+        "heapUsed": 22811560,
+        "external": 10544513,
+        "arrayBuffers": 97825
+      },
+      "crossSourceAfter:1048576": {
+        "rss": 419561472,
+        "heapTotal": 162594816,
+        "heapUsed": 38326512,
+        "external": 10573884,
+        "arrayBuffers": 97825
+      },
+      "repeat:1048576": {
+        "rss": 424804352,
+        "heapTotal": 164921344,
+        "heapUsed": 42490200,
+        "external": 9918164,
+        "arrayBuffers": 747052
+      },
+      "bootstrapReexport:1048576": {
+        "rss": 421822464,
+        "heapTotal": 162217984,
+        "heapUsed": 36798640,
+        "external": 10131949,
+        "arrayBuffers": 959429
+      }
+    },
+    "complete": true,
+    "sourceDatabase": "/private/tmp/d1-v4-authoritative-small-source.sqlite",
+    "lastPhase": "bootstrapReexport:1048576",
+    "peakRssBytes": 425050112,
+    "qualityBefore": {
+      "published": 1513,
+      "tiles": 366,
+      "missingExistence": 0,
+      "missingAttribution": 0,
+      "unpublishedEvidence": 0,
+      "tiers": [
+        {
+          "evidence_quality": "communityReported",
+          "n": 582
+        },
+        {
+          "evidence_quality": "communityVerified",
+          "n": 418
+        },
+        {
+          "evidence_quality": "officialListing",
+          "n": 513
+        }
+      ],
+      "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+      "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+    },
+    "crossSourceBefore": {
+      "candidates": 91,
+      "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305",
+      "merges": 0
+    },
+    "tileCapacity": [
+      {
+        "tile_id": "14/14358/6506",
+        "spot_count": 61,
+        "body_bytes": 46544
+      },
+      {
+        "tile_id": "14/14358/6508",
+        "spot_count": 45,
+        "body_bytes": 37531
+      },
+      {
+        "tile_id": "14/14552/6453",
+        "spot_count": 36,
+        "body_bytes": 28145
+      },
+      {
+        "tile_id": "14/14127/6567",
+        "spot_count": 33,
+        "body_bytes": 23617
+      },
+      {
+        "tile_id": "14/14552/6452",
+        "spot_count": 30,
+        "body_bytes": 23366
+      },
+      {
+        "tile_id": "14/14549/6452",
+        "spot_count": 33,
+        "body_bytes": 23354
+      },
+      {
+        "tile_id": "14/14550/6448",
+        "spot_count": 32,
+        "body_bytes": 22918
+      },
+      {
+        "tile_id": "14/14549/6451",
+        "spot_count": 31,
+        "body_bytes": 22217
+      },
+      {
+        "tile_id": "14/14359/6509",
+        "spot_count": 22,
+        "body_bytes": 18543
+      },
+      {
+        "tile_id": "14/14624/6016",
+        "spot_count": 24,
+        "body_bytes": 17096
+      }
+    ],
+    "artifacts": [
+      {
+        "chunkBytes": 1048576,
+        "directory": "/private/tmp/d1-v4-authoritative-small-1048576-bundle",
+        "artifactBytes": 10350237,
+        "chunks": 10,
+        "digest": "65408bbb02b9922e0adf7359d3de11f3605aba7250c9230a9034ee719fc0af3a",
+        "maxStatementBytes": 46817,
+        "privateDataAbsent": true,
+        "bootstrapMs": 2332.62,
+        "chunkApplyMs": [
+          131.84,
+          92.6,
+          99.35,
+          154.5,
+          187.29,
+          159.4,
+          156.1,
+          156.27,
+          96.36,
+          185.67
+        ],
+        "maxChunkApplyMs": 187.29,
+        "qualityAfter": {
+          "published": 1513,
+          "tiles": 366,
+          "missingExistence": 0,
+          "missingAttribution": 0,
+          "unpublishedEvidence": 0,
+          "tiers": [
+            {
+              "evidence_quality": "communityReported",
+              "n": 582
+            },
+            {
+              "evidence_quality": "communityVerified",
+              "n": 418
+            },
+            {
+              "evidence_quality": "officialListing",
+              "n": 513
+            }
+          ],
+          "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+          "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+        },
+        "crossSourceAfter": {
+          "candidates": 91,
+          "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+        },
+        "deterministic": true,
+        "endToEndMs": 6835.93
+      }
+    ],
+    "sourceDatabaseBytes": 13570048,
+    "reportsDatabaseBytes": 4665344
+  },
+  "finalImportPlanHarnessSmall": {
+    "version": "promotion-scale.v4",
+    "profile": "small",
+    "corpus": {
+      "version": "synthetic-community.v1",
+      "seed": 151152,
+      "sha256": "5da700632a7029544600da5837c364eb881de21f9993c9338a949cdd729d8094",
+      "spots": 1000,
+      "reports": 5000,
+      "official": 513
+    },
+    "environment": {
+      "runtime": "v24.10.0",
+      "database": "disk-backed local SQLite; not remote D1",
+      "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
+    },
+    "publication": {
+      "productionDecision": "pending",
+      "source": "blocked",
+      "simulationOnly": true
+    },
+    "timingsMs": {
+      "publish": 45.28,
+      "qualityBefore": 29.44,
+      "crossSourceBefore": 54.04,
+      "build:1048576": 1202.14,
+      "verify:1048576": 440.33,
+      "importPlanBuild:1048576": 450.34,
+      "importPlanVerify:1048576": 452.33,
+      "statementAndPrivacyAudit:1048576": 409.24,
+      "initialize:1048576": 444.77,
+      "apply:1048576": 1467.95,
+      "finalize:1048576": 514.6,
+      "qualityAfter:1048576": 31.13,
+      "crossSourceAfter:1048576": 49.96,
+      "repeat:1048576": 1217.46,
+      "bootstrapReexport:1048576": 1285.86
+    },
+    "memory": {
+      "publish": {
+        "rss": 141787136,
+        "heapTotal": 56164352,
+        "heapUsed": 28562840,
+        "external": 9079909,
+        "arrayBuffers": 39355
+      },
+      "qualityBefore": {
+        "rss": 158842880,
+        "heapTotal": 56950784,
+        "heapUsed": 28441256,
+        "external": 9079949,
+        "arrayBuffers": 39355
+      },
+      "crossSourceBefore": {
+        "rss": 170459136,
+        "heapTotal": 56950784,
+        "heapUsed": 28901632,
+        "external": 9079949,
+        "arrayBuffers": 39355
+      },
+      "build:1048576": {
+        "rss": 198901760,
+        "heapTotal": 63209472,
+        "heapUsed": 41490168,
+        "external": 9668646,
+        "arrayBuffers": 603332
+      },
+      "verify:1048576": {
+        "rss": 198770688,
+        "heapTotal": 62652416,
+        "heapUsed": 39269040,
+        "external": 9275548,
+        "arrayBuffers": 210906
+      },
+      "importPlanBuild:1048576": {
+        "rss": 205258752,
+        "heapTotal": 63700992,
+        "heapUsed": 31113736,
+        "external": 19839258,
+        "arrayBuffers": 10774616
+      },
+      "importPlanVerify:1048576": {
+        "rss": 205012992,
+        "heapTotal": 57999360,
+        "heapUsed": 16819016,
+        "external": 9177546,
+        "arrayBuffers": 112904
+      },
+      "statementAndPrivacyAudit:1048576": {
+        "rss": 205062144,
+        "heapTotal": 57999360,
+        "heapUsed": 24302600,
+        "external": 9258358,
+        "arrayBuffers": 193716
+      },
+      "initialize:1048576": {
+        "rss": 205127680,
+        "heapTotal": 57999360,
+        "heapUsed": 29428048,
+        "external": 9291326,
+        "arrayBuffers": 226684
+      },
+      "apply:1048576": {
+        "rss": 241418240,
+        "heapTotal": 88408064,
+        "heapUsed": 39752520,
+        "external": 9374491,
+        "arrayBuffers": 309849
+      },
+      "finalize:1048576": {
+        "rss": 256589824,
+        "heapTotal": 88670208,
+        "heapUsed": 46953648,
+        "external": 10117465,
+        "arrayBuffers": 1045143
+      },
+      "qualityAfter:1048576": {
+        "rss": 251412480,
+        "heapTotal": 88932352,
+        "heapUsed": 42775112,
+        "external": 10117465,
+        "arrayBuffers": 97625
+      },
+      "crossSourceAfter:1048576": {
+        "rss": 251887616,
+        "heapTotal": 89456640,
+        "heapUsed": 25969248,
+        "external": 9191638,
+        "arrayBuffers": 97625
+      },
+      "repeat:1048576": {
+        "rss": 260030464,
+        "heapTotal": 93650944,
+        "heapUsed": 25678224,
+        "external": 9427706,
+        "arrayBuffers": 333661
+      },
+      "bootstrapReexport:1048576": {
+        "rss": 261505024,
+        "heapTotal": 95485952,
+        "heapUsed": 20098184,
+        "external": 9398742,
+        "arrayBuffers": 304537
+      }
+    },
+    "complete": true,
+    "sourceDatabase": "/private/tmp/d1-v4-final-plan-small-source.sqlite",
+    "lastPhase": "bootstrapReexport:1048576",
+    "peakRssBytes": 261505024,
+    "qualityBefore": {
+      "published": 1513,
+      "tiles": 366,
+      "missingExistence": 0,
+      "missingAttribution": 0,
+      "unpublishedEvidence": 0,
+      "tiers": [
+        {
+          "evidence_quality": "communityReported",
+          "n": 582
+        },
+        {
+          "evidence_quality": "communityVerified",
+          "n": 418
+        },
+        {
+          "evidence_quality": "officialListing",
+          "n": 513
+        }
+      ],
+      "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+      "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+    },
+    "crossSourceBefore": {
+      "candidates": 91,
+      "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305",
+      "merges": 0
+    },
+    "tileCapacity": [
+      {
+        "tile_id": "14/14358/6506",
+        "spot_count": 61,
+        "body_bytes": 46544
+      },
+      {
+        "tile_id": "14/14358/6508",
+        "spot_count": 45,
+        "body_bytes": 37531
+      },
+      {
+        "tile_id": "14/14552/6453",
+        "spot_count": 36,
+        "body_bytes": 28145
+      },
+      {
+        "tile_id": "14/14127/6567",
+        "spot_count": 33,
+        "body_bytes": 23617
+      },
+      {
+        "tile_id": "14/14552/6452",
+        "spot_count": 30,
+        "body_bytes": 23366
+      },
+      {
+        "tile_id": "14/14549/6452",
+        "spot_count": 33,
+        "body_bytes": 23354
+      },
+      {
+        "tile_id": "14/14550/6448",
+        "spot_count": 32,
+        "body_bytes": 22918
+      },
+      {
+        "tile_id": "14/14549/6451",
+        "spot_count": 31,
+        "body_bytes": 22217
+      },
+      {
+        "tile_id": "14/14359/6509",
+        "spot_count": 22,
+        "body_bytes": 18543
+      },
+      {
+        "tile_id": "14/14624/6016",
+        "spot_count": 24,
+        "body_bytes": 17096
+      }
+    ],
+    "artifacts": [
+      {
+        "chunkBytes": 1048576,
+        "directory": "/private/tmp/d1-v4-final-plan-small-1048576-bundle",
+        "artifactBytes": 10350237,
+        "chunks": 10,
+        "digest": "65408bbb02b9922e0adf7359d3de11f3605aba7250c9230a9034ee719fc0af3a",
+        "importPlan": {
+          "files": 12,
+          "digest": "3d8b64d5f59726e6ca0463fd50e229dd39708a26d4a8fca981f81a1f2d1129df",
+          "artifactBytes": 10646826
+        },
+        "maxStatementBytes": 46817,
+        "privateDataAbsent": true,
+        "bootstrapMs": 2427.98,
+        "chunkApplyMs": [
+          135.09,
+          94.89,
+          99.32,
+          156.46,
+          193.51,
+          169.97,
+          163.41,
+          162.41,
+          98.95,
+          193.89
+        ],
+        "maxChunkApplyMs": 193.89,
+        "qualityAfter": {
+          "published": 1513,
+          "tiles": 366,
+          "missingExistence": 0,
+          "missingAttribution": 0,
+          "unpublishedEvidence": 0,
+          "tiers": [
+            {
+              "evidence_quality": "communityReported",
+              "n": 582
+            },
+            {
+              "evidence_quality": "communityVerified",
+              "n": 418
+            },
+            {
+              "evidence_quality": "officialListing",
+              "n": 513
+            }
+          ],
+          "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+          "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+        },
+        "crossSourceAfter": {
+          "candidates": 91,
+          "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+        },
+        "deterministic": true,
+        "endToEndMs": 8059.87
+      }
+    ],
+    "sourceDatabaseBytes": 13570048
+  }
+}

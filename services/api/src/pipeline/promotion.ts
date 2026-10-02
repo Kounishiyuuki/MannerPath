@@ -80,7 +80,7 @@ function fail(detail: string): never {
  * a human and split on semicolons by the applying tool, so an invisible control character in it is
  * a hazard, not a value worth preserving.
  */
-function literal(value: unknown): string {
+export function literal(value: unknown): string {
   if (value === null || value === undefined) return "NULL";
   if (typeof value === "number") {
     if (!Number.isFinite(value)) fail(`non-finite numeric value ${value}`);
@@ -98,7 +98,7 @@ function literal(value: unknown): string {
  * a deterministic ORDER BY. `sql` takes the release id as its only parameter, bound to every `?`. Adding a table here
  * is a deliberate decision about what may leave a database.
  */
-interface TableSpec {
+export interface TableSpec {
   table: string;
   columns: string[];
   sql: string;
@@ -110,7 +110,7 @@ interface TableSpec {
 const PUBLISHED_SPOTS = `SELECT spot_id FROM tile_snapshot_spots
   UNION SELECT survivor_spot_id FROM cross_source_merges UNION SELECT loser_spot_id FROM cross_source_merges
   UNION SELECT spot_id FROM spots WHERE merged_into IN (SELECT survivor_spot_id FROM cross_source_merges)`;
-const RELEASE_SOURCE = "SELECT source_id FROM source_releases WHERE release_id = ?";
+export const RELEASE_SOURCE = "SELECT source_id FROM source_releases WHERE release_id = ?";
 
 const TABLES: readonly TableSpec[] = [
   {
@@ -243,7 +243,7 @@ const CROSS_SOURCE_ATTESTATIONS: TableSpec = {
 };
 
 /** v3's carried tables: v2's, with the cross-source attestations right before the spots. */
-const MULTI_SOURCE_TABLES: readonly TableSpec[] = TABLES.flatMap((t) => (t.table === "spots" ? [CROSS_SOURCE_ATTESTATIONS, t] : [t]));
+export const MULTI_SOURCE_TABLES: readonly TableSpec[] = TABLES.flatMap((t) => (t.table === "spots" ? [CROSS_SOURCE_ATTESTATIONS, t] : [t]));
 
 type Row = Record<string, unknown>;
 
@@ -284,7 +284,7 @@ export interface PromotionRegistry {
 
 const REVIEWED_REGISTRY: PromotionRegistry = { source: reviewedSource, terms: reviewedTerms };
 
-async function validateRelease(
+export async function validateRelease(
   db: Db, releaseId: number, sources: Row[], release: Row | undefined, registry: PromotionRegistry = REVIEWED_REGISTRY,
 ): Promise<void> {
   if (release === undefined) fail(`release ${releaseId} does not exist`);
@@ -449,7 +449,7 @@ function validateCrossSourceMerges(rows: Map<string, Row[]>): void {
   }
 }
 
-async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
+export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
   const spots = rows.get("spots") ?? [];
@@ -684,7 +684,7 @@ const REPORT_TERMS_ROWS: TableSpec = {
 };
 
 /** v3 with an additive source: the terms rows right after the sources, before any release or tile. */
-const ADDITIVE_TABLES: readonly TableSpec[] = MULTI_SOURCE_TABLES.flatMap((t) => (t.table === "sources" ? [t, REPORT_TERMS_ROWS] : [t]));
+export const ADDITIVE_TABLES: readonly TableSpec[] = MULTI_SOURCE_TABLES.flatMap((t) => (t.table === "sources" ? [t, REPORT_TERMS_ROWS] : [t]));
 
 /**
  * promotion-bundle.v3: the current releases of several reviewed sources in ONE bootstrap. Every source passes

@@ -21,6 +21,7 @@ import { DATA_TILE_ZOOM, parseTileId } from "../src/geo/tile.ts";
 import { CONFIG_RESOURCES, ConfigBodyV1 } from "../src/config/dto.ts";
 import { ATTESTED_REPORT_SCHEMA_VERSION } from "../src/reports/dto.ts";
 import { SpotDetailBodyV1 } from "../src/spots/dto.ts";
+import { PromotionReadinessV1 } from "../src/pipeline/promotion-readiness.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 
 const LOCAL_BASE_URL = "http://127.0.0.1:8787";
@@ -63,6 +64,16 @@ const args = parseArgs(process.argv.slice(2));
 const get = (path: string, headers: Record<string, string> = {}) => fetch(`${args.baseUrl}${path}`, { headers });
 
 console.log(`target: ${args.baseUrl} (${args.loopback ? "local" : "REMOTE, explicitly opted in"})`);
+
+// A remote smoke must stop before any other probe unless GREEN is finalized.
+const readinessRes = await get("/v1/readiness");
+const readiness = PromotionReadinessV1.safeParse(await readinessRes.json());
+const ready = readiness.success && (
+  (readinessRes.status === 200 && readiness.data.completed && readiness.data.state === "completed")
+  || (args.loopback && readinessRes.status === 503 && !readiness.data.completed && readiness.data.state === "localPipeline")
+);
+check("promotion readiness", ready, `status=${readinessRes.status} state=${readiness.success ? readiness.data.state : "invalid"}`);
+if (!ready) throw new Error("refusing smoke: DATA_DB promotion is incomplete or readiness is unavailable");
 
 // 1. /v1/config — the compatibility contract, and the zoom every later check depends on.
 const configRes = await get("/v1/config");
