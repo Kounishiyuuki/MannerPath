@@ -28,7 +28,7 @@ The product goal is not to promote smoking. It is to help adult users quickly lo
 - Cloudflare D1
 - Reviewed official/open data + conditionally approved OSM path + reviewed user verification
 
-See [`docs/TECH_STACK.md`](docs/TECH_STACK.md) and [`docs/PRODUCT_REQUIREMENTS.md`](docs/PRODUCT_REQUIREMENTS.md).
+See [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) (invariants and document map), [`docs/TECH_STACK.md`](docs/TECH_STACK.md) and [`docs/PRODUCT_REQUIREMENTS.md`](docs/PRODUCT_REQUIREMENTS.md).
 
 ## Repository layout
 

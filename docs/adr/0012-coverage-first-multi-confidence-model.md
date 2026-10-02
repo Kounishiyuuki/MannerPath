@@ -115,6 +115,12 @@ new report `claim` only to a deployment whose strict schema accepts it.
 - Upgrading a spot's tier is the one write to a canonical spot outside the resolver
   (`community-verification.ts`), limited by trigger to the four evidence-tier columns.
 
+## Amendment 2026-10-02 — approximate area locations (ADR-0017)
+
+Decision 3 gains a fifth precision value, `areaApproximate` (specified, not yet implemented): accepted evidence places
+the smoking place inside an area/host whose reviewed anchor is the pin. Missing exact coordinates alone no longer
+reject an evidenced spot; host existence is still never evidence.
+
 ## Amendment 2026-10-01 — acquisition lifecycle (ADR-0013)
 
 The published tiers are unchanged. ADR-0013 names the lifecycle inside them: `reported` (communityReported) →

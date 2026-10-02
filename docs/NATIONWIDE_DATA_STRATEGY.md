@@ -213,14 +213,20 @@ review and a target review):
 
 | Why it was 0 | Records | Route |
 | --- | --- | --- |
-| Data does not carry the smoking place (host point only, no smoking category/point, no coordinate) | 33 | C — community acquisition target |
+| Data does not carry the smoking place (host point only, no smoking category/point, no coordinate) | 33 | C — community acquisition target (records with accepted existence evidence and only a missing point: re-check under ADR-0017) |
 | Both rights and data blockers | 25 | D — reference lead only |
 | Rights only (license/reuse) — data itself usable | 1 (中央区, 79 supplied smoking points) | D until reuse permission; then A |
 | Already a reviewed, published source (duplicate research) | 2 | A |
 
 ADR-0012 relaxes exactly one blocker: `currentOperationUnknown` alone no longer withholds a dated official listing
 (it publishes with its date and a freshness label); explicit closure evidence still blocks. No other research
-verdict changes: coverage-first never turns a host facility, a missing coordinate or an unlicensed file into a spot.
+verdict changes: coverage-first never turns a host facility or an unlicensed file into a spot.
+
+ADR-0017 (2026-10-02, specified, not yet implemented) changes how a **missing coordinate** is read: it is no longer by
+itself a permanent blocker. Where accepted smoking-place existence evidence places the spot inside a park, station or
+facility and a reviewed reusable anchor of that area exists, the record is an `areaApproximate` candidate. A record
+whose only content is a host point, with no statement that a smoking place exists there, stays blocked. The replay above
+predates ADR-0017 and must be re-run to count newly eligible targets.
 
 Ordering from here:
 

@@ -47,6 +47,9 @@ in a reviewed change (`services/AGENTS.md`, enforced by `services/api/test/deplo
 Scope: Cloudflare Workers + D1 (ADR-0003), the `/v1` surface in `API.md`. This is a beta operations
 document, not an App Store release or a production launch plan.
 
+Remote D1 writes, deploys and cutovers below are explicit production operations; a development task never runs them
+on its own initiative (`docs/SPECIFICATION.md` §19).
+
 ## Local vs. remote
 
 Two vocabularies, deliberately not mixed.
