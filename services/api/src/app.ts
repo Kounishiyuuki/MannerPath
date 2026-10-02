@@ -18,7 +18,8 @@ import { z } from "zod";
 import { configBody } from "./config/dto.ts";
 import { COVERAGE_TASKS_SCHEMA_VERSION, CoverageTasksBodyV1 } from "./coverage/dto.ts";
 import { SEED_AREAS_VERSION } from "./coverage/seed-areas.ts";
-import { COVERAGE_TASKS_VERSION, gapTasks } from "./coverage/tasks.ts";
+import { CoverageProbeOverflow, publishedGapTasks } from "./coverage/published-gaps.ts";
+import { COVERAGE_TASKS_VERSION } from "./coverage/tasks.ts";
 import { type Db, isoSeconds } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { APPLE_APP_ATTEST_ROOT_DER } from "./attest/apple-root.ts";
@@ -167,13 +168,16 @@ export function createApp(options: AppOptions = {}) {
   // GET /v1/coverage/tasks: public, read-only coverage-gap tasks (ADR-0013). Derived from the published corpus and
   // the seed-area list only — never from reports — so it carries no user-derived data while Issue #124 is open.
   app.get("/v1/coverage/tasks", async (c) => {
-    const { results } = await c.env.DB.prepare(
-      "SELECT s.latitude, s.longitude FROM tile_snapshot_spots t JOIN spots s ON s.spot_id = t.spot_id",
-    ).all<{ latitude: number; longitude: number }>();
+    let tasks;
+    try { tasks = await publishedGapTasks(c.env.DB); }
+    catch (error) {
+      if (error instanceof CoverageProbeOverflow) return problem(503, "coverageTemporarilyUnavailable", "coverage spatial candidate budget exceeded; retry after operator review");
+      throw error;
+    }
     const body = CoverageTasksBodyV1.parse({
       schemaVersion: COVERAGE_TASKS_SCHEMA_VERSION, rules: COVERAGE_TASKS_VERSION, seedAreas: SEED_AREAS_VERSION,
       meaning: "information around this area is thin; this is not a claim that a smoking place exists",
-      tasks: gapTasks(results),
+      tasks,
     });
     return new Response(JSON.stringify(body), {
       status: 200,

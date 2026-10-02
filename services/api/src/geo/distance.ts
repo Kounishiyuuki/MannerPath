@@ -1,6 +1,6 @@
 // Distance between coordinates, shared by the quality analysis and relocation review details.
 
-const EARTH_RADIUS_M = 6_371_008.8;
+export const EARTH_RADIUS_M = 6_371_008.8;
 
 /** Great-circle distance in metres (haversine). Deterministic; no projection, no datum shift. */
 export function haversineMeters(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {

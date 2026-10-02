@@ -68,9 +68,10 @@ export interface ModerationQueueRow {
 
 export async function listModerationQueue(
   db: Db,
-  opts: { state?: ModerationState; limit?: number } = {},
+  opts: { state?: ModerationState; limit?: number; cursor?: string } = {},
 ): Promise<ModerationQueueRow[]> {
-  const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+  const limit = pageLimit(opts.limit, 50, 200);
+  const cursor = decodeReportCursor(opts.cursor);
   const sql =
     `SELECT r.report_id, r.report_type, r.subject_spot_id, r.proposed_latitude, r.proposed_longitude,
             r.observed_on, r.note, r.attestation_status, r.received_at, r.redacted_at,
@@ -81,9 +82,10 @@ export async function listModerationQueue(
        FROM reports r
        JOIN report_moderation m ON m.report_id = r.report_id
       WHERE (? IS NULL OR m.state = ?)
+        AND (r.received_at > ? OR (r.received_at = ? AND r.report_id > ?))
       ORDER BY r.received_at, r.report_id
       LIMIT ?`;
-  const rows = await db.prepare(sql).bind(opts.state ?? null, opts.state ?? null, limit).all<ModerationQueueRow>();
+  const rows = await db.prepare(sql).bind(opts.state ?? null, opts.state ?? null, cursor?.receivedAt ?? "", cursor?.receivedAt ?? "", cursor?.reportId ?? "", limit).all<ModerationQueueRow>();
   return rows.results;
 }
 
@@ -160,4 +162,31 @@ export async function setReconciliationState(
   await db.prepare(
     "UPDATE report_moderation SET reconciliation_state = ?, updated_at = ? WHERE report_id = ?",
   ).bind(state, isoSeconds(now), reportId).run();
+}
+
+/** Keyset cursor: tied timestamps are broken by the immutable report ID; no OFFSET drift. */
+export function encodeReportCursor(row: { receivedAt: string; reportId: string }): string {
+  return btoa(JSON.stringify([1, row.receivedAt, row.reportId]));
+}
+export function decodeReportCursor(value?: string): { receivedAt: string; reportId: string } | null {
+  if (value === undefined) return null;
+  try {
+    const parts = JSON.parse(atob(value));
+    if (!Array.isArray(parts) || parts.length !== 3 || parts[0] !== 1
+      || typeof parts[1] !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(parts[1])
+      || typeof parts[2] !== "string" || !/^rp_[0-9A-HJKMNP-TV-Z]{26}$/.test(parts[2])) throw new Error();
+    return { receivedAt: parts[1], reportId: parts[2] };
+  } catch { throw new Error("invalid report cursor"); }
+}
+export function pageLimit(value: number | undefined, fallback = 200, maximum = 1000): number {
+  if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new Error("limit must be a positive integer");
+  return Math.min(value ?? fallback, maximum);
+}
+export async function moderationQueuePage(db: Db, opts: { state?: ModerationState; limit?: number; cursor?: string } = {}) {
+  const limit = pageLimit(opts.limit, 50, 199);
+  const rows = await listModerationQueue(db, { ...opts, limit: limit + 1 });
+  const hasMore = rows.length > limit;
+  const items = rows.slice(0, limit);
+  const last = items.at(-1);
+  return { items, nextCursor: hasMore && last ? encodeReportCursor({ receivedAt: last.received_at, reportId: last.report_id }) : null };
 }

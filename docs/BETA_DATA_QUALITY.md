@@ -450,3 +450,9 @@ analysis fails its `tile-zoom-thresholds` check automatically if a future corpus
    order already differs between the two publications of the same 時点, so `#` is confirmed unusable.
 3. Only then survey a second municipality. The catalog census (§6) says the supply of machine-readable
    ward smoking datasets is two, so growth means asking wards to publish, not harvesting.
+
+## Nationwide community scale operations
+
+See [Community scale runbook](COMMUNITY_SCALE_RUNBOOK.md) for deterministic local scale profiles,
+capacity review after the first 1,000, bounded moderation/retention and D1 measurement limitations.
+Simulation does not approve community publication: #124, terms and source rights remain pending.

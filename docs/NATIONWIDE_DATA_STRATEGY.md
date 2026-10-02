@@ -293,3 +293,9 @@ top-20 areas, add a distinct 235 across all 47 prefectures, then 65 via airport/
 Track deduplicated community-origin published spots and independent confirmations separately; review individually,
 refresh aggregate coverage weekly, and rotate sufficiently covered areas toward current gaps. Issue #124's terms /
 rights approval remains required before community publication; until then published community coverage stays zero.
+
+## Nationwide community scale operations
+
+See [Community scale runbook](COMMUNITY_SCALE_RUNBOOK.md) for deterministic local scale profiles,
+capacity review after the first 1,000, bounded moderation/retention and D1 measurement limitations.
+Simulation does not approve community publication: #124, terms and source rights remain pending.

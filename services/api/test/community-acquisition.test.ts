@@ -310,7 +310,7 @@ test("moderation triage: filters, flags, a fixed order and a summary — IDs and
   assert.equal(queue.length, 5);
   assert.ok(queue.filter((r) => r.spotId === spotId).every((r) => r.flags.includes("highReportCount")));
   assert.ok(queue.find((r) => r.reportId === ids[4])!.flags.includes("old"));
-  assert.deepEqual(queue.map((r) => r.flags.length), [...queue.map((r) => r.flags.length)].sort((a, b) => b - a), "flagged rows first");
+  assert.deepEqual(queue.map((r) => r.priority), [...queue.map((r) => r.priority)].sort(), "priority buckets first; old refinements graduate to P0");
   assert.deepEqual((await triageQueue(reportsOf(db), db, { now: APPLY, categories: ["missing"] })).map((r) => r.reportId).sort(), [ids[1], ids[2]].sort());
   assert.deepEqual((await triageQueue(reportsOf(db), db, { now: APPLY, categories: ["stillExists", "newSpot"] })).map((r) => r.category).sort(), ["newSpot", "stillExists"]);
   await acceptAndQueue(db, ids[0], ids[1]);

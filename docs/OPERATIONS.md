@@ -773,3 +773,8 @@ Every command here is a maintainer's remote action; none is run by automation.
   re-pointed, and it is never combined with a canonical cut-over.
 - **What is not a backup:** the canonical database (it holds no reports), promotion bundles (they carry no report
   state), and community artifacts (sanitized decisions, not reports).
+## Nationwide community scale operations
+
+See [Community scale runbook](COMMUNITY_SCALE_RUNBOOK.md) for deterministic local scale profiles,
+capacity review after the first 1,000, bounded moderation/retention and D1 measurement limitations.
+Simulation does not approve community publication: #124, terms and source rights remain pending.

@@ -60,6 +60,18 @@ struct TileSyncTests {
     private let etagA = #""1-ExactAbC123""#
     private let etagB = #""1-NextXYZ789""#
 
+    @Test func denseTileMapsEverySpotAndKeepsStrictObservationDays() throws {
+        let dto = try JSONDecoder().decode(TileBodyV1.self, from: body(spots: (1...1_000).map { spot($0) }))
+        let mapped = try TileSpotMapper.map(dto, requestedTile: tile)
+        #expect(mapped.spots.count == 1_000)
+        #expect(Set(mapped.spots.map(\.id)).count == 1_000)
+        #expect(Set(mapped.spots.compactMap(\.lastVerifiedAt)).count == 1)
+        var invalid = spot(1)
+        invalid["lastVerifiedAt"] = "2026-02-30"
+        let malformed = try JSONDecoder().decode(TileBodyV1.self, from: body(spots: [invalid]))
+        #expect(throws: TileSyncError.self) { try TileSpotMapper.map(malformed, requestedTile: tile) }
+    }
+
     @Test func backendV1DTOAndStructuredHoursMapWithoutGuessing() throws {
         let data = try body(spots: [
             spot(1, spotType: "unknown", hours: allDayHours),
@@ -437,7 +449,8 @@ struct TileSyncTests {
     }
 
     private func spotID(_ number: Int) -> String {
-        "sp_" + String(repeating: "0", count: 25) + String(number)
+        let suffix = String(number)
+        return "sp_" + String(repeating: "0", count: 26 - suffix.count) + suffix
     }
 
     private func spot(

@@ -409,6 +409,9 @@ export async function exportReview(db: Db, reviewId: string, opts: { now: Date }
 }
 
 export interface NewSpotCandidateGroup {
+  scope: "pageLocal";
+  /** Resume by immutable report ID; groups may connect to reports on subsequent pages. */
+  nextReportId: string | null;
   reportIds: string[];
   pins: { reportId: string; latitude: number; longitude: number }[];
   /** How many distinct submitters stand behind the group. The keys themselves are never returned. */
@@ -419,29 +422,49 @@ export interface NewSpotCandidateGroup {
 
 /**
  * Queued, accepted, unredacted, unreviewed `missing` reports, grouped by single linkage within `withinMetres`. A
- * reading aid for the reviewer, not a decision.
+ * reading aid for the reviewer, not a decision. Groups are page-local and may need continuation;
+ * the reviewer explicitly chooses reports and proposeReview still validates every independence premise.
  */
-export async function listNewSpotCandidates(db: Db, opts: { withinMetres: number; now: Date }): Promise<NewSpotCandidateGroup[]> {
+export async function listNewSpotCandidates(db: Db, opts: { withinMetres: number; now: Date; limit?: number; afterReportId?: string }): Promise<NewSpotCandidateGroup[]> {
   if (!Number.isFinite(opts.withinMetres) || opts.withinMetres <= 0) throw new ReviewError("review: an explicit positive grouping radius in metres is required");
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new ReviewError("review: invalid candidate limit");
   const { results } = await db.prepare(
     `SELECT r.report_id, r.proposed_latitude AS latitude, r.proposed_longitude AS longitude, r.submitter_hash, r.accepted_terms_version
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type = 'missing' AND r.redacted_at IS NULL AND r.proposed_latitude IS NOT NULL AND r.minimize_after > ?
        AND m.state = 'accepted' AND m.reconciliation_state = 'queued'
        AND NOT EXISTS (SELECT 1 FROM report_review_evidence e WHERE e.report_id = r.report_id)
-     ORDER BY r.report_id`,
-  ).bind(isoSeconds(opts.now)).all<{ report_id: string; latitude: number; longitude: number; submitter_hash: string; accepted_terms_version: string | null }>();
+       AND r.report_id > ?
+     ORDER BY r.report_id LIMIT ?`,
+  ).bind(isoSeconds(opts.now), opts.afterReportId ?? "", limit).all<{ report_id: string; latitude: number; longitude: number; submitter_hash: string; accepted_terms_version: string | null }>();
   const parent = results.map((_, i) => i);
   const root = (i: number): number => (parent[i] === i ? i : (parent[i] = root(parent[i])));
+  const cell = opts.withinMetres / 111_000 * 2;
+  const buckets = new Map<string, number[]>();
   for (let i = 0; i < results.length; i++) {
-    for (let j = i + 1; j < results.length; j++) if (haversineMeters(results[i], results[j]) <= opts.withinMetres) parent[root(j)] = root(i);
+    const x = Math.floor(results[i].latitude / cell), y = Math.floor(results[i].longitude / (cell * 2));
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      for (const j of buckets.get(`${x + dx}/${y + dy}`) ?? []) {
+        if (haversineMeters(results[i], results[j]) <= opts.withinMetres) parent[root(j)] = root(i);
+      }
+    }
+    const key = `${x}/${y}`;
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key)!.push(i);
   }
   const groups = new Map<number, typeof results>();
-  results.forEach((r, i) => groups.set(root(i), [...(groups.get(root(i)) ?? []), r]));
+  results.forEach((r, i) => {
+    const id = root(i);
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id)!.push(r);
+  });
   return [...groups.values()].map((members) => {
     let max = 0;
     for (const a of members) for (const b of members) max = Math.max(max, haversineMeters(a, b));
     return {
+      scope: "pageLocal" as const,
+      nextReportId: results.length === limit ? results.at(-1)!.report_id : null,
       reportIds: members.map((m) => m.report_id),
       pins: members.map((m) => ({ reportId: m.report_id, latitude: m.latitude, longitude: m.longitude })),
       distinctSubmitters: distinctSubmitters(members),
@@ -466,13 +489,16 @@ export interface ReviewQueueRow {
 }
 
 /** Every review with counts and states only: safe to paste into a ticket (no note, pin, date or submitter key). */
-export async function listReviews(db: Db): Promise<ReviewQueueRow[]> {
+export async function listReviews(db: Db, opts: { limit?: number; cursor?: string; kind?: ReviewKind; state?: string } = {}): Promise<ReviewQueueRow[]> {
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new ReviewError("review: invalid review limit");
   const { results } = await db.prepare(
     `SELECT v.review_id, v.review_kind, v.review_key, v.decision_version, v.state, v.subject_spot_id, v.report_type, v.artifact_sha256,
             count(e.report_id) AS n, count(DISTINCT r.submitter_hash) AS submitters
      FROM report_reviews v LEFT JOIN report_review_evidence e ON e.review_id = v.review_id LEFT JOIN reports r ON r.report_id = e.report_id
-     GROUP BY v.review_id ORDER BY v.decided_at, v.review_id`,
-  ).all<{ review_id: string; review_kind: ReviewKind; review_key: string; decision_version: number; state: ReviewRow["state"];
+     WHERE v.review_id > ? AND (? IS NULL OR v.review_kind = ?) AND (? IS NULL OR v.state = ?)
+     GROUP BY v.review_id ORDER BY v.review_id LIMIT ?`,
+  ).bind(opts.cursor ?? "", opts.kind ?? null, opts.kind ?? null, opts.state ?? null, opts.state ?? null, limit).all<{ review_id: string; review_kind: ReviewKind; review_key: string; decision_version: number; state: ReviewRow["state"];
     subject_spot_id: string | null; report_type: string | null; artifact_sha256: string | null; n: number; submitters: number }>();
   return results.map((r) => ({
     reviewId: r.review_id, kind: r.review_kind, reviewKey: r.review_key, decisionVersion: r.decision_version, state: r.state,
@@ -493,6 +519,7 @@ export interface ExistingSpotQueueRow {
   redactedOrStale: number;
   /** The terms version every report consented to, or null: without one nothing here can ever publish. */
   commonTermsVersion: string | null;
+  cursor: string;
 }
 
 /**
@@ -500,33 +527,30 @@ export interface ExistingSpotQueueRow {
  * could propose next. Counts and states only. Whether the spot is still live, and whether the rights hold, is a
  * canonical question answered at import and hold time.
  */
-export async function listExistingSpotQueue(db: Db, opts: { now: Date }): Promise<ExistingSpotQueueRow[]> {
+export async function listExistingSpotQueue(db: Db, opts: { now: Date; limit?: number; cursor?: string }): Promise<ExistingSpotQueueRow[]> {
   const now = isoSeconds(opts.now);
+  const limit = Math.min(opts.limit ?? 200, 1000);
+  if (!Number.isSafeInteger(limit) || limit < 1) throw new ReviewError("review: invalid queue limit");
   const { results } = await db.prepare(
-    `SELECT r.subject_spot_id, r.report_type, r.finding, r.submitter_hash, r.redacted_at, r.minimize_after, r.accepted_terms_version
+    `SELECT r.subject_spot_id, r.report_type, r.finding, count(*) AS reports,
+            count(DISTINCT r.submitter_hash) AS independent,
+            sum(r.redacted_at IS NOT NULL OR r.minimize_after <= ?) AS stale,
+            CASE WHEN count(r.accepted_terms_version) = count(*) AND count(DISTINCT r.accepted_terms_version) = 1
+                 THEN min(r.accepted_terms_version) END AS terms,
+            r.subject_spot_id || '/' || r.report_type || '/' || coalesce(r.finding, '') AS cursor
      FROM reports r JOIN report_moderation m ON m.report_id = r.report_id
      WHERE r.report_type <> 'missing' AND m.state = 'accepted' AND m.reconciliation_state = 'queued'
        AND NOT EXISTS (SELECT 1 FROM report_review_evidence e WHERE e.report_id = r.report_id)
-     ORDER BY r.subject_spot_id, r.report_type, r.finding, r.report_id`,
-  ).all<{ subject_spot_id: string; report_type: string; finding: string | null; submitter_hash: string | null; redacted_at: string | null;
-    minimize_after: string; accepted_terms_version: string | null }>();
-  const groups = new Map<string, typeof results>();
-  for (const r of results) {
-    const key = `${r.subject_spot_id}\n${r.report_type}\n${r.finding ?? ""}`;
-    groups.set(key, [...(groups.get(key) ?? []), r]);
-  }
-  return [...groups.values()].map((members) => {
-    const first = members[0];
-    const negative = first.report_type === "other" && NEGATIVE_FINDINGS.includes(first.finding as (typeof NEGATIVE_FINDINGS)[number]);
+     GROUP BY r.subject_spot_id, r.report_type, r.finding HAVING cursor > ? ORDER BY cursor LIMIT ?`,
+  ).bind(now, opts.cursor ?? "", limit).all<{ subject_spot_id: string; report_type: string; finding: string | null;
+    reports: number; independent: number; stale: number; terms: string | null; cursor: string }>();
+  return results.map((r) => {
+    const negative = r.report_type === "other" && NEGATIVE_FINDINGS.includes(r.finding as (typeof NEGATIVE_FINDINGS)[number]);
     return {
-      spotId: first.subject_spot_id,
-      reportType: first.report_type,
-      finding: first.finding,
-      effect: Object.hasOwn(COMMUNITY_EFFECTS, first.report_type) ? COMMUNITY_EFFECTS[first.report_type as EffectReportType] : negative ? "absenceReview" : null,
-      reportCount: members.length,
-      independentSubmitters: new Set(members.map((m) => m.submitter_hash).filter((h) => h !== null)).size,
-      redactedOrStale: members.filter((m) => m.redacted_at !== null || m.minimize_after <= now).length,
-      commonTermsVersion: commonTermsVersion(members),
+      spotId: r.subject_spot_id, reportType: r.report_type, finding: r.finding,
+      effect: Object.hasOwn(COMMUNITY_EFFECTS, r.report_type) ? COMMUNITY_EFFECTS[r.report_type as EffectReportType] : negative ? "absenceReview" : null,
+      reportCount: r.reports, independentSubmitters: r.independent, redactedOrStale: r.stale, commonTermsVersion: r.terms,
+      cursor: r.cursor,
     };
   });
 }

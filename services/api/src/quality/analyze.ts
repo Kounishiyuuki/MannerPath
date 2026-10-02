@@ -11,6 +11,7 @@
 
 import { type Db } from "../db.ts";
 import { haversineMeters } from "../geo/distance.ts";
+import { nearestSphericalDistances } from "../geo/spherical-index.ts";
 import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
@@ -59,20 +60,13 @@ function rate(unknown: number, total: number): number | null {
 
 /**
  * Distance from each published spot to its closest neighbour, which is how thin the corpus is where
- * it does have data. O(n²) on purpose: the corpus is small and an exact answer is worth more here
- * than an index. Returns null below two spots, where the measure has no meaning.
+ * it does have data. Exact balanced spherical KD search keeps nationwide analysis practical.
+ * Returns null below two spots, where the measure has no meaning.
  */
 function nearestNeighbourMeters(spots: { latitude: number; longitude: number }[]) {
   if (spots.length < 2) return null;
-  const distances = spots.map((a) => {
-    let nearest = Infinity;
-    for (const b of spots) {
-      if (b === a) continue;
-      nearest = Math.min(nearest, haversineMeters(a, b));
-    }
-    // Whole metres: the source coordinates carry 3-6 decimals, so sub-metre digits are noise.
-    return Math.round(nearest);
-  }).sort((x, y) => x - y);
+  // Whole metres: the source coordinates carry 3-6 decimals, so sub-metre digits are noise.
+  const distances = nearestSphericalDistances(spots).map(Math.round).sort((x, y) => x - y);
   return {
     min: distances[0],
     p50: percentile(distances, 50),

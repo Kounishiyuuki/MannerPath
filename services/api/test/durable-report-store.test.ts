@@ -485,10 +485,10 @@ test("migration streams are separate, and the long-lived report stream is append
   const canonical25 = readFileSync(new URL("../migrations/0025_durable_report_store_boundary.sql", import.meta.url), "utf8").replace(/--.*$/gm, "");
   assert.doesNotMatch(canonical25, /DROP\s+TABLE|DELETE\s+FROM/i, "the legacy report tables are kept, not dropped");
   const reports = reportsD1();
-  assert.deepEqual(tables(reports), ["app_attest_challenges", "app_attest_keys", "report_moderation", "report_rate_windows", "report_review_evidence",
+  assert.deepEqual(tables(reports), ["app_attest_challenges", "app_attest_keys", "moderation_queue_revision", "report_moderation", "report_rate_windows", "report_review_evidence",
     "report_reviews", "report_store_meta", "report_terms_documents", "reports"], "REPORTS_DB holds no canonical table");
   const data = new SqliteD1();
-  for (const t of ["report_reviews", "report_review_evidence", "report_store_meta", "report_terms_documents"]) assert.equal(tables(data).includes(t), false, t);
+  for (const t of ["report_reviews", "report_review_evidence", "report_store_meta", "report_terms_documents", "moderation_queue_revision"]) assert.equal(tables(data).includes(t), false, t);
 });
 
 test("remote moderation needs every explicit flag, a typed production confirmation and an interactive terminal; the default is local", () => {
