@@ -8,9 +8,10 @@
 
 import { type Db, sha256Hex } from "../db.ts";
 import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
+import { LOCATION_STATE_COLUMNS, LOCATION_STATE_JOINS, type LocationStateRow, locationState } from "./location-state.ts";
 import { manifestBody, splitTileParts } from "./parts.ts";
 
-export interface CandidateRow {
+export interface CandidateRow extends LocationStateRow {
   spot_id: string;
   name: string | null;
   latitude: number;
@@ -45,29 +46,6 @@ export interface CandidateRow {
   publication_status: "approved" | "blocked";
   /** 1 or 0 for a community (userReport) spot's rights basis (0021 community_spot_rights); null for any other spot. */
   community_rights_granted?: number | null;
-  /**
-   * ADR-0017 (0030 spot_location_anchors): `areaApproximate` while an anchor binding is active, the upgraded precision
-   * after a precision-only upgrade, null for a spot that was never anchored. With its area name and kind.
-   */
-  location_precision_override?: "areaApproximate" | "publisherPoint" | "communityPinned" | null;
-  location_area_name?: string | null;
-  location_area_kind?: NonNullable<SpotVerificationV1["locationArea"]>["kind"] | null;
-  /** The location provenance rule; an area-anchor rule without an active or upgraded binding is never published. */
-  location_rule?: string | null;
-}
-
-/** Columns and joins every reader of a published spot uses for its location precision (ADR-0017). */
-export const LOCATION_ANCHOR_COLUMNS = `CASE WHEN la.spot_id IS NULL THEN NULL WHEN la.ended_at IS NULL THEN 'areaApproximate'
-            ELSE la.upgraded_precision END AS location_precision_override,
-            CASE WHEN la.ended_at IS NULL THEN aa.area_name END AS location_area_name,
-            CASE WHEN la.ended_at IS NULL THEN aa.area_kind END AS location_area_kind,
-            (SELECT lp.rule FROM spot_field_provenance lp WHERE lp.spot_id = s.spot_id AND lp.field = 'location') AS location_rule`;
-export const LOCATION_ANCHOR_JOINS = `LEFT JOIN spot_location_anchors la ON la.spot_id = s.spot_id
-     LEFT JOIN area_location_anchors aa ON aa.anchor_id = la.anchor_id`;
-
-/** An area-anchor location without its binding has lost its provenance: fail closed rather than look exact. */
-export function anchorProvenanceMissing(r: CandidateRow): boolean {
-  return (r.location_rule ?? "").startsWith("area-anchor.") && (r.location_precision_override ?? null) === null;
 }
 
 export interface PublishReport {
@@ -82,18 +60,20 @@ export interface PublishReport {
  */
 export function verificationDto(r: CandidateRow): SpotVerificationV1 {
   const community = r.source_kind === "userReport";
+  // ADR-0017: one shared, bidirectional decision (./location-state.ts). An invalid state is never turned into a DTO.
+  const state = locationState(r);
+  if (state.kind === "invalid") throw new Error(`spot ${r.spot_id}: location state is invalid (${state.reason})`);
   const existence = community
     ? (r.evidence_quality === "communityReported" ? "communityReported" : "communityVerified")
     : r.source_kind === "operator" ? "operator" : "official";
   return {
     version: SPOT_VERIFICATION_VERSION,
     existence,
-    locationPrecision: r.location_precision_override ?? (community ? "communityPinned"
-      : r.evidence_quality === "officialListingDerivedLocation" ? "reviewedDerived" : "publisherPoint"),
+    locationPrecision: state.kind === "areaApproximate" ? "areaApproximate" : state.kind === "upgraded" ? state.precision
+      : community ? "communityPinned" : r.evidence_quality === "officialListingDerivedLocation" ? "reviewedDerived" : "publisherPoint",
     confirmations: community ? r.community_confirmations : null,
     lastReviewedMonth: (community ? r.last_reviewed_on : r.last_verified_at)?.slice(0, 7) ?? null,
-    ...(r.location_precision_override === "areaApproximate"
-      ? { locationArea: { name: r.location_area_name!, kind: r.location_area_kind! } } : {}),
+    ...(state.kind === "areaApproximate" ? { locationArea: state.area } : {}),
   };
 }
 
@@ -145,14 +125,14 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
             s.evidence_quality_version, s.last_verified_at, s.spot_subtype, s.host_type, s.access_detail,
             s.community_confirmations, s.last_reviewed_on,
             src.source_id, src.kind AS source_kind, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
-            cr.rights_granted AS community_rights_granted, ${LOCATION_ANCHOR_COLUMNS}
+            cr.rights_granted AS community_rights_granted, ${LOCATION_STATE_COLUMNS}
      FROM spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
      LEFT JOIN community_spot_rights cr ON cr.spot_id = s.spot_id
-     ${LOCATION_ANCHOR_JOINS}
+     ${LOCATION_STATE_JOINS}
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND s.spot_id NOT IN (SELECT spot_id FROM community_publication_holds WHERE lifted_at IS NULL)
        AND s.spot_id NOT IN (SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL)
@@ -168,7 +148,7 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
   for (const row of candidates) {
     const status = row.publication_status !== "approved" ? row.publication_status
       : row.community_rights_granted === 0 ? "rightsNotGranted"
-      : anchorProvenanceMissing(row) ? "anchorProvenanceMissing" : null;
+      : locationState(row).kind === "invalid" ? "locationProvenanceInvalid" : null;
     if (status !== null) {
       const key = `${row.source_id}\n${status}`;
       const e = excluded.get(key) ?? { sourceId: row.source_id, publicationStatus: status, spotCount: 0 };

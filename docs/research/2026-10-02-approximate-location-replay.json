@@ -18,9 +18,10 @@
       "A-rescuedByAreaApproximate": 1,
       "B-existenceInsufficient": 135,
       "D-noReusableAnchor": 18,
+      "E-currentOperation": 5,
       "F-prohibitionOrConflict": 14,
-      "G-geocodingNeeded": 8,
-      "H-other": 26
+      "G-geocodingNeeded": 7,
+      "H-other": 22
     },
     "rescuedIfRightsGranted": [
       "city-sendai"
@@ -1112,7 +1113,7 @@
         "rightsUnreviewed",
         "closureEvidencePresent"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -1332,7 +1333,7 @@
         "rightsUnreviewed",
         "closureEvidencePresent"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -4389,7 +4390,7 @@
         "rightsUnreviewed",
         "closureEvidencePresent"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -4606,7 +4607,7 @@
         "rightsUnreviewed",
         "closureEvidencePresent"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -4631,7 +4632,7 @@
         "closureEvidencePresent",
         "addressOnly"
       ],
-      "categoryIfRightsGranted": "G-geocodingNeeded"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",

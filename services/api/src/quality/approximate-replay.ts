@@ -14,6 +14,7 @@
 //   H other                     review pending, raw unreadable, or already a published source.
 //
 // Precedence is F, B, H(pending/access), C, E, G, D, A: the strongest reason a target cannot publish is its category.
+// E (closure/suspension evidence) is independent of location form: it outranks G/D/A for every location.
 // `adr0017RemovesLocationBlocker` is recorded separately: whether the exact-point blocker is answered by ADR-0017 once
 // the target's other gates (usually rights) are cleared.
 
@@ -39,7 +40,7 @@ export interface ReplayRecord {
   /** Whether the review established explicit smoking-place existence (official reverse review field, or annotation). */
   explicitExistence: boolean;
   location: LocationForm;
-  /** A reviewed, reusable anchor for the area under anchor policy v1 (the existence source's own point for the area). */
+  /** A reviewed, reusable anchor for the area under anchor policy v1 (a point stated by the same publication as the existence evidence). */
   reusableAnchor: boolean;
   alreadyPublished: boolean;
   /** Texts the precedence rules read: smoking evidence, current operation, reason. */
@@ -79,9 +80,10 @@ export function classifyApproximate(r: ReplayRecord): { category: ReplayCategory
   else if (reasons.includes("existenceNotExplicit") || has(r.blockerCodes, EXISTENCE) && !r.explicitExistence) category = "B-existenceInsufficient";
   else if (reasons.includes("reviewPendingOrAccess")) category = "H-other";
   else if (reasons.includes("rightsUnreviewed")) category = "C-rightsBlocked";
-  // Closure wording blocks only where it is about the place itself; a review that already excluded the closed site
-  // from existence leaves the rest. Recorded as a reason either way.
-  else if (reasons.includes("closureEvidencePresent") && r.location === "none") category = "E-currentOperation";
+  // Location eligibility and current operation are independent axes: closure, suspension or abolition evidence that the
+  // review has not reconciled per place keeps a target out of A whatever its location form (it stays recorded in
+  // adr0017RemovesLocationBlocker).
+  else if (reasons.includes("closureEvidencePresent")) category = "E-currentOperation";
   else if (r.location === "addressOnly") category = "G-geocodingNeeded";
   else if (r.location === "areaOrHost" && !r.reusableAnchor) category = "D-noReusableAnchor";
   else if (adr0017RemovesLocationBlocker) category = "A-rescuedByAreaApproximate";

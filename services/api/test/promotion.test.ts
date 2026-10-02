@@ -52,6 +52,7 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     spot_field_attenuations: 6,
     area_location_anchors: 0,
     spot_location_anchors: 0,
+    area_precision_upgrades: 0,
     tile_snapshots: 5,
     tile_snapshot_parts: 5,
     tile_snapshot_spots: 32,

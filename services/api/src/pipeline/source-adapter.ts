@@ -126,6 +126,12 @@ export interface SourceAdapter {
   /** Optional reviewed scope filter for mixed datasets. All raw rows remain evidence. Changing
    * scope requires a new mappingVersion; excluded rows create neither observations nor spots. */
   includesRecord?(values: readonly string[]): boolean;
+  /**
+   * ADR-0017: the reviewed mapping of a raw record to the area/host point it states (a park, station or facility row of
+   * this same publication), or null. Only `recordAreaAnchor` reads it, to check a reviewed anchor against the
+   * publication instead of trusting a typed coordinate. Absent: this source supplies no anchors.
+   */
+  areaPoint?(values: readonly string[]): { areaName: string; latitude: number; longitude: number } | null;
   /** The field mapping: one in-scope raw record -> its normalized observation. Call through
    * observeSourceRecord at shared boundaries to enforce finite global coordinate ranges. */
   observe(values: readonly string[]): SourceObservation;

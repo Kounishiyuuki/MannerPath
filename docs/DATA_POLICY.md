@@ -131,10 +131,11 @@ airport, commercial building) it may publish as `areaApproximate` and must be sh
 provenance and reuse review. Host existence alone is never evidence. Never used as a canonical coordinate: Google/Apple
 POI points, OSM values (ADR-0010), coordinates read from map screenshots, arbitrary manual pins, or a centroid/host
 centre labelled as an exact or publisher point. Address geocoding remains governed by ADR-0011 (Proposed).
-Anchor policy v1 (`area-anchor-policy.v1`, migration 0030) accepts only an anchor taken from the existence source's own
-reviewed publication (`reuse_basis = existenceSourceLicense`), so the tile's existing attribution covers it; each anchor
-records its origin, reference, review and policy version, and the quality check `area-anchor-never-exact` fails if an
-anchored spot is ever published as anything but `areaApproximate`.
+Anchor policy v1 (`area-anchor-policy.v1`, migration 0030) accepts only an anchor stated by the same publication (the
+same release file) as the existence evidence (`reuse_basis = sameReviewedPublication`), so the tile's existing
+attribution covers it, and only through an exact-point evidence upgrade can a spot leave `areaApproximate`; each anchor
+records its publication (release digest, row values), reference, review and policy version, and the quality check
+`area-anchor-never-exact` fails if any published spot's label differs from its location state (ADR-0017).
 
 Third-party services (Google Maps, Apple Maps, OSM, blogs, other apps, social posts) may be used as discovery leads
 even where their terms forbid reuse; discovery is not provenance and nothing is copied from them into the canonical

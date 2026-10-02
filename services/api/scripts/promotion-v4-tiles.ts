@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { validateSnapshots } from "../src/pipeline/promotion.ts";
 import { TileBodyV1, TileManifestV2, TilePartBodyV2 } from "../src/tiles/dto.ts";
+import { LOCATION_STATE_COLUMNS, LOCATION_STATE_JOINS } from "../src/tiles/location-state.ts";
 import { TILE_PART_POLICY, TILE_MANIFEST_MAX_BYTES, sqlLiteralBytes } from "../src/tiles/parts.ts";
 import { D1_CAPACITY_POLICY, type PromotionV4Manifest } from "./promotion-v4-format.ts";
 
@@ -23,7 +24,9 @@ export async function validateV4Tile(db: DatabaseSync, tile: Row, sources: Row[]
       if (spot.id <= previousId) refuse("duplicate or unordered logical spots");
       previousId = spot.id; total++;
       const member = db.prepare("SELECT * FROM tile_snapshot_spots WHERE spot_id=? AND tile_id=?").get(spot.id, tileId) as Row | undefined;
-      const canonical = db.prepare("SELECT * FROM spots WHERE spot_id=?").get(spot.id) as Row | undefined;
+      // ADR-0017: the spot with its location-state closure (binding, anchor, upgrade, location provenance), one bounded
+      // row per spot of this part, so areaApproximate/upgraded bodies are rebuilt from canonical state, not as exact.
+      const canonical = db.prepare(`SELECT s.*, ${LOCATION_STATE_COLUMNS} FROM spots s ${LOCATION_STATE_JOINS} WHERE s.spot_id=?`).get(spot.id) as Row | undefined;
       if (!member || !canonical) refuse("canonical spot/membership missing");
       members.push(member); spots.push(canonical);
     }

@@ -7,7 +7,7 @@
 // targets are replayed too, from their blocker codes. ANNOTATIONS is the hand review this replay adds: for each
 // target with explicit smoking-place evidence, how the record locates the places (inside a named area/host, by
 // street address only, or not established), the place count the record states, and whether a reusable anchor
-// exists under anchor policy v1 (the existence source's own point for the area). Each note cites the review text.
+// exists under anchor policy v1 (a point stated by the same publication — the same release file — as the existence evidence). Each note cites the review text.
 
 import { readFileSync } from "node:fs";
 import { APPROXIMATE_REPLAY_VERSION, type LocationForm, RIGHTS, type ReplayRecord, classifyApproximate } from "../src/quality/approximate-replay.ts";

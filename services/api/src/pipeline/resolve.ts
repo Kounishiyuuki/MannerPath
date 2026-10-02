@@ -152,7 +152,8 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     observations.map((o) => o.observation),
   );
 
-  await assertAnchorsRecorded(db, release.source_id, observations.map((o) => o.observation));
+  // Every record of a first release creates a spot, so every anchor must be of this very publication (policy v1).
+  await assertAnchorsRecorded(db, release.source_id, releaseId, observations, new Set(observations.map((o) => o.recordId)));
 
   const now = opts.now;
   const statements = [...(opts.guards ?? [])];
@@ -217,8 +218,9 @@ function newSpotStatements(
     ).bind(record.recordId, spotId, now, resolverVersion),
     // ADR-0017: the reviewed anchor the coordinate is (0030 re-checks coordinate and source in its triggers).
     ...(r.locationAnchorId === undefined ? [] : [db.prepare(
-      `INSERT INTO spot_location_anchors (spot_id, anchor_id, record_id, resolver_version, bound_at) VALUES (?, ?, ?, ?, ?)`,
-    ).bind(spotId, r.locationAnchorId, record.recordId, resolverVersion, now)]),
+      `INSERT INTO spot_location_anchors (spot_id, anchor_id, record_id, record_release_content_sha256, resolver_version, bound_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).bind(spotId, r.locationAnchorId, record.recordId, release.content_sha256, resolverVersion, now)]),
     // Copied from the observation, still citing the raw record and its columns: the observation
     // is how the values were normalized, the record is what was stated.
     ...r.provenance.map((p) =>
@@ -290,7 +292,6 @@ async function resolveNextRelease(
     observations.map((o) => o.observation),
   );
 
-  await assertAnchorsRecorded(db, release.source_id, observations.map((o) => o.observation));
   const { previous, next } = await readMatchInputs(db, current.release_id, releaseId);
   if (previous.length !== previousObservations.length) {
     throw new Error(`resolve: current release ${current.release_id} has records without an entity and spot`);
@@ -334,6 +335,10 @@ async function resolveNextRelease(
     await assertNoCompetingRelease(db, release.source_id, releaseId, current);
   }
 
+  // A record that creates a spot binds only to an anchor of this publication; a continued spot keeps its binding.
+  await assertAnchorsRecorded(db, release.source_id, releaseId, observations,
+    new Set(effective.decisions.filter((d) => d.method === "new" || d.method === "reviewed_new").map((d) => d.recordId)));
+
   const statements = [...matchKeyStatements(db, [...previous, ...next].map((r) => r.recordId), now)];
   const spotIds: string[] = [];
   // Audits of consumed relocation applications, appended last: their trigger (0015) requires the release
@@ -363,8 +368,15 @@ async function resolveNextRelease(
     // Only once nothing is left to review: a match must keep every value, except the coordinate its
     // applied relocation already moved the spot to.
     const relocation = relocations.get(decision.recordId);
-    const expected = relocation && previousObservation
+    // ADR-0017: the one reviewed value change a match may carry is an area→exact upgrade recorded for exactly this
+    // record. Then the expected observation is the previous one with the upgrade's exact location evidence.
+    const upgrade = previousObservation?.locationAnchorId === undefined ? null : await db.prepare(
+      `SELECT evidence_location_rule, evidence_location_columns_json FROM area_precision_upgrades
+       WHERE spot_id = ? AND evidence_record_id = ? AND evidence_observation_id = ?`,
+    ).bind(prior.spotId, record.recordId, record.observationId).first<{ evidence_location_rule: string; evidence_location_columns_json: string }>();
+    const moved = relocation && previousObservation
       ? { ...previousObservation, latitude: record.observation.latitude, longitude: record.observation.longitude } : previousObservation;
+    const expected = upgrade && moved ? withoutAnchor({ ...moved, provenance: record.observation.provenance }) : moved;
     if (decision.method === "reviewed_match") await assertReviewedMatchKeepsValues(db, prior.spotId, record, expected);
     await assertEvidenceCanMove(db, adapter, prior.spotId, prior.recordId, record, expected);
     spotIds.push(prior.spotId);
@@ -384,6 +396,11 @@ async function resolveNextRelease(
         CROSS_RELEASE_MATCHER_VERSION, now, decision.method === "raw_identical"
           ? `raw values identical to record ${prior.recordId} of release ${current.release_id}`
           : `review decision ${decision.reviewDecisionId} (item ${decision.reviewItemId}): matchedToEntity, continuing record ${prior.recordId} of release ${current.release_id}`),
+      // The upgrade's exact evidence replaces the anchor location provenance (0030 checks it is exactly that evidence).
+      ...(upgrade ? [db.prepare(
+        `UPDATE spot_field_provenance SET record_id = ?, source_columns_json = ?, rule = ?, resolver_version = ?, resolved_at = ?
+         WHERE spot_id = ? AND field = 'location'`,
+      ).bind(record.recordId, upgrade.evidence_location_columns_json, upgrade.evidence_location_rule, adapter.resolverVersion, now, prior.spotId)] : []),
       db.prepare(
         "UPDATE spot_field_provenance SET record_id = ?, resolver_version = ?, resolved_at = ? WHERE spot_id = ? AND record_id = ?",
       ).bind(record.recordId, adapter.resolverVersion, now, prior.spotId, prior.recordId),
@@ -649,4 +666,10 @@ async function assertEvidenceCanMove(
   if ((spot.foreign_provenance as number) > 0) {
     throw new Error(`resolve: spot ${spotId} has provenance from another record than ${previousRecordId}`);
   }
+}
+
+/** The observation without its area-anchor claim (ADR-0017): what an exact-point record states for the same place. */
+function withoutAnchor(o: SourceObservation): SourceObservation {
+  const { locationAnchorId: _anchor, ...rest } = o;
+  return rest;
 }

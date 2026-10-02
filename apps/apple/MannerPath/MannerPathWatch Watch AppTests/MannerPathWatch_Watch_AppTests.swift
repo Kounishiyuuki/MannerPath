@@ -397,8 +397,13 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(ranked[0].spot.isAreaApproximate && !ranked[1].spot.isAreaApproximate)
         #expect(ApproximateLocation.listNote(areaName: ranked[0].spot.locationAreaName)
                 == String(localized: "Location is approximate, within \("上野恩賜公園")"))
-        #expect(ApproximateLocation.navigationTitle(approximate: true) == String(localized: "Navigate to this area"))
-        #expect(ApproximateLocation.navigationTitle(approximate: false) == String(localized: "Navigate to this place"))
+        let place = String(localized: "Navigate to this place"), area = String(localized: "Navigate to this area")
+        // Only an exact point says 「この場所へ案内」; an area anchor, unknown, a future value or no value (legacy) does not.
+        #expect(ApproximateLocation.navigationTitle(precision: "publisherPoint") == place)
+        #expect(ApproximateLocation.navigationTitle(precision: "communityPinned") == place)
+        for precision in ["areaApproximate", "reviewedDerived", "unknown", "someFuturePrecision", nil] as [String?] {
+            #expect(ApproximateLocation.navigationTitle(precision: precision) == area, "\(precision ?? "nil") is never presented as exact")
+        }
         #expect(ApproximateLocation.distance("240 m", approximate: true) == String(localized: "About \("240 m")"))
         #expect(ApproximateLocation.distance("240 m", approximate: false) == "240 m")
     }

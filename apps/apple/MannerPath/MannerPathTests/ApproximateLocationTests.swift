@@ -61,6 +61,17 @@ struct ApproximateLocationTests {
         #expect(SpotPresentation.locationNote(.publisherPoint) == nil)
     }
 
+    @Test func onlyAnExactPointGetsTheExactCallToAction() {
+        let place = String(localized: "Navigate to this place"), area = String(localized: "Navigate to this area")
+        #expect(SpotPresentation.navigationTitle(spot("pp", precision: .publisherPoint, area: nil)) == place)
+        #expect(SpotPresentation.navigationTitle(spot("cp", precision: .communityPinned, area: nil)) == place)
+        // Area anchor, address-derived, unknown, a future wire value (decoded as .unknown) and a legacy cached spot with
+        // no precision at all: never 「この場所へ案内」.
+        for precision in [LocationPrecision.areaApproximate, .reviewedDerived, .unknown, LocationPrecision(wire: "someFuturePrecision"), nil] as [LocationPrecision?] {
+            #expect(SpotPresentation.navigationTitle(spot("p", precision: precision, area: nil)) == area)
+        }
+    }
+
     @Test func displayableAreaNameRejectsUnsafeNames() {
         #expect(ApproximateLocation.displayableAreaName(" 上野恩賜公園 ") == "上野恩賜公園")
         #expect(ApproximateLocation.displayableAreaName("") == nil)
@@ -97,7 +108,7 @@ struct ApproximateLocationTests {
 
     // MARK: - fixtures
 
-    private func spot(_ id: String, precision: LocationPrecision, area: LocationArea?, meters: Double = 100) -> Spot {
+    private func spot(_ id: String, precision: LocationPrecision?, area: LocationArea?, meters: Double = 100) -> Spot {
         Spot(id: id, mergedInto: nil, name: id, latitude: origin.latitude + meters / 111_195, longitude: origin.longitude,
              tileId: tile.id, spotType: .designatedOutdoorArea, hostType: nil, accessType: .public, environment: .unknown,
              supportsPaper: .unknown, supportsHeated: .unknown, openingHours: nil, feeType: nil, floor: nil,

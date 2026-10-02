@@ -8,6 +8,11 @@ nonisolated enum ApproximateLocation {
 
     static func isApproximate(_ precision: String?) -> Bool { precision == precisionValue }
 
+    /// Only a pin that is the place's own point may be called exact: the publisher's point or a user's on-site pin.
+    /// Everything else — an area anchor, an address-derived point, unknown, a value this build does not know, or no
+    /// value at all (a spot cached before ADR-0012) — is never presented as exact (no false confidence).
+    static func isExactPoint(_ precision: String?) -> Bool { precision == "publisherPoint" || precision == "communityPinned" }
+
     /// The area name only when it is safe to show verbatim: trimmed, 1–80 characters, no control characters.
     static func displayableAreaName(_ raw: String?) -> String? {
         guard let name = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty, name.count <= 80,
@@ -28,9 +33,9 @@ nonisolated enum ApproximateLocation {
         String(localized: "The smoking place is confirmed to be inside this facility or park. Its exact position is not confirmed, so the pin is approximate.")
     }
 
-    /// Navigation call to action: 「この場所へ案内」 for an exact pin, 「この付近へ案内」 for an approximate one.
-    static func navigationTitle(approximate: Bool) -> String {
-        approximate ? String(localized: "Navigate to this area") : String(localized: "Navigate to this place")
+    /// Navigation call to action from the wire precision: 「この場所へ案内」 only for an exact point, otherwise 「この付近へ案内」.
+    static func navigationTitle(precision: String?) -> String {
+        isExactPoint(precision) ? String(localized: "Navigate to this place") : String(localized: "Navigate to this area")
     }
 
     /// 「約○m」 for an approximate pin; an exact distance is returned unchanged.

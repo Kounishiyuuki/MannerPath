@@ -229,7 +229,8 @@ whose only content is a host point, with no statement that a smoking place exist
 predates ADR-0017; its ADR-0017 replay is `docs/research/2026-10-02-approximate-location-replay.md`: of 202 replayed
 targets, ADR-0017 removes the location blocker for 21 (39 places stated), but every one is still blocked first by
 unreviewed reuse rights, so none is publishable today. With rights granted, 仙台市 (one park, same-source anchor) would
-be publishable; 18 more need an anchor (policy v2) and 8 address-only ones need ADR-0011.
+be publishable; 18 more need an anchor (policy v2), 7 address-only ones need ADR-0011 and 5 have closure evidence to
+reconcile first.
 
 Ordering from here:
 

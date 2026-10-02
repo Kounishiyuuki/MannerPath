@@ -177,6 +177,27 @@ const TABLES: readonly TableSpec[] = [
     sql: `SELECT * FROM spots WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY merged_into IS NOT NULL, spot_id`,
   },
   {
+    // ADR-0017 (0030): the location-state closure of the published spots of this source — their anchors, upgrades and
+    // bindings — independent of which release is current: an anchor's publication may be an earlier release that this
+    // bundle does not carry, so those columns travel as attested values (0030 checks them while the bootstrap is open)
+    // and never as a current release. Bindings precede spot_field_provenance, whose area-anchor rows they justify.
+    table: "area_location_anchors",
+    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
+    sql: `SELECT * FROM area_location_anchors WHERE origin_source_id = (${RELEASE_SOURCE})
+          AND anchor_id IN (SELECT anchor_id FROM spot_location_anchors WHERE spot_id IN (${PUBLISHED_SPOTS})) ORDER BY anchor_id`,
+  },
+  {
+    table: "area_precision_upgrades",
+    columns: ["spot_id", "anchor_id", "upgrade_kind", "target_precision", "area_premise", "evidence_source_id", "evidence_release_id", "evidence_release_content_sha256", "evidence_record_id", "evidence_observation_id", "evidence_mapping_version", "evidence_location_rule", "evidence_location_columns_json", "old_latitude", "old_longitude", "new_latitude", "new_longitude", "identity_review_item_id", "identity_review_decision_id", "relocation_review_item_id", "relocation_review_decision_id", "reviewed_by", "policy_version", "executor_version", "applied_at"],
+    sql: `SELECT * FROM area_precision_upgrades WHERE evidence_source_id = (${RELEASE_SOURCE}) AND spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id`,
+  },
+  {
+    table: "spot_location_anchors",
+    columns: ["spot_id", "anchor_id", "record_id", "record_release_content_sha256", "resolver_version", "bound_at"],
+    sql: `SELECT b.* FROM spot_location_anchors b JOIN area_location_anchors a ON a.anchor_id = b.anchor_id
+          WHERE a.origin_source_id = (${RELEASE_SOURCE}) AND b.spot_id IN (${PUBLISHED_SPOTS}) ORDER BY b.spot_id`,
+  },
+  {
     table: "spot_source_entities",
     columns: ["source_entity_id", "spot_id", "method", "linked_at", "resolver_version"],
     sql: `SELECT * FROM spot_source_entities WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY source_entity_id`,
@@ -194,21 +215,6 @@ const TABLES: readonly TableSpec[] = [
     table: "spot_field_attenuations",
     columns: ["spot_id", "field", "effect", "attestation_version", "reference_kind", "reference_url", "checked_at", "release_id", "release_content_sha256", "release_observed_on", "release_source_url", "resolver_version", "applied_at"],
     sql: `SELECT * FROM spot_field_attenuations WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, field, effect`,
-  },
-  {
-    // ADR-0017 (0030): the reviewed anchors behind this release's area-approximate spots, then their bindings. Without
-    // them the receiving database would hold an anchor coordinate with nothing saying it is approximate.
-    table: "area_location_anchors",
-    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
-    sql: `SELECT * FROM area_location_anchors WHERE anchor_id IN (SELECT b.anchor_id FROM spot_location_anchors b
-            JOIN source_records r ON r.record_id = b.record_id WHERE r.release_id = ? AND b.spot_id IN (${PUBLISHED_SPOTS}))
-          ORDER BY anchor_id`,
-  },
-  {
-    table: "spot_location_anchors",
-    columns: ["spot_id", "anchor_id", "record_id", "resolver_version", "bound_at", "ended_at", "end_reason", "upgraded_precision"],
-    sql: `SELECT b.* FROM spot_location_anchors b JOIN source_records r ON r.record_id = b.record_id
-          WHERE r.release_id = ? AND b.spot_id IN (${PUBLISHED_SPOTS}) ORDER BY b.spot_id`,
   },
   {
     table: "tile_snapshots",
@@ -468,20 +474,28 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
   const spots = rows.get("spots") ?? [];
-  // ADR-0017: an anchored spot's DTO depends on its carried binding, anchor and location provenance rule.
+  // ADR-0017: the published DTO depends on each spot's location state, rebuilt from exactly the carried rows with the
+  // same columns and the same decision (../tiles/location-state.ts) as publication. A caller that already selected the
+  // state columns (the v4 per-part validator) passes them on the spot rows.
   const anchorsById = new Map((rows.get("area_location_anchors") ?? []).map((a) => [String(a.anchor_id), a]));
   const bindings = new Map((rows.get("spot_location_anchors") ?? []).map((b) => [String(b.spot_id), b]));
-  const locationRules = new Map((rows.get("spot_field_provenance") ?? []).filter((p) => p.field === "location").map((p) => [String(p.spot_id), String(p.rule)]));
+  const upgrades = new Map((rows.get("area_precision_upgrades") ?? []).map((u) => [String(u.spot_id), u]));
+  const locations = new Map((rows.get("spot_field_provenance") ?? []).filter((p) => p.field === "location").map((p) => [String(p.spot_id), p]));
+  const releaseSource = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), String(r.source_id)]));
+  const recordSource = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), releaseSource.get(Number(r.release_id)) ?? null]));
   const spotsById = new Map(spots.map((s) => {
-    const b = bindings.get(String(s.spot_id));
+    if ("location_rule" in s) return [String(s.spot_id), s];
+    const b = bindings.get(String(s.spot_id)), u = upgrades.get(String(s.spot_id)), p = locations.get(String(s.spot_id));
     const a = b === undefined ? undefined : anchorsById.get(String(b.anchor_id));
-    const active = b !== undefined && b.ended_at === null;
     return [String(s.spot_id), {
       ...s,
-      location_precision_override: b === undefined ? null : active ? "areaApproximate" : b.upgraded_precision,
-      location_area_name: active ? a?.area_name ?? null : null,
-      location_area_kind: active ? a?.area_kind ?? null : null,
-      location_rule: locationRules.get(String(s.spot_id)) ?? null,
+      location_rule: p?.rule ?? null, location_source_id: p === undefined ? null : recordSource.get(Number(p.record_id)) ?? null,
+      lb_anchor_id: b?.anchor_id ?? null, lb_release_sha256: b?.record_release_content_sha256 ?? null,
+      la_anchor_id: a?.anchor_id ?? null, la_source_id: a?.origin_source_id ?? null, la_latitude: a?.latitude ?? null,
+      la_longitude: a?.longitude ?? null, la_area_name: a?.area_name ?? null, la_area_kind: a?.area_kind ?? null,
+      la_release_sha256: a?.origin_release_content_sha256 ?? null,
+      lu_anchor_id: u?.anchor_id ?? null, lu_precision: u?.target_precision ?? null, lu_source_id: u?.evidence_source_id ?? null,
+      lu_rule: u?.evidence_location_rule ?? null, lu_latitude: u?.new_latitude ?? null, lu_longitude: u?.new_longitude ?? null,
     }];
   }));
   const sourcesById = new Map(sources.map((s) => [String(s.source_id), s]));
@@ -530,7 +544,10 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
     for (const bodySpot of raw.spots) {
       const spot = spotsById.get(bodySpot.id);
       const source = sourcesById.get((bodySpot as { sourceIds?: string[] }).sourceIds?.[0] ?? "");
-      if (spot === undefined || source === undefined || JSON.stringify(spotDto({ ...spot, ...source, source_kind: source.kind } as unknown as CandidateRow)) !== JSON.stringify(bodySpot)) {
+      const rebuilt = spot === undefined || source === undefined ? null : (() => {
+        try { return JSON.stringify(spotDto({ ...spot, ...source, source_kind: source.kind } as unknown as CandidateRow)); } catch { return null; }
+      })();
+      if (rebuilt === null || rebuilt !== JSON.stringify(bodySpot)) {
         fail(`tile ${tileId}: body for spot ${bodySpot.id} does not match its canonical row; republish before exporting`);
       }
     }
@@ -566,7 +583,7 @@ function tableStatements(rows: Map<string, Row[]>, specs: readonly TableSpec[] =
  * `Db` it is given is a local binding by construction — the scripts that call it open their
  * binding with `remoteBindings: false`.
  */
-export async function buildPromotionBundle(db: Db, options: { releaseId?: number } = {}): Promise<PromotionBundle> {
+export async function buildPromotionBundle(db: Db, options: { releaseId?: number; registry?: PromotionRegistry } = {}): Promise<PromotionBundle> {
   const releaseId = options.releaseId ?? await currentReleaseId(db);
   if (!Number.isInteger(releaseId) || releaseId < 1) fail(`release id must be a positive integer, got ${releaseId}`);
 
@@ -578,7 +595,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
   for (const spec of TABLES) rows.set(spec.table, await rowsOf(db, spec, releaseId));
 
   if ((rows.get("sources") ?? [])[0]?.kind === "userReport") fail("an additive userReport source is promoted only with promotion-bundle.v3");
-  await validateRelease(db, releaseId, rows.get("sources") ?? [], (rows.get("source_releases") ?? [])[0]);
+  await validateRelease(db, releaseId, rows.get("sources") ?? [], (rows.get("source_releases") ?? [])[0], options.registry);
   await validatePublishedState(db, [releaseId], rows);
   validateReviewAttestations(rows);
   await validateSnapshots(rows);

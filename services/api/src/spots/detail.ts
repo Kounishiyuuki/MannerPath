@@ -4,7 +4,8 @@
 // The source/release conditions are repeated as defence in depth against a stale snapshot row.
 
 import { type Db } from "../db.ts";
-import { type CandidateRow, LOCATION_ANCHOR_COLUMNS, LOCATION_ANCHOR_JOINS, anchorProvenanceMissing, sourceDto, spotDto } from "../tiles/publish.ts";
+import { LOCATION_STATE_COLUMNS, LOCATION_STATE_JOINS, locationState } from "../tiles/location-state.ts";
+import { type CandidateRow, sourceDto, spotDto } from "../tiles/publish.ts";
 import { PUBLIC_PROVENANCE_FIELDS, SPOT_DETAIL_SCHEMA_VERSION, SpotDetailBodyV1, type SpotProvenanceV1 } from "./dto.ts";
 
 type DetailRow = CandidateRow & { tile_snapshot_id: string };
@@ -23,10 +24,10 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
             s.evidence_quality_version, s.last_verified_at, s.spot_subtype, s.host_type, s.access_detail,
             s.community_confirmations, s.last_reviewed_on,
             src.source_id, src.kind AS source_kind, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
-            ts.tile_id AS tile_snapshot_id, ${LOCATION_ANCHOR_COLUMNS}
+            ts.tile_id AS tile_snapshot_id, ${LOCATION_STATE_COLUMNS}
      FROM tile_snapshot_spots ts
      JOIN spots s ON s.spot_id = ts.spot_id
-     ${LOCATION_ANCHOR_JOINS}
+     ${LOCATION_STATE_JOINS}
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id
      JOIN source_releases rel ON rel.release_id = r.release_id
@@ -34,7 +35,8 @@ export async function readPublishedSpot(db: Db, requestedId: string): Promise<Sp
      WHERE ts.spot_id = ? AND s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND rel.status = 'applied' AND src.publication_status = 'approved'`,
   ).bind(targetId).first<DetailRow>();
-  if (row === null || anchorProvenanceMissing(row)) return null;
+  // ADR-0017: the same bidirectional location invariant as tile publication; an invalid state is not public.
+  if (row === null || locationState(row).kind === "invalid") return null;
 
   // Provenance of resolved fields, limited to the same publishable evidence and to the public field
   // allowlist. The column's own CHECK constraint is not the public vocabulary, so the allowlist is

@@ -180,7 +180,7 @@ struct ContentView: View {
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 if #available(watchOS 11.4, *), let url = WatchNavigation.walkingURL(for: result.spot) {
-                    Link(ApproximateLocation.navigationTitle(approximate: result.spot.isAreaApproximate), destination: url)
+                    Link(ApproximateLocation.navigationTitle(precision: result.spot.locationPrecision), destination: url)
                         .accessibilityIdentifier("watch-directions")
                 }
                 Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))

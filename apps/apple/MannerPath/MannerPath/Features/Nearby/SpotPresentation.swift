@@ -197,9 +197,10 @@ enum SpotPresentation {
         spot.verification.isAreaApproximate ? ApproximateLocation.listNote(areaName: spot.verification.locationArea?.name) : nil
     }
 
-    /// 「この場所へ案内」 or 「この付近へ案内」 (ADR-0017).
+    /// 「この場所へ案内」 only for an exact point; 「この付近へ案内」 for an area anchor and for anything not known to be exact
+    /// (ADR-0017, same rule as the Watch).
     static func navigationTitle(_ spot: Spot) -> String {
-        ApproximateLocation.navigationTitle(approximate: spot.verification.isAreaApproximate)
+        ApproximateLocation.navigationTitle(precision: spot.verification.locationPrecision?.rawValue)
     }
 
     static func distance(_ meters: Double) -> String {

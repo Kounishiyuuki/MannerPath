@@ -84,8 +84,12 @@ An `areaApproximate` pin is never presented as an exact point (ADR-0017, PRODUCT
 - distance may read 「約○m」.
 - VoiceOver, widgets and Watch state the approximation too.
 
-When an exact location arrives later, the **stable spot ID is kept** and the precision upgrades
-(`areaApproximate` → `publisherPoint` / `communityPinned` / `reviewedDerived`).
+When an exact location arrives later, the **stable spot ID is kept** and the precision upgrades — only through a
+reviewed upgrade that records the exact-point evidence and the reviewed identity, and through ADR-0009 when the point
+moves (ADR-0017 §Implementation). v1 upgrades to `publisherPoint` from the same source only; a community pin, a
+`reviewedDerived` point (ADR-0011 Proposed) and a point outside the area fail closed until decided separately. The
+navigation label 「この場所へ案内」 is used only for a known exact point (`publisherPoint`, `communityPinned`);
+everything else — area anchors, derived, unknown, unrecognised or missing precision — reads 「この付近へ案内」.
 
 ## 5. Evidence invariants
 
@@ -233,7 +237,9 @@ document (and ADR) in the same change.
 
 - [x] `areaApproximate` end to end: migration 0030, resolver/publication, tile/detail DTOs, promotion, quality check
       `area-anchor-never-exact`, iPhone/Watch/widget copy and VoiceOver (ADR-0017 §Implementation).
-- [x] Precision-upgrade path keeping the stable spot ID; any coordinate change stays ADR-0009.
+- [x] Precision-upgrade path keeping the stable spot ID: exact-point evidence + reviewed identity
+      (`area_precision_upgrades`); any coordinate change stays ADR-0009; anchors bound to their own publication.
+- [ ] Outside-area and community-pin upgrades (fail closed in v1).
 - [x] Nationwide replay (`docs/research/2026-10-02-approximate-location-replay.md`): nothing rescued today; rights first.
 - [ ] Anchor policy v2: anchors from a separate dataset of the same publisher (with that dataset's attribution in tiles).
 - [ ] Reuse-rights requests for the replay's location-eligible targets (仙台市 park data first: it would be A).

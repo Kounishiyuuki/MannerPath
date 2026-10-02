@@ -163,18 +163,19 @@
         "promotion_review_match_attestations": 0,
         "source_record_entities": 34,
         "spots": 32,
+        "area_location_anchors": 0,
+        "area_precision_upgrades": 0,
+        "spot_location_anchors": 0,
         "spot_source_entities": 32,
         "spot_field_provenance": 162,
         "spot_field_attenuations": 6,
-        "area_location_anchors": 0,
-        "spot_location_anchors": 0,
         "tile_snapshots": 5,
         "tile_snapshot_parts": 5,
         "tile_snapshot_spots": 32
       },
-      "contentSha256": "89ee370cacae6e7442d95e11535a0c9549795097859e74437ebd96354e0a4336"
+      "contentSha256": "b9a143c3f73bb27d06973653722866e5ebba4a6cb7bd4e03bc8f4306c9f40b8d"
     },
-    "sqlSha256": "50a51c2100764f02cd392c81a4ac2a55fd58989880c55eca891017fbb48bfd8e"
+    "sqlSha256": "e0048f64500f7d37b1be945326ba1995844ba38af04bfae6dd908b51e6be83a9"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",
@@ -3663,7 +3664,9 @@
   "tables": {
     "app_attest_challenges": [],
     "app_attest_keys": [],
+    "area_anchor_relocation_deltas": [],
     "area_location_anchors": [],
+    "area_precision_upgrades": [],
     "community_absence_applications": [],
     "community_absence_evidence": [],
     "community_absence_holds": [],

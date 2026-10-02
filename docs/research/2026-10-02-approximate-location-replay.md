@@ -8,7 +8,13 @@ Inputs: the official reverse review (190 discovery targets, `nationwide-discover
 the latest bounded review of each) and 12 older dataset-level reviews not keyed by a target. For the 52 targets with
 explicit smoking-place evidence, a hand annotation (in the script, each citing the committed review text) records how
 the places are located (inside a named area/host, street address only, an exact publisher point, or not established),
-the place count the record states, and whether an anchor exists under anchor policy v1.
+the place count the record states, and whether an anchor exists under anchor policy v1 — a point stated by the **same
+publication (release file)** as the existence evidence.
+
+Precedence (strongest current blocker wins): F prohibition/conflict, B existence insufficient, H review pending/access,
+C rights, E current operation (closure/suspension/abolition evidence not reconciled per place), G address only, D no
+reusable anchor, A. Location eligibility (`adr0017RemovesLocationBlocker`) and current operation are independent axes:
+closure evidence keeps a target out of A whatever its location form (review fix P2-2, 2026-10-02).
 
 ## Result
 
@@ -30,18 +36,22 @@ Primary category (the strongest current blocker) vs. the category if reuse right
 | B-existenceInsufficient | 135 | 135 |
 | C-rightsBlocked | 46 | 0 |
 | D-noReusableAnchor | 0 | 18 |
-| E-currentOperation | 0 | 0 |
+| E-currentOperation | 0 | 5 |
 | F-prohibitionOrConflict | 14 | 14 |
-| G-geocodingNeeded | 0 | 8 |
-| H-other | 7 | 26 |
+| G-geocodingNeeded | 0 | 7 |
+| H-other | 7 | 22 |
 
 Blocker reasons (a target can have several): addressOnly 8, closureEvidencePresent 7, conflictNeedsReconciliation 3, existenceNotExplicit 149, noReusableAnchor 20, prohibition 11, reviewPendingOrAccess 61, rightsUnreviewed 162.
 
+Targets that would stop at E once rights are granted (closure/suspension evidence to reconcile per place):
+city-takamatsu, city-yokohama, ward-katsushika, ward-shibuya, ward-shinagawa.
+
 **Reading.** ADR-0017 is not what keeps the explicit official/operator listings out: unreviewed reuse rights are.
 Once rights are granted, ADR-0017 turns 仙台市 into a publishable `areaApproximate` source (海岸公園（井土地区）: the
-park dataset itself states smoking among the park's amenities at the park's own point) and leaves 18 targets needing
-an anchor (anchor policy v1 accepts only the existence source's own area point; a same-publisher separate dataset
-such as 新潟市's park GIS needs policy v2) and 8 address-only targets needing ADR-0011, which stays Proposed.
+park dataset row itself states smoking among the park's amenities at the park's own point — one record, one release,
+so policy v1's same-publication rule holds) and leaves 18 targets needing an anchor from their own publication (a
+same-publisher separate dataset such as 新潟市's park GIS needs a future anchor policy v2), 7 address-only
+targets needing ADR-0011 (Proposed) and 5 with closure evidence to reconcile first.
 
 ## Named cities
 
@@ -51,19 +61,19 @@ such as 新潟市's park GIS needs policy v2) and 8 address-only targets needing
 | city-niigata | 新潟市 | 新潟県 | 2 | C-rightsBlocked | D-noReusableAnchor |
 | city-kawasaki | 川崎市 | 神奈川県 | 12 | C-rightsBlocked | G-geocodingNeeded |
 | city-chiba | 千葉市 | 千葉県 | 1 | C-rightsBlocked | D-noReusableAnchor |
-| city-yokohama | 横浜市 | 神奈川県 | — | C-rightsBlocked | H-other |
+| city-yokohama | 横浜市 | 神奈川県 | — | C-rightsBlocked | E-currentOperation |
 
 - 仙台市: the reverse review found no smoking inventory, but the east-deep review records the park raw's 海岸公園（井土地区）
-  row with smoking among its amenities — explicit existence inside a park at the park's own point (same dataset, policy
-  v1 anchor). Blocked by unreviewed resource rights.
+  row with smoking among its amenities — explicit existence inside a park at the park's own point (same record, same
+  release: a policy v1 anchor). Blocked by unreviewed resource rights.
 - 新潟市: 新潟駅南口 and 石宮公園 sites are explicit on the city's page; the park/GIS points (CC BY 2.1 JP) are separate
-  datasets → D under policy v1. The former station-front site closed 2024-08-05 and stays excluded.
+  publications → D under policy v1. The former station-front site closed 2024-08-05 and stays excluded.
 - 川崎市: 12 designated sites by address and relative description; station/building coordinates must not substitute →
   G (ADR-0011), not ADR-0017.
-- 千葉市: Kaihin-Makuhari under-track facility; the CC BY 4.0 host-facility CSV is a separate dataset with zero smoking
-  rows → D.
-- 横浜市: new facilities and a closed former station site; the map export failed, so the location form is not
-  established → H after rights.
+- 千葉市: Kaihin-Makuhari under-track facility; the CC BY 4.0 host-facility CSV is a separate publication with zero
+  smoking rows → D.
+- 横浜市: new facilities and a closed former station site; the closure must be reconciled per place → E after rights
+  (the location form is not established either).
 
 ## All location-eligible targets
 
