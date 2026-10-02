@@ -34,7 +34,7 @@ One Issue, one branch, one worktree, one fresh session. Branch name `claude/<top
 | Area | Command |
 | --- | --- |
 | Repository contract (always) | `make contract` |
-| Apple app | `make apple-validate` |
+| Apple app | `make apple-validate` — iOS tests, watchOS unit tests (`MannerPathWatch Watch AppTests`), watchOS app build, iPhone API-origin check (macOS + Xcode only) |
 | Backend / data pipeline | `make api-validate` |
 | Everything | `make validate` |
 
