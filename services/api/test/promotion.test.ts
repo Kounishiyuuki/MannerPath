@@ -51,6 +51,7 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     // the two spots the reconciliation withholds, which the bundle does not carry.
     spot_field_attenuations: 6,
     tile_snapshots: 5,
+    tile_snapshot_parts: 5,
     tile_snapshot_spots: 32,
   });
   assert.equal(manifest.rows.spot_field_provenance > 32, true, "every spot has at least existence provenance");
@@ -106,7 +107,10 @@ test("attribution and publication state travel with the data", async () => {
   // Opaque IDs and tile revisions are preserved verbatim, not regenerated.
   assert.equal(sql.includes(`INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES ('${spot.spot_id}', '${spot.tile_id}');`), true);
   assert.equal(sql.includes(`VALUES ('${tile.tile_id}', 14, `), true);
-  assert.match(sql, new RegExp(`VALUES \\('${tile.tile_id}', 14, \\d+, \\d+, ${tile.revision}, 1, '[0-9a-f]{64}'`));
+  assert.match(sql, new RegExp(`VALUES \\('${tile.tile_id}', 14, \\d+, \\d+, ${tile.revision}, 2, '[0-9a-f]{64}'`));
+  // ADR-0015: the manifest's parts travel with it, byte for byte.
+  const part = db.raw.prepare("SELECT tile_id, content_sha256 FROM tile_snapshot_parts ORDER BY tile_id LIMIT 1").get() as any;
+  assert.equal(sql.includes(`INSERT INTO tile_snapshot_parts (tile_id, part_index, content_sha256, spot_count, body_json) VALUES ('${part.tile_id}', 0, '${part.content_sha256}'`), true);
 });
 
 test("the bundle applies to a freshly migrated database and reproduces the published state", async () => {
@@ -201,6 +205,15 @@ test("a tile whose stored body drifted from its hash fails the export", async ()
   db.raw.prepare("UPDATE tile_snapshots SET body_json = ?, revision = revision + 1 WHERE tile_id = ?")
     .run(JSON.stringify(tampered), tile.tile_id);
   await rejects(db, /body does not match its stored content hash/);
+});
+
+test("a part that drifted from its manifest hash fails the export", async () => {
+  const db = await publishedDb();
+  const part = db.raw.prepare("SELECT tile_id, body_json FROM tile_snapshot_parts ORDER BY tile_id LIMIT 1").get() as any;
+  const tampered = JSON.parse(part.body_json);
+  tampered.spots[0].name = "tampered";
+  db.raw.prepare("UPDATE tile_snapshot_parts SET body_json = ? WHERE tile_id = ? AND part_index = 0").run(JSON.stringify(tampered), part.tile_id);
+  await rejects(db, /part 0 does not match its manifest entry/);
 });
 
 test("published state that outruns the selected release fails the export", async () => {

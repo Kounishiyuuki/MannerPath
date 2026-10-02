@@ -16,7 +16,14 @@ Every response body carries an explicit `schemaVersion` (DTO schema version). `/
 
 ## GET `/tiles/{z}/{x}/{y}`
 
-Returns the complete canonical snapshot for one data tile (ADR-0005). `z` must equal the server's `DATA_TILE_ZOOM`; other values are rejected.
+Returns the complete canonical snapshot for one data tile (ADR-0005) as the schemaVersion 1 body below. `z` must equal the server's `DATA_TILE_ZOOM`; other values are rejected.
+
+Since ADR-0015 a tile is stored as a manifest plus bounded parts (`GET /tiles/{z}/{x}/{y}/manifest` and
+`…/parts/{index}`, below). This path still serves the whole schemaVersion 1 body, byte-identical to before, for every
+tile of **at most one part** — almost every tile. A tile of several parts (a dense block) answers
+`409 tileRequiresParts` instead: a client that predates parts replaces its cached tile with whatever it receives, so
+it must never receive a partial snapshot. Such a client keeps its cached copy of that tile and stays correct
+everywhere else.
 
 Headers:
 
@@ -131,6 +138,67 @@ Responses:
 | Malformed ID (padding, sign, non-decimal, x/y out of range) | `400` | `{"error":"invalidTileId","detail":…}` |
 | `z` ≠ `DATA_TILE_ZOOM` (14) | `400` | `{"error":"unsupportedZoom","detail":…}` |
 | Valid z14 tile with no published snapshot | `404` | `{"error":"tileNotPublished","detail":…}`. The client caches the tile as empty |
+| Tile of more than one part (ADR-0015) | `409` | `{"error":"tileRequiresParts","detail":…}`. Read the manifest and parts instead |
+
+`200` bodies are assembled from the tile's single part; the `ETag` is `"1-<sha256 of the served body>"`, so it is
+unchanged from the pre-ADR-0015 stored body. A database migrated to 0028 but not yet republished serves its stored
+schemaVersion 1 body as before.
+
+## GET `/tiles/{z}/{x}/{y}/manifest` and `/tiles/{z}/{x}/{y}/parts/{index}`
+
+Tile schemaVersion 2 (ADR-0015, Issue #158). Implementation: `services/api/src/app.ts`, `services/api/src/tiles/parts.ts`;
+Zod schemas: `TileManifestV2` and `TilePartBodyV2` in `services/api/src/tiles/dto.ts`.
+
+The manifest is the tile's complete-snapshot index. Every part is listed in order with its spot count and the SHA-256
+of its exact bytes:
+
+```json
+{
+  "schemaVersion": 2,
+  "tile": "14/14552/6451",
+  "revision": 7,
+  "generatedAt": "2026-10-01T03:00:00Z",
+  "partPolicy": "tile-parts.v1",
+  "spotCount": 600,
+  "parts": [
+    { "index": 0, "spotCount": 250, "sha256": "…" },
+    { "index": 1, "spotCount": 250, "sha256": "…" },
+    { "index": 2, "spotCount": 100, "sha256": "…" }
+  ]
+}
+```
+
+A part carries spots in the v1 spot shape and only the sources its spots cite. It has no revision or timestamp, so
+its bytes and hash depend only on its content:
+
+```json
+{ "schemaVersion": 2, "tile": "14/14552/6451", "part": 0, "partCount": 3, "spots": [], "sources": [] }
+```
+
+- Parts hold spots in spot-ID order. A part closes at a `tile-parts.v1` bound: 250 spots, or 64 KiB counted as a SQL
+  literal (so one part row fits one D1 statement). Real spots close parts by bytes at ~80 spots. Every part also stays
+  within 16 KiB gzip; the publication quality gate enforces that bound, not the split. A tile has at most 128 parts.
+- An empty tile has a manifest with `spotCount: 0` and no parts.
+- A client applies a tile only after **every** part's bytes hash to its manifest entry. A mismatch, or a `404` for a
+  listed part, means the tile was republished between requests: discard everything read and retry later. Never
+  apply some of the parts.
+- Revalidate a multi-part tile at its manifest with `If-None-Match`: the manifest `ETag` changes exactly when a part
+  changes.
+
+| Case | Status | Body / headers |
+|---|---|---|
+| Manifest of a published tile | `200` | Manifest; `ETag: "2-<sha256 of manifest>"`; `Cache-Control: public, no-cache` |
+| Part listed by the current manifest | `200` | Part; `ETag: "2-<sha256 of part>"` (the manifest's hash for it) |
+| `If-None-Match` matches | `304` | No body; same `ETag` |
+| Malformed tile ID / wrong zoom | `400` | `invalidTileId` / `unsupportedZoom`, as for the v1 path |
+| Part index not canonical decimal | `400` | `{"error":"invalidTilePart","detail":…}` |
+| No published snapshot | `404` | `tileNotPublished` |
+| Part index not in the current snapshot | `404` | `{"error":"tilePartNotPublished","detail":…}` |
+| Tile stored as schemaVersion 1 (migrated, not yet republished) | `503` | `{"error":"tileRepublishPending","detail":…}`. Use the v1 path |
+
+**Client reading order.** Read a tile at the v1 path. On `409 tileRequiresParts`, read the manifest and then its
+parts, and keep the manifest `ETag`. Revalidate a tile cached with a `"2-…"` ETag at its manifest. This keeps
+single-part tiles at one request, as before.
 
 ## GET `/spots/{id}`
 
@@ -485,7 +553,7 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
   "schemaVersion": 1,
   "apiVersion": "v1",
   "dataTileZoom": 14,
-  "schemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
+  "schemaVersions": { "tile": 2, "spotDetail": 1, "report": 1 },
   "minimumSupportedSchemaVersions": { "tile": 1, "spotDetail": 1, "report": 1 },
   "reports": { "available": true, "attestation": "none", "maxBodyBytes": 4096, "maxSubmissionBytes": 4096, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true, "existingSpotFindings": true }
 }
@@ -498,7 +566,12 @@ On a deployment that requires App Attest, the report entries read
 - `schemaVersion`: the schema version of *this* body.
 - `apiVersion`: the base path this document describes (`v1`).
 - `dataTileZoom`: the only zoom `GET /tiles/{z}/{x}/{y}` accepts. Clients request tiles at this
-  zoom instead of hard-coding `14`.
+  zoom instead of hard-coding `14` (ADR-0015). The iPhone app reads it before every tile sync. It binds its cache to
+  that zoom and evicts a cache built at another zoom in one transaction. If the zoom is outside the range the build
+  supports (14–16), or the tile schema range shares no version with the build, the app fails closed: it syncs
+  nothing and keeps showing cached tiles.
+- `schemaVersions.tile` is `2` since ADR-0015: manifests and parts. `minimumSupportedSchemaVersions.tile` stays `1`,
+  because the v1 path still serves every single-part tile.
 - **Compatibility is per resource, never global.** `tile`, `spotDetail` and `report` version
   independently, so a single server-wide minimum could only be accurate about one of them. For each
   resource the deployment publishes the closed range it supports:

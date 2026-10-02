@@ -347,9 +347,41 @@ struct NearbyLocationModelTests {
         #expect(sent.count == tile.neighborhood3x3().count)
     }
 
+    @Test func serverZoomFromConfigDrivesWhichTilesAreRefreshed() async throws {
+        let store = FakeTileData(serverZoom: 15)
+        let model = NearbyModel(
+            location: FakeLocationProvider(state: .usable(deviceLocation(at: origin))),
+            repository: store,
+            refresher: store
+        )
+        #expect(await waitUntil {
+            if case .refreshed = model.dataState { return true }
+            return false
+        })
+        let z15 = try SlippyTile.forCoordinate(latitude: origin.latitude, longitude: origin.longitude, zoom: 15)
+        #expect(Set(await store.refreshedTileIDs()) == Set(z15.neighborhood3x3().map(\.id)))
+        #expect(await store.readTileIDs().contains(z15.id), "the cache is re-read at the server's zoom")
+    }
+
+    @Test func cachedNamespaceZoomIsReadOfflineAndUnsupportedConfigFailsClosed() async throws {
+        let z16 = try SlippyTile.forCoordinate(latitude: origin.latitude, longitude: origin.longitude, zoom: 16)
+        let store = FakeTileData(cached: [z16.id: [spot("saved", at: origin, tile: z16)]], cachedZoom: 16, prepareFails: true)
+        let model = NearbyModel(
+            location: FakeLocationProvider(state: .usable(deviceLocation(at: origin))),
+            repository: store,
+            refresher: store
+        )
+        #expect(await waitUntil {
+            if case .refreshFailed = model.dataState { return true }
+            return false
+        })
+        #expect(model.results.map(\.spot.id) == ["saved"], "cached spots of the cache's own zoom stay visible")
+        #expect(await store.refreshCount() == 0, "no tile is synced without a supported config")
+    }
+
     private func tile(at coordinate: SpotCoordinate) throws -> SlippyTile {
         try SlippyTile.forCoordinate(
-            latitude: coordinate.latitude, longitude: coordinate.longitude, zoom: SlippyTile.dataZoom
+            latitude: coordinate.latitude, longitude: coordinate.longitude, zoom: SlippyTile.defaultDataZoom
         )
     }
 
@@ -437,6 +469,9 @@ private actor FakeTileData: CachedSpotRepository, NearbyTileRefreshing {
     private let gatedTiles: Set<String>?
     private var reads: [String] = []
     private var refreshes: [String] = []
+    private let serverZoom: Int?
+    private let cachedZoom: Int
+    private let prepareFails: Bool
 
     init(
         cached: [String: [Spot]] = [:],
@@ -444,8 +479,14 @@ private actor FakeTileData: CachedSpotRepository, NearbyTileRefreshing {
         replacements: [String: [Spot]] = [:],
         failing: Set<String> = [],
         gate: RefreshGate? = nil,
-        gatedTiles: Set<String>? = nil
+        gatedTiles: Set<String>? = nil,
+        serverZoom: Int? = nil,
+        cachedZoom: Int = SlippyTile.defaultDataZoom,
+        prepareFails: Bool = false
     ) {
+        self.serverZoom = serverZoom
+        self.cachedZoom = cachedZoom
+        self.prepareFails = prepareFails
         self.cached = cached
         sourcesByTile = sources
         self.replacements = replacements
@@ -461,6 +502,13 @@ private actor FakeTileData: CachedSpotRepository, NearbyTileRefreshing {
 
     func sources(inTile tileID: String) async throws -> [SpotSource] {
         sourcesByTile[tileID] ?? []
+    }
+
+    func dataZoom() async throws -> Int { cachedZoom }
+
+    func prepare() async throws -> Int {
+        if prepareFails { throw TileSyncError.unsupportedConfig }
+        return serverZoom ?? cachedZoom
     }
 
     func refresh(_ tile: SlippyTile) async throws {

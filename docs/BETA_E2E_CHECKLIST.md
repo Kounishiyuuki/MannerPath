@@ -320,9 +320,9 @@ archive inspection still needs the physical S1–S4, P21–P23, widget, and Watc
   empty by design.
 - **L2** Approximate location can be kilometres off; the 3×3 z14 neighbourhood (~6 km across) may
   then miss the user's real surroundings. The app warns that the location is approximate.
-- **L3** The client reads only the report block of `/v1/config`. It uses a fixed data zoom of 14
-  and does not yet read `dataTileZoom` or the tile / spot-detail schema ranges (`OPERATIONS.md`
-  "Apple beta build → API base URL"). Safe while the server stays at zoom 14 and tile schema 1.
+- **L3** The client reads the report block, `dataTileZoom` and the tile schema range of `/v1/config` (ADR-0015).
+  It does not yet read the spot-detail schema range (`OPERATIONS.md` "Apple beta build → API base URL"). Safe while
+  spot detail stays at schema 1.
 - **L4** No offline turn-by-turn routing (ADR-0004): offline users get straight-line distance and bearing.
 - **L5** Remote report acceptance stays closed until the App Attest values are set. Reports now live in
   the durable `REPORTS_DB`, which a blue/green switch never replaces (ADR-0014), so that is no longer a

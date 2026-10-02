@@ -29,6 +29,7 @@ import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 import { type Stores, proposeNewSpot, stores } from "./support/community.ts";
+import { v1TileBody } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -361,7 +362,7 @@ test("simulated approval: a community spot passes the ordinary publication gate,
   assert.equal(detail.spot.evidenceQualityVersion, "evidence-quality.v3");
   assert.equal(detail.spot.lastVerifiedAt, null);
   assert.ok(JSON.stringify(detail).includes("TEST ONLY simulated community attribution"));
-  const tile = one(db, "SELECT body_json FROM tile_snapshots t JOIN tile_snapshot_spots s ON s.tile_id = t.tile_id WHERE s.spot_id = ?", spotId);
+  const tile = { body_json: v1TileBody(db, one(db, "SELECT tile_id FROM tile_snapshot_spots WHERE spot_id = ?", spotId).tile_id)! };
   assert.ok(tile.body_json.includes('"evidenceQuality":"communityVerified"'));
 
   await generateCrossSourceCandidates(db, { now: isoSeconds(APPLY) });

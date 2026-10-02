@@ -20,7 +20,7 @@ import { COVERAGE_TASKS_SCHEMA_VERSION, CoverageTasksBodyV1 } from "./coverage/d
 import { SEED_AREAS_VERSION } from "./coverage/seed-areas.ts";
 import { CoverageProbeOverflow, publishedGapTasks } from "./coverage/published-gaps.ts";
 import { COVERAGE_TASKS_VERSION } from "./coverage/tasks.ts";
-import { type Db, isoSeconds } from "./db.ts";
+import { type Db, isoSeconds, sha256Hex } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { APPLE_APP_ATTEST_ROOT_DER } from "./attest/apple-root.ts";
 import { base64Decode } from "./attest/bytes.ts";
@@ -40,7 +40,8 @@ import { consumeReportBudget } from "./reports/rate-limit.ts";
 import { CURRENT_REPORT_TERMS } from "./reports/terms.ts";
 import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
-import { tileEtag } from "./tiles/dto.ts";
+import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag } from "./tiles/dto.ts";
+import { assembleTileV1 } from "./tiles/parts.ts";
 
 export interface Env {
   /** The canonical DATA_DB (tiles, spots, provenance, publication). Swapped by blue/green cutover. */
@@ -136,21 +137,64 @@ export function createApp(options: AppOptions = {}) {
       headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
     }));
 
-  app.get("/v1/tiles/:z/:x/:y", async (c) => {
-    const params = TileParams.parse(c.req.param());
+  // Tiles (ADR-0005, ADR-0015). Every tile route takes a canonical tile ID at DATA_TILE_ZOOM.
+  function requestedTileId(param: Record<string, string>): string | Response {
+    const params = TileParams.parse(param);
     const tile = parseTileId(`${params.z}/${params.x}/${params.y}`);
     if (tile === null) return problem(400, "invalidTileId", "tile must be {z}/{x}/{y} in canonical decimal form and within range");
     if (tile.z !== DATA_TILE_ZOOM) return problem(400, "unsupportedZoom", `z must be ${DATA_TILE_ZOOM}`);
-
-    const row = await c.env.DB.prepare(
-      "SELECT schema_version, content_sha256, body_json FROM tile_snapshots WHERE tile_id = ?",
-    ).bind(formatTileId(tile)).first<{ schema_version: number; content_sha256: string; body_json: string }>();
-    if (row === null) return problem(404, "tileNotPublished", "no snapshot has been published for this tile");
-
-    const etag = tileEtag(row.schema_version, row.content_sha256);
+    return formatTileId(tile);
+  }
+  type SnapshotRow = { schema_version: number; content_sha256: string; body_json: string };
+  const readSnapshot = (db: Db, tileId: string) => db.prepare(
+    "SELECT schema_version, content_sha256, body_json FROM tile_snapshots WHERE tile_id = ?",
+  ).bind(tileId).first<SnapshotRow>();
+  function tileResponse(req: Request, body: string, etag: string): Response {
     const headers = { ETag: etag, "Cache-Control": CACHE_CONTROL };
-    if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) return new Response(null, { status: 304, headers });
-    return new Response(row.body_json, { status: 200, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
+    if (ifNoneMatchMatches(req.headers.get("If-None-Match") ?? undefined, etag)) return new Response(null, { status: 304, headers });
+    return new Response(body, { status: 200, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
+  }
+
+  // The v1 complete body, for clients that predate parts. A tile of more than one part is refused rather than
+  // truncated: an older client replaces its cached tile with whatever it receives, so a partial body would delete spots.
+  app.get("/v1/tiles/:z/:x/:y", async (c) => {
+    const tileId = requestedTileId(c.req.param());
+    if (typeof tileId !== "string") return tileId;
+    const row = await readSnapshot(c.env.DB, tileId);
+    if (row === null) return problem(404, "tileNotPublished", "no snapshot has been published for this tile");
+    // A database migrated to 0028 but not yet republished still holds v1 bodies; serve them unchanged.
+    if (row.schema_version === TILE_SCHEMA_VERSION_V1) return tileResponse(c.req.raw, row.body_json, tileEtag(row.schema_version, row.content_sha256));
+
+    const manifest = TileManifestV2.parse(JSON.parse(row.body_json));
+    if (manifest.parts.length > 1) {
+      return problem(409, "tileRequiresParts", `this tile has ${manifest.parts.length} parts; read GET /v1/tiles/${tileId}/manifest`);
+    }
+    const { results: parts } = await c.env.DB.prepare(
+      "SELECT body_json FROM tile_snapshot_parts WHERE tile_id = ? ORDER BY part_index",
+    ).bind(tileId).all<{ body_json: string }>();
+    const body = JSON.stringify(assembleTileV1(row.body_json, parts.map((p) => p.body_json)));
+    return tileResponse(c.req.raw, body, tileEtag(TILE_SCHEMA_VERSION_V1, await sha256Hex(body)));
+  });
+
+  app.get("/v1/tiles/:z/:x/:y/manifest", async (c) => {
+    const tileId = requestedTileId(c.req.param());
+    if (typeof tileId !== "string") return tileId;
+    const row = await readSnapshot(c.env.DB, tileId);
+    if (row === null) return problem(404, "tileNotPublished", "no snapshot has been published for this tile");
+    if (row.schema_version !== TILE_SCHEMA_VERSION) return problem(503, "tileRepublishPending", "this tile has not been republished as parts yet");
+    return tileResponse(c.req.raw, row.body_json, tileEtag(row.schema_version, row.content_sha256));
+  });
+
+  app.get("/v1/tiles/:z/:x/:y/parts/:index", async (c) => {
+    const tileId = requestedTileId(c.req.param());
+    if (typeof tileId !== "string") return tileId;
+    const index = c.req.param("index");
+    if (!/^(0|[1-9][0-9]?)$/.test(index)) return problem(400, "invalidTilePart", "part must be a canonical decimal index");
+    const row = await c.env.DB.prepare(
+      "SELECT content_sha256, body_json FROM tile_snapshot_parts WHERE tile_id = ? AND part_index = ?",
+    ).bind(tileId, Number(index)).first<{ content_sha256: string; body_json: string }>();
+    if (row === null) return problem(404, "tilePartNotPublished", "this tile has no such part in its current snapshot");
+    return tileResponse(c.req.raw, row.body_json, tileEtag(TILE_SCHEMA_VERSION, row.content_sha256));
   });
 
   app.get("/v1/spots/:id", async (c) => {

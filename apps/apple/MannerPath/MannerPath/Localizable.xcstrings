@@ -1,6 +1,26 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%lld places": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld件の場所"
+          }
+        }
+      }
+    },
+    "Zooms in to separate them": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拡大して個別に表示します"
+          }
+        }
+      }
+    },
     "About %lld min": {
       "localizations": {
         "ja": {

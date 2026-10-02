@@ -81,7 +81,7 @@ struct NearbyDomainTests {
         #expect(spots.count == 2)
         for spot in spots {
             let tile = try SlippyTile.forCoordinate(
-                latitude: spot.latitude, longitude: spot.longitude, zoom: SlippyTile.dataZoom
+                latitude: spot.latitude, longitude: spot.longitude, zoom: SlippyTile.defaultDataZoom
             )
             #expect(spot.tileId == tile.id)
         }

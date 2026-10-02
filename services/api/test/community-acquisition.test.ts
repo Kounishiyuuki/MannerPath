@@ -39,6 +39,7 @@ import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 import { proposeAbsence, proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -86,7 +87,7 @@ async function reportedSpot(db: SqliteD1, prefix = "R", at = HERE) {
 }
 const published = (db: SqliteD1, spotId: string) => one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n === 1;
 const anyOfficialSpot = (db: SqliteD1) => one(db, "SELECT spot_id FROM tile_snapshot_spots ORDER BY spot_id LIMIT 1").spot_id as string;
-const publishedSpots = (db: SqliteD1) => all(db, "SELECT body_json FROM tile_snapshots").flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+const publishedSpots = (db: SqliteD1) => v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
 const post = (db: SqliteD1, body: unknown) => app.request("/v1/reports", { method: "POST", body: JSON.stringify(body) }, { DB: db, REPORTS_DB: reportsOf(db) } as any);
 
 // =============================================================================================================
@@ -132,7 +133,7 @@ test("an older client's report and tile reads are unchanged", async () => {
   assert.equal(one(reportsOf(db), "SELECT finding FROM reports").finding, null, "a plain `other` report stays a plain other report");
   assert.equal(one(db, "SELECT count(*) AS n FROM reports").n, 0, "and the canonical database holds no report");
   for (const s of publishedSpots(db)) assert.ok(TileBodyV1.shape.spots.element.safeParse(s).success);
-  assert.equal(JSON.parse(one(db, "SELECT body_json FROM tile_snapshots LIMIT 1").body_json).schemaVersion, 1);
+  assert.equal(JSON.parse(v1TileRows(db)[0].body_json).schemaVersion, 1);
 });
 
 test("one-tap still-here needs no free text; an independent confirmation makes a reported spot visitedConfirmed, a repeat does not", async () => {

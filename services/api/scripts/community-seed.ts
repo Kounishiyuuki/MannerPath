@@ -35,15 +35,15 @@ if (fixtures) {
   const { importAllReviewedSources, REVIEWED_FIXTURES, reviewedFixtureBytes } = await import("../test/support/reviewed-fixtures.ts");
   const { publishTiles } = await import("../src/tiles/publish.ts");
   const { communityAcquisitionMetrics } = await import("../src/coverage/metrics.ts");
-  const { TileBodyV1 } = await import("../src/tiles/dto.ts");
+  const { readPublishedTiles } = await import("../src/tiles/parts.ts");
   const measuredAt = options.now ?? "2026-10-01T00:00:00Z";
   if (Number.isNaN(Date.parse(measuredAt))) throw new Error("invalid --now");
   const db = new SqliteD1();
   try {
     await importAllReviewedSources(db, measuredAt);
     await publishTiles(db, { now: measuredAt });
-    const tiles = (await db.prepare("SELECT body_json AS body FROM tile_snapshots ORDER BY tile_id").all<{ body: string }>()).results;
-    const spots = [...new Map(tiles.flatMap((t) => TileBodyV1.parse(JSON.parse(t.body)).spots).map((s) => [s.id, s])).values()];
+    const tiles = await readPublishedTiles(db);
+    const spots = [...new Map(tiles.flatMap((t) => t.spots).map((s) => [s.id, s])).values()];
     const metrics = await communityAcquisitionMetrics(db, spots, { now: measuredAt });
     const hash = createHash("sha256");
     for (const [id, fixture] of Object.entries(REVIEWED_FIXTURES).sort(([a], [b]) => a < b ? -1 : 1)) { hash.update(id); hash.update(reviewedFixtureBytes(fixture.file)); }

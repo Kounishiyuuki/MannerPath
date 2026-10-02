@@ -1,5 +1,5 @@
-// Publish step (ADR-0005/0006): rebuilds the complete snapshot of every tile whose published content
-// changed and writes all of them in one batch. A spot is published only if it is active, unmerged,
+// Publish step (ADR-0005/0006/0015): rebuilds the complete snapshot of every tile whose published content
+// changed and writes all of them in one batch: each tile as a manifest row plus bounded part rows (ADR-0015). A spot is published only if it is active, unmerged,
 // under no publication hold, has no pending relocation application (0015), and its existence evidence comes from an applied release of an
 // approved source; the tile_snapshot_spots trigger re-checks exactly that on insert. Spots from blocked sources are
 // reported as excluded, never published. Two community gates sit on top (migration 0021, Issue #124/#127): a
@@ -7,7 +7,8 @@
 // a spot under an active community publication hold (0021) or absence hold (0024) is not a candidate at all.
 
 import { type Db, sha256Hex } from "../db.ts";
-import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
+import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
+import { manifestBody, splitTileParts } from "./parts.ts";
 
 export interface CandidateRow {
   spot_id: string;
@@ -167,29 +168,36 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
   for (const tileId of [...tiles.keys()].sort()) {
     const t = tiles.get(tileId)!;
     const spots = t.rows.map(spotDto).sort(byId);
-    const sources = [...new Map(t.rows.map((r) => [r.source_id, sourceDto(r)])).values()].sort(byId);
-    const content = JSON.stringify({ spots, sources });
+    const sourcesById = new Map(t.rows.map((r) => [r.source_id, sourceDto(r)]));
+    const parts = await splitTileParts(tileId, spots, sourcesById);
     const prev = previous.get(tileId);
     if (prev) {
+      // Parts are content-addressed, so an equal part list is equal content. A pre-ADR-0015 (schemaVersion 1) body
+      // always republishes, which is how an existing database converts to parts.
       const old = JSON.parse(prev.body_json);
-      if (old.schemaVersion === TILE_SCHEMA_VERSION && JSON.stringify({ spots: old.spots, sources: old.sources }) === content) {
+      if (old.schemaVersion === TILE_SCHEMA_VERSION
+        && JSON.stringify(old.parts.map((p: { sha256: string }) => p.sha256)) === JSON.stringify(parts.map((p) => p.sha256))) {
         report.unchanged.push(tileId);
         continue;
       }
     }
     const revision = (prev?.revision ?? 0) + 1;
-    const body: TileBodyV1 = { schemaVersion: TILE_SCHEMA_VERSION, tile: tileId, revision, generatedAt: opts.now, spots, sources };
-    TileBodyV1.parse(body);
-    const bodyJson = JSON.stringify(body);
-    const contentSha256 = await sha256Hex(bodyJson);
+    const manifestJson = JSON.stringify(manifestBody(tileId, revision, opts.now, parts));
+    const contentSha256 = await sha256Hex(manifestJson);
     clears.push(db.prepare("DELETE FROM tile_snapshot_spots WHERE tile_id = ?").bind(tileId));
+    clears.push(db.prepare("DELETE FROM tile_snapshot_parts WHERE tile_id = ?").bind(tileId));
     upserts.push(db.prepare(
       `INSERT INTO tile_snapshots (tile_id, z, x, y, revision, schema_version, content_sha256, spot_count, body_json, published_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (tile_id) DO UPDATE SET revision = excluded.revision, schema_version = excluded.schema_version,
          content_sha256 = excluded.content_sha256, spot_count = excluded.spot_count, body_json = excluded.body_json,
          published_at = excluded.published_at`,
-    ).bind(tileId, t.z, t.x, t.y, revision, TILE_SCHEMA_VERSION, contentSha256, spots.length, bodyJson, opts.now));
+    ).bind(tileId, t.z, t.x, t.y, revision, TILE_SCHEMA_VERSION, contentSha256, spots.length, manifestJson, opts.now));
+    for (const p of parts) {
+      inserts.push(db.prepare(
+        "INSERT INTO tile_snapshot_parts (tile_id, part_index, content_sha256, spot_count, body_json) VALUES (?, ?, ?, ?, ?)",
+      ).bind(tileId, p.index, p.sha256, p.spotCount, p.bodyJson));
+    }
     for (const s of spots) {
       inserts.push(db.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").bind(s.id, tileId));
     }

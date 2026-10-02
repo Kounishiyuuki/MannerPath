@@ -7,6 +7,7 @@ import { SpotDetailBodyV1 } from "../src/spots/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileBody } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).all(...p) as Row[];
@@ -42,7 +43,7 @@ test("a published spot returns 200 with the v1 detail body, tile-consistent spot
   assert.equal(body.requestedId, id);
   assert.equal(body.mergedInto, null);
 
-  const tileBody = JSON.parse(one(db, "SELECT body_json FROM tile_snapshots WHERE tile_id = ?", body.spot.tile).body_json);
+  const tileBody = JSON.parse(v1TileBody(db, body.spot.tile)!);
   const { tile, ...spotWithoutTile } = body.spot;
   assert.deepEqual(spotWithoutTile, tileBody.spots.find((s: Row) => s.id === id), "detail and tile describe the spot identically");
   // spotType "unknown" is a supported canonical value and is returned normally (ADR-0006).

@@ -36,6 +36,8 @@ import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
 import { proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
+import { v1TileRows } from "./support/tiles.ts";
+import { v1TileBody } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -123,7 +125,7 @@ async function world() {
 
 const published = (db: SqliteD1, spotId: string) => one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n === 1;
 async function tileSpot(db: SqliteD1, spotId: string): Promise<TileSpotV1> {
-  const { body_json } = one(db, "SELECT t.body_json FROM tile_snapshots t JOIN tile_snapshot_spots s ON s.tile_id = t.tile_id WHERE s.spot_id = ?", spotId);
+  const body_json = v1TileBody(db, one(db, "SELECT tile_id FROM tile_snapshot_spots WHERE spot_id = ?", spotId).tile_id)!;
   return TileBodyV1.parse(JSON.parse(body_json)).spots.find((s) => s.id === spotId)!;
 }
 const detail = async (db: SqliteD1, spotId: string) => (await app.request(`/v1/spots/${spotId}`, {}, { DB: db })).json() as Promise<Row>;
@@ -135,7 +137,7 @@ const SMOKING_CAFE: Claim = { spotType: "smokingPermittedVenue", hostType: "rest
 // 1, 20, 30 — official spots stay exactly official
 test("official spots remain official: officialListing, publisherPoint, no confirmation count, review month from the release", async () => {
   const db = await world();
-  const spots = all(db, "SELECT body_json FROM tile_snapshots").flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+  const spots = v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
@@ -514,9 +516,9 @@ test("quality counts tiers separately and never fails because a lower tier exist
   assert.equal(granted.checks.find((c) => c.id === "confidence-never-overstated")!.status, "pass");
 
   // A community spot labelled official is a misrepresentation, and the check fails on it.
-  const tile = one(db, "SELECT tile_id, body_json FROM tile_snapshots WHERE body_json LIKE '%communityReported%'");
-  const forged = tile.body_json.replace('"existence":"communityReported"', '"existence":"official"');
-  db.raw.prepare("UPDATE tile_snapshots SET body_json = ?, revision = revision + 1 WHERE tile_id = ?").run(forged, tile.tile_id);
+  const part = one(db, "SELECT tile_id, part_index, body_json FROM tile_snapshot_parts WHERE body_json LIKE '%communityReported%'");
+  const forged = part.body_json.replace('"existence":"communityReported"', '"existence":"official"');
+  db.raw.prepare("UPDATE tile_snapshot_parts SET body_json = ? WHERE tile_id = ? AND part_index = ?").run(forged, part.tile_id, part.part_index);
   assert.equal((await analyzeCorpus(db, { now: isoSeconds(APPLY) })).checks.find((c) => c.id === "confidence-never-overstated")!.status, "fail");
 });
 

@@ -22,6 +22,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts"
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1, applyMigration, migratedSqlite, withoutTrigger } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => (db.raw.prepare(sql).all(...p) as Row[]).map((r) => ({ ...r }));
@@ -484,7 +485,7 @@ test("publication fence: between application and resolution the moved spot is un
   assert.deepEqual(all(s.db, "SELECT spot_id FROM pending_relocation_applications"), [{ spot_id: spotId }]);
   await publishTiles(s.db, { now: APPLY_AT });
   assert.deepEqual(all(s.db, "SELECT * FROM tile_snapshot_spots WHERE spot_id = ?", spotId), [], "not published at the new coordinate");
-  for (const t of all(s.db, "SELECT body_json FROM tile_snapshots")) {
+  for (const t of v1TileRows(s.db)) {
     assert.ok(!JSON.parse(t.body_json).spots.some((x: Row) => x.id === spotId), "absent from every tile body");
   }
 

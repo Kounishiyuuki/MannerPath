@@ -16,6 +16,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts"
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileBody } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => (db.raw.prepare(sql).all(...p) as Row[]).map((r) => ({ ...r }));
@@ -226,7 +227,7 @@ test("first release -> publish -> disappearance -> removalConfirmed -> executor 
   assert.equal(tile.revision, old.revision + 1);
   assert.notEqual(tile.content_sha256, old.content_sha256, "new content hash, so a new ETag");
   assert.equal(tile.spot_count, old.spot_count - 1);
-  assert.ok(!JSON.parse(tile.body_json).spots.some((s: { id: string }) => s.id === item.spot_id), "gone from the tile body");
+  assert.ok(!JSON.parse(v1TileBody(db, tileId)!).spots.some((s: { id: string }) => s.id === item.spot_id), "gone from the tile body");
   for (const [id, t] of tilesBefore) if (id !== tileId) assert.deepEqual(one(db, "SELECT * FROM tile_snapshots WHERE tile_id = ?", id), t);
 
   assert.deepEqual(all(db, "SELECT spot_id FROM spots ORDER BY spot_id").map((r) => r.spot_id), spotIdsBefore, "spot ids stay, removed one included");

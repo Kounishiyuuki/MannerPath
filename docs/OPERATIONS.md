@@ -548,13 +548,14 @@ The iPhone app already takes the origin as a build setting; no app code changes 
 - It must be an HTTPS origin for device builds (App Transport Security).
 - When absent or invalid, Nearby works from the local tile cache only — a beta build with no origin
   degrades to offline rather than failing.
-- What the current beta build reads from `GET /v1/config`: only the report block. It disables
-  report submission when `reports.available` is `false`, and speaks exactly the report protocol
-  `reports.attestation` names (`"none"` with report schema `1..1`, `"appAttest"` with `2..2`).
-  Tiles are still requested at a fixed zoom of `14`: the client does not yet read `dataTileZoom`
-  or the tile / spot-detail schema ranges (`BETA_E2E_CHECKLIST.md` limitation L3). That is safe
-  while the server stays at `DATA_TILE_ZOOM=14` and tile schema `1`; changing either requires the
-  client to adopt those `/v1/config` fields first (`docs/API.md` "GET /config").
+- What the current beta build reads from `GET /v1/config`: the report block, plus, since ADR-0015, `dataTileZoom`
+  and the tile schema range. It disables report submission when `reports.available` is `false`, and speaks exactly the
+  report protocol `reports.attestation` names (`"none"` with report schema `1..1`, `"appAttest"` with `2..2`). Before
+  every tile sync it reads `dataTileZoom` and binds its tile cache to it. A cache built at another zoom is evicted in
+  one transaction. A zoom outside 14–16, or a tile schema range without 1 or 2, fails closed: no sync, cached tiles
+  stay visible. Builds from before ADR-0015 use a fixed zoom of `14` and the v1 tile path. They keep working while
+  the server stays at `DATA_TILE_ZOOM=14`, and only a multi-part tile (`409 tileRequiresParts`) stays at their
+  cached copy (`docs/API.md`). The spot-detail schema range is still not read (`BETA_E2E_CHECKLIST.md` L3).
 
 ## Report attestation (App Attest, Issue #37)
 

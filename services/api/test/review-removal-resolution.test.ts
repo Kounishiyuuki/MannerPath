@@ -19,6 +19,7 @@ import { TAITO_FIXTURE_RELEASE, TAITO_REGISTRY } from "../src/pipeline/taito.ts"
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => (db.raw.prepare(sql).all(...p) as Row[]).map((r) => ({ ...r }));
@@ -328,7 +329,7 @@ test("E2E: A -> publish -> B disappearance -> removal applied -> B applied/curre
   const published = all(db, "SELECT spot_id FROM tile_snapshot_spots").map((r) => r.spot_id);
   assert.equal(published.length, 33);
   assert.ok(!published.includes(item.spot_id), "removed spot is gone from published tiles");
-  assert.ok(!all(db, "SELECT body_json FROM tile_snapshots").some((t) => t.body_json.includes(`"id":"${item.spot_id}"`)));
+  assert.ok(!v1TileRows(db).some((t) => t.body_json.includes(`"id":"${item.spot_id}"`)));
 
   const bundle = await buildPromotionBundle(db);
   assert.equal(bundle.manifest.releaseId, secondId);
