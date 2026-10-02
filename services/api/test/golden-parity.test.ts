@@ -4,6 +4,8 @@
 // ETags, promotion manifest/SQL, quality report) must equal the committed golden byte-for-byte.
 //
 // Issue #70 intentionally changes only the quality report shape. The other golden sections remain byte-identical.
+// Issue #158 adds publish partCount, part quality fields and the empty tile_snapshot_parts table; tile bodies,
+// hashes and promotion SQL stay byte-identical.
 // Issue #73 added only `tables.source_observations`, and Issue #80 only the empty
 // `tables.review_items` / `tables.review_decisions`, and Issue #84 only the empty
 // `tables.review_removal_applications`, and Issue #86 only the empty

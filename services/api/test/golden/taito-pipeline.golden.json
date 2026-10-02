@@ -47,31 +47,36 @@
         "tileId": "14/14552/6449",
         "revision": 1,
         "spotCount": 1,
-        "contentSha256": "b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9"
+        "contentSha256": "b1c94648fac0bbba7a8c2073510066bd3d7c95e58b985312ec7959cb0d1db9d9",
+        "partCount": 1
       },
       {
         "tileId": "14/14553/6449",
         "revision": 1,
         "spotCount": 11,
-        "contentSha256": "468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02"
+        "contentSha256": "468a13a681d2834130f54beaf811d87900d8b431b9dda3620e9163d56d0d1b02",
+        "partCount": 1
       },
       {
         "tileId": "14/14553/6450",
         "revision": 1,
         "spotCount": 9,
-        "contentSha256": "08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e"
+        "contentSha256": "08d9ac2282d3d560318a98730ba1da9307f9f0130df19116f6cf165e03665d4e",
+        "partCount": 1
       },
       {
         "tileId": "14/14554/6449",
         "revision": 1,
         "spotCount": 9,
-        "contentSha256": "9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d"
+        "contentSha256": "9508af594075e75e0612add1e94fb6455b828b65d93cef9047f9190a6cd8e33d",
+        "partCount": 1
       },
       {
         "tileId": "14/14554/6450",
         "revision": 1,
         "spotCount": 2,
-        "contentSha256": "495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c"
+        "contentSha256": "495529d3e3a7156fe47c998345029e44d87b15670f3c3838a2585f80e0a2797c",
+        "partCount": 1
       }
     ],
     "unchanged": [],
@@ -3543,6 +3548,11 @@
       "maxSpotsPerTile": 11,
       "maxRawBytesPerTile": 8921,
       "maxGzipBytesPerTile": 2231,
+      "partCount": 5,
+      "maxSpotsPerPart": 11,
+      "maxRawBytesPerPart": 8921,
+      "maxGzipBytesPerPart": 2231,
+      "partBodyBudgetBytes": 44000,
       "reevaluateAboveSpots": 250,
       "reevaluateAboveGzipBytes": 16384,
       "withinThresholds": true
@@ -3616,7 +3626,7 @@
       {
         "id": "tile-zoom-thresholds",
         "status": "pass",
-        "detail": "max 11 spots/tile (trigger 250), max 2231 gzip bytes/tile (trigger 16384)"
+        "detail": "max 11 spots/part (budget 250), max 2231 gzip bytes/part (budget 16384), max 8921 raw bytes/part (budget 44000), 5 parts in 5 tiles"
       },
       {
         "id": "freshness-timestamps-valid-and-not-future",
@@ -8221,6 +8231,7 @@
         "last_reviewed_on": null
       }
     ],
+    "tile_snapshot_parts": [],
     "tile_snapshot_spots": [
       {
         "spot_id": "sp_00000000000000000000000001",

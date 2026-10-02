@@ -131,6 +131,23 @@ Responses:
 | Malformed ID (padding, sign, non-decimal, x/y out of range) | `400` | `{"error":"invalidTileId","detail":…}` |
 | `z` ≠ `DATA_TILE_ZOOM` (14) | `400` | `{"error":"unsupportedZoom","detail":…}` |
 | Valid z14 tile with no published snapshot | `404` | `{"error":"tileNotPublished","detail":…}`. The client caches the tile as empty |
+| Published tile is multipart (Issue #158) | `409` | `{"error":"tileRequiresMultipart","detail":…}`. Fail closed: no partial body. Read the manifest instead |
+
+### Bounded tile parts (implemented, Issue #158)
+
+A logical tile whose body exceeds the publication budgets (44,000 body bytes or 250 spots) is split into parts
+(ADR-0005 amendment). Clients that see `tileDelivery` in `/config` use these endpoints for **every** tile:
+
+- `GET /tiles/{z}/{x}/{y}/manifest` → `{ manifestVersion: 1, tile, revision, generatedAt, partSchemaVersion: 1,
+  spotCount, partCount, logicalSha256, parts: [{ index, spotCount, byteLength, sha256 }] }`. A single-part tile gets a
+  synthesized one-part manifest. `ETag: "m1-<sha256 of stored head>"`.
+- `GET /tiles/{z}/{x}/{y}/parts/{index}` → an ordinary schemaVersion 1 tile body with a disjoint, id-ordered subset of
+  the spots and only the sources they cite. Part 0 of a single-part tile is the legacy body. `ETag: "p1-<part sha256>"`.
+  `index` is canonical decimal (`0`–`9999`); an unknown index or a part not at the head revision is `404 tilePartNotFound`.
+
+Both support `If-None-Match` / `304` and share the 400/404 cases above. The client must verify each part against the
+manifest (index, revision, sha256, spotCount, disjoint ascending ids) and the union against `logicalSha256`, and replace
+its cached tile only when all parts verified. On any error it keeps the previous complete tile.
 
 ## GET `/spots/{id}`
 
@@ -535,6 +552,9 @@ On a deployment that requires App Attest, the report entries read
   omits it; read absence as `false` and never send `claim` there (the report schema is strict).
 - `reports.existingSpotFindings`: whether `notFound` / `removed` / `typeChanged` and the existing-spot correction `claim`
   are accepted (ADR-0013). A deployment before migration 0024 omits it; read absence as `false`.
+- `tileDelivery` (Issue #158): `{ manifestVersion, partSchemaVersion, maxPartBodyBytes, maxPartSpots }`. Its presence
+  means tiles must be read through `/manifest` and `/parts/{index}`. Together with `dataTileZoom` it defines the client
+  cache namespace (`z{zoom}-s{schema}`).
 - Clients ignore unknown fields here as everywhere else; a value added later is additive.
 
 Responses:

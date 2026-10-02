@@ -10,12 +10,22 @@ nonisolated struct CachedTile: Sendable {
     let spots: [Spot]
 }
 
+nonisolated enum TileCacheError: Error, Equatable, Sendable {
+    /// The cache namespace changed while a sync was in flight; its result belongs to the old namespace.
+    case namespaceChanged
+}
+
 // Tile ownership keeps replacement and removal local to one partition. Source metadata
 // is stored with the tile, while each resolved spot is an independent cache record.
+//
+// Every cached tile belongs to a namespace (data zoom + tile body schema, Issue #158). Reads see only the active
+// namespace, which is persisted, so an offline launch keeps reading what the last configured server delivered. A
+// replacement is one transaction that swaps a complete logical tile, never a part of one.
 actor GRDBTileStore: CachedSpotRepository {
     private let database: DatabaseQueue
     private var syncSequence: UInt64 = 0
     private var latestAppliedSyncByTile: [String: UInt64] = [:]
+    private(set) var activeNamespace: TileCacheNamespace = .legacy
 
     init(path: String) throws {
         database = try DatabaseQueue(path: path)
@@ -36,16 +46,48 @@ actor GRDBTileStore: CachedSpotRepository {
                 table.primaryKey(["tile_id", "spot_id"])
             }
         }
+        // Issue #158: rows written by earlier builds are the zoom-14, body-schema-1 cache (TileCacheNamespace.legacy),
+        // so an upgrade keeps the offline cache instead of discarding it.
+        migrator.registerMigration("tile-cache-v2-namespace") { db in
+            try db.alter(table: "cached_tiles") { table in
+                table.add(column: "namespace", .text).notNull().defaults(to: TileCacheNamespace.legacy.key)
+            }
+            try db.create(table: "cache_meta") { table in
+                table.column("key", .text).primaryKey()
+                table.column("value", .text).notNull()
+            }
+        }
         try migrator.migrate(database)
+        let stored = try database.read { db in
+            try String.fetchOne(db, sql: "SELECT value FROM cache_meta WHERE key = 'active_namespace'")
+        }
+        activeNamespace = stored.flatMap(TileCacheNamespace.parse(key:)) ?? .legacy
+    }
+
+    func dataZoom() -> Int { activeNamespace.dataZoom }
+
+    /// Makes `namespace` the one reads see, persisting it. Switching never deletes the previous namespace's tiles
+    /// (their ids differ when the zoom differs; a same-zoom row is overwritten only by a complete replacement).
+    func activate(_ namespace: TileCacheNamespace) throws {
+        guard namespace != activeNamespace else { return }
+        try database.write { db in
+            try db.execute(sql: """
+                INSERT INTO cache_meta (key, value) VALUES ('active_namespace', ?)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """, arguments: [namespace.key])
+        }
+        activeNamespace = namespace
+        latestAppliedSyncByTile = [:]
     }
 
     func cachedTile(_ tile: SlippyTile) throws -> CachedTile? {
-        guard tile.z == SlippyTile.dataZoom else { throw TileSyncError.invalidTile }
+        guard tile.z == activeNamespace.dataZoom else { throw TileSyncError.invalidTile }
+        let namespace = activeNamespace.key
         return try database.read { db in
             guard let row = try Row.fetchOne(db, sql: """
                 SELECT revision, generated_at, etag, sources_json
-                FROM cached_tiles WHERE tile_id = ?
-                """, arguments: [tile.id]) else { return nil }
+                FROM cached_tiles WHERE tile_id = ? AND namespace = ?
+                """, arguments: [tile.id, namespace]) else { return nil }
             let sourcesData: Data = row["sources_json"]
             let sources = try JSONDecoder().decode([SpotSource].self, from: sourcesData)
             let spotRows = try Row.fetchAll(db, sql: """
@@ -70,14 +112,14 @@ actor GRDBTileStore: CachedSpotRepository {
     }
 
     func spots(inTile tileID: String) throws -> [Spot] {
-        guard let tile = SlippyTile.parse(id: tileID), tile.z == SlippyTile.dataZoom else {
+        guard let tile = SlippyTile.parse(id: tileID), tile.z == activeNamespace.dataZoom else {
             throw TileSyncError.invalidTile
         }
         return try cachedTile(tile)?.spots ?? []
     }
 
     func sources(inTile tileID: String) throws -> [SpotSource] {
-        guard let tile = SlippyTile.parse(id: tileID), tile.z == SlippyTile.dataZoom else {
+        guard let tile = SlippyTile.parse(id: tileID), tile.z == activeNamespace.dataZoom else {
             throw TileSyncError.invalidTile
         }
         return try cachedTile(tile)?.sources ?? []
@@ -86,9 +128,20 @@ actor GRDBTileStore: CachedSpotRepository {
     // Request order matters only after a response has committed. A newer failed
     // request must not suppress a still-valid older response.
     func beginSync(_ tile: SlippyTile) throws -> UInt64 {
-        guard tile.z == SlippyTile.dataZoom else { throw TileSyncError.invalidTile }
+        guard tile.z == activeNamespace.dataZoom else { throw TileSyncError.invalidTile }
         syncSequence &+= 1
         return syncSequence
+    }
+
+    /// Replaces the complete logical tile only if `namespace` is still active (a config change mid-flight voids it).
+    func replace(_ tile: MappedTile, etag: String, forSync sequence: UInt64, namespace: TileCacheNamespace) throws -> Bool {
+        guard namespace == activeNamespace else { throw TileCacheError.namespaceChanged }
+        return try replace(tile, etag: etag, forSync: sequence)
+    }
+
+    func clear(_ tile: SlippyTile, forSync sequence: UInt64, namespace: TileCacheNamespace) throws -> Bool {
+        guard namespace == activeNamespace else { throw TileCacheError.namespaceChanged }
+        return try clear(tile, forSync: sequence)
     }
 
     func replace(_ tile: MappedTile, etag: String, forSync sequence: UInt64) throws -> Bool {
@@ -110,18 +163,24 @@ actor GRDBTileStore: CachedSpotRepository {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         let spotRows = try tile.spots.map { ($0.id, try encoder.encode($0)) }
+        guard let parsed = SlippyTile.parse(id: tile.tileID), parsed.z == activeNamespace.dataZoom else {
+            throw TileSyncError.invalidTile
+        }
+        let namespace = activeNamespace.key
+        // One transaction: the previous complete tile is visible until the new complete tile commits.
         try database.write { db in
             try db.execute(sql: "DELETE FROM cached_tile_spots WHERE tile_id = ?", arguments: [tile.tileID])
             try db.execute(sql: """
-                INSERT INTO cached_tiles (tile_id, revision, generated_at, etag, sources_json)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO cached_tiles (tile_id, revision, generated_at, etag, sources_json, namespace)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT(tile_id) DO UPDATE SET
                   revision = excluded.revision,
                   generated_at = excluded.generated_at,
                   etag = excluded.etag,
-                  sources_json = excluded.sources_json
+                  sources_json = excluded.sources_json,
+                  namespace = excluded.namespace
                 """, arguments: [tile.tileID, tile.revision,
-                                  tile.generatedAt.timeIntervalSince1970, etag, sourcesData])
+                                  tile.generatedAt.timeIntervalSince1970, etag, sourcesData, namespace])
             for (id, data) in spotRows {
                 try db.execute(sql: """
                     INSERT INTO cached_tile_spots (tile_id, spot_id, spot_json) VALUES (?, ?, ?)
@@ -131,17 +190,18 @@ actor GRDBTileStore: CachedSpotRepository {
     }
 
     func clear(_ tile: SlippyTile) throws {
-        guard tile.z == SlippyTile.dataZoom else { throw TileSyncError.invalidTile }
+        guard tile.z == activeNamespace.dataZoom else { throw TileSyncError.invalidTile }
         let emptySources = try JSONEncoder().encode([SpotSource]())
+        let namespace = activeNamespace.key
         try database.write { db in
             try db.execute(sql: "DELETE FROM cached_tile_spots WHERE tile_id = ?", arguments: [tile.id])
             try db.execute(sql: """
-                INSERT INTO cached_tiles (tile_id, revision, generated_at, etag, sources_json)
-                VALUES (?, NULL, NULL, NULL, ?)
+                INSERT INTO cached_tiles (tile_id, revision, generated_at, etag, sources_json, namespace)
+                VALUES (?, NULL, NULL, NULL, ?, ?)
                 ON CONFLICT(tile_id) DO UPDATE SET
                   revision = NULL, generated_at = NULL, etag = NULL,
-                  sources_json = excluded.sources_json
-                """, arguments: [tile.id, emptySources])
+                  sources_json = excluded.sources_json, namespace = excluded.namespace
+                """, arguments: [tile.id, emptySources, namespace])
         }
     }
 }

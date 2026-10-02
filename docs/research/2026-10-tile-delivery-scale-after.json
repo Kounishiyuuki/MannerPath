@@ -1,0 +1,82 @@
+{
+  "version": "tile-delivery-scale.v1",
+  "profile": "large",
+  "spots": 50000,
+  "official": 513,
+  "publishError": null,
+  "timingsMs": {
+    "officialImport": 1041.26,
+    "communityLoad": 471322.44,
+    "publish": 23532.06,
+    "zoomStats": 868.29
+  },
+  "peakRssBytes": 2477993984,
+  "zooms": [
+    {
+      "zoom": 14,
+      "logicalTiles": 453,
+      "maxSpots": 2223,
+      "p95Spots": 233,
+      "maxRawBytes": 1551737,
+      "p95RawBytes": 163511,
+      "tilesOver250Spots": 19,
+      "tilesOverRaw16KiB": 342,
+      "densest": {
+        "tileId": "14/14358/6506",
+        "spots": 2223,
+        "rawBytes": 1551737,
+        "gzipBytes": 32772
+      }
+    },
+    {
+      "zoom": 15,
+      "logicalTiles": 794,
+      "maxSpots": 2202,
+      "p95Spots": 148,
+      "maxRawBytes": 1536357,
+      "p95RawBytes": 104009,
+      "tilesOver250Spots": 9,
+      "tilesOverRaw16KiB": 460,
+      "densest": {
+        "tileId": "15/28717/13012",
+        "spots": 2202,
+        "rawBytes": 1536357,
+        "gzipBytes": 31993
+      }
+    },
+    {
+      "zoom": 16,
+      "logicalTiles": 1575,
+      "maxSpots": 2066,
+      "p95Spots": 70,
+      "maxRawBytes": 1456114,
+      "p95RawBytes": 49533,
+      "tilesOver250Spots": 8,
+      "tilesOverRaw16KiB": 678,
+      "densest": {
+        "tileId": "16/58199/25804",
+        "spots": 2066,
+        "rawBytes": 1456114,
+        "gzipBytes": 26821
+      }
+    }
+  ],
+  "stored": {
+    "zoom": 14,
+    "logicalTiles": 453,
+    "multipartTiles": 248,
+    "totalParts": 1087,
+    "maxPartsPerTile": 36,
+    "densestLogicalTile": {
+      "tileId": "14/14358/6506",
+      "parts": 36,
+      "spots": 2223
+    },
+    "maxSpotsPerPart": 62,
+    "maxRawBytesPerPart": 43988,
+    "maxGzipBytesPerPart": 3348,
+    "maxStoredRowBodyBytes": 43988,
+    "maxManifestBytes": 4659,
+    "publishedSpots": 50513
+  }
+}

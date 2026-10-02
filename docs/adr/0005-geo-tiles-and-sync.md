@@ -49,3 +49,34 @@ Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchma
 ## Migration compatibility
 
 Tile IDs are a sync partition, not a spatial index strategy. A future PostGIS backend (ADR-0003) keeps the same tile contract.
+
+## Amendment: bounded tile parts (Issue #158)
+
+**Why zoom alone failed.** On the #156 50k corpus the densest z14 tile holds 2,223 spots / 1.55 MB; at z16 the same
+cluster still holds 2,066 spots / 1.46 MB (see `docs/research/2026-10-tile-delivery-scale.md`). Density is a
+point property, so no zoom bounds a row. `dataTileZoom` stays **14** and is advertised by `GET /v1/config`; clients
+must read it rather than compile it in.
+
+**Logical tile vs physical part.** A *logical* tile (`z/x/y`) is still the sync and cache unit and has one
+`tile_snapshots` head. When its body fits the budgets it is stored and served exactly as before (`schema_version` 1,
+single part). Otherwise the head holds a bounded **manifest** (`schema_version` 2) and the spots are partitioned
+deterministically (greedy, in spot-id order, exact serialized size) into **parts** in `tile_snapshot_parts`. Each part
+is an ordinary TileBodyV1 with a disjoint subset of spots plus only the sources they cite. Identical input gives an
+identical manifest and parts. No spot is ever dropped; a spot that cannot fit an empty part fails publication.
+
+**Hard budgets** (enforced by schema CHECK/triggers and by the partitioner): part/head body ≤ 44,000 bytes (a
+worst-case quote-doubled SQL literal is 88,002 bytes, below a 90,000-byte statement), ≤ 250 spots per part, part gzip
+≤ 16,384 bytes (quality gate), ≤ 1,024 parts per tile (client).
+
+**Old clients fail closed.** `GET /v1/tiles/{z}/{x}/{y}` serves only single-part tiles; a multipart tile returns
+`409 tileRequiresMultipart`, never a partial body. A client keeps its previous cached tile on that error.
+
+**Atomic replacement and cache versioning.** The iPhone fetches the manifest and every part, verifies index, revision,
+per-part SHA-256, spot counts, ordering/overlap and the logical SHA-256, and only then replaces the tile in one
+transaction. Any failure keeps the previous complete tile. The cache is namespaced by `z{zoom}-s{schema}`; a zoom or
+schema change from config activates a new namespace instead of mixing tiles. The Watch receives the same flattened
+snapshot and never sees parts.
+
+**Promotion.** v2/v3 promotion refuses a database that contains multipart tiles. Segmented promotion v4 must carry
+`tile_snapshot_parts` as an ordinary table whose rows are already bounded (≤ 44,000-byte body), insert parts after
+their head in the same segment order, and include it in the empty-target guards.

@@ -30,7 +30,8 @@
     "community:status": "node --experimental-strip-types --no-warnings scripts/community-activation.ts status",
     "community:activate": "node --experimental-strip-types --no-warnings scripts/community-activation.ts activate",
     "scale:community": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/scale-community.ts",
-    "campaign:progress": "node --experimental-strip-types --no-warnings scripts/campaign-progress.ts"
+    "campaign:progress": "node --experimental-strip-types --no-warnings scripts/campaign-progress.ts",
+    "scale:tiles": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/scale-tiles.ts"
   },
   "dependencies": {
     "hono": "4.13.8",

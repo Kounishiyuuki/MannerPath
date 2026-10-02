@@ -778,3 +778,8 @@ Every command here is a maintainer's remote action; none is run by automation.
 See [Community scale runbook](COMMUNITY_SCALE_RUNBOOK.md) for deterministic local scale profiles,
 capacity review after the first 1,000, bounded moderation/retention and D1 measurement limitations.
 Simulation does not approve community publication: #124, terms and source rights remain pending.
+
+Tile publication budgets (Issue #158): every stored tile head or part body is ≤ 44,000 bytes and ≤ 250 spots (schema
+enforced); the quality report's `tile-zoom-thresholds` check fails above 16,384 gzip bytes per part. A database with
+multipart tiles cannot be promoted with promotion v2/v3 (refused before any SQL is written); it needs segmented
+promotion v4. Old clients receive `409 tileRequiresMultipart` for multipart tiles and keep their cached tile.

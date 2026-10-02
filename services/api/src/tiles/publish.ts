@@ -8,6 +8,7 @@
 
 import { type Db, sha256Hex } from "../db.ts";
 import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, TileBodyV1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
+import { TILE_MANIFEST_SCHEMA_VERSION, logicalContent, partitionTile } from "./parts.ts";
 
 export interface CandidateRow {
   spot_id: string;
@@ -47,7 +48,8 @@ export interface CandidateRow {
 }
 
 export interface PublishReport {
-  published: { tileId: string; revision: number; spotCount: number; contentSha256: string }[];
+  /** contentSha256 is the head's: the v1 body's for a single-part tile, the manifest's for a multipart one. */
+  published: { tileId: string; revision: number; spotCount: number; contentSha256: string; partCount: number }[];
   unchanged: string[];
   excluded: { sourceId: string; publicationStatus: string; spotCount: number }[];
 }
@@ -155,47 +157,66 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
 
   // Tiles published before must be rebuilt too: they may now be empty (snapshots are complete).
   const { results: existing } = await db.prepare(
-    "SELECT tile_id, z, x, y, revision, body_json FROM tile_snapshots",
-  ).all<{ tile_id: string; z: number; x: number; y: number; revision: number; body_json: string }>();
+    "SELECT tile_id, z, x, y, revision, schema_version, body_json FROM tile_snapshots",
+  ).all<{ tile_id: string; z: number; x: number; y: number; revision: number; schema_version: number; body_json: string }>();
   const previous = new Map(existing.map((e) => [e.tile_id, e]));
   for (const e of existing) if (!tiles.has(e.tile_id)) tiles.set(e.tile_id, { z: e.z, x: e.x, y: e.y, rows: [] });
 
   const report: PublishReport = { published: [], unchanged: [], excluded: [...excluded.values()] };
   const clears = [];
+  const partClears = [];
   const upserts = [];
+  const partInserts: ReturnType<Db["prepare"]>[] = [];
   const inserts = [];
   for (const tileId of [...tiles.keys()].sort()) {
     const t = tiles.get(tileId)!;
     const spots = t.rows.map(spotDto).sort(byId);
     const sources = [...new Map(t.rows.map((r) => [r.source_id, sourceDto(r)])).values()].sort(byId);
-    const content = JSON.stringify({ spots, sources });
+    const content = logicalContent(spots, sources);
     const prev = previous.get(tileId);
     if (prev) {
+      // The logical content decides "unchanged", whatever its physical representation: a single-part head carries
+      // the body itself, a multipart head the hash of the logical content (src/tiles/parts.ts).
       const old = JSON.parse(prev.body_json);
-      if (old.schemaVersion === TILE_SCHEMA_VERSION && JSON.stringify({ spots: old.spots, sources: old.sources }) === content) {
+      const unchanged = prev.schema_version === TILE_SCHEMA_VERSION
+        ? old.schemaVersion === TILE_SCHEMA_VERSION && JSON.stringify({ spots: old.spots, sources: old.sources }) === content
+        : prev.schema_version === TILE_MANIFEST_SCHEMA_VERSION && old.logicalSha256 === await sha256Hex(content);
+      if (unchanged) {
         report.unchanged.push(tileId);
         continue;
       }
     }
     const revision = (prev?.revision ?? 0) + 1;
-    const body: TileBodyV1 = { schemaVersion: TILE_SCHEMA_VERSION, tile: tileId, revision, generatedAt: opts.now, spots, sources };
-    TileBodyV1.parse(body);
-    const bodyJson = JSON.stringify(body);
-    const contentSha256 = await sha256Hex(bodyJson);
+    // Validate the complete logical tile once, then split it into bounded parts (never dropping a spot).
+    TileBodyV1.parse({ schemaVersion: TILE_SCHEMA_VERSION, tile: tileId, revision, generatedAt: opts.now, spots, sources });
+    const partitioned = await partitionTile(tileId, revision, opts.now, spots, sources);
+    const single = partitioned.manifest === null;
+    const bodyJson = single ? partitioned.parts[0].body : partitioned.manifest!.body;
+    const contentSha256 = single ? partitioned.parts[0].sha256 : partitioned.manifest!.sha256;
     clears.push(db.prepare("DELETE FROM tile_snapshot_spots WHERE tile_id = ?").bind(tileId));
+    if (prev?.schema_version === TILE_MANIFEST_SCHEMA_VERSION) {
+      partClears.push(db.prepare("DELETE FROM tile_snapshot_parts WHERE tile_id = ?").bind(tileId));
+    }
+    if (!single) {
+      partitioned.parts.forEach((part, index) => partInserts.push(db.prepare(
+        `INSERT INTO tile_snapshot_parts (tile_id, part_index, revision, schema_version, content_sha256, spot_count, body_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(tileId, index, revision, TILE_SCHEMA_VERSION, part.sha256, part.spotCount, part.body)));
+    }
     upserts.push(db.prepare(
       `INSERT INTO tile_snapshots (tile_id, z, x, y, revision, schema_version, content_sha256, spot_count, body_json, published_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (tile_id) DO UPDATE SET revision = excluded.revision, schema_version = excluded.schema_version,
          content_sha256 = excluded.content_sha256, spot_count = excluded.spot_count, body_json = excluded.body_json,
          published_at = excluded.published_at`,
-    ).bind(tileId, t.z, t.x, t.y, revision, TILE_SCHEMA_VERSION, contentSha256, spots.length, bodyJson, opts.now));
+    ).bind(tileId, t.z, t.x, t.y, revision, single ? TILE_SCHEMA_VERSION : TILE_MANIFEST_SCHEMA_VERSION, contentSha256, spots.length, bodyJson, opts.now));
     for (const s of spots) {
       inserts.push(db.prepare("INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES (?, ?)").bind(s.id, tileId));
     }
-    report.published.push({ tileId, revision, spotCount: spots.length, contentSha256 });
+    report.published.push({ tileId, revision, spotCount: spots.length, contentSha256, partCount: partitioned.parts.length });
   }
-  // Clears first, so a spot that moved between two republished tiles can be re-inserted.
-  if (upserts.length > 0) await db.batch([...clears, ...upserts, ...inserts]);
+  // One atomic batch: clear memberships and the old parts, write heads, then the new parts (each needs its head at the
+  // same revision), then memberships. Clears first, so a spot that moved between two republished tiles re-inserts.
+  if (upserts.length > 0) await db.batch([...clears, ...partClears, ...upserts, ...partInserts, ...inserts]);
   return report;
 }

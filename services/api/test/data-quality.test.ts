@@ -63,7 +63,7 @@ for (const [size, within] of [[1, true], [TILE_REEVALUATION_GZIP_BYTES, true], [
     assert.equal(r.thresholds.withinThresholds, within);
     const gate = r.checks.find((c) => c.id === "tile-zoom-thresholds")!;
     assert.equal(gate.status, within ? "pass" : "fail");
-    assert.match(gate.detail, new RegExp(`max ${size} gzip bytes/tile \\(trigger ${TILE_REEVALUATION_GZIP_BYTES}\\)`));
+    assert.match(gate.detail, new RegExp(`max ${size} gzip bytes/part \\(budget ${TILE_REEVALUATION_GZIP_BYTES}\\)`));
     assert.equal(r.failedChecks, within ? 0 : 1);
   });
 }

@@ -13,7 +13,8 @@ struct ContentView: View {
     @State private var showingQuickConfirm = false
     @AppStorage("nearbyConfirmationTasksHidden") private var nearbyTasksHidden = false
     @State private var path: [String] = []
-    @State private var mapPosition: MapCameraPosition = .automatic
+    @State private var mapRegion: MKCoordinateRegion?
+    @State private var mapMovedByUser = false
     @State private var selectedSnapshot: DetailSelection?
     @State private var filters = WatchPreferenceStore.filters(from: WatchPreferenceStore.load())
     @State private var destinationQuery = ""
@@ -131,13 +132,13 @@ struct ContentView: View {
             if !eligibilityNoticeAccepted { showingEligibility = true }
         }
         .onChange(of: mapCenter, initial: true) { _, _ in
-            if !mapPosition.positionedByUser { recenterMap() }
+            if !mapMovedByUser { recenterMap() }
         }
         .onChange(of: resultCoordinates) { _, _ in
-            if !mapPosition.positionedByUser { recenterMap() }
+            if !mapMovedByUser { recenterMap() }
         }
         .onChange(of: model.destination) { _, _ in
-            if !mapPosition.positionedByUser { recenterMap() }
+            if !mapMovedByUser { recenterMap() }
         }
         .onChange(of: filters) { _, updated in
             model.setFilters(updated)
@@ -279,7 +280,8 @@ struct ContentView: View {
             (minLongitudeOffset + maxLongitudeOffset) / 2
         if centerLongitude > 180 { centerLongitude -= 360 }
         if centerLongitude < -180 { centerLongitude += 360 }
-        mapPosition = .region(MKCoordinateRegion(
+        mapMovedByUser = false
+        mapRegion = MKCoordinateRegion(
             center: CLLocationCoordinate2D(
                 latitude: (minLatitude + maxLatitude) / 2,
                 longitude: centerLongitude
@@ -288,7 +290,7 @@ struct ContentView: View {
                 latitudeDelta: max(0.02, (maxLatitude - minLatitude) * 1.4),
                 longitudeDelta: max(0.02, (maxLongitudeOffset - minLongitudeOffset) * 1.4)
             )
-        ))
+        )
     }
 
     private func openDetail(_ result: NearbyResult) {
@@ -309,6 +311,12 @@ struct ContentView: View {
         }
     }
 
+    private var mapLocationLabel: String {
+        guard let location = model.resultsLocation ?? model.displayLocation else { return String(localized: "Your location") }
+        return location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
+            ? String(localized: "Last location used for distances") : String(localized: "Your location")
+    }
+
     private var mapSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -318,52 +326,25 @@ struct ContentView: View {
                 Button("Recenter", systemImage: "location.north.line") { recenterMap() }
                     .buttonStyle(.bordered)
             }
-            Map(position: $mapPosition) {
-                if let destination = model.destination {
-                    Annotation("Destination: \(destination.name)", coordinate: CLLocationCoordinate2D(
-                        latitude: destination.coordinate.latitude,
-                        longitude: destination.coordinate.longitude
-                    )) {
-                        Image(systemName: "flag.checkered.circle.fill")
-                            .font(.title).foregroundStyle(.blue)
-                    }
-                }
-                if let location = model.resultsLocation ?? model.displayLocation {
-                    Annotation(location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
-                               ? "Last location used for distances" : "Your location", coordinate: CLLocationCoordinate2D(
-                        latitude: location.coordinate.latitude,
-                        longitude: location.coordinate.longitude
-                    )) {
-                        Image(systemName: "location.circle.fill")
-                            .font(.title)
-                            .foregroundStyle(.blue)
-                            .accessibilityLabel(location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
-                                                ? "Last location used for distances" : "Your location")
-                    }
-                }
-                ForEach(model.results, id: \.spot.id) { result in
-                    Annotation(
-                        SpotPresentation.name(result.spot),
-                        coordinate: CLLocationCoordinate2D(
-                            latitude: result.spot.latitude,
-                            longitude: result.spot.longitude
-                        )
-                    ) {
-                        Button {
-                            openDetail(result)
-                        } label: {
-                            SpotPin(existence: result.spot.verification.existenceTier)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Show details for \(SpotPresentation.name(result.spot))")
-                        .accessibilityValue(SpotPresentation.evidence(result.spot))
-                    }
-                }
-            }
+            // MapKit native clustering (Issue #158): a dense area draws cluster markers instead of thousands of
+            // overlapping pins. Presentation only; the list below and every ranking/filter are unchanged.
+            ClusteredSpotMap(
+                items: SpotMapItem.items(
+                    results: model.results,
+                    location: model.resultsLocation ?? model.displayLocation,
+                    locationLabel: mapLocationLabel,
+                    destination: model.destination.map { (name: $0.name, coordinate: $0.coordinate) }
+                ),
+                region: mapRegion,
+                onSelectSpot: { id in
+                    if let result = model.results.first(where: { $0.spot.id == id }) { openDetail(result) }
+                },
+                onUserMovedMap: { mapMovedByUser = true }
+            )
             .frame(height: 240)
+            // No container label: on a UIKit-backed view it would merge the pins into one element and hide them
+            // from VoiceOver. Each pin and cluster carries its own label (ClusteredSpotMap).
             .accessibilityIdentifier("nearbyMap")
-            .accessibilityLabel("Nearby places map")
-            .accessibilityHint("Explore place pins or use the list below for full details")
         }
     }
 
@@ -651,28 +632,5 @@ private struct NearbySpotRow: View {
         parts.append(SpotPresentation.evidence(result.spot))
         parts.append(SpotPresentation.confirmation(result))
         return parts.joined(separator: ", ")
-    }
-}
-
-// A map pin that tells official and community listings apart without alarming colours: a filled pin for
-// official/operator evidence, a filled orange pin for user-confirmed places, an outlined grey pin for a single report.
-private struct SpotPin: View {
-    let existence: ExistenceEvidence
-
-    var body: some View {
-        Image(systemName: existence == .communityReported || existence == .unknown ? "mappin.circle" : "mappin.circle.fill")
-            .font(.title)
-            .foregroundStyle(tint)
-            .background(.white, in: Circle())
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-    }
-
-    private var tint: Color {
-        switch existence {
-        case .official, .operator: .red
-        case .communityVerified: .orange
-        case .communityReported, .unknown: .gray
-        }
     }
 }

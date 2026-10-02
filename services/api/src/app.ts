@@ -20,7 +20,7 @@ import { COVERAGE_TASKS_SCHEMA_VERSION, CoverageTasksBodyV1 } from "./coverage/d
 import { SEED_AREAS_VERSION } from "./coverage/seed-areas.ts";
 import { CoverageProbeOverflow, publishedGapTasks } from "./coverage/published-gaps.ts";
 import { COVERAGE_TASKS_VERSION } from "./coverage/tasks.ts";
-import { type Db, isoSeconds } from "./db.ts";
+import { type Db, isoSeconds, sha256Hex } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { APPLE_APP_ATTEST_ROOT_DER } from "./attest/apple-root.ts";
 import { base64Decode } from "./attest/bytes.ts";
@@ -41,6 +41,7 @@ import { CURRENT_REPORT_TERMS } from "./reports/terms.ts";
 import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
 import { tileEtag } from "./tiles/dto.ts";
+import { TILE_MANIFEST_SCHEMA_VERSION, logicalContent, manifestEtag, partEtag, singlePartManifest } from "./tiles/parts.ts";
 
 export interface Env {
   /** The canonical DATA_DB (tiles, spots, provenance, publication). Swapped by blue/green cutover. */
@@ -136,21 +137,75 @@ export function createApp(options: AppOptions = {}) {
       headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": CACHE_CONTROL },
     }));
 
-  app.get("/v1/tiles/:z/:x/:y", async (c) => {
-    const params = TileParams.parse(c.req.param());
-    const tile = parseTileId(`${params.z}/${params.x}/${params.y}`);
+  // A tile head row: a single-part v1 body (schema_version 1) or a multipart manifest (2) (migration 0028).
+  type Head = { schema_version: number; content_sha256: string; body_json: string; revision: number; spot_count: number };
+  const readHead = async (db: Env["DB"], z: string, x: string, y: string): Promise<Response | { tileId: string; head: Head }> => {
+    const tile = parseTileId(`${z}/${x}/${y}`);
     if (tile === null) return problem(400, "invalidTileId", "tile must be {z}/{x}/{y} in canonical decimal form and within range");
     if (tile.z !== DATA_TILE_ZOOM) return problem(400, "unsupportedZoom", `z must be ${DATA_TILE_ZOOM}`);
+    const tileId = formatTileId(tile);
+    const head = await db.prepare(
+      "SELECT schema_version, content_sha256, body_json, revision, spot_count FROM tile_snapshots WHERE tile_id = ?",
+    ).bind(tileId).first<Head>();
+    if (head === null) return problem(404, "tileNotPublished", "no snapshot has been published for this tile");
+    return { tileId, head };
+  };
+  const conditional = (req: { header(name: string): string | undefined }, etag: string, body: string): Response => {
+    const headers = { ETag: etag, "Cache-Control": CACHE_CONTROL };
+    if (ifNoneMatchMatches(req.header("If-None-Match"), etag)) return new Response(null, { status: 304, headers });
+    return new Response(body, { status: 200, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
+  };
 
-    const row = await c.env.DB.prepare(
-      "SELECT schema_version, content_sha256, body_json FROM tile_snapshots WHERE tile_id = ?",
-    ).bind(formatTileId(tile)).first<{ schema_version: number; content_sha256: string; body_json: string }>();
-    if (row === null) return problem(404, "tileNotPublished", "no snapshot has been published for this tile");
+  app.get("/v1/tiles/:z/:x/:y", async (c) => {
+    const params = TileParams.parse(c.req.param());
+    const read = await readHead(c.env.DB, params.z, params.x, params.y);
+    if (read instanceof Response) return read;
+    const row = read.head;
+    // A multipart tile cannot be served as one v1 body. Fail closed: an old client must never receive a part (an
+    // incomplete logical tile) as if it were the whole tile. It keeps its previous complete cache instead.
+    if (row.schema_version !== 1) {
+      return problem(409, "tileRequiresMultipart", "this tile is published as bounded parts; fetch /manifest and every part");
+    }
 
     const etag = tileEtag(row.schema_version, row.content_sha256);
     const headers = { ETag: etag, "Cache-Control": CACHE_CONTROL };
     if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) return new Response(null, { status: 304, headers });
     return new Response(row.body_json, { status: 200, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
+  });
+
+  // The manifest of the logical tile: every part, in order, with its byte length, spot count and SHA-256, so a
+  // client can fetch, verify and atomically replace the complete tile. A single-part tile has a one-part manifest
+  // whose part is the stored v1 body. ETag: "m1-<head content_sha256>" (deterministic, no hashing at request time).
+  app.get("/v1/tiles/:z/:x/:y/manifest", async (c) => {
+    const params = TileParams.parse(c.req.param());
+    const read = await readHead(c.env.DB, params.z, params.x, params.y);
+    if (read instanceof Response) return read;
+    const { tileId, head } = read;
+    if (head.schema_version === TILE_MANIFEST_SCHEMA_VERSION) return conditional(c.req, manifestEtag(head.content_sha256), head.body_json);
+    const body = JSON.parse(head.body_json) as { generatedAt: string; spots: unknown[]; sources: unknown[] };
+    const logical = await sha256Hex(logicalContent(body.spots as never, body.sources as never));
+    const manifest = singlePartManifest(tileId, head.revision, body.generatedAt, head.body_json, head.content_sha256, head.spot_count, logical);
+    return conditional(c.req, manifestEtag(head.content_sha256), JSON.stringify(manifest));
+  });
+
+  // One physical part: an ordinary schemaVersion-1 tile body holding a disjoint subset of the tile's spots and the
+  // sources they cite. Part 0 of a single-part tile is the stored v1 body. ETag: "p1-<part SHA-256>".
+  app.get("/v1/tiles/:z/:x/:y/parts/:index", async (c) => {
+    const params = TileParams.parse(c.req.param());
+    const index = c.req.param("index");
+    if (!/^(0|[1-9][0-9]{0,3})$/.test(index)) return problem(400, "invalidPartIndex", "part index must be a canonical decimal integer");
+    const read = await readHead(c.env.DB, params.z, params.x, params.y);
+    if (read instanceof Response) return read;
+    const { tileId, head } = read;
+    if (head.schema_version !== TILE_MANIFEST_SCHEMA_VERSION) {
+      if (index !== "0") return problem(404, "tilePartNotFound", "no such part of this tile");
+      return conditional(c.req, partEtag(head.content_sha256), head.body_json);
+    }
+    const part = await c.env.DB.prepare(
+      "SELECT content_sha256, body_json FROM tile_snapshot_parts WHERE tile_id = ? AND part_index = ? AND revision = ?",
+    ).bind(tileId, Number(index), head.revision).first<{ content_sha256: string; body_json: string }>();
+    if (part === null) return problem(404, "tilePartNotFound", "no such part of this tile");
+    return conditional(c.req, partEtag(part.content_sha256), part.body_json);
   });
 
   app.get("/v1/spots/:id", async (c) => {

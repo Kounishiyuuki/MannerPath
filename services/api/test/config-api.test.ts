@@ -1,4 +1,5 @@
 // GET /v1/config — the non-secret compatibility contract (docs/API.md).
+import { TILE_MANIFEST_VERSION, TILE_PART_MAX_SPOTS, TILE_PART_SCHEMA_VERSION, TILE_ROW_MAX_BODY_BYTES } from "../src/tiles/parts.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/app.ts";
@@ -20,6 +21,7 @@ function configBodyFixture(): unknown {
     dataTileZoom: DATA_TILE_ZOOM,
     schemaVersions: { tile: TILE_SCHEMA_VERSION, spotDetail: SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
     minimumSupportedSchemaVersions: { tile: MINIMUM_TILE_SCHEMA_VERSION, spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, report: REPORT_SCHEMA_VERSION },
+    tileDelivery: { manifestVersion: TILE_MANIFEST_VERSION, partSchemaVersion: TILE_PART_SCHEMA_VERSION, maxPartBodyBytes: TILE_ROW_MAX_BODY_BYTES, maxPartSpots: TILE_PART_MAX_SPOTS },
     reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version, newSpotClaims: true, existingSpotFindings: true },
   };
 }
@@ -51,6 +53,7 @@ test("/v1/config serves the canonical constants, and reaches no database", async
       spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
       report: REPORT_SCHEMA_VERSION,
     },
+    tileDelivery: { manifestVersion: TILE_MANIFEST_VERSION, partSchemaVersion: TILE_PART_SCHEMA_VERSION, maxPartBodyBytes: TILE_ROW_MAX_BODY_BYTES, maxPartSpots: TILE_PART_MAX_SPOTS },
     reports: { available: true, attestation: "none", maxBodyBytes: REPORT_BODY_MAX_BYTES, maxSubmissionBytes: REPORT_BODY_MAX_BYTES, noteMaxLength: REPORT_NOTE_MAX, termsVersion: CURRENT_REPORT_TERMS.version, newSpotClaims: true, existingSpotFindings: true },
   });
   // The values are the ones the rest of the API actually enforces, not a second copy of them.

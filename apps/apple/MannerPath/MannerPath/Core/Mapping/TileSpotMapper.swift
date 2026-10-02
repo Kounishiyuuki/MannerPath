@@ -13,7 +13,8 @@ nonisolated enum TileSpotMapper {
         guard body.schemaVersion == 1 else {
             throw TileSyncError.unsupportedSchemaVersion(body.schemaVersion)
         }
-        guard requestedTile.z == SlippyTile.dataZoom,
+        // The requested tile carries the configured data zoom (GET /v1/config dataTileZoom, Issue #158).
+        guard (0...SlippyTile.maximumZoom).contains(requestedTile.z),
               body.tile == requestedTile.id,
               body.revision >= 1,
               let generatedAt = timestamp(body.generatedAt) else {
@@ -37,7 +38,7 @@ nonisolated enum TileSpotMapper {
                   SpotCoordinate(latitude: wire.latitude, longitude: wire.longitude).isValid,
                   (try? SlippyTile.forCoordinate(latitude: wire.latitude,
                                                 longitude: wire.longitude,
-                                                zoom: SlippyTile.dataZoom)) == requestedTile,
+                                                zoom: requestedTile.z)) == requestedTile,
                   !wire.sourceIds.isEmpty,
                   Set(wire.sourceIds).count == wire.sourceIds.count,
                   wire.sourceIds.allSatisfy({ sourceByID[$0] != nil }) else {

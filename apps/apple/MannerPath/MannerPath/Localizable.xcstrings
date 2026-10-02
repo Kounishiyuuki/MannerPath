@@ -4252,6 +4252,16 @@
           }
         }
       }
+    },
+    "%lld nearby places. Zoom in to see each one": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "付近に%lld件の場所。拡大すると個別に表示されます"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

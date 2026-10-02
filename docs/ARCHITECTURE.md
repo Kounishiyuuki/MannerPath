@@ -138,6 +138,14 @@ request so an older 200 or 404 cannot overwrite a newer successful response.
 The live Nearby screen reads that cache before refreshing the current tile neighborhood,
 ranks the Domain spots on device, and presents the same results on its map and list.
 
+Bounded delivery (Issue #158, ADR-0005 amendment): `TileSyncService` reads `dataTileZoom` and `tileDelivery` from
+`GET /v1/config` (TTL 300 s, fail closed). When `tileDelivery` is present, each logical tile is fetched as a manifest
+plus all of its physical parts; `TilePartAssembler` verifies every part and the logical hash before the single
+replace transaction, so a missing/corrupt/wrong-revision part leaves the previous complete tile in place. `GRDBTileStore`
+namespaces cached tiles by `z{zoom}-s{schema}`; a config change activates a new namespace and Nearby reloads at the new
+zoom. The map uses MapKit native annotation clustering (`ClusteredSpotMap`), which is presentation only: one annotation
+per logical result, identical to the list. The Watch snapshot is built from the flattened logical spots.
+
 ## 5. Routing
 
 - **spot discovery/ranking** — MannerPath domain logic;

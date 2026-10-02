@@ -31,6 +31,9 @@ final class NearbyModel {
     private var searchGeneration = 0
     private var routeGeneration = 0
     private var activeTileIDs: Set<String> = []
+    /// The data zoom the repository is keyed by (GET /v1/config dataTileZoom via the store, Issue #158). Starts at the
+    /// compiled-in default and follows the repository; a change reloads the neighbourhood at the new zoom.
+    private var dataZoom = SlippyTile.dataZoom
     private var cachedSpots: [Spot] = []
     private var lastCacheReadFailed = false
     private var lastRouteKey: RouteRequestKey?
@@ -212,7 +215,7 @@ final class NearbyModel {
         guard let currentTile = try? SlippyTile.forCoordinate(
             latitude: deviceLocation.coordinate.latitude,
             longitude: deviceLocation.coordinate.longitude,
-            zoom: SlippyTile.dataZoom
+            zoom: dataZoom
         ) else {
             results = []
             resultsLocation = nil
@@ -232,8 +235,13 @@ final class NearbyModel {
         }
         activeTileIDs = tileIDs
         dataState = .readingCache
+        let zoomUsed = dataZoom
         loadTask = Task { [weak self] in
             guard let self else { return }
+            // The repository's zoom is authoritative (an offline launch reads the persisted namespace).
+            if await adoptRepositoryZoom(repository, usedZoom: zoomUsed, generation: currentGeneration, location: deviceLocation) {
+                return
+            }
             var cachedByTile: [String: [Spot]] = [:]
             var sourcesByTile: [String: [SpotSource]] = [:]
             var cacheReadFailed = false
@@ -270,6 +278,10 @@ final class NearbyModel {
                 return failed
             }
             guard currentGeneration == generation else { return }
+            // A refresh may have activated another zoom from GET /v1/config: load that neighbourhood instead.
+            if await adoptRepositoryZoom(repository, usedZoom: zoomUsed, generation: currentGeneration, location: deviceLocation) {
+                return
+            }
 
             for tile in tiles {
                 do {
@@ -284,6 +296,17 @@ final class NearbyModel {
                     cacheReadFailed: cacheReadFailed, generation: currentGeneration)
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
         }
+    }
+
+    /// Re-reads the repository's zoom; if it differs from the zoom the current load used, adopts it and restarts the
+    /// load for the same location. Returns whether it restarted (the caller then stops).
+    private func adoptRepositoryZoom(_ repository: any CachedSpotRepository, usedZoom: Int, generation currentGeneration: Int,
+                                     location deviceLocation: DeviceLocation) async -> Bool {
+        let zoom = await repository.dataZoom()
+        guard currentGeneration == generation, zoom != usedZoom, (0...SlippyTile.maximumZoom).contains(zoom) else { return false }
+        dataZoom = zoom
+        load(for: deviceLocation)
+        return true
     }
 
     private func publish(

@@ -16,6 +16,7 @@ import { REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SUBMISSION_MAX_BYTES, re
 import { CURRENT_REPORT_TERMS, TERMS_VERSION } from "../reports/terms.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../tiles/dto.ts";
+import { TILE_MANIFEST_VERSION, TILE_PART_MAX_SPOTS, TILE_PART_SCHEMA_VERSION, TILE_ROW_MAX_BODY_BYTES } from "../tiles/parts.ts";
 
 export const CONFIG_SCHEMA_VERSION = 1;
 
@@ -37,6 +38,16 @@ export const ConfigBodyV1 = z.object({
   // The oldest schemaVersion each resource still supports. A client whose decoder for a resource is
   // older than that resource's minimum must ask the user to update — for that resource only.
   minimumSupportedSchemaVersions: schemaVersionsByResource,
+  // Issue #158: how logical tiles are delivered. Every tile has GET .../manifest and .../parts/{i}; a multipart tile
+  // answers the single-body GET with 409 tileRequiresMultipart. A client caches tiles under (dataTileZoom,
+  // manifestVersion, partSchemaVersion) and replaces a logical tile only after fetching and verifying every part.
+  // Additive: a deployment before migration 0028 omits it (read it as "single bodies only").
+  tileDelivery: z.object({
+    manifestVersion: z.number().int().min(1),
+    partSchemaVersion: z.number().int().min(1),
+    maxPartBodyBytes: z.number().int().min(1),
+    maxPartSpots: z.number().int().min(1),
+  }).strict(),
   reports: z.object({
     // Whether POST /v1/reports accepts submissions on this deployment. It is false exactly when the
     // attestation configuration is unrecognised or incomplete, because the endpoint then fails
@@ -91,6 +102,12 @@ export function configBody(env: AttestationBindings, opts: { reportStore?: boole
       tile: MINIMUM_TILE_SCHEMA_VERSION,
       spotDetail: MINIMUM_SPOT_DETAIL_SCHEMA_VERSION,
       report: report.minimum,
+    },
+    tileDelivery: {
+      manifestVersion: TILE_MANIFEST_VERSION,
+      partSchemaVersion: TILE_PART_SCHEMA_VERSION,
+      maxPartBodyBytes: TILE_ROW_MAX_BODY_BYTES,
+      maxPartSpots: TILE_PART_MAX_SPOTS,
     },
     reports: {
       // A deployment without its durable report store (REPORTS_DB, ADR-0014) takes no report at all.

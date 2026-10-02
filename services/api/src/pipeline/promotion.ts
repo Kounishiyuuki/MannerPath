@@ -509,6 +509,17 @@ function tableStatements(rows: Map<string, Row[]>, specs: readonly TableSpec[] =
  * `Db` it is given is a local binding by construction — the scripts that call it open their
  * binding with `remoteBindings: false`.
  */
+/**
+ * promotion-bundle v2/v3 carry tile_snapshots only and their completion counts know nothing of parts (Issue #158):
+ * a multipart tile would arrive as a manifest without parts. Refuse instead; segmented promotion carries parts.
+ */
+async function refuseMultipartTiles(db: Db, version: string): Promise<void> {
+  const multipart = await db.prepare("SELECT count(*) AS n FROM tile_snapshots WHERE schema_version <> 1").first<{ n: number }>();
+  if ((multipart?.n ?? 0) > 0) {
+    fail(`${multipart!.n} tile(s) are published as bounded parts, which ${version} cannot carry; use segmented promotion`);
+  }
+}
+
 export async function buildPromotionBundle(db: Db, options: { releaseId?: number } = {}): Promise<PromotionBundle> {
   const releaseId = options.releaseId ?? await currentReleaseId(db);
   if (!Number.isInteger(releaseId) || releaseId < 1) fail(`release id must be a positive integer, got ${releaseId}`);
@@ -516,6 +527,7 @@ export async function buildPromotionBundle(db: Db, options: { releaseId?: number
   // A v2 bundle carries one source; a cross-source merge spans two and travels only in v3 (Issue #107).
   const merges = await db.prepare("SELECT count(*) AS n FROM cross_source_merges").first<{ n: number }>();
   if ((merges?.n ?? 0) > 0) fail("this database holds applied cross-source merges; export it with promotion-bundle.v3");
+  await refuseMultipartTiles(db, PROMOTION_BUNDLE_VERSION);
 
   const rows = new Map<string, Row[]>();
   for (const spec of TABLES) rows.set(spec.table, await rowsOf(db, spec, releaseId));
@@ -674,6 +686,7 @@ export async function buildMultiSourcePromotionBundle(
   db: Db, options: { releaseIds?: number[]; registry?: PromotionRegistry } = {},
 ): Promise<{ sql: string; manifest: MultiSourcePromotionManifest }> {
   const registry = options.registry ?? REVIEWED_REGISTRY;
+  await refuseMultipartTiles(db, MULTI_SOURCE_PROMOTION_BUNDLE_VERSION);
   const requested = options.releaseIds ?? [...await currentReleaseIds(db), ...await additiveReleaseIds(db, registry)];
   if (requested.length === 0) fail("no release was named");
   for (const id of requested) if (!Number.isInteger(id) || id < 1) fail(`release id must be a positive integer, got ${id}`);

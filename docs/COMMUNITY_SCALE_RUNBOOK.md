@@ -108,6 +108,18 @@ must carry public sanitized tile content only. Never append into published tiles
 never claim that chunked private-report transfer is an acceptable alternative. This design remains follow-up work;
 the current full SQL export is a local artifact, and oversized statements are a deployment blocker.
 
+### Resolution: bounded tile parts (Issue #158)
+
+The zoom evaluation was run on the 50k corpus (`docs/research/2026-10-tile-delivery-scale.md`): z15/z16 reduce the
+densest tile by only 1–7%, so z14 is kept and dense tiles are split into deterministic parts (≤ 44,000 body bytes,
+≤ 250 spots, ≤ 16 KiB gzip each). The 50k publish now succeeds: 453 logical tiles, 1,087 parts, max 36 parts/tile,
+max part 43,988 raw / 3,348 gzip bytes. Measure with `npm run scale:tiles -- --profile large` (local only).
+
+v2/v3 promotion refuses multipart tiles. Segmented promotion v4 (#157) must: carry `tile_snapshot_parts` as an
+ordinary bounded table (each row's body ≤ 44,000 bytes, so a quote-doubled literal stays ≤ 88,002 bytes); insert a
+multipart head before its parts and never publish a schema-2 head without all parts at its revision; include the table
+in the empty-target guards; and renumber its migration after `0028_bounded_tile_parts`.
+
 ## Bounded review commands
 
 ```sh

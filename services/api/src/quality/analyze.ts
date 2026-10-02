@@ -16,7 +16,9 @@ import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
 import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
-import { TileBodyV1 } from "../tiles/dto.ts";
+import { TILE_SCHEMA_VERSION } from "../tiles/dto.ts";
+import { readLogicalTiles } from "../tiles/logical.ts";
+import { TILE_ROW_MAX_BODY_BYTES } from "../tiles/parts.ts";
 import { communityAcquisitionMetrics } from "../coverage/metrics.ts";
 import { FRESHNESS_POLICY_VERSION, spotFreshness } from "./freshness.ts";
 
@@ -112,18 +114,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     record_count: number; parser_version: string; status: string; is_current: number;
   }>();
 
-  const { results: tiles } = await db.prepare(
-    "SELECT tile_id, z, x, y, revision, schema_version, spot_count, body_json, published_at FROM tile_snapshots ORDER BY tile_id",
-  ).all<{
-    tile_id: string; z: number; x: number; y: number; revision: number; schema_version: number;
-    spot_count: number; body_json: string; published_at: string;
-  }>();
+  // Logical tiles (Issue #158): a multipart tile is verified against its manifest and assembled; body_json below is
+  // the logical body, exactly what a single-part tile stores. Physical bodies are checked against the row budget.
+  const logical = await readLogicalTiles(db);
+  const tiles = logical.map((t) => ({ tile_id: t.tileId, z: t.z, x: t.x, y: t.y, revision: t.revision, schema_version: t.schemaVersion,
+    spot_count: t.spotCount, body_json: t.schemaVersion === TILE_SCHEMA_VERSION ? t.physical[0] : JSON.stringify(t.body), published_at: t.publishedAt }));
+  const physical = logical.flatMap((t) => t.physical.map((body) => ({ tileId: t.tileId, body,
+    spots: (JSON.parse(body) as { spots: unknown[] }).spots.length })));
 
   // The published corpus is what the tiles contain — the client's view, not the spots table.
-  const published = tiles.flatMap((t) => {
-    const body = TileBodyV1.parse(JSON.parse(t.body_json));
-    return body.spots.map((s) => ({ tile: t.tile_id, spot: s }));
-  });
+  const published = logical.flatMap((t) => t.body.spots.map((s) => ({ tile: t.tileId, spot: s })));
   const spots = published.map((p) => p.spot);
 
   const latitudes = spots.map((s) => s.latitude).sort((a, b) => a - b);
@@ -241,11 +241,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   check("tiles-at-data-tile-zoom", wrongZoom.length === 0,
     wrongZoom.length === 0 ? `every tile is z${DATA_TILE_ZOOM}` : `tiles at another zoom: ${wrongZoom.map((t) => t.tile_id).join(", ")}`);
 
-  const maxSpots = bySpots[0]?.spotCount ?? 0;
-  const maxGzip = opts.gzip ? Math.max(0, ...tileSizes.map((t) => t.gzipBytes ?? 0)) : null;
-  const withinThresholds = maxSpots <= TILE_REEVALUATION_SPOTS && (maxGzip === null || maxGzip <= TILE_REEVALUATION_GZIP_BYTES);
+  // Hard budgets per STORED PART (Issue #158): a dense logical tile is split into bounded parts, so these hold
+  // whatever the density. A single-part tile's one part is the tile itself.
+  const maxSpots = Math.max(0, ...physical.map((p) => p.spots));
+  const maxGzip = opts.gzip ? Math.max(0, ...physical.map((p) => opts.gzip!(p.body))) : null;
+  const maxRaw = Math.max(0, ...physical.map((p) => new TextEncoder().encode(p.body).length));
+  const withinThresholds = maxSpots <= TILE_REEVALUATION_SPOTS && maxRaw <= TILE_ROW_MAX_BODY_BYTES
+    && (maxGzip === null || maxGzip <= TILE_REEVALUATION_GZIP_BYTES);
   check("tile-zoom-thresholds", withinThresholds,
-    `max ${maxSpots} spots/tile (trigger ${TILE_REEVALUATION_SPOTS}), max ${maxGzip ?? "n/a"} gzip bytes/tile (trigger ${TILE_REEVALUATION_GZIP_BYTES})`);
+    `max ${maxSpots} spots/part (budget ${TILE_REEVALUATION_SPOTS}), max ${maxGzip ?? "n/a"} gzip bytes/part (budget ${TILE_REEVALUATION_GZIP_BYTES}), `
+      + `max ${maxRaw} raw bytes/part (budget ${TILE_ROW_MAX_BODY_BYTES}), ${physical.length} parts in ${tiles.length} tiles`);
 
   const spotsTableCount = await db.prepare(
     "SELECT count(*) AS n FROM spots WHERE lifecycle = 'active' AND merged_into IS NULL",
@@ -443,9 +448,16 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     },
     thresholds: {
       dataTileZoom: DATA_TILE_ZOOM,
-      maxSpotsPerTile: maxSpots,
+      // Logical tiles (what a client assembles) ...
+      maxSpotsPerTile: bySpots[0]?.spotCount ?? 0,
       maxRawBytesPerTile: byBytes[0]?.rawBytes ?? 0,
-      maxGzipBytesPerTile: maxGzip,
+      maxGzipBytesPerTile: opts.gzip ? Math.max(0, ...tileSizes.map((t) => t.gzipBytes ?? 0)) : null,
+      // ... and the bounded stored parts (Issue #158), which carry the hard budgets.
+      partCount: physical.length,
+      maxSpotsPerPart: maxSpots,
+      maxRawBytesPerPart: maxRaw,
+      maxGzipBytesPerPart: maxGzip,
+      partBodyBudgetBytes: TILE_ROW_MAX_BODY_BYTES,
       reevaluateAboveSpots: TILE_REEVALUATION_SPOTS,
       reevaluateAboveGzipBytes: TILE_REEVALUATION_GZIP_BYTES,
       withinThresholds,
