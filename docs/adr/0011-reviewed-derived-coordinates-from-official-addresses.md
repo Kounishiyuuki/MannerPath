@@ -6,6 +6,9 @@ Status: **Proposed** (2026-10-01). The technical foundation (migration 0022,
 the existing rule stands — *an address-only source is not geocoded into a published spot*. Nothing in
 `docs/DATA_POLICY.md`, `docs/SOURCES.md`, the resolver, promotion or tiles changes with this ADR.
 
+ADR-0016 (Accepted 2026-10-02) separately allows a reviewed area/host anchor as an explicitly approximate pin
+(`areaApproximate`); it does not approve geocoding, and the address-only rule above still stands.
+
 This ADR is an engineering decision, not legal advice. Where terms do not settle a question it says **未確定**.
 
 ## Context

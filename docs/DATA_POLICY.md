@@ -104,7 +104,7 @@ Confidence is never one opaque score. ADR-0012 publishes separate axes, each a n
 | Axis | Values | Computed |
 | --- | --- | --- |
 | Existence evidence | `official`, `operator`, `communityVerified`, `communityReported` | server (`verification.existence`) |
-| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `unknown` | server (`verification.locationPrecision`) |
+| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `unknown`; `areaApproximate` specified by ADR-0016, not yet implemented | server (`verification.locationPrecision`) |
 | Freshness | `fresh` ≤ 365 d, `aging` ≤ 730 d, `stale`, `unknown` (`freshness.v1`) | client, from `lastVerifiedAt` or `lastReviewedMonth` |
 | Access | `accessType` + `accessDetail` | server |
 | Spot type | `spotType` + `spotSubtype`, and `hostType` | server |
@@ -122,6 +122,19 @@ Rules:
 - Stale is a label, not a removal. Only removal/negative evidence through the review and hold workflow withdraws a spot.
 - One negative report never deletes a spot; `prohibited` needs two independent submitters for a reviewed hold.
 - The UI exposes the tier on every list row, map pin and detail page in plain words, without alarming styling.
+
+## Coordinates and approximate locations (ADR-0016)
+
+Existence and location are separate. Missing exact smoking-point coordinates alone never reject a spot that has
+accepted smoking-place existence evidence: with a reviewed, reusable area/host anchor (park, station, facility,
+airport, commercial building) it may publish as `areaApproximate` and must be shown as approximate. The anchor needs
+provenance and reuse review. Host existence alone is never evidence. Never used as a canonical coordinate: Google/Apple
+POI points, OSM values (ADR-0010), coordinates read from map screenshots, arbitrary manual pins, or a centroid/host
+centre labelled as an exact or publisher point. Address geocoding remains governed by ADR-0011 (Proposed).
+
+Third-party services (Google Maps, Apple Maps, OSM, blogs, other apps, social posts) may be used as discovery leads
+even where their terms forbid reuse; discovery is not provenance and nothing is copied from them into the canonical
+database. A bounded search that finds nothing is recorded in `docs/research/`; "not found" does not mean "does not exist".
 
 ## Nationwide source onboarding
 

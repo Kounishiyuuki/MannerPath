@@ -44,6 +44,18 @@ that you must read explicitly (see below); reusable workflows live in
 - Never infer tobacco type support when unknown.
 - Never hide data freshness or confidence when the information is uncertain.
 
+## Cross-cutting invariants
+
+Read `docs/SPECIFICATION.md` when product or data behavior changes. In short:
+
+- Coverage-first: show as many evidenced places as possible, each with its honest confidence; low confidence is not hidden.
+- Existence evidence and location precision are separate; a missing exact coordinate alone never rejects an evidenced spot.
+- An approximate location (`areaApproximate`, ADR-0016) is always visibly approximate, never presented as exact.
+- Host existence (store, café, park, station, facility) never proves a smoking place exists or that smoking is permitted.
+- Unknown is not false.
+- Third-party discovery (Google, Apple Maps, OSM, blogs, apps, social posts) is not canonical provenance.
+- Never weaken source, privacy, licensing or confidence rules silently; change the canonical doc/ADR in the same change.
+
 ## Mapping and data rules
 
 - **MapKit is presentation/search/routing infrastructure, not the canonical smoking-spot database.**
