@@ -66,7 +66,7 @@ test("50k regression at DATA_TILE_ZOOM: every part within tile-parts.v1 includin
   assert.ok(maxParts <= TILE_PART_POLICY.maxParts);
   // The raw corpus's densest tile; #156 published 2,223 of these once its held scenarios were withheld.
   assert.equal(Math.max(...[...byTile.values()].map((t) => t.length)), 2224, "the #156 densest tile is reproduced");
-  assert.equal(maxParts, 9, "2,223 spots need 9 parts of at most 250");
+  assert.ok(maxParts > 9, `2,224 spots of ~690 bytes need more than 9 parts under the byte bound (${maxParts})`);
   assert.ok(parts > byTile.size);
   // Same corpus, same parts: re-split one dense tile and compare hashes.
   const [denseId, dense] = [...byTile].sort((a, b) => b[1].length - a[1].length)[0];

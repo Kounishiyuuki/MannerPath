@@ -7,23 +7,27 @@ import { type Db, type DbStatement, sha256Hex } from "../db.ts";
 import { TILE_SCHEMA_VERSION, TileBodyV1, TileManifestV2, TilePartBodyV2, TILE_SCHEMA_VERSION_V1, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
 
 /**
- * Versioned part budget (ADR-0015 records the measurements). maxSpots keeps the ADR-0005 per-response spot budget:
- * 250 real spots are ~200 KB raw / ~11 KB gzip. maxRawBytes bounds every stored part row and response body, 8x
- * under the D1 2 MB row limit, so that the spot count binds for ordinary DTOs and bytes bind only for outliers
- * (it is restated by migration 0028). maxGzipBytes keeps the ADR-0005 transfer budget and is enforced by the
- * publication quality gate, not by the split: gzip output differs between zlib builds, and the split must not.
- * maxParts bounds the manifest row and the requests one tile can cost a client.
+ * Versioned part budget (ADR-0015 records the measurements).
+ * - maxRawBytes bounds every part row and part response, counted as a SQL string literal stores it (each `'` twice):
+ *   a part row must fit one D1 SQL statement (100,000 bytes) when a database is bootstrapped from SQL, with room for
+ *   the INSERT around it. It is restated by migration 0028. Real reviewed spots are ~790 bytes, so it binds first at
+ *   ~80 spots.
+ * - maxSpots keeps ADR-0005's per-response spot budget as an upper bound.
+ * - maxGzipBytes keeps ADR-0005's transfer budget. The publication quality gate enforces it, not the split: gzip
+ *   output differs between zlib builds, and the split must not.
+ * - maxParts bounds the manifest row and the requests one tile can cost a client: 128 parts is ~10,000 real spots in
+ *   one tile, above the 100k-spot stress profile's densest block.
  */
 export const TILE_PART_POLICY = {
   version: "tile-parts.v1",
   maxSpots: 250,
-  maxRawBytes: 256 * 1024,
+  maxRawBytes: 64 * 1024,
   maxGzipBytes: 16 * 1024,
-  maxParts: 64,
+  maxParts: 128,
 } as const;
 
 /** A manifest lists at most maxParts entries of ~90 bytes; this bounds its D1 row with room to spare. */
-export const TILE_MANIFEST_MAX_BYTES = 8 * 1024;
+export const TILE_MANIFEST_MAX_BYTES = 16 * 1024;
 
 export class TileBudgetExceeded extends Error {}
 
@@ -36,7 +40,9 @@ export interface BuiltPart {
 }
 
 const encoder = new TextEncoder();
-const bytes = (s: string) => encoder.encode(s).length;
+/** UTF-8 bytes as a SQL string literal stores them: a single quote is written twice. */
+export const sqlLiteralBytes = (s: string) => encoder.encode(s).length + (s.match(/'/g)?.length ?? 0);
+const bytes = sqlLiteralBytes;
 
 /**
  * Splits a tile's spots (sorted by id) into parts in that order: a part closes when one more spot would exceed
@@ -48,8 +54,8 @@ export async function splitTileParts(tileId: string, spots: readonly TileSpotV1[
   const groups: TileSpotV1[][] = [];
   let current: TileSpotV1[] = [];
   let currentSources = new Set<string>();
-  // Exact size of the part body being built, excluding the two part numbers (at most 2 digits each with maxParts 64,
-  // counted with a 0 placeholder, so 2 bytes are reserved): envelope with empty spots + each spot + separators.
+  // Exact size of the part body being built, excluding the two part numbers (counted with a 0 placeholder; the digits
+  // maxParts needs are reserved): envelope with empty spots + each spot + separators.
   let envelope = 0, spotBytes = 0;
   const envelopeFor = (ids: Set<string>) => bytes(JSON.stringify(partBody(tileId, 0, 0, [], [...ids].sort().map((id) => sourcesById.get(id)!))));
   const reserve = String(policy.maxParts - 1).length * 2 - 2;

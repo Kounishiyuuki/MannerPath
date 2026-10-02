@@ -23,15 +23,20 @@ block of ~110 m fits inside one tile at any useful zoom.
   | Bound | Value | Enforced by |
   | --- | --- | --- |
   | spots per part | 250 | the split; `CHECK` in migration 0028 |
-  | raw JSON bytes per part (one D1 row, one response) | 256 KiB | the split; `CHECK` in migration 0028 |
+  | bytes per part as a SQL literal (each `'` counted twice): one D1 row, one response | 64 KiB | the split; `CHECK` in migration 0028 |
   | gzip bytes per part | 16 KiB | publication quality gate `tile-part-budget` (fails, never warns) |
-  | parts per tile | 64 | the split (publication throws); `CHECK` on `part_index` |
-  | manifest bytes | 8 KiB | publication quality gate |
+  | parts per tile | 128 | the split (publication throws); `CHECK` on `part_index` |
+  | manifest bytes | 16 KiB | publication quality gate |
 
-  250 spots and 16 KiB keep ADR-0005's per-response budget, now applied to the unit that is actually stored and
-  sent. 250 real reviewed spots measure ~200 KB raw / ~11 KB gzip. The raw bound therefore lets the spot count bind for
-  ordinary DTOs and catches only outliers, 8× under the D1 row limit. Gzip is a gate, not a split input: gzip output
-  differs between zlib builds, and the split must be deterministic.
+  The byte bound comes from D1's maximum SQL statement length (100,000 bytes). When a database is bootstrapped from
+  SQL, one part row has to fit one INSERT statement, quoting included. D1's 2 MB row limit is not the binding
+  constraint. Reviewed spots are ~790 bytes, so bytes close a real part at ~80 spots, at ~5–6 KB gzip.
+
+  250 spots stays as the upper bound from ADR-0005. 250 real spots (~200 KB) could never be one statement, so the
+  per-part count is effectively ~80–95. 16 KiB keeps ADR-0005's transfer budget per response.
+
+  Gzip is a gate, not a split input: gzip output differs between zlib builds, and the split must be deterministic.
+  128 parts allow ~10,000 real spots in one tile, above the densest block of the 100k stress profile.
 - A part body (schemaVersion 2) carries its spots and only the sources they cite, and **no revision or timestamp**.
   Its bytes and SHA-256 depend only on its content.
 - The tile's `tile_snapshots` row holds the **manifest** (schemaVersion 2): revision, `generatedAt`, the policy
@@ -42,7 +47,7 @@ block of ~110 m fits inside one tile at any useful zoom.
 - A tile is republished only when its part hash list changes. A pre-0028 schemaVersion 1 row always republishes once,
   which is how an existing database converts.
 - Publication fails rather than emitting an oversized tile. A single spot larger than a part, or a tile needing more
-  than 64 parts (16,000 spots in one z14 tile), throws `TileBudgetExceeded`. That is the signal to change the
+  than 128 parts, throws `TileBudgetExceeded`. That is the signal to change the
   policy or the zoom with a new version, never to raise a number in place.
 
 ### API (`docs/API.md`)
@@ -73,27 +78,33 @@ block of ~110 m fits inside one tile at any useful zoom.
 
 ### Zoom
 
-`DATA_TILE_ZOOM` stays 14. With parts, every measured zoom is within budget. z15 would halve the dense-neighbourhood
-p95 (27 → 18 requests, 76 → 42 KB gzip). Against that, z15:
+`DATA_TILE_ZOOM` stays 14. With parts, every measured zoom is within budget. z15 would lower the dense-neighbourhood
+p95 from 55 to 33 requests (99 → 54 KB gzip) and the mean from 20.2 to 16.5. That gain comes from two synthetic
+2,000-spot blocks sharing one z14 neighbourhood. Against that, z15:
 
 - shrinks the 3×3 neighbourhood to a quarter of the area, which hurts sparse areas (ADR-0005's reason for z14);
 - adds 75% more tiles;
 - requires rebuilding the `z = 14` CHECK-constrained canonical tables;
 - invalidates every client cache.
 
-Because the client is now config-driven over 14–16, revisiting this needs no app release.
+Because the client is now config-driven over 14–16, revisiting this needs no app release. Revisit when a real corpus
+puts the dense-neighbourhood p95 above ~33 requests.
 
 ### Promotion interface
 
 Promotion carries `tile_snapshot_parts` as rows and validates each manifest against its parts by hash before the
-assembled tile is checked as before. The tile output guarantees each row is bounded (≤ 256 KiB part, ≤ 8 KiB manifest)
-and that bytes and hashes are deterministic: equal content gives byte-identical parts. Promotion-specific chunking of
-the bundle is out of scope here.
+assembled tile is checked as before. The tile output guarantees:
+
+- every row is bounded so that its INSERT fits one D1 statement: a part is ≤ 64 KiB as a SQL literal, a manifest
+  ≤ 16 KiB;
+- bytes and hashes are deterministic: equal content gives byte-identical parts.
+
+Promotion-specific chunking of the bundle is out of scope here.
 
 ## Consequences
 
-- One tile can cost a client up to 1 + 64 requests; measured, the densest z14 tile costs 10, and the median
-  neighbourhood still costs 9.
+- One tile can cost a client up to 1 + 128 requests. Measured: the densest z14 tile costs 25 (24 parts fetched
+  concurrently), the median neighbourhood 12, and a neighbourhood holding two synthetic 2,000-spot blocks 55.
 - Every whole-tile reader goes through `readPublishedTiles` / `assembleTileV1`. `tile_snapshots.body_json` is no
   longer a tile body.
 - Changing `tile-parts.v1` changes part bytes, which republishes every tile with a new revision. Treat it like a

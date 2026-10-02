@@ -17,7 +17,7 @@ import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
 import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
 import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileBodyV1 } from "../tiles/dto.ts";
-import { assembleTileV1, TILE_MANIFEST_MAX_BYTES, TILE_PART_POLICY } from "../tiles/parts.ts";
+import { assembleTileV1, sqlLiteralBytes, TILE_MANIFEST_MAX_BYTES, TILE_PART_POLICY } from "../tiles/parts.ts";
 import { communityAcquisitionMetrics } from "../coverage/metrics.ts";
 import { FRESHNESS_POLICY_VERSION, spotFreshness } from "./freshness.ts";
 
@@ -158,7 +158,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     tileId: p.tile_id,
     part: p.part_index,
     spotCount: p.spot_count,
-    rawBytes: new TextEncoder().encode(p.body_json).length,
+    rawBytes: sqlLiteralBytes(p.body_json),
     gzipBytes: opts.gzip ? opts.gzip(p.body_json) : null,
   }));
   const bySpots = [...tileSizes].sort((a, b) => b.spotCount - a.spotCount || (a.tileId < b.tileId ? -1 : 1));

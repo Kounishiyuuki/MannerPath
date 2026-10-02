@@ -175,8 +175,9 @@ its bytes and hash depend only on its content:
 { "schemaVersion": 2, "tile": "14/14552/6451", "part": 0, "partCount": 3, "spots": [], "sources": [] }
 ```
 
-- Parts hold spots in spot-ID order. A part closes at `tile-parts.v1` bounds: 250 spots or 256 KiB of JSON. Every part
-  also stays within 16 KiB gzip; that bound is enforced by the publication quality gate, not by the split.
+- Parts hold spots in spot-ID order. A part closes at a `tile-parts.v1` bound: 250 spots, or 64 KiB counted as a SQL
+  literal (so one part row fits one D1 statement). Real spots close parts by bytes at ~80 spots. Every part also stays
+  within 16 KiB gzip; the publication quality gate enforces that bound, not the split. A tile has at most 128 parts.
 - An empty tile has a manifest with `spotCount: 0` and no parts.
 - A client applies a tile only after **every** part's bytes hash to its manifest entry. A mismatch, or a `404` for a
   listed part, means the tile was republished between requests: discard everything read and retry later. Never

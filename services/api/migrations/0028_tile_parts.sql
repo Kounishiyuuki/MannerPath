@@ -9,10 +9,12 @@
 
 CREATE TABLE tile_snapshot_parts (
   tile_id              TEXT NOT NULL REFERENCES tile_snapshots (tile_id),
-  part_index           INTEGER NOT NULL CHECK (part_index BETWEEN 0 AND 63),
+  part_index           INTEGER NOT NULL CHECK (part_index BETWEEN 0 AND 127),
   content_sha256       TEXT NOT NULL CHECK (length(content_sha256) = 64 AND content_sha256 NOT GLOB '*[^0-9a-f]*'),
   spot_count           INTEGER NOT NULL CHECK (spot_count BETWEEN 1 AND 250),
-  body_json            TEXT NOT NULL CHECK (json_valid(body_json) AND length(CAST(body_json AS BLOB)) <= 262144),
+  -- Bytes as a SQL literal (each quote twice), so one row always fits one D1 statement (100,000 bytes).
+  body_json            TEXT NOT NULL CHECK (json_valid(body_json)
+                         AND length(CAST(body_json AS BLOB)) + length(body_json) - length(replace(body_json, '''', '')) <= 65536),
   PRIMARY KEY (tile_id, part_index)
 );
 

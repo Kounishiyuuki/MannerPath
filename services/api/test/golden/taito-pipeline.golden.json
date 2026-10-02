@@ -3564,9 +3564,9 @@
       "partPolicy": {
         "version": "tile-parts.v1",
         "maxSpots": 250,
-        "maxRawBytes": 262144,
+        "maxRawBytes": 65536,
         "maxGzipBytes": 16384,
-        "maxParts": 64
+        "maxParts": 128
       },
       "maxPartSpots": 11,
       "maxPartRawBytes": 8894,
@@ -3643,7 +3643,7 @@
       {
         "id": "tile-part-budget",
         "status": "pass",
-        "detail": "tile-parts.v1: max 11 spots / 8894 raw / 2224 gzip bytes per part (limits 250 / 262144 / 16384), max 1 parts/tile (limit 64), max manifest 249 bytes (limit 8192)"
+        "detail": "tile-parts.v1: max 11 spots / 8894 raw / 2224 gzip bytes per part (limits 250 / 65536 / 16384), max 1 parts/tile (limit 128), max manifest 249 bytes (limit 16384)"
       },
       {
         "id": "freshness-timestamps-valid-and-not-future",

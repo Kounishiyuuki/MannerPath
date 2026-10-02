@@ -22,7 +22,7 @@
   "gate": {
     "id": "tile-part-budget",
     "status": "pass",
-    "detail": "tile-parts.v1: max 250 spots / 178143 raw / 6575 gzip bytes per part (limits 250 / 262144 / 16384), max 9 parts/tile (limit 64), max manifest 1084 bytes (limit 8192)"
+    "detail": "tile-parts.v1: max 93 spots / 65532 raw / 3975 gzip bytes per part (limits 250 / 65536 / 16384), max 24 parts/tile (limit 128), max manifest 2634 bytes (limit 16384)"
   },
   "zooms": [
     {
@@ -101,86 +101,86 @@
         "policy": {
           "version": "tile-parts.v1",
           "maxSpots": 250,
-          "maxRawBytes": 262144,
+          "maxRawBytes": 65536,
           "maxGzipBytes": 16384,
-          "maxParts": 64
+          "maxParts": 128
         },
-        "parts": 513,
+        "parts": 810,
         "partsPerTile": {
-          "max": 9,
-          "p95": 1,
+          "max": 24,
+          "p95": 3,
           "p50": 1,
-          "mean": 1.13
+          "mean": 1.79
         },
         "partSpots": {
-          "max": 250,
-          "p95": 250,
-          "p50": 85,
-          "mean": 98.47
+          "max": 93,
+          "p95": 93,
+          "p50": 72,
+          "mean": 62.36
         },
         "partRawBytes": {
-          "max": 178143,
-          "p95": 176447,
-          "p50": 59996,
-          "mean": 69557.67
+          "max": 65532,
+          "p95": 65479,
+          "p50": 50910,
+          "mean": 44181.43
         },
         "partGzipBytes": {
-          "max": 6575,
-          "p95": 4738,
-          "p50": 2289,
-          "mean": 2511.68
+          "max": 3975,
+          "p95": 2483,
+          "p50": 1976,
+          "mean": 1871.9
         },
         "manifestBytes": {
-          "max": 1084,
-          "p95": 251,
+          "max": 2634,
+          "p95": 456,
           "p50": 249,
-          "mean": 263.27
+          "mean": 330.41
         },
-        "d1RowMaxBytes": 178143,
+        "d1RowMaxBytes": 65532,
         "partsOverBudget": 0,
         "viewport": {
           "requests": {
-            "max": 27,
-            "p95": 27,
-            "p50": 9,
-            "mean": 12.57
+            "max": 58,
+            "p95": 55,
+            "p50": 12,
+            "mean": 20.19
           },
           "gzipBytes": {
-            "max": 84719,
-            "p95": 76056,
-            "p50": 7709,
-            "mean": 21071.25
+            "max": 109055,
+            "p95": 98693,
+            "p50": 9034,
+            "mean": 26609.06
           },
           "probes": [
             {
               "id": "tokyo-shinjuku",
-              "requests": 27,
-              "gzipBytes": 78224
+              "requests": 55,
+              "gzipBytes": 100861
             },
             {
               "id": "tokyo-shibuya",
-              "requests": 27,
-              "gzipBytes": 76056
+              "requests": 55,
+              "gzipBytes": 98693
             },
             {
               "id": "tokyo-ikebukuro",
-              "requests": 18,
-              "gzipBytes": 40075
+              "requests": 34,
+              "gzipBytes": 52344
             },
             {
               "id": "osaka-umeda",
-              "requests": 18,
-              "gzipBytes": 57036
+              "requests": 35,
+              "gzipBytes": 70059
             },
             {
               "id": "fukuoka-hakata",
-              "requests": 18,
-              "gzipBytes": 42646
+              "requests": 37,
+              "gzipBytes": 56697
             },
             {
               "id": "hokkaido-susukino",
-              "requests": 19,
-              "gzipBytes": 44365
+              "requests": 35,
+              "gzipBytes": 57223
             }
           ]
         }
@@ -191,56 +191,56 @@
           "spots": 2223,
           "rawBytes": 1551737,
           "gzipBytes": 33040,
-          "parts": 9
+          "parts": 24
         },
         {
           "tileId": "14/14127/6567",
           "spots": 2139,
           "rawBytes": 1507195,
           "gzipBytes": 28991,
-          "parts": 9
+          "parts": 24
         },
         {
           "tileId": "14/14549/6451",
           "spots": 2100,
           "rawBytes": 1479916,
           "gzipBytes": 27955,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "14/14549/6452",
           "spots": 2094,
           "rawBytes": 1457952,
           "gzipBytes": 28158,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "14/14550/6448",
           "spots": 2089,
           "rawBytes": 1472204,
           "gzipBytes": 27593,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "14/14624/6016",
           "spots": 1389,
           "rawBytes": 967766,
           "gzipBytes": 20108,
-          "parts": 6
+          "parts": 15
         },
         {
           "tileId": "14/14625/6016",
           "spots": 958,
           "rawBytes": 667613,
           "gzipBytes": 13736,
-          "parts": 4
+          "parts": 11
         },
         {
           "tileId": "14/14373/6507",
           "spots": 447,
           "rawBytes": 313379,
           "gzipBytes": 8655,
-          "parts": 2
+          "parts": 5
         }
       ]
     },
@@ -320,86 +320,86 @@
         "policy": {
           "version": "tile-parts.v1",
           "maxSpots": 250,
-          "maxRawBytes": 262144,
+          "maxRawBytes": 65536,
           "maxGzipBytes": 16384,
-          "maxParts": 64
+          "maxParts": 128
         },
-        "parts": 844,
+        "parts": 1083,
         "partsPerTile": {
-          "max": 9,
-          "p95": 1,
+          "max": 24,
+          "p95": 2,
           "p50": 1,
-          "mean": 1.06
+          "mean": 1.36
         },
         "partSpots": {
-          "max": 250,
-          "p95": 250,
-          "p50": 35,
-          "mean": 59.85
+          "max": 93,
+          "p95": 93,
+          "p50": 41,
+          "mean": 46.64
         },
         "partRawBytes": {
-          "max": 177454,
-          "p95": 174380,
-          "p50": 24888,
-          "mean": 42500.69
+          "max": 65529,
+          "p95": 65470,
+          "p50": 29046,
+          "mean": 33198.94
         },
         "partGzipBytes": {
-          "max": 6089,
-          "p95": 4050,
-          "p50": 1504,
-          "mean": 1848.23
+          "max": 3791,
+          "p95": 2456,
+          "p50": 1545,
+          "mean": 1605.89
         },
         "manifestBytes": {
-          "max": 1085,
-          "p95": 252,
+          "max": 2635,
+          "p95": 354,
           "p50": 250,
-          "mean": 256.32
+          "mean": 287.14
         },
-        "d1RowMaxBytes": 177454,
+        "d1RowMaxBytes": 65529,
         "partsOverBudget": 0,
         "viewport": {
           "requests": {
-            "max": 19,
-            "p95": 18,
-            "p50": 9,
-            "mean": 11.43
+            "max": 35,
+            "p95": 33,
+            "p50": 11,
+            "mean": 16.48
           },
           "gzipBytes": {
-            "max": 51917,
-            "p95": 41921,
-            "p50": 6966,
-            "mean": 15680.27
+            "max": 63940,
+            "p95": 54045,
+            "p50": 8148,
+            "mean": 19335.28
           },
           "probes": [
             {
               "id": "tokyo-shinjuku",
-              "requests": 18,
-              "gzipBytes": 38129
+              "requests": 32,
+              "gzipBytes": 49565
             },
             {
               "id": "tokyo-shibuya",
-              "requests": 18,
-              "gzipBytes": 39193
+              "requests": 32,
+              "gzipBytes": 50435
             },
             {
               "id": "tokyo-ikebukuro",
-              "requests": 18,
-              "gzipBytes": 37953
+              "requests": 32,
+              "gzipBytes": 49140
             },
             {
               "id": "osaka-umeda",
-              "requests": 18,
-              "gzipBytes": 51250
+              "requests": 33,
+              "gzipBytes": 63273
             },
             {
               "id": "fukuoka-hakata",
-              "requests": 18,
-              "gzipBytes": 37856
+              "requests": 32,
+              "gzipBytes": 49158
             },
             {
               "id": "hokkaido-susukino",
-              "requests": 19,
-              "gzipBytes": 41921
+              "requests": 35,
+              "gzipBytes": 54045
             }
           ]
         }
@@ -410,56 +410,56 @@
           "spots": 2202,
           "rawBytes": 1536357,
           "gzipBytes": 32262,
-          "parts": 9
+          "parts": 24
         },
         {
           "tileId": "15/29099/12902",
           "spots": 2100,
           "rawBytes": 1479917,
           "gzipBytes": 27955,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "15/29099/12905",
           "spots": 2094,
           "rawBytes": 1457953,
           "gzipBytes": 28160,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "15/29100/12897",
           "spots": 2083,
           "rawBytes": 1467999,
           "gzipBytes": 27418,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "15/28255/13134",
           "spots": 2081,
           "rawBytes": 1466578,
           "gzipBytes": 27322,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "15/29249/12033",
           "spots": 1295,
           "rawBytes": 901947,
           "gzipBytes": 17915,
-          "parts": 6
+          "parts": 14
         },
         {
           "tileId": "15/29250/12033",
           "spots": 879,
           "rawBytes": 612321,
           "gzipBytes": 12154,
-          "parts": 4
+          "parts": 10
         },
         {
           "tileId": "15/29105/12904",
           "spots": 285,
           "rawBytes": 201256,
           "gzipBytes": 6737,
-          "parts": 2
+          "parts": 4
         }
       ]
     },
@@ -539,86 +539,86 @@
         "policy": {
           "version": "tile-parts.v1",
           "maxSpots": 250,
-          "maxRawBytes": 262144,
+          "maxRawBytes": 65536,
           "maxGzipBytes": 16384,
-          "maxParts": 64
+          "maxParts": 128
         },
-        "parts": 1623,
+        "parts": 1715,
         "partsPerTile": {
-          "max": 9,
+          "max": 23,
           "p95": 1,
           "p50": 1,
-          "mean": 1.03
+          "mean": 1.09
         },
         "partSpots": {
-          "max": 250,
-          "p95": 76,
-          "p50": 18,
-          "mean": 31.12
+          "max": 93,
+          "p95": 92,
+          "p50": 20,
+          "mean": 29.45
         },
         "partRawBytes": {
-          "max": 176533,
-          "p95": 53670,
-          "p50": 13644,
-          "mean": 22312.98
+          "max": 65491,
+          "p95": 65096,
+          "p50": 14386,
+          "mean": 21134.9
         },
         "partGzipBytes": {
-          "max": 5070,
-          "p95": 2196,
-          "p50": 1224,
-          "mean": 1313.61
+          "max": 3504,
+          "p95": 2034,
+          "p50": 1250,
+          "mean": 1283.72
         },
         "manifestBytes": {
-          "max": 1084,
+          "max": 2531,
           "p95": 250,
           "p50": 250,
-          "mean": 252.47
+          "mean": 258.49
         },
-        "d1RowMaxBytes": 176533,
+        "d1RowMaxBytes": 65491,
         "partsOverBudget": 0,
         "viewport": {
           "requests": {
-            "max": 19,
-            "p95": 19,
+            "max": 33,
+            "p95": 33,
             "p50": 9,
-            "mean": 11.42
+            "mean": 15.13
           },
           "gzipBytes": {
-            "max": 46991,
-            "p95": 42110,
-            "p50": 7031,
-            "mean": 15747.8
+            "max": 57918,
+            "p95": 53384,
+            "p50": 7033,
+            "mean": 18692.12
           },
           "probes": [
             {
               "id": "tokyo-shinjuku",
-              "requests": 18,
-              "gzipBytes": 39742
+              "requests": 32,
+              "gzipBytes": 51105
             },
             {
               "id": "tokyo-shibuya",
-              "requests": 18,
-              "gzipBytes": 39797
+              "requests": 32,
+              "gzipBytes": 50962
             },
             {
               "id": "tokyo-ikebukuro",
-              "requests": 18,
-              "gzipBytes": 40203
+              "requests": 32,
+              "gzipBytes": 51461
             },
             {
               "id": "osaka-umeda",
-              "requests": 19,
-              "gzipBytes": 45690
+              "requests": 33,
+              "gzipBytes": 56617
             },
             {
               "id": "fukuoka-hakata",
-              "requests": 18,
-              "gzipBytes": 38885
+              "requests": 32,
+              "gzipBytes": 50133
             },
             {
               "id": "hokkaido-susukino",
-              "requests": 19,
-              "gzipBytes": 42110
+              "requests": 33,
+              "gzipBytes": 53384
             }
           ]
         }
@@ -629,56 +629,56 @@
           "spots": 2066,
           "rawBytes": 1456114,
           "gzipBytes": 26938,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "16/58201/25795",
           "spots": 2059,
           "rawBytes": 1451171,
           "gzipBytes": 26628,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "16/58199/25811",
           "spots": 2056,
           "rawBytes": 1431249,
           "gzipBytes": 26833,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "16/56510/26269",
           "spots": 2052,
           "rawBytes": 1446274,
           "gzipBytes": 26392,
-          "parts": 9
+          "parts": 23
         },
         {
           "tileId": "16/57435/26025",
           "spots": 1307,
           "rawBytes": 911466,
           "gzipBytes": 18411,
-          "parts": 6
+          "parts": 15
         },
         {
           "tileId": "16/58499/24066",
           "spots": 1287,
           "rawBytes": 896358,
           "gzipBytes": 17673,
-          "parts": 6
+          "parts": 14
         },
         {
           "tileId": "16/58500/24066",
           "spots": 870,
           "rawBytes": 606027,
           "gzipBytes": 11950,
-          "parts": 4
+          "parts": 10
         },
         {
           "tileId": "16/57434/26025",
           "spots": 812,
           "rawBytes": 566995,
           "gzipBytes": 12299,
-          "parts": 4
+          "parts": 9
         }
       ]
     }

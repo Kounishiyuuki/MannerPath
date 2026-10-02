@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { app } from "../src/app.ts";
 import { sha256Hex } from "../src/db.ts";
 import { TileManifestV2, TilePartBodyV2, type TileSourceV1, type TileSpotV1, tileEtag } from "../src/tiles/dto.ts";
-import { assembleTileV1, manifestBody, readPublishedTiles, splitTileParts, TILE_PART_POLICY, TileBudgetExceeded } from "../src/tiles/parts.ts";
+import { assembleTileV1, manifestBody, readPublishedTiles, splitTileParts, sqlLiteralBytes, TILE_PART_POLICY, TileBudgetExceeded } from "../src/tiles/parts.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { syntheticId } from "../scripts/scale/corpus.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
@@ -45,7 +45,7 @@ test("a dense tile splits into parts within every bound, in id order, each citin
   for (const [i, p] of parts.entries()) {
     assert.ok(p.spotCount <= TILE_PART_POLICY.maxSpots, `part ${i}: ${p.spotCount} spots`);
     assert.ok(p.rawBytes <= TILE_PART_POLICY.maxRawBytes, `part ${i}: ${p.rawBytes} bytes`);
-    assert.equal(p.rawBytes, new TextEncoder().encode(p.bodyJson).length);
+    assert.equal(p.rawBytes, sqlLiteralBytes(p.bodyJson));
     assert.equal(p.sha256, sha256(p.bodyJson));
     assert.deepEqual([bodies[i].part, bodies[i].partCount], [i, parts.length]);
     assert.deepEqual(bodies[i].sources.map((s) => s.id), [...new Set(bodies[i].spots.flatMap((s) => s.sourceIds))].sort());
@@ -54,7 +54,7 @@ test("a dense tile splits into parts within every bound, in id order, each citin
   // A part closes only when the next spot would breach a bound: greedy packing, so no part but the last is small.
   for (const [i, p] of parts.slice(0, -1).entries()) {
     const next = JSON.stringify(spots[parts.slice(0, i + 1).reduce((n, q) => n + q.spotCount, 0)]);
-    assert.ok(p.spotCount === TILE_PART_POLICY.maxSpots || p.rawBytes + next.length + 1 > TILE_PART_POLICY.maxRawBytes - 2, `part ${i} closed early`);
+    assert.ok(p.spotCount === TILE_PART_POLICY.maxSpots || p.rawBytes + sqlLiteralBytes(next) + 1 > TILE_PART_POLICY.maxRawBytes - 4, `part ${i} closed early`);
   }
 });
 
@@ -70,15 +70,24 @@ test("the split is deterministic: equal content gives byte-identical parts and h
   assert.notEqual(c.at(-1)!.sha256, a.at(-1)!.sha256);
 });
 
-test("short spots close parts at 250; an empty tile has no parts; too many parts or an oversized spot fails publication", async () => {
+test("bytes close parts first for real-size spots; the spot cap binds below it; an empty tile has no parts; too many parts or an oversized spot fails publication", async () => {
+  // ~690-byte spots: 64 KiB holds ~95, so bytes, not the 250-spot cap, close each part.
   const short = await splitTileParts("14/1/1", denseSpots(600, 1), sourcesById);
-  assert.deepEqual(short.map((p) => p.spotCount), [250, 250, 100]);
+  assert.ok(short.length > 3 && short.every((p) => p.spotCount < TILE_PART_POLICY.maxSpots), short.map((p) => p.spotCount).join(" "));
+  assert.deepEqual((await splitTileParts("14/1/1", denseSpots(600, 1), sourcesById, { ...TILE_PART_POLICY, maxSpots: 50 })).map((p) => p.spotCount),
+    Array(12).fill(50));
+  // A single quote costs two bytes as a SQL literal, so a quote-heavy part closes sooner.
+  const quoted = denseSpots(600, 1).map((s) => ({ ...s, name: "'".repeat(300) }));
+  const quotedParts = await splitTileParts("14/1/1", quoted, sourcesById);
+  assert.ok(quotedParts.every((p) => sqlLiteralBytes(p.bodyJson) <= TILE_PART_POLICY.maxRawBytes));
+  const plain = denseSpots(600, 1).map((s) => ({ ...s, name: "x".repeat(300) }));
+  assert.ok(quotedParts.length > (await splitTileParts("14/1/1", plain, sourcesById)).length);
   // Outlier text: bytes, not the spot count, close these parts.
   const long = await splitTileParts("14/1/1", denseSpots(600, 2000), sourcesById);
   assert.ok(long.every((p) => p.spotCount < TILE_PART_POLICY.maxSpots && p.rawBytes <= TILE_PART_POLICY.maxRawBytes), long.map((p) => `${p.spotCount}/${p.rawBytes}`).join(" "));
   assert.deepEqual(await splitTileParts("14/1/1", [], sourcesById), []);
   await assert.rejects(splitTileParts("14/1/1", denseSpots(600, 1), sourcesById, { ...TILE_PART_POLICY, maxParts: 2 }),
-    (e) => e instanceof TileBudgetExceeded && /600 spots need 3 parts, above tile-parts.v1 maxParts 2/.test(e.message));
+    (e) => e instanceof TileBudgetExceeded && /600 spots need \d+ parts, above tile-parts.v1 maxParts 2/.test(e.message));
   const huge = denseSpots(1, 1);
   huge[0] = { ...huge[0], name: "x".repeat(TILE_PART_POLICY.maxRawBytes) };
   await assert.rejects(splitTileParts("14/1/1", huge, sourcesById), TileBudgetExceeded);
@@ -109,6 +118,8 @@ test("migration 0028 restates the part policy: an oversized or overfull part row
   assert.equal(new TextEncoder().encode(fits).length, TILE_PART_POLICY.maxRawBytes);
   insert(1, 1, fits);
   assert.throws(() => insert(2, 1, JSON.stringify({ pad: "x".repeat(TILE_PART_POLICY.maxRawBytes - 9) })), /CHECK constraint failed/);
+  // Counted as a SQL literal: the same length with one quote no longer fits.
+  assert.throws(() => insert(2, 1, JSON.stringify({ pad: "'" + "x".repeat(TILE_PART_POLICY.maxRawBytes - 11) })), /CHECK constraint failed/);
   assert.throws(() => insert(3, TILE_PART_POLICY.maxSpots + 1, "{}"), /CHECK constraint failed/);
   assert.throws(() => insert(TILE_PART_POLICY.maxParts, 1, "{}"), /CHECK constraint failed/);
 });
