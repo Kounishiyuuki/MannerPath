@@ -198,6 +198,23 @@ no request reads both databases and no key spans them.
 
 Privacy and retention of report data (proposed location, attestation identifiers) are decided in ADR-0007 (`docs/adr/0007-report-privacy-and-retention.md`); the report API and its App Attest protocol are specified in `docs/API.md`.
 
+### Private photo evidence (#147, ADR-0016)
+
+Report photo references, moderation and retryable deletion work live only in durable `REPORTS_DB`
+(migration `migrations-reports/0003_evidence_photos.sql`). Sanitized binary derivatives live behind
+`EvidencePhotoStorage`, intended for private object storage; no D1 BLOB, R2 bucket or production binding
+is added. Request memory holds raw uploads; server validation and fresh pixel encoding precede every
+object write. Original metadata is not retained; no EXIF-derived location enters any report or spot.
+
+App Attest binds attachment identity and bytes; stored submitter-hash equality binds the parent report.
+Reservations precede writes, and deletion queues survive report deletion/redaction. Object deletion must
+durably fence late writes before its tracking key is acknowledged, not merely issue a normal R2 delete.
+The supplied memory double implements that contract; a production adapter remains a launch prerequisite.
+Photos stay outside community artifacts, promotion, canonical reconciliation and public tiles. Approved
+photo counts are an advisory reviewer signal, never independent corroboration or smoking permission.
+The iPhone has a default-off, injected memory-only picker/uploader foundation. #124 and explicit photo
+consent remain required; `photoEvidenceEnabled` stays false in the exported Worker.
+
 ## 8. Scaling boundaries
 
 The first optimization axis is data partitioning + caching, not adding infrastructure.

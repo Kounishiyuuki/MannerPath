@@ -32,6 +32,7 @@ nonisolated struct UserDefaultsReportConsent: ReportConsentRemembering {
 
 @MainActor @Observable
 final class ReportModel {
+    let photos: ReportPhotos
     private let configClient: any ReportConfigFetching
     private let reportClient: any ReportSubmitting
     private let store: any ReportDraftStoring
@@ -49,7 +50,7 @@ final class ReportModel {
     private(set) var cleanupError: String?
     var canRetryAmbiguous: Bool { submission == .ambiguous && !recoveredSubmissionAttempt }
     /// A submission is in progress: preparing authorization counts, the draft must not change.
-    var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission }
+    var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission || photos.busy }
 
     var retryAfterSecondsRemaining: Int? {
         guard let retryAllowedAt else { return nil }
@@ -60,7 +61,10 @@ final class ReportModel {
          store: any ReportDraftStoring, installIDs: any InstallIDProviding,
          attestedClient: (any AttestedReportSubmitting)? = nil,
          authorizer: (any ReportAuthorizing)? = nil,
-         consent: (any ReportConsentRemembering)? = nil) {
+         consent: (any ReportConsentRemembering)? = nil,
+         photoPolicy: PhotoEvidencePolicy = PhotoEvidencePolicy(),
+         photoUploader: (any EvidencePhotoUploading)? = nil) {
+        photos = ReportPhotos(policy: photoPolicy, uploader: photoUploader)
         self.consent = consent
         self.configClient = configClient
         self.reportClient = reportClient
@@ -114,6 +118,7 @@ final class ReportModel {
 
     func start(type: ReportType, spotId: String?, subjectName: String? = nil) {
         guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy, draft == nil else { return }
+        photos.clear()
         let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId,
                                    subjectName: type == .missing ? nil : subjectName)
         saveDraft(newDraft)
@@ -125,6 +130,7 @@ final class ReportModel {
     /// ADR-0013 "add a smoking place": a new-spot draft, optionally with a pin the user already placed on the map.
     func startNewSpot(pin: ReportCoordinate?) {
         guard canStartReport else { return }
+        photos.clear()
         var newDraft = ReportDraft(type: .missing, proposedLocation: pin?.quantized)
         newDraft.claim = ReportClaim()
         saveDraft(newDraft)
@@ -134,6 +140,7 @@ final class ReportModel {
     /// the exact version the user agreed to before; otherwise the confirmation sheet asks.
     func startQuickConfirm(spotId: String, subjectName: String?) {
         guard canStartReport else { return }
+        photos.clear()
         var newDraft = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName)
         if case .available(let limits) = availability, let version = limits.termsVersion, consent?.agreedVersion() == version {
             newDraft.acceptedTermsVersion = version
@@ -178,6 +185,7 @@ final class ReportModel {
             try store.delete()
             try store.clearAcceptedCleanupMarker()
             draft = nil
+            photos.clear()
             recoveredSubmissionAttempt = false
             submission = .idle
         } catch { submission = .failed(String(localized: "Saved report could not be removed.")) }
@@ -245,6 +253,7 @@ final class ReportModel {
             do { try store.markAcceptedForCleanup() }
             catch { cleanupError = String(localized: "Report was received, but its local draft could not be removed.") }
             retryAcceptedCleanup()
+            await photos.attach(to: accepted.reportId, acceptedTermsVersion: draft.acceptedTermsVersion)
         } catch let error as ReportAPIError {
             switch error {
             case .rejected(let status, let code):

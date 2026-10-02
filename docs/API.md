@@ -2,6 +2,43 @@
 
 Base path: `/v1`
 
+## Private photo attachment foundation (#147)
+
+`GET /v1/config` adds `reports.photoEvidenceEnabled: false`. Absence also means disabled.
+The shipped Worker answers `503 photoEvidenceDisabled` to `POST /v1/reports/:reportId/photos`
+before reading its body. No current terms version grants photo consent; #124 remains a publication gate.
+Existing report creation and App Attest contracts are unchanged. No public photo read endpoint exists.
+
+The constructor-injected technical test path requires App Attest even where local reports allow schema 1.
+It reuses the schema-2 envelope and report-purpose challenge/signing domain described below. Its exact
+signed JSON payload is `{schemaVersion:2,reportId,idempotencyKey,acceptedTermsVersion,mediaType,image}`:
+report ID must match the path, idempotency key is a UUID, `image` is canonical base64 of JPEG/PNG,
+and accepted terms must be both current and identical to the parent's explicitly accepted version.
+Verified submitter-key hash must match the parent; no install ID supplied by the client grants ownership.
+Unredacted/unexpired parent and explicitly injected photo consent are mandatory.
+
+Limits: original 5 MiB, 4096 pixels per dimension, 2,000,000 pixels total; three distinct derivatives/report.
+JPEG and noninterlaced 8-bit RGB/RGBA PNG only. Animated, interlaced, indexed/16-bit, tRNS- or eXIf-bearing PNG
+fails closed. The JSON payload limit is `ceil(5MiB/3)*4+1024`; the outer envelope limit is
+`ceil(payloadLimit/3)*4+4096`, enforced while streaming. Header signature, complete decode, PNG CRC,
+bounded decompression and JPEG orientation are checked server-side. Fresh deterministic PNG contains
+decoded pixels only: original metadata is not retained; no EXIF-derived location is used.
+
+Success is `201 {schemaVersion:2,photoId,reportId,state:"pending"}` (retry may return its later moderation
+state). Storage keys, original filenames, hashes and image metadata are not returned. Same sanitized
+image/report returns the same photo ID. Same UUID with different sanitized content is `409
+photoIdempotencyConflict`; retries use a fresh challenge/assertion, not replayed attestation. Counter
+advancement and reservation/request identity commit atomically, including duplicate retries. A storage
+failure returns a retryable `503 reportStoreUnavailable`; its durable reservation survives for cleanup.
+
+Errors carry fixed codes and no submitted metadata: `400 invalidPhoto`, `413 photoTooLarge` or
+`photo_too_large`, `415 unsupported_photo_type`, `422 invalid_photo` or `photo_dimensions_exceeded`,
+`403 photoConsentRequired`/`photoUnauthorized`, `404 reportNotFound`, `410 reportExpired`/`photoExpired`,
+`409 photoAttachmentLimit`/`photoIdempotencyConflict`, and existing App Attest rejections. Responses use
+`Cache-Control: no-store`. A photo is private pending review, never permission-to-smoke proof or a public
+spot mutation. It expires at the parent's original 90-day deadline, irrespective of photo moderation.
+See ADR-0016 for storage deletion fencing and production prerequisites.
+
 The API intentionally exposes spot data, not user location history.
 
 ## Schema version

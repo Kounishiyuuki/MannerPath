@@ -62,6 +62,8 @@ export const ConfigBodyV1 = z.object({
     // ADR-0013: whether POST /v1/reports accepts the existing-spot finding types (`notFound`, `removed`,
     // `typeChanged`) and correction claims. A client sends them only when this is true.
     existingSpotFindings: z.boolean(),
+    // #147: no reviewed photo consent exists. Tests inject the technical path in createApp only.
+    photoEvidenceEnabled: z.literal(false),
   }).strict(),
 }).strict().refine(
   (c) => CONFIG_RESOURCES.every((r) => c.minimumSupportedSchemaVersions[r] <= c.schemaVersions[r]),
@@ -102,6 +104,7 @@ export function configBody(env: AttestationBindings, opts: { reportStore?: boole
       termsVersion: CURRENT_REPORT_TERMS.version,
       newSpotClaims: true,
       existingSpotFindings: true,
+      photoEvidenceEnabled: false,
     },
   };
 }

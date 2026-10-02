@@ -142,3 +142,20 @@ part of `make apple-validate` because it needs a running local Worker. Run
 data, starts and stops the Worker, and sets location, permission, appearance and text size with
 `simctl`. No signing team or device is needed. The app has no test-only code paths; the tests
 use accessibility labels plus two identifiers (`nearbyMap`, `nearbyResultRow`).
+
+## Photo evidence foundation (Issue #147)
+
+`ReportPhotos` is injected into the iPhone report model and defaults disabled. No production uploader
+or approved photo terms are bundled. A future adapter must use the existing App Attest authorization
+and bind report ownership, exact attachment bytes and retry UUID; it must never downgrade attestation.
+Tests inject a policy and uploader to exercise the technical path. The PhotosPicker uses the system's
+selected-photo access, so no full-library or camera permission is requested. Selected images are
+bounded and redrawn as JPEGs with normalized orientation and no original metadata. This is a client
+minimization measure only: the server must independently validate and sanitize all uploads.
+
+Previews remain in memory for this report screen, including after upload failure and retry, and are
+never persisted into the text draft. An app restart discards photos and preserves the existing saved
+report draft. No EXIF-derived coordinates, timestamp or device metadata enter reports. Upload follows
+report acceptance; failure does not resubmit the report. Attachment retries reuse the selection UUID.
+A received photo is still awaiting moderation, and ash-disposal equipment does not prove smoking
+permission. Issue #124 remains the publication gate; this foundation enables no public photos or spots.

@@ -113,6 +113,11 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 
 ### Should
 
+Issue #147 adds an iPhone-only, default-off photo evidence foundation (ADR-0016): optional in-memory
+preview/removal, upload state and explicit attachment retry after report acceptance. Current terms do
+not approve photo intake and #124 still gates publication. Photos never supply EXIF-derived coordinates
+or establish permission to smoke, and the ordinary report flow remains unchanged with the feature off.
+
 - destination search and route-detour ranking;
 - favorites/recent spots stored locally;
 - cached region management;

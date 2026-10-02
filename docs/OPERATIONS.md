@@ -1,6 +1,35 @@
 # Beta operations runbook — staging / production-like backend
 
 For nationwide segmented bootstrap, use [promotion v4](SEGMENTED_PROMOTION_RUNBOOK.md).
+
+## Disabled private photo foundation (#147)
+
+No photo R2 bucket, binding, scheduler or deploy is created by this change. `photoEvidenceEnabled`
+remains false and the production attachment route refuses requests. #124 remains unapproved. Do not
+enable intake using current draft consent. ADR-0016 records the future review/activation prerequisites.
+
+Photo references are in `REPORTS_DB` migration `0003_evidence_photos.sql`; never apply it to canonical DB.
+`applyReportRetention`/`runReportRetention` accept an injected `photoStorage` and run bounded
+`cleanupEvidencePhotos` before returning; existing local retention remains available without storage.
+Photos inherit `reports.minimize_after` (90 days from report receipt), not upload time. Reservations
+abandoned after 15 minutes, rejected images, redacted/erased parents and expired images enqueue cleanup.
+Failed deletion keeps a durable key for retry. No original metadata is retained, no EXIF-derived location
+is used, and only sanitized derivatives may be stored; private moderation must review visible PII.
+
+Local-only reviewer commands are `npm run local:reports -- photo-summary <reportId>` and
+`npm run local:reports -- photo-decide <photoId> <approved|rejected> <reviewer> <reason>`.
+Reasons are `usableEvidence`, `privacyRisk`, `unrelated`, `unsafeContent`, `insufficientDetail`.
+Decisions record bounded reviewer/time/reason fields, with no free text; rejection queues deletion.
+Approved-photo counts never change report acceptance, independence or reconciliation/publication gates.
+
+Before any later production intake: implement and verify a private object-storage adapter whose delete
+durably fences in-flight/future puts to the same key. A naive R2 `delete` is insufficient: a delayed put
+could recreate an orphan after the cleanup row is removed. Supply enforced object expiry at the report
+deadline, a bounded scheduler and deletion-error alerts; include backup/version retention in the ceiling.
+Wire that storage into every erase/retention workflow and exercise failure/recovery. Review photo consent
+and rights separately, test real-device App Attest transport, and measure decoder CPU/memory on the
+intended Workers plan. There is no production adapter in this foundation. Never publish a photo through
+tiles or treat an ashtray photo as proof of permission to smoke.
 V2/v3 remain available; their whole-file transaction procedure below does not apply to v4 payloads.
 Before a DATA_DB binding cutover, GREEN must pass `/v1/readiness` and remote smoke. An unfinished
 segmented GREEN is never eligible; REPORTS_DB is never switched. V4 import-plan tools generate and verify atomic chunk/receipt wrappers locally; remote execution remains
