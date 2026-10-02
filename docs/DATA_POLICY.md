@@ -104,7 +104,7 @@ Confidence is never one opaque score. ADR-0012 publishes separate axes, each a n
 | Axis | Values | Computed |
 | --- | --- | --- |
 | Existence evidence | `official`, `operator`, `communityVerified`, `communityReported` | server (`verification.existence`) |
-| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `unknown`; `areaApproximate` specified by ADR-0016, not yet implemented | server (`verification.locationPrecision`) |
+| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `unknown`; `areaApproximate` specified by ADR-0017, not yet implemented | server (`verification.locationPrecision`) |
 | Freshness | `fresh` ≤ 365 d, `aging` ≤ 730 d, `stale`, `unknown` (`freshness.v1`) | client, from `lastVerifiedAt` or `lastReviewedMonth` |
 | Access | `accessType` + `accessDetail` | server |
 | Spot type | `spotType` + `spotSubtype`, and `hostType` | server |
@@ -123,7 +123,7 @@ Rules:
 - One negative report never deletes a spot; `prohibited` needs two independent submitters for a reviewed hold.
 - The UI exposes the tier on every list row, map pin and detail page in plain words, without alarming styling.
 
-## Coordinates and approximate locations (ADR-0016)
+## Coordinates and approximate locations (ADR-0017)
 
 Existence and location are separate. Missing exact smoking-point coordinates alone never reject a spot that has
 accepted smoking-place existence evidence: with a reviewed, reusable area/host anchor (park, station, facility,

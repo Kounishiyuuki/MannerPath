@@ -166,7 +166,7 @@ exactly as before; it shows a community spot through its existing "unrecognised 
   - `existence`: `official | operator | communityVerified | communityReported` — who stands behind the place's
     existence. `communityReported` is one moderated, consented, explicitly classified report; `communityVerified` is
     two or more independent submitters, or a reported spot later confirmed by an independent submitter.
-  - `locationPrecision`: `publisherPoint | reviewedDerived | communityPinned | unknown` (ADR-0016 specifies a future
+  - `locationPrecision`: `publisherPoint | reviewedDerived | communityPinned | unknown` (ADR-0017 specifies a future
     `areaApproximate`, not served yet; a client that does not recognise a value must not present the pin as exact) — how the pin was placed,
     independent of existence. (`reviewedDerived` is reserved for ADR-0011, which is not approved; nothing emits it.)
   - `confirmations`: independent community submitters behind the evidence (≥ 1), or `null` for official/operator.

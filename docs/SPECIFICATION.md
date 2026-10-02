@@ -26,10 +26,10 @@ GitHub issues are not specification. A decision made in an issue binds only once
 | Agent rules and validation workflow | `AGENTS.md`, `apps/apple/AGENTS.md`, `services/AGENTS.md`, `docs/AGENT_WORKFLOWS.md` |
 | Research records (positive and negative) | `docs/research/**` |
 
-Category coverage (audit 2026-10-02): privacy policy → ADR-0007 + PRODUCT_REQUIREMENTS §8; security/abuse model →
-ADR-0007 §6 (App Attest, abuse keys) + ADR-0014 + OPERATIONS; moderation → ADR-0013 + OPERATIONS "Community
+Category coverage (audit 2026-10-02): privacy policy → ADR-0007 + PRODUCT_REQUIREMENTS §8 (photos: ADR-0016); security/abuse model →
+ADR-0007 §6 (App Attest, abuse keys) + ADR-0014 + OPERATIONS; moderation → ADR-0013 + ADR-0016 (photo review) + OPERATIONS "Community
 publication"; source onboarding → DATA_POLICY "Nationwide source onboarding" + SOURCES; evidence/confidence model →
-ADR-0006 + ADR-0012 + DATA_POLICY "Confidence"; coordinate/location model → ADR-0011 + **ADR-0016**; offline →
+ADR-0006 + ADR-0012 + DATA_POLICY "Confidence"; coordinate/location model → ADR-0011 + **ADR-0017**; offline →
 ADR-0004 + PRODUCT_REQUIREMENTS §7; release/deployment → PRODUCT_REQUIREMENTS §12 + OPERATIONS; testing/quality gates
 → AGENTS.md + AGENT_WORKFLOWS + BETA_DATA_QUALITY; contributor/AI workflow → AGENTS.md + AGENT_WORKFLOWS.
 
@@ -61,7 +61,7 @@ How sure we are that a smoking place **exists** and how exact its **pin** is are
 - Existence evidence (`verification.existence`): `official`, `operator`, `communityVerified`, `communityReported`.
 - Location precision (`verification.locationPrecision`), implemented today: `publisherPoint`, `reviewedDerived`
   (ADR-0011; not yet emitted for published spots), `communityPinned`, `unknown`.
-- **Specified, not yet implemented (ADR-0016, maintainer decision 2026-10-02): `areaApproximate`** — accepted evidence
+- **Specified, not yet implemented (ADR-0017, maintainer decision 2026-10-02): `areaApproximate`** — accepted evidence
   says the smoking place is inside a specific park, station, facility, airport or commercial building, but the point
   of the smoking place itself is unknown. A reviewed, reusable representative anchor of that area/host may be used as
   a provisional pin.
@@ -74,7 +74,7 @@ not mean a smoking place exists.
 
 ## 4. Approximate location presentation
 
-An `areaApproximate` pin is never presented as an exact point (ADR-0016, PRODUCT_REQUIREMENTS §3):
+An `areaApproximate` pin is never presented as an exact point (ADR-0017, PRODUCT_REQUIREMENTS §3):
 
 - list: 「位置は○○内の目安です」
 - detail: 「喫煙場所はこの施設/公園内にあることが確認されています。正確な位置は未確認のため、ピンは目安です。」
@@ -127,13 +127,15 @@ Canonical: ADR-0012, ADR-0013, ADR-0007, OPERATIONS "Community publication".
   corroboration. Raw or unmoderated reports are never visible.
 - **Production community publication is blocked until Issue #124 / the legal rights decision is granted.** The
   technical foundation existing is not a grant.
-- Photos (no accepted photo ADR on main yet): a photo is an evidence signal for review, never proof of permission; a
-  photo of an ashtray alone does not establish that smoking is permitted.
+- Photos (ADR-0016, technical foundation merged in PR #162, default OFF; production intake and publication not approved): a private
+  attachment to an existing report and an advisory signal for review only. It never accepts a report, counts as an
+  independent submitter, upgrades existence confidence, supplies coordinates or bypasses reconciliation. A photo of an
+  ashtray alone does not establish that smoking is permitted. Photos are never in tiles and have no public retrieval.
 
 ## 10. Coordinates and provenance
 
 Every published coordinate states its origin: publisher point, community pin, reviewed derived (ADR-0011) or
-approximate area/host anchor (ADR-0016). Approximate anchors need their own provenance and reuse review.
+approximate area/host anchor (ADR-0017). Approximate anchors need their own provenance and reuse review.
 
 Forbidden: arbitrary or manually guessed exact pins; coordinates guessed from map screenshots; a polygon centroid or
 host centre presented as the exact smoking location or labelled `publisherPoint`; copying Google/Apple POI points as
@@ -171,8 +173,10 @@ removal reason.
 ## 16. Privacy
 
 No raw location history; no account for browse/search; routine sync by tile ID (PRODUCT_REQUIREMENTS §8). Community
-reports follow ADR-0007 minimization and retention, free text and personal metadata included. Photos, when an
-accepted ADR introduces them, must not persist EXIF/GPS/device/capture metadata.
+reports follow ADR-0007 minimization and retention, free text and personal metadata included. Photos (ADR-0016)
+persist only a freshly encoded derivative without EXIF/GPS/device/capture metadata, stay private, never outlive the
+parent report's `minimize_after`, and live in `REPORTS_DB`/private object storage, never in canonical `DB`, promotion
+bundles or tiles. Metadata removal does not remove visible faces or plates; moderators reject such images.
 
 ## 17. Offline
 
@@ -226,11 +230,14 @@ document (and ADR) in the same change.
 ## 25. Implementation follow-ups (not done by the documentation baseline)
 
 - [ ] `areaApproximate`: add to `locationPrecision` in D1 CHECKs, tile/spot DTOs, API schemas and contract docs
-      (ADR-0016 §Implementation).
+      (ADR-0017 §Implementation).
 - [ ] Approximate anchor registry with provenance and reuse review; reviewed-anchor workflow; quality check that no
       anchor is labelled `publisherPoint`.
 - [ ] Resolver/publication: allow accepted existence evidence + reviewed anchor; keep host-only records rejected.
 - [ ] iPhone/Watch/widget copy for approximate list/detail/navigation/distance and VoiceOver (§4).
 - [ ] Precision upgrade path keeping the stable spot ID.
-- [ ] Re-run the coverage replay (NATIONWIDE §12) to count research targets newly eligible under ADR-0016.
-- [ ] Photo evidence ADR (metadata stripping, evidence role) before any photo is collected.
+- [ ] Re-run the coverage replay (NATIONWIDE §12) to count research targets newly eligible under ADR-0017.
+- [x] Photo evidence ADR: ADR-0016 (technical foundation, disabled by default).
+- [ ] Photo intake prerequisites (ADR-0016): reviewed photo-consent terms version, fenced private storage adapter
+      with expiry, deletion scheduler/alerting, Workers CPU/memory and adversarial-corpus testing; #124 for any
+      publication.

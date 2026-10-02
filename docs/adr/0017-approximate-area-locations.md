@@ -1,4 +1,4 @@
-# ADR-0016 — Approximate area locations and independent location confidence
+# ADR-0017 — Approximate area locations and independent location confidence
 
 Status: **Accepted — maintainer decision 2026-10-02.** Specification only: nothing is implemented by this ADR.
 Implementation follow-ups are listed below and in `docs/SPECIFICATION.md` §25.
@@ -48,7 +48,7 @@ available. Result: `existence = official`, `locationPrecision = areaApproximate`
 ## Relationship to ADR-0011
 
 ADR-0011 governs turning an **address** into a point and remains Proposed; its rule "an address-only source is not
-geocoded into a published spot" still stands. ADR-0016 does not approve geocoding. It only allows a reviewed anchor of
+geocoded into a published spot" still stands. ADR-0017 does not approve geocoding. It only allows a reviewed anchor of
 an area/host to stand as an explicitly approximate pin.
 
 ## Implementation follow-ups (not done)
