@@ -32,6 +32,7 @@ import { tileEtag } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
+import { v1TileBody, v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => (db.raw.prepare(sql).all(...p) as Row[]).map((r) => ({ ...r }));
@@ -66,10 +67,14 @@ const CASES = [
 ] as const;
 
 const get = (db: SqliteD1, path: string, headers: Record<string, string> = {}) => app.request(path, { headers }, { DB: db });
-const snapshots = (db: SqliteD1) => new Map(all(db, "SELECT * FROM tile_snapshots ORDER BY tile_id").map((t) => [t.tile_id as string, t]));
+// The v1 client's view of each tile (ADR-0015): the stored manifest row, with the assembled v1 body and its hash.
+const snapshots = (db: SqliteD1) => new Map(all(db, "SELECT * FROM tile_snapshots ORDER BY tile_id").map((t) => {
+  const body = v1TileBody(db, t.tile_id)!;
+  return [t.tile_id as string, { ...t, schema_version: 1, manifest_json: t.body_json, body_json: body, content_sha256: sha256(body) }];
+}));
 const etagOf = (t: Row) => tileEtag(t.schema_version, t.content_sha256);
 const members = (db: SqliteD1, spotId: string) => all(db, "SELECT tile_id FROM tile_snapshot_spots WHERE spot_id = ?", spotId).map((r) => r.tile_id);
-const inAnyBody = (db: SqliteD1, spotId: string) => all(db, "SELECT body_json FROM tile_snapshots").some((t) => JSON.parse(t.body_json).spots.some((s: Row) => s.id === spotId));
+const inAnyBody = (db: SqliteD1, spotId: string) => v1TileRows(db).some((t) => JSON.parse(t.body_json).spots.some((s: Row) => s.id === spotId));
 const release = (db: SqliteD1, id: number) => one(db, "SELECT status, is_current FROM source_releases WHERE release_id = ?", id);
 const existenceRecord = (db: SqliteD1, spotId: string) =>
   one(db, "SELECT record_id FROM spot_field_provenance WHERE spot_id = ? AND field = 'existence'", spotId).record_id as number;
@@ -236,7 +241,7 @@ for (const c of CASES) {
         spots: controlOld.spots.map((s: Row) => (s.id === spotId ? dtoMoved : s)) }, "same tile: only the spot's coordinate differs");
     }
     assert.deepEqual(members(db, spotId), [newTile]);
-    assert.equal(all(db, "SELECT body_json FROM tile_snapshots").filter((t) => t.body_json.includes(`"id":"${spotId}"`)).length, 1);
+    assert.equal(v1TileRows(db).filter((t) => t.body_json.includes(`"id":"${spotId}"`)).length, 1);
     assert.equal(dtoMoved.lastVerifiedAt, SECOND.observedOn);
 
     // Relocation-only view (A -> final with the lastVerifiedAt refresh taken out, including its ADR-0012 month
@@ -300,7 +305,7 @@ for (const c of CASES) {
     assert.equal(bundle.manifest.rows.promotion_review_match_attestations, 1);
     assert.equal(bundle.manifest.rows.spots, spotCount);
     assert.deepEqual(bundle.manifest.tiles.map((t) => [t.tileId, t.revision, t.contentSha256]),
-      expectedTiles.map((id) => [id, snapFinal.get(id)!.revision, snapFinal.get(id)!.content_sha256]));
+      expectedTiles.map((id) => [id, snapFinal.get(id)!.revision, sha256(snapFinal.get(id)!.manifest_json)]));
     assert.ok(bundle.sql.includes(`INSERT INTO tile_snapshot_spots (spot_id, tile_id) VALUES ('${spotId}', '${newTile}');`));
     const spotInsert = bundle.sql.split("\n").find((l) => l.startsWith(`INSERT INTO spots `) && l.includes(`VALUES ('${spotId}'`))!;
     assert.ok(spotInsert.includes(`, ${c.to.latitude}, ${c.to.longitude}, 14, `) && spotInsert.includes(`'${newTile}'`), "canonical row at the new coordinate");

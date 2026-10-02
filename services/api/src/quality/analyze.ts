@@ -16,16 +16,17 @@ import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { SOURCE_ADAPTERS } from "../pipeline/adapters.ts";
 import { REVIEWED_SOURCES } from "../pipeline/registry.ts";
 import type { QualityCheck, SourceAdapter } from "../pipeline/source-adapter.ts";
-import { TileBodyV1 } from "../tiles/dto.ts";
+import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileBodyV1 } from "../tiles/dto.ts";
+import { assembleTileV1, TILE_MANIFEST_MAX_BYTES, TILE_PART_POLICY } from "../tiles/parts.ts";
 import { communityAcquisitionMetrics } from "../coverage/metrics.ts";
 import { FRESHNESS_POLICY_VERSION, spotFreshness } from "./freshness.ts";
 
 export const ANALYSIS_VERSION = "nationwide-data-quality.v1";
 
 /**
- * ADR-0005 §"Re-evaluate before release": the z14 decision is revisited if a source makes any tile
- * exceed these. They are the published trigger values, so the analysis reports distance to them
- * instead of re-arguing the zoom.
+ * ADR-0005 §"Re-evaluate before release": the z14 decision is revisited if a source makes any whole tile
+ * exceed these. Since ADR-0015 they are informational: the hard budget binds each part (TILE_PART_POLICY),
+ * and a whole tile above them is served as several parts.
  */
 export const TILE_REEVALUATION_SPOTS = 250;
 export const TILE_REEVALUATION_GZIP_BYTES = 16 * 1024;
@@ -119,11 +120,18 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     spot_count: number; body_json: string; published_at: string;
   }>();
 
+  const { results: partRows } = await db.prepare(
+    "SELECT tile_id, part_index, spot_count, body_json FROM tile_snapshot_parts ORDER BY tile_id, part_index",
+  ).all<{ tile_id: string; part_index: number; spot_count: number; body_json: string }>();
+  const partsByTile = new Map<string, typeof partRows>();
+  for (const p of partRows) partsByTile.set(p.tile_id, [...(partsByTile.get(p.tile_id) ?? []), p]);
+  // The whole tile as a client assembles it: a pre-ADR-0015 v1 body as stored, or a v2 manifest with its parts.
+  const bodies = new Map(tiles.map((t) => [t.tile_id, t.schema_version === TILE_SCHEMA_VERSION_V1
+    ? TileBodyV1.parse(JSON.parse(t.body_json))
+    : assembleTileV1(t.body_json, (partsByTile.get(t.tile_id) ?? []).map((p) => p.body_json))]));
+
   // The published corpus is what the tiles contain — the client's view, not the spots table.
-  const published = tiles.flatMap((t) => {
-    const body = TileBodyV1.parse(JSON.parse(t.body_json));
-    return body.spots.map((s) => ({ tile: t.tile_id, spot: s }));
-  });
+  const published = tiles.flatMap((t) => bodies.get(t.tile_id)!.spots.map((s) => ({ tile: t.tile_id, spot: s })));
   const spots = published.map((p) => p.spot);
 
   const latitudes = spots.map((s) => s.latitude).sort((a, b) => a - b);
@@ -131,13 +139,27 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const occupied = tiles.filter((t) => t.spot_count > 0);
   const perTile = occupied.map((t) => t.spot_count).sort((a, b) => a - b);
 
-  const tileSizes = tiles.map((t) => ({
-    tileId: t.tile_id,
-    revision: t.revision,
-    spotCount: t.spot_count,
-    rawBytes: new TextEncoder().encode(t.body_json).length,
-    gzipBytes: opts.gzip ? opts.gzip(t.body_json) : null,
-    sourceIds: [...new Set(JSON.parse(t.body_json).sources.map((s: { id: string }) => s.id))].sort(),
+  // Whole-tile sizes are what one v1 response would be; they inform the zoom (ADR-0005), not the budget.
+  const tileSizes = tiles.map((t) => {
+    const whole = JSON.stringify(bodies.get(t.tile_id));
+    return {
+      tileId: t.tile_id,
+      revision: t.revision,
+      spotCount: t.spot_count,
+      partCount: partsByTile.get(t.tile_id)?.length ?? 0,
+      rawBytes: new TextEncoder().encode(whole).length,
+      gzipBytes: opts.gzip ? opts.gzip(whole) : null,
+      manifestBytes: new TextEncoder().encode(t.body_json).length,
+      sourceIds: [...new Set(bodies.get(t.tile_id)!.sources.map((s) => s.id))].sort(),
+    };
+  });
+  // ADR-0015: the unit that is stored as one row and sent as one response, and so the unit the budget binds.
+  const partSizes = partRows.map((p) => ({
+    tileId: p.tile_id,
+    part: p.part_index,
+    spotCount: p.spot_count,
+    rawBytes: new TextEncoder().encode(p.body_json).length,
+    gzipBytes: opts.gzip ? opts.gzip(p.body_json) : null,
   }));
   const bySpots = [...tileSizes].sort((a, b) => b.spotCount - a.spotCount || (a.tileId < b.tileId ? -1 : 1));
   const byBytes = [...tileSizes].sort((a, b) => b.rawBytes - a.rawBytes || (a.tileId < b.tileId ? -1 : 1));
@@ -194,7 +216,7 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
 
   const tilesMissingAttribution = tileSizes.filter((t) => {
     if (t.spotCount === 0) return false;
-    const body = JSON.parse(tiles.find((x) => x.tile_id === t.tileId)!.body_json);
+    const body = bodies.get(t.tileId)!;
     return body.sources.length === 0 || body.sources.some((s: { attributionText: string | null }) => !s.attributionText);
   });
   check("published-tiles-carry-attribution", tilesMissingAttribution.length === 0,
@@ -244,8 +266,23 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   const maxSpots = bySpots[0]?.spotCount ?? 0;
   const maxGzip = opts.gzip ? Math.max(0, ...tileSizes.map((t) => t.gzipBytes ?? 0)) : null;
   const withinThresholds = maxSpots <= TILE_REEVALUATION_SPOTS && (maxGzip === null || maxGzip <= TILE_REEVALUATION_GZIP_BYTES);
-  check("tile-zoom-thresholds", withinThresholds,
-    `max ${maxSpots} spots/tile (trigger ${TILE_REEVALUATION_SPOTS}), max ${maxGzip ?? "n/a"} gzip bytes/tile (trigger ${TILE_REEVALUATION_GZIP_BYTES})`);
+
+  // ADR-0015 hard gate. Every stored row and every response is bounded; a breach fails the publication quality
+  // check rather than warning, and the cure is a policy change with a new version, never a raised number.
+  const legacy = tiles.filter((t) => t.schema_version !== TILE_SCHEMA_VERSION);
+  const maxPart = { spots: Math.max(0, ...partSizes.map((p) => p.spotCount)), rawBytes: Math.max(0, ...partSizes.map((p) => p.rawBytes)),
+    gzipBytes: opts.gzip ? Math.max(0, ...partSizes.map((p) => p.gzipBytes ?? 0)) : null };
+  const maxManifestBytes = Math.max(0, ...tileSizes.map((t) => t.manifestBytes));
+  const maxParts = Math.max(0, ...tileSizes.map((t) => t.partCount));
+  const overBudget = partSizes.filter((p) => p.spotCount > TILE_PART_POLICY.maxSpots || p.rawBytes > TILE_PART_POLICY.maxRawBytes
+    || (p.gzipBytes !== null && p.gzipBytes > TILE_PART_POLICY.maxGzipBytes));
+  check("tile-part-budget", legacy.length === 0 && overBudget.length === 0 && maxParts <= TILE_PART_POLICY.maxParts
+    && maxManifestBytes <= TILE_MANIFEST_MAX_BYTES,
+    legacy.length > 0 ? `tiles not yet republished as parts: ${legacy.map((t) => t.tile_id).join(", ")}`
+      : `${TILE_PART_POLICY.version}: max ${maxPart.spots} spots / ${maxPart.rawBytes} raw / ${maxPart.gzipBytes ?? "n/a"} gzip bytes per part `
+      + `(limits ${TILE_PART_POLICY.maxSpots} / ${TILE_PART_POLICY.maxRawBytes} / ${TILE_PART_POLICY.maxGzipBytes}), max ${maxParts} parts/tile `
+      + `(limit ${TILE_PART_POLICY.maxParts}), max manifest ${maxManifestBytes} bytes (limit ${TILE_MANIFEST_MAX_BYTES})`
+      + (overBudget.length > 0 ? `; over budget: ${overBudget.map((p) => `${p.tileId}#${p.part}`).join(", ")}` : ""));
 
   const spotsTableCount = await db.prepare(
     "SELECT count(*) AS n FROM spots WHERE lifecycle = 'active' AND merged_into IS NULL",
@@ -449,6 +486,12 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
       reevaluateAboveSpots: TILE_REEVALUATION_SPOTS,
       reevaluateAboveGzipBytes: TILE_REEVALUATION_GZIP_BYTES,
       withinThresholds,
+      partPolicy: TILE_PART_POLICY,
+      maxPartSpots: maxPart.spots,
+      maxPartRawBytes: maxPart.rawBytes,
+      maxPartGzipBytes: maxPart.gzipBytes,
+      maxPartsPerTile: maxParts,
+      maxManifestBytes,
     },
     checks,
     failedChecks: checks.filter((c) => c.status === "fail").length,

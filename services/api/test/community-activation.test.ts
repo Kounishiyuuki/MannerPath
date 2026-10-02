@@ -35,6 +35,7 @@ import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 import { type Stores, proposeAbsence, proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf } from "./support/community.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -161,7 +162,7 @@ async function newSpot(db: SqliteD1, hash: string, at: { latitude: number; longi
   return { spotId, reportId: id };
 }
 const published = (db: SqliteD1, spotId: string) => one(db, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n === 1;
-const tileSpots = (db: SqliteD1) => all(db, "SELECT body_json FROM tile_snapshots").flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+const tileSpots = (db: SqliteD1) => v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
 const officialPublished = (db: SqliteD1) => tileSpots(db).filter((s) => !s.sourceIds.includes(COMMUNITY_SOURCE_ID)).map((s) => s.id).sort();
 
 test("simulated activation: new version → consent → moderation → communityReported → publish → confirmation → promotion → bootstrap → rollback", async () => {
@@ -194,8 +195,8 @@ test("simulated activation: new version → consent → moderation → community
   const spot = tileSpots(db).find((s) => s.id === fresh.spotId)!;
   assert.equal(spot.verification.existence, "communityReported");
   assert.equal(spot.lastVerifiedAt, null, "lastVerifiedAt stays unknown (Issue #124 item 3)");
-  const tileBody = JSON.stringify(all(db, "SELECT body_json FROM tile_snapshots"));
-  const tileSource = JSON.parse(all(db, "SELECT body_json FROM tile_snapshots").find((t) => t.body_json.includes(fresh.spotId))!.body_json)
+  const tileBody = JSON.stringify(v1TileRows(db));
+  const tileSource = JSON.parse(v1TileRows(db).find((t) => t.body_json.includes(fresh.spotId))!.body_json)
     .sources.find((s: Row) => s.id === COMMUNITY_SOURCE_ID);
   assert.equal(tileSource.attributionText, COMMUNITY_ATTRIBUTION_CANDIDATE);
   const detail = await (await app.request(`/v1/spots/${fresh.spotId}`, {}, { DB: db } as any)).json() as Row;

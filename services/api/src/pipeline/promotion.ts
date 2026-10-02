@@ -35,7 +35,8 @@
 // migrations first).
 
 import { type Db, sha256Hex } from "../db.ts";
-import { TileBodyV1 } from "../tiles/dto.ts";
+import { TileBodyV1, TileManifestV2 } from "../tiles/dto.ts";
+import { assembleTileV1 } from "../tiles/parts.ts";
 import { type CandidateRow, spotDto } from "../tiles/publish.ts";
 import { type ReviewedTerms, reviewedTerms } from "../reports/terms.ts";
 import { type ReviewedSource, reviewedSource } from "./registry.ts";
@@ -198,6 +199,12 @@ const TABLES: readonly TableSpec[] = [
     table: "tile_snapshots",
     columns: ["tile_id", "z", "x", "y", "revision", "schema_version", "content_sha256", "spot_count", "body_json", "published_at"],
     sql: "SELECT * FROM tile_snapshots ORDER BY tile_id",
+  },
+  {
+    // ADR-0015: a schemaVersion 2 snapshot is its manifest row plus these bounded part rows; one travels with the other.
+    table: "tile_snapshot_parts",
+    columns: ["tile_id", "part_index", "content_sha256", "spot_count", "body_json"],
+    sql: "SELECT * FROM tile_snapshot_parts ORDER BY tile_id, part_index",
   },
   {
     table: "tile_snapshot_spots",
@@ -453,10 +460,30 @@ async function validateSnapshots(rows: Map<string, Row[]>): Promise<void> {
     const tileId = String(member.tile_id), ids = membersByTile.get(tileId) ?? [];
     ids.push(String(member.spot_id)); membersByTile.set(tileId, ids);
   }
+  const partsByTile = new Map<string, Row[]>();
+  for (const part of rows.get("tile_snapshot_parts") ?? []) {
+    const tileId = String(part.tile_id), list = partsByTile.get(tileId) ?? [];
+    list.push(part); partsByTile.set(tileId, list);
+  }
   for (const tile of rows.get("tile_snapshots") ?? []) {
     const tileId = String(tile.tile_id);
-    const body = String(tile.body_json);
-    if (await sha256Hex(body) !== tile.content_sha256) fail(`tile ${tileId}: body does not match its stored content hash`);
+    const stored = String(tile.body_json);
+    if (await sha256Hex(stored) !== tile.content_sha256) fail(`tile ${tileId}: body does not match its stored content hash`);
+    // ADR-0015: a v2 manifest is checked against its parts by hash, then the assembled whole is checked like a v1 body.
+    const parts = partsByTile.get(tileId) ?? [];
+    let body = stored;
+    if (Number(tile.schema_version) !== 1) {
+      const manifest = TileManifestV2.safeParse(JSON.parse(stored));
+      if (!manifest.success) fail(`tile ${tileId}: stored manifest is not a valid tile manifest`);
+      if (parts.length !== manifest.data.parts.length) fail(`tile ${tileId}: ${parts.length} part rows for ${manifest.data.parts.length} manifest parts`);
+      for (const [i, part] of parts.entries()) {
+        const expected = manifest.data.parts[i];
+        if (Number(part.part_index) !== i || part.content_sha256 !== expected.sha256 || await sha256Hex(String(part.body_json)) !== expected.sha256
+          || Number(part.spot_count) !== expected.spotCount) fail(`tile ${tileId}: part ${i} does not match its manifest entry`);
+      }
+      try { body = JSON.stringify(assembleTileV1(stored, parts.map((p) => String(p.body_json)))); }
+      catch { fail(`tile ${tileId}: parts do not assemble into a valid tile`); }
+    } else if (parts.length > 0) fail(`tile ${tileId}: a v1 body has part rows`);
     const parsed = TileBodyV1.safeParse(JSON.parse(body));
     if (!parsed.success) fail(`tile ${tileId}: stored body is not a valid tile response`);
     if (parsed.data.tile !== tileId) fail(`tile ${tileId}: body names tile ${parsed.data.tile}`);

@@ -4,7 +4,10 @@
 
 import { z } from "zod";
 
-export const TILE_SCHEMA_VERSION = 1;
+/** The v1 complete-tile body, still served at GET /v1/tiles/{z}/{x}/{y} for a tile of at most one part. */
+export const TILE_SCHEMA_VERSION_V1 = 1;
+/** schemaVersion 2 (ADR-0015): a tile is a manifest plus bounded, content-addressed parts. */
+export const TILE_SCHEMA_VERSION = 2;
 /**
  * The oldest tile body schemaVersion this server still serves. Each resource carries its own
  * minimum because they version independently; /v1/config publishes them (docs/API.md).
@@ -75,7 +78,7 @@ export const TileSourceV1 = z.object({
 }).strict();
 
 export const TileBodyV1 = z.object({
-  schemaVersion: z.literal(TILE_SCHEMA_VERSION),
+  schemaVersion: z.literal(TILE_SCHEMA_VERSION_V1),
   tile: z.string(),
   revision: z.number().int().min(1),
   generatedAt: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/),
@@ -83,7 +86,40 @@ export const TileBodyV1 = z.object({
   sources: z.array(TileSourceV1),
 }).strict();
 
+const SHA256 = z.string().regex(/^[0-9a-f]{64}$/);
+
+/**
+ * One bounded slice of a tile (ADR-0015). It carries no revision or timestamp, so its bytes and hash depend only on
+ * its content: an unchanged part keeps its hash across republishes, and the manifest pins every part by hash.
+ */
+export const TilePartBodyV2 = z.object({
+  schemaVersion: z.literal(TILE_SCHEMA_VERSION),
+  tile: z.string(),
+  part: z.number().int().min(0),
+  partCount: z.number().int().min(1),
+  spots: z.array(TileSpotV1).min(1),
+  sources: z.array(TileSourceV1).min(1),
+}).strict().refine((p) => p.part < p.partCount, "part must be below partCount");
+
+/** The tile's complete-snapshot index: every part, in order, by hash. Zero parts is an empty tile. */
+export const TileManifestV2 = z.object({
+  schemaVersion: z.literal(TILE_SCHEMA_VERSION),
+  tile: z.string(),
+  revision: z.number().int().min(1),
+  generatedAt: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/),
+  partPolicy: z.string(),
+  spotCount: z.number().int().min(0),
+  parts: z.array(z.object({
+    index: z.number().int().min(0),
+    spotCount: z.number().int().min(1),
+    sha256: SHA256,
+  }).strict()),
+}).strict().refine((m) => m.parts.every((p, i) => p.index === i), "parts are listed in index order")
+  .refine((m) => m.parts.reduce((n, p) => n + p.spotCount, 0) === m.spotCount, "spotCount is the sum of the parts");
+
 export type TileSpotV1 = z.infer<typeof TileSpotV1>;
+export type TilePartBodyV2 = z.infer<typeof TilePartBodyV2>;
+export type TileManifestV2 = z.infer<typeof TileManifestV2>;
 export type SpotVerificationV1 = z.infer<typeof SpotVerificationV1>;
 export type TileSourceV1 = z.infer<typeof TileSourceV1>;
 export type TileBodyV1 = z.infer<typeof TileBodyV1>;

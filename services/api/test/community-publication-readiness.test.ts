@@ -31,6 +31,7 @@ import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
 import { type Stores, proposeEffect, proposeNewSpot, stores } from "./support/community.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -294,7 +295,7 @@ test("promotion v3 carries several additive community releases to a fresh databa
     "community_artifact_ledger", "community_evidence_reports"]) {
     assert.equal(count(t, table), 0, `${table} travelled`);
   }
-  for (const tile of all(t, "SELECT body_json FROM tile_snapshots")) {
+  for (const tile of v1TileRows(t)) {
     for (const id of [...first.reportIds, ...second.reportIds, first.applicationId]) assert.ok(!tile.body_json.includes(id), "a tile names a report");
   }
   const onTarget = await (await app.request(`/v1/spots/${first.spotId}`, {}, { DB: t })).json() as Row;
@@ -438,7 +439,7 @@ test("approved simulation: a prohibited hold withholds the spot, is idempotent, 
   await publishTiles(db, { now: isoSeconds(APPLY) });
   assert.equal(published(db, spotId), false, "publish keeps a held spot out");
   assert.equal((await app.request(`/v1/spots/${spotId}`, {}, { DB: db })).status, 404);
-  assert.ok(!all(db, "SELECT body_json FROM tile_snapshots").some((t) => t.body_json.includes(spotId)));
+  assert.ok(!v1TileRows(db).some((t) => t.body_json.includes(spotId)));
   assert.equal(one(db, "SELECT lifecycle, publication_hold FROM spots WHERE spot_id = ?", spotId).lifecycle, "active", "no canonical column changes");
   assert.deepEqual((await analyzeCorpus(db, { now: isoSeconds(APPLY) })).nationwide.community.activePublicationHolds, 1);
 

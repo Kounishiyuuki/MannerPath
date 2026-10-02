@@ -15,7 +15,7 @@ it touches ingest or reconciliation.
 | --- | --- |
 | an endpoint, or a request/response shape | `docs/API.md` |
 | D1 schema, migrations, or Worker/runtime setup | `services/api/README.md`, ADR-0003 |
-| tile generation, tile publication, or sync | ADR-0005, `contracts/tiles/slippy-xyz-vectors.v1.json` |
+| tile generation, tile publication, or sync | ADR-0005, ADR-0015, `contracts/tiles/slippy-xyz-vectors.v1.json` |
 | evidence, reconciliation, or publication gating | ADR-0006 |
 | evidence tiers, confidence axes, community reported/verified, freshness, ranking inputs | ADR-0012 |
 | community findings, confirmations, absence review, coverage tasks, seed areas, acquisition metrics | ADR-0013 |

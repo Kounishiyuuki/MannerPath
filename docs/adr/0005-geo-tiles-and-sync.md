@@ -14,6 +14,8 @@ Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchma
   - Hypothetical dense upper bound (5,823 spots; every OSM convenience store counted): the largest z14 tile is 4.3 KB gzip / 65 KB raw. A 3x3 fetch is 25.5 KB gzip at p90.
   - z13 was rejected: its largest raw tile was 178 KB, and one change invalidates a ~4 km tile.
 - Re-evaluate the zoom before release if a source makes any z14 tile exceed about 250 spots or 16 KB gzip, or if the spot DTO grows substantially. The benchmark used an estimated DTO.
+  - Re-evaluated in ADR-0015 (Issue #158) after #156 reached 2,223 spots in one z14 tile. Zoom cannot bound a dense
+    block, so the 250-spot / 16 KiB budget now binds each **tile part**, and z14 is kept.
 - Re-evaluate the zoom if the transport changes. The benchmark's request-count advantage for z14 assumes one HTTP request per tile. If multi-tile batching or neighborhood retrieval is added, the latency/request-count tradeoff changes and z15 may become more attractive. `DATA_TILE_ZOOM` is not independent of transport semantics.
 - Tile ID format: `"{z}/{x}/{y}"` (decimal integers, no padding).
 - Tile assignment of a spot is computed server-side from its canonical WGS84 coordinates.
@@ -29,7 +31,7 @@ Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchma
 
 ### Sync
 
-- A tile response is a **complete snapshot** of the published spots in that tile. There are no deltas and no tombstones in v1.
+- A tile response is a **complete snapshot** of the published spots in that tile. There are no deltas and no tombstones in v1. Since ADR-0015 a dense tile's snapshot is delivered as a manifest plus content-addressed parts, and the client applies all of them or none.
 - Each tile has a **monotonic per-tile revision** that increases whenever its published content changes.
 - `ETag` is derived from the response schema version + a canonical content hash of the tile. A schema version change therefore invalidates cached tiles even when data is unchanged.
 - The client replaces a tile's cached spots **atomically**: spots absent from the new snapshot are removed locally, including spots that moved to another tile, were removed, or were merged.

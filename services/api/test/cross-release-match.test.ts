@@ -16,6 +16,7 @@ import {
   NOW, TAITO_BYTES, TEST_BLOCKED_TAITO_ADAPTER, addBlockedTestSource, importTaito, sequentialSpotIds,
 } from "./support/fixture.ts";
 import { SqliteD1, withoutTrigger } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 // node:sqlite rows have a null prototype; spread them so deepEqual compares plain objects.
@@ -228,7 +229,7 @@ test("second release -> publish: matched spot ids stay in their tiles, only the 
   const db = freshDb("approved");
   await applyFirst(db);
   const first = await publishTiles(db, { now: NOW });
-  const tilesBefore = all(db, "SELECT tile_id, revision, content_sha256, body_json FROM tile_snapshots ORDER BY tile_id");
+  const tilesBefore = v1TileRows(db);
   const publishedBefore = all(db, "SELECT spot_id, tile_id FROM tile_snapshot_spots ORDER BY spot_id");
   assert.equal(publishedBefore.length, 34, "no attenuations under the test adapter, so every spot is published");
 
@@ -244,7 +245,7 @@ test("second release -> publish: matched spot ids stay in their tiles, only the 
   for (const b of publishedBefore) assert.ok(publishedAfter.some((a) => a.spot_id === b.spot_id && a.tile_id === b.tile_id));
 
   // Every tile carries a matched spot whose lastVerifiedAt moved, so every tile is republished.
-  const tilesAfter = all(db, "SELECT tile_id, revision, content_sha256, body_json FROM tile_snapshots ORDER BY tile_id");
+  const tilesAfter = v1TileRows(db);
   assert.equal(second.unchanged.length, 0);
   for (const b of tilesBefore) {
     const a = tilesAfter.find((t) => t.tile_id === b.tile_id)!;

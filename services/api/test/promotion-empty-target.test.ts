@@ -34,7 +34,7 @@ function refusedWithNothingWritten(target: DatabaseSync, sql: string, seeded: st
 test("both bootstrap guards (v2 and v3) name every table of a freshly migrated schema", () => {
   const db = migratedSqlite();
   const tables = TABLES(db);
-  assert.equal(tables.length, 54);
+  assert.equal(tables.length, 55);
   for (const guard of GUARDS) {
     const trigger = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?").get(guard) as { sql: string }).sql;
     for (const t of tables) assert.match(trigger, new RegExp(`EXISTS \\(SELECT 1 FROM ${t}\\)`), `${guard}: ${t} is not checked`);

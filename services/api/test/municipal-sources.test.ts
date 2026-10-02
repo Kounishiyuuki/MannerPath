@@ -21,6 +21,7 @@ import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 interface Row {
   adapter: SourceAdapter; release: ReleaseMetadata; fixture: string; sha256: string;
@@ -106,7 +107,7 @@ for (const s of SOURCES) {
     assert.equal(n(db, "SELECT count(*) n FROM spots"), s.spots);
     const report = await publishTiles(db, { now: NOW });
     assert.equal(report.published.reduce((sum, t) => sum + t.spotCount, 0), s.published);
-    for (const t of db.raw.prepare("SELECT body_json FROM tile_snapshots").all() as { body_json: string }[]) {
+    for (const t of v1TileRows(db)) {
       const body = TileBodyV1.parse(JSON.parse(t.body_json));
       assert.deepEqual(body.sources.map((x) => [x.id, x.attributionText]), [[id, s.adapter.registry.attributionText]]);
     }

@@ -1,4 +1,4 @@
-// Publication gate, z14 snapshots and the /v1 tile endpoint.
+// Publication gate, z14 snapshots and the /v1 tile endpoint (the v1 complete body; parts: tile-parts.test.ts).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -9,6 +9,7 @@ import { TileBodyV1, tileEtag } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileBody, v1TileRows } from "./support/tiles.ts";
 
 type Row = Record<string, any>;
 const all = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).all(...p) as Row[];
@@ -70,9 +71,9 @@ test("the approved Taito source publishes complete z14 snapshots; the unapproved
   for (const t of tiles) {
     assert.equal(t.z, DATA_TILE_ZOOM);
     assert.equal(t.revision, 1);
-    assert.equal(t.schema_version, 1);
-    assert.equal(t.content_sha256, sha256(t.body_json), "hash is over the exact stored body");
-    const body = TileBodyV1.parse(JSON.parse(t.body_json));
+    assert.equal(t.schema_version, 2);
+    assert.equal(t.content_sha256, sha256(t.body_json), "hash is over the exact stored manifest");
+    const body = TileBodyV1.parse(JSON.parse(v1TileBody(db, t.tile_id)!));
     assert.equal(body.tile, t.tile_id);
     assert.equal(body.spots.length, t.spot_count);
     assert.deepEqual(body.sources, [{
@@ -95,7 +96,7 @@ test("the approved Taito source publishes complete z14 snapshots; the unapproved
 
 test("tile body v1: exact shape, fixed key order, heated-only and unknown values carried through", async () => {
   const db = await publishedDb();
-  const bodies = all(db, "SELECT body_json FROM tile_snapshots").map((t) => JSON.parse(t.body_json));
+  const bodies = v1TileRows(db).map((t) => JSON.parse(t.body_json));
   assert.deepEqual(Object.keys(bodies[0]), ["schemaVersion", "tile", "revision", "generatedAt", "spots", "sources"]);
   const spots = bodies.flatMap((b) => b.spots);
   assert.deepEqual(Object.keys(spots[0]), [
@@ -147,20 +148,19 @@ test("blocking an approved source after publication empties its tiles on the nex
   assert.equal(report.published.length, 5);
   assert.ok(report.published.every((p) => p.spotCount === 0 && p.revision === 2));
   assert.equal(one(db, "SELECT count(*) AS n FROM tile_snapshot_spots").n, 0);
-  for (const t of all(db, "SELECT body_json FROM tile_snapshots")) {
+  for (const t of v1TileRows(db)) {
     assert.deepEqual(JSON.parse(t.body_json).spots, []);
     assert.deepEqual(JSON.parse(t.body_json).sources, []);
   }
 });
 
-test("GET /v1/tiles serves the stored body byte-for-byte with a strong ETag", async () => {
+test("GET /v1/tiles serves the single-part tile's v1 body byte-for-byte with a strong ETag over it", async () => {
   const db = await publishedDb();
-  const t = one(db, "SELECT * FROM tile_snapshots ORDER BY tile_id LIMIT 1");
+  const t = v1TileRows(db)[0];
   const res = await get(db, `/v1/tiles/${t.tile_id}`);
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("Content-Type"), "application/json; charset=utf-8");
-  assert.equal(res.headers.get("ETag"), tileEtag(1, t.content_sha256));
-  assert.equal(res.headers.get("ETag"), `"1-${sha256(t.body_json)}"`);
+  assert.equal(res.headers.get("ETag"), tileEtag(1, sha256(t.body_json)));
   assert.equal(res.headers.get("Cache-Control"), "public, no-cache");
   const text = await res.text();
   assert.equal(text, t.body_json);
@@ -169,8 +169,8 @@ test("GET /v1/tiles serves the stored body byte-for-byte with a strong ETag", as
 
 test("If-None-Match returns 304 for a current tag and 200 otherwise", async () => {
   const db = await publishedDb();
-  const t = one(db, "SELECT * FROM tile_snapshots ORDER BY tile_id LIMIT 1");
-  const etag = tileEtag(1, t.content_sha256);
+  const t = v1TileRows(db)[0];
+  const etag = tileEtag(1, sha256(t.body_json));
   for (const inm of [etag, `W/${etag}`, `"other", ${etag}`, "*"]) {
     const res = await get(db, `/v1/tiles/${t.tile_id}`, { "If-None-Match": inm });
     assert.equal(res.status, 304, inm);

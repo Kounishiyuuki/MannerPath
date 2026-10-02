@@ -9,6 +9,7 @@ import { TILE_REEVALUATION_GZIP_BYTES, TILE_REEVALUATION_SPOTS, analyzeCorpus } 
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TEST_BLOCKED_SOURCE, addBlockedTestSource, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { TILE_PART_POLICY } from "../src/tiles/parts.ts";
 
 const analyze = (db: SqliteD1) => analyzeCorpus(db, { now: NOW, gzip: (b) => gzipSync(b).length });
 
@@ -53,17 +54,20 @@ test("reports the largest tile and its distance from the ADR-0005 re-evaluation 
   assert.equal(r.thresholds.withinThresholds, true);
 });
 
-// The gate's logic, independent of the zlib build (Issue #76): a stand-in sizer reports every tile
-// at a chosen size. The gate trips only strictly above TILE_REEVALUATION_GZIP_BYTES.
+// The gate's logic, independent of the zlib build (Issue #76): a stand-in sizer reports every tile and part
+// at a chosen size. Since ADR-0015 the hard gate binds each part, and trips only strictly above maxGzipBytes;
+// the whole-tile re-evaluation threshold (the same 16 KiB) is reported, not gated.
 for (const [size, within] of [[1, true], [TILE_REEVALUATION_GZIP_BYTES, true], [TILE_REEVALUATION_GZIP_BYTES + 1, false]] as const) {
-  test(`a ${size}-byte gzipped tile is ${within ? "within" : "over"} the re-evaluation gzip threshold`, async () => {
+  test(`a ${size}-byte gzipped part is ${within ? "within" : "over"} the tile part budget`, async () => {
     const db = await publishedDb();
     const r = await analyzeCorpus(db, { now: NOW, gzip: () => size });
     assert.equal(r.thresholds.maxGzipBytesPerTile, size);
     assert.equal(r.thresholds.withinThresholds, within);
-    const gate = r.checks.find((c) => c.id === "tile-zoom-thresholds")!;
+    assert.equal(r.thresholds.maxPartGzipBytes, size);
+    assert.equal(TILE_PART_POLICY.maxGzipBytes, TILE_REEVALUATION_GZIP_BYTES);
+    const gate = r.checks.find((c) => c.id === "tile-part-budget")!;
     assert.equal(gate.status, within ? "pass" : "fail");
-    assert.match(gate.detail, new RegExp(`max ${size} gzip bytes/tile \\(trigger ${TILE_REEVALUATION_GZIP_BYTES}\\)`));
+    assert.match(gate.detail, new RegExp(`/ ${size} gzip bytes per part \\(limits ${TILE_PART_POLICY.maxSpots} / ${TILE_PART_POLICY.maxRawBytes} / ${TILE_PART_POLICY.maxGzipBytes}\\)`));
     assert.equal(r.failedChecks, within ? 0 : 1);
   });
 }
@@ -217,15 +221,14 @@ test("published verification dates must be valid and no later than the analysis 
   assert.equal(baseline.nationwide.freshness.publishedWithin365Days, 32);
   assert.equal(baseline.checks.find((check) => check.id === "freshness-timestamps-valid-and-not-future")?.status, "pass");
 
-  const tile = db.raw.prepare("SELECT tile_id, body_json FROM tile_snapshots ORDER BY tile_id LIMIT 1")
+  const part = db.raw.prepare("SELECT tile_id, body_json FROM tile_snapshot_parts ORDER BY tile_id, part_index LIMIT 1")
     .get() as { tile_id: string; body_json: string };
   // Inject malformed published evidence without running the publisher's republish path.
-  db.raw.prepare("DROP TRIGGER tile_snapshots_revision_monotonic").run();
   for (const date of ["2027-01-01", "2026-02-30"]) {
-    const body = JSON.parse(tile.body_json);
+    const body = JSON.parse(part.body_json);
     body.spots[0].lastVerifiedAt = date;
-    db.raw.prepare("UPDATE tile_snapshots SET body_json = ? WHERE tile_id = ?")
-      .run(JSON.stringify(body), tile.tile_id);
+    db.raw.prepare("UPDATE tile_snapshot_parts SET body_json = ? WHERE tile_id = ? AND part_index = 0")
+      .run(JSON.stringify(body), part.tile_id);
     const r = await analyze(db);
     assert.equal(r.nationwide.freshness.publishedWithin365Days, 31, date);
     assert.equal(r.sourceMetrics[0].publishedWithin365Days.count, 31, date);

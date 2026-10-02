@@ -26,6 +26,7 @@ import { importAllReviewedSources } from "../test/support/reviewed-fixtures.ts";
 import { applyPromotionBundle, migratedSqlite, reportsD1, SqliteD1 } from "../test/support/sqlite-d1.ts";
 import { AuditedDb } from "./scale/audit.ts";
 import { DATA_TILE_ZOOM, tileForCoordinate, formatTileId } from "../src/geo/tile.ts";
+import { readPublishedTiles, TILE_PART_POLICY } from "../src/tiles/parts.ts";
 import { scaleOptions } from "./scale/options.ts";
 import { CORPUS_VERSION, CORPUS_SEED, DENSE_AREAS, PROFILES, corpusDigest, type Profile } from "./scale/corpus.ts";
 import { loadCommunityCorpus, BENCHMARK_NOW, PRIVATE_SENTINEL } from "./scale/load.ts";
@@ -43,8 +44,7 @@ const rows = <T>(sql:string) => db.base.raw.prepare(sql).all() as T[];
 const n = (sql:string) => (db.base.raw.prepare(sql).get() as {n:number}).n;
 await measure("officialImport", () => importAllReviewedSources(db, BENCHMARK_NOW));
 await measure("officialPublish", () => publishTiles(db, { now: BENCHMARK_NOW }));
-const officialBefore = rows<{spot_id:string;body_json:string}>("SELECT spot_id, body_json FROM tile_snapshot_spots JOIN tile_snapshots USING(tile_id) ORDER BY spot_id")
-  .map((r) => TileBodyV1.parse(JSON.parse(r.body_json)).spots.find((s) => s.id === r.spot_id));
+const officialBefore = (await readPublishedTiles(db)).flatMap((t) => t.spots).sort((a,b)=>a.id.localeCompare(b.id));
 assert.equal(officialBefore.length, 513);
 const zeroBefore = gapTasks(officialBefore as never).length;
 assert.equal(COMMUNITY_PUBLICATION.state, "pending");
@@ -63,12 +63,15 @@ const registry: PromotionRegistry = { source: (id) => id === COMMUNITY_SOURCE_ID
   terms: (v) => ({ ...reviewedTerms(v), publicationRights: "granted" }) };
 await measure("communityPublish", () => publishTiles(db, { now: BENCHMARK_NOW }));
 assert.equal(n("SELECT count(*) AS n FROM tile_snapshot_spots"), PROFILES[profile] + 513);
-const tiles = rows<{tile_id:string;body_json:string;spot_count:number;content_sha256:string}>("SELECT tile_id,body_json,spot_count,content_sha256 FROM tile_snapshots ORDER BY tile_id");
+// ADR-0015: the stored unit is a part; the whole tile is what a v1 body would be, kept for before/after comparison.
+const tiles = await readPublishedTiles(db);
+const parts = rows<{tile_id:string;body_json:string;spot_count:number}>("SELECT tile_id,body_json,spot_count FROM tile_snapshot_parts ORDER BY tile_id,part_index");
 const tileStats = await measure("tileSerializeDecode", () => tiles.map((t) => {
-  const start=performance.now(); const decoded=TileBodyV1.parse(JSON.parse(t.body_json)); const decodeMs=performance.now()-start;
-  return { tileId:t.tile_id, spots:t.spot_count, rawBytes:Buffer.byteLength(t.body_json), gzipBytes:gzipSync(t.body_json).length, decodeMs };
+  const body = JSON.stringify(t); const start=performance.now(); TileBodyV1.parse(JSON.parse(body)); const decodeMs=performance.now()-start;
+  return { tileId:t.tile, spots:t.spots.length, rawBytes:Buffer.byteLength(body), gzipBytes:gzipSync(body).length, decodeMs };
 }));
-const visible = tiles.flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+const partStats = parts.map((p) => ({ tileId:p.tile_id, spots:p.spot_count, rawBytes:Buffer.byteLength(p.body_json), gzipBytes:gzipSync(p.body_json).length }));
+const visible = tiles.flatMap((t) => t.spots);
 const officialAfter = visible.filter((s) => s.verification.existence === "official").sort((a,b)=>a.id.localeCompare(b.id));
 assert.deepEqual(officialAfter, officialBefore);
 const gaps = await measure("coverageTasks", () => gapTasks(visible));
@@ -78,7 +81,7 @@ const visited = new Set(rows<{spot_id:string}>("SELECT spot_id FROM community_ev
 const progress = await measure("campaignProgress", () => campaignProgress(visible,visited));
 const acquisition = await measure("acquisitionMetrics", () => communityAcquisitionMetrics(db,visible,{now:BENCHMARK_NOW,reportsDb}));
 await measure("spotDetail", () => readPublishedSpot(db,visible[0].id));
-await measure("tileRead", () => db.prepare("SELECT body_json,content_sha256 FROM tile_snapshots WHERE tile_id=?").bind(tiles[0].tile_id).first());
+await measure("tileRead", () => db.prepare("SELECT body_json,content_sha256 FROM tile_snapshot_parts WHERE tile_id=? AND part_index=0").bind(tiles[0].tile).first());
 const quality = await measure("quality", () => analyzeCorpus(db, { now:BENCHMARK_NOW, gzip:(s)=>gzipSync(s).length }));
 const crossSource = await measure("crossSource", () => generateCrossSourceCandidates(db, { now:BENCHMARK_NOW }));
 const bundle = await measure("promotion", () => buildMultiSourcePromotionBundle(db, { registry }));
@@ -121,7 +124,9 @@ const report = { version:"community-scale-benchmark.v1", profile, corpus:{versio
   statementLimits:{data:db.limits,reports:reportsDb.limits},
   indexes:{data:rows("SELECT name,sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL ORDER BY name"),reports:reportsDb.base.raw.prepare("SELECT name,sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL ORDER BY name").all()},
   queries:[...[...db.reads.values()].map((r)=>({...r,database:"DATA_DB"})), ...[...reportsDb.reads.values()].map((r)=>({...r,database:"REPORTS_DB"}))].sort((a,b)=>b.elapsedMs-a.elapsedMs),
-  tiles:{denseAreas:DENSE_AREAS.map((id)=>{const area=SEED_AREAS.find((s)=>s.id===id)!;const t=tileForCoordinate(area.latitude,area.longitude,DATA_TILE_ZOOM);return{areaId:id,name:area.name,tile:tileStats.find((s)=>s.tileId===formatTileId(t))??null};}),count:tileStats.length,maxSpots:Math.max(...tileStats.map((t)=>t.spots)),maxGzip:sortedGzip.at(-1),p95Gzip:sortedGzip[Math.ceil(sortedGzip.length*.95)-1],budgets:{spots:TILE_REEVALUATION_SPOTS,gzipBytes:TILE_REEVALUATION_GZIP_BYTES}, exceeding:tileStats.filter((t)=>t.spots>TILE_REEVALUATION_SPOTS||t.gzipBytes>TILE_REEVALUATION_GZIP_BYTES),stats:tileStats},
+  tiles:{denseAreas:DENSE_AREAS.map((id)=>{const area=SEED_AREAS.find((s)=>s.id===id)!;const t=tileForCoordinate(area.latitude,area.longitude,DATA_TILE_ZOOM);return{areaId:id,name:area.name,tile:tileStats.find((s)=>s.tileId===formatTileId(t))??null};}),count:tileStats.length,maxSpots:Math.max(...tileStats.map((t)=>t.spots)),maxGzip:sortedGzip.at(-1),p95Gzip:sortedGzip[Math.ceil(sortedGzip.length*.95)-1],budgets:{spots:TILE_REEVALUATION_SPOTS,gzipBytes:TILE_REEVALUATION_GZIP_BYTES}, exceeding:tileStats.filter((t)=>t.spots>TILE_REEVALUATION_SPOTS||t.gzipBytes>TILE_REEVALUATION_GZIP_BYTES),stats:tileStats,
+    parts:{policy:TILE_PART_POLICY,count:partStats.length,maxSpots:Math.max(...partStats.map((p)=>p.spots)),maxRawBytes:Math.max(...partStats.map((p)=>p.rawBytes)),maxGzipBytes:Math.max(...partStats.map((p)=>p.gzipBytes)),
+      overBudget:partStats.filter((p)=>p.spots>TILE_PART_POLICY.maxSpots||p.rawBytes>TILE_PART_POLICY.maxRawBytes||p.gzipBytes>TILE_PART_POLICY.maxGzipBytes)}},
   promotion:{rawBytes:Buffer.byteLength(bundle.sql),gzipBytes:gzipSync(bundle.sql).length,sha256:bundle.manifest.contentSha256,maxStatementBytes:maxPromotionStatementBytes,bootstrapSpotCount:PROFILES[profile]+513,tiers,deterministic:true,privateDataAbsent:true},
   coverage:{seeds:SEED_AREAS.length,zeroBefore,zeroAfter:gaps.length,progress,acquisition},quality:quality.nationwide,bootstrapQuality:bootstrapQuality.nationwide,
   crossSource:{candidates:crossSource.length,automaticMerges:n("SELECT count(*) AS n FROM cross_source_merge_applications")},moderation:{pageSize:moderation.length,triagePageSize:triage.length,duplicatePageSize:duplicates.length,corrections:corrections.length,evidenceSpots:evidence.length,evidenceStates:{needsRecheck:evidence.filter((s)=>s.state==="needsRecheck").length,absenceCandidates:evidence.filter((s)=>s.state==="reviewCandidate").length,conflicting:evidence.filter((s)=>s.conflicting).length}},retention:{first:retention,resumed:redactionResumed},
@@ -129,7 +134,7 @@ const report = { version:"community-scale-benchmark.v1", profile, corpus:{versio
 writeFileSync(output+".json",JSON.stringify(report,null,2)+"\n");
 writeFileSync(output+"-campaign.json",JSON.stringify(progress,null,2)+"\n");
 writeFileSync(output+"-campaign.md",campaignProgressMarkdown(progress));
-writeFileSync(output+".md",`# Community scale: ${profile}\n\nLocal SQLite only; production publication remains pending and blocked.\n\n${PROFILES[profile]} synthetic spots / ${loaded.reports} reports; ${dbBytes} DB bytes.\n\n| Operation | ms |\n| --- | ---: |\n${Object.entries(timings).map(([k,v])=>`| ${k} | ${v} |`).join("\n")}\n\nTile max / p95 gzip: ${sortedGzip.at(-1)} / ${report.tiles.p95Gzip} bytes. Maximum spots/tile: ${report.tiles.maxSpots}. Budget violations: ${report.tiles.exceeding.length}.\n\nPromotion: ${report.promotion.rawBytes} bytes (${report.promotion.gzipBytes} gzip); SHA ${report.promotion.sha256}.\n\nSeeds: ${SEED_AREAS.length}; zero coverage before / after: ${zeroBefore} / ${gaps.length}.\n\nSee JSON for exact production SQL plans, memory snapshots, quality and bootstrap counts.\n`);
+writeFileSync(output+".md",`# Community scale: ${profile}\n\nLocal SQLite only; production publication remains pending and blocked.\n\n${PROFILES[profile]} synthetic spots / ${loaded.reports} reports; ${dbBytes} DB bytes.\n\n| Operation | ms |\n| --- | ---: |\n${Object.entries(timings).map(([k,v])=>`| ${k} | ${v} |`).join("\n")}\n\nTile max / p95 gzip: ${sortedGzip.at(-1)} / ${report.tiles.p95Gzip} bytes. Maximum spots/tile: ${report.tiles.maxSpots}. Whole tiles above the ADR-0005 re-evaluation trigger: ${report.tiles.exceeding.length}. Parts (${TILE_PART_POLICY.version}): ${report.tiles.parts.count}, max ${report.tiles.parts.maxSpots} spots / ${report.tiles.parts.maxGzipBytes} gzip bytes, over budget: ${report.tiles.parts.overBudget.length}.\n\nPromotion: ${report.promotion.rawBytes} bytes (${report.promotion.gzipBytes} gzip); SHA ${report.promotion.sha256}.\n\nSeeds: ${SEED_AREAS.length}; zero coverage before / after: ${zeroBefore} / ${gaps.length}.\n\nSee JSON for exact production SQL plans, memory snapshots, quality and bootstrap counts.\n`);
 process.stdout.write(JSON.stringify({profile,output:output+".json",spots:PROFILES[profile],timingsMs:timings,dbBytes,maxTileGzip:report.tiles.maxGzip,promotionBytes:report.promotion.rawBytes})+"\n");
 unlinkSync(output+".partial.json");
 target.close(); db.base.raw.close(); reportsDb.base.raw.close();

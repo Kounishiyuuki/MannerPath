@@ -16,6 +16,7 @@ import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 const BYTES = new Uint8Array(readFileSync(new URL("../../data-pipeline/fixtures/osaka-designated-smoking-areas/opendata_1012.csv", import.meta.url)));
 const GOLDEN = new URL("./golden/osaka-pipeline.golden.json", import.meta.url);
@@ -148,7 +149,7 @@ test("Osaka full pipeline has deterministic golden digests, API contracts and co
   assert.ok(detail.provenance.every((p) => p.observedOn === null && p.sourceId === OSAKA_SOURCE_ID));
   assert.equal(detail.provenance.find((p) => p.field === "existence")?.rule, OSAKA_EXISTENCE_RULE);
   const tables: Record<string, { count: number; digest: string }> = {};
-  for (const table of ["source_releases", "source_records", "source_observations", "source_entities", "source_record_entities", "spots", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"]) {
+  for (const table of ["source_releases", "source_records", "source_observations", "source_entities", "source_record_entities", "spots", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_parts", "tile_snapshot_spots"]) {
     const rows = all(db, `SELECT * FROM ${table} ORDER BY 1`);
     tables[table] = { count: rows.length, digest: digest(rows) };
   }
@@ -169,7 +170,7 @@ test("two real reviewed sources import independently; blocking Osaka withdraws o
   assert.equal((await app.request(`/v1/spots/${id}`, {}, { DB: db })).status, 404);
   await publishTiles(db, { now: NOW });
   assert.equal(count(db, "tile_snapshot_spots"), 32);
-  assert.ok(all(db, "SELECT body_json FROM tile_snapshots").every((t) => !JSON.parse(t.body_json).sources.some((s: Row) => s.id === OSAKA_SOURCE_ID)));
+  assert.ok(v1TileRows(db).every((t) => !JSON.parse(t.body_json).sources.some((s: Row) => s.id === OSAKA_SOURCE_ID)));
   assert.deepEqual(await resolveFirstRelease(db, OSAKA_ADAPTER, releaseId, { now: NOW }), { status: "alreadyApplied" });
   const next = await ingest(db, { ...OSAKA_FIXTURE_RELEASE, fetchedAt: "2026-10-01T00:00:00Z", observedOn: "2026-10-01" });
   await assert.rejects(resolveFirstRelease(db, OSAKA_ADAPTER, next.releaseId, { now: NOW }), /cross-release reconciliation is not implemented/);

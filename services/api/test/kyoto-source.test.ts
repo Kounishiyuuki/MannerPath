@@ -18,6 +18,7 @@ import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 const fixture = (path: string) => new Uint8Array(readFileSync(new URL(`../../data-pipeline/fixtures/${path}`, import.meta.url)));
 const BYTES = fixture("kyoto-public-smoking-places/20260903_shisetsu.csv");
@@ -105,7 +106,7 @@ test("Kyoto full pipeline has deterministic golden digests, API contracts and at
   assert.equal(detail.sources[0].attributionText, KYOTO_ATTRIBUTION_TEXT);
   assert.ok(detail.provenance.every((p) => p.observedOn === "2026-09-03" && p.sourceId === KYOTO_SOURCE_ID));
   const tables: Record<string, { count: number; digest: string }> = {};
-  for (const table of ["source_releases", "source_records", "source_observations", "source_entities", "source_record_entities", "spots", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"]) {
+  for (const table of ["source_releases", "source_records", "source_observations", "source_entities", "source_record_entities", "spots", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_parts", "tile_snapshot_spots"]) {
     const rows = all(db, `SELECT * FROM ${table} ORDER BY 1`);
     tables[table] = { count: rows.length, digest: digest(rows) };
   }
@@ -130,7 +131,7 @@ test("four reviewed municipal sources coexist; Kyoto withdrawal cannot contamina
   db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(KYOTO_SOURCE_ID);
   await publishTiles(db, { now: NOW });
   assert.equal(count(db, "tile_snapshot_spots"), 379);
-  assert.ok(all(db, "SELECT body_json FROM tile_snapshots").every((t) => !JSON.parse(t.body_json).sources.some((s: Row) => s.id === KYOTO_SOURCE_ID)));
+  assert.ok(v1TileRows(db).every((t) => !JSON.parse(t.body_json).sources.some((s: Row) => s.id === KYOTO_SOURCE_ID)));
   const next = await ingestRelease(db, KYOTO_ADAPTER, BYTES, { ...KYOTO_FIXTURE_RELEASE, observedOn: "2026-10-01", fetchedAt: "2026-10-01T00:00:00Z" });
   await assert.rejects(resolveFirstRelease(db, KYOTO_ADAPTER, next.releaseId, { now: NOW }), /cross-release reconciliation is not implemented/);
   assert.deepEqual(await resolveFirstRelease(db, KYOTO_ADAPTER, releaseId, { now: NOW }), { status: "alreadyApplied" });

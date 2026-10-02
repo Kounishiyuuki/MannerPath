@@ -14,6 +14,7 @@ import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 const directory = new URL("../../data-pipeline/research/community-acquisition/", import.meta.url);
 const read = (url: URL) => JSON.parse(readFileSync(url, "utf8"));
@@ -151,7 +152,7 @@ test("per-area metrics separate community tiers and count visited confirmations 
   try {
     await importAllReviewedSources(db, coverage.measuredAt);
     await publishTiles(db, { now: coverage.measuredAt });
-    const tile = TileBodyV1.parse(JSON.parse((await db.prepare("SELECT body_json FROM tile_snapshots LIMIT 1").first<{ body_json: string }>())!.body_json));
+    const tile = TileBodyV1.parse(JSON.parse(v1TileRows(db)[0].body_json));
     const seed = SEED_AREAS.find((a) => a.id === station.seedAreaId)!;
     const template = { ...tile.spots[0], latitude: seed.latitude, longitude: seed.longitude };
     const spots = [
@@ -173,7 +174,7 @@ test("campaign generation and the real task endpoint never mutate canonical reco
     const dump = () => ["spots", "sources", "tile_snapshots", "tile_snapshot_spots"].map((table) =>
       JSON.stringify(db.raw.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()));
     const before = dump();
-    const tiles = (await db.prepare("SELECT body_json FROM tile_snapshots").all<{ body_json: string }>()).results;
+    const tiles = v1TileRows(db);
     const spots = [...new Map(tiles.flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots).map((s) => [s.id, s])).values()];
     const measured = await communityAcquisitionMetrics(db, spots, { now: coverage.measuredAt });
     assert.deepEqual(measured.seedAreaCoverage.areas, coverage.areas);

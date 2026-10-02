@@ -13,6 +13,7 @@ import {buildMultiSourcePromotionBundle, verifyPromotionBundle} from "../src/pip
 import {analyzeCorpus} from "../src/quality/analyze.ts";
 import {generateCrossSourceCandidates} from "../src/pipeline/cross-source.ts";
 import {app} from "../src/app.ts";
+import { v1TileRows } from "./support/tiles.ts";
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const now = "2026-10-01T00:00:00Z";
 const queryRows = (db: SqliteD1, table: string) => db.raw.prepare(`SELECT * FROM ${table} ORDER BY 1`).all();
@@ -53,7 +54,7 @@ test("OSM reference CLI cannot change approved corpus, fixtures, registry, tiles
  assert.equal(afterBundle.sql, beforeBundle.sql);
  assert.doesNotMatch(afterBundle.sql, /REFERENCE_ONLY|938742938742|23\.456789|123\.456789|OpenStreetMap|ODbL/);
  assert.equal(db.raw.prepare("SELECT count(*) n FROM sources WHERE kind = 'osm'").get()?.n, 0);
- for (const tile of db.raw.prepare("SELECT tile_id, body_json FROM tile_snapshots").all()) {
+ for (const tile of v1TileRows(db)) {
   const response = await app.request(`/v1/tiles/${tile.tile_id}`, {}, {DB: db});
   assert.equal(response.status, 200);
   const body = await response.text();

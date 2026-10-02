@@ -37,7 +37,11 @@
     },
     "tile_snapshots": {
       "count": 6,
-      "digest": "8a4eb0c16daa2dccc3be84cc5967a4cc8bd6db5c1487ae076591bf4bc4fcadf9"
+      "digest": "9c2ff05eb7eec68da3eee0a7f89b2049421bb94bc14b6c343c27c52b7b1a9ba9"
+    },
+    "tile_snapshot_parts": {
+      "count": 6,
+      "digest": "d3e6aea9e3771d12136e83476c8ad5f2339b5b37f1bb5318da06dbe8e39e9263"
     },
     "tile_snapshot_spots": {
       "count": 17,

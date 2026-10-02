@@ -17,6 +17,7 @@ import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
 
 const BYTES = new Uint8Array(readFileSync(new URL("../../data-pipeline/fixtures/koto-station-smoking-areas/131083_237_public_smoking_area_station.csv", import.meta.url)));
 const GOLDEN = new URL("./golden/koto-pipeline.golden.json", import.meta.url);
@@ -155,7 +156,7 @@ test("Koto full pipeline has deterministic golden digests, API contracts and com
   assert.ok(detail.provenance.every((p) => p.observedOn === null && p.sourceId === KOTO_SOURCE_ID));
   assert.equal(detail.provenance.find((p) => p.field === "existence")?.rule, KOTO_EXISTENCE_RULE);
   const tables: Record<string, { count: number; digest: string }> = {};
-  for (const table of ["source_releases", "source_records", "source_observations", "source_entities", "source_record_entities", "spots", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_spots"]) {
+  for (const table of ["source_releases", "source_records", "source_observations", "source_entities", "source_record_entities", "spots", "spot_field_provenance", "spot_field_attenuations", "tile_snapshots", "tile_snapshot_parts", "tile_snapshot_spots"]) {
     const rows = all(db, `SELECT * FROM ${table} ORDER BY 1`);
     tables[table] = { count: rows.length, digest: digest(rows) };
   }
@@ -182,7 +183,7 @@ test("three reviewed municipal sources coexist; Koto withdrawal cannot contamina
   assert.equal((await app.request(`/v1/spots/${osakaId}`, {}, { DB: db })).status, 200);
   await publishTiles(db, { now: NOW });
   assert.equal(count(db, "tile_snapshot_spots"), 376);
-  assert.ok(all(db, "SELECT body_json FROM tile_snapshots").every((t) => !JSON.parse(t.body_json).sources.some((s: Row) => s.id === KOTO_SOURCE_ID)));
+  assert.ok(v1TileRows(db).every((t) => !JSON.parse(t.body_json).sources.some((s: Row) => s.id === KOTO_SOURCE_ID)));
   assert.deepEqual(await resolveFirstRelease(db, KOTO_ADAPTER, releaseId, { now: NOW }), { status: "alreadyApplied" });
   assert.equal(KOTO_ADAPTER.crossReleaseValidated, false);
   assert.equal(KOTO_ADAPTER.completeness, "partial");
