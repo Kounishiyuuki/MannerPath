@@ -14,6 +14,7 @@ import { CURRENT_REPORT_TERMS, reviewedTerms } from "../src/reports/terms.ts";
 import { reviewedSource } from "../src/pipeline/registry.ts";
 import { type PromotionRegistry } from "../src/pipeline/promotion.ts";
 import { generateCrossSourceCandidates } from "../src/pipeline/cross-source.ts";
+import { promotionReadiness } from "../src/pipeline/promotion-readiness.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { exportPromotionV4 } from "./promotion-v4-export.ts";
 import { applyPromotionV4, applyV4Chunk, finalizePromotionV4 } from "./promotion-v4-apply.ts";
@@ -58,8 +59,9 @@ function quality(db: DatabaseSync) {
   const missingAttribution = scalar(db, "SELECT count(*) AS n FROM sources WHERE publication_status='approved' AND (attribution_text IS NULL OR attribution_text='')");
   const unpublishedEvidence = scalar(db, "SELECT count(*) AS n FROM spot_field_provenance p JOIN tile_snapshot_spots t USING(spot_id) JOIN source_records r USING(record_id) JOIN source_releases l USING(release_id) JOIN sources s USING(source_id) WHERE s.publication_status!='approved'");
   assert.equal(missingExistence + missingAttribution + unpublishedEvidence, 0);
-  return { published: scalar(db, "SELECT count(*) AS n FROM tile_snapshot_spots"), tiles: scalar(db, "SELECT count(*) AS n FROM tile_snapshots"), missingExistence, missingAttribution, unpublishedEvidence,
+  return { published: scalar(db, "SELECT count(*) AS n FROM tile_snapshot_spots"), tiles: scalar(db, "SELECT count(*) AS n FROM tile_snapshots"), totalTileParts: scalar(db, "SELECT count(*) AS n FROM tile_snapshot_parts"), maxPartsPerTile: scalar(db, "SELECT coalesce(max(n),0) n FROM (SELECT count(*) n FROM tile_snapshot_parts GROUP BY tile_id)"), missingExistence, missingAttribution, unpublishedEvidence,
     tiers: db.prepare("SELECT evidence_quality,count(*) AS n FROM spots JOIN tile_snapshot_spots USING(spot_id) GROUP BY evidence_quality ORDER BY evidence_quality").all(),
+    partsDigest: digestRows(db, "SELECT * FROM tile_snapshot_parts ORDER BY tile_id,part_index"),
     tileDigest: digestRows(db, "SELECT tile_id,revision,spot_count,content_sha256 FROM tile_snapshots ORDER BY tile_id"),
     publishedRowsDigest: digestRows(db, "SELECT s.* FROM spots s JOIN tile_snapshot_spots USING(spot_id) ORDER BY s.spot_id") };
 }
@@ -128,6 +130,8 @@ export async function runPromotionScale(options: PromotionScaleOptions): Promise
         const latencies: number[] = [];
         await measure(`apply:${chunkBytes}`, async () => { for (const chunk of manifest.chunks) { const start = performance.now(); assert.equal(await applyV4Chunk(target, directory, manifest.wholeBundleSha256, chunk.ordinal), "applied"); latencies.push(Math.round((performance.now() - start) * 100) / 100); } });
         await measure(`finalize:${chunkBytes}`, () => finalizePromotionV4(target, directory, manifest.wholeBundleSha256));
+        assert.deepEqual(await promotionReadiness(new SqliteD1(target)), { schemaVersion: 1, state: "completed", completed: true });
+        entry.readiness = "completed";
         entry.bootstrapMs = Math.round((performance.now() - bootstrapStart) * 100) / 100;
         entry.chunkApplyMs = latencies; entry.maxChunkApplyMs = Math.max(...latencies);
         const after = await measure(`qualityAfter:${chunkBytes}`, () => quality(target)); assert.deepEqual(after, before); entry.qualityAfter = after;

@@ -4,11 +4,13 @@ import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync,
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { ADDITIVE_TABLES, MULTI_SOURCE_TABLES, RELEASE_SOURCE, literal, validateRelease, validateSnapshots, type MultiSourcePromotionSource, type PromotionRegistry, type TableSpec } from "../src/pipeline/promotion.ts";
+import { ADDITIVE_TABLES, MULTI_SOURCE_TABLES, RELEASE_SOURCE, literal, validateRelease, type MultiSourcePromotionSource, type PromotionRegistry, type TableSpec } from "../src/pipeline/promotion.ts";
 import { reviewedSource } from "../src/pipeline/registry.ts";
 import { reviewedTerms } from "../src/reports/terms.ts";
 import { SqliteD1 } from "../test/support/sqlite-d1.ts";
 import { D1_CAPACITY_POLICY, canonicalManifestDigest, type PromotionV4Manifest } from "./promotion-v4-format.ts";
+
+import { validateV4Tile } from "./promotion-v4-tiles.ts";
 
 type Row = Record<string, unknown>;
 const registryDefault: PromotionRegistry = { source: reviewedSource, terms: reviewedTerms };
@@ -146,15 +148,7 @@ export async function exportPromotionV4(db: DatabaseSync, outputDir: string, opt
         const sql = insert(spec.table, spec.columns, spec.columns.map((c) => row[c]));
         if (Buffer.byteLength(sql + "\n") >= D1_CAPACITY_POLICY.statementBytes) refuse(`${spec.table}: statement is ${Buffer.byteLength(sql + "\n")} bytes; tile/value capacity must be fixed before promotion`);
         if (spec.table === "tile_snapshots") {
-          const decoded = JSON.parse(String(row.body_json)) as { spots?: unknown[] };
-          if (!Array.isArray(decoded.spots)) refuse("tile body has no spot array");
-          // A corrupt membership table must not turn a small tile body into an unbounded read.
-          const members = db.prepare("SELECT * FROM tile_snapshot_spots WHERE tile_id=? ORDER BY spot_id LIMIT ?").all(row.tile_id, decoded.spots.length + 1);
-          const membershipCount = Number((db.prepare("SELECT count(*) AS n FROM tile_snapshot_spots WHERE tile_id=?").get(row.tile_id) as { n: number }).n);
-          if (membershipCount !== decoded.spots.length) refuse("tile snapshot membership does not match the body");
-          const spots = members.map((m) => db.prepare("SELECT * FROM spots WHERE spot_id=?").get(m.spot_id) as Row);
-          await validateSnapshots(new Map([["sources", sources], ["spots", spots], ["tile_snapshot_spots", members], ["tile_snapshots", [row]]]));
-          tiles.push({ tileId: String(row.tile_id), revision: Number(row.revision), spotCount: Number(row.spot_count), contentSha256: String(row.content_sha256) });
+          tiles.push(await validateV4Tile(db, row, sources));
           tileMetadataBytes += Buffer.byteLength(JSON.stringify(tiles[tiles.length - 1]));
           if (tileMetadataBytes > D1_CAPACITY_POLICY.maxManifestBytes / 2) refuse("tile declarations exceed manifest capacity");
         }

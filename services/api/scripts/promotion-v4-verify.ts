@@ -22,7 +22,8 @@ const manifestSchema = z.object({
     additiveReleases: z.array(z.object({ releaseId: positive, releaseContentSha256: digestSchema }).strict()).optional(),
   }).strict()).min(1),
   rows: countsSchema,
-  tiles: z.array(z.object({ tileId: z.string().min(1), revision: positive, spotCount: integer, contentSha256: digestSchema }).strict()),
+  tiles: z.array(z.object({ tileId: z.string().min(1), revision: positive, spotCount: integer, contentSha256: digestSchema, schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    parts: z.array(z.object({ partIndex: integer.max(127), spotCount: positive.max(250), contentSha256: digestSchema }).strict()).max(128) }).strict()),
   chunks: z.array(fileSchema.extend({ ordinal: positive, rows: countsSchema })).min(1),
   finalize: fileSchema, wholeBundleSha256: digestSchema,
 }).strict();
@@ -60,7 +61,7 @@ export async function* sqlStatements(path: string, onBytes?: (bytes: Buffer) => 
       if (ch === "'") { if (quoted) quotePending = true; else quoted = true; }
       pending += ch;
       statementBytes += Buffer.byteLength(ch);
-      if (statementBytes > D1_CAPACITY_POLICY.statementBytes) throw new Error("v4: SQL statement exceeds capacity policy");
+      if (statementBytes >= D1_CAPACITY_POLICY.statementBytes) throw new Error("v4: SQL statement exceeds capacity policy");
       if (ch === ";" && !quoted) {
         yield pending.trim(); pending = ""; statementBytes = 0;
       } else if (!quoted && pending.trim() === "") { pending = ""; statementBytes = 0; }
@@ -89,6 +90,11 @@ export async function readV4Manifest(directory: string, expectedDigest: string):
   }
   if (new Set(manifest.sources.map(s => s.sourceId)).size !== manifest.sources.length
     || new Set(manifest.tiles.map(t => t.tileId)).size !== manifest.tiles.length) throw new Error("v4: duplicate source or tile declaration");
+  for (const tile of manifest.tiles) {
+    if (tile.schemaVersion === 1 && tile.parts.length !== 0 || tile.schemaVersion === 2 && (tile.parts.some((p, i) => p.partIndex !== i) || tile.parts.reduce((n, p) => n + p.spotCount, 0) !== tile.spotCount)) {
+      throw new Error("v4: incomplete or inconsistent tile parts declaration");
+    }
+  }
   for (const counts of [manifest.rows, ...manifest.sources.map(s => s.rows), ...manifest.chunks.map(c => c.rows)]) {
     if (!counts || Object.entries(counts).some(([table, n]) => !columns.has(table) || !Number.isSafeInteger(n) || n < 0)) throw new Error("v4: invalid row counts");
   }

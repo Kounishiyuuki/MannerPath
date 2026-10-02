@@ -1,7 +1,9 @@
 import type { DatabaseSync } from "node:sqlite";
-import { literal, validateSnapshots } from "../src/pipeline/promotion.ts";
+import { literal } from "../src/pipeline/promotion.ts";
 import { canonicalJson, D1_CAPACITY_POLICY, type PromotionV4Manifest } from "./promotion-v4-format.ts";
 import { readV4Manifest, verifyPromotionV4, verifyV4File } from "./promotion-v4-verify.ts";
+
+import { validateV4Tile } from "./promotion-v4-tiles.ts";
 
 type Row = Record<string, unknown>;
 function run(db: DatabaseSync, sql: string): void {
@@ -22,7 +24,10 @@ function start(db: DatabaseSync, manifest: PromotionV4Manifest): void {
       for (const r of s.additiveReleases ?? []) run(db, `INSERT INTO promotion_v4_expected_releases (release_id,source_id,release_content_sha256) VALUES (${r.releaseId},${literal(s.sourceId)},${literal(r.releaseContentSha256)});`);
     }
     for (const c of manifest.chunks) run(db, `INSERT INTO promotion_v4_expected_chunks (ordinal,manifest_id,sha256,bytes,statements,rows_json) VALUES (${c.ordinal},1,${literal(c.sha256)},${c.bytes},${c.statements},${literal(canonicalJson(c.rows))});`);
-    for (const t of manifest.tiles) run(db, `INSERT INTO promotion_v4_expected_tiles (tile_id,manifest_id,revision,spot_count,content_sha256) VALUES (${literal(t.tileId)},1,${t.revision},${t.spotCount},${literal(t.contentSha256)});`);
+    for (const t of manifest.tiles) {
+      run(db, `INSERT INTO promotion_v4_expected_tiles (tile_id,manifest_id,revision,spot_count,content_sha256,schema_version,part_count) VALUES (${literal(t.tileId)},1,${t.revision},${t.spotCount},${literal(t.contentSha256)},${t.schemaVersion},${t.parts.length});`);
+      for (const p of t.parts) run(db, `INSERT INTO promotion_v4_expected_tile_parts (tile_id,part_index,spot_count,content_sha256) VALUES (${literal(t.tileId)},${p.partIndex},${p.spotCount},${literal(p.contentSha256)});`);
+    }
     db.exec("COMMIT");
   } catch (error) { db.exec("ROLLBACK"); throw error; }
 }
@@ -93,13 +98,8 @@ async function verifyFinalState(db: DatabaseSync, manifest: PromotionV4Manifest)
     const tile = db.prepare("SELECT * FROM tile_snapshots WHERE tile_id=?").get(expected.tileId) as Row | undefined;
     if (!tile || tile.content_sha256 !== expected.contentSha256 || tile.revision !== expected.revision || tile.spot_count !== expected.spotCount
       || Buffer.byteLength(String(tile.body_json)) > D1_CAPACITY_POLICY.statementBytes) throw new Error("v4: wrong tile final state");
-    const decoded = JSON.parse(String(tile.body_json)) as { spots?: unknown[] };
-    if (!Array.isArray(decoded.spots)) throw new Error("v4: invalid tile body");
-    const members = db.prepare("SELECT * FROM tile_snapshot_spots WHERE tile_id=? ORDER BY spot_id LIMIT ?").all(expected.tileId, decoded.spots.length + 1) as Row[];
-    const count = Number((db.prepare("SELECT count(*) AS n FROM tile_snapshot_spots WHERE tile_id=?").get(expected.tileId) as { n: number }).n);
-    if (count !== decoded.spots.length) throw new Error("v4: tile snapshot membership mismatch");
-    const spots = members.map(m => db.prepare("SELECT * FROM spots WHERE spot_id=?").get(m.spot_id as string) as Row);
-    await validateSnapshots(new Map([["sources", sources], ["spots", spots], ["tile_snapshot_spots", members], ["tile_snapshots", [tile]]]));
+    const actual = await validateV4Tile(db, tile, sources);
+    if (canonicalJson(actual) !== canonicalJson(expected)) throw new Error("v4: tile part declaration mismatch");
   }
 }
 export async function finalizePromotionV4(db: DatabaseSync, directory: string, digest: string): Promise<"completed" | "alreadyCompleted"> {

@@ -12,7 +12,8 @@ const controlColumns: Record<string, string[]> = {
   promotion_v4_expected_sources: ["source_id", "manifest_id", "release_id", "release_content_sha256", "observed_on", "display_name", "license_name", "license_url", "attribution_text", "review_dependencies_json", "expected_rows_json"],
   promotion_v4_expected_releases: ["release_id", "source_id", "release_content_sha256"],
   promotion_v4_expected_chunks: ["ordinal", "manifest_id", "sha256", "bytes", "statements", "rows_json"],
-  promotion_v4_expected_tiles: ["tile_id", "manifest_id", "revision", "spot_count", "content_sha256"],
+  promotion_v4_expected_tiles: ["tile_id", "manifest_id", "revision", "spot_count", "content_sha256", "schema_version", "part_count"],
+  promotion_v4_expected_tile_parts: ["tile_id", "part_index", "spot_count", "content_sha256"],
   promotion_v4_chunk_sessions: ["id", "ordinal", "manifest_sha256", "sha256"],
   promotion_v4_applied_chunks: ["ordinal", "manifest_sha256", "sha256", "bytes", "statements", "rows_json"],
   promotion_v4_completions: ["id", "manifest_sha256"],
@@ -42,7 +43,10 @@ function* initialization(source: PromotionV4Manifest): Generator<string> {
     for (const r of s.additiveReleases ?? []) yield controlInsert("promotion_v4_expected_releases", [r.releaseId, s.sourceId, r.releaseContentSha256]);
   }
   for (const c of source.chunks) yield controlInsert("promotion_v4_expected_chunks", [c.ordinal, 1, c.sha256, c.bytes, c.statements, canonicalJson(c.rows)]);
-  for (const t of source.tiles) yield controlInsert("promotion_v4_expected_tiles", [t.tileId, 1, t.revision, t.spotCount, t.contentSha256]);
+  for (const t of source.tiles) {
+    yield controlInsert("promotion_v4_expected_tiles", [t.tileId, 1, t.revision, t.spotCount, t.contentSha256, t.schemaVersion, t.parts.length]);
+    for (const p of t.parts) yield controlInsert("promotion_v4_expected_tile_parts", [t.tileId, p.partIndex, p.spotCount, p.contentSha256]);
+  }
 }
 function receipt(source: PromotionV4Manifest, ordinal: number): string {
   const c = source.chunks[ordinal - 1];

@@ -620,3 +620,9 @@ The versioned capacity policy and operational procedure are in `docs/SEGMENTED_P
    SQL source declarations also bind observations, identity, semantic counts/dependencies and exact additive sets.
    Future remote execution follows the isolated GREEN runbook and needs actual duration validation. Raw payload
    files must not be imported directly. The source registry and Issue #124 remain unchanged.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.

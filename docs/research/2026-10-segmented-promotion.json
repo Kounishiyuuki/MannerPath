@@ -1,10 +1,10 @@
 {
-  "version": "segmented-promotion-research.v1",
-  "baseRevision": "299782a90758a19a69f8e2d93db853078afc0118",
-  "status": "tile-capacity-blocked; not nationwide bootstrap success",
-  "timingCaveat": "Full profile generation overlapped API/Apple validation; isolatedExport is a separate process and excludes generation/publish/quality/cross-source. No remote D1 measurements.",
-  "profiles": [
-    {
+  "version": "segmented-promotion-capacity.v2",
+  "baseMain": "ff054295272d52c4be63fcf755c3f53b1003828c",
+  "canonicalTileImplementation": "PR #160 / ADR-0015",
+  "profiles": {
+    "1k": {
+      "version": "promotion-scale.v4",
       "profile": "small",
       "corpus": {
         "version": "synthetic-community.v1",
@@ -19,102 +19,168 @@
         "database": "disk-backed local SQLite; not remote D1",
         "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
       },
-      "complete": true,
-      "capacityBlocked": null,
-      "timingsMs": {
-        "officialImport": 315.82,
-        "corpusLoad": 3201.66,
-        "blockedPublish": 69.89,
-        "publish": 162.9,
-        "qualityBefore": 32.62,
-        "crossSourceBefore": 63.07,
-        "build:1048576": 1186.63,
-        "verify:1048576": 434.69,
-        "statementAndPrivacyAudit:1048576": 405.17,
-        "initialize:1048576": 422.41,
-        "apply:1048576": 1482.11,
-        "finalize:1048576": 487.68,
-        "qualityAfter:1048576": 31.72,
-        "crossSourceAfter:1048576": 54.88,
-        "repeat:1048576": 1180.25,
-        "bootstrapReexport:1048576": 1190.07,
-        "build:4194304": 1178.59,
-        "verify:4194304": 422.29,
-        "statementAndPrivacyAudit:4194304": 399.57,
-        "initialize:4194304": 418.7,
-        "apply:4194304": 1400.01,
-        "finalize:4194304": 500.65,
-        "qualityAfter:4194304": 25.51,
-        "crossSourceAfter:4194304": 51.71,
-        "repeat:4194304": 1225.33,
-        "bootstrapReexport:4194304": 1260.46,
-        "build:16777216": 1268.06,
-        "verify:16777216": 436.76,
-        "statementAndPrivacyAudit:16777216": 410.49,
-        "initialize:16777216": 431.59,
-        "apply:16777216": 1509.42,
-        "finalize:16777216": 499,
-        "qualityAfter:16777216": 27.61,
-        "crossSourceAfter:16777216": 63.58,
-        "repeat:16777216": 1232.56,
-        "bootstrapReexport:16777216": 1389.82
+      "publication": {
+        "productionDecision": "pending",
+        "source": "blocked",
+        "simulationOnly": true
       },
-      "peakRssBytes": 418562048,
-      "tileCapacity": [
-        {
-          "tile_id": "14/14358/6506",
-          "spot_count": 61,
-          "body_bytes": 46544
+      "timingsMs": {
+        "officialImport": 375.76,
+        "corpusLoad": 3123.72,
+        "blockedPublish": 80.56,
+        "publish": 176.18,
+        "qualityBefore": 38.1,
+        "crossSourceBefore": 54.54,
+        "build:1048576": 1249.14,
+        "verify:1048576": 437.57,
+        "importPlanBuild:1048576": 444.89,
+        "importPlanVerify:1048576": 445.73,
+        "statementAndPrivacyAudit:1048576": 397.07,
+        "initialize:1048576": 426.36,
+        "apply:1048576": 1434.63,
+        "finalize:1048576": 517.93,
+        "qualityAfter:1048576": 36.28,
+        "crossSourceAfter:1048576": 47.87,
+        "repeat:1048576": 1267.26,
+        "bootstrapReexport:1048576": 1184.05
+      },
+      "memory": {
+        "officialImport": {
+          "rss": 235978752,
+          "heapTotal": 59965440,
+          "heapUsed": 37044600,
+          "external": 10653996,
+          "arrayBuffers": 1566514
         },
-        {
-          "tile_id": "14/14358/6508",
-          "spot_count": 45,
-          "body_bytes": 37531
+        "corpusLoad": {
+          "rss": 296796160,
+          "heapTotal": 97992704,
+          "heapUsed": 24527800,
+          "external": 9207326,
+          "arrayBuffers": 140508
         },
-        {
-          "tile_id": "14/14552/6453",
-          "spot_count": 36,
-          "body_bytes": 28145
+        "blockedPublish": {
+          "rss": 299827200,
+          "heapTotal": 98254848,
+          "heapUsed": 37546440,
+          "external": 10649986,
+          "arrayBuffers": 1577984
         },
-        {
-          "tile_id": "14/14127/6567",
-          "spot_count": 33,
-          "body_bytes": 23617
+        "publish": {
+          "rss": 303972352,
+          "heapTotal": 98516992,
+          "heapUsed": 45057976,
+          "external": 12612280,
+          "arrayBuffers": 3529366
         },
-        {
-          "tile_id": "14/14552/6452",
-          "spot_count": 30,
-          "body_bytes": 23366
+        "qualityBefore": {
+          "rss": 316342272,
+          "heapTotal": 98516992,
+          "heapUsed": 24297032,
+          "external": 9103579,
+          "arrayBuffers": 38777
         },
-        {
-          "tile_id": "14/14549/6452",
-          "spot_count": 33,
-          "body_bytes": 23354
+        "crossSourceBefore": {
+          "rss": 320520192,
+          "heapTotal": 98779136,
+          "heapUsed": 40342016,
+          "external": 9103579,
+          "arrayBuffers": 38777
         },
-        {
-          "tile_id": "14/14550/6448",
-          "spot_count": 32,
-          "body_bytes": 22918
+        "build:1048576": {
+          "rss": 339509248,
+          "heapTotal": 162447360,
+          "heapUsed": 50331200,
+          "external": 11133891,
+          "arrayBuffers": 2068897
         },
-        {
-          "tile_id": "14/14549/6451",
-          "spot_count": 31,
-          "body_bytes": 22217
+        "verify:1048576": {
+          "rss": 381140992,
+          "heapTotal": 160120832,
+          "heapUsed": 20536768,
+          "external": 9193278,
+          "arrayBuffers": 128380
         },
-        {
-          "tile_id": "14/14359/6509",
-          "spot_count": 22,
-          "body_bytes": 18543
+        "importPlanBuild:1048576": {
+          "rss": 389251072,
+          "heapTotal": 156712960,
+          "heapUsed": 19903088,
+          "external": 12848512,
+          "arrayBuffers": 3783870
         },
-        {
-          "tile_id": "14/14624/6016",
-          "spot_count": 24,
-          "body_bytes": 17096
+        "importPlanVerify:1048576": {
+          "rss": 389382144,
+          "heapTotal": 156975104,
+          "heapUsed": 46747544,
+          "external": 10442780,
+          "arrayBuffers": 1378138
+        },
+        "statementAndPrivacyAudit:1048576": {
+          "rss": 389480448,
+          "heapTotal": 156975104,
+          "heapUsed": 48822096,
+          "external": 10474881,
+          "arrayBuffers": 1410239
+        },
+        "initialize:1048576": {
+          "rss": 389513216,
+          "heapTotal": 156975104,
+          "heapUsed": 73439560,
+          "external": 10753609,
+          "arrayBuffers": 1688967
+        },
+        "apply:1048576": {
+          "rss": 400359424,
+          "heapTotal": 159858688,
+          "heapUsed": 58426888,
+          "external": 10507562,
+          "arrayBuffers": 1442920
+        },
+        "finalize:1048576": {
+          "rss": 414384128,
+          "heapTotal": 160382976,
+          "heapUsed": 77630120,
+          "external": 12743327,
+          "arrayBuffers": 3667421
+        },
+        "qualityAfter:1048576": {
+          "rss": 420872192,
+          "heapTotal": 160907264,
+          "heapUsed": 50741776,
+          "external": 12772698,
+          "arrayBuffers": 1057133
+        },
+        "crossSourceAfter:1048576": {
+          "rss": 420986880,
+          "heapTotal": 160907264,
+          "heapUsed": 66215888,
+          "external": 12772698,
+          "arrayBuffers": 1057133
+        },
+        "repeat:1048576": {
+          "rss": 433831936,
+          "heapTotal": 162627584,
+          "heapUsed": 33712488,
+          "external": 9741505,
+          "arrayBuffers": 647396
+        },
+        "bootstrapReexport:1048576": {
+          "rss": 434094080,
+          "heapTotal": 162627584,
+          "heapUsed": 56257536,
+          "external": 11316492,
+          "arrayBuffers": 2221455
         }
-      ],
+      },
+      "complete": true,
+      "sourceDatabase": "/private/tmp/v4-parts-1k-source.sqlite",
+      "lastPhase": "bootstrapReexport:1048576",
+      "peakRssBytes": 434094080,
       "qualityBefore": {
         "published": 1513,
         "tiles": 366,
+        "totalTileParts": 366,
+        "maxPartsPerTile": 1,
         "missingExistence": 0,
         "missingAttribution": 0,
         "unpublishedEvidence": 0,
@@ -132,7 +198,8 @@
             "n": 513
           }
         ],
-        "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+        "partsDigest": "5aa403006e9d5bb6d89049ff9f03d066a9f15db57fff8fae4b8baf9220ecb292",
+        "tileDigest": "297f001fae09ce6fd016a6988590e86f7819dc9f8e9ecf4cddc71e0ac7810a82",
         "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
       },
       "crossSourceBefore": {
@@ -140,33 +207,92 @@
         "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305",
         "merges": 0
       },
-      "sourceDatabaseBytes": 13537280,
-      "reportsDatabaseBytes": 4665344,
+      "tileCapacity": [
+        {
+          "tile_id": "14/14358/6504",
+          "spot_count": 13,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14358/6506",
+          "spot_count": 61,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14358/6507",
+          "spot_count": 19,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14358/6508",
+          "spot_count": 45,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14358/6509",
+          "spot_count": 10,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14359/6506",
+          "spot_count": 10,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14359/6509",
+          "spot_count": 22,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14359/6511",
+          "spot_count": 17,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14360/6506",
+          "spot_count": 11,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14360/6507",
+          "spot_count": 11,
+          "body_bytes": 249
+        }
+      ],
       "artifacts": [
         {
           "chunkBytes": 1048576,
-          "artifactBytes": 10350237,
+          "directory": "/private/tmp/v4-parts-1k-1048576-bundle",
+          "artifactBytes": 10582851,
           "chunks": 10,
-          "digest": "65408bbb02b9922e0adf7359d3de11f3605aba7250c9230a9034ee719fc0af3a",
-          "maxStatementBytes": 46817,
+          "digest": "5f0e5af1af4592f8f683af1c96b289bec249fdcb54b647d555bdc9a9bb5ececd",
+          "importPlan": {
+            "files": 12,
+            "digest": "33c174a7be5ea3ca7adc3505e53c427b73eba91df6b1bcbd0c06655426715de6",
+            "artifactBytes": 10963345
+          },
+          "maxStatementBytes": 46714,
           "privateDataAbsent": true,
-          "bootstrapMs": 2392.98,
+          "readiness": "completed",
+          "bootstrapMs": 2380.53,
           "chunkApplyMs": [
-            138.47,
-            93.28,
-            100.4,
-            156.77,
-            189.73,
-            174.62,
-            166.56,
-            166.49,
-            97.7,
-            198.04
+            134.28,
+            91.82,
+            102.33,
+            155.15,
+            179.29,
+            159.64,
+            158.58,
+            158.6,
+            102.17,
+            192.71
           ],
-          "maxChunkApplyMs": 198.04,
+          "maxChunkApplyMs": 192.71,
           "qualityAfter": {
             "published": 1513,
             "tiles": 366,
+            "totalTileParts": 366,
+            "maxPartsPerTile": 1,
             "missingExistence": 0,
             "missingAttribution": 0,
             "unpublishedEvidence": 0,
@@ -184,7 +310,8 @@
                 "n": 513
               }
             ],
-            "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+            "partsDigest": "5aa403006e9d5bb6d89049ff9f03d066a9f15db57fff8fae4b8baf9220ecb292",
+            "tileDigest": "297f001fae09ce6fd016a6988590e86f7819dc9f8e9ecf4cddc71e0ac7810a82",
             "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
           },
           "crossSourceAfter": {
@@ -192,97 +319,14 @@
             "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
           },
           "deterministic": true,
-          "endToEndMs": 6964.69
-        },
-        {
-          "chunkBytes": 4194304,
-          "artifactBytes": 10348461,
-          "chunks": 3,
-          "digest": "f044ba89858651c4fba7880613ee405c2b8d51bd1fc77c6b5b814211548768bb",
-          "maxStatementBytes": 46817,
-          "privateDataAbsent": true,
-          "bootstrapMs": 2320.29,
-          "chunkApplyMs": [
-            472.25,
-            647.13,
-            280.59
-          ],
-          "maxChunkApplyMs": 647.13,
-          "qualityAfter": {
-            "published": 1513,
-            "tiles": 366,
-            "missingExistence": 0,
-            "missingAttribution": 0,
-            "unpublishedEvidence": 0,
-            "tiers": [
-              {
-                "evidence_quality": "communityReported",
-                "n": 582
-              },
-              {
-                "evidence_quality": "communityVerified",
-                "n": 418
-              },
-              {
-                "evidence_quality": "officialListing",
-                "n": 513
-              }
-            ],
-            "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
-            "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
-          },
-          "crossSourceAfter": {
-            "candidates": 91,
-            "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
-          },
-          "deterministic": true,
-          "endToEndMs": 6971.17
-        },
-        {
-          "chunkBytes": 16777216,
-          "artifactBytes": 10347960,
-          "chunks": 1,
-          "digest": "fd2eee50e2aee652da6537b61c6bd292c83e9a69eb6d0b0b6f5d7c41532c1f3d",
-          "maxStatementBytes": 46817,
-          "privateDataAbsent": true,
-          "bootstrapMs": 2440.88,
-          "chunkApplyMs": [
-            1509.41
-          ],
-          "maxChunkApplyMs": 1509.41,
-          "qualityAfter": {
-            "published": 1513,
-            "tiles": 366,
-            "missingExistence": 0,
-            "missingAttribution": 0,
-            "unpublishedEvidence": 0,
-            "tiers": [
-              {
-                "evidence_quality": "communityReported",
-                "n": 582
-              },
-              {
-                "evidence_quality": "communityVerified",
-                "n": 418
-              },
-              {
-                "evidence_quality": "officialListing",
-                "n": 513
-              }
-            ],
-            "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
-            "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
-          },
-          "crossSourceAfter": {
-            "candidates": 91,
-            "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
-          },
-          "deterministic": true,
-          "endToEndMs": 7364.35
+          "endToEndMs": 7987.22
         }
-      ]
+      ],
+      "sourceDatabaseBytes": 13733888,
+      "reportsDatabaseBytes": 4665344
     },
-    {
+    "10k": {
+      "version": "promotion-scale.v4",
       "profile": "medium",
       "corpus": {
         "version": "synthetic-community.v1",
@@ -297,73 +341,168 @@
         "database": "disk-backed local SQLite; not remote D1",
         "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
       },
-      "complete": false,
-      "capacityBlocked": true,
-      "timingsMs": {
-        "officialImport": 316.99,
-        "corpusLoad": 107759.39,
-        "blockedPublish": 477.62,
-        "publish": 2094.19,
-        "qualityBefore": 297.82,
-        "crossSourceBefore": 995.07,
-        "build:4194304": 10429.57
+      "publication": {
+        "productionDecision": "pending",
+        "source": "blocked",
+        "simulationOnly": true
       },
-      "peakRssBytes": 814252032,
-      "tileCapacity": [
-        {
-          "tile_id": "14/14358/6506",
-          "spot_count": 468,
-          "body_bytes": 329979
+      "timingsMs": {
+        "officialImport": 304.12,
+        "corpusLoad": 37915.9,
+        "blockedPublish": 360.05,
+        "publish": 1452.99,
+        "qualityBefore": 342.15,
+        "crossSourceBefore": 2060.99,
+        "build:1048576": 20084.2,
+        "verify:1048576": 9385.66,
+        "importPlanBuild:1048576": 10067.84,
+        "importPlanVerify:1048576": 9054.51,
+        "statementAndPrivacyAudit:1048576": 7631.44,
+        "initialize:1048576": 6849.57,
+        "apply:1048576": 16010.87,
+        "finalize:1048576": 5944.06,
+        "qualityAfter:1048576": 331.42,
+        "crossSourceAfter:1048576": 1623.37,
+        "repeat:1048576": 18909.55,
+        "bootstrapReexport:1048576": 14160.89
+      },
+      "memory": {
+        "officialImport": {
+          "rss": 235061248,
+          "heapTotal": 59441152,
+          "heapUsed": 37042152,
+          "external": 10654520,
+          "arrayBuffers": 1567006
         },
-        {
-          "tile_id": "14/14127/6567",
-          "spot_count": 420,
-          "body_bytes": 296240
+        "corpusLoad": {
+          "rss": 411353088,
+          "heapTotal": 156893184,
+          "heapUsed": 59839496,
+          "external": 9798777,
+          "arrayBuffers": 722448
         },
-        {
-          "tile_id": "14/14549/6451",
-          "spot_count": 412,
-          "body_bytes": 290649
+        "blockedPublish": {
+          "rss": 429424640,
+          "heapTotal": 158990336,
+          "heapUsed": 22089176,
+          "external": 10524062,
+          "arrayBuffers": 1456917
         },
-        {
-          "tile_id": "14/14550/6448",
-          "spot_count": 410,
-          "body_bytes": 289251
+        "publish": {
+          "rss": 660176896,
+          "heapTotal": 195428352,
+          "heapUsed": 64842288,
+          "external": 11016885,
+          "arrayBuffers": 1953036
         },
-        {
-          "tile_id": "14/14549/6452",
-          "spot_count": 414,
-          "body_bytes": 288532
+        "qualityBefore": {
+          "rss": 679428096,
+          "heapTotal": 196476928,
+          "heapUsed": 110608640,
+          "external": 9473000,
+          "arrayBuffers": 410399
         },
-        {
-          "tile_id": "14/14624/6016",
-          "spot_count": 274,
-          "body_bytes": 191188
+        "crossSourceBefore": {
+          "rss": 701857792,
+          "heapTotal": 203292672,
+          "heapUsed": 100838392,
+          "external": 9473000,
+          "arrayBuffers": 410399
         },
-        {
-          "tile_id": "14/14625/6016",
-          "spot_count": 186,
-          "body_bytes": 129955
+        "build:1048576": {
+          "rss": 692404224,
+          "heapTotal": 249970688,
+          "heapUsed": 166021392,
+          "external": 11948511,
+          "arrayBuffers": 2885878
         },
-        {
-          "tile_id": "14/14358/6508",
-          "spot_count": 94,
-          "body_bytes": 71880
+        "verify:1048576": {
+          "rss": 681967616,
+          "heapTotal": 238977024,
+          "heapUsed": 145970288,
+          "external": 9925065,
+          "arrayBuffers": 862432
         },
-        {
-          "tile_id": "14/14373/6507",
-          "spot_count": 91,
-          "body_bytes": 64108
+        "importPlanBuild:1048576": {
+          "rss": 676724736,
+          "heapTotal": 192544768,
+          "heapUsed": 18507792,
+          "external": 11672646,
+          "arrayBuffers": 2610589
         },
-        {
-          "tile_id": "14/14552/6452",
-          "spot_count": 85,
-          "body_bytes": 61943
+        "importPlanVerify:1048576": {
+          "rss": 677232640,
+          "heapTotal": 192544768,
+          "heapUsed": 38091880,
+          "external": 11638570,
+          "arrayBuffers": 2576513
+        },
+        "statementAndPrivacyAudit:1048576": {
+          "rss": 673808384,
+          "heapTotal": 192544768,
+          "heapUsed": 26610664,
+          "external": 11539625,
+          "arrayBuffers": 2477568
+        },
+        "initialize:1048576": {
+          "rss": 637124608,
+          "heapTotal": 192544768,
+          "heapUsed": 32743624,
+          "external": 11507057,
+          "arrayBuffers": 2445000
+        },
+        "apply:1048576": {
+          "rss": 678887424,
+          "heapTotal": 203096064,
+          "heapUsed": 105123264,
+          "external": 9488748,
+          "arrayBuffers": 426691
+        },
+        "finalize:1048576": {
+          "rss": 686342144,
+          "heapTotal": 161087488,
+          "heapUsed": 18178304,
+          "external": 11693563,
+          "arrayBuffers": 48473
+        },
+        "qualityAfter:1048576": {
+          "rss": 686669824,
+          "heapTotal": 161087488,
+          "heapUsed": 48657824,
+          "external": 9139901,
+          "arrayBuffers": 48473
+        },
+        "crossSourceAfter:1048576": {
+          "rss": 703643648,
+          "heapTotal": 163446784,
+          "heapUsed": 36797928,
+          "external": 9139901,
+          "arrayBuffers": 48473
+        },
+        "repeat:1048576": {
+          "rss": 734969856,
+          "heapTotal": 179453952,
+          "heapUsed": 75704376,
+          "external": 11276555,
+          "arrayBuffers": 2184999
+        },
+        "bootstrapReexport:1048576": {
+          "rss": 737329152,
+          "heapTotal": 183386112,
+          "heapUsed": 49402648,
+          "external": 10876895,
+          "arrayBuffers": 1785371
         }
-      ],
+      },
+      "complete": true,
+      "sourceDatabase": "/private/tmp/v4-parts-10k-source.sqlite",
+      "lastPhase": "bootstrapReexport:1048576",
+      "peakRssBytes": 740081664,
       "qualityBefore": {
         "published": 10513,
         "tiles": 439,
+        "totalTileParts": 464,
+        "maxPartsPerTile": 6,
         "missingExistence": 0,
         "missingAttribution": 0,
         "unpublishedEvidence": 0,
@@ -381,7 +520,8 @@
             "n": 513
           }
         ],
-        "tileDigest": "6f53ad0f007f50a045959f7e866618ea66c3b7f9f86df86f196ba843338fdc76",
+        "partsDigest": "bfad315fe1954c175eac88fbf0c0e596e40fa5f56154e6d4db69d88f9b133cc5",
+        "tileDigest": "6f15788e3d6fcd86cca730e4eee3eac939e91527ee3137fa144b8c5919093fd4",
         "publishedRowsDigest": "89454f65d92db915b030512f742821f95a1d7b710f1d42ed2148e40e097d9e3f"
       },
       "crossSourceBefore": {
@@ -389,24 +529,177 @@
         "digest": "628bd6a8bccb2c151e5910df54cb228cad59dfa642433f254e516f376a49ae5c",
         "merges": 0
       },
-      "sourceDatabaseBytes": 93388800,
-      "reportsDatabaseBytes": 45252608,
-      "artifacts": [
+      "tileCapacity": [
         {
-          "chunkBytes": 4194304,
-          "refused": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes; tile/value capacity must be fixed before promotion"
+          "tile_id": "14/14358/6506",
+          "spot_count": 468,
+          "body_bytes": 764
+        },
+        {
+          "tile_id": "14/14127/6567",
+          "spot_count": 420,
+          "body_bytes": 662
+        },
+        {
+          "tile_id": "14/14549/6451",
+          "spot_count": 412,
+          "body_bytes": 662
+        },
+        {
+          "tile_id": "14/14549/6452",
+          "spot_count": 414,
+          "body_bytes": 662
+        },
+        {
+          "tile_id": "14/14550/6448",
+          "spot_count": 410,
+          "body_bytes": 662
+        },
+        {
+          "tile_id": "14/14624/6016",
+          "spot_count": 274,
+          "body_bytes": 456
+        },
+        {
+          "tile_id": "14/14625/6016",
+          "spot_count": 186,
+          "body_bytes": 353
+        },
+        {
+          "tile_id": "14/14358/6508",
+          "spot_count": 94,
+          "body_bytes": 352
+        },
+        {
+          "tile_id": "14/14357/6510",
+          "spot_count": 10,
+          "body_bytes": 249
+        },
+        {
+          "tile_id": "14/14358/6504",
+          "spot_count": 44,
+          "body_bytes": 249
         }
       ],
-      "isolatedExport": {
-        "profile": "medium",
-        "scope": "isolated export only; source already generated/published; no full artifact on capacity refusal",
-        "elapsedMs": 14700.893542,
-        "peakRssBytes": 166936576,
-        "maxExistingTileStatementBytes": 330254,
-        "error": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes (296515 bytes); tile/value capacity must be fixed before promotion"
-      }
+      "artifacts": [
+        {
+          "chunkBytes": 1048576,
+          "directory": "/private/tmp/v4-parts-10k-1048576-bundle",
+          "artifactBytes": 65311323,
+          "chunks": 61,
+          "digest": "16d42e4181f75ff6df5f877746f31defe10bc1afc11df4e0df8bd30ee258eeb0",
+          "importPlan": {
+            "files": 63,
+            "digest": "9b522e896bfb079969dc4db33f35b2e227794a51eaf4b60edcd413477dbc633a",
+            "artifactBytes": 67619029
+          },
+          "maxStatementBytes": 65503,
+          "privateDataAbsent": true,
+          "readiness": "completed",
+          "bootstrapMs": 28806.86,
+          "chunkApplyMs": [
+            220.46,
+            242.83,
+            285.99,
+            248.28,
+            221.8,
+            240.47,
+            234.58,
+            230.21,
+            244.87,
+            199.41,
+            174.63,
+            239.32,
+            313.65,
+            216.43,
+            212.73,
+            213.5,
+            258.63,
+            263.96,
+            264.59,
+            266.25,
+            294.72,
+            298.08,
+            317.81,
+            322.25,
+            299.17,
+            306.84,
+            307.73,
+            336.88,
+            324.21,
+            277.85,
+            229.12,
+            251.09,
+            282.7,
+            278.39,
+            297.45,
+            272.46,
+            264.83,
+            256.47,
+            271.31,
+            237.71,
+            228.85,
+            243.1,
+            239.16,
+            223.58,
+            240.18,
+            363.27,
+            262.93,
+            266.05,
+            243.29,
+            293.46,
+            282.5,
+            269.82,
+            146.04,
+            139.81,
+            132.95,
+            129.66,
+            121.58,
+            120.79,
+            117.77,
+            432.98,
+            993.08
+          ],
+          "maxChunkApplyMs": 993.08,
+          "qualityAfter": {
+            "published": 10513,
+            "tiles": 439,
+            "totalTileParts": 464,
+            "maxPartsPerTile": 6,
+            "missingExistence": 0,
+            "missingAttribution": 0,
+            "unpublishedEvidence": 0,
+            "tiers": [
+              {
+                "evidence_quality": "communityReported",
+                "n": 5832
+              },
+              {
+                "evidence_quality": "communityVerified",
+                "n": 4168
+              },
+              {
+                "evidence_quality": "officialListing",
+                "n": 513
+              }
+            ],
+            "partsDigest": "bfad315fe1954c175eac88fbf0c0e596e40fa5f56154e6d4db69d88f9b133cc5",
+            "tileDigest": "6f15788e3d6fcd86cca730e4eee3eac939e91527ee3137fa144b8c5919093fd4",
+            "publishedRowsDigest": "89454f65d92db915b030512f742821f95a1d7b710f1d42ed2148e40e097d9e3f"
+          },
+          "crossSourceAfter": {
+            "candidates": 1536,
+            "digest": "628bd6a8bccb2c151e5910df54cb228cad59dfa642433f254e516f376a49ae5c"
+          },
+          "deterministic": true,
+          "endToEndMs": 120763.57
+        }
+      ],
+      "sourceDatabaseBytes": 93589504,
+      "reportsDatabaseBytes": 45252608
     },
-    {
+    "50k": {
+      "version": "promotion-scale.v4",
       "profile": "large",
       "corpus": {
         "version": "synthetic-community.v1",
@@ -421,73 +714,168 @@
         "database": "disk-backed local SQLite; not remote D1",
         "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
       },
-      "complete": false,
-      "capacityBlocked": true,
-      "timingsMs": {
-        "officialImport": 360.27,
-        "corpusLoad": 295462.77,
-        "blockedPublish": 661.08,
-        "publish": 6571.68,
-        "qualityBefore": 1060.21,
-        "crossSourceBefore": 3390.62,
-        "build:4194304": 32246.75
+      "publication": {
+        "productionDecision": "pending",
+        "source": "blocked",
+        "simulationOnly": true
       },
-      "peakRssBytes": 2534096896,
-      "tileCapacity": [
-        {
-          "tile_id": "14/14358/6506",
-          "spot_count": 2223,
-          "body_bytes": 1551737
+      "timingsMs": {
+        "officialImport": 317.44,
+        "corpusLoad": 385464.22,
+        "blockedPublish": 2073.62,
+        "publish": 19375.51,
+        "qualityBefore": 4372.93,
+        "crossSourceBefore": 9602.6,
+        "build:1048576": 57858.17,
+        "verify:1048576": 17186.07,
+        "importPlanBuild:1048576": 17848.5,
+        "importPlanVerify:1048576": 15147.78,
+        "statementAndPrivacyAudit:1048576": 12674.56,
+        "initialize:1048576": 13791.41,
+        "apply:1048576": 74493.57,
+        "finalize:1048576": 16193.56,
+        "qualityAfter:1048576": 1029.38,
+        "crossSourceAfter:1048576": 3285.21,
+        "repeat:1048576": 36814.6,
+        "bootstrapReexport:1048576": 36102.76
+      },
+      "memory": {
+        "officialImport": {
+          "rss": 228884480,
+          "heapTotal": 59981824,
+          "heapUsed": 35701432,
+          "external": 10349941,
+          "arrayBuffers": 1265403
         },
-        {
-          "tile_id": "14/14127/6567",
-          "spot_count": 2139,
-          "body_bytes": 1507195
+        "corpusLoad": {
+          "rss": 400310272,
+          "heapTotal": 179568640,
+          "heapUsed": 53314504,
+          "external": 9252925,
+          "arrayBuffers": 187668
         },
-        {
-          "tile_id": "14/14549/6451",
-          "spot_count": 2100,
-          "body_bytes": 1479916
+        "blockedPublish": {
+          "rss": 511983616,
+          "heapTotal": 176160768,
+          "heapUsed": 22950528,
+          "external": 10531887,
+          "arrayBuffers": 1464646
         },
-        {
-          "tile_id": "14/14550/6448",
-          "spot_count": 2089,
-          "body_bytes": 1472204
+        "publish": {
+          "rss": 1099481088,
+          "heapTotal": 351256576,
+          "heapUsed": 234227416,
+          "external": 10922400,
+          "arrayBuffers": 1859543
         },
-        {
-          "tile_id": "14/14549/6452",
-          "spot_count": 2094,
-          "body_bytes": 1457952
+        "qualityBefore": {
+          "rss": 1786576896,
+          "heapTotal": 362905600,
+          "heapUsed": 272208288,
+          "external": 9789233,
+          "arrayBuffers": 726920
         },
-        {
-          "tile_id": "14/14624/6016",
-          "spot_count": 1389,
-          "body_bytes": 967766
+        "crossSourceBefore": {
+          "rss": 2317565952,
+          "heapTotal": 397950976,
+          "heapUsed": 264282760,
+          "external": 9789233,
+          "arrayBuffers": 726920
         },
-        {
-          "tile_id": "14/14625/6016",
-          "spot_count": 958,
-          "body_bytes": 667613
+        "build:1048576": {
+          "rss": 2601451520,
+          "heapTotal": 552730624,
+          "heapUsed": 417333104,
+          "external": 17719818,
+          "arrayBuffers": 8657473
         },
-        {
-          "tile_id": "14/14373/6507",
-          "spot_count": 447,
-          "body_bytes": 313379
+        "verify:1048576": {
+          "rss": 2209824768,
+          "heapTotal": 106266624,
+          "heapUsed": 37140064,
+          "external": 9313285,
+          "arrayBuffers": 251228
         },
-        {
-          "tile_id": "14/14552/6452",
-          "spot_count": 366,
-          "body_bytes": 259023
+        "importPlanBuild:1048576": {
+          "rss": 2266218496,
+          "heapTotal": 167804928,
+          "heapUsed": 40887088,
+          "external": 84184114,
+          "arrayBuffers": 75122057
         },
-        {
-          "tile_id": "14/14553/6450",
-          "spot_count": 329,
-          "body_bytes": 231983
+        "importPlanVerify:1048576": {
+          "rss": 2267529216,
+          "heapTotal": 170557440,
+          "heapUsed": 37236656,
+          "external": 10444920,
+          "arrayBuffers": 1382863
+        },
+        "statementAndPrivacyAudit:1048576": {
+          "rss": 2267561984,
+          "heapTotal": 171081728,
+          "heapUsed": 37796440,
+          "external": 10444278,
+          "arrayBuffers": 1382221
+        },
+        "initialize:1048576": {
+          "rss": 2286632960,
+          "heapTotal": 235601920,
+          "heapUsed": 110020592,
+          "external": 10755774,
+          "arrayBuffers": 1277970
+        },
+        "apply:1048576": {
+          "rss": 2317746176,
+          "heapTotal": 185892864,
+          "heapUsed": 52357696,
+          "external": 9394918,
+          "arrayBuffers": 332861
+        },
+        "finalize:1048576": {
+          "rss": 2373451776,
+          "heapTotal": 220119040,
+          "heapUsed": 116668032,
+          "external": 10923412,
+          "arrayBuffers": 1860683
+        },
+        "qualityAfter:1048576": {
+          "rss": 2373697536,
+          "heapTotal": 223789056,
+          "heapUsed": 127485624,
+          "external": 9205437,
+          "arrayBuffers": 114009
+        },
+        "crossSourceAfter:1048576": {
+          "rss": 2375106560,
+          "heapTotal": 258834432,
+          "heapUsed": 128392832,
+          "external": 9205437,
+          "arrayBuffers": 114009
+        },
+        "repeat:1048576": {
+          "rss": 2487091200,
+          "heapTotal": 217464832,
+          "heapUsed": 83539304,
+          "external": 17179633,
+          "arrayBuffers": 8088109
+        },
+        "bootstrapReexport:1048576": {
+          "rss": 2486009856,
+          "heapTotal": 226525184,
+          "heapUsed": 90663072,
+          "external": 17329569,
+          "arrayBuffers": 8238013
         }
-      ],
+      },
+      "complete": true,
+      "sourceDatabase": "/private/tmp/v4-parts-50k-source.sqlite",
+      "lastPhase": "bootstrapReexport:1048576",
+      "peakRssBytes": 2659614720,
       "qualityBefore": {
         "published": 50513,
         "tiles": 453,
+        "totalTileParts": 810,
+        "maxPartsPerTile": 24,
         "missingExistence": 0,
         "missingAttribution": 0,
         "unpublishedEvidence": 0,
@@ -505,7 +893,8 @@
             "n": 513
           }
         ],
-        "tileDigest": "adc63cfa1a6c3e20ad556f264348218064a1ad64319f3cd08f34c70c600ecd99",
+        "partsDigest": "a7b71f33c17dc83a19960c8204ef702881ee94aa15d4a472bb97f0111083ec89",
+        "tileDigest": "2470d3debed337d5c0410668e8de6229f44d13d2dba15e64cd468ba583f0531e",
         "publishedRowsDigest": "1338628e93830d2af8532571d96aff2dbb7e891ee89bbd08a1f6f7cc5e05f03a"
       },
       "crossSourceBefore": {
@@ -513,320 +902,404 @@
         "digest": "75be9689e966856588557b4661e90a57bebbca8da8a528ace0f5bc24ade8425f",
         "merges": 0
       },
-      "sourceDatabaseBytes": 437743616,
-      "reportsDatabaseBytes": 227119104,
+      "tileCapacity": [
+        {
+          "tile_id": "14/14358/6506",
+          "spot_count": 2223,
+          "body_bytes": 2634
+        },
+        {
+          "tile_id": "14/14127/6567",
+          "spot_count": 2139,
+          "body_bytes": 2634
+        },
+        {
+          "tile_id": "14/14549/6451",
+          "spot_count": 2100,
+          "body_bytes": 2530
+        },
+        {
+          "tile_id": "14/14549/6452",
+          "spot_count": 2094,
+          "body_bytes": 2530
+        },
+        {
+          "tile_id": "14/14550/6448",
+          "spot_count": 2089,
+          "body_bytes": 2530
+        },
+        {
+          "tile_id": "14/14624/6016",
+          "spot_count": 1389,
+          "body_bytes": 1698
+        },
+        {
+          "tile_id": "14/14625/6016",
+          "spot_count": 958,
+          "body_bytes": 1281
+        },
+        {
+          "tile_id": "14/14373/6507",
+          "spot_count": 447,
+          "body_bytes": 662
+        },
+        {
+          "tile_id": "14/14552/6452",
+          "spot_count": 366,
+          "body_bytes": 559
+        },
+        {
+          "tile_id": "14/14553/6450",
+          "spot_count": 329,
+          "body_bytes": 559
+        }
+      ],
       "artifacts": [
         {
-          "chunkBytes": 4194304,
-          "refused": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes; tile/value capacity must be fixed before promotion"
-        }
-      ],
-      "isolatedExport": {
-        "profile": "large",
-        "scope": "isolated export only; source already generated/published; no full artifact on capacity refusal",
-        "elapsedMs": 29698.94625,
-        "peakRssBytes": 268763136,
-        "maxExistingTileStatementBytes": 1552013,
-        "error": "promotion v4 export refused: tile_snapshots: statement exceeds 90000 bytes (104984 bytes); tile/value capacity must be fixed before promotion"
-      }
-    }
-  ],
-  "productionPublication": "pending; source blocked; approval simulation only",
-  "authoritativeSmallFinal": {
-    "version": "promotion-scale.v4",
-    "profile": "small",
-    "corpus": {
-      "version": "synthetic-community.v1",
-      "seed": 151152,
-      "sha256": "5da700632a7029544600da5837c364eb881de21f9993c9338a949cdd729d8094",
-      "spots": 1000,
-      "reports": 5000,
-      "official": 513
-    },
-    "environment": {
-      "runtime": "v24.10.0",
-      "database": "disk-backed local SQLite; not remote D1",
-      "peakRssUnit": "bytes; process.resourceUsage().maxRSS KiB converted to bytes"
-    },
-    "publication": {
-      "productionDecision": "pending",
-      "source": "blocked",
-      "simulationOnly": true
-    },
-    "timingsMs": {
-      "officialImport": 319.09,
-      "corpusLoad": 3135.66,
-      "blockedPublish": 68.56,
-      "publish": 160.71,
-      "qualityBefore": 26.56,
-      "crossSourceBefore": 56.6,
-      "build:1048576": 1178.78,
-      "verify:1048576": 434.37,
-      "statementAndPrivacyAudit:1048576": 397.79,
-      "initialize:1048576": 426.12,
-      "apply:1048576": 1419.45,
-      "finalize:1048576": 486.45,
-      "qualityAfter:1048576": 31.7,
-      "crossSourceAfter:1048576": 49.01,
-      "repeat:1048576": 1154.91,
-      "bootstrapReexport:1048576": 1165.95
-    },
-    "memory": {
-      "officialImport": {
-        "rss": 234192896,
-        "heapTotal": 58933248,
-        "heapUsed": 36563400,
-        "external": 10724551,
-        "arrayBuffers": 1561186
-      },
-      "corpusLoad": {
-        "rss": 293715968,
-        "heapTotal": 92602368,
-        "heapUsed": 27780440,
-        "external": 9239667,
-        "arrayBuffers": 97894
-      },
-      "blockedPublish": {
-        "rss": 294715392,
-        "heapTotal": 92864512,
-        "heapUsed": 38894560,
-        "external": 9717069,
-        "arrayBuffers": 572704
-      },
-      "publish": {
-        "rss": 302563328,
-        "heapTotal": 165740544,
-        "heapUsed": 26693776,
-        "external": 9364770,
-        "arrayBuffers": 221941
-      },
-      "qualityBefore": {
-        "rss": 309198848,
-        "heapTotal": 165740544,
-        "heapUsed": 59162608,
-        "external": 9364770,
-        "arrayBuffers": 221941
-      },
-      "crossSourceBefore": {
-        "rss": 328433664,
-        "heapTotal": 165740544,
-        "heapUsed": 75148592,
-        "external": 9364770,
-        "arrayBuffers": 221941
-      },
-      "build:1048576": {
-        "rss": 411779072,
-        "heapTotal": 168329216,
-        "heapUsed": 92476456,
-        "external": 12507016,
-        "arrayBuffers": 3354043
-      },
-      "verify:1048576": {
-        "rss": 411172864,
-        "heapTotal": 166789120,
-        "heapUsed": 39170152,
-        "external": 9413061,
-        "arrayBuffers": 271800
-      },
-      "statementAndPrivacyAudit:1048576": {
-        "rss": 411287552,
-        "heapTotal": 166789120,
-        "heapUsed": 33640640,
-        "external": 9363709,
-        "arrayBuffers": 222448
-      },
-      "initialize:1048576": {
-        "rss": 411418624,
-        "heapTotal": 167051264,
-        "heapUsed": 46335712,
-        "external": 9462213,
-        "arrayBuffers": 320952
-      },
-      "apply:1048576": {
-        "rss": 418742272,
-        "heapTotal": 162594816,
-        "heapUsed": 75314224,
-        "external": 9827278,
-        "arrayBuffers": 686881
-      },
-      "finalize:1048576": {
-        "rss": 419430400,
-        "heapTotal": 162594816,
-        "heapUsed": 59276472,
-        "external": 10544513,
-        "arrayBuffers": 1392724
-      },
-      "qualityAfter:1048576": {
-        "rss": 419430400,
-        "heapTotal": 162594816,
-        "heapUsed": 22811560,
-        "external": 10544513,
-        "arrayBuffers": 97825
-      },
-      "crossSourceAfter:1048576": {
-        "rss": 419561472,
-        "heapTotal": 162594816,
-        "heapUsed": 38326512,
-        "external": 10573884,
-        "arrayBuffers": 97825
-      },
-      "repeat:1048576": {
-        "rss": 424804352,
-        "heapTotal": 164921344,
-        "heapUsed": 42490200,
-        "external": 9918164,
-        "arrayBuffers": 747052
-      },
-      "bootstrapReexport:1048576": {
-        "rss": 421822464,
-        "heapTotal": 162217984,
-        "heapUsed": 36798640,
-        "external": 10131949,
-        "arrayBuffers": 959429
-      }
-    },
-    "complete": true,
-    "sourceDatabase": "/private/tmp/d1-v4-authoritative-small-source.sqlite",
-    "lastPhase": "bootstrapReexport:1048576",
-    "peakRssBytes": 425050112,
-    "qualityBefore": {
-      "published": 1513,
-      "tiles": 366,
-      "missingExistence": 0,
-      "missingAttribution": 0,
-      "unpublishedEvidence": 0,
-      "tiers": [
-        {
-          "evidence_quality": "communityReported",
-          "n": 582
-        },
-        {
-          "evidence_quality": "communityVerified",
-          "n": 418
-        },
-        {
-          "evidence_quality": "officialListing",
-          "n": 513
-        }
-      ],
-      "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
-      "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
-    },
-    "crossSourceBefore": {
-      "candidates": 91,
-      "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305",
-      "merges": 0
-    },
-    "tileCapacity": [
-      {
-        "tile_id": "14/14358/6506",
-        "spot_count": 61,
-        "body_bytes": 46544
-      },
-      {
-        "tile_id": "14/14358/6508",
-        "spot_count": 45,
-        "body_bytes": 37531
-      },
-      {
-        "tile_id": "14/14552/6453",
-        "spot_count": 36,
-        "body_bytes": 28145
-      },
-      {
-        "tile_id": "14/14127/6567",
-        "spot_count": 33,
-        "body_bytes": 23617
-      },
-      {
-        "tile_id": "14/14552/6452",
-        "spot_count": 30,
-        "body_bytes": 23366
-      },
-      {
-        "tile_id": "14/14549/6452",
-        "spot_count": 33,
-        "body_bytes": 23354
-      },
-      {
-        "tile_id": "14/14550/6448",
-        "spot_count": 32,
-        "body_bytes": 22918
-      },
-      {
-        "tile_id": "14/14549/6451",
-        "spot_count": 31,
-        "body_bytes": 22217
-      },
-      {
-        "tile_id": "14/14359/6509",
-        "spot_count": 22,
-        "body_bytes": 18543
-      },
-      {
-        "tile_id": "14/14624/6016",
-        "spot_count": 24,
-        "body_bytes": 17096
-      }
-    ],
-    "artifacts": [
-      {
-        "chunkBytes": 1048576,
-        "directory": "/private/tmp/d1-v4-authoritative-small-1048576-bundle",
-        "artifactBytes": 10350237,
-        "chunks": 10,
-        "digest": "65408bbb02b9922e0adf7359d3de11f3605aba7250c9230a9034ee719fc0af3a",
-        "maxStatementBytes": 46817,
-        "privateDataAbsent": true,
-        "bootstrapMs": 2332.62,
-        "chunkApplyMs": [
-          131.84,
-          92.6,
-          99.35,
-          154.5,
-          187.29,
-          159.4,
-          156.1,
-          156.27,
-          96.36,
-          185.67
-        ],
-        "maxChunkApplyMs": 187.29,
-        "qualityAfter": {
-          "published": 1513,
-          "tiles": 366,
-          "missingExistence": 0,
-          "missingAttribution": 0,
-          "unpublishedEvidence": 0,
-          "tiers": [
-            {
-              "evidence_quality": "communityReported",
-              "n": 582
-            },
-            {
-              "evidence_quality": "communityVerified",
-              "n": 418
-            },
-            {
-              "evidence_quality": "officialListing",
-              "n": 513
-            }
+          "chunkBytes": 1048576,
+          "directory": "/private/tmp/v4-parts-50k-1048576-bundle",
+          "artifactBytes": 308801582,
+          "chunks": 288,
+          "digest": "458023df0e7054ce07c351510fe12119e473024cd951fe0c994519798b1004e9",
+          "importPlan": {
+            "files": 290,
+            "digest": "e5ab5eae3b95f0b993c61cc1fb04825e65975d1f86b8d975dca0d2b4a7945fe9",
+            "artifactBytes": 319622162
+          },
+          "maxStatementBytes": 65729,
+          "privateDataAbsent": true,
+          "readiness": "completed",
+          "bootstrapMs": 104480.44,
+          "chunkApplyMs": [
+            206.73,
+            201.12,
+            200.66,
+            204.81,
+            202.94,
+            206.68,
+            203.27,
+            202.17,
+            202.08,
+            204.96,
+            202.83,
+            208.93,
+            200.68,
+            201.42,
+            207.39,
+            204.94,
+            211.21,
+            203.27,
+            212.97,
+            204.6,
+            219.58,
+            206.28,
+            215.76,
+            215.58,
+            217.11,
+            216.05,
+            224.05,
+            221.7,
+            215.63,
+            234.62,
+            233.77,
+            226.98,
+            224.22,
+            224.87,
+            221.74,
+            223.37,
+            223,
+            229.4,
+            248.22,
+            242.56,
+            253.85,
+            244.45,
+            235.64,
+            236.73,
+            234.96,
+            235.87,
+            235.64,
+            237.78,
+            202.23,
+            165.47,
+            182.19,
+            194.06,
+            196.21,
+            190.27,
+            192.78,
+            194.11,
+            197.66,
+            192.71,
+            192.21,
+            191.91,
+            194.32,
+            190.21,
+            192.06,
+            191.66,
+            194.48,
+            190.88,
+            193.83,
+            194.45,
+            195.47,
+            190.5,
+            194.74,
+            192.67,
+            196.91,
+            191.53,
+            217.75,
+            228.41,
+            224.73,
+            256.9,
+            268.6,
+            268.97,
+            274.7,
+            278.79,
+            281.05,
+            289.96,
+            307.07,
+            301.33,
+            316.83,
+            292.32,
+            279.96,
+            272.05,
+            280.4,
+            278.98,
+            268.38,
+            273.11,
+            288.2,
+            294.64,
+            291.69,
+            293.52,
+            296.2,
+            293.77,
+            290.49,
+            299.87,
+            303.44,
+            292.56,
+            294.06,
+            293.2,
+            301.98,
+            294.1,
+            295.31,
+            297.33,
+            323.87,
+            327.53,
+            304.39,
+            331.39,
+            311.21,
+            296.2,
+            302.44,
+            299.43,
+            305.64,
+            353.53,
+            324.57,
+            322.75,
+            307.29,
+            298.87,
+            313.49,
+            297.65,
+            308.71,
+            298.08,
+            302.5,
+            299.32,
+            306.79,
+            295.91,
+            308.64,
+            301.34,
+            306.61,
+            290.71,
+            369.05,
+            259.68,
+            237.64,
+            235.05,
+            234.47,
+            250.82,
+            235.63,
+            236.27,
+            233.58,
+            267.74,
+            260.68,
+            279.67,
+            287.48,
+            274.03,
+            269.37,
+            264.63,
+            274.78,
+            265.4,
+            267.26,
+            276.12,
+            276.11,
+            296.38,
+            268.02,
+            265.01,
+            267.11,
+            268.09,
+            268.91,
+            263.56,
+            265.36,
+            263.2,
+            260.79,
+            271.82,
+            267.24,
+            263.84,
+            263.86,
+            264.88,
+            271.06,
+            261.07,
+            261.36,
+            268.16,
+            271.6,
+            270.26,
+            267.4,
+            268.64,
+            265.77,
+            266.46,
+            268.84,
+            271.69,
+            307.25,
+            313.55,
+            332.98,
+            288.46,
+            270.29,
+            275.76,
+            271.34,
+            263.92,
+            274.47,
+            285.07,
+            282.08,
+            285.52,
+            269.99,
+            272.96,
+            267.25,
+            268.25,
+            338.69,
+            279.97,
+            279.14,
+            276.76,
+            276.27,
+            267.14,
+            270.82,
+            279.83,
+            275.57,
+            271.72,
+            267.8,
+            274.64,
+            274.75,
+            264.33,
+            264.35,
+            267.92,
+            265.42,
+            267.78,
+            269.25,
+            263.38,
+            278.16,
+            279.81,
+            279.56,
+            288.65,
+            290.57,
+            279.03,
+            268.08,
+            309.1,
+            273.98,
+            274.5,
+            293.03,
+            279.95,
+            308.83,
+            279.49,
+            254.07,
+            241.52,
+            230.7,
+            235.09,
+            225.42,
+            231.15,
+            229.89,
+            228.17,
+            234.59,
+            227.57,
+            229.26,
+            230.87,
+            233.37,
+            173.07,
+            144.23,
+            146.45,
+            148.93,
+            153.69,
+            147.46,
+            149.78,
+            145.65,
+            151.08,
+            148.89,
+            145.71,
+            150.73,
+            154.6,
+            145.24,
+            148.07,
+            145.84,
+            152.42,
+            149.52,
+            150.46,
+            146.93,
+            154.73,
+            144.56,
+            153.65,
+            161.06,
+            155.99,
+            148.77,
+            152.34,
+            161.48,
+            177.68,
+            174.07,
+            176.53,
+            174.83,
+            179.79,
+            174.57,
+            176.69,
+            502.49,
+            1121.68,
+            1017.89,
+            971.98,
+            956.99,
+            923.09
           ],
-          "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
-          "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
-        },
-        "crossSourceAfter": {
-          "candidates": 91,
-          "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
-        },
-        "deterministic": true,
-        "endToEndMs": 6835.93
-      }
-    ],
-    "sourceDatabaseBytes": 13570048,
-    "reportsDatabaseBytes": 4665344
+          "maxChunkApplyMs": 1121.68,
+          "qualityAfter": {
+            "published": 50513,
+            "tiles": 453,
+            "totalTileParts": 810,
+            "maxPartsPerTile": 24,
+            "missingExistence": 0,
+            "missingAttribution": 0,
+            "unpublishedEvidence": 0,
+            "tiers": [
+              {
+                "evidence_quality": "communityReported",
+                "n": 29167
+              },
+              {
+                "evidence_quality": "communityVerified",
+                "n": 20833
+              },
+              {
+                "evidence_quality": "officialListing",
+                "n": 513
+              }
+            ],
+            "partsDigest": "a7b71f33c17dc83a19960c8204ef702881ee94aa15d4a472bb97f0111083ec89",
+            "tileDigest": "2470d3debed337d5c0410668e8de6229f44d13d2dba15e64cd468ba583f0531e",
+            "publishedRowsDigest": "1338628e93830d2af8532571d96aff2dbb7e891ee89bbd08a1f6f7cc5e05f03a"
+          },
+          "crossSourceAfter": {
+            "candidates": 6613,
+            "digest": "75be9689e966856588557b4661e90a57bebbca8da8a528ace0f5bc24ade8425f"
+          },
+          "deterministic": true,
+          "endToEndMs": 303011.84
+        }
+      ],
+      "sourceDatabaseBytes": 438276096,
+      "reportsDatabaseBytes": 227119104
+    }
   },
-  "finalImportPlanHarnessSmall": {
+  "chunkComparison": {
     "version": "promotion-scale.v4",
     "profile": "small",
     "corpus": {
@@ -848,136 +1321,330 @@
       "simulationOnly": true
     },
     "timingsMs": {
-      "publish": 45.28,
-      "qualityBefore": 29.44,
-      "crossSourceBefore": 54.04,
-      "build:1048576": 1202.14,
-      "verify:1048576": 440.33,
-      "importPlanBuild:1048576": 450.34,
-      "importPlanVerify:1048576": 452.33,
-      "statementAndPrivacyAudit:1048576": 409.24,
-      "initialize:1048576": 444.77,
-      "apply:1048576": 1467.95,
-      "finalize:1048576": 514.6,
-      "qualityAfter:1048576": 31.13,
-      "crossSourceAfter:1048576": 49.96,
-      "repeat:1048576": 1217.46,
-      "bootstrapReexport:1048576": 1285.86
+      "publish": 99.61,
+      "qualityBefore": 54.46,
+      "crossSourceBefore": 77.23,
+      "build:1048576": 1935.38,
+      "verify:1048576": 709.59,
+      "importPlanBuild:1048576": 686.02,
+      "importPlanVerify:1048576": 672.15,
+      "statementAndPrivacyAudit:1048576": 622.44,
+      "initialize:1048576": 657.2,
+      "apply:1048576": 2017.32,
+      "finalize:1048576": 708.28,
+      "qualityAfter:1048576": 54.08,
+      "crossSourceAfter:1048576": 73.26,
+      "repeat:1048576": 1546.49,
+      "bootstrapReexport:1048576": 1602.8,
+      "build:4194304": 1631.45,
+      "verify:4194304": 663.46,
+      "importPlanBuild:4194304": 819.41,
+      "importPlanVerify:4194304": 591.29,
+      "statementAndPrivacyAudit:4194304": 519.83,
+      "initialize:4194304": 556.52,
+      "apply:4194304": 1716.77,
+      "finalize:4194304": 640.08,
+      "qualityAfter:4194304": 43.13,
+      "crossSourceAfter:4194304": 57.64,
+      "repeat:4194304": 1415.42,
+      "bootstrapReexport:4194304": 1471.73,
+      "build:16777216": 1453.44,
+      "verify:16777216": 569.48,
+      "importPlanBuild:16777216": 574.92,
+      "importPlanVerify:16777216": 555.18,
+      "statementAndPrivacyAudit:16777216": 497.29,
+      "initialize:16777216": 520.06,
+      "apply:16777216": 1717.55,
+      "finalize:16777216": 648.11,
+      "qualityAfter:16777216": 36.45,
+      "crossSourceAfter:16777216": 65.69,
+      "repeat:16777216": 1461.47,
+      "bootstrapReexport:16777216": 1490.95
     },
     "memory": {
       "publish": {
-        "rss": 141787136,
-        "heapTotal": 56164352,
-        "heapUsed": 28562840,
-        "external": 9079909,
-        "arrayBuffers": 39355
+        "rss": 147914752,
+        "heapTotal": 55115776,
+        "heapUsed": 29722520,
+        "external": 10791537,
+        "arrayBuffers": 1721719
       },
       "qualityBefore": {
-        "rss": 158842880,
-        "heapTotal": 56950784,
-        "heapUsed": 28441256,
-        "external": 9079949,
+        "rss": 160219136,
+        "heapTotal": 55640064,
+        "heapUsed": 24259744,
+        "external": 9104029,
         "arrayBuffers": 39355
       },
       "crossSourceBefore": {
-        "rss": 170459136,
-        "heapTotal": 56950784,
-        "heapUsed": 28901632,
-        "external": 9079949,
+        "rss": 172359680,
+        "heapTotal": 55902208,
+        "heapUsed": 24908432,
+        "external": 9104029,
         "arrayBuffers": 39355
       },
       "build:1048576": {
-        "rss": 198901760,
-        "heapTotal": 63209472,
-        "heapUsed": 41490168,
-        "external": 9668646,
-        "arrayBuffers": 603332
+        "rss": 201605120,
+        "heapTotal": 62423040,
+        "heapUsed": 39530760,
+        "external": 9651665,
+        "arrayBuffers": 586959
       },
       "verify:1048576": {
-        "rss": 198770688,
-        "heapTotal": 62652416,
-        "heapUsed": 39269040,
-        "external": 9275548,
-        "arrayBuffers": 210906
+        "rss": 201228288,
+        "heapTotal": 61505536,
+        "heapUsed": 29798552,
+        "external": 9219767,
+        "arrayBuffers": 155093
       },
       "importPlanBuild:1048576": {
-        "rss": 205258752,
-        "heapTotal": 63700992,
-        "heapUsed": 31113736,
-        "external": 19839258,
-        "arrayBuffers": 10774616
+        "rss": 209289216,
+        "heapTotal": 63799296,
+        "heapUsed": 39618392,
+        "external": 20589050,
+        "arrayBuffers": 11524376
       },
       "importPlanVerify:1048576": {
-        "rss": 205012992,
-        "heapTotal": 57999360,
-        "heapUsed": 16819016,
-        "external": 9177546,
-        "arrayBuffers": 112904
+        "rss": 209453056,
+        "heapTotal": 63668224,
+        "heapUsed": 28889832,
+        "external": 9199196,
+        "arrayBuffers": 134522
       },
       "statementAndPrivacyAudit:1048576": {
-        "rss": 205062144,
-        "heapTotal": 57999360,
-        "heapUsed": 24302600,
-        "external": 9258358,
-        "arrayBuffers": 193716
+        "rss": 209567744,
+        "heapTotal": 63668224,
+        "heapUsed": 29956176,
+        "external": 9224195,
+        "arrayBuffers": 159521
       },
       "initialize:1048576": {
-        "rss": 205127680,
-        "heapTotal": 57999360,
-        "heapUsed": 29428048,
-        "external": 9291326,
-        "arrayBuffers": 226684
+        "rss": 242335744,
+        "heapTotal": 103874560,
+        "heapUsed": 28564344,
+        "external": 9220661,
+        "arrayBuffers": 156019
       },
       "apply:1048576": {
-        "rss": 241418240,
-        "heapTotal": 88408064,
-        "heapUsed": 39752520,
-        "external": 9374491,
-        "arrayBuffers": 309849
+        "rss": 253214720,
+        "heapTotal": 103874560,
+        "heapUsed": 49160848,
+        "external": 9351446,
+        "arrayBuffers": 286804
       },
       "finalize:1048576": {
-        "rss": 256589824,
-        "heapTotal": 88670208,
-        "heapUsed": 46953648,
-        "external": 10117465,
-        "arrayBuffers": 1045143
+        "rss": 264306688,
+        "heapTotal": 103874560,
+        "heapUsed": 56190144,
+        "external": 10389039,
+        "arrayBuffers": 1318893
       },
       "qualityAfter:1048576": {
-        "rss": 251412480,
-        "heapTotal": 88932352,
-        "heapUsed": 42775112,
-        "external": 10117465,
-        "arrayBuffers": 97625
+        "rss": 265928704,
+        "heapTotal": 103874560,
+        "heapUsed": 62365112,
+        "external": 10418410,
+        "arrayBuffers": 81241
       },
       "crossSourceAfter:1048576": {
-        "rss": 251887616,
-        "heapTotal": 89456640,
-        "heapUsed": 25969248,
-        "external": 9191638,
-        "arrayBuffers": 97625
+        "rss": 261193728,
+        "heapTotal": 103874560,
+        "heapUsed": 45183864,
+        "external": 9175254,
+        "arrayBuffers": 81241
       },
       "repeat:1048576": {
-        "rss": 260030464,
-        "heapTotal": 93650944,
-        "heapUsed": 25678224,
-        "external": 9427706,
-        "arrayBuffers": 333661
+        "rss": 270008320,
+        "heapTotal": 98893824,
+        "heapUsed": 21704840,
+        "external": 9520089,
+        "arrayBuffers": 425916
       },
       "bootstrapReexport:1048576": {
-        "rss": 261505024,
-        "heapTotal": 95485952,
-        "heapUsed": 20098184,
-        "external": 9398742,
-        "arrayBuffers": 304537
+        "rss": 271138816,
+        "heapTotal": 99614720,
+        "heapUsed": 39887656,
+        "external": 10051932,
+        "arrayBuffers": 957727
+      },
+      "build:4194304": {
+        "rss": 271450112,
+        "heapTotal": 99614720,
+        "heapUsed": 56118048,
+        "external": 11322651,
+        "arrayBuffers": 2227838
+      },
+      "verify:4194304": {
+        "rss": 268861440,
+        "heapTotal": 97026048,
+        "heapUsed": 25375488,
+        "external": 9281432,
+        "arrayBuffers": 187227
+      },
+      "importPlanBuild:4194304": {
+        "rss": 268648448,
+        "heapTotal": 93126656,
+        "heapUsed": 18744120,
+        "external": 11286751,
+        "arrayBuffers": 2192738
+      },
+      "importPlanVerify:4194304": {
+        "rss": 268648448,
+        "heapTotal": 93388800,
+        "heapUsed": 25183200,
+        "external": 10118885,
+        "arrayBuffers": 1024872
+      },
+      "statementAndPrivacyAudit:4194304": {
+        "rss": 268648448,
+        "heapTotal": 93388800,
+        "heapUsed": 19000632,
+        "external": 10049385,
+        "arrayBuffers": 955372
+      },
+      "initialize:4194304": {
+        "rss": 268681216,
+        "heapTotal": 93388800,
+        "heapUsed": 21118120,
+        "external": 10069189,
+        "arrayBuffers": 975176
+      },
+      "apply:4194304": {
+        "rss": 268681216,
+        "heapTotal": 93388800,
+        "heapUsed": 30056704,
+        "external": 10118054,
+        "arrayBuffers": 1024041
+      },
+      "finalize:4194304": {
+        "rss": 329564160,
+        "heapTotal": 157089792,
+        "heapUsed": 73466720,
+        "external": 11871157,
+        "arrayBuffers": 2765528
+      },
+      "qualityAfter:4194304": {
+        "rss": 338411520,
+        "heapTotal": 157614080,
+        "heapUsed": 45909928,
+        "external": 11871157,
+        "arrayBuffers": 97625
+      },
+      "crossSourceAfter:4194304": {
+        "rss": 338427904,
+        "heapTotal": 157614080,
+        "heapUsed": 61473792,
+        "external": 11871157,
+        "arrayBuffers": 97625
+      },
+      "repeat:4194304": {
+        "rss": 351666176,
+        "heapTotal": 162562048,
+        "heapUsed": 82043328,
+        "external": 12743262,
+        "arrayBuffers": 3642561
+      },
+      "bootstrapReexport:4194304": {
+        "rss": 353812480,
+        "heapTotal": 164954112,
+        "heapUsed": 30226624,
+        "external": 9505844,
+        "arrayBuffers": 411767
+      },
+      "build:16777216": {
+        "rss": 352829440,
+        "heapTotal": 163004416,
+        "heapUsed": 27783584,
+        "external": 9612040,
+        "arrayBuffers": 517931
+      },
+      "verify:16777216": {
+        "rss": 350240768,
+        "heapTotal": 160415744,
+        "heapUsed": 45138168,
+        "external": 9505718,
+        "arrayBuffers": 411641
+      },
+      "importPlanBuild:16777216": {
+        "rss": 350240768,
+        "heapTotal": 160415744,
+        "heapUsed": 16973840,
+        "external": 19797015,
+        "arrayBuffers": 10702938
+      },
+      "importPlanVerify:16777216": {
+        "rss": 352681984,
+        "heapTotal": 155123712,
+        "heapUsed": 31942184,
+        "external": 9631821,
+        "arrayBuffers": 540393
+      },
+      "statementAndPrivacyAudit:16777216": {
+        "rss": 352698368,
+        "heapTotal": 155123712,
+        "heapUsed": 37199136,
+        "external": 9679647,
+        "arrayBuffers": 588219
+      },
+      "initialize:16777216": {
+        "rss": 352944128,
+        "heapTotal": 155123712,
+        "heapUsed": 54011760,
+        "external": 9860071,
+        "arrayBuffers": 768643
+      },
+      "apply:16777216": {
+        "rss": 353222656,
+        "heapTotal": 155123712,
+        "heapUsed": 26554560,
+        "external": 9548488,
+        "arrayBuffers": 457060
+      },
+      "finalize:16777216": {
+        "rss": 353714176,
+        "heapTotal": 155648000,
+        "heapUsed": 42493104,
+        "external": 10609140,
+        "arrayBuffers": 1512720
+      },
+      "qualityAfter:16777216": {
+        "rss": 353714176,
+        "heapTotal": 155910144,
+        "heapUsed": 82278048,
+        "external": 10609140,
+        "arrayBuffers": 1512720
+      },
+      "crossSourceAfter:16777216": {
+        "rss": 353714176,
+        "heapTotal": 156434432,
+        "heapUsed": 31105872,
+        "external": 10609140,
+        "arrayBuffers": 356492
+      },
+      "repeat:16777216": {
+        "rss": 356696064,
+        "heapTotal": 161120256,
+        "heapUsed": 36932792,
+        "external": 10023292,
+        "arrayBuffers": 931832
+      },
+      "bootstrapReexport:16777216": {
+        "rss": 355221504,
+        "heapTotal": 161693696,
+        "heapUsed": 64761784,
+        "external": 12255122,
+        "arrayBuffers": 3159118
       }
     },
     "complete": true,
-    "sourceDatabase": "/private/tmp/d1-v4-final-plan-small-source.sqlite",
-    "lastPhase": "bootstrapReexport:1048576",
-    "peakRssBytes": 261505024,
+    "sourceDatabase": "/private/tmp/v4-parts-chunk-comparison-source.sqlite",
+    "lastPhase": "bootstrapReexport:16777216",
+    "peakRssBytes": 356925440,
     "qualityBefore": {
       "published": 1513,
       "tiles": 366,
+      "totalTileParts": 366,
+      "maxPartsPerTile": 1,
       "missingExistence": 0,
       "missingAttribution": 0,
       "unpublishedEvidence": 0,
@@ -995,7 +1662,8 @@
           "n": 513
         }
       ],
-      "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+      "partsDigest": "5aa403006e9d5bb6d89049ff9f03d066a9f15db57fff8fae4b8baf9220ecb292",
+      "tileDigest": "297f001fae09ce6fd016a6988590e86f7819dc9f8e9ecf4cddc71e0ac7810a82",
       "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
     },
     "crossSourceBefore": {
@@ -1005,87 +1673,90 @@
     },
     "tileCapacity": [
       {
+        "tile_id": "14/14358/6504",
+        "spot_count": 13,
+        "body_bytes": 249
+      },
+      {
         "tile_id": "14/14358/6506",
         "spot_count": 61,
-        "body_bytes": 46544
+        "body_bytes": 249
+      },
+      {
+        "tile_id": "14/14358/6507",
+        "spot_count": 19,
+        "body_bytes": 249
       },
       {
         "tile_id": "14/14358/6508",
         "spot_count": 45,
-        "body_bytes": 37531
+        "body_bytes": 249
       },
       {
-        "tile_id": "14/14552/6453",
-        "spot_count": 36,
-        "body_bytes": 28145
+        "tile_id": "14/14358/6509",
+        "spot_count": 10,
+        "body_bytes": 249
       },
       {
-        "tile_id": "14/14127/6567",
-        "spot_count": 33,
-        "body_bytes": 23617
-      },
-      {
-        "tile_id": "14/14552/6452",
-        "spot_count": 30,
-        "body_bytes": 23366
-      },
-      {
-        "tile_id": "14/14549/6452",
-        "spot_count": 33,
-        "body_bytes": 23354
-      },
-      {
-        "tile_id": "14/14550/6448",
-        "spot_count": 32,
-        "body_bytes": 22918
-      },
-      {
-        "tile_id": "14/14549/6451",
-        "spot_count": 31,
-        "body_bytes": 22217
+        "tile_id": "14/14359/6506",
+        "spot_count": 10,
+        "body_bytes": 249
       },
       {
         "tile_id": "14/14359/6509",
         "spot_count": 22,
-        "body_bytes": 18543
+        "body_bytes": 249
       },
       {
-        "tile_id": "14/14624/6016",
-        "spot_count": 24,
-        "body_bytes": 17096
+        "tile_id": "14/14359/6511",
+        "spot_count": 17,
+        "body_bytes": 249
+      },
+      {
+        "tile_id": "14/14360/6506",
+        "spot_count": 11,
+        "body_bytes": 249
+      },
+      {
+        "tile_id": "14/14360/6507",
+        "spot_count": 11,
+        "body_bytes": 249
       }
     ],
     "artifacts": [
       {
         "chunkBytes": 1048576,
-        "directory": "/private/tmp/d1-v4-final-plan-small-1048576-bundle",
-        "artifactBytes": 10350237,
+        "directory": "/private/tmp/v4-parts-chunk-comparison-1048576-bundle",
+        "artifactBytes": 10582851,
         "chunks": 10,
-        "digest": "65408bbb02b9922e0adf7359d3de11f3605aba7250c9230a9034ee719fc0af3a",
+        "digest": "5f0e5af1af4592f8f683af1c96b289bec249fdcb54b647d555bdc9a9bb5ececd",
         "importPlan": {
           "files": 12,
-          "digest": "3d8b64d5f59726e6ca0463fd50e229dd39708a26d4a8fca981f81a1f2d1129df",
-          "artifactBytes": 10646826
+          "digest": "33c174a7be5ea3ca7adc3505e53c427b73eba91df6b1bcbd0c06655426715de6",
+          "artifactBytes": 10963345
         },
-        "maxStatementBytes": 46817,
+        "maxStatementBytes": 46714,
         "privateDataAbsent": true,
-        "bootstrapMs": 2427.98,
+        "readiness": "completed",
+        "bootstrapMs": 3385.26,
         "chunkApplyMs": [
-          135.09,
-          94.89,
-          99.32,
-          156.46,
-          193.51,
-          169.97,
-          163.41,
-          162.41,
-          98.95,
-          193.89
+          188.9,
+          125.84,
+          138.55,
+          211.72,
+          280.36,
+          231.14,
+          222.01,
+          216.36,
+          146.46,
+          255.87
         ],
-        "maxChunkApplyMs": 193.89,
+        "maxChunkApplyMs": 280.36,
         "qualityAfter": {
           "published": 1513,
           "tiles": 366,
+          "totalTileParts": 366,
+          "maxPartsPerTile": 1,
           "missingExistence": 0,
           "missingAttribution": 0,
           "unpublishedEvidence": 0,
@@ -1103,7 +1774,8 @@
               "n": 513
             }
           ],
-          "tileDigest": "77fdde9a4ee8a2fe229aa2d5c2c7d1c0476ae93de7327140f2f84591cbcce5fe",
+          "partsDigest": "5aa403006e9d5bb6d89049ff9f03d066a9f15db57fff8fae4b8baf9220ecb292",
+          "tileDigest": "297f001fae09ce6fd016a6988590e86f7819dc9f8e9ecf4cddc71e0ac7810a82",
           "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
         },
         "crossSourceAfter": {
@@ -1111,9 +1783,820 @@
           "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
         },
         "deterministic": true,
-        "endToEndMs": 8059.87
+        "endToEndMs": 11433.33
+      },
+      {
+        "chunkBytes": 4194304,
+        "directory": "/private/tmp/v4-parts-chunk-comparison-4194304-bundle",
+        "artifactBytes": 10581069,
+        "chunks": 3,
+        "digest": "e2d561daa9fd1dce178c61c2349baa99260cf93543e637c0a1df38b7ab5b2c69",
+        "importPlan": {
+          "files": 5,
+          "digest": "55448b77ee16e1d51806f617a620593b5b88490a9b80863822056c547200d884",
+          "artifactBytes": 10956649
+        },
+        "maxStatementBytes": 46714,
+        "privateDataAbsent": true,
+        "readiness": "completed",
+        "bootstrapMs": 2914.7,
+        "chunkApplyMs": [
+          573.5,
+          794.8,
+          348.45
+        ],
+        "maxChunkApplyMs": 794.8,
+        "qualityAfter": {
+          "published": 1513,
+          "tiles": 366,
+          "totalTileParts": 366,
+          "maxPartsPerTile": 1,
+          "missingExistence": 0,
+          "missingAttribution": 0,
+          "unpublishedEvidence": 0,
+          "tiers": [
+            {
+              "evidence_quality": "communityReported",
+              "n": 582
+            },
+            {
+              "evidence_quality": "communityVerified",
+              "n": 418
+            },
+            {
+              "evidence_quality": "officialListing",
+              "n": 513
+            }
+          ],
+          "partsDigest": "5aa403006e9d5bb6d89049ff9f03d066a9f15db57fff8fae4b8baf9220ecb292",
+          "tileDigest": "297f001fae09ce6fd016a6988590e86f7819dc9f8e9ecf4cddc71e0ac7810a82",
+          "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+        },
+        "crossSourceAfter": {
+          "candidates": 91,
+          "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+        },
+        "deterministic": true,
+        "endToEndMs": 10250.92
+      },
+      {
+        "chunkBytes": 16777216,
+        "directory": "/private/tmp/v4-parts-chunk-comparison-16777216-bundle",
+        "artifactBytes": 10580568,
+        "chunks": 1,
+        "digest": "15ae26c6ea4662c28d62eae18ec7fd31b92e2fb06ab00aa188cfe419143d3842",
+        "importPlan": {
+          "files": 3,
+          "digest": "69522b1997788f26069af29c16224f20dd0fb60defa26bea55f51c847d201d6e",
+          "artifactBytes": 10954759
+        },
+        "maxStatementBytes": 46714,
+        "privateDataAbsent": true,
+        "readiness": "completed",
+        "bootstrapMs": 2886.97,
+        "chunkApplyMs": [
+          1717.54
+        ],
+        "maxChunkApplyMs": 1717.54,
+        "qualityAfter": {
+          "published": 1513,
+          "tiles": 366,
+          "totalTileParts": 366,
+          "maxPartsPerTile": 1,
+          "missingExistence": 0,
+          "missingAttribution": 0,
+          "unpublishedEvidence": 0,
+          "tiers": [
+            {
+              "evidence_quality": "communityReported",
+              "n": 582
+            },
+            {
+              "evidence_quality": "communityVerified",
+              "n": 418
+            },
+            {
+              "evidence_quality": "officialListing",
+              "n": 513
+            }
+          ],
+          "partsDigest": "5aa403006e9d5bb6d89049ff9f03d066a9f15db57fff8fae4b8baf9220ecb292",
+          "tileDigest": "297f001fae09ce6fd016a6988590e86f7819dc9f8e9ecf4cddc71e0ac7810a82",
+          "publishedRowsDigest": "98500eee8a2cbd5def58d55ab7f073bbcb32360515b466a4e35a35bcfa46b2f4"
+        },
+        "crossSourceAfter": {
+          "candidates": 91,
+          "digest": "d5ea38e34b0842c74ec22c3408c126f9e718d40055bb6526ada2c43211c56305"
+        },
+        "deterministic": true,
+        "endToEndMs": 9707.41
       }
     ],
-    "sourceDatabaseBytes": 13570048
-  }
+    "sourceDatabaseBytes": 13733888
+  },
+  "isolatedCompleted50kExport": {
+    "profile": "large",
+    "scope": "completed isolated export only; source already generated/published; generation/publication excluded",
+    "elapsedMs": 43931.064041,
+    "peakRssBytes": 455507968,
+    "complete": true,
+    "chunks": 288,
+    "digest": "458023df0e7054ce07c351510fe12119e473024cd951fe0c994519798b1004e9"
+  },
+  "largeTileDelivery": {
+    "version": "tile-delivery-benchmark.v1",
+    "profile": "large",
+    "dataTileZoom": 14,
+    "corpus": {
+      "version": "synthetic-community.v1",
+      "seed": 151152,
+      "sha256": "e8b7bb43c47bba69ef33b40c1b40d9f03cc5039d16c6489b2fb8dcb203063642",
+      "communitySpots": 50000,
+      "official": 513
+    },
+    "environment": {
+      "runtime": "v24.10.0",
+      "database": "local node:sqlite; not remote D1",
+      "gzip": "node:zlib default level"
+    },
+    "publication": {
+      "productionDecision": "pending",
+      "source": "blocked",
+      "simulationOnly": true
+    },
+    "gate": {
+      "id": "tile-part-budget",
+      "status": "pass",
+      "detail": "tile-parts.v1: max 93 spots / 65532 raw / 3977 gzip bytes per part (limits 250 / 65536 / 16384), max 24 parts/tile (limit 128), max manifest 2634 bytes (limit 16384)"
+    },
+    "zooms": [
+      {
+        "zoom": 14,
+        "tiles": 453,
+        "spotsPerTile": {
+          "max": 2223,
+          "p95": 233,
+          "p50": 73,
+          "mean": 111.51
+        },
+        "tilesOver250Spots": 19,
+        "before": {
+          "rawBytes": {
+            "max": 1551737,
+            "p95": 163511,
+            "p50": 52840,
+            "mean": 78751.38
+          },
+          "gzipBytes": {
+            "max": 32772,
+            "p95": 5124,
+            "p50": 2139,
+            "mean": 2741.04
+          },
+          "d1RowMaxBytes": 1551737,
+          "tilesOverGzipBudget": 6,
+          "viewport": {
+            "requests": {
+              "max": 9,
+              "p95": 9,
+              "p50": 9,
+              "mean": 9
+            },
+            "gzipBytes": {
+              "max": 69478,
+              "p95": 60790,
+              "p50": 7580,
+              "mean": 18187.28
+            },
+            "probes": [
+              {
+                "id": "tokyo-shinjuku",
+                "requests": 9,
+                "gzipBytes": 62950
+              },
+              {
+                "id": "tokyo-shibuya",
+                "requests": 9,
+                "gzipBytes": 60790
+              },
+              {
+                "id": "tokyo-ikebukuro",
+                "requests": 9,
+                "gzipBytes": 32429
+              },
+              {
+                "id": "osaka-umeda",
+                "requests": 9,
+                "gzipBytes": 49961
+              },
+              {
+                "id": "fukuoka-hakata",
+                "requests": 9,
+                "gzipBytes": 34890
+              },
+              {
+                "id": "hokkaido-susukino",
+                "requests": 9,
+                "gzipBytes": 36568
+              }
+            ]
+          }
+        },
+        "after": {
+          "policy": {
+            "version": "tile-parts.v1",
+            "maxSpots": 250,
+            "maxRawBytes": 65536,
+            "maxGzipBytes": 16384,
+            "maxParts": 128
+          },
+          "parts": 810,
+          "partsPerTile": {
+            "max": 24,
+            "p95": 3,
+            "p50": 1,
+            "mean": 1.79
+          },
+          "partSpots": {
+            "max": 93,
+            "p95": 93,
+            "p50": 72,
+            "mean": 62.36
+          },
+          "partRawBytes": {
+            "max": 65532,
+            "p95": 65479,
+            "p50": 50910,
+            "mean": 44181.43
+          },
+          "partGzipBytes": {
+            "max": 3977,
+            "p95": 2477,
+            "p50": 1968,
+            "mean": 1869.45
+          },
+          "manifestBytes": {
+            "max": 2634,
+            "p95": 456,
+            "p50": 249,
+            "mean": 330.41
+          },
+          "d1RowMaxBytes": 65532,
+          "partsOverBudget": 0,
+          "viewport": {
+            "requests": {
+              "max": 58,
+              "p95": 55,
+              "p50": 12,
+              "mean": 20.19
+            },
+            "gzipBytes": {
+              "max": 108544,
+              "p95": 98160,
+              "p50": 9017,
+              "mean": 26514.01
+            },
+            "probes": [
+              {
+                "id": "tokyo-shinjuku",
+                "requests": 55,
+                "gzipBytes": 100320
+              },
+              {
+                "id": "tokyo-shibuya",
+                "requests": 55,
+                "gzipBytes": 98160
+              },
+              {
+                "id": "tokyo-ikebukuro",
+                "requests": 34,
+                "gzipBytes": 52081
+              },
+              {
+                "id": "osaka-umeda",
+                "requests": 35,
+                "gzipBytes": 69981
+              },
+              {
+                "id": "fukuoka-hakata",
+                "requests": 37,
+                "gzipBytes": 56408
+              },
+              {
+                "id": "hokkaido-susukino",
+                "requests": 35,
+                "gzipBytes": 56964
+              }
+            ]
+          }
+        },
+        "densest": [
+          {
+            "tileId": "14/14358/6506",
+            "spots": 2223,
+            "rawBytes": 1551737,
+            "gzipBytes": 32772,
+            "parts": 24
+          },
+          {
+            "tileId": "14/14127/6567",
+            "spots": 2139,
+            "rawBytes": 1507195,
+            "gzipBytes": 28690,
+            "parts": 24
+          },
+          {
+            "tileId": "14/14549/6451",
+            "spots": 2100,
+            "rawBytes": 1479916,
+            "gzipBytes": 27758,
+            "parts": 23
+          },
+          {
+            "tileId": "14/14549/6452",
+            "spots": 2094,
+            "rawBytes": 1457952,
+            "gzipBytes": 27835,
+            "parts": 23
+          },
+          {
+            "tileId": "14/14550/6448",
+            "spots": 2089,
+            "rawBytes": 1472204,
+            "gzipBytes": 27393,
+            "parts": 23
+          },
+          {
+            "tileId": "14/14624/6016",
+            "spots": 1389,
+            "rawBytes": 967766,
+            "gzipBytes": 19916,
+            "parts": 15
+          },
+          {
+            "tileId": "14/14625/6016",
+            "spots": 958,
+            "rawBytes": 667613,
+            "gzipBytes": 13598,
+            "parts": 11
+          },
+          {
+            "tileId": "14/14373/6507",
+            "spots": 447,
+            "rawBytes": 313379,
+            "gzipBytes": 8630,
+            "parts": 5
+          }
+        ]
+      },
+      {
+        "zoom": 15,
+        "tiles": 794,
+        "spotsPerTile": {
+          "max": 2202,
+          "p95": 148,
+          "p50": 32,
+          "mean": 63.62
+        },
+        "tilesOver250Spots": 9,
+        "before": {
+          "rawBytes": {
+            "max": 1536357,
+            "p95": 104009,
+            "p50": 22889,
+            "mean": 45182.02
+          },
+          "gzipBytes": {
+            "max": 31993,
+            "p95": 3411,
+            "p50": 1475,
+            "mean": 1922.32
+          },
+          "d1RowMaxBytes": 1536357,
+          "tilesOverGzipBudget": 6,
+          "viewport": {
+            "requests": {
+              "max": 9,
+              "p95": 9,
+              "p50": 9,
+              "mean": 9
+            },
+            "gzipBytes": {
+              "max": 44716,
+              "p95": 34287,
+              "p50": 6876,
+              "mean": 13688.37
+            },
+            "probes": [
+              {
+                "id": "tokyo-shinjuku",
+                "requests": 9,
+                "gzipBytes": 30536
+              },
+              {
+                "id": "tokyo-shibuya",
+                "requests": 9,
+                "gzipBytes": 31509
+              },
+              {
+                "id": "tokyo-ikebukuro",
+                "requests": 9,
+                "gzipBytes": 30312
+              },
+              {
+                "id": "osaka-umeda",
+                "requests": 9,
+                "gzipBytes": 44054
+              },
+              {
+                "id": "fukuoka-hakata",
+                "requests": 9,
+                "gzipBytes": 30292
+              },
+              {
+                "id": "hokkaido-susukino",
+                "requests": 9,
+                "gzipBytes": 34287
+              }
+            ]
+          }
+        },
+        "after": {
+          "policy": {
+            "version": "tile-parts.v1",
+            "maxSpots": 250,
+            "maxRawBytes": 65536,
+            "maxGzipBytes": 16384,
+            "maxParts": 128
+          },
+          "parts": 1083,
+          "partsPerTile": {
+            "max": 24,
+            "p95": 2,
+            "p50": 1,
+            "mean": 1.36
+          },
+          "partSpots": {
+            "max": 93,
+            "p95": 93,
+            "p50": 41,
+            "mean": 46.64
+          },
+          "partRawBytes": {
+            "max": 65529,
+            "p95": 65470,
+            "p50": 29046,
+            "mean": 33198.94
+          },
+          "partGzipBytes": {
+            "max": 3808,
+            "p95": 2451,
+            "p50": 1547,
+            "mean": 1605.61
+          },
+          "manifestBytes": {
+            "max": 2635,
+            "p95": 354,
+            "p50": 250,
+            "mean": 287.14
+          },
+          "d1RowMaxBytes": 65529,
+          "partsOverBudget": 0,
+          "viewport": {
+            "requests": {
+              "max": 35,
+              "p95": 33,
+              "p50": 11,
+              "mean": 16.48
+            },
+            "gzipBytes": {
+              "max": 63804,
+              "p95": 53793,
+              "p50": 8138,
+              "mean": 19270.1
+            },
+            "probes": [
+              {
+                "id": "tokyo-shinjuku",
+                "requests": 32,
+                "gzipBytes": 49325
+              },
+              {
+                "id": "tokyo-shibuya",
+                "requests": 32,
+                "gzipBytes": 50118
+              },
+              {
+                "id": "tokyo-ikebukuro",
+                "requests": 32,
+                "gzipBytes": 48896
+              },
+              {
+                "id": "osaka-umeda",
+                "requests": 33,
+                "gzipBytes": 63142
+              },
+              {
+                "id": "fukuoka-hakata",
+                "requests": 32,
+                "gzipBytes": 48945
+              },
+              {
+                "id": "hokkaido-susukino",
+                "requests": 35,
+                "gzipBytes": 53793
+              }
+            ]
+          }
+        },
+        "densest": [
+          {
+            "tileId": "15/28717/13012",
+            "spots": 2202,
+            "rawBytes": 1536357,
+            "gzipBytes": 31993,
+            "parts": 24
+          },
+          {
+            "tileId": "15/29099/12902",
+            "spots": 2100,
+            "rawBytes": 1479917,
+            "gzipBytes": 27759,
+            "parts": 23
+          },
+          {
+            "tileId": "15/29099/12905",
+            "spots": 2094,
+            "rawBytes": 1457953,
+            "gzipBytes": 27838,
+            "parts": 23
+          },
+          {
+            "tileId": "15/29100/12897",
+            "spots": 2083,
+            "rawBytes": 1467999,
+            "gzipBytes": 27234,
+            "parts": 23
+          },
+          {
+            "tileId": "15/28255/13134",
+            "spots": 2081,
+            "rawBytes": 1466578,
+            "gzipBytes": 27173,
+            "parts": 23
+          },
+          {
+            "tileId": "15/29249/12033",
+            "spots": 1295,
+            "rawBytes": 901947,
+            "gzipBytes": 17764,
+            "parts": 14
+          },
+          {
+            "tileId": "15/29250/12033",
+            "spots": 879,
+            "rawBytes": 612321,
+            "gzipBytes": 12030,
+            "parts": 10
+          },
+          {
+            "tileId": "15/29105/12904",
+            "spots": 285,
+            "rawBytes": 201256,
+            "gzipBytes": 6737,
+            "parts": 4
+          }
+        ]
+      },
+      {
+        "zoom": 16,
+        "tiles": 1575,
+        "spotsPerTile": {
+          "max": 2066,
+          "p95": 70,
+          "p50": 17,
+          "mean": 32.07
+        },
+        "tilesOver250Spots": 8,
+        "before": {
+          "rawBytes": {
+            "max": 1456114,
+            "p95": 49533,
+            "p50": 12396,
+            "mean": 23009.33
+          },
+          "gzipBytes": {
+            "max": 26821,
+            "p95": 2071,
+            "p50": 1223,
+            "mean": 1340.5
+          },
+          "d1RowMaxBytes": 1456114,
+          "tilesOverGzipBudget": 6,
+          "viewport": {
+            "requests": {
+              "max": 9,
+              "p95": 9,
+              "p50": 9,
+              "mean": 9
+            },
+            "gzipBytes": {
+              "max": 39870,
+              "p95": 34540,
+              "p50": 7019,
+              "mean": 13812.75
+            },
+            "probes": [
+              {
+                "id": "tokyo-shinjuku",
+                "requests": 9,
+                "gzipBytes": 32232
+              },
+              {
+                "id": "tokyo-shibuya",
+                "requests": 9,
+                "gzipBytes": 32273
+              },
+              {
+                "id": "tokyo-ikebukuro",
+                "requests": 9,
+                "gzipBytes": 32687
+              },
+              {
+                "id": "osaka-umeda",
+                "requests": 9,
+                "gzipBytes": 38549
+              },
+              {
+                "id": "fukuoka-hakata",
+                "requests": 9,
+                "gzipBytes": 31345
+              },
+              {
+                "id": "hokkaido-susukino",
+                "requests": 9,
+                "gzipBytes": 34540
+              }
+            ]
+          }
+        },
+        "after": {
+          "policy": {
+            "version": "tile-parts.v1",
+            "maxSpots": 250,
+            "maxRawBytes": 65536,
+            "maxGzipBytes": 16384,
+            "maxParts": 128
+          },
+          "parts": 1715,
+          "partsPerTile": {
+            "max": 23,
+            "p95": 1,
+            "p50": 1,
+            "mean": 1.09
+          },
+          "partSpots": {
+            "max": 93,
+            "p95": 92,
+            "p50": 20,
+            "mean": 29.45
+          },
+          "partRawBytes": {
+            "max": 65491,
+            "p95": 65096,
+            "p50": 14386,
+            "mean": 21134.9
+          },
+          "partGzipBytes": {
+            "max": 3524,
+            "p95": 2027,
+            "p50": 1253,
+            "mean": 1284.77
+          },
+          "manifestBytes": {
+            "max": 2531,
+            "p95": 250,
+            "p50": 250,
+            "mean": 258.49
+          },
+          "d1RowMaxBytes": 65491,
+          "partsOverBudget": 0,
+          "viewport": {
+            "requests": {
+              "max": 33,
+              "p95": 33,
+              "p50": 9,
+              "mean": 15.13
+            },
+            "gzipBytes": {
+              "max": 57855,
+              "p95": 53118,
+              "p50": 7027,
+              "mean": 18635.94
+            },
+            "probes": [
+              {
+                "id": "tokyo-shinjuku",
+                "requests": 32,
+                "gzipBytes": 50902
+              },
+              {
+                "id": "tokyo-shibuya",
+                "requests": 32,
+                "gzipBytes": 50735
+              },
+              {
+                "id": "tokyo-ikebukuro",
+                "requests": 32,
+                "gzipBytes": 51255
+              },
+              {
+                "id": "osaka-umeda",
+                "requests": 33,
+                "gzipBytes": 56534
+              },
+              {
+                "id": "fukuoka-hakata",
+                "requests": 32,
+                "gzipBytes": 49933
+              },
+              {
+                "id": "hokkaido-susukino",
+                "requests": 33,
+                "gzipBytes": 53118
+              }
+            ]
+          }
+        },
+        "densest": [
+          {
+            "tileId": "16/58199/25804",
+            "spots": 2066,
+            "rawBytes": 1456114,
+            "gzipBytes": 26821,
+            "parts": 23
+          },
+          {
+            "tileId": "16/58201/25795",
+            "spots": 2059,
+            "rawBytes": 1451171,
+            "gzipBytes": 26509,
+            "parts": 23
+          },
+          {
+            "tileId": "16/58199/25811",
+            "spots": 2056,
+            "rawBytes": 1431249,
+            "gzipBytes": 26641,
+            "parts": 23
+          },
+          {
+            "tileId": "16/56510/26269",
+            "spots": 2052,
+            "rawBytes": 1446274,
+            "gzipBytes": 26279,
+            "parts": 23
+          },
+          {
+            "tileId": "16/57435/26025",
+            "spots": 1307,
+            "rawBytes": 911466,
+            "gzipBytes": 18348,
+            "parts": 15
+          },
+          {
+            "tileId": "16/58499/24066",
+            "spots": 1287,
+            "rawBytes": 896358,
+            "gzipBytes": 17539,
+            "parts": 14
+          },
+          {
+            "tileId": "16/58500/24066",
+            "spots": 870,
+            "rawBytes": 606027,
+            "gzipBytes": 11844,
+            "parts": 10
+          },
+          {
+            "tileId": "16/57434/26025",
+            "spots": 812,
+            "rawBytes": 566995,
+            "gzipBytes": 12254,
+            "parts": 9
+          }
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "contract": "pass",
+    "api": 775,
+    "discovery": 69,
+    "apple": "iOS tests and Watch build pass",
+    "typecheck": "pass",
+    "multipartRegression": 13
+  },
+  "remoteExecution": false,
+  "communityActivation": "pending"
 }

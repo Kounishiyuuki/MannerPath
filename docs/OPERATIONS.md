@@ -786,3 +786,9 @@ Every command here is a maintainer's remote action; none is run by automation.
 See [Community scale runbook](COMMUNITY_SCALE_RUNBOOK.md) for deterministic local scale profiles,
 capacity review after the first 1,000, bounded moderation/retention and D1 measurement limitations.
 Simulation does not approve community publication: #124, terms and source rights remain pending.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.

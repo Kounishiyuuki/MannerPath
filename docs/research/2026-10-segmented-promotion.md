@@ -1,82 +1,91 @@
-# Segmented promotion capacity — Issue #157
+# Segmented promotion capacity — Issue #157 / PR #159
 
-Base main: `299782a90758a19a69f8e2d93db853078afc0118`. Local disk-backed SQLite,
-Node v24.10.0, macOS. Initial chunk comparison and medium/large generation overlapped validation; timings are diagnostic.
-The final single-budget 1k run is recorded separately in the JSON.
-Separate exporter processes measure export-only peak RSS, excluding generation/publishing/quality.
-Raw numbers: [JSON](2026-10-segmented-promotion.json). No remote D1, deployment, or activation.
+Base main: `ff054295272d52c4be63fcf755c3f53b1003828c` (merged PR #160). Node v24.10.0, macOS,
+disk-backed local SQLite. Profiles overlapped validation/tile benchmarking, so wall times are diagnostic.
+[Raw measurements](2026-10-segmented-promotion.json). No remote D1, deployment, cutover, or activation.
 
-## Measured results
+## Completed roundtrips
 
-| Synthetic spots / reports (+513 official) | Artifact | Chunks | Largest SQL | Build | Verify | Bootstrap | Peak RSS |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1k / 5k, 1 MiB chunks | 10,350,237 B | 10 | 46,817 B | 1.179 s | 0.434 s | 2.333 s | 405 MiB final full run |
-| 10k / 50k | refused | — | existing tile INSERT 330,254 B | 14.701 s isolated refusal | — | — | 159 MiB isolated export; 777 MiB full profile |
-| 50k / 250k | refused | — | existing tile INSERT 1,552,013 B | 29.699 s isolated refusal | — | — | 256 MiB isolated export; 2,417 MiB full profile |
+V4 transports the ADR-0015 canonical tile manifest/head and `tile_snapshot_parts` rows without assembling
+a multipart tile into one INSERT. Every complete INSERT is checked with SQL escaping under the unchanged
+90,000-byte policy. Head rows precede part rows; ordering and all artifact hashes are deterministic.
 
-A refusal produces no manifest or completed artifact directory. Largest existing tile statement is
-calculated from the exact escaped UTF-8 literal/SQL size without constructing that oversized statement.
-The first oversized tile encountered is not necessarily the largest one. The writer refuses at its
-90,000-byte policy, below D1's official 100,000-byte limit.
+Every profile completed corpus build, publication, v4 build/verify, import-plan generation/verification,
+fresh GREEN apply/finalization/readiness, quality/cross-source parity, deterministic source re-export,
+and byte-identical GREEN re-export. Spot counts below are synthetic; each profile also includes 513 official spots.
 
-The 1k profile verifies every file, privacy absence, deterministic source re-export, complete bootstrap,
-canonical/tile/tier/attribution quality parity and cross-source candidate parity, then byte-identical
-bootstrap re-export. The 10k/50k profiles complete real report generation, publication and bounded quality /
-cross-source checks, but cannot verify/apply/re-export a complete v4 artifact until the tile fix lands.
-Do not interpret their smaller RSS as a completed nationwide bootstrap comparison with #156's 5.23 GiB.
+| Synthetic spots / reports | Logical tiles | Parts | Max parts/tile | Artifact bytes | Chunks | Max statement bytes | Build | Verify | Apply | Bootstrap | Peak RSS |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1k / 5,000 | 366 | 366 | 1 | 10,582,851 | 10 | 46,714 | 1.249 s | 0.438 s | 1.435 s | 2.381 s | 0.404 GiB |
+| 10k / 50,000 | 439 | 464 | 6 | 65,311,323 | 61 | 65,503 | 20.084 s | 9.386 s | 16.011 s | 28.807 s | 0.689 GiB |
+| 50k / 250,000 | 453 | 810 | 24 | 308,801,582 | 288 | 65,729 | 57.858 s | 17.186 s | 74.494 s | 104.480 s | 2.477 GiB |
 
-The verified import plan was also executed against a separate fresh local SQLite database: 12 SQL files,
-10,416,414 SQL bytes, 1,513 resulting spots, completed readiness, 0.550 s application. This timing excludes
-plan generation/verification and is separate from the streaming bootstrap measurement above.
-The final resumed-source harness also generated the same source/plan digests: plan generation 0.450 s,
-plan verification 0.452 s, complete plan artifact 10,646,826 B, resumed-process peak RSS 249 MiB.
+Bootstrap includes full preflight/initialization, all chunks and finalization. Statement bytes exclude the
+file newline separator; the writer additionally checks that separator within its stricter budget. Artifact
+bytes include manifest and finalize. All three use 1 MiB chunk targets.
 
-## Operational chunk comparison (1k)
+| Profile | Import-plan generation | Import-plan verify | Complete plan artifact bytes | Slowest local chunk |
+| --- | ---: | ---: | ---: | ---: |
+| 1k | 0.445 s | 0.446 s | 10,963,345 | 0.193 s |
+| 10k | 10.068 s | 9.055 s | 67,619,029 | 0.993 s |
+| 50k | 17.849 s | 15.148 s | 319,622,162 | 1.122 s |
 
-| Budget | Chunks | Build | Verify | Apply | Bootstrap incl. preflight/finalize | Slowest chunk |
+The completed standalone 50k exporter took 43.931 s at 434.4 MiB peak RSS,
+excluding corpus build/publication. It produced the same bundle digest and 288 chunks as the full profile.
+Full 50k peak RSS is 2.477 GiB versus #156's reported 5.23 GiB; this is now a completed
+bootstrap measurement, not an oversized-tile refusal. No SQL file or corpus is materialized as one string.
+
+## Operational chunk comparison (current canonical parts, 1k)
+
+| Target | Chunks | Build | Verify | Apply | Bootstrap | Slowest chunk |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 MiB | 10 | 1.187 s | 0.435 s | 1.482 s | 2.393 s | 0.198 s |
-| 4 MiB | 3 | 1.179 s | 0.422 s | 1.400 s | 2.320 s | 0.647 s |
-| 16 MiB | 1 | 1.268 s | 0.437 s | 1.509 s | 2.441 s | 1.509 s |
+| 1 MiB | 10 | 1.935 s | 0.710 s | 2.017 s | 3.385 s | 0.280 s |
+| 4 MiB | 3 | 1.631 s | 0.663 s | 1.717 s | 2.915 s | 0.795 s |
+| 16 MiB | 1 | 1.453 s | 0.569 s | 1.718 s | 2.887 s | 1.718 s |
 
-Recommend **1 MiB provisionally**: total time differs by about 3%, while the largest retry unit is much
-shorter. Build still requires an explicit byte budget. Re-run the comparison against the completed 50k
-artifact before treating this as a nationwide recommendation. File size is unrelated to D1's 5 GB import
-limit, and local timings do not establish the remote 30-second entire-batch limit.
+1 MiB trades some total throughput for a smaller retry unit; 50k also completes at this budget. The CLI
+requires an explicit budget rather than silently choosing it. Local latency cannot establish remote D1's
+30-second query/batch limit.
 
-## Safety and compatibility
+## Integrity, safety and compatibility
 
-Focused tests cover missing/corrupt/truncated files, stale/wrong manifest, re-signed source/release/observation/
-attribution/tile/count metadata, duplicate sources, malicious numeric fields, exact additive release sets,
-out-of-order imports, replay, partial transaction rollback, unfinished readiness, immutable receipts,
-oversized row cleanup, parser boundaries, and private-table refusal.
-The six-source 513 corpus and reviewed cross-release attestation flow bootstrap and re-export through v4.
-The Taito v3-compatible golden changes only by eight empty schema tables; its SQL hash remains unchanged.
+The manifest pins schemaVersion, head hash/revision/count and every part index/hash/count. Immutable expected
+head/part ledgers bind DB finalization to those declarations. The local verifier checks actual hashes and
+canonical content one bounded part at a time, including complete logical membership and source attribution.
+Missing/extra parts, duplicate indexes, hash/head/part/tile/revision/count corruption, incomplete membership,
+and consistently rehashed noncanonical content cannot complete GREEN. Empty logical tiles remain valid.
 
-## Remaining capacity blockers before 100k
+`0029_segmented_promotion.sql` follows unchanged `0028_tile_parts.sql`; all 64 tables are considered by
+legacy/v4 empty-target guards. V2/v3 and the current six-source 513 corpus pass regressions. The Taito golden
+diff versus #160 adds only nine empty v4 ledger tables. #160 routes/config/Apple sync and part budgets stay intact.
 
-1. **Tile representation:** 10k's largest existing statement is 330,254 B; 50k's is 1,552,013 B. The current
-   representation cannot satisfy the D1 statement limit. Wait for Claude's scalable tile work, fetch/rebase,
-   migrate the persisted local source as required, and re-run 1k/10k/50k. Do not split or disguise literals.
-2. **Completed large bootstrap measurements:** artifact/chunk counts, verify/apply/finalization/determinism
-   and whole-process peak RSS remain unmeasured at 10k/50k. Full pre-export 50k peak is 2,417 MiB, with
-   publish/cross-source phases contributing substantially; exporter-only refusal peak is 256 MiB.
-3. **Remote execution duration:** D1's 30-second query/batch bound is not proven by local SQLite. The deterministic
-   import plan now supplies locally validated atomic receipt wrappers. Actual remote duration and the
-   isolated-writer protocol remain unverified; no remote statement has been executed.
-4. **Manifest metadata:** v4 enforces a 16 MiB manifest/metadata budget and a statement budget for review
-   dependency declarations. Measure actual 100k release/tile metadata after tile integration; capacity
-   refusal is explicit rather than permitting unbounded memory. No successful 100k claim is made.
+Validation: contract; API 775 tests + discovery 69; iOS tests + Watch build; tsc; 13 multipart regressions;
+large tile delivery gate pass. The 50k tile gate measured max 93 spots / 65,532 SQL-literal bytes / 3,977 gzip
+bytes per part and a 2,634-byte maximum manifest. Its policy remains 250 / 65,536 / 16,384 / 128 parts.
+
+## Before 100k / production capacity
+
+1. 100k promotion has not been run. Measure actual artifact size, manifest metadata (16 MiB cap), chunk count,
+   memory and complete finalization; 50k success does not prove the next profile.
+2. Current 50k maximum is 24 parts/tile against a fixed 128-part cap. Future concentrated density or one
+   unsplittable oversized spot may still refuse; never raise the accepted tile/SQL budgets to hide it.
+3. Local full bootstrap takes 104.480 s across 288 atomic chunks. The remote 30-second per-query/batch
+   limit, file importer behavior/performance, and isolated-writer procedure require later authorized remote
+   verification. No remote duration claim is made.
+4. Full 50k still peaks near 2.48 GiB; corpus publication/cross-source tooling contributes beyond the
+   isolated streaming exporter. Assess those phases before increasing corpus/density or concurrent processes.
 
 ## Reproduce
 
-From `services/api`, Node >=24 on PATH:
+From `services/api`, Node >=24 on PATH, use fresh output prefixes:
 
 ```sh
-npm run scale:promotion:v4 -- --profile small --output /private/tmp/promotion-small
-npm run scale:promotion:v4 -- --profile medium --output /private/tmp/promotion-medium --chunk-bytes 1048576
-npm run scale:promotion:v4 -- --profile large --output /private/tmp/promotion-large --chunk-bytes 1048576
+npm run scale:promotion:v4 -- --profile small --output /private/tmp/promotion-1k --chunk-bytes 1048576
+npm run scale:promotion:v4 -- --profile medium --output /private/tmp/promotion-10k --chunk-bytes 1048576
+npm run scale:promotion:v4 -- --profile large --output /private/tmp/promotion-50k --chunk-bytes 1048576
+npm run scale:tiles -- --profile large --output /private/tmp/tiles-50k
 ```
 
-Use new output prefixes. `--resume-source` retains deterministic generated evidence and republishes after
-tile integration; apply any new schema migrations first. It is not report/publication activation.
+All community approval/rights in these disposable benchmark databases are simulation-only. Production #124
+remains pending and OSM is not activated. `--resume-source` expects an already migrated source at the same
+output prefix; it is not a production activation command.

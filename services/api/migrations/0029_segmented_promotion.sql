@@ -38,7 +38,16 @@ CREATE TABLE promotion_v4_expected_tiles (
   manifest_id INTEGER NOT NULL REFERENCES promotion_v4_manifests(id) CHECK (manifest_id = 1),
   revision INTEGER NOT NULL,
   spot_count INTEGER NOT NULL,
-  content_sha256 TEXT NOT NULL
+  content_sha256 TEXT NOT NULL,
+  schema_version INTEGER NOT NULL CHECK (schema_version IN (1,2)),
+  part_count INTEGER NOT NULL CHECK (part_count BETWEEN 0 AND 128 AND (schema_version=2 OR part_count=0))
+);
+CREATE TABLE promotion_v4_expected_tile_parts (
+  tile_id TEXT NOT NULL REFERENCES promotion_v4_expected_tiles(tile_id),
+  part_index INTEGER NOT NULL CHECK (part_index BETWEEN 0 AND 127),
+  spot_count INTEGER NOT NULL CHECK (spot_count BETWEEN 1 AND 250),
+  content_sha256 TEXT NOT NULL CHECK (length(content_sha256)=64 AND content_sha256 NOT GLOB '*[^0-9a-f]*'),
+  PRIMARY KEY (tile_id,part_index)
 );
 CREATE TABLE promotion_v4_applied_chunks (
   ordinal INTEGER PRIMARY KEY REFERENCES promotion_v4_expected_chunks(ordinal),
@@ -79,6 +88,7 @@ WHEN EXISTS (SELECT 1 FROM sources)
  OR EXISTS (SELECT 1 FROM spot_source_entities)
  OR EXISTS (SELECT 1 FROM spot_field_provenance)
  OR EXISTS (SELECT 1 FROM spot_field_attenuations)
+ OR EXISTS (SELECT 1 FROM tile_snapshot_parts)
  OR EXISTS (SELECT 1 FROM tile_snapshots)
  OR EXISTS (SELECT 1 FROM tile_snapshot_spots)
  OR EXISTS (SELECT 1 FROM review_items)
@@ -124,6 +134,7 @@ WHEN EXISTS (SELECT 1 FROM sources)
  OR EXISTS (SELECT 1 FROM community_evidence_reports)
  OR EXISTS (SELECT 1 FROM promotion_v4_manifests)
  OR EXISTS (SELECT 1 FROM promotion_v4_expected_chunks)
+ OR EXISTS (SELECT 1 FROM promotion_v4_expected_tile_parts)
  OR EXISTS (SELECT 1 FROM promotion_v4_expected_tiles)
  OR EXISTS (SELECT 1 FROM promotion_v4_applied_chunks)
  OR EXISTS (SELECT 1 FROM promotion_v4_completions)
@@ -166,7 +177,36 @@ WHEN EXISTS (SELECT 1 FROM promotion_v4_manifests) AND (
    WHERE a.release_id IS NULL OR a.source_id IS NOT e.source_id OR a.release_content_sha256 IS NOT e.release_content_sha256)
  OR (SELECT count(*) FROM tile_snapshots) <> (SELECT count(*) FROM promotion_v4_expected_tiles)
  OR EXISTS (SELECT 1 FROM promotion_v4_expected_tiles e LEFT JOIN tile_snapshots t ON t.tile_id=e.tile_id
-   WHERE t.tile_id IS NULL OR t.revision<>e.revision OR t.spot_count<>e.spot_count OR t.content_sha256<>e.content_sha256))
+   WHERE t.tile_id IS NULL OR t.revision<>e.revision OR t.spot_count<>e.spot_count OR t.content_sha256<>e.content_sha256
+     OR t.schema_version<>e.schema_version
+     OR json_extract(t.body_json,'$.schemaVersion') IS NOT e.schema_version
+     OR json_extract(t.body_json,'$.tile') IS NOT e.tile_id
+     OR json_extract(t.body_json,'$.revision') IS NOT e.revision
+     OR json_extract(t.body_json,'$.generatedAt') IS NOT t.published_at
+     OR (e.schema_version=2 AND json_extract(t.body_json,'$.partPolicy') IS NOT 'tile-parts.v1')
+     OR e.spot_count<>(SELECT count(*) FROM tile_snapshot_spots m WHERE m.tile_id=e.tile_id)
+     OR e.part_count<>(SELECT count(*) FROM promotion_v4_expected_tile_parts p WHERE p.tile_id=e.tile_id)
+     OR e.part_count<>(SELECT count(*) FROM tile_snapshot_parts p WHERE p.tile_id=e.tile_id)
+     OR (e.schema_version=2 AND (json_extract(t.body_json,'$.spotCount') IS NOT e.spot_count
+       OR json_array_length(t.body_json,'$.parts') IS NOT e.part_count
+       OR e.spot_count<>(SELECT coalesce(sum(p.spot_count),0) FROM tile_snapshot_parts p WHERE p.tile_id=e.tile_id)))
+     OR EXISTS (SELECT 1 FROM promotion_v4_expected_tile_parts p LEFT JOIN tile_snapshot_parts a
+       ON a.tile_id=p.tile_id AND a.part_index=p.part_index WHERE p.tile_id=e.tile_id AND (
+         a.tile_id IS NULL OR a.spot_count IS NOT p.spot_count OR a.content_sha256 IS NOT p.content_sha256
+         OR json_extract(t.body_json,'$.parts['||p.part_index||'].index') IS NOT p.part_index
+         OR json_extract(t.body_json,'$.parts['||p.part_index||'].spotCount') IS NOT p.spot_count
+         OR json_extract(t.body_json,'$.parts['||p.part_index||'].sha256') IS NOT p.content_sha256
+         OR json_extract(a.body_json,'$.schemaVersion') IS NOT 2
+         OR json_extract(a.body_json,'$.tile') IS NOT e.tile_id
+         OR json_extract(a.body_json,'$.part') IS NOT p.part_index
+         OR json_extract(a.body_json,'$.partCount') IS NOT e.part_count
+         OR json_array_length(a.body_json,'$.spots') IS NOT p.spot_count
+         OR EXISTS (SELECT 1 FROM json_each(a.body_json,'$.spots') j WHERE NOT EXISTS (
+           SELECT 1 FROM tile_snapshot_spots m WHERE m.tile_id=e.tile_id AND m.spot_id=json_extract(j.value,'$.id')))
+         OR EXISTS (SELECT 1 FROM json_each(a.body_json,'$.sources') j WHERE NOT EXISTS (
+           SELECT 1 FROM sources q WHERE q.source_id=json_extract(j.value,'$.id')))))
+     OR (e.schema_version=2 AND e.spot_count<>(SELECT count(DISTINCT json_extract(j.value,'$.id'))
+       FROM tile_snapshot_parts p, json_each(p.body_json,'$.spots') j WHERE p.tile_id=e.tile_id))))
 BEGIN SELECT RAISE(ABORT, 'v4 final state is incomplete'); END;
 CREATE TRIGGER promotion_v4_completion_valid BEFORE INSERT ON promotion_v4_completions
 WHEN EXISTS (SELECT 1 FROM promotion_v4_chunk_sessions)
@@ -215,7 +255,8 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM spot_source_entities)
   OR EXISTS (SELECT 1 FROM spot_field_provenance)
   OR EXISTS (SELECT 1 FROM spot_field_attenuations)
-  OR EXISTS (SELECT 1 FROM tile_snapshots)
+  OR EXISTS (SELECT 1 FROM tile_snapshot_parts)
+ OR EXISTS (SELECT 1 FROM tile_snapshots)
   OR EXISTS (SELECT 1 FROM tile_snapshot_spots)
   OR EXISTS (SELECT 1 FROM review_items)
   OR EXISTS (SELECT 1 FROM review_decisions)
@@ -260,7 +301,8 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM community_evidence_reports)
   OR EXISTS (SELECT 1 FROM promotion_v4_manifests)
   OR EXISTS (SELECT 1 FROM promotion_v4_expected_chunks)
-  OR EXISTS (SELECT 1 FROM promotion_v4_expected_tiles)
+  OR EXISTS (SELECT 1 FROM promotion_v4_expected_tile_parts)
+ OR EXISTS (SELECT 1 FROM promotion_v4_expected_tiles)
   OR EXISTS (SELECT 1 FROM promotion_v4_applied_chunks)
   OR EXISTS (SELECT 1 FROM promotion_v4_completions)
   OR EXISTS (SELECT 1 FROM promotion_v4_chunk_sessions)
@@ -284,7 +326,8 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM spot_source_entities)
   OR EXISTS (SELECT 1 FROM spot_field_provenance)
   OR EXISTS (SELECT 1 FROM spot_field_attenuations)
-  OR EXISTS (SELECT 1 FROM tile_snapshots)
+  OR EXISTS (SELECT 1 FROM tile_snapshot_parts)
+ OR EXISTS (SELECT 1 FROM tile_snapshots)
   OR EXISTS (SELECT 1 FROM tile_snapshot_spots)
   OR EXISTS (SELECT 1 FROM review_items)
   OR EXISTS (SELECT 1 FROM review_decisions)
@@ -329,7 +372,8 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM community_evidence_reports)
   OR (EXISTS (SELECT 1 FROM promotion_v4_manifests)
   OR EXISTS (SELECT 1 FROM promotion_v4_expected_chunks)
-  OR EXISTS (SELECT 1 FROM promotion_v4_expected_tiles)
+  OR EXISTS (SELECT 1 FROM promotion_v4_expected_tile_parts)
+ OR EXISTS (SELECT 1 FROM promotion_v4_expected_tiles)
   OR EXISTS (SELECT 1 FROM promotion_v4_applied_chunks)
   OR EXISTS (SELECT 1 FROM promotion_v4_completions)
   OR EXISTS (SELECT 1 FROM promotion_v4_chunk_sessions)
@@ -358,5 +402,13 @@ BEGIN SELECT RAISE(ABORT, 'v4 ledger is immutable'); END;
 CREATE TRIGGER promotion_v4_expected_releases_no_delete BEFORE DELETE ON promotion_v4_expected_releases
 BEGIN SELECT RAISE(ABORT, 'v4 ledger is immutable'); END;
 CREATE TRIGGER promotion_v4_expected_releases_closed BEFORE INSERT ON promotion_v4_expected_releases
+WHEN EXISTS (SELECT 1 FROM promotion_v4_applied_chunks) OR EXISTS (SELECT 1 FROM promotion_v4_completions)
+BEGIN SELECT RAISE(ABORT, 'v4 declarations are closed'); END;
+
+CREATE TRIGGER promotion_v4_expected_tile_parts_no_update BEFORE UPDATE ON promotion_v4_expected_tile_parts
+BEGIN SELECT RAISE(ABORT, 'v4 ledger is immutable'); END;
+CREATE TRIGGER promotion_v4_expected_tile_parts_no_delete BEFORE DELETE ON promotion_v4_expected_tile_parts
+BEGIN SELECT RAISE(ABORT, 'v4 ledger is immutable'); END;
+CREATE TRIGGER promotion_v4_expected_tile_parts_closed BEFORE INSERT ON promotion_v4_expected_tile_parts
 WHEN EXISTS (SELECT 1 FROM promotion_v4_applied_chunks) OR EXISTS (SELECT 1 FROM promotion_v4_completions)
 BEGIN SELECT RAISE(ABORT, 'v4 declarations are closed'); END;

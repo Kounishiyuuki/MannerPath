@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { MultiSourcePromotionManifest, MultiSourcePromotionSource } from "../src/pipeline/promotion.ts";
+import type { MultiSourcePromotionSource } from "../src/pipeline/promotion.ts";
 
 /** Official limits checked 2026-10-02; operational budgets are intentionally stricter.
  * https://developers.cloudflare.com/d1/platform/limits/
@@ -16,13 +16,17 @@ export interface V4File {
 export interface V4Chunk extends V4File {
   ordinal: number; rows: Record<string, number>;
 }
+export interface V4Tile {
+  tileId: string; revision: number; spotCount: number; contentSha256: string; schemaVersion: 1 | 2;
+  parts: { partIndex: number; spotCount: number; contentSha256: string }[];
+}
 export interface PromotionV4Manifest {
   bundleVersion: "promotion-bundle.v4";
   capacityPolicy: string;
   chunkTargetBytes: number;
   sources: MultiSourcePromotionSource[];
   rows: Record<string, number>;
-  tiles: MultiSourcePromotionManifest["tiles"];
+  tiles: V4Tile[];
   chunks: V4Chunk[];
   finalize: V4File;
   wholeBundleSha256: string;

@@ -3686,6 +3686,7 @@
     "promotion_v4_expected_chunks": [],
     "promotion_v4_expected_releases": [],
     "promotion_v4_expected_sources": [],
+    "promotion_v4_expected_tile_parts": [],
     "promotion_v4_expected_tiles": [],
     "promotion_v4_manifests": [],
     "raw_artifacts": [],

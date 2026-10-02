@@ -685,3 +685,9 @@ short-circuit to one covered sentinel per seed. No caller location is used.
 ## Versioning
 
 Breaking changes require `/v2` or a negotiated data schema version. Existing App Store binaries may remain in use for long periods, so `/v1` must not silently change semantic meaning.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.

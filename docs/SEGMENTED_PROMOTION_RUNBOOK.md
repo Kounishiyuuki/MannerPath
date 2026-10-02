@@ -135,5 +135,10 @@ keep GREEN isolated after any failure. Neither a SQL receipt nor stored SHA meta
 arbitrarily edited remote data; the verified artifacts and isolated-writer protocol are required.
 
 v2/v3 export and verification stay available for small existing deployments. They are not made D1-safe
-for oversized nationwide tiles by this change. Oversized v4 tiles explicitly block bootstrap until the
-independent scalable tile work produces a safe representation.
+for oversized nationwide tiles by this change. V4 uses the merged ADR-0015 bounded part representation; no tile policy or SQL budget is relaxed.
+
+Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows
+and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after its head. Migration
+`0029_segmented_promotion.sql` follows `0028_tile_parts.sql`. Completion validates head/part descriptors,
+continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
+are never reassembled into one promotion SQL statement.
