@@ -194,7 +194,7 @@ struct ContentView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(SpotPresentation.name(result.spot)).font(.subheadline.weight(.semibold))
-                                    Text("\(SpotPresentation.distance(result.distanceMeters)) · \(SpotPresentation.confirmationSummary(result.spot))")
+                                    Text("\(SpotPresentation.distance(result)) · \(SpotPresentation.confirmationSummary(result.spot))")
                                         .font(.footnote).foregroundStyle(.secondary)
                                 }
                                 Spacer(minLength: 0)
@@ -327,7 +327,9 @@ struct ContentView: View {
                     SpotMapPin(id: result.spot.id, title: SpotPresentation.name(result.spot),
                                coordinate: SpotCoordinate(latitude: result.spot.latitude, longitude: result.spot.longitude),
                                existence: result.spot.verification.existenceTier,
-                               accessibilityValue: SpotPresentation.evidence(result.spot))
+                               // ADR-0017: an area-anchor pin says it is approximate to VoiceOver too.
+                               accessibilityValue: [SpotPresentation.evidence(result.spot), SpotPresentation.approximateLocationNote(result.spot)]
+                                   .compactMap { $0 }.joined(separator: ", "))
                 },
                 user: (model.resultsLocation ?? model.displayLocation).map { location in
                     ClusteredSpotMap.Marker(
@@ -584,8 +586,11 @@ private struct NearbySpotRow: View {
                 Text(SpotPresentation.name(result.spot))
                     .font(.headline)
                 Text(typeLine)
-                Text("\(SpotPresentation.distance(result.distanceMeters)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
+                Text("\(SpotPresentation.distance(result)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
                     .fontWeight(.medium)
+                if let note = SpotPresentation.approximateLocationNote(result.spot) {
+                    Label(note, systemImage: "mappin.and.ellipse").foregroundStyle(.secondary)
+                }
                 if let detourSeconds {
                     Text("About \(Int((detourSeconds / 60).rounded())) min added walking time")
                         .fontWeight(.semibold)
@@ -623,9 +628,11 @@ private struct NearbySpotRow: View {
         var parts = [
             SpotPresentation.type(result.spot),
             String(localized: "Access: \(SpotPresentation.access(result.spot))"),
-            String(localized: "\(SpotPresentation.distance(result.distanceMeters)) straight-line"),
+            String(localized: "\(SpotPresentation.distance(result)) straight-line"),
             SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters)
         ]
+        // ADR-0017: VoiceOver hears that the pin is approximate, as sighted users read it.
+        if let note = SpotPresentation.approximateLocationNote(result.spot) { parts.append(note) }
         if let detourSeconds {
             let minutes = Int((detourSeconds / 60).rounded())
             parts.append(minutes == 1 ? String(localized: "About 1 minute added walking time")

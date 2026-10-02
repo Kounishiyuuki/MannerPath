@@ -31,7 +31,13 @@ struct SpotDetailView: View {
                 if let host = SpotPresentation.host(spot.hostType) {
                     LabeledContent("Located at", value: host)
                 }
-                LabeledContent("Straight-line distance", value: SpotPresentation.distance(result.distanceMeters))
+                LabeledContent("Straight-line distance", value: SpotPresentation.distance(result))
+                if spot.verification.isAreaApproximate {
+                    // ADR-0017: the place is confirmed inside the area; the pin is only an approximate marker.
+                    Label(ApproximateLocation.detailNote(), systemImage: "mappin.and.ellipse")
+                        .font(.footnote)
+                        .accessibilityIdentifier("approximate-location-note")
+                }
                 detailText("Bearing", SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))
             } footer: {
                 Text(estimateFromPreviousLocation
@@ -102,8 +108,10 @@ struct SpotDetailView: View {
                 Button {
                     AppleMapsHandoff.openWalkingDirections(to: spot)
                 } label: {
-                    Label("Open walking directions in Apple Maps", systemImage: "map")
+                    Label(SpotPresentation.navigationTitle(spot), systemImage: "map")
                 }
+                .accessibilityHint("Opens walking directions in Apple Maps")
+                .accessibilityIdentifier("open-walking-directions")
             }
 
             Section("Use and access") {
@@ -158,7 +166,7 @@ struct SpotDetailView: View {
                 case .official, .operator:
                     EmptyView()
                 }
-                if let note = SpotPresentation.locationNote(spot.verification.locationPrecision) {
+                if let note = SpotPresentation.approximateLocationNote(spot) ?? SpotPresentation.locationNote(spot.verification.locationPrecision) {
                     LabeledContent("Location", value: note)
                 }
                 LabeledContent("Last verified", value: SpotPresentation.verificationDate(spot.lastVerifiedAt))

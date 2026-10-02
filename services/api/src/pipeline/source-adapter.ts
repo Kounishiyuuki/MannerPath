@@ -48,6 +48,11 @@ export interface SourceObservation {
   existenceEvidence?: "communityReported" | "communityVerified";
   /** A community record's independent submitter count, recorded at review (ADR-0012). */
   communityConfirmations?: number;
+  /**
+   * ADR-0017: the reviewed area anchor this observation's coordinate is (`areaApproximate`). Absent for an exact point.
+   * Set only through `anchoredObservation` (./area-anchor.ts), which also writes the `location` provenance naming it.
+   */
+  locationAnchorId?: string;
 }
 
 export interface SpotClassification {

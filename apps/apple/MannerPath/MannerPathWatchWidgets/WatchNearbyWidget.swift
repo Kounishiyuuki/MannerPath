@@ -58,6 +58,8 @@ struct WatchNearbyWidget: Widget {
                             else { Text("Saved place").font(.headline) }
                             Text("From iPhone").font(.caption2)
                             Text(verification(spot.lastVerifiedAt, at: entry.date)).font(.caption2)
+                            // ADR-0017: never let an area-anchor pin read as the place's own point.
+                            if spot.isAreaApproximate { Text("Approximate location").font(.caption2) }
                         }
                     }
                 }

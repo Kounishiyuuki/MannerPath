@@ -384,4 +384,28 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(model.results.count == 1)
         #expect(model.results[0].distanceMeters.isNaN)
     }
+
+    // ADR-0017 ----------------------------------------------------------------------------------------------
+    @Test func approximateLocationIsShownAndNeverFiltered() throws {
+        var approx = spot("approx", longitude: 0.001)
+        approx.locationPrecision = "areaApproximate"
+        approx.locationAreaName = "上野恩賜公園"
+        let exact = spot("exact", longitude: 0.002)
+        let decoded = try WatchCodec.snapshot(WatchCodec.encode(snapshot([approx, exact])))
+        let ranked = WatchRanking.topThree(decoded, latitude: 0, longitude: 0, preferences: .defaults(), at: now)
+        #expect(ranked.map(\.spot.id) == ["approx", "exact"], "an approximate pin is ranked by distance, never hidden")
+        #expect(ranked[0].spot.isAreaApproximate && !ranked[1].spot.isAreaApproximate)
+        #expect(ApproximateLocation.listNote(areaName: ranked[0].spot.locationAreaName)
+                == String(localized: "Location is approximate, within \("上野恩賜公園")"))
+        #expect(ApproximateLocation.navigationTitle(approximate: true) == String(localized: "Navigate to this area"))
+        #expect(ApproximateLocation.navigationTitle(approximate: false) == String(localized: "Navigate to this place"))
+        #expect(ApproximateLocation.distance("240 m", approximate: true) == String(localized: "About \("240 m")"))
+        #expect(ApproximateLocation.distance("240 m", approximate: false) == "240 m")
+    }
+
+    @Test func snapshotFromAnOlderPhoneHasNoPrecisionAndIsNotApproximate() throws {
+        let legacy = #"{"id":"a","name":"a","latitude":0,"longitude":0,"spotType":"ashtray","accessType":"public","supportsPaper":"yes","supportsHeated":"unknown","lifecycle":"active","evidenceQuality":"officialListing","evidenceQualityVersion":"evidence-quality.v1","sourceIDs":["source"]}"#
+        let spot = try JSONDecoder().decode(WatchSpot.self, from: Data(legacy.utf8))
+        #expect(spot.locationPrecision == nil && spot.locationAreaName == nil && !spot.isAreaApproximate)
+    }
 }

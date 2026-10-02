@@ -50,6 +50,8 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     // Six of the nine reviewed attenuations belong to published spots; the other three belong to
     // the two spots the reconciliation withholds, which the bundle does not carry.
     spot_field_attenuations: 6,
+    area_location_anchors: 0,
+    spot_location_anchors: 0,
     tile_snapshots: 5,
     tile_snapshot_parts: 5,
     tile_snapshot_spots: 32,

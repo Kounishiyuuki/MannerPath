@@ -61,9 +61,9 @@ Find as many real permitted places as possible **and** state how far each can be
 How sure we are that a smoking place **exists** and how exact its **pin** is are different questions.
 
 - Existence evidence (`verification.existence`): `official`, `operator`, `communityVerified`, `communityReported`.
-- Location precision (`verification.locationPrecision`), implemented today: `publisherPoint`, `reviewedDerived`
-  (ADR-0011; not yet emitted for published spots), `communityPinned`, `unknown`.
-- **Specified, not yet implemented (ADR-0017, maintainer decision 2026-10-02): `areaApproximate`** — accepted evidence
+- Location precision (`verification.locationPrecision`): `publisherPoint`, `reviewedDerived` (ADR-0011; not yet
+  emitted for published spots), `communityPinned`, `areaApproximate`, `unknown`.
+- **`areaApproximate` (ADR-0017, maintainer decision 2026-10-02; implemented by migration 0030)** — accepted evidence
   says the smoking place is inside a specific park, station, facility, airport or commercial building, but the point
   of the smoking place itself is unknown. A reviewed, reusable representative anchor of that area/host may be used as
   a provisional pin.
@@ -231,14 +231,12 @@ document (and ADR) in the same change.
 
 ## 25. Implementation follow-ups (not done by the documentation baseline)
 
-- [ ] `areaApproximate`: add to `locationPrecision` in D1 CHECKs, tile/spot DTOs, API schemas and contract docs
-      (ADR-0017 §Implementation).
-- [ ] Approximate anchor registry with provenance and reuse review; reviewed-anchor workflow; quality check that no
-      anchor is labelled `publisherPoint`.
-- [ ] Resolver/publication: allow accepted existence evidence + reviewed anchor; keep host-only records rejected.
-- [ ] iPhone/Watch/widget copy for approximate list/detail/navigation/distance and VoiceOver (§4).
-- [ ] Precision upgrade path keeping the stable spot ID.
-- [ ] Re-run the coverage replay (NATIONWIDE §12) to count research targets newly eligible under ADR-0017.
+- [x] `areaApproximate` end to end: migration 0030, resolver/publication, tile/detail DTOs, promotion, quality check
+      `area-anchor-never-exact`, iPhone/Watch/widget copy and VoiceOver (ADR-0017 §Implementation).
+- [x] Precision-upgrade path keeping the stable spot ID; any coordinate change stays ADR-0009.
+- [x] Nationwide replay (`docs/research/2026-10-02-approximate-location-replay.md`): nothing rescued today; rights first.
+- [ ] Anchor policy v2: anchors from a separate dataset of the same publisher (with that dataset's attribution in tiles).
+- [ ] Reuse-rights requests for the replay's location-eligible targets (仙台市 park data first: it would be A).
 - [x] Photo evidence ADR: ADR-0016 (technical foundation, disabled by default).
 - [ ] Photo intake prerequisites (ADR-0016): reviewed photo-consent terms version, fenced private storage adapter
       with expiry, deletion scheduler/alerting, Apple production transport, real-device accessibility, Workers

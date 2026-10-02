@@ -52,6 +52,12 @@ nonisolated struct WatchSpot: Codable, Sendable, Equatable {
     // ADR-0012: the existence tier and access refinement. Optional so a snapshot from an older iPhone build decodes.
     var existence: String? = nil
     var accessDetail: String? = nil
+    // ADR-0017: the pin's location precision and, for an areaApproximate pin, the area it represents. Optional so a
+    // snapshot from an older iPhone build decodes; absent is never read as approximate or as exact-confirmed.
+    var locationPrecision: String? = nil
+    var locationAreaName: String? = nil
+
+    var isAreaApproximate: Bool { ApproximateLocation.isApproximate(locationPrecision) }
 
     /// The tier to show. Without the ADR-0012 value only the long-standing official value is trusted.
     var existenceTier: String {

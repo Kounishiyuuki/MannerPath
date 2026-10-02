@@ -1,7 +1,6 @@
 # ADR-0017 — Approximate area locations and independent location confidence
 
-Status: **Accepted — maintainer decision 2026-10-02.** Specification only: nothing is implemented by this ADR.
-Implementation follow-ups are listed below and in `docs/SPECIFICATION.md` §25.
+Status: **Accepted — maintainer decision 2026-10-02.** Implemented: see "Implementation" below (migration 0030).
 
 Amends ADR-0012 (location precision vocabulary). Relates to ADR-0006 (publication gate), ADR-0009 (relocation),
 ADR-0010 (OSM) and ADR-0011 (derived coordinates, still Proposed).
@@ -54,11 +53,46 @@ ADR-0011 governs turning an **address** into a point and remains Proposed; its r
 geocoded into a published spot" still stands. ADR-0017 does not approve geocoding. It only allows a reviewed anchor of
 an area/host to stand as an explicitly approximate pin.
 
-## Implementation follow-ups (not done)
+## Implementation (2026-10-02)
 
-- Add `areaApproximate` to `verification.locationPrecision` (D1 CHECKs, DTOs, API schemas, Swift `Domain/Verification`).
-  Old clients must read the unknown value through their existing fallback, never as exact.
-- Anchor registry with provenance/reuse review; resolver path for evidence + anchor; quality check that an anchor is
-  never `publisherPoint`.
-- Client copy and accessibility per decision 5; precision-upgrade path per decision 6.
-- Re-run the coverage replay to count newly eligible research targets.
+- **Schema (migration 0030).** `area_location_anchors`: one immutable, reviewed anchor — area name and kind,
+  coordinate, `origin_kind` (`publisherAreaPoint` / `publisherFacilityPoint`), `origin_source_id`, `origin_reference`,
+  `reuse_basis`, `policy_version`, reviewer and date, bound by `evidence_sha256`. A trigger refuses Google/Apple
+  Maps, OSM/Overpass/Nominatim and screenshot references; the origin must be a reviewed official or operator source.
+  `spot_location_anchors`: one binding per spot (the spot ID is stable), written by the resolver in the spot's own
+  batch, at exactly the anchor coordinate; it ends only with a reason and is never deleted. Both tables travel in
+  promotion v2/v3/v4 and are named by every empty-target guard.
+- **Anchor policy v1** (`area-anchor-policy.v1`): the anchor comes from the existence source's own reviewed
+  publication (`reuse_basis = existenceSourceLicense`), so the tile's existing source attribution covers it. An anchor
+  from a separate dataset, even of the same publisher, needs a policy v2 that also carries that dataset's attribution.
+- **Resolver and publication.** An adapter states an anchored observation with `anchoredObservation` (the existence
+  provenance is required; the `location` provenance names `area-anchor.v1:<anchorId>`). The resolver refuses an
+  unrecorded anchor, an anchor of another source or a coordinate mismatch before any canonical write. Publication
+  fails closed for a spot whose location cites an anchor without a binding. The gate is `evaluateAreaApproximate`
+  (`area-approximate-gate.v1`): existence first (host-only, no evidence, not approved, closed/prohibited and
+  conflicting evidence reject); a missing exact point alone never rejects; a missing anchor withholds without
+  discarding the evidence.
+- **Wire.** `verification.locationPrecision = "areaApproximate"` plus `verification.locationArea` (name, kind),
+  present exactly then. Every other spot's bytes are unchanged (golden tile bodies identical).
+- **Quality.** `area-anchor-never-exact` fails if an anchored spot is published as anything else, or anything else
+  as `areaApproximate`. Coverage tasks ask for a location check on approximate pins.
+- **Precision upgrade** (`planAreaPrecisionUpgrade`, `applyAreaPrecisionUpgrade`): same coordinate → the binding
+  ends as `precisionUpgrade` with the new precision (`publisherPoint` / `communityPinned`; `reviewedDerived` is
+  refused while ADR-0011 is Proposed). Any coordinate change → ADR-0009 relocation review (the 0015 trigger already
+  refuses any unreviewed coordinate change, and 0030 adds that an anchored pin cannot move until its binding has
+  ended as `relocationReview`, which itself needs an ADR-0009 relocation hold). Outside the area also re-reviews
+  identity.
+- **Clients.** iPhone list 「位置は○○内の目安です」 (or 「位置はこのエリア内の目安です」 without a showable name),
+  detail note, 「この付近へ案内」 vs 「この場所へ案内」, 「約○m」, VoiceOver on list rows and map pins; Watch snapshot
+  carries the precision and area (older snapshots decode as not approximate) with the same copy; iPhone widget
+  reads 「約○m先・位置は目安」, Watch widget 「位置は目安」. Spots cached before ADR-0017 decode unchanged.
+- **Ranking: no new factor** (`nearby-ranking.v2` unchanged). Distance to an anchor is uncertain in both directions
+  (the place may be nearer or farther than the anchor), so a penalty would be a systematic bias against evidenced,
+  mostly official places, not a correction; the uncertainty is shown instead (「約」, the list note). Approximate pins
+  are never hard-filtered, and "confirmed only" filters on existence, not precision.
+- **Replay.** `npm run replay:approximate` → `docs/research/2026-10-02-approximate-location-replay.md`.
+
+## Remaining follow-ups
+
+- Anchor policy v2 for same-publisher separate datasets (with attribution), then real anchors.
+- Reuse-rights reviews for the replay's location-eligible targets.

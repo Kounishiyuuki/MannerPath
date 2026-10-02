@@ -49,7 +49,14 @@ struct NearbyWidgetView: View {
                     if let name = glance.name {
                         Text(name).font(compact ? .caption : .headline).lineLimit(compact ? 1 : 2)
                     } else { Text("Nearby place").font(compact ? .caption : .headline) }
-                    if let distance = glance.distanceMeters {
+                    if let distance = glance.distanceMeters, glance.locationIsApproximate == true {
+                        // ADR-0017: the pin is an area anchor; say so instead of an exact-looking distance.
+                        if distance < 1_000 {
+                            Text("About \(Int(distance.rounded())) m away · approximate location")
+                        } else {
+                            Text("About \((distance / 1_000).formatted(.number.precision(.fractionLength(1)))) km away · approximate location")
+                        }
+                    } else if let distance = glance.distanceMeters {
                         if distance < 1_000 {
                             Text("\(Int(distance.rounded())) m away")
                         } else {

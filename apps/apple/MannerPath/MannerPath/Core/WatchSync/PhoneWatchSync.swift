@@ -29,7 +29,9 @@ enum WatchSnapshotBuilder {
                     }, sourceIDs: Array(Set(spot.verification.sources?.map(\.id) ?? [])
                         .intersection(allSourceIDs)).sorted(),
                     existence: spot.verification.existenceTier.rawValue,
-                    accessDetail: spot.accessDetail?.rawValue
+                    accessDetail: spot.accessDetail?.rawValue,
+                    locationPrecision: spot.verification.locationPrecision?.rawValue,
+                    locationAreaName: spot.verification.isAreaApproximate ? spot.verification.locationArea?.name : nil
                 )
             },
             sources: allSources.filter { referenced.contains($0.id) }.sorted {

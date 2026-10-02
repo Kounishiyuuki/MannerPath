@@ -34,6 +34,10 @@
       "expected": ["needsLocationCheck"] },
     { "name": "a spot without the ADR-0012 object needs nothing it cannot prove",
       "spot": { "spotType": "ashtray", "accessType": "public", "lastVerifiedAt": "2026-08-01" },
-      "expected": [] }
+      "expected": [] },
+    { "name": "official spot pinned at an area anchor needs a location check (ADR-0017)",
+      "spot": { "spotType": "designatedOutdoorArea", "accessType": "public", "lastVerifiedAt": "2026-06-01",
+                "verification": { "existence": "official", "locationPrecision": "areaApproximate", "confirmations": null, "lastReviewedMonth": "2026-06" } },
+      "expected": ["needsLocationCheck"] }
   ]
 }

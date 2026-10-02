@@ -34,9 +34,13 @@ struct ContentView: View {
                                     Text(name(result.spot)).font(.headline)
                                     Text(summary(result.spot)).font(.caption)
                                     Text(result.distanceMeters.isFinite
-                                         ? "\(distance(result.distanceMeters)) · current location"
+                                         ? "\(distance(result)) · current location"
                                          : "Distance needs location")
                                         .font(.caption)
+                                    if result.spot.isAreaApproximate {
+                                        Text(ApproximateLocation.listNote(areaName: result.spot.locationAreaName))
+                                            .font(.caption2).foregroundStyle(.secondary)
+                                    }
                                     Text(freshness(result))
                                         .font(.caption2).foregroundStyle(.secondary)
                                     if result.spot.existenceTier != "official" {
@@ -161,18 +165,22 @@ struct ContentView: View {
             Section {
                 Text(type(result.spot.spotType))
                 if result.distanceMeters.isFinite {
-                    Text("\(distance(result.distanceMeters)) straight-line · current location")
+                    Text("\(distance(result)) straight-line · current location")
                     Text(bearing(result))
                 } else {
                     Text("Distance and bearing need Watch location")
                 }
                 Text("\(freshness(result)) · \(evidence(result.spot))")
+                if result.spot.isAreaApproximate {
+                    Text(ApproximateLocation.listNote(areaName: result.spot.locationAreaName)).font(.footnote)
+                    Text(ApproximateLocation.detailNote()).font(.footnote).foregroundStyle(.secondary)
+                }
                 if model.snapshotIsOld {
                     Text("Saved data is old. Open iPhone app to refresh.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 if #available(watchOS 11.4, *), let url = WatchNavigation.walkingURL(for: result.spot) {
-                    Link("Open walking directions", destination: url)
+                    Link(ApproximateLocation.navigationTitle(approximate: result.spot.isAreaApproximate), destination: url)
                         .accessibilityIdentifier("watch-directions")
                 }
                 Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))
@@ -226,6 +234,9 @@ struct ContentView: View {
     }
     private func support(_ value: String) -> String {
         value == "yes" ? String(localized: "Confirmed") : value == "no" ? String(localized: "Not supported") : String(localized: "Unknown")
+    }
+    private func distance(_ result: WatchRankedSpot) -> String {
+        ApproximateLocation.distance(distance(result.distanceMeters), approximate: result.spot.isAreaApproximate)
     }
     private func distance(_ meters: Double) -> String {
         meters < 1_000 ? String(localized: "\(Int(meters.rounded())) m") :

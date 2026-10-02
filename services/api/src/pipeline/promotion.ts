@@ -196,6 +196,21 @@ const TABLES: readonly TableSpec[] = [
     sql: `SELECT * FROM spot_field_attenuations WHERE spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, field, effect`,
   },
   {
+    // ADR-0017 (0030): the reviewed anchors behind this release's area-approximate spots, then their bindings. Without
+    // them the receiving database would hold an anchor coordinate with nothing saying it is approximate.
+    table: "area_location_anchors",
+    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
+    sql: `SELECT * FROM area_location_anchors WHERE anchor_id IN (SELECT b.anchor_id FROM spot_location_anchors b
+            JOIN source_records r ON r.record_id = b.record_id WHERE r.release_id = ? AND b.spot_id IN (${PUBLISHED_SPOTS}))
+          ORDER BY anchor_id`,
+  },
+  {
+    table: "spot_location_anchors",
+    columns: ["spot_id", "anchor_id", "record_id", "resolver_version", "bound_at", "ended_at", "end_reason", "upgraded_precision"],
+    sql: `SELECT b.* FROM spot_location_anchors b JOIN source_records r ON r.record_id = b.record_id
+          WHERE r.release_id = ? AND b.spot_id IN (${PUBLISHED_SPOTS}) ORDER BY b.spot_id`,
+  },
+  {
     table: "tile_snapshots",
     columns: ["tile_id", "z", "x", "y", "revision", "schema_version", "content_sha256", "spot_count", "body_json", "published_at"],
     sql: "SELECT * FROM tile_snapshots ORDER BY tile_id",
@@ -453,7 +468,22 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
   const members = rows.get("tile_snapshot_spots") ?? [];
   const sources = rows.get("sources") ?? [];
   const spots = rows.get("spots") ?? [];
-  const spotsById = new Map(spots.map((s) => [String(s.spot_id), s]));
+  // ADR-0017: an anchored spot's DTO depends on its carried binding, anchor and location provenance rule.
+  const anchorsById = new Map((rows.get("area_location_anchors") ?? []).map((a) => [String(a.anchor_id), a]));
+  const bindings = new Map((rows.get("spot_location_anchors") ?? []).map((b) => [String(b.spot_id), b]));
+  const locationRules = new Map((rows.get("spot_field_provenance") ?? []).filter((p) => p.field === "location").map((p) => [String(p.spot_id), String(p.rule)]));
+  const spotsById = new Map(spots.map((s) => {
+    const b = bindings.get(String(s.spot_id));
+    const a = b === undefined ? undefined : anchorsById.get(String(b.anchor_id));
+    const active = b !== undefined && b.ended_at === null;
+    return [String(s.spot_id), {
+      ...s,
+      location_precision_override: b === undefined ? null : active ? "areaApproximate" : b.upgraded_precision,
+      location_area_name: active ? a?.area_name ?? null : null,
+      location_area_kind: active ? a?.area_kind ?? null : null,
+      location_rule: locationRules.get(String(s.spot_id)) ?? null,
+    }];
+  }));
   const sourcesById = new Map(sources.map((s) => [String(s.source_id), s]));
   const membersByTile = new Map<string, string[]>();
   for (const member of members) {

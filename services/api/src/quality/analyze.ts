@@ -244,6 +244,17 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     mislabelled.length === 0 ? "every published spot's existence tier and location precision match its evidence source"
       : `labelled above or beside its evidence: ${mislabelled.map((s) => s.id).join(", ")}`);
 
+  // ADR-0017: an area anchor is never presented as an exact point. Every spot pinned at an active anchor publishes as
+  // areaApproximate, and nothing else does.
+  const { results: anchoredRows } = await db.prepare(
+    "SELECT spot_id FROM spot_location_anchors WHERE ended_at IS NULL",
+  ).all<{ spot_id: string }>();
+  const anchored = new Set(anchoredRows.map((r) => r.spot_id));
+  const anchorMislabelled = spots.filter((s) => anchored.has(s.id) !== (s.verification.locationPrecision === "areaApproximate"));
+  check("area-anchor-never-exact", anchorMislabelled.length === 0,
+    anchorMislabelled.length === 0 ? `${anchored.size} area-anchored spot(s); every published anchor pin is labelled areaApproximate (ADR-0017)`
+      : `area anchor precision mislabelled: ${anchorMislabelled.map((s) => s.id).join(", ")}`);
+
   const qualityBySource = new Map<string, { checks: QualityCheck[]; reconciliation: unknown }>();
   for (const adapter of opts.adapters ?? SOURCE_ADAPTERS) {
     if (!adapter.qualityPolicy) continue;

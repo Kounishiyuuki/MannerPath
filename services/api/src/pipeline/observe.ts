@@ -30,11 +30,14 @@ interface ObservationRow {
 
 /** The ADR-0012 members of an observation, stored together; null when the record states none of them. */
 function claimsOf(o: SourceObservation): string | null {
-  if (o.classification === undefined && o.existenceEvidence === undefined && o.communityConfirmations === undefined) return null;
+  if (o.classification === undefined && o.existenceEvidence === undefined && o.communityConfirmations === undefined
+    && o.locationAnchorId === undefined) return null;
   return JSON.stringify({
     classification: o.classification ?? null,
     existenceEvidence: o.existenceEvidence ?? null,
     communityConfirmations: o.communityConfirmations ?? null,
+    // ADR-0017; the key is written only when present, so every pre-0030 claims_json stays byte-identical.
+    ...(o.locationAnchorId === undefined ? {} : { locationAnchorId: o.locationAnchorId }),
   });
 }
 
@@ -64,13 +67,14 @@ function fromRow(row: ObservationRow): SourceObservation {
   };
 }
 
-function claimsFromJson(json: string | null | undefined): Pick<SourceObservation, "classification" | "existenceEvidence" | "communityConfirmations"> {
+function claimsFromJson(json: string | null | undefined): Pick<SourceObservation, "classification" | "existenceEvidence" | "communityConfirmations" | "locationAnchorId"> {
   if (json === null || json === undefined) return {};
   const c = JSON.parse(json);
   return {
     ...(c.classification === null ? {} : { classification: c.classification }),
     ...(c.existenceEvidence === null ? {} : { existenceEvidence: c.existenceEvidence }),
     ...(c.communityConfirmations === null ? {} : { communityConfirmations: c.communityConfirmations }),
+    ...(typeof c.locationAnchorId === "string" ? { locationAnchorId: c.locationAnchorId } : {}),
   };
 }
 

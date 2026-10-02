@@ -10,6 +10,7 @@ import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts"
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
 import { CROSS_RELEASE_MATCHER_VERSION, type PreviousRecord, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
 import { type StoredObservation, observeRelease } from "./observe.ts";
+import { assertAnchorsRecorded } from "./area-anchor.ts";
 import { relocationCandidate, sameCoordinate } from "./relocation.ts";
 import {
   type CandidateContext, RELOCATION_REVIEW_DECISION_VERSION, crossReleaseCandidates, persistRelocationItems, persistReviewItems,
@@ -151,6 +152,8 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     observations.map((o) => o.observation),
   );
 
+  await assertAnchorsRecorded(db, release.source_id, observations.map((o) => o.observation));
+
   const now = opts.now;
   const statements = [...(opts.guards ?? [])];
   const spotIds: string[] = [];
@@ -212,6 +215,10 @@ function newSpotStatements(
       `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
        VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,
     ).bind(record.recordId, spotId, now, resolverVersion),
+    // ADR-0017: the reviewed anchor the coordinate is (0030 re-checks coordinate and source in its triggers).
+    ...(r.locationAnchorId === undefined ? [] : [db.prepare(
+      `INSERT INTO spot_location_anchors (spot_id, anchor_id, record_id, resolver_version, bound_at) VALUES (?, ?, ?, ?, ?)`,
+    ).bind(spotId, r.locationAnchorId, record.recordId, resolverVersion, now)]),
     // Copied from the observation, still citing the raw record and its columns: the observation
     // is how the values were normalized, the record is what was stated.
     ...r.provenance.map((p) =>
@@ -283,6 +290,7 @@ async function resolveNextRelease(
     observations.map((o) => o.observation),
   );
 
+  await assertAnchorsRecorded(db, release.source_id, observations.map((o) => o.observation));
   const { previous, next } = await readMatchInputs(db, current.release_id, releaseId);
   if (previous.length !== previousObservations.length) {
     throw new Error(`resolve: current release ${current.release_id} has records without an entity and spot`);

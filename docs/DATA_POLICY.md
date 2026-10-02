@@ -104,7 +104,7 @@ Confidence is never one opaque score. ADR-0012 publishes separate axes, each a n
 | Axis | Values | Computed |
 | --- | --- | --- |
 | Existence evidence | `official`, `operator`, `communityVerified`, `communityReported` | server (`verification.existence`) |
-| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `unknown`; `areaApproximate` specified by ADR-0017, not yet implemented | server (`verification.locationPrecision`) |
+| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `areaApproximate` (ADR-0017, with `locationArea`), `unknown` | server (`verification.locationPrecision`) |
 | Freshness | `fresh` ≤ 365 d, `aging` ≤ 730 d, `stale`, `unknown` (`freshness.v1`) | client, from `lastVerifiedAt` or `lastReviewedMonth` |
 | Access | `accessType` + `accessDetail` | server |
 | Spot type | `spotType` + `spotSubtype`, and `hostType` | server |
@@ -131,6 +131,10 @@ airport, commercial building) it may publish as `areaApproximate` and must be sh
 provenance and reuse review. Host existence alone is never evidence. Never used as a canonical coordinate: Google/Apple
 POI points, OSM values (ADR-0010), coordinates read from map screenshots, arbitrary manual pins, or a centroid/host
 centre labelled as an exact or publisher point. Address geocoding remains governed by ADR-0011 (Proposed).
+Anchor policy v1 (`area-anchor-policy.v1`, migration 0030) accepts only an anchor taken from the existence source's own
+reviewed publication (`reuse_basis = existenceSourceLicense`), so the tile's existing attribution covers it; each anchor
+records its origin, reference, review and policy version, and the quality check `area-anchor-never-exact` fails if an
+anchored spot is ever published as anything but `areaApproximate`.
 
 Third-party services (Google Maps, Apple Maps, OSM, blogs, other apps, social posts) may be used as discovery leads
 even where their terms forbid reuse; discovery is not provenance and nothing is copied from them into the canonical

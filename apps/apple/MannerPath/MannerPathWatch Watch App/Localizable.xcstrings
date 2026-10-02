@@ -970,6 +970,66 @@
           }
         }
       }
+    },
+    "Location is approximate, within %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置は%@内の目安です"
+          }
+        }
+      }
+    },
+    "Location is approximate, within this area": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置はこのエリア内の目安です"
+          }
+        }
+      }
+    },
+    "The smoking place is confirmed to be inside this facility or park. Its exact position is not confirmed, so the pin is approximate.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喫煙場所はこの施設/公園内にあることが確認されています。正確な位置は未確認のため、ピンは目安です。"
+          }
+        }
+      }
+    },
+    "Navigate to this area": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この付近へ案内"
+          }
+        }
+      }
+    },
+    "Navigate to this place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所へ案内"
+          }
+        }
+      }
+    },
+    "About %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "約%@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
