@@ -779,7 +779,7 @@
 				DEVELOPMENT_TEAM = 58A7G4U27M;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = MannerPathWatch;
+				INFOPLIST_KEY_CFBundleDisplayName = MannerPath;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your Watch location ranks saved permitted places and calculates straight-line distance and bearing on this device.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.kounishiyuuki.MannerPath;
@@ -813,7 +813,7 @@
 				DEVELOPMENT_TEAM = 58A7G4U27M;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = MannerPathWatch;
+				INFOPLIST_KEY_CFBundleDisplayName = MannerPath;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your Watch location ranks saved permitted places and calculates straight-line distance and bearing on this device.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.kounishiyuuki.MannerPath;

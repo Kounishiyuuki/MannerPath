@@ -96,7 +96,9 @@ struct NearbyWidgetView: View {
         let ageDays = now.timeIntervalSince(date) / 86_400
         guard ageDays.isFinite, ageDays < Double(Int.max) else { return String(localized: "Verification date unknown") }
         let days = Int(ageDays)
-        return days == 0 ? String(localized: "Verified today") : String(localized: "Verified \(days) days ago")
+        if days == 0 { return String(localized: "Verified today") }
+        if days == 1 { return String(localized: "Verified 1 day ago") }
+        return String(localized: "Verified \(days) days ago")
     }
 }
 

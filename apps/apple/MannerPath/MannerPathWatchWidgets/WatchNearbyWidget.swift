@@ -76,7 +76,10 @@ struct WatchNearbyWidget: Widget {
         guard let date, now >= date else { return String(localized: "Verification date unknown") }
         let ageDays = now.timeIntervalSince(date) / 86_400
         guard ageDays.isFinite, ageDays < Double(Int.max) else { return String(localized: "Verification date unknown") }
-        return String(localized: "Verified \(Int(ageDays)) days ago")
+        let days = Int(ageDays)
+        if days == 0 { return String(localized: "Verified less than a day ago") }
+        if days == 1 { return String(localized: "Verified 1 day ago") }
+        return String(localized: "Verified \(days) days ago")
     }
 }
 

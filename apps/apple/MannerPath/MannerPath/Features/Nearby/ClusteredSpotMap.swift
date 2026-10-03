@@ -213,7 +213,7 @@ struct ClusteredSpotMap: UIViewRepresentable {
                 }
                 guard let region = SpotMapCluster.expansionRegion(for: coordinates) else { return }
                 onUserMovedMap()
-                mapView.setRegion(region, animated: true)
+                mapView.setRegion(region, animated: !UIAccessibility.isReduceMotionEnabled)
             case let spot as SpotAnnotation:
                 onSelectSpot(spot.pin.id)
             default:
