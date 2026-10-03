@@ -481,6 +481,9 @@ Notes:
   ```
 
   This works only while the previous database still exists, which is why step 6 keeps it.
+  It is also safe only while the previous database has the schema the running Worker reads: if the release added a
+  canonical migration the Worker depends on, roll the Worker back too (`npx wrangler rollback`) or migrate the previous
+  database first.
 - **Bad code:** `npx wrangler rollback --env staging` (previous deployment), or redeploy the
   previous commit.
 - **Stop accepting reports:** remove `REPORT_APP_ATTEST_APP_ID` (or the bundle-version list) from the environment
