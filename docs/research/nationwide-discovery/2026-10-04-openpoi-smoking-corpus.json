@@ -1,0 +1,5510 @@
+{
+  "schema_version": 1,
+  "decision": "NOT VIABLE",
+  "architecture": "D",
+  "publication_approved": false,
+  "human_per_record_review_required_for_current_candidates": true,
+  "automatic_publication_records": 0,
+  "research_gate_version": "openpoi-smoking-name-research.v1",
+  "evidence_tier_proposal": {
+    "existence": "openData",
+    "evidenceQuality": "openDataListing",
+    "label": "オープンデータ掲載",
+    "implemented": false
+  },
+  "lastVerifiedAt_proposal": null,
+  "foundation_conditions": {
+    "sufficient_scale": "FAIL",
+    "machine_only_precision": "UNPROVEN",
+    "license_machine_gate": "CONDITIONAL: provider/license names supported; notices and source registry approval remain",
+    "stable_identity": "DESIGN VIABLE with Overture GERS crosswalk; cross-release replay not performed"
+  },
+  "minimum_scale_target": 200,
+  "license_gate_scope": "license-name/provider compatibility only; notices, attribution delivery and source approval not implemented",
+  "false_positive_rate": null,
+  "false_positive_retrieval_examples": [
+    {
+      "name": "禁煙Bar 4416 No Smoking Bar",
+      "reason": "negative_smoking_statement"
+    },
+    {
+      "name": "Smoking & Non Smoking",
+      "reason": "negative_smoking_statement"
+    },
+    {
+      "name": "Smoke and Grill Rivage",
+      "reason": "no_explicit_physical_smoking_place"
+    },
+    {
+      "name": "スパーク・喫煙具専門店",
+      "reason": "no_explicit_physical_smoking_place"
+    },
+    {
+      "name": "546：301249：山陽オート センターホール１Ｆ喫煙所横",
+      "reason": "food_permit_not_smoking_feature"
+    }
+  ],
+  "bulk": {
+    "release": "2026-09-23.1",
+    "bbox": [
+      122,
+      20,
+      154,
+      46
+    ],
+    "bbox_count": 3434081,
+    "jp_address_count": 2914402
+  },
+  "research_date": "2026-10-04",
+  "overture_release_manifest": {
+    "url": "https://overturemaps-us-west-2.s3.amazonaws.com/?list-type=2&prefix=release%2F2026-09-23.1%2Ftheme%3Dplaces%2Ftype%3Dplace%2F",
+    "is_truncated": "false",
+    "objects": [
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00000-417d568b-a25f-57b3-9e15-9876068be5d6-c000.zstd.parquet",
+        "etag": "\"259b020fe477b9093b0f71f07c83181b-11\"",
+        "size": 680811676
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00001-947ef15d-91bf-56dd-a6a3-aad846cc7a28-c000.zstd.parquet",
+        "etag": "\"2929d79c4d772321c806f58853eb5698-11\"",
+        "size": 736561336
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00002-c0c1dd40-1cc6-5636-81da-0df43a88fa9d-c000.zstd.parquet",
+        "etag": "\"601e7eee0654807f6cdc1c59075625ec-12\"",
+        "size": 752486655
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00003-d872971a-e957-5cc9-a661-27396e8592fc-c000.zstd.parquet",
+        "etag": "\"4e5d328c5a47c837a3f69a74d05bad93-12\"",
+        "size": 758320439
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00004-4792ea94-09f0-5546-beb1-f50d71febd84-c000.zstd.parquet",
+        "etag": "\"80877f8203cf62db1a8fb4765b2ffbe8-11\"",
+        "size": 679312122
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00005-19ebf8b3-812f-5237-8867-7e5b47d1d6dd-c000.zstd.parquet",
+        "etag": "\"e2afdaca282affa5ea95b31fd24d773e-11\"",
+        "size": 693781428
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet",
+        "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
+        "size": 729007835
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00007-61ac23fc-0af6-5d61-8c46-5776ba7e6bf0-c000.zstd.parquet",
+        "etag": "\"e835a9408433ecacea56e8af095b7612-11\"",
+        "size": 728373349
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00008-7a297224-4f30-5864-bfad-ebbcb6047b29-c000.zstd.parquet",
+        "etag": "\"12e2a9249cdb7e7c9a9581ebeec5a44d-10\"",
+        "size": 662849078
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00009-3f7e01dc-2fb9-50a7-8be5-65df80c1cdd4-c000.zstd.parquet",
+        "etag": "\"49cbaf2531c8de94f0e80072f6bf18b8-10\"",
+        "size": 621355675
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00010-1c7c0e0e-408b-5c7c-8dc8-a1687f22ef6e-c000.zstd.parquet",
+        "etag": "\"402ed5d358c0ab1a8772e3946d0dc3a8-10\"",
+        "size": 632147404
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00011-9aa07e3a-309b-5031-8820-4ec743a80d43-c000.zstd.parquet",
+        "etag": "\"ae8a967441ee3206e6acfc18df85ce16-10\"",
+        "size": 632751442
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00012-5e6c496a-f443-52b4-bc5e-0b71af05ae54-c000.zstd.parquet",
+        "etag": "\"49c03fb4e4f42212f696f19db31a09f8-10\"",
+        "size": 669380586
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00013-87182afd-1282-5a98-b777-73886b671c42-c000.zstd.parquet",
+        "etag": "\"20a42582e7f9e3571ccaa8ed8f094583-10\"",
+        "size": 656760524
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00014-1d36203b-4312-5a97-b9e0-5c110ae7a274-c000.zstd.parquet",
+        "etag": "\"4c0935cec442caf01e33a8b022d7dce0-11\"",
+        "size": 683038313
+      },
+      {
+        "key": "release/2026-09-23.1/theme=places/type=place/part-00015-b21e3943-1706-5729-88ab-f4f5777eaae4-c000.zstd.parquet",
+        "etag": "\"573adc5fdd73751129fc11f1b01cd16e-11\"",
+        "size": 679288164
+      }
+    ]
+  },
+  "official_baseline": {
+    "kind": "fresh_in_memory_reviewed_fixture_publication",
+    "count": 513,
+    "sources": {
+      "taito-public-smoking-areas": 32,
+      "osaka-designated-smoking-areas": 344,
+      "koto-station-smoking-areas": 3,
+      "musashino-public-smoking-areas": 3,
+      "minato-designated-smoking-areas": 114,
+      "kyoto-public-smoking-places": 17
+    }
+  },
+  "openpoi": {
+    "raw_signal_records": 752,
+    "unknown_license_records": 0,
+    "unsupported_or_missing_license_records": 119,
+    "raw_by_provider": {
+      "jff": 173,
+      "overture": 579
+    },
+    "strong_by_provider": {
+      "overture": 58
+    },
+    "strong_smoking_candidates": 58,
+    "excluded": 694,
+    "exclusion_reasons": {
+      "food_permit_not_smoking_feature": 42,
+      "host_category_conflict": 2,
+      "negative_smoking_statement": 38,
+      "no_explicit_physical_smoking_place": 612
+    },
+    "raw_by_source": {
+      "jff": 173,
+      "overture": 579
+    },
+    "raw_by_category": {
+      "bakery": 2,
+      "bar_izakaya": 25,
+      "cafe": 47,
+      "convenience_store": 1,
+      "education": 5,
+      "grocery": 17,
+      "lodging": 6,
+      "medical": 5,
+      "public_facility": 21,
+      "restaurant": 127,
+      "retail_other": 261,
+      "service_other": 23,
+      "tourism": 130,
+      "unknown": 82
+    },
+    "raw_by_license": {
+      "Apache-2.0": 61,
+      "CC BY": 1,
+      "CC BY 2.1 JP": 10,
+      "CC BY 4.0": 60,
+      "CC0 1.0": 4,
+      "CC0-1.0": 113,
+      "CDLA-Permissive-2.0": 439,
+      "Creative Commons Attribution 4.0 International": 6,
+      "公共データ利用規約（第1.0版, PDL1.0）": 101
+    },
+    "strong_by_prefecture": {
+      "unknown": 1,
+      "京都府": 1,
+      "兵庫県": 2,
+      "千葉県": 1,
+      "大阪府": 4,
+      "宮城県": 1,
+      "岐阜県": 1,
+      "岩手県": 1,
+      "愛知県": 4,
+      "新潟県": 1,
+      "東京都": 25,
+      "栃木県": 2,
+      "沖縄県": 1,
+      "滋賀県": 1,
+      "神奈川県": 5,
+      "福井県": 1,
+      "福岡県": 3,
+      "茨城県": 2,
+      "静岡県": 1
+    },
+    "prefectures_represented": 18,
+    "strong_by_city": {
+      "Kasugai-shi": 1,
+      "下都賀郡壬生町": 1,
+      "中央区": 3,
+      "京都市下京区": 1,
+      "仙台市青葉区": 1,
+      "北区": 1,
+      "千代田区": 4,
+      "南魚沼市": 1,
+      "台東区": 2,
+      "名古屋市中区": 1,
+      "名古屋市中村区": 2,
+      "名古屋市緑区": 1,
+      "品川区": 1,
+      "大阪市": 1,
+      "大阪市北区": 1,
+      "大阪市天王寺区": 1,
+      "大阪市此花区": 1,
+      "宇都宮市": 1,
+      "宮古市": 1,
+      "川崎市麻生区": 1,
+      "敦賀市": 1,
+      "文京区": 1,
+      "新宿区": 3,
+      "杉並区": 1,
+      "横浜市中区": 1,
+      "横浜市戸塚区": 1,
+      "横浜市港北区": 1,
+      "水戸市": 2,
+      "江東区": 1,
+      "浦安市": 1,
+      "渋谷区": 3,
+      "神戸市中央区": 1,
+      "福岡市中央区": 1,
+      "福岡市博多区": 2,
+      "立川市": 3,
+      "米原市": 1,
+      "藤沢市": 1,
+      "西宮市": 1,
+      "調布市": 1,
+      "豊島区": 1,
+      "那覇市": 1,
+      "静岡市清水区": 1,
+      "養老町": 1
+    },
+    "strong_by_source": {
+      "overture": 58
+    },
+    "strong_by_category": {
+      "education": 2,
+      "public_facility": 17,
+      "retail_other": 24,
+      "service_other": 3,
+      "tourism": 9,
+      "unknown": 3
+    },
+    "strong_by_license": {
+      "Apache-2.0": 6,
+      "CDLA-Permissive-2.0": 53
+    },
+    "strong_by_keyword": {
+      "smoking area": 4,
+      "smoking room": 1,
+      "喫煙コーナー": 2,
+      "喫煙スペース": 1,
+      "喫煙ルーム": 1,
+      "喫煙処": 1,
+      "喫煙場所": 1,
+      "喫煙室": 2,
+      "喫煙所": 44,
+      "指定喫煙場所": 1
+    },
+    "strong_license_gate": {
+      "pass": 58
+    },
+    "official_comparison": {
+      "exact_duplicate": 0,
+      "near_duplicate": 2,
+      "ambiguous": 1,
+      "clearly_new_relative_to_baseline": 55
+    },
+    "candidates": [
+      {
+        "name": "21番ゲート横喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "文京区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.70388377247,
+        "lng": 139.75387040498,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "2F 喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "横浜市中区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.453566,
+        "lng": 139.638839,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "2階出発ロビー喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "福岡市博多区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 33.59734,
+        "lng": 130.448437,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "福岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "38 喫煙室",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "那覇市",
+        "address": "",
+        "category": "service_other",
+        "business_type": "service_other",
+        "lat": 26.207677,
+        "lng": 127.650072,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙室",
+        "resolved_prefecture": "沖縄県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "DAIKAN 喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "大阪市北区",
+        "address": "",
+        "category": "education",
+        "business_type": "education",
+        "lat": 34.696066,
+        "lng": 135.492606,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "Jr赤羽駅西口駅前広場内指定喫煙場所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "北区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.77809604,
+        "lng": 139.72122858,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "指定喫煙場所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "Smoking area at Shibuya Crossing",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 35.65945546,
+        "lng": 139.70011626,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "smoking area",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "Usjターミネーター横喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "大阪市此花区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 34.664791813153,
+        "lng": 135.43527315397,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "smoking area 新宿大ガード東",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.69388,
+        "lng": 139.700152,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "smoking area",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "あづま通り商店街喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "杉並区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.70866215271277,
+        "lng": 139.65164228593852,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "こどもたちのひろば 東屋前喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "下都賀郡壬生町",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 36.460864241566,
+        "lng": 139.80926513672,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "栃木県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "つるが中央自動車学校寮横喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "敦賀市",
+        "address": "",
+        "category": "education",
+        "business_type": "education",
+        "lat": 35.629244762054,
+        "lng": 136.02903734698,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "福井県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "ひととき喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "立川市",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.695997,
+        "lng": 139.415035,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "ふれあい広場南側喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "福岡市中央区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 33.589541,
+        "lng": 130.401299,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "福岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "アラビアンコースト喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "浦安市",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.628333703527,
+        "lng": 139.88203609628,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "千葉県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "ウインクあいち 9f 喫煙ルーム",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "名古屋市中村区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.170748,
+        "lng": 136.886412,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙ルーム",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "エスカ地下喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "名古屋市中村区",
+        "address": "",
+        "category": "unknown",
+        "business_type": "unknown",
+        "lat": 35.16922233,
+        "lng": 136.88066692,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "コリアンタウン喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "大阪市天王寺区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 34.66080906,
+        "lng": 135.53692908,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "near_duplicate",
+          "matches": [
+            {
+              "spot_id": "sp_10000000000000000000000054",
+              "name": "コリアンタウン喫煙所",
+              "distance_m": 5.6
+            }
+          ]
+        }
+      },
+      {
+        "name": "トツカーナモール内喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "横浜市戸塚区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.40043177,
+        "lng": 139.53330825,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "上野駅16.17番線ホーム喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "台東区",
+        "address": "",
+        "category": "service_other",
+        "business_type": "service_other",
+        "lat": 35.7167,
+        "lng": 139.783,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "中京競馬場前駅出口近くの煙草屋前喫煙処",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "名古屋市緑区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.061405,
+        "lng": 136.98236,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙処",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "京都駅北側喫煙場所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "京都市下京区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 34.986998,
+        "lng": 135.759463,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙場所",
+        "resolved_prefecture": "京都府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_50000000000000000000000005",
+              "name": "京都駅北口広場（バスターミナル東）喫煙場所",
+              "distance_m": 6.7
+            },
+            {
+              "spot_id": "sp_50000000000000000000000017",
+              "name": "京都駅北口広場（タクシープール東）喫煙場所",
+              "distance_m": 70.5
+            }
+          ]
+        }
+      },
+      {
+        "name": "仙台駅13-14番線ホーム喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "仙台市青葉区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 38.26171,
+        "lng": 140.88216,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "宮城県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "体育館前喫煙所",
+        "name_kana": "",
+        "prefecture": "東京都",
+        "city": "調布市",
+        "address": "",
+        "category": "unknown",
+        "business_type": "unknown",
+        "lat": 35.657658,
+        "lng": 139.541795,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org / Copyright 2024 Foursquare Labs, Inc. (https://opensource.foursquare.com/places-notice-txt/)"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "八重洲地下街smoking roomノースポイント",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "中央区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.681598,
+        "lng": 139.769817,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "smoking room",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "十思スクエア別館喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.690884,
+        "lng": 139.777433,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "吉池ビル喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "台東区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.7074659,
+        "lng": 139.7746822,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙室",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "水戸市",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 36.40197316866,
+        "lng": 140.44367410644,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙室",
+        "resolved_prefecture": "茨城県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "福岡市博多区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 33.59022615,
+        "lng": 130.42028196,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "福岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "川崎市麻生区",
+        "address": "",
+        "category": "service_other",
+        "business_type": "service_other",
+        "lat": 35.603147,
+        "lng": 139.50872,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 35.6907299,
+        "lng": 139.6951992,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "江東区",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 35.69786212,
+        "lng": 139.82498186,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "水戸市",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 36.369763599272,
+        "lng": 140.47577704957,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "茨城県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "南魚沼市",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 36.996589,
+        "lng": 138.818412,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "新潟県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "城見緑道北喫煙所",
+        "name_kana": "",
+        "prefecture": "大阪府",
+        "city": "大阪市",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 34.694088,
+        "lng": 135.531493,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org / Copyright 2024 Foursquare Labs, Inc. (https://opensource.foursquare.com/places-notice-txt/)"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "near_duplicate",
+          "matches": [
+            {
+              "spot_id": "sp_10000000000000000000000287",
+              "name": "城見緑道北喫煙所",
+              "distance_m": 14.3
+            }
+          ]
+        }
+      },
+      {
+        "name": "大森駅東口駅前広場公衆喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "品川区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.58805846,
+        "lng": 139.72938523,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "大谷PA喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "宇都宮市",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 36.599295223377,
+        "lng": 139.84234212297,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "栃木県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "寺島商店喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "名古屋市中区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.173101846137,
+        "lng": 136.89679091647,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "屋外喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "豊島区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.728996639415,
+        "lng": 139.71809672657,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "御茶ノ水橋際公衆トイレ横指定喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.700752,
+        "lng": 139.76314,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "愛岐トンネル群 喫煙所",
+        "name_kana": "",
+        "prefecture": "23",
+        "city": "Kasugai-shi",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 35.28756061502236,
+        "lng": 137.09111103981928,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "unknown",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "新宿駅東南口高架下喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.68943572,
+        "lng": 139.70178723,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "東京駅一番街 Smoking AREA",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "中央区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.682287486768,
+        "lng": 139.76845834919,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "smoking area",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "楓川久安橋公園喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "中央区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.67755849,
+        "lng": 139.77436946,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "江の島弁天橋 Smoking Area",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "藤沢市",
+        "address": "",
+        "category": "unknown",
+        "business_type": "unknown",
+        "lat": 35.305990501197,
+        "lng": 139.48282431656,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "smoking area",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "無料喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "神戸市中央区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 34.69527895,
+        "lng": 135.19569146,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "兵庫県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "無料喫煙所(paspa",
+        "name_kana": "",
+        "prefecture": "東京都",
+        "city": "千代田区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.698541925842044,
+        "lng": 139.77082757765655,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org / Copyright 2024 Foursquare Labs, Inc. (https://opensource.foursquare.com/places-notice-txt/)"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "由比Pa 喫煙コーナー",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "静岡市清水区",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.087622,
+        "lng": 138.549274,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "静岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "神宮前交差点喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.6687898,
+        "lng": 139.7049862,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "神田橋公園喫煙スペース（喫煙所）",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 35.68968767,
+        "lng": 139.76392945,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙スペース",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "立川駅北口公衆喫煙所",
+        "name_kana": "",
+        "prefecture": "東京都",
+        "city": "立川市",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.698848,
+        "lng": 139.41381,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org / Copyright 2024 Foursquare Labs, Inc. (https://opensource.foursquare.com/places-notice-txt/)"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "立川駅南口公衆喫煙所",
+        "name_kana": "",
+        "prefecture": "東京都",
+        "city": "立川市",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.696882,
+        "lng": 139.41339,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org / Copyright 2024 Foursquare Labs, Inc. (https://opensource.foursquare.com/places-notice-txt/)"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "米原駅東海道新幹線改札喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "米原市",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.314415,
+        "lng": 136.289672,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "滋賀県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "道の駅たろう 喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "宮古市",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 39.73706341,
+        "lng": 141.97192148,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "岩手県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "道玄坂喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 35.658059837753555,
+        "lng": 139.69599589866897,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "都筑PA 喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "横浜市港北区",
+        "address": "",
+        "category": "public_facility",
+        "business_type": "public_facility",
+        "lat": 35.543972532132,
+        "lng": 139.60303454318,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "関西学院大学聖和キャンパス喫煙所",
+        "name_kana": "",
+        "prefecture": "",
+        "city": "西宮市",
+        "address": "",
+        "category": "tourism",
+        "business_type": "tourism",
+        "lat": 34.761465,
+        "lng": 135.350842,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "keyword": "喫煙所",
+        "resolved_prefecture": "兵庫県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "name": "養老SA上り喫煙コーナー",
+        "name_kana": "",
+        "prefecture": "岐阜県",
+        "city": "養老町",
+        "address": "",
+        "category": "retail_other",
+        "business_type": "retail_other",
+        "lat": 35.32210977152885,
+        "lng": 136.54331036124685,
+        "level": "",
+        "source": "overture",
+        "licenses": [
+          "Apache-2.0",
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org",
+          "Overture Maps Foundation, overturemaps.org / Copyright 2024 Foursquare Labs, Inc. (https://opensource.foursquare.com/places-notice-txt/)"
+        ],
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "岐阜県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      }
+    ]
+  },
+  "overture": {
+    "raw_signal_records": 2280,
+    "unknown_license_records": 0,
+    "unsupported_or_missing_license_records": 0,
+    "raw_by_provider": {
+      "AllThePlaces": 115,
+      "Foursquare": 251,
+      "Microsoft": 109,
+      "Overture": 2280,
+      "meta": 1805
+    },
+    "strong_by_provider": {
+      "Foursquare": 2,
+      "Overture": 93,
+      "meta": 91
+    },
+    "strong_smoking_candidates": 93,
+    "excluded": 2187,
+    "exclusion_reasons": {
+      "host_category_conflict": 70,
+      "negative_smoking_statement": 28,
+      "no_explicit_physical_smoking_place": 1842,
+      "non_japan_address": 247
+    },
+    "raw_by_source": {
+      "overture": 2280
+    },
+    "raw_by_category": {
+      "abuse_and_addiction_treatment_center": 1,
+      "airport": 4,
+      "american_restaurant": 3,
+      "amusement_park": 1,
+      "animal_or_pet_service": 1,
+      "arts_and_entertainment": 5,
+      "bar": 43,
+      "bar_and_grill_restaurant": 8,
+      "barbecue_restaurant": 17,
+      "baseball_stadium": 1,
+      "beer_bar": 2,
+      "bike_store": 1,
+      "bookstore": 1,
+      "brewery": 1,
+      "bridge": 1,
+      "bus_station": 1,
+      "cafe": 25,
+      "candy_store": 1,
+      "casino": 2,
+      "child_care_and_day_care": 1,
+      "childrens_hospital": 1,
+      "chinese_restaurant": 1,
+      "christian_place_of_worship": 1,
+      "cocktail_bar": 4,
+      "coffee_shop": 11,
+      "college_university": 2,
+      "commercial_industrial": 2,
+      "community_and_government": 6,
+      "corporate_or_business_office": 3,
+      "delicatessen": 1,
+      "department_store": 1,
+      "driving_school": 1,
+      "education": 1,
+      "fast_food_restaurant": 1,
+      "food_and_beverage_store": 1,
+      "food_and_drink": 1,
+      "food_beverage_distributor": 2,
+      "grocery_store": 4,
+      "high_school": 1,
+      "hiking_trail": 1,
+      "historic_site": 1,
+      "hookah_bar": 774,
+      "hotel": 2,
+      "inn": 2,
+      "italian_restaurant": 7,
+      "japanese_restaurant": 16,
+      "karaoke_venue": 1,
+      "labor_union": 1,
+      "library": 1,
+      "liquor_store": 6,
+      "lodge": 2,
+      "lottery_vendor": 115,
+      "lounge": 2,
+      "monument": 2,
+      "motorcycle_dealer": 1,
+      "museum": 2,
+      "music_venue": 1,
+      "outpatient_care_facility": 2,
+      "park": 14,
+      "parking": 2,
+      "party_and_event_planning": 4,
+      "pharmacy": 2,
+      "preschool": 1,
+      "professional_service": 3,
+      "pub": 2,
+      "public_plaza": 38,
+      "public_restroom": 1,
+      "real_estate_service": 3,
+      "resort": 3,
+      "restaurant": 27,
+      "sake_bar": 1,
+      "sandwich_shop": 1,
+      "school": 1,
+      "shopping": 22,
+      "shopping_mall": 2,
+      "smoke_and_vape_store": 295,
+      "social_or_community_service": 5,
+      "speakeasy": 1,
+      "state_park": 1,
+      "tapas_bar": 1,
+      "tattoo_and_piercing": 1,
+      "tea_room": 1,
+      "tobacco_company": 7,
+      "tobacco_shop": 719,
+      "train_station": 4,
+      "travel_and_transportation": 1,
+      "unknown": 9,
+      "used_bookstore": 1,
+      "vocational_and_technical_school": 1,
+      "whiskey_bar": 2
+    },
+    "raw_by_license": {
+      "Apache-2.0": 251,
+      "CC0-1.0": 115,
+      "CDLA-Permissive-2.0": 2280
+    },
+    "strong_by_prefecture": {
+      "unknown": 1,
+      "京都府": 3,
+      "兵庫県": 3,
+      "北海道": 1,
+      "千葉県": 2,
+      "埼玉県": 1,
+      "大阪府": 6,
+      "宮城県": 1,
+      "山形県": 1,
+      "岡山県": 1,
+      "岩手県": 1,
+      "広島県": 1,
+      "愛知県": 3,
+      "新潟県": 2,
+      "東京都": 42,
+      "栃木県": 2,
+      "沖縄県": 1,
+      "滋賀県": 1,
+      "神奈川県": 11,
+      "福井県": 1,
+      "福岡県": 1,
+      "秋田県": 1,
+      "茨城県": 1,
+      "静岡県": 3,
+      "高知県": 1,
+      "鹿児島県": 1
+    },
+    "prefectures_represented": 25,
+    "strong_by_city": {
+      "Kasugai-shi": 1,
+      "下都賀郡壬生町": 2,
+      "中央区": 1,
+      "京都市下京区": 1,
+      "京都市伏見区": 1,
+      "京都市東山区": 1,
+      "仙台市青葉区": 1,
+      "北区": 1,
+      "千代田区": 8,
+      "南魚沼市": 1,
+      "台東区": 3,
+      "名古屋市中区": 1,
+      "名古屋市中村区": 1,
+      "品川区": 2,
+      "堺市北区": 1,
+      "墨田区": 2,
+      "大田区": 1,
+      "大阪市": 1,
+      "大阪市北区": 1,
+      "大阪市此花区": 1,
+      "大阪市淀川区": 2,
+      "宮古市": 1,
+      "小樽市": 1,
+      "小金井市": 1,
+      "岡山市北区": 1,
+      "川崎市多摩区": 1,
+      "川崎市高津区": 1,
+      "川崎市麻生区": 1,
+      "広島市中区": 1,
+      "府中市": 1,
+      "成田市": 1,
+      "敦賀市": 1,
+      "文京区": 1,
+      "新宿区": 4,
+      "新潟市中央区": 1,
+      "杉並区": 1,
+      "横浜市戸塚区": 1,
+      "横浜市旭区": 1,
+      "横浜市港北区": 1,
+      "横浜市西区": 1,
+      "横浜市金沢区": 1,
+      "水戸市": 1,
+      "江戸川区": 1,
+      "江東区": 1,
+      "浦安市": 1,
+      "海老名市": 1,
+      "渋谷区": 4,
+      "港区": 3,
+      "熱海市": 1,
+      "甲賀市": 1,
+      "神戸市中央区": 1,
+      "福岡市中央区": 1,
+      "秋田市": 1,
+      "練馬区": 2,
+      "草加市": 1,
+      "荒川区": 1,
+      "藤沢市": 2,
+      "西宮市": 2,
+      "西東京市": 1,
+      "調布市": 1,
+      "豊島区": 2,
+      "足立区": 1,
+      "那覇市": 1,
+      "霧島市": 1,
+      "静岡市清水区": 1,
+      "静岡市葵区": 1,
+      "高知市": 1,
+      "鶴岡市": 1
+    },
+    "strong_by_source": {
+      "overture": 93
+    },
+    "strong_by_category": {
+      "airport": 4,
+      "amusement_park": 1,
+      "arts_and_entertainment": 3,
+      "baseball_stadium": 1,
+      "bridge": 1,
+      "bus_station": 1,
+      "college_university": 2,
+      "community_and_government": 6,
+      "department_store": 1,
+      "driving_school": 1,
+      "hiking_trail": 1,
+      "historic_site": 1,
+      "library": 1,
+      "park": 14,
+      "parking": 1,
+      "public_plaza": 37,
+      "public_restroom": 1,
+      "real_estate_service": 1,
+      "shopping": 1,
+      "shopping_mall": 2,
+      "social_or_community_service": 2,
+      "state_park": 1,
+      "train_station": 4,
+      "unknown": 4,
+      "vocational_and_technical_school": 1
+    },
+    "strong_by_license": {
+      "Apache-2.0": 2,
+      "CDLA-Permissive-2.0": 93
+    },
+    "strong_by_keyword": {
+      "smoking area": 3,
+      "smoking room": 2,
+      "公衆喫煙場所": 1,
+      "喫煙コーナー": 5,
+      "喫煙スペース": 2,
+      "喫煙場所": 1,
+      "喫煙室": 3,
+      "喫煙所": 74,
+      "指定喫煙場所": 2
+    },
+    "strong_license_gate": {
+      "pass": 93
+    },
+    "official_comparison": {
+      "exact_duplicate": 0,
+      "near_duplicate": 2,
+      "ambiguous": 6,
+      "clearly_new_relative_to_baseline": 85
+    },
+    "candidates": [
+      {
+        "id": "02bf447b-a40e-40dd-a97b-2fcf0382bc4e",
+        "name": "都筑PA 喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "横浜市港北区",
+        "address": "神奈川県横浜市港北区新吉田町５２０３−１",
+        "lat": 35.543972532132,
+        "lng": 139.60303454318,
+        "confidence": 0.9749389886856079,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "0759d1a9-4dc3-4861-bec1-15b43472fb46",
+        "name": "つるが中央自動車学校寮横喫煙所",
+        "category": "driving_school",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "敦賀市",
+        "address": "",
+        "lat": 35.629244762054,
+        "lng": 136.02903734698,
+        "confidence": 0.7511984705924988,
+        "taxonomy_hierarchy": [
+          "education",
+          "place_of_learning",
+          "specialty_school",
+          "driving_school"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "福井県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "07ac980b-a463-4d56-9019-c1c37ed28a1f",
+        "name": "高知駅喫煙所",
+        "category": "arts_and_entertainment",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "高知市",
+        "address": "",
+        "lat": 33.567193,
+        "lng": 133.544227,
+        "confidence": 0.47773951292037964,
+        "taxonomy_hierarchy": [
+          "arts_and_entertainment"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "高知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "0a3c384c-8072-443f-99da-186ac5ea52ba",
+        "name": "横浜駅東口喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "横浜市西区",
+        "address": "2 Chome-16 Takashima",
+        "lat": 35.46488509,
+        "lng": 139.62325692,
+        "confidence": 0.9614681601524353,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "0b85eb53-721e-431c-9cb1-f988691eabcd",
+        "name": "道の駅たろう 喫煙所",
+        "category": "community_and_government",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "宮古市",
+        "address": "2-chome-5-1 Taro",
+        "lat": 39.73706341,
+        "lng": 141.97192148,
+        "confidence": 0.9582267999649048,
+        "taxonomy_hierarchy": [
+          "community_and_government"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "岩手県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "0dee4b9e-30f6-4d12-9bce-c5ba4df02518",
+        "name": "熱海駅喫煙所",
+        "category": "social_or_community_service",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "熱海市",
+        "address": "",
+        "lat": 35.1035694,
+        "lng": 139.0791343,
+        "confidence": 0.7458508014678955,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "social_or_community_service"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "静岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "11a8ae2c-64b2-413a-bacd-ef7f1e1d6cfc",
+        "name": "草加駅西口喫煙所",
+        "category": "bus_station",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "草加市",
+        "address": "",
+        "lat": 35.827995,
+        "lng": 139.802545,
+        "confidence": 0.6773322820663452,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "ground_transport_facility_or_service",
+          "public_transit_facility_or_service",
+          "bus_station"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "埼玉県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "13168e61-fd9f-44e8-a817-1d48f2c2c249",
+        "name": "上野駅16.17番線ホーム喫煙所",
+        "category": "train_station",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "台東区",
+        "address": "上野7丁目",
+        "lat": 35.7167,
+        "lng": 139.783,
+        "confidence": 0.8087693452835083,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "ground_transport_facility_or_service",
+          "rail_facility_or_service",
+          "train_station"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "1348038c-15b1-4916-86f3-0e43a735be64",
+        "name": "smoking area 新宿大ガード東",
+        "category": "community_and_government",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "",
+        "lat": 35.69388,
+        "lng": 139.700152,
+        "confidence": 0.5874729752540588,
+        "taxonomy_hierarchy": [
+          "community_and_government"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "smoking area",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "161386a2-b410-442e-acc3-4c34a201757b",
+        "name": "アラビアンコースト喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "浦安市",
+        "address": "",
+        "lat": 35.628333703527,
+        "lng": 139.88203609628,
+        "confidence": 0.7837203741073608,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "千葉県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "171b32dd-b08e-48d7-8f5c-edcf8456f960",
+        "name": "阪神甲子園球場一塁側内野席外 喫煙所",
+        "category": "baseball_stadium",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "西宮市",
+        "address": "",
+        "lat": 34.721714,
+        "lng": 135.360618,
+        "confidence": 0.8963108062744141,
+        "taxonomy_hierarchy": [
+          "arts_and_entertainment",
+          "stadium_arena",
+          "stadium",
+          "baseball_stadium"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "兵庫県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "1ba128ed-2bca-493f-a34c-4d81bbdcf72b",
+        "name": "八重洲地下街南側喫煙所",
+        "category": "unknown",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "",
+        "lat": 35.67881980629399,
+        "lng": 139.76775511128136,
+        "confidence": 0.7357189059257507,
+        "taxonomy_hierarchy": [],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "1e69537a-1621-4f1d-84e2-9fffc5049c18",
+        "name": "喫煙所",
+        "category": "real_estate_service",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "川崎市麻生区",
+        "address": "",
+        "lat": 35.603147,
+        "lng": 139.50872,
+        "confidence": 0.5755214095115662,
+        "taxonomy_hierarchy": [
+          "services_and_business",
+          "real_estate_service"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "23b589f5-9176-46e3-a0b2-2b270fed62f9",
+        "name": "神田橋公園喫煙スペース（喫煙所）",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "1 Chome-29 Kanda Nishikicho",
+        "lat": 35.68968767,
+        "lng": 139.76392945,
+        "confidence": 0.9493356347084045,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙スペース",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "24787f56-0067-4eca-b485-dc143cc1c211",
+        "name": "東京駅一番街 Smoking AREA",
+        "category": "community_and_government",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "中央区",
+        "address": "",
+        "lat": 35.682287486768,
+        "lng": 139.76845834919,
+        "confidence": 0.7239245176315308,
+        "taxonomy_hierarchy": [
+          "community_and_government"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "smoking area",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "26c829a2-5a0c-42fb-b0cf-290023e1c87e",
+        "name": "38 喫煙室",
+        "category": "airport",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "那覇市",
+        "address": "",
+        "lat": 26.207677,
+        "lng": 127.650072,
+        "confidence": 0.6556225419044495,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "air_transport_facility_or_service",
+          "airport"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙室",
+        "resolved_prefecture": "沖縄県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "276e967e-0175-44e4-840e-d79581d0f086",
+        "name": "大森駅東口駅前広場公衆喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "品川区",
+        "address": "Omorikita, 1 Chome, １先",
+        "lat": 35.58805846,
+        "lng": 139.72938523,
+        "confidence": 0.8992873430252075,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "29a09644-12e7-49c9-a08c-d230d27448a0",
+        "name": "DAIKAN 喫煙所",
+        "category": "vocational_and_technical_school",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "大阪市北区",
+        "address": "大阪府大阪市北区堂島２丁目４−２７",
+        "lat": 34.696066,
+        "lng": 135.492606,
+        "confidence": 0.6231130957603455,
+        "taxonomy_hierarchy": [
+          "education",
+          "place_of_learning",
+          "specialty_school",
+          "vocational_and_technical_school"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "3126cfa2-5cbb-432d-b86e-0d8b46d11842",
+        "name": "日比谷公園喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "1-1 Hibiyakoen",
+        "lat": 35.67605054,
+        "lng": 139.7565591,
+        "confidence": 0.9424037337303162,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "326ad87b-55f2-4bb2-a031-9e67585e2016",
+        "name": "21番ゲート横喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "文京区",
+        "address": "東京都文京区後楽１丁目３−６１",
+        "lat": 35.70388377247,
+        "lng": 139.75387040498,
+        "confidence": 0.8705980777740479,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "37566612-52d7-4fe2-a195-c5127d2cc35d",
+        "name": "トツカーナモール内喫煙所",
+        "category": "shopping_mall",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "横浜市戸塚区",
+        "address": "Totsukachō",
+        "lat": 35.40043177,
+        "lng": 139.53330825,
+        "confidence": 0.9870686882734299,
+        "taxonomy_hierarchy": [
+          "shopping",
+          "shopping_mall"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "379b2b46-a39a-45af-92a6-7949113afeec",
+        "name": "新大阪駅喫煙コーナー",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "大阪市淀川区",
+        "address": "大阪府大阪市淀川区西中島５丁目１６−１",
+        "lat": 34.733198,
+        "lng": 135.500092,
+        "confidence": 0.8753150701522827,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "392c4fcd-8c44-402c-a4a5-2f808ddcb320",
+        "name": "錦糸町駅前南口喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "墨田区",
+        "address": "3 Chome-14 Kotobashi",
+        "lat": 35.69599889,
+        "lng": 139.81393115,
+        "confidence": 0.755668044090271,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "3a9a9cb5-1a20-4210-b7d4-751997cf6bda",
+        "name": "阿佐ヶ谷駅南口公衆喫煙場所",
+        "category": "community_and_government",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "杉並区",
+        "address": "3 Chome-36-36 Asagayaminami",
+        "lat": 35.70431769,
+        "lng": 139.63613959,
+        "confidence": 0.6917681694030762,
+        "taxonomy_hierarchy": [
+          "community_and_government"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "公衆喫煙場所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "461509c4-fca5-46be-a72c-9b680140595f",
+        "name": "海老名Sa(上り)喫煙所",
+        "category": "community_and_government",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "海老名市",
+        "address": "大谷南5",
+        "lat": 35.43133188165,
+        "lng": 139.39822598043,
+        "confidence": 0.9289724230766296,
+        "taxonomy_hierarchy": [
+          "community_and_government"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "479b103a-bc87-4d23-a3f5-0fe28378a1de",
+        "name": "Parco前喫煙スペース",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "豊島区",
+        "address": "",
+        "lat": 35.729988,
+        "lng": 139.712861,
+        "confidence": 0.5269758105278015,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙スペース",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "494be84d-17e3-4d0a-9a08-be5de6eac80c",
+        "name": "練馬区役所展望ロビー喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "練馬区",
+        "address": "東京都練馬区豊玉北６丁目１２−１",
+        "lat": 35.735633,
+        "lng": 139.651797,
+        "confidence": 0.9631990194320679,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "4f4e493b-2a06-4589-8771-b9d83263cf15",
+        "name": "総合公園南駐車場前東喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "下都賀郡壬生町",
+        "address": "国谷2300",
+        "lat": 36.458637977788,
+        "lng": 139.81126070023,
+        "confidence": 0.5202853679656982,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "栃木県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "54cf70c9-9e5d-4acf-9fef-ac8bee0ce0c9",
+        "name": "エスカ地下喫煙所",
+        "category": "unknown",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "名古屋市中村区",
+        "address": "15-26 Tsubakicho",
+        "lat": 35.16922233,
+        "lng": 136.88066692,
+        "confidence": 0.90641188621521,
+        "taxonomy_hierarchy": [],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "55dccddf-3d6d-409c-8db2-d595d065d038",
+        "name": "城見緑道北喫煙所",
+        "category": "state_park",
+        "source": "overture",
+        "providers": [
+          "Foursquare",
+          "Overture"
+        ],
+        "licenses": [
+          "Apache-2.0",
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "大阪府",
+        "city": "大阪市",
+        "address": "",
+        "lat": 34.694088,
+        "lng": 135.531493,
+        "confidence": 0.77,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park",
+          "state_park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "near_duplicate",
+          "matches": [
+            {
+              "spot_id": "sp_10000000000000000000000287",
+              "name": "城見緑道北喫煙所",
+              "distance_m": 14.3
+            }
+          ]
+        }
+      },
+      {
+        "id": "56249b0c-4831-4880-8515-33d7df9af33a",
+        "name": "吉池ビル喫煙所",
+        "category": "social_or_community_service",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "台東区",
+        "address": "",
+        "lat": 35.7074659,
+        "lng": 139.7746822,
+        "confidence": 0.7524763345718384,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "social_or_community_service"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "569f914b-c205-4ac8-ade3-1106bee24e04",
+        "name": "京阪 中書島駅前 喫煙コーナー",
+        "category": "train_station",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "京都市伏見区",
+        "address": "伏見区葭島矢倉町57-3",
+        "lat": 34.926991212204,
+        "lng": 135.75987969279,
+        "confidence": 0.5549463033676147,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "ground_transport_facility_or_service",
+          "rail_facility_or_service",
+          "train_station"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "京都府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_50000000000000000000000012",
+              "name": "京阪中書島駅前喫煙場所",
+              "distance_m": 16.7
+            }
+          ]
+        }
+      },
+      {
+        "id": "5723a8e8-88a0-4182-94f8-762cc7d9cbaf",
+        "name": "明治神宮絵画館喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "",
+        "lat": 35.678421277653,
+        "lng": 139.71777330666,
+        "confidence": 0.9513959288597107,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "5b228de0-54c1-440a-9ada-3778f0a3e554",
+        "name": "サンポップ喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "荒川区",
+        "address": "",
+        "lat": 35.742332,
+        "lng": 139.780703,
+        "confidence": 0.882272481918335,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "5d69d86b-3f31-45f1-94c5-89f6d1d49924",
+        "name": "喫煙室",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "水戸市",
+        "address": "茨城県水戸市文京２丁目１−１",
+        "lat": 36.40197316866,
+        "lng": 140.44367410644,
+        "confidence": 0.42998555302619934,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙室",
+        "resolved_prefecture": "茨城県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "60f49393-0468-4d4f-bde5-26cf5007775b",
+        "name": "東京農工大学 喫煙所",
+        "category": "college_university",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "府中市",
+        "address": "Saiwaicho, 3 Chome−４−7",
+        "lat": 35.68424409,
+        "lng": 139.4836041,
+        "confidence": 0.6624338626861572,
+        "taxonomy_hierarchy": [
+          "education",
+          "place_of_learning",
+          "college_university"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "unknown",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "6267777f-00c7-4464-9c0f-369381ee5a5e",
+        "name": "田無駅北口喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "西東京市",
+        "address": "東京都西東京市田無町４丁目１−１",
+        "lat": 35.727693,
+        "lng": 139.540208,
+        "confidence": 0.761832058429718,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "6c02c247-124c-425f-b3ff-539d3cc8cb49",
+        "name": "イオンモール堺北花田 3f Smoking Room",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "堺市北区",
+        "address": "北区東浅香山町4丁目1-12",
+        "lat": 34.585108,
+        "lng": 135.514667,
+        "confidence": 0.8676261901855469,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "smoking room",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "6c9b5747-c8a3-4756-9f07-01d23d029476",
+        "name": "屋外喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "豊島区",
+        "address": "東京都豊島区東池袋３丁目１−３",
+        "lat": 35.728996639415,
+        "lng": 139.71809672657,
+        "confidence": 0.9200215339660645,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "732f8c6d-f20e-4731-a3c5-8c095e4596cd",
+        "name": "北千住駅西口喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "足立区",
+        "address": "",
+        "lat": 35.75011272,
+        "lng": 139.80406441,
+        "confidence": 0.7147492170333862,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "73a98e48-6db6-48e8-9335-b5ab41d7ce2c",
+        "name": "平井駅前喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "江戸川区",
+        "address": "平井5-18",
+        "lat": 35.706827,
+        "lng": 139.842075,
+        "confidence": 0.9324915409088135,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "73ddde67-206d-42f8-a5fe-a6970d771e66",
+        "name": "ウイングベイ小樽6番街 1階喫煙室",
+        "category": "shopping_mall",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "小樽市",
+        "address": "",
+        "lat": 43.184153268136,
+        "lng": 141.02359542084,
+        "confidence": 0.9917442537546158,
+        "taxonomy_hierarchy": [
+          "shopping",
+          "shopping_mall"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙室",
+        "resolved_prefecture": "北海道",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "7534771b-72b9-4867-8724-f64c87a682f8",
+        "name": "成田国際空港第2ターミナル喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "成田市",
+        "address": "千葉県成田市古込１−１",
+        "lat": 35.77325,
+        "lng": 140.387217,
+        "confidence": 0.8382769227027893,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "千葉県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "75497646-be94-4e96-a6d6-0bc44e7be803",
+        "name": "道玄坂喫煙所",
+        "category": "arts_and_entertainment",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "東京都渋谷区道玄坂１丁目１２−１",
+        "lat": 35.658059837753555,
+        "lng": 139.69599589866897,
+        "confidence": 0.4606849253177643,
+        "taxonomy_hierarchy": [
+          "arts_and_entertainment"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "762a3e14-d827-47f9-b460-7d98346d7748",
+        "name": "松坂屋名古屋店本館7階smoking room",
+        "category": "department_store",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "名古屋市中区",
+        "address": "愛知県名古屋市中区栄３丁目１６−１",
+        "lat": 35.165295,
+        "lng": 136.907823,
+        "confidence": 0.7847244739532471,
+        "taxonomy_hierarchy": [
+          "shopping",
+          "department_store"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "smoking room",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "7652b1c7-c889-4f79-865a-904f48bc3477",
+        "name": "鹿児島空港喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "霧島市",
+        "address": "溝辺町麓822",
+        "lat": 31.801397,
+        "lng": 130.715107,
+        "confidence": 0.6620800495147705,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "鹿児島県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "773dd33e-1b02-4717-9cae-1e101fc81089",
+        "name": "上野公園喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "台東区",
+        "address": "5-5 Uenokoen",
+        "lat": 35.71424602,
+        "lng": 139.77394736,
+        "confidence": 0.8385488390922546,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_00000000000000000000000014",
+              "name": "上野公園正岡子規記念球場横",
+              "distance_m": 20.4
+            }
+          ]
+        }
+      },
+      {
+        "id": "7ceef097-f72d-4e9d-ae6f-d59e5b26e3e1",
+        "name": "恵比寿駅西口指定喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "東京都渋谷区恵比寿南１丁目５−５",
+        "lat": 35.6475188,
+        "lng": 139.7093838,
+        "confidence": 0.9062708616256714,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "7df69e23-d3fc-4792-a6bf-4e3af9fbbb76",
+        "name": "東京ソラマチ 31f 喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "墨田区",
+        "address": "東京都墨田区押上１丁目１８−２",
+        "lat": 35.710005,
+        "lng": 139.812344,
+        "confidence": 0.8017686009407043,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "834a1690-5ce9-4e5f-add0-63600fff1569",
+        "name": "神宮前交差点喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "",
+        "lat": 35.6687898,
+        "lng": 139.7049862,
+        "confidence": 0.8771600723266602,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "843dfbe7-08f4-4be0-bf31-da007cf7df1f",
+        "name": "四条河原町喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "京都市東山区",
+        "address": "Shincho, 西木屋町通",
+        "lat": 35.00408555,
+        "lng": 135.77043062,
+        "confidence": 0.8307186961174011,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "京都府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_50000000000000000000000001",
+              "name": "四条西木屋町喫煙場所",
+              "distance_m": 1.4
+            }
+          ]
+        }
+      },
+      {
+        "id": "85815281-63aa-4412-9367-2b86f5aebfe7",
+        "name": "向ヶ丘遊園駅第1指定喫煙場所",
+        "category": "unknown",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "川崎市多摩区",
+        "address": "Noborito",
+        "lat": 35.61648432,
+        "lng": 139.5645788,
+        "confidence": 0.7526112794876099,
+        "taxonomy_hierarchy": [],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "指定喫煙場所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "8832ded0-68c5-4696-b1fc-e5dc201970ae",
+        "name": "静岡駅北口広場喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "静岡市葵区",
+        "address": "４９ 地先 Kuroganecho",
+        "lat": 34.97139128,
+        "lng": 138.38735328,
+        "confidence": 0.9639013409614563,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "静岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "8922ec11-5e3d-47bf-852f-df6c74b25603",
+        "name": "新宿駅東南口高架下喫煙所",
+        "category": "community_and_government",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "3 Chome-37-37番先 Shinjuku",
+        "lat": 35.68943572,
+        "lng": 139.70178723,
+        "confidence": 0.9721968173980713,
+        "taxonomy_hierarchy": [
+          "community_and_government"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "9269726c-f304-457f-947f-0f12366312fb",
+        "name": "無料喫煙所",
+        "category": "public_restroom",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "神戸市中央区",
+        "address": "5 Chome-1-298 Kotonoocho",
+        "lat": 34.69527895,
+        "lng": 135.19569146,
+        "confidence": 0.14746397733688354,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_restroom"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "兵庫県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "95ad989a-a5bb-4096-a997-c011b5dc4e7b",
+        "name": "ジュラシックパーク横喫煙所",
+        "category": "amusement_park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "大阪市此花区",
+        "address": "此花区桜島2丁目1-33",
+        "lat": 34.665021790143,
+        "lng": 135.43045038823,
+        "confidence": 0.7865732908248901,
+        "taxonomy_hierarchy": [
+          "arts_and_entertainment",
+          "amusement_attraction",
+          "amusement_park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "993e6c91-947b-4b43-b9fb-10bd50e99d4e",
+        "name": "関東学院大学金沢文庫キャンパス 喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "横浜市金沢区",
+        "address": "",
+        "lat": 35.336729,
+        "lng": 139.597893,
+        "confidence": 0.7633833885192871,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "99bd6969-eabe-419b-b44f-365879c5f5dd",
+        "name": "第二ターミナル2階喫煙所",
+        "category": "airport",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "大田区",
+        "address": "",
+        "lat": 35.55033550611193,
+        "lng": 139.78804302242943,
+        "confidence": 0.7395521998405457,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "air_transport_facility_or_service",
+          "airport"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "9a7700e8-4002-478f-93de-127aceee5d01",
+        "name": "御茶ノ水橋際公衆トイレ横指定喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "湯島1-5",
+        "lat": 35.700752,
+        "lng": 139.76314,
+        "confidence": 0.6949553489685059,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "a9872814-33cb-48e2-97df-a1cb007cc4b5",
+        "name": "秋田空港搭乗口喫煙所",
+        "category": "airport",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "秋田市",
+        "address": "",
+        "lat": 39.611932067408,
+        "lng": 140.22008863853,
+        "confidence": 0.7010887861251831,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "air_transport_facility_or_service",
+          "airport"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "秋田県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "aaee06f6-c416-4065-bee5-a9ecc62982f7",
+        "name": "喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "南魚沼市",
+        "address": "新潟県南魚沼市姥島新田９８−１",
+        "lat": 36.996589,
+        "lng": 138.818412,
+        "confidence": 0.4976338744163513,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "新潟県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "aead20f4-2a98-4e8e-bda3-f64862d6cd75",
+        "name": "神奈川県警察運転免許センター 喫煙所",
+        "category": "historic_site",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "横浜市旭区",
+        "address": "",
+        "lat": 35.467472,
+        "lng": 139.524445,
+        "confidence": 0.7271938920021057,
+        "taxonomy_hierarchy": [
+          "cultural_and_historic",
+          "historic_site"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "b25b8ec3-6a64-433d-9d59-8973e7f21101",
+        "name": "喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "4 Chome-9-11 Iidabashi",
+        "lat": 35.70166831,
+        "lng": 139.74577806,
+        "confidence": 0.7781936526298523,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "b7ce3f4d-625e-40bc-bb0e-132e2468d7c4",
+        "name": "岡山空港喫煙所",
+        "category": "airport",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "岡山市北区",
+        "address": "北区日応寺1227",
+        "lat": 34.760071368551,
+        "lng": 133.85280428824,
+        "confidence": 0.9628666639328003,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "air_transport_facility_or_service",
+          "airport"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "岡山県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "b95050c1-2c8b-46dd-81f6-167dd39ed37c",
+        "name": "お台場海浜公園喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "港区",
+        "address": "1 Chome-4-1 Daiba",
+        "lat": 35.62931847,
+        "lng": 139.77426841,
+        "confidence": 0.5048306584358215,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_40000000000000000000000051",
+              "name": "お台場海浜公園内指定喫煙場所(4)",
+              "distance_m": 6.3
+            }
+          ]
+        }
+      },
+      {
+        "id": "b96fb6db-4022-43c2-96b0-a93c575e0af7",
+        "name": "喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "新宿区",
+        "address": "東京都新宿区西新宿１丁目２４−２",
+        "lat": 35.6907299,
+        "lng": 139.6951992,
+        "confidence": 0.8664861917495728,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "ba222a19-a72e-44fd-9791-e8464ea54c33",
+        "name": "喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "江東区",
+        "address": "Kameido, 2 Chome−21−9 城東警察署亀戸駅前交番",
+        "lat": 35.69786212,
+        "lng": 139.82498186,
+        "confidence": 0.8400521874427795,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "bdb4c04b-e328-4490-b74f-a2d7be539711",
+        "name": "こどもたちのひろば 東屋前喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "下都賀郡壬生町",
+        "address": "国谷2300",
+        "lat": 36.460864241566,
+        "lng": 139.80926513672,
+        "confidence": 0.5120314955711365,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "栃木県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "be41e70e-0112-42c4-b904-d461fd92673c",
+        "name": "品川駅港南口港南ふれあい広場指定喫煙場所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "港区",
+        "address": "2 Chome Konan",
+        "lat": 35.62944345,
+        "lng": 139.74139336,
+        "confidence": 0.6119433641433716,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "指定喫煙場所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "near_duplicate",
+          "matches": [
+            {
+              "spot_id": "sp_40000000000000000000000013",
+              "name": "品川駅港南口港南ふれあい広場指定喫煙場所",
+              "distance_m": 3.2
+            }
+          ]
+        }
+      },
+      {
+        "id": "bea6a0df-a23b-444c-a1b5-d7069da31a84",
+        "name": "旧市民球場跡地南側 喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "広島市中区",
+        "address": "5 Motomachi",
+        "lat": 34.39615304,
+        "lng": 132.45499073,
+        "confidence": 0.8499107360839844,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "広島県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "bf7ef307-3463-4aa3-a630-2b71cd196d58",
+        "name": "喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "東京都千代田区丸の内１丁目１１−１",
+        "lat": 35.676905454676,
+        "lng": 139.76417459706,
+        "confidence": 0.8553259968757629,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "c55ca645-164d-47b0-8c3f-532d826a39cf",
+        "name": "赤羽駅東口喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "北区",
+        "address": "Akabane, 1 Chome−1−3 赤羽駅東口前広場",
+        "lat": 35.77864493,
+        "lng": 139.72130271,
+        "confidence": 0.93745356798172,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "c5fac446-53cf-4cc3-a7f5-19327dc98875",
+        "name": "関西学院大学聖和キャンパス喫煙所",
+        "category": "arts_and_entertainment",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "西宮市",
+        "address": "",
+        "lat": 34.761465,
+        "lng": 135.350842,
+        "confidence": 0.9352630376815796,
+        "taxonomy_hierarchy": [
+          "arts_and_entertainment"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "兵庫県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "cc323a36-4aa8-4f7b-aa9e-848308144755",
+        "name": "京都駅北側喫煙場所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "京都市下京区",
+        "address": "京都府京都市下京区東塩小路高倉町８−３",
+        "lat": 34.986998,
+        "lng": 135.759463,
+        "confidence": 0.7018916606903076,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙場所",
+        "resolved_prefecture": "京都府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_50000000000000000000000005",
+              "name": "京都駅北口広場（バスターミナル東）喫煙場所",
+              "distance_m": 6.7
+            },
+            {
+              "spot_id": "sp_50000000000000000000000017",
+              "name": "京都駅北口広場（タクシープール東）喫煙場所",
+              "distance_m": 70.5
+            }
+          ]
+        }
+      },
+      {
+        "id": "cd36cc50-056d-47fc-b6a3-7c778c38e43c",
+        "name": "浜松町駅前喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "港区",
+        "address": "",
+        "lat": 35.65667382,
+        "lng": 139.75689673,
+        "confidence": 0.6917163133621216,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "ambiguous",
+          "matches": [
+            {
+              "spot_id": "sp_40000000000000000000000004",
+              "name": "浜松町駅北口指定喫煙場所",
+              "distance_m": 6.2
+            }
+          ]
+        }
+      },
+      {
+        "id": "cff2cecf-6acf-4441-b6bd-fe2567565db2",
+        "name": "湘南台駅東口喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "藤沢市",
+        "address": "",
+        "lat": 35.396861,
+        "lng": 139.466725,
+        "confidence": 0.9109083414077759,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "d0bdb6fa-14a8-422c-ae09-1d195b50ffba",
+        "name": "江の島弁天橋 Smoking Area",
+        "category": "bridge",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "藤沢市",
+        "address": "片瀬海岸1",
+        "lat": 35.305990501197,
+        "lng": 139.48282431656,
+        "confidence": 0.9667812585830688,
+        "taxonomy_hierarchy": [
+          "geographic_entities",
+          "built_feature",
+          "bridge"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "smoking area",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "d4ae3e0e-4f1f-47d4-a2aa-66bbc65fdea0",
+        "name": "KSP 4F 喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "川崎市高津区",
+        "address": "神奈川県川崎市高津区坂戸３丁目２−１",
+        "lat": 35.594740392087,
+        "lng": 139.62096199722,
+        "confidence": 0.49517732858657837,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "神奈川県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "d5744a24-c870-4dca-b246-9f45d10be396",
+        "name": "道の駅あつみ喫煙所",
+        "category": "parking",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "鶴岡市",
+        "address": "Tonoura Wasada",
+        "lat": 38.58063856,
+        "lng": 139.55863061,
+        "confidence": 0.8661054372787476,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "parking"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "山形県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "d58c83cc-64d7-4f76-994d-dac4f8fe94cd",
+        "name": "E Beans 喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "仙台市青葉区",
+        "address": "宮城県仙台市青葉区中央４丁目１−１",
+        "lat": 38.258704,
+        "lng": 140.879964,
+        "confidence": 0.8205890655517578,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "宮城県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "d78a1749-b811-4681-916a-d13a6639e9d3",
+        "name": "東京農工大学 1号館裏の喫煙所",
+        "category": "college_university",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "小金井市",
+        "address": "中町2丁目24-16",
+        "lat": 35.698547,
+        "lng": 139.517368,
+        "confidence": 0.85637366771698,
+        "taxonomy_hierarchy": [
+          "education",
+          "place_of_learning",
+          "college_university"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "e0d00c52-a092-42dd-be9b-10cb434e1e02",
+        "name": "富士見台駅前喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "練馬区",
+        "address": "東京都練馬区貫井３丁目２−５",
+        "lat": 35.736123,
+        "lng": 139.629655,
+        "confidence": 0.9604163765907288,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "e3946f03-dd35-4320-b0bd-0d67dc78d8b2",
+        "name": "新幹線ホーム喫煙所",
+        "category": "train_station",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "新潟市中央区",
+        "address": "中央区花園1-1-1",
+        "lat": 37.912057,
+        "lng": 139.061677,
+        "confidence": 0.736312985420227,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "ground_transport_facility_or_service",
+          "rail_facility_or_service",
+          "train_station"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "新潟県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "e4797392-96f9-4e2e-8f23-0acb065fdd0e",
+        "name": "愛岐トンネル群 喫煙所",
+        "category": "hiking_trail",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "23",
+        "city": "Kasugai-shi",
+        "address": "愛知県春日井市",
+        "lat": 35.28756061502236,
+        "lng": 137.09111103981928,
+        "confidence": 0.8946305513381958,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "recreational_trail_or_path",
+          "hiking_trail"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "愛知県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "f0d24769-770d-4913-96ec-a49e9ed38933",
+        "name": "渋谷ヒカリエ7階喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "渋谷区",
+        "address": "",
+        "lat": 35.658024352269,
+        "lng": 139.70220869901,
+        "confidence": 0.6303195953369141,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "f3f40844-0fc7-4493-8b6a-73b3cf6da30b",
+        "name": "由比Pa 喫煙コーナー",
+        "category": "shopping",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "静岡市清水区",
+        "address": "",
+        "lat": 35.087622,
+        "lng": 138.549274,
+        "confidence": 0.29351216554641724,
+        "taxonomy_hierarchy": [
+          "shopping"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "静岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "f5c44049-8759-4971-a2d1-50892b22d7d2",
+        "name": "新東京ビル B1喫煙コーナー",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "",
+        "lat": 35.677326,
+        "lng": 139.762778,
+        "confidence": 0.5145904421806335,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "f6120442-a619-470f-af30-d440f8528b6a",
+        "name": "喫煙所(阪急電鉄十三駅3号ホーム)",
+        "category": "train_station",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "大阪市淀川区",
+        "address": "淀川区十三東2-12-1",
+        "lat": 34.72099540508818,
+        "lng": 135.48225521245791,
+        "confidence": 0.8379263281822205,
+        "taxonomy_hierarchy": [
+          "travel_and_transportation",
+          "ground_transport_facility_or_service",
+          "rail_facility_or_service",
+          "train_station"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "大阪府",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "f6a29222-9e08-40ec-8282-de5581857622",
+        "name": "土山Sa 喫煙コーナー",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "甲賀市",
+        "address": "滋賀県甲賀市土山町南土山甲１１２２−７４",
+        "lat": 34.91417651804532,
+        "lng": 136.29377932868488,
+        "confidence": 0.9493488669395447,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙コーナー",
+        "resolved_prefecture": "滋賀県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "faff5413-918b-4ac1-a573-27cfa1c779e9",
+        "name": "ふれあい広場南側喫煙所",
+        "category": "public_plaza",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "福岡市中央区",
+        "address": "福岡県福岡市中央区天神１丁目８−１",
+        "lat": 33.589541,
+        "lng": 130.401299,
+        "confidence": 0.9537745118141174,
+        "taxonomy_hierarchy": [
+          "community_and_government",
+          "public_facility",
+          "public_plaza"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "福岡県",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "fbc07f04-7834-4424-be51-9403db8c15dd",
+        "name": "品川シーサイドフォレスト 喫煙所",
+        "category": "park",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "品川区",
+        "address": "東京都品川区東品川４丁目１２−４",
+        "lat": 35.6103694,
+        "lng": 139.748084,
+        "confidence": 0.8937188982963562,
+        "taxonomy_hierarchy": [
+          "sports_and_recreation",
+          "park"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "fed5a960-ea51-403c-bb62-77f379afddd9",
+        "name": "国会図書館喫煙所",
+        "category": "library",
+        "source": "overture",
+        "providers": [
+          "Overture",
+          "meta"
+        ],
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "",
+        "city": "千代田区",
+        "address": "",
+        "lat": 35.678745,
+        "lng": 139.743922,
+        "confidence": 0.7772415280342102,
+        "taxonomy_hierarchy": [
+          "education",
+          "library"
+        ],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      },
+      {
+        "id": "ff50451c-f9f2-4260-ac70-da0d697cdf5b",
+        "name": "体育館前喫煙所",
+        "category": "unknown",
+        "source": "overture",
+        "providers": [
+          "Foursquare",
+          "Overture"
+        ],
+        "licenses": [
+          "Apache-2.0",
+          "CDLA-Permissive-2.0"
+        ],
+        "unknown_license": false,
+        "prefecture": "東京都",
+        "city": "調布市",
+        "address": "富士見町2-11",
+        "lat": 35.657658,
+        "lng": 139.541795,
+        "confidence": 0.77,
+        "taxonomy_hierarchy": [],
+        "operating_status": null,
+        "foreign": false,
+        "country_unknown": false,
+        "keyword": "喫煙所",
+        "resolved_prefecture": "東京都",
+        "license_gate": "pass",
+        "official_comparison": {
+          "classification": "clearly_new_relative_to_baseline",
+          "matches": []
+        }
+      }
+    ]
+  },
+  "openpoi_request_count": 15,
+  "openpoi_requests": [
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99&limit=200",
+      "count": 125,
+      "sha256": "571809de38741f663e7888d9238179b2f1c7d070146cb8ea984cbf74aa86f6c3",
+      "file": "response-0000.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E7%A6%81%E7%85%99&limit=200",
+      "count": 33,
+      "sha256": "a35f69d719bbc63c7d5f3f606883cc1f75bb7db50f20de8865d9d2996263fe2c",
+      "file": "response-0001.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E9%98%B2%E7%85%99&limit=200",
+      "count": 0,
+      "sha256": "3438c5b0da51b073b4fa87b68d35e3b97d718d7617de0d2d4dbb9c14aa1aea7f",
+      "file": "response-0002.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E7%81%B0%E7%9A%BF&limit=200",
+      "count": 1,
+      "sha256": "67266c1ac094f9271264c7ba493520925ba2640446dd079e46b0066a2a81d910",
+      "file": "response-0003.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=smoking&limit=200",
+      "count": 18,
+      "sha256": "ec8e675f12ee2cf636be0f7b1e557e1f98be39b41c92b133d4970e8b959fc37d",
+      "file": "response-0004.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=smoke&limit=200",
+      "count": 93,
+      "sha256": "5342e0e819e8a19c8f6f71fd5866595fd02e88accf640744826c892c5596de2a",
+      "file": "response-0005.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%82%B9%E3%83%A2%E3%83%BC%E3%82%AD%E3%83%B3%E3%82%B0&limit=200",
+      "count": 6,
+      "sha256": "04c3e886bd69622af71502efb53971db473c52495c30f03a50dfdc27261e81ba",
+      "file": "response-0006.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%83%9F&limit=200",
+      "count": 0,
+      "sha256": "3438c5b0da51b073b4fa87b68d35e3b97d718d7617de0d2d4dbb9c14aa1aea7f",
+      "file": "response-0007.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%81%9F%E3%81%B0%E3%81%93&limit=200",
+      "count": 200,
+      "sha256": "c9a72b59b99514f2bc8003965936bcffc780fc86e875c1f48657e1401947d8c9",
+      "file": "response-0008.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%81%9F%E3%81%B0%E3%81%93&limit=200&bbox=122%2C20%2C138.0%2C33.0",
+      "count": 39,
+      "sha256": "716c0a6d54635bf7f5fb7aa22d44005ccc4fcc2ee18f5d9da8431dcaea4bc9da",
+      "file": "response-0009.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%81%9F%E3%81%B0%E3%81%93&limit=200&bbox=138.0%2C20%2C154%2C33.0",
+      "count": 0,
+      "sha256": "3438c5b0da51b073b4fa87b68d35e3b97d718d7617de0d2d4dbb9c14aa1aea7f",
+      "file": "response-0010.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%81%9F%E3%81%B0%E3%81%93&limit=200&bbox=122%2C33.0%2C138.0%2C46",
+      "count": 169,
+      "sha256": "849ab900c5426ef64cc32f4f9d6a5a839164b8c578213cf26c12ffa86cba12df",
+      "file": "response-0011.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%81%9F%E3%81%B0%E3%81%93&limit=200&bbox=138.0%2C33.0%2C154%2C46",
+      "count": 133,
+      "sha256": "c96a8a41e26097fa6bddcbba5d96670b2db282f125ca44632fdfb3d8bbaaf1e5",
+      "file": "response-0012.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E3%82%BF%E3%83%90%E3%82%B3&limit=200",
+      "count": 124,
+      "sha256": "48a6888ac34fd152f753446c890e81201a05f912ddc70c6a819dc3247128a2b4",
+      "file": "response-0013.json"
+    },
+    {
+      "url": "https://api.openpoiapi.com/v1/search?q=%E7%85%99%E8%8D%89&limit=200",
+      "count": 48,
+      "sha256": "6e68f42f686295a57cede49476ea35a3d0facc68a893c5d7dcb97f694ee584e5",
+      "file": "response-0014.json"
+    }
+  ],
+  "openpoi_unresolved_saturated_cells": [],
+  "openpoi_keyword_return_counts": {
+    "喫煙": 125,
+    "煙草": 48,
+    "タバコ": 124,
+    "禁煙": 33,
+    "smoking": 18,
+    "灰皿": 1,
+    "スモーキング": 6,
+    "smoke": 93,
+    "たばこ": 341
+  },
+  "artifact_hashes": {
+    "openapi.json": "afe18fe3444723155ddfa9ba1d9fd5b278c355bc90b34d1f6e5bb31668a53d7c",
+    "legal.html": "ecabf074cf3114c41fc62702ec3dd84eb666402dd280e1533b1ed2a8b00c3846",
+    "attribution.html": "d5d5a02f9fa3e12620ee0d712edbc2ed7b7bddcb61fc8b7072a1e3790d54ff84",
+    "taxonomy.csv": "59eecbf9e24859bcdab459e8efeea673b7fcbab06b45bd1c7067f215b3bc25d4",
+    "municipalities.json": "ef89271931e0b915455f84caf706ebacf318166bbf14facc13437a501fd33654",
+    "openpoi-scan.json": "bd8e79caadc3721103d84e3aa6c641ef7096d61ac37729d087c64037b3faad8d",
+    "overture-signals.json": "458beec6055b686b6c907e84a84871c09aeca6201013fc937b31d56c6d9df7d4",
+    "overture-categories.json": "6c1e62273c7edc440b4f2db7fc0b6faa156765aa1f8d148c9ddc8c18762f040e",
+    "bulk-counts.json": "54d586b34297b4636169615325ff60c93b66d524c8c687578f2fe5d7dd1eb4df",
+    "official.json": "d0c4949f7e81a1d329914b9b1e1bb0921f29f4a749ff332c34b9eabc5fe34848",
+    "overture-manifest.json": "6c7ba59ce0d5191053a56e20c89dbce243c5ded78988a90515cc5583b83b2b7b"
+  },
+  "limitations": [
+    "OpenPOI keyword corpus is not a full POI dump or a smoking completeness guarantee.",
+    "Overture bbox overcovers Japan; known non-JP countries excluded from candidate lane; missing country is unresolved.",
+    "Clearly new means no official fixture point within 100m, not independently verified novelty or public access.",
+    "No independently labeled ground truth: real-world false-positive rate unknown.",
+    "Names alone plus generic categories do not establish current public access or legal smoking permission."
+  ]
+}
