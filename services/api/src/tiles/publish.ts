@@ -8,9 +8,10 @@
 
 import { type Db, sha256Hex } from "../db.ts";
 import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
+import { LOCATION_STATE_COLUMNS, LOCATION_STATE_JOINS, type LocationStateRow, locationState } from "./location-state.ts";
 import { manifestBody, splitTileParts } from "./parts.ts";
 
-export interface CandidateRow {
+export interface CandidateRow extends LocationStateRow {
   spot_id: string;
   name: string | null;
   latitude: number;
@@ -59,16 +60,20 @@ export interface PublishReport {
  */
 export function verificationDto(r: CandidateRow): SpotVerificationV1 {
   const community = r.source_kind === "userReport";
+  // ADR-0017: one shared, bidirectional decision (./location-state.ts). An invalid state is never turned into a DTO.
+  const state = locationState(r);
+  if (state.kind === "invalid") throw new Error(`spot ${r.spot_id}: location state is invalid (${state.reason})`);
   const existence = community
     ? (r.evidence_quality === "communityReported" ? "communityReported" : "communityVerified")
     : r.source_kind === "operator" ? "operator" : "official";
   return {
     version: SPOT_VERIFICATION_VERSION,
     existence,
-    locationPrecision: community ? "communityPinned"
-      : r.evidence_quality === "officialListingDerivedLocation" ? "reviewedDerived" : "publisherPoint",
+    locationPrecision: state.kind === "areaApproximate" ? "areaApproximate" : state.kind === "upgraded" ? state.precision
+      : community ? "communityPinned" : r.evidence_quality === "officialListingDerivedLocation" ? "reviewedDerived" : "publisherPoint",
     confirmations: community ? r.community_confirmations : null,
     lastReviewedMonth: (community ? r.last_reviewed_on : r.last_verified_at)?.slice(0, 7) ?? null,
+    ...(state.kind === "areaApproximate" ? { locationArea: state.area } : {}),
   };
 }
 
@@ -120,13 +125,14 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
             s.evidence_quality_version, s.last_verified_at, s.spot_subtype, s.host_type, s.access_detail,
             s.community_confirmations, s.last_reviewed_on,
             src.source_id, src.kind AS source_kind, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status,
-            cr.rights_granted AS community_rights_granted
+            cr.rights_granted AS community_rights_granted, ${LOCATION_STATE_COLUMNS}
      FROM spots s
      JOIN spot_field_provenance p ON p.spot_id = s.spot_id AND p.field = 'existence'
      JOIN source_records r ON r.record_id = p.record_id
      JOIN source_releases rel ON rel.release_id = r.release_id
      JOIN sources src ON src.source_id = rel.source_id
      LEFT JOIN community_spot_rights cr ON cr.spot_id = s.spot_id
+     ${LOCATION_STATE_JOINS}
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND s.spot_id NOT IN (SELECT spot_id FROM community_publication_holds WHERE lifted_at IS NULL)
        AND s.spot_id NOT IN (SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL)
@@ -141,7 +147,8 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
   const tiles = new Map<string, { z: number; x: number; y: number; rows: CandidateRow[] }>();
   for (const row of candidates) {
     const status = row.publication_status !== "approved" ? row.publication_status
-      : row.community_rights_granted === 0 ? "rightsNotGranted" : null;
+      : row.community_rights_granted === 0 ? "rightsNotGranted"
+      : locationState(row).kind === "invalid" ? "locationProvenanceInvalid" : null;
     if (status !== null) {
       const key = `${row.source_id}\n${status}`;
       const e = excluded.get(key) ?? { sourceId: row.source_id, publicationStatus: status, spotCount: 0 };

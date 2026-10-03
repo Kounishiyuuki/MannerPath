@@ -77,10 +77,10 @@ Evidence classes shown to users (ADR-0012): 公式確認済み (`official`), 運
 (`communityVerified`), 利用者報告・未確認 (`communityReported`). A pin that is not the publisher's own point says so
 (「位置は住所から推定」「位置は利用者のピン」). Labels are plain and calm: no red warnings for lower-confidence places.
 
-Approximate locations (ADR-0017, specified, not yet implemented): a place whose existence is evidenced inside a park,
+Approximate locations (ADR-0017, implemented): a place whose existence is evidenced inside a park,
 station, facility or building but whose own point is unknown is shown at a reviewed area anchor and is visibly
 approximate — list 「位置は○○内の目安です」, detail 「喫煙場所はこの施設/公園内にあることが確認されています。正確な位置は
-未確認のため、ピンは目安です。」, navigation 「この付近へ案内」 (exact: 「この場所へ案内」), distance 「約○m」 where useful,
+未確認のため、ピンは目安です。」, navigation 「この付近へ案内」 (「この場所へ案内」 only for a known exact point; unknown, unrecognised or missing precision also reads 「この付近へ案内」), distance 「約○m」 where useful,
 and the same meaning in VoiceOver, widgets and Watch. A missing exact point alone never hides an evidenced place.
 
 Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Access type includes `unknown`.

@@ -166,9 +166,14 @@ exactly as before; it shows a community spot through its existing "unrecognised 
   - `existence`: `official | operator | communityVerified | communityReported` — who stands behind the place's
     existence. `communityReported` is one moderated, consented, explicitly classified report; `communityVerified` is
     two or more independent submitters, or a reported spot later confirmed by an independent submitter.
-  - `locationPrecision`: `publisherPoint | reviewedDerived | communityPinned | unknown` (ADR-0017 specifies a future
-    `areaApproximate`, not served yet; a client that does not recognise a value must not present the pin as exact) — how the pin was placed,
-    independent of existence. (`reviewedDerived` is reserved for ADR-0011, which is not approved; nothing emits it.)
+  - `locationPrecision`: `publisherPoint | reviewedDerived | communityPinned | areaApproximate | unknown` — how the pin
+    was placed, independent of existence. (`reviewedDerived` is reserved for ADR-0011, which is not approved; nothing
+    emits it.) `areaApproximate` (ADR-0017, migration 0030): accepted evidence places the smoking place inside a named
+    area/host and the pin is a reviewed anchor of that area, **never the place's own point**. A client that does not
+    recognise a value must not present the pin as exact.
+  - `locationArea` (ADR-0017): `{ "name": string (1–80), "kind": "park" | "station" | "facility" | "airport" |
+    "commercialBuilding" | "other" }`, present **exactly when** `locationPrecision` is `areaApproximate` and absent
+    otherwise, so every other spot's bytes are unchanged. The name is the anchor publisher's public name for the area.
   - `confirmations`: independent community submitters behind the evidence (≥ 1), or `null` for official/operator.
   - `lastReviewedMonth`: `YYYY-MM` — an official release's observation month, or the month a reviewer applied
     community evidence. Month precision on purpose (ADR-0007): a single report's review day is close to its

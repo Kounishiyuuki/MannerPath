@@ -82,7 +82,13 @@ nonisolated enum TileSpotMapper {
                     existence: verification.map { ExistenceEvidence(wire: $0.existence) },
                     locationPrecision: verification.map { LocationPrecision(wire: $0.locationPrecision) },
                     confirmations: verification?.confirmations.flatMap { $0 >= 1 ? $0 : nil },
-                    lastReviewedMonth: verification?.lastReviewedMonth.flatMap { validMonth($0) ? $0 : nil }
+                    lastReviewedMonth: verification?.lastReviewedMonth.flatMap { validMonth($0) ? $0 : nil },
+                    // Only an areaApproximate pin carries an area, and only a name safe to show verbatim.
+                    locationArea: verification.flatMap { v -> LocationArea? in
+                        guard v.locationPrecision == ApproximateLocation.precisionValue, let area = v.locationArea,
+                              let name = ApproximateLocation.displayableAreaName(area.name) else { return nil }
+                        return LocationArea(name: name, kind: area.kind)
+                    }
                 ),
                 lastVerifiedAt: observationDate,
                 createdAt: nil,

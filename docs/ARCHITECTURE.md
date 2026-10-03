@@ -105,7 +105,7 @@ Unknown must be represented separately from false. Tri-state attributes use `yes
 
 ### Publication gate
 
-A spot is published (included in tile data) only when it is `active` and has accepted existence evidence from an approved source or verification process (ADR-0006). A host such as a convenience store never creates a published smoking spot by itself. Existence and location precision are independent axes; an evidenced spot without an exact point may use a reviewed area anchor as `areaApproximate` (ADR-0017, not yet implemented). Cross-cutting invariants: `docs/SPECIFICATION.md`.
+A spot is published (included in tile data) only when it is `active` and has accepted existence evidence from an approved source or verification process (ADR-0006). A host such as a convenience store never creates a published smoking spot by itself. Existence and location precision are independent axes; an evidenced spot without an exact point may use a reviewed area anchor as `areaApproximate` (ADR-0017; `area_location_anchors` and `spot_location_anchors`, migration 0030; the binding travels in promotion so a GREEN database never relabels an anchor as exact). Cross-cutting invariants: `docs/SPECIFICATION.md`.
 
 ### Evidence and provenance
 

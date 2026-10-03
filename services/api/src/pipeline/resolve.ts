@@ -10,6 +10,8 @@ import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts"
 import { newSpotId as defaultNewSpotId } from "../spot-id.ts";
 import { CROSS_RELEASE_MATCHER_VERSION, type PreviousRecord, matchKeyStatements, planCrossReleaseMatch, readMatchInputs } from "./match.ts";
 import { type StoredObservation, observeRelease } from "./observe.ts";
+import { assertAnchorsRecorded } from "./area-anchor.ts";
+import { areaPointMappingStatements } from "./area-point-mapping.ts";
 import { relocationCandidate, sameCoordinate } from "./relocation.ts";
 import {
   type CandidateContext, RELOCATION_REVIEW_DECISION_VERSION, crossReleaseCandidates, persistRelocationItems, persistReviewItems,
@@ -151,6 +153,9 @@ export async function resolveFirstRelease(db: Db, adapter: SourceAdapter, releas
     observations.map((o) => o.observation),
   );
 
+  // Every record of a first release creates a spot, so every anchor must be of this very publication (policy v1).
+  await assertAnchorsRecorded(db, release.source_id, releaseId, observations, new Set(observations.map((o) => o.recordId)));
+
   const now = opts.now;
   const statements = [...(opts.guards ?? [])];
   const spotIds: string[] = [];
@@ -212,6 +217,14 @@ function newSpotStatements(
       `INSERT INTO spot_source_entities (source_entity_id, spot_id, method, linked_at, resolver_version)
        VALUES ((SELECT source_entity_id FROM source_record_entities WHERE record_id = ?), ?, 'created', ?, ?)`,
     ).bind(record.recordId, spotId, now, resolverVersion),
+    // ADR-0017: the reviewed anchor the coordinate is (0030 re-checks coordinate and source in its triggers).
+    ...(r.locationAnchorId === undefined ? [] : [db.prepare(
+      `INSERT INTO spot_location_anchors (spot_id, anchor_id, record_id, record_release_content_sha256, resolver_version, bound_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).bind(spotId, r.locationAnchorId, record.recordId, release.content_sha256, resolverVersion, now),
+    // ...and its location authority chain starts at that anchor (0030 spot_location_authorities, seq 1).
+    ...authorityStatement(db, adapter, { spotId, seq: 1, kind: "areaAnchor", precision: "areaApproximate", anchorId: r.locationAnchorId,
+      sourceId: release.source_id, releaseId, releaseSha: release.content_sha256, record, now })]),
     // Copied from the observation, still citing the raw record and its columns: the observation
     // is how the values were normalized, the record is what was stated.
     ...r.provenance.map((p) =>
@@ -326,6 +339,10 @@ async function resolveNextRelease(
     await assertNoCompetingRelease(db, release.source_id, releaseId, current);
   }
 
+  // A record that creates a spot binds only to an anchor of this publication; a continued spot keeps its binding.
+  await assertAnchorsRecorded(db, release.source_id, releaseId, observations,
+    new Set(effective.decisions.filter((d) => d.method === "new" || d.method === "reviewed_new").map((d) => d.recordId)));
+
   const statements = [...matchKeyStatements(db, [...previous, ...next].map((r) => r.recordId), now)];
   const spotIds: string[] = [];
   // Audits of consumed relocation applications, appended last: their trigger (0015) requires the release
@@ -355,8 +372,16 @@ async function resolveNextRelease(
     // Only once nothing is left to review: a match must keep every value, except the coordinate its
     // applied relocation already moved the spot to.
     const relocation = relocations.get(decision.recordId);
-    const expected = relocation && previousObservation
+    // ADR-0017: the one reviewed value change a match may carry is an area→exact upgrade recorded for exactly this
+    // record. Then the expected observation is the previous one with the upgrade's exact location evidence.
+    const upgrade = previousObservation?.locationAnchorId === undefined ? null : await db.prepare(
+      `SELECT evidence_location_rule, evidence_location_columns_json FROM area_precision_upgrades
+       WHERE spot_id = ? AND evidence_record_id = ? AND evidence_observation_id = ?`,
+    ).bind(prior.spotId, record.recordId, record.observationId).first<{ evidence_location_rule: string; evidence_location_columns_json: string }>();
+    const authority = await latestLocationAuthority(db, prior.spotId);
+    const moved = relocation && previousObservation
       ? { ...previousObservation, latitude: record.observation.latitude, longitude: record.observation.longitude } : previousObservation;
+    const expected = upgrade && moved ? withoutAnchor({ ...moved, provenance: record.observation.provenance }) : moved;
     if (decision.method === "reviewed_match") await assertReviewedMatchKeepsValues(db, prior.spotId, record, expected);
     await assertEvidenceCanMove(db, adapter, prior.spotId, prior.recordId, record, expected);
     spotIds.push(prior.spotId);
@@ -376,6 +401,18 @@ async function resolveNextRelease(
         CROSS_RELEASE_MATCHER_VERSION, now, decision.method === "raw_identical"
           ? `raw values identical to record ${prior.recordId} of release ${current.release_id}`
           : `review decision ${decision.reviewDecisionId} (item ${decision.reviewItemId}): matchedToEntity, continuing record ${prior.recordId} of release ${current.release_id}`),
+      // A spot with a location authority chain whose evidence moves to a newer record of its entity appends an unchanged
+      // continuation first; the provenance below must then equal it (0030). An upgrade or relocation already appended
+      // the authority naming this record.
+      ...(authority && authority.evidence_record_id !== record.recordId ? authorityStatement(db, adapter, {
+        spotId: prior.spotId, seq: authority.seq + 1, kind: "continuation", precision: authority.precision, anchorId: authority.anchor_id,
+        sourceId: release.source_id, releaseId, releaseSha: release.content_sha256, record, now,
+      }) : []),
+      // The upgrade's exact evidence replaces the anchor location provenance (0030 checks it is exactly that evidence).
+      ...(upgrade ? [db.prepare(
+        `UPDATE spot_field_provenance SET record_id = ?, source_columns_json = ?, rule = ?, resolver_version = ?, resolved_at = ?
+         WHERE spot_id = ? AND field = 'location'`,
+      ).bind(record.recordId, upgrade.evidence_location_columns_json, upgrade.evidence_location_rule, adapter.resolverVersion, now, prior.spotId)] : []),
       db.prepare(
         "UPDATE spot_field_provenance SET record_id = ?, resolver_version = ?, resolved_at = ? WHERE spot_id = ? AND record_id = ?",
       ).bind(record.recordId, adapter.resolverVersion, now, prior.spotId, prior.recordId),
@@ -641,4 +678,40 @@ async function assertEvidenceCanMove(
   if ((spot.foreign_provenance as number) > 0) {
     throw new Error(`resolve: spot ${spotId} has provenance from another record than ${previousRecordId}`);
   }
+}
+
+/** The observation without its area-anchor claim (ADR-0017): what an exact-point record states for the same place. */
+function withoutAnchor(o: SourceObservation): SourceObservation {
+  const { locationAnchorId: _anchor, ...rest } = o;
+  return rest;
+}
+
+interface AuthorityRow { seq: number; precision: "areaApproximate" | "publisherPoint"; anchor_id: string; evidence_record_id: number }
+
+/** The latest row of a spot's location authority chain (ADR-0017, 0030), or null for a spot that was never anchored. */
+export async function latestLocationAuthority(db: Db, spotId: string): Promise<AuthorityRow | null> {
+  return db.prepare(
+    "SELECT seq, precision, anchor_id, evidence_record_id FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq DESC LIMIT 1",
+  ).bind(spotId).first<AuthorityRow>();
+}
+
+/**
+ * One location authority row from a stored observation; its rule/columns are the observation's own location provenance
+ * and its mapping the adapter's, registered first as a reviewed mapping of the source (0030 area_point_mappings).
+ */
+export function authorityStatement(db: Db, adapter: SourceAdapter, a: {
+  spotId: string; seq: number; kind: "areaAnchor" | "exactUpgrade" | "relocation" | "continuation"; precision: string; anchorId: string;
+  sourceId: string; releaseId: number; releaseSha: string; record: StoredObservation; now: string;
+  relocationReviewItemId?: number;
+}): DbStatement[] {
+  const location = a.record.observation.provenance.find((p) => p.field === "location");
+  if (!location) throw new Error(`resolve: record ${a.record.recordId} has no location provenance for a location authority`);
+  return [...areaPointMappingStatements(db, adapter, a.now), db.prepare(
+    `INSERT INTO spot_location_authorities (spot_id, seq, kind, precision, anchor_id, evidence_source_id, evidence_release_id,
+       evidence_release_content_sha256, evidence_record_id, evidence_observation_id, mapping_version, location_rule,
+       location_columns_json, latitude, longitude, relocation_review_item_id, recorded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).bind(a.spotId, a.seq, a.kind, a.precision, a.anchorId, a.sourceId, a.releaseId, a.releaseSha, a.record.recordId, a.record.observationId,
+    adapter.mappingVersion, location.rule, JSON.stringify(location.columns), a.record.observation.latitude, a.record.observation.longitude,
+    a.relocationReviewItemId ?? null, a.now)];
 }

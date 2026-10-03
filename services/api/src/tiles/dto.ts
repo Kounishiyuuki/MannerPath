@@ -30,7 +30,8 @@ const openingHours = z.object({
 // object (docs/API.md "Forward compatibility") and keeps reading evidenceQuality exactly as before.
 export const SPOT_VERIFICATION_VERSION = "spot-verification.v1";
 export const EXISTENCE_EVIDENCE = ["official", "operator", "communityVerified", "communityReported"] as const;
-export const LOCATION_PRECISION = ["publisherPoint", "reviewedDerived", "communityPinned", "unknown"] as const;
+// ADR-0017 adds areaApproximate: the pin is a reviewed anchor of the area/host the place is stated to be inside.
+export const LOCATION_PRECISION = ["publisherPoint", "reviewedDerived", "communityPinned", "areaApproximate", "unknown"] as const;
 
 export const SpotVerificationV1 = z.object({
   version: z.literal(SPOT_VERIFICATION_VERSION),
@@ -43,7 +44,11 @@ export const SpotVerificationV1 = z.object({
   // The month the evidence was last reviewed (an official release's observation month, or the month a reviewer
   // applied community evidence). Month precision on purpose: a community review day is close to a report day.
   lastReviewedMonth: z.string().regex(/^[0-9]{4}-(0[1-9]|1[0-2])$/).nullable(),
-}).strict();
+  // ADR-0017: the area/host an areaApproximate pin represents, as publicly named by the anchor's publisher. Present
+  // exactly when locationPrecision is areaApproximate, so every other spot's bytes are unchanged.
+  locationArea: z.object({ name: z.string().min(1).max(80), kind: z.enum(["park", "station", "facility", "airport", "commercialBuilding", "other"]) }).strict().optional(),
+}).strict().refine((v) => (v.locationPrecision === "areaApproximate") === (v.locationArea !== undefined),
+  "locationArea is present exactly when locationPrecision is areaApproximate");
 
 export const TileSpotV1 = z.object({
   id: z.string().regex(/^sp_[0-9A-HJKMNP-TV-Z]{26}$/),

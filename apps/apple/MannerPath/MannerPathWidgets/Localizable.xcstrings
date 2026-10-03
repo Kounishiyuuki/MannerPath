@@ -150,6 +150,26 @@
           }
         }
       }
+    },
+    "About %lld m away · approximate location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "約%lld m先・位置は目安"
+          }
+        }
+      }
+    },
+    "About %@ km away · approximate location": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "約%@ km先・位置は目安"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

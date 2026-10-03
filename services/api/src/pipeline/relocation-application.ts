@@ -5,9 +5,10 @@
 // the release (./resolve.ts); until then provenance, last_verified_at and updated_at stay as they are. Run
 // publishTiles after the release is applied: the spot is unpublished while held and enters its new tile then.
 
-import { type Db } from "../db.ts";
+import { type Db, type DbStatement } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { rederiveObservation } from "./observe.ts";
+import { authorityStatement, latestLocationAuthority } from "./resolve.ts";
 import { RELOCATION_POLICY_VERSION, sameCoordinate } from "./relocation.ts";
 import { HOLD_RELOCATION_UNDER_REVIEW } from "./relocation-hold.ts";
 import { RELOCATION_REVIEW_DECISION_VERSION, REVIEW_DECISION_VERSION } from "./review-queue.ts";
@@ -48,7 +49,13 @@ interface CandidateDetails {
  * current mapping does not re-derive, or any observed field other than the coordinate that changed.
  */
 export async function applyReviewedRelocation(
-  db: Db, adapter: SourceAdapter, reviewItemId: number, opts: { now: string },
+  db: Db, adapter: SourceAdapter, reviewItemId: number,
+  /**
+   * `areaAnchorDelta` and `prepend` exist only for ADR-0017's area→exact upgrade (./area-anchor.ts): the one other
+   * observed delta it accepts is the location evidence itself (anchor claim gone, location provenance replaced), and the
+   * upgrade row is written first in the same batch. The schema (0030) re-checks both.
+   */
+  opts: { now: string; prepend?: DbStatement[]; areaAnchorDelta?: boolean },
 ): Promise<RelocationApplicationResult> {
   const fail = (why: string) => new RelocationApplicationError(`relocation application: item ${reviewItemId}: ${why}`);
   const item = await db.prepare(
@@ -129,7 +136,8 @@ export async function applyReviewedRelocation(
   if (sameCoordinate(previous.observation, next.observation)) throw fail("the re-derived coordinates are equal");
   const others = (Object.keys(previous.observation) as (keyof SourceObservation)[])
     .filter((k) => k !== "latitude" && k !== "longitude" && JSON.stringify(previous.observation[k]) !== JSON.stringify(next.observation[k]));
-  if (others.length > 0 || JSON.stringify(details.otherChangedFields) !== "[]") {
+  if (!(opts.areaAnchorDelta && isAreaAnchorDelta(previous.observation, next.observation, others, details.otherChangedFields))
+    && (others.length > 0 || JSON.stringify(details.otherChangedFields) !== "[]")) {
     throw fail(`other observed fields changed (${others.join(", ") || String(details.otherChangedFields)}); a value update policy is not implemented`);
   }
   // The spot is still exactly where the previous observation put it: no canonical drift is carried along.
@@ -139,7 +147,17 @@ export async function applyReviewedRelocation(
   }
   const newTile = tileForCoordinate(next.observation.latitude, next.observation.longitude, DATA_TILE_ZOOM);
 
-  await db.batch([db.prepare(
+  // ADR-0017: an exact spot with a location authority chain (it was once area-anchored) moves only after its next authority
+  // row names exactly this reviewed relocation (0030); the move itself is unchanged. The area→exact upgrade path brings
+  // its own exactUpgrade authority in `prepend`.
+  const authority = opts.areaAnchorDelta ? null : await latestLocationAuthority(db, spotId);
+  const relocationAuthority = authority === null ? [] : authorityStatement(db, adapter, {
+    spotId, seq: authority.seq + 1, kind: "relocation", precision: authority.precision, anchorId: authority.anchor_id,
+    sourceId: adapter.registry.sourceId, releaseId: next.releaseId, releaseSha: (await db.prepare("SELECT content_sha256 FROM source_releases WHERE release_id = ?")
+      .bind(next.releaseId).first<{ content_sha256: string }>())!.content_sha256,
+    record: next, now: opts.now, relocationReviewItemId: reviewItemId,
+  });
+  await db.batch([...(opts.prepend ?? []), ...relocationAuthority, db.prepare(
     `INSERT INTO review_relocation_applications (review_item_id, review_decision_id, identity_review_decision_id,
        review_relocation_hold_id, spot_id, source_entity_id, record_id, release_id, previous_record_id, previous_release_id,
        previous_observation_id, new_observation_id, mapping_version, old_latitude, old_longitude, old_tile_id,
@@ -158,4 +176,19 @@ export async function applyReviewedRelocation(
     throw fail(`spot ${spotId} is not at the applied coordinate after applying`);
   }
   return { status: "applied", spotId, reviewItemId, reviewDecisionId: decisionId, oldTileId: oldTile, newTileId: formatTileId(newTile) };
+}
+
+/**
+ * ADR-0017: the only non-coordinate delta an area→exact relocation may carry. The previous observation is anchored, the
+ * next is not, and their provenance differs only in the `location` entry, which moves from that anchor's rule to a
+ * non-anchor rule. Nothing else may differ.
+ */
+function isAreaAnchorDelta(previous: SourceObservation, next: SourceObservation, others: readonly string[], recorded: unknown): boolean {
+  const set = (v: readonly unknown[]) => JSON.stringify([...v].map(String).sort());
+  if (!Array.isArray(recorded) || set(recorded) !== set(["provenance", "locationAnchorId"]) || set(others) !== set(["provenance", "locationAnchorId"])) return false;
+  if (previous.locationAnchorId === undefined || next.locationAnchorId !== undefined) return false;
+  const loc = (o: SourceObservation) => o.provenance.find((p) => p.field === "location");
+  const rest = (o: SourceObservation) => JSON.stringify(o.provenance.filter((p) => p.field !== "location"));
+  return loc(previous)?.rule === `area-anchor.v1:${previous.locationAnchorId}` && loc(next) !== undefined
+    && !loc(next)!.rule.startsWith("area-anchor.") && rest(previous) === rest(next);
 }

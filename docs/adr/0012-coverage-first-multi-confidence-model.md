@@ -117,7 +117,7 @@ new report `claim` only to a deployment whose strict schema accepts it.
 
 ## Amendment 2026-10-02 — approximate area locations (ADR-0017)
 
-Decision 3 gains a fifth precision value, `areaApproximate` (specified, not yet implemented): accepted evidence places
+Decision 3 gains a fifth precision value, `areaApproximate` (implemented by migration 0030): accepted evidence places
 the smoking place inside an area/host whose reviewed anchor is the pin. Missing exact coordinates alone no longer
 reject an evidenced spot; host existence is still never evidence.
 

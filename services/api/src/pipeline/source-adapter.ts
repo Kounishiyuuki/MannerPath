@@ -48,6 +48,11 @@ export interface SourceObservation {
   existenceEvidence?: "communityReported" | "communityVerified";
   /** A community record's independent submitter count, recorded at review (ADR-0012). */
   communityConfirmations?: number;
+  /**
+   * ADR-0017: the reviewed area anchor this observation's coordinate is (`areaApproximate`). Absent for an exact point.
+   * Set only through `anchoredObservation` (./area-anchor.ts), which also writes the `location` provenance naming it.
+   */
+  locationAnchorId?: string;
 }
 
 export interface SpotClassification {
@@ -121,6 +126,17 @@ export interface SourceAdapter {
   /** Optional reviewed scope filter for mixed datasets. All raw rows remain evidence. Changing
    * scope requires a new mappingVersion; excluded rows create neither observations nor spots. */
   includesRecord?(values: readonly string[]): boolean;
+  /**
+   * ADR-0017: the reviewed mapping of a raw record to the area/host point it states (a park, station or facility row of
+   * this same publication), or null. Only `recordAreaAnchor` reads it, to check a reviewed anchor against the
+   * publication instead of trusting a typed coordinate. Absent: this source supplies no anchors.
+   */
+  areaPoint?(values: readonly string[]): { areaName: string; latitude: number; longitude: number } | null;
+  /**
+   * ADR-0017 (0030 area_point_mappings): the reviewed header columns `areaPoint` reads, registered once per mapping
+   * version and immutable; the database reads every anchor's point through them (an anchor never names its own columns).
+   */
+  areaPointColumns?: { name: string; latitude: string; longitude: string; reviewedBy: string; reviewedOn: string };
   /** The field mapping: one in-scope raw record -> its normalized observation. Call through
    * observeSourceRecord at shared boundaries to enforce finite global coordinate ranges. */
   observe(values: readonly string[]): SourceObservation;

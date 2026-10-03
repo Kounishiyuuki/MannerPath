@@ -4,6 +4,8 @@
 // ETags, promotion manifest/SQL, quality report) must equal the committed golden byte-for-byte.
 //
 // Issue #70 intentionally changes only the quality report shape. The other golden sections remain byte-identical.
+// ADR-0017 adds the area-anchor-never-exact check and two empty promotion tables (bundle row counts, hence the SQL
+// hash); every tile body and spot value stays byte-identical.
 // Issue #73 added only `tables.source_observations`, and Issue #80 only the empty
 // `tables.review_items` / `tables.review_decisions`, and Issue #84 only the empty
 // `tables.review_removal_applications`, and Issue #86 only the empty

@@ -163,6 +163,12 @@
         "promotion_review_match_attestations": 0,
         "source_record_entities": 34,
         "spots": 32,
+        "area_point_mappings": 0,
+        "area_location_anchors": 0,
+        "area_precision_upgrades": 0,
+        "spot_location_anchors": 0,
+        "promotion_location_evidence_attestations": 0,
+        "spot_location_authorities": 0,
         "spot_source_entities": 32,
         "spot_field_provenance": 162,
         "spot_field_attenuations": 6,
@@ -170,9 +176,9 @@
         "tile_snapshot_parts": 5,
         "tile_snapshot_spots": 32
       },
-      "contentSha256": "19c8165e67775c682542b3c4dfbaf24ab6a62b814cb61db6867656db36f72588"
+      "contentSha256": "9898470a2019140eaa566cb210a01d09020cde77ea61829ccf780746e45019dd"
     },
-    "sqlSha256": "37bdac3897111c6d5f505de7e07b5e195690c5d60212211365761d5ac6d509bf"
+    "sqlSha256": "1e81e8fd9f88f33b29197b69341d09521395cebcf5598e1dae0caa4b6b866723"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",
@@ -3611,6 +3617,11 @@
         "detail": "every published spot's existence tier and location precision match its evidence source"
       },
       {
+        "id": "area-anchor-never-exact",
+        "status": "pass",
+        "detail": "0 area-anchored spot(s); every published anchor pin is labelled areaApproximate (ADR-0017)"
+      },
+      {
         "id": "taito-public-smoking-areas-unstated-fields-stay-unknown",
         "status": "pass",
         "detail": "all 34 spots derived from taito-public-smoking-areas leave spotType, hostType, accessType, environment unknown/null with no provenance row, because that source states none of them"
@@ -3656,6 +3667,10 @@
   "tables": {
     "app_attest_challenges": [],
     "app_attest_keys": [],
+    "area_anchor_relocation_deltas": [],
+    "area_location_anchors": [],
+    "area_point_mappings": [],
+    "area_precision_upgrades": [],
     "community_absence_applications": [],
     "community_absence_evidence": [],
     "community_absence_holds": [],
@@ -3675,6 +3690,7 @@
     "promotion_bootstrap_completions": [],
     "promotion_bootstraps": [],
     "promotion_cross_source_merge_attestations": [],
+    "promotion_location_evidence_attestations": [],
     "promotion_multi_bootstrap_additive_releases": [],
     "promotion_multi_bootstrap_completions": [],
     "promotion_multi_bootstrap_sources": [],
@@ -6791,6 +6807,8 @@
         "resolved_at": "2026-09-21T03:00:00Z"
       }
     ],
+    "spot_location_anchors": [],
+    "spot_location_authorities": [],
     "spot_source_entities": [
       {
         "source_entity_id": 1,

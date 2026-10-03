@@ -104,7 +104,7 @@ Confidence is never one opaque score. ADR-0012 publishes separate axes, each a n
 | Axis | Values | Computed |
 | --- | --- | --- |
 | Existence evidence | `official`, `operator`, `communityVerified`, `communityReported` | server (`verification.existence`) |
-| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `unknown`; `areaApproximate` specified by ADR-0017, not yet implemented | server (`verification.locationPrecision`) |
+| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `areaApproximate` (ADR-0017, with `locationArea`), `unknown` | server (`verification.locationPrecision`) |
 | Freshness | `fresh` ≤ 365 d, `aging` ≤ 730 d, `stale`, `unknown` (`freshness.v1`) | client, from `lastVerifiedAt` or `lastReviewedMonth` |
 | Access | `accessType` + `accessDetail` | server |
 | Spot type | `spotType` + `spotSubtype`, and `hostType` | server |
@@ -131,6 +131,15 @@ airport, commercial building) it may publish as `areaApproximate` and must be sh
 provenance and reuse review. Host existence alone is never evidence. Never used as a canonical coordinate: Google/Apple
 POI points, OSM values (ADR-0010), coordinates read from map screenshots, arbitrary manual pins, or a centroid/host
 centre labelled as an exact or publisher point. Address geocoding remains governed by ADR-0011 (Proposed).
+Anchor policy v1 (`area-anchor-policy.v1`, migration 0030) accepts only an anchor stated by the same publication (the
+same release file) as the existence evidence (`reuse_basis = sameReviewedPublication`), so the tile's existing
+attribution covers it, and only through an exact-point evidence upgrade can a spot leave `areaApproximate`; each anchor
+records its publication (release digest, header, row values and mapping version; the point is re-read from the raw
+record through the source's reviewed area-point columns, never through columns the anchor names), reference, review and
+policy version. An anchored spot's location
+provenance and coordinate are always exactly its latest location authority (anchor, reviewed exact upgrade, later
+reviewed ADR-0009 relocation or reviewed continuity), all append-only; an upgrade needs a current comparison. The
+quality check `area-anchor-never-exact` fails if any published spot's label differs from its location state (ADR-0017).
 
 Third-party services (Google Maps, Apple Maps, OSM, blogs, other apps, social posts) may be used as discovery leads
 even where their terms forbid reuse; discovery is not provenance and nothing is copied from them into the canonical

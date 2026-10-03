@@ -10,6 +10,9 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
     let name: String?
     let distanceMeters: Double?
     let lastVerifiedAt: Date?
+    // ADR-0017: the nearest place's pin is an area anchor, so its distance is approximate. Optional so a glance
+    // written by an older build decodes (and is shown exactly as before).
+    var locationIsApproximate: Bool? = nil
 
     func validated() throws -> Self {
         guard version == Self.version, computedAt.timeIntervalSince1970.isFinite, locationObservedAt.timeIntervalSince1970.isFinite,

@@ -9,6 +9,7 @@
 // invariant that already exists in this repository (ADR-0005, ADR-0006, docs/DATA_POLICY.md,
 // docs/SOURCES.md) and fails loudly rather than being silently absent.
 
+import { LOCATION_STATE_COLUMNS, LOCATION_STATE_JOINS, type LocationStateRow, locationState } from "../tiles/location-state.ts";
 import { type Db } from "../db.ts";
 import { haversineMeters } from "../geo/distance.ts";
 import { nearestSphericalDistances } from "../geo/spherical-index.ts";
@@ -243,6 +244,27 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
   check("confidence-never-overstated", mislabelled.length === 0,
     mislabelled.length === 0 ? "every published spot's existence tier and location precision match its evidence source"
       : `labelled above or beside its evidence: ${mislabelled.map((s) => s.id).join(", ")}`);
+
+  // ADR-0017: an area anchor is never presented as an exact point, and nothing else is presented as one. The published
+  // label of every spot must be exactly what the shared location state (../tiles/location-state.ts) derives from its
+  // binding, anchor, upgrade and location provenance; an invalid state must not be published at all.
+  const { results: stateRows } = await db.prepare(
+    `SELECT s.spot_id, s.latitude, s.longitude, ${LOCATION_STATE_COLUMNS} FROM spots s ${LOCATION_STATE_JOINS}
+     WHERE s.spot_id IN (SELECT spot_id FROM tile_snapshot_spots) ORDER BY s.spot_id`,
+  ).all<LocationStateRow & { spot_id: string }>();
+  const states = new Map(stateRows.map((r) => [r.spot_id, locationState(r)]));
+  const anchorMislabelled = spots.filter((s) => {
+    const st = states.get(s.id);
+    if (!st || st.kind === "invalid") return true;
+    if (st.kind === "areaApproximate") return s.verification.locationPrecision !== "areaApproximate"
+      || JSON.stringify(s.verification.locationArea) !== JSON.stringify(st.area);
+    if (st.kind === "upgraded") return s.verification.locationPrecision !== st.precision || s.verification.locationArea !== undefined;
+    return s.verification.locationPrecision === "areaApproximate" || s.verification.locationArea !== undefined;
+  });
+  const anchoredCount = [...states.values()].filter((st) => st.kind === "areaApproximate").length;
+  check("area-anchor-never-exact", anchorMislabelled.length === 0,
+    anchorMislabelled.length === 0 ? `${anchoredCount} area-anchored spot(s); every published anchor pin is labelled areaApproximate (ADR-0017)`
+      : `area anchor precision mislabelled: ${anchorMislabelled.map((s) => s.id).join(", ")}`);
 
   const qualityBySource = new Map<string, { checks: QualityCheck[]; reconciliation: unknown }>();
   for (const adapter of opts.adapters ?? SOURCE_ADAPTERS) {

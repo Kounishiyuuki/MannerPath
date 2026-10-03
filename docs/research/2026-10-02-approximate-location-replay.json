@@ -1,0 +1,5140 @@
+{
+  "generator": "approximate-location-replay.v1",
+  "adr": "ADR-0017",
+  "anchorPolicy": "area-anchor-policy.v1",
+  "generatedOn": "2026-10-02",
+  "note": "Read-only replay of committed research. Nothing is rescued automatically; A requires every other gate already met.",
+  "summary": {
+    "candidatesReplayed": 202,
+    "officialReverseTargets": 190,
+    "legacyDatasetReviews": 12,
+    "categories": {
+      "B-existenceInsufficient": 135,
+      "C-rightsBlocked": 46,
+      "F-prohibitionOrConflict": 14,
+      "H-other": 7
+    },
+    "categoriesIfRightsGranted": {
+      "B-existenceInsufficient": 135,
+      "D-noReusableAnchor": 11,
+      "E-currentOperation": 23,
+      "F-prohibitionOrConflict": 14,
+      "G-geocodingNeeded": 5,
+      "H-other": 14
+    },
+    "rescuedIfRightsGranted": [],
+    "rescuedSources": [],
+    "locationBlockerRemovedByAdr0017": [
+      "city-chiba",
+      "city-fukui",
+      "city-fukushima",
+      "city-hiroshima",
+      "city-kanazawa",
+      "city-niigata",
+      "city-sendai",
+      "city-utsunomiya",
+      "operator-aomori-airport",
+      "operator-fukuoka-airport",
+      "operator-haneda",
+      "operator-hokkaido-airports",
+      "operator-jr-central-building",
+      "operator-jr-hokkaido",
+      "operator-jr-kyushu",
+      "operator-jr-west",
+      "operator-kansai-airports",
+      "operator-narita",
+      "operator-sendai-airport",
+      "ward-edogawa",
+      "ward-nerima"
+    ],
+    "potentialSpotsStated": 39,
+    "potentialTargetsWithoutStatedCount": 9,
+    "actuallyOnboardableSpots": 0,
+    "newPrefecturesNow": [],
+    "potentialNewPrefecturesIfRightsGranted": [
+      "北海道",
+      "千葉県",
+      "宮城県",
+      "広島県",
+      "新潟県",
+      "栃木県",
+      "石川県",
+      "福井県",
+      "福岡県",
+      "福島県",
+      "青森県"
+    ],
+    "blockerReasons": {
+      "addressOnly": 8,
+      "closureEvidencePresent": 7,
+      "conflictNeedsReconciliation": 3,
+      "currentOperationUnresolved": 131,
+      "existenceNotExplicit": 149,
+      "noReusableAnchor": 20,
+      "prohibition": 11,
+      "reviewPendingOrAccess": 61,
+      "rightsUnreviewed": 162
+    },
+    "locationForms": {
+      "addressOnly": 8,
+      "areaOrHost": 21,
+      "exactPoint": 1,
+      "none": 5,
+      "unestablished": 18
+    }
+  },
+  "targets": [
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-akita",
+      "jurisdiction": "秋田市",
+      "prefecture": "秋田県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-aomori",
+      "jurisdiction": "青森市",
+      "prefecture": "青森県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-chiba",
+      "jurisdiction": "千葉市",
+      "prefecture": "千葉県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 1,
+      "note": "Kaihin-Makuhari under-track facility; the CC BY 4.0 host-facility CSV is a separate dataset with zero smoking rows (not a v1 anchor).",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-fukui",
+      "jurisdiction": "福井市",
+      "prefecture": "福井県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 1,
+      "note": "relocated indoor station smoking facility.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-fukuoka",
+      "jurisdiction": "福岡市",
+      "prefecture": "福岡県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-fukushima",
+      "jurisdiction": "福島市",
+      "prefecture": "福島県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 2,
+      "note": "two station designated smoking booths; Google Maps positions excluded.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-gifu",
+      "jurisdiction": "岐阜市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-hamamatsu",
+      "jurisdiction": "浜松市",
+      "prefecture": "静岡県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-hiroshima",
+      "jurisdiction": "広島市",
+      "prefecture": "広島県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 6,
+      "note": "six smoking booths in city parks.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kagoshima",
+      "jurisdiction": "鹿児島市",
+      "prefecture": "鹿児島県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kanazawa",
+      "jurisdiction": "金沢市",
+      "prefecture": "石川県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station facility page directs to smoking places.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kawasaki",
+      "jurisdiction": "川崎市",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 12,
+      "note": "12 designated sites with addresses and relative descriptions; station/building coordinates must not substitute (review): ADR-0011 territory.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kitakyushu",
+      "jurisdiction": "北九州市",
+      "prefecture": "福岡県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kobe",
+      "jurisdiction": "神戸市",
+      "prefecture": "兵庫県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kochi",
+      "jurisdiction": "高知市",
+      "prefecture": "高知県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kofu",
+      "jurisdiction": "甲府市",
+      "prefecture": "山梨県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kumamoto",
+      "jurisdiction": "熊本市",
+      "prefecture": "熊本県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-kyoto",
+      "jurisdiction": "京都市",
+      "prefecture": "京都府",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": null,
+      "note": "existing pinned release already published.",
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-maebashi",
+      "jurisdiction": "前橋市",
+      "prefecture": "群馬県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-matsue",
+      "jurisdiction": "松江市",
+      "prefecture": "島根県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-matsuyama",
+      "jurisdiction": "松山市",
+      "prefecture": "愛媛県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-mito",
+      "jurisdiction": "水戸市",
+      "prefecture": "茨城県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-miyazaki",
+      "jurisdiction": "宮崎市",
+      "prefecture": "宮崎県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 3,
+      "note": "three designated places, two relocated.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-morioka",
+      "jurisdiction": "盛岡市",
+      "prefecture": "岩手県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-musashino",
+      "jurisdiction": "武蔵野市",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": 1,
+      "note": "existing pinned KML publishes three of four; the fourth needs a new release.",
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-nagano",
+      "jurisdiction": "長野市",
+      "prefecture": "長野県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-nagasaki",
+      "jurisdiction": "長崎市",
+      "prefecture": "長崎県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "manager-installed public ashtrays on a map page.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-nagoya",
+      "jurisdiction": "名古屋市",
+      "prefecture": "愛知県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 3,
+      "note": "three station-area installations by address/diagram.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-naha",
+      "jurisdiction": "那覇市",
+      "prefecture": "沖縄県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-nara",
+      "jurisdiction": "奈良市",
+      "prefecture": "奈良県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-niigata",
+      "jurisdiction": "新潟市",
+      "prefecture": "新潟県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 2,
+      "note": "east-deep: station south gate and 石宮公園 sites explicit; park/GIS points exist only in separate datasets (CC BY 2.1 JP) — not an anchor under policy v1; former station-front site closed 2024-08-05 is excluded.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-oita",
+      "jurisdiction": "大分市",
+      "prefecture": "大分県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-okayama",
+      "jurisdiction": "岡山市",
+      "prefecture": "岡山県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-osaka",
+      "jurisdiction": "大阪市",
+      "prefecture": "大阪府",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": null,
+      "note": null,
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-otsu",
+      "jurisdiction": "大津市",
+      "prefecture": "滋賀県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 3,
+      "note": "three station-area pilot places with diagrams; not stated as inside a station.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-saga",
+      "jurisdiction": "佐賀市",
+      "prefecture": "佐賀県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "municipal map of smoking spots; reusable points unestablished.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-sagamihara",
+      "jurisdiction": "相模原市",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 8,
+      "note": "eight station-area designated places.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-saitama",
+      "jurisdiction": "さいたま市",
+      "prefecture": "埼玉県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "2021 list of street-ban exception places; location form not recorded.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-sakai",
+      "jurisdiction": "堺市",
+      "prefecture": "大阪府",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 10,
+      "note": "ten designated places; external map positions excluded.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-sapporo",
+      "jurisdiction": "札幌市",
+      "prefecture": "北海道",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-sendai",
+      "jurisdiction": "仙台市",
+      "prefecture": "宮城県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": true,
+      "alreadyPublished": false,
+      "spots": 1,
+      "note": "east-deep: the park raw lists 海岸公園（井土地区） with smoking among its amenities at the park's own Point (same dataset): explicit existence inside a park with a same-source anchor. Reverse review: resource rights unreviewed.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-shizuoka",
+      "jurisdiction": "静岡市",
+      "prefecture": "静岡県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "positions only via Google Maps links (excluded).",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-takamatsu",
+      "jurisdiction": "高松市",
+      "prefecture": "香川県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "active facilities and construction closures; per-record review needed.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "closureEvidencePresent",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-tokushima",
+      "jurisdiction": "徳島市",
+      "prefecture": "徳島県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-tottori",
+      "jurisdiction": "鳥取市",
+      "prefecture": "鳥取県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-toyama",
+      "jurisdiction": "富山市",
+      "prefecture": "富山県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-tsu",
+      "jurisdiction": "津市",
+      "prefecture": "三重県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-utsunomiya",
+      "jurisdiction": "宇都宮市",
+      "prefecture": "栃木県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 1,
+      "note": "Orion Square designated smoking place.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "currentOperationUnresolved",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-wakayama",
+      "jurisdiction": "和歌山市",
+      "prefecture": "和歌山県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-yamagata",
+      "jurisdiction": "山形市",
+      "prefecture": "山形県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-yamaguchi",
+      "jurisdiction": "山口市",
+      "prefecture": "山口県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "city-yokohama",
+      "jurisdiction": "横浜市",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "new smoking facilities and a closed former station site; map export failed, location form unknown.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "closureEvidencePresent",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212024",
+      "jurisdiction": "大垣市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212032",
+      "jurisdiction": "高山市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212041",
+      "jurisdiction": "多治見市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212059",
+      "jurisdiction": "関市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212067",
+      "jurisdiction": "中津川市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212075",
+      "jurisdiction": "美濃市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212083",
+      "jurisdiction": "瑞浪市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212091",
+      "jurisdiction": "羽島市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212105",
+      "jurisdiction": "恵那市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212113",
+      "jurisdiction": "美濃加茂市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212130",
+      "jurisdiction": "各務原市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212148",
+      "jurisdiction": "可児市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212164",
+      "jurisdiction": "瑞穂市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212172",
+      "jurisdiction": "飛騨市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212181",
+      "jurisdiction": "本巣市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212199",
+      "jurisdiction": "郡上市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "historical-c212202",
+      "jurisdiction": "下呂市",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingEvidence",
+        "resourceNotInspected",
+        "smokingPointCoordinates",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "national-mlit-indoor",
+      "jurisdiction": "国土交通省 屋内地理空間情報",
+      "prefecture": null,
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-aomori-airport",
+      "jurisdiction": "青森空港",
+      "prefecture": "青森県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 4,
+      "note": "four smoking places inside the terminal.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-atre",
+      "jurisdiction": "アトレ",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-centrair",
+      "jurisdiction": "中部国際空港株式会社",
+      "prefecture": "愛知県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "accessBlockedHostStopped"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-fukuoka-airport",
+      "jurisdiction": "福岡国際空港株式会社",
+      "prefecture": "福岡県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "closureOrAvailabilityRequiresReconciliation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "some rooms currently unusable (conflict to reconcile).",
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "conflictNeedsReconciliation",
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-fukuoka-subway",
+      "jurisdiction": "福岡市交通局",
+      "prefecture": "福岡県",
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-haneda",
+      "jurisdiction": "日本空港ビルデング（羽田空港）",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "by terminal, floor and access area.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-hankyu",
+      "jurisdiction": "阪急電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-hanshin",
+      "jurisdiction": "阪神電気鉄道",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-hokkaido-airports",
+      "jurisdiction": "北海道エアポート",
+      "prefecture": "北海道",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "New Chitose rooms by terminal and floor.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-central",
+      "jurisdiction": "JR東海",
+      "prefecture": null,
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-central-building",
+      "jurisdiction": "JR東海ビルディング",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 2,
+      "note": "smoking rooms on floors 12/13 of two towers.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-east",
+      "jurisdiction": "JR東日本",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "exactFacilityInventoryNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-east-building",
+      "jurisdiction": "JR東日本ビルディング",
+      "prefecture": null,
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-hokkaido",
+      "jurisdiction": "JR北海道",
+      "prefecture": "北海道",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 10,
+      "note": "ten stations with smoking rooms.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-kyushu",
+      "jurisdiction": "JR九州",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 4,
+      "note": "Hakata, Kumamoto, Kagoshima-Chuo, Nagasaki.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-shikoku",
+      "jurisdiction": "JR四国",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "exactFacilityInventoryNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-west",
+      "jurisdiction": "JR西日本",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "smoking-room stations listed.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-jr-west-station-city",
+      "jurisdiction": "大阪ステーションシティ",
+      "prefecture": "大阪府",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-kansai-airports",
+      "jurisdiction": "関西エアポート",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "terminal smoking rooms.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-keihan",
+      "jurisdiction": "京阪電気鉄道",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "exactFacilityInventoryNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-keikyu",
+      "jurisdiction": "京急電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-keio",
+      "jurisdiction": "京王電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-keisei",
+      "jurisdiction": "京成電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-kintetsu",
+      "jurisdiction": "近畿日本鉄道",
+      "prefecture": null,
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-kobe-subway",
+      "jurisdiction": "神戸市交通局",
+      "prefecture": "兵庫県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "accessBlockedHostStopped"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-kyoto-subway",
+      "jurisdiction": "京都市交通局",
+      "prefecture": "京都府",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-lumine",
+      "jurisdiction": "ルミネ",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "exactFacilityInventoryNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-makuhari-messe",
+      "jurisdiction": "幕張メッセ",
+      "prefecture": "千葉県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "exactFacilityInventoryNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-meitetsu",
+      "jurisdiction": "名古屋鉄道",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-nagoya-subway",
+      "jurisdiction": "名古屋市交通局",
+      "prefecture": "愛知県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-naha-airport",
+      "jurisdiction": "那覇空港ビルディング",
+      "prefecture": "沖縄県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-nankai",
+      "jurisdiction": "南海電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-narita",
+      "jurisdiction": "成田国際空港株式会社",
+      "prefecture": "千葉県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "rooms throughout terminals via locator.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-niigata-airport",
+      "jurisdiction": "新潟空港",
+      "prefecture": "新潟県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-nishitetsu",
+      "jurisdiction": "西日本鉄道",
+      "prefecture": "福岡県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-odakyu",
+      "jurisdiction": "小田急電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-osaka-metro",
+      "jurisdiction": "大阪メトロ",
+      "prefecture": "大阪府",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-pacifico-yokohama",
+      "jurisdiction": "パシフィコ横浜",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-sapporo-subway",
+      "jurisdiction": "札幌市交通局",
+      "prefecture": "北海道",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-seibu",
+      "jurisdiction": "西武鉄道",
+      "prefecture": null,
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-sendai-airport",
+      "jurisdiction": "仙台国際空港株式会社",
+      "prefecture": "宮城県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "closureOrAvailabilityRequiresReconciliation"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 5,
+      "note": "four rooms + two heated-only, one closed 2026-03-02 (conflict to reconcile).",
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "conflictNeedsReconciliation",
+        "rightsUnreviewed",
+        "closureEvidencePresent",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-sendai-subway",
+      "jurisdiction": "仙台市交通局",
+      "prefecture": "宮城県",
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-shizuoka-airport",
+      "jurisdiction": "富士山静岡空港",
+      "prefecture": "静岡県",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-sotetsu",
+      "jurisdiction": "相模鉄道",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-tobu",
+      "jurisdiction": "東武鉄道",
+      "prefecture": null,
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-toei",
+      "jurisdiction": "東京都交通局",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-tokyo-big-sight",
+      "jurisdiction": "東京ビッグサイト",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-tokyo-metro",
+      "jurisdiction": "東京メトロ",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished",
+        "specificExistenceNotEstablished",
+        "currentOperationNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-tokyu",
+      "jurisdiction": "東急電鉄",
+      "prefecture": null,
+      "blockerCodes": [
+        "noPermittedSmokingPlaceEvidence"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "prohibition",
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "operator-yokohama-subway",
+      "jurisdiction": "横浜市交通局",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "publisherCoordinateNotEstablished",
+        "exactReuseLicenseNotEstablished"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-aichi",
+      "jurisdiction": "愛知県",
+      "prefecture": "愛知県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-akita",
+      "jurisdiction": "秋田県",
+      "prefecture": "秋田県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-aomori",
+      "jurisdiction": "青森県",
+      "prefecture": "青森県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-chiba",
+      "jurisdiction": "千葉県",
+      "prefecture": "千葉県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-ehime",
+      "jurisdiction": "愛媛県",
+      "prefecture": "愛媛県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "publisherJurisdictionMismatch"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "F-prohibitionOrConflict",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "conflictNeedsReconciliation",
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "F-prohibitionOrConflict"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-fukui",
+      "jurisdiction": "福井県",
+      "prefecture": "福井県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-fukuoka",
+      "jurisdiction": "福岡県",
+      "prefecture": "福岡県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-fukushima",
+      "jurisdiction": "福島県",
+      "prefecture": "福島県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-gifu",
+      "jurisdiction": "岐阜県",
+      "prefecture": "岐阜県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-gunma",
+      "jurisdiction": "群馬県",
+      "prefecture": "群馬県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-hiroshima",
+      "jurisdiction": "広島県",
+      "prefecture": "広島県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-hokkaido",
+      "jurisdiction": "北海道",
+      "prefecture": "北海道",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-hyogo",
+      "jurisdiction": "兵庫県",
+      "prefecture": "兵庫県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-ibaraki",
+      "jurisdiction": "茨城県",
+      "prefecture": "茨城県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-ishikawa",
+      "jurisdiction": "石川県",
+      "prefecture": "石川県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-iwate",
+      "jurisdiction": "岩手県",
+      "prefecture": "岩手県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-kagawa",
+      "jurisdiction": "香川県",
+      "prefecture": "香川県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-kagoshima",
+      "jurisdiction": "鹿児島県",
+      "prefecture": "鹿児島県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-kanagawa",
+      "jurisdiction": "神奈川県",
+      "prefecture": "神奈川県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-kochi",
+      "jurisdiction": "高知県",
+      "prefecture": "高知県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-kumamoto",
+      "jurisdiction": "熊本県",
+      "prefecture": "熊本県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-kyoto",
+      "jurisdiction": "京都府",
+      "prefecture": "京都府",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-mie",
+      "jurisdiction": "三重県",
+      "prefecture": "三重県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-miyagi",
+      "jurisdiction": "宮城県",
+      "prefecture": "宮城県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-miyazaki",
+      "jurisdiction": "宮崎県",
+      "prefecture": "宮崎県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-nagano",
+      "jurisdiction": "長野県",
+      "prefecture": "長野県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-nagasaki",
+      "jurisdiction": "長崎県",
+      "prefecture": "長崎県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-nara",
+      "jurisdiction": "奈良県",
+      "prefecture": "奈良県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-niigata",
+      "jurisdiction": "新潟県",
+      "prefecture": "新潟県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-oita",
+      "jurisdiction": "大分県",
+      "prefecture": "大分県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-okayama",
+      "jurisdiction": "岡山県",
+      "prefecture": "岡山県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-okinawa",
+      "jurisdiction": "沖縄県",
+      "prefecture": "沖縄県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-osaka",
+      "jurisdiction": "大阪府",
+      "prefecture": "大阪府",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-saga",
+      "jurisdiction": "佐賀県",
+      "prefecture": "佐賀県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-saitama",
+      "jurisdiction": "埼玉県",
+      "prefecture": "埼玉県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-shiga",
+      "jurisdiction": "滋賀県",
+      "prefecture": "滋賀県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-shimane",
+      "jurisdiction": "島根県",
+      "prefecture": "島根県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-shizuoka",
+      "jurisdiction": "静岡県",
+      "prefecture": "静岡県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-tochigi",
+      "jurisdiction": "栃木県",
+      "prefecture": "栃木県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-tokushima",
+      "jurisdiction": "徳島県",
+      "prefecture": "徳島県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-tokyo",
+      "jurisdiction": "東京都",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-tottori",
+      "jurisdiction": "鳥取県",
+      "prefecture": "鳥取県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-toyama",
+      "jurisdiction": "富山県",
+      "prefecture": "富山県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-wakayama",
+      "jurisdiction": "和歌山県",
+      "prefecture": "和歌山県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-yamagata",
+      "jurisdiction": "山形県",
+      "prefecture": "山形県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-yamaguchi",
+      "jurisdiction": "山口県",
+      "prefecture": "山口県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "pref-yamanashi",
+      "jurisdiction": "山梨県",
+      "prefecture": "山梨県",
+      "blockerCodes": [
+        "explicitSmokingPlaceEvidence",
+        "smokingPlaceCoordinates",
+        "scopedExactLicense",
+        "currentOperation",
+        "substantiveSourceReviewPending"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-adachi",
+      "jurisdiction": "足立区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "installation history, not current operation.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-arakawa",
+      "jurisdiction": "荒川区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "publicly accessible facilities, no reusable Point.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-bunkyo",
+      "jurisdiction": "文京区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "addresses and selected hours; Google positions excluded.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "G-geocodingNeeded"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-chiyoda",
+      "jurisdiction": "千代田区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station-area addresses and hours.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "G-geocodingNeeded"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-chuo",
+      "jurisdiction": "中央区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "exactPoint",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": 79,
+      "note": "high-value review: 79 smoking-labelled map_data.csv rows with publisher lat/lng; reuse forbidden by website terms. Exact points exist, so ADR-0017 is not the blocker.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-edogawa",
+      "jurisdiction": "江戸川区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station smoking facilities; the general facility CSV must not be joined (review) — no anchor.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-itabashi",
+      "jurisdiction": "板橋区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "addresses/hours and operator distinctions.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "G-geocodingNeeded"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-katsushika",
+      "jurisdiction": "葛飾区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "abolished vs operating facilities.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "closureEvidencePresent"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-kita",
+      "jurisdiction": "北区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "opened facilities vs planned construction.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-koto",
+      "jurisdiction": "江東区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": null,
+      "note": "existing pinned station release.",
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-meguro",
+      "jurisdiction": "目黒区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-minato",
+      "jurisdiction": "港区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": null,
+      "note": "existing approved pinned release.",
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "closureEvidencePresent"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-nakano",
+      "jurisdiction": "中野区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station inventory and a reopening notice.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-nerima",
+      "jurisdiction": "練馬区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "areaOrHost",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station-specific smoking-facility guidance with diagrams.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": true,
+      "reasons": [
+        "rightsUnreviewed",
+        "noReusableAnchor"
+      ],
+      "categoryIfRightsGranted": "D-noReusableAnchor"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-ota",
+      "jurisdiction": "大田区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station facilities with addresses and hours.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "G-geocodingNeeded"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-setagaya",
+      "jurisdiction": "世田谷区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "substantiveReviewPending",
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "currentOperation"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "reviewPendingOrAccess",
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-shibuya",
+      "jurisdiction": "渋谷区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "PDF not decoded.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "closureEvidencePresent"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-shinagawa",
+      "jurisdiction": "品川区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "addresses/hours with temporary-closure cautions.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "closureEvidencePresent",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "E-currentOperation"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-shinjuku",
+      "jurisdiction": "新宿区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "station-area facilities; GIS catalog has no smoking release.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-suginami",
+      "jurisdiction": "杉並区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit",
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-sumida",
+      "jurisdiction": "墨田区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "addressOnly",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "places by station district with addresses.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed",
+        "addressOnly"
+      ],
+      "categoryIfRightsGranted": "G-geocodingNeeded"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-taito",
+      "jurisdiction": "台東区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": null,
+      "note": "existing pinned release.",
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-official-reverse-reviews.json",
+      "targetId": "ward-toshima",
+      "jurisdiction": "豊島区",
+      "prefecture": "東京都",
+      "blockerCodes": [
+        "smokingPointCoordinates",
+        "exactResourceRights",
+        "reviewedPublicationGate"
+      ],
+      "explicitExistence": true,
+      "locationForm": "unestablished",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": "inventory and container-facility opening notice.",
+      "category": "C-rightsBlocked",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "rightsUnreviewed"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-west-reviews.json",
+      "targetId": "下関市",
+      "jurisdiction": "下関市",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint",
+        "hostPointOnly"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "台東区",
+      "jurisdiction": "台東区",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "大阪市",
+      "jurisdiction": "大阪市",
+      "prefecture": null,
+      "blockerCodes": [
+        "duplicateKnownResearch"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": true,
+      "spots": null,
+      "note": null,
+      "category": "H-other",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "H-other"
+    },
+    {
+      "file": "2026-10-01-west-reviews.json",
+      "targetId": "岡山市",
+      "jurisdiction": "岡山市",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint",
+        "polygonOnly"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "文京区",
+      "jurisdiction": "文京区",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "札幌市",
+      "jurisdiction": "札幌市",
+      "prefecture": null,
+      "blockerCodes": [
+        "coordinatesMissing",
+        "hostPointOnly"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-09-30-reviews.json",
+      "targetId": "杉並区",
+      "jurisdiction": "杉並区",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint",
+        "coordinatesMissing"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "板橋区",
+      "jurisdiction": "板橋区",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "津市",
+      "jurisdiction": "津市",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "青森市",
+      "jurisdiction": "青森市",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-west-reviews.json",
+      "targetId": "静岡市",
+      "jurisdiction": "静岡市",
+      "prefecture": null,
+      "blockerCodes": [
+        "coordinatesMissing"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    },
+    {
+      "file": "2026-10-01-v2-reviews.json",
+      "targetId": "高知県",
+      "jurisdiction": "高知県",
+      "prefecture": null,
+      "blockerCodes": [
+        "noSmokingPoint"
+      ],
+      "explicitExistence": false,
+      "locationForm": "none",
+      "reusableAnchor": false,
+      "alreadyPublished": false,
+      "spots": null,
+      "note": null,
+      "category": "B-existenceInsufficient",
+      "adr0017RemovesLocationBlocker": false,
+      "reasons": [
+        "existenceNotExplicit"
+      ],
+      "categoryIfRightsGranted": "B-existenceInsufficient"
+    }
+  ]
+}

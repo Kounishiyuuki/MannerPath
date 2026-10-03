@@ -30,7 +30,8 @@ export function spotTaskKinds(
   // A single report, or evidence old enough to be stale: someone on site saying "still here" is the most useful thing.
   if (v?.existence === "communityReported" || freshness === "stale") kinds.push("needsConfirmation");
   // A pin only one person placed, or a location that is not the publisher's own point.
-  if (v?.locationPrecision === "unknown" || v?.locationPrecision === "reviewedDerived"
+  // An area-approximate pin (ADR-0017) is a reviewed area anchor: a visitor who finds the actual spot helps most.
+  if (v?.locationPrecision === "unknown" || v?.locationPrecision === "reviewedDerived" || v?.locationPrecision === "areaApproximate"
     || (v?.locationPrecision === "communityPinned" && (v.confirmations ?? 0) < 2)) kinds.push("needsLocationCheck");
   if (spot.spotType === "unknown") kinds.push("needsTypeCheck");
   if (spot.accessType === "unknown") kinds.push("needsAccessCheck");

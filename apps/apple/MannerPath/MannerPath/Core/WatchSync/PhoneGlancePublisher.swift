@@ -10,7 +10,8 @@ enum PhoneGlancePublisher {
                                   spotID: nearest?.spot.id,
                                   name: nearest.map { $0.spot.name ?? "Nearby place" },
                                   distanceMeters: nearest?.distanceMeters,
-                                  lastVerifiedAt: nearest?.spot.lastVerifiedAt)
+                                  lastVerifiedAt: nearest?.spot.lastVerifiedAt,
+                                  locationIsApproximate: nearest.map { $0.spot.verification.isAreaApproximate })
         guard let directory = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: NearbyGlanceFile.group),
               (try? NearbyGlanceFile.write(glance, to: directory)) != nil else { return }
         WidgetCenter.shared.reloadTimelines(ofKind: "NearbyGlance")

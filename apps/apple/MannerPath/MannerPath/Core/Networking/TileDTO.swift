@@ -71,6 +71,13 @@ nonisolated struct TileVerificationV1: Decodable, Sendable {
     let locationPrecision: String
     let confirmations: Int?
     let lastReviewedMonth: String?
+    // ADR-0017: present exactly when locationPrecision is areaApproximate.
+    let locationArea: TileLocationAreaV1?
+}
+
+nonisolated struct TileLocationAreaV1: Decodable, Sendable {
+    let name: String
+    let kind: String
 }
 
 nonisolated struct TileOpeningHoursV1: Decodable, Sendable {

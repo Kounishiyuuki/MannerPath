@@ -15,6 +15,8 @@ nonisolated struct SpotVerification: Codable, Sendable {
     var confirmations: Int? = nil
     // "YYYY-MM": the month the evidence was last reviewed.
     var lastReviewedMonth: String? = nil
+    // ADR-0017: the area/host an areaApproximate pin represents. Optional, so a spot cached before it still decodes.
+    var locationArea: LocationArea? = nil
 
     init(
         acceptedExistenceEvidence: TriState,
@@ -25,7 +27,8 @@ nonisolated struct SpotVerification: Codable, Sendable {
         existence: ExistenceEvidence? = nil,
         locationPrecision: LocationPrecision? = nil,
         confirmations: Int? = nil,
-        lastReviewedMonth: String? = nil
+        lastReviewedMonth: String? = nil,
+        locationArea: LocationArea? = nil
     ) {
         self.acceptedExistenceEvidence = acceptedExistenceEvidence
         self.evidenceQuality = evidenceQuality
@@ -36,7 +39,11 @@ nonisolated struct SpotVerification: Codable, Sendable {
         self.locationPrecision = locationPrecision
         self.confirmations = confirmations
         self.lastReviewedMonth = lastReviewedMonth
+        self.locationArea = locationArea
     }
+
+    /// The pin is a reviewed area anchor, not the place's own point (ADR-0017).
+    var isAreaApproximate: Bool { locationPrecision == .areaApproximate }
 
     /// Who stands behind the place's existence. Without the ADR-0012 object only the two long-standing values are
     /// trusted; anything else is `.unknown`, which is never presented as confirmed.
@@ -64,10 +71,16 @@ nonisolated enum ExistenceEvidence: String, Codable, Hashable, Sendable {
     var isVerified: Bool { self == .official || self == .operator || self == .communityVerified }
 }
 
+// A value added after this build reads as `unknown`, which is never presented as an exact point.
 nonisolated enum LocationPrecision: String, Codable, Hashable, Sendable {
-    case publisherPoint, reviewedDerived, communityPinned, unknown
+    case publisherPoint, reviewedDerived, communityPinned, areaApproximate, unknown
 
     init(wire: String) { self = Self(rawValue: wire) ?? .unknown }
+}
+
+nonisolated struct LocationArea: Codable, Hashable, Sendable {
+    let name: String
+    let kind: String
 }
 
 nonisolated struct SpotSource: Codable, Hashable, Sendable {

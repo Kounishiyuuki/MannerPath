@@ -17,7 +17,7 @@ nonisolated enum CoverageTasks {
         let v = spot.verification
         if v.existence == .communityReported || SpotFreshness.of(spot, at: now) == .stale { kinds.append(.needsConfirmation) }
         switch v.locationPrecision {
-        case .unknown, .reviewedDerived: kinds.append(.needsLocationCheck)
+        case .unknown, .reviewedDerived, .areaApproximate: kinds.append(.needsLocationCheck)
         case .communityPinned where (v.confirmations ?? 0) < 2: kinds.append(.needsLocationCheck)
         default: break
         }

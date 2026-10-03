@@ -105,6 +105,7 @@ enum SpotPresentation {
         switch value {
         case .reviewedDerived: String(localized: "Location estimated from the address")
         case .communityPinned: String(localized: "Location pinned by a user")
+        case .areaApproximate: ApproximateLocation.listNote(areaName: nil)
         case .unknown: String(localized: "Location precision unknown")
         case .publisherPoint, nil: nil
         }
@@ -184,6 +185,22 @@ enum SpotPresentation {
         if days == 0 { return String(localized: "Verified less than a day ago") }
         if days == 1 { return String(localized: "Verified 1 day ago") }
         return String(localized: "Verified \(days) days ago")
+    }
+
+    /// ADR-0017: the distance to a result, 「約○m」 when its pin is an area anchor rather than the place itself.
+    static func distance(_ result: NearbyResult) -> String {
+        ApproximateLocation.distance(distance(result.distanceMeters), approximate: result.spot.verification.isAreaApproximate)
+    }
+
+    /// ADR-0017 list note, nil for a pin that is the place's own point.
+    static func approximateLocationNote(_ spot: Spot) -> String? {
+        spot.verification.isAreaApproximate ? ApproximateLocation.listNote(areaName: spot.verification.locationArea?.name) : nil
+    }
+
+    /// 「この場所へ案内」 only for an exact point; 「この付近へ案内」 for an area anchor and for anything not known to be exact
+    /// (ADR-0017, same rule as the Watch).
+    static func navigationTitle(_ spot: Spot) -> String {
+        ApproximateLocation.navigationTitle(precision: spot.verification.locationPrecision?.rawValue)
     }
 
     static func distance(_ meters: Double) -> String {
