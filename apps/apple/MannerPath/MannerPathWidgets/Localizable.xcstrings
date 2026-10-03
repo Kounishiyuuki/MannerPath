@@ -180,6 +180,56 @@
           }
         }
       }
+    },
+    "Officially confirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公式確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed by the operator": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運営者確認済み"
+          }
+        }
+      }
+    },
+    "Confirmed by users": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者確認済み"
+          }
+        }
+      }
+    },
+    "User report · unconfirmed": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用者報告・未確認"
+          }
+        }
+      }
+    },
+    "Confirmation status unknown": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認状況不明"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
