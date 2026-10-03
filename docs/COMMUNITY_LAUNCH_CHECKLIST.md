@@ -26,7 +26,8 @@ Context: `docs/legal/COMMUNITY_PUBLICATION_DECISION.md` (what is approved), `doc
 
 ## C. Pre-launch configuration (per environment)
 
-- [ ] Canonical migrations through `0025_durable_report_store_boundary.sql` applied (no new migration for activation)
+- [ ] Every canonical migration in `services/api/migrations` applied (currently through `0030_area_approximate_locations.sql`;
+      the report store needs `0025_durable_report_store_boundary.sql`). No new migration for activation
 - [ ] `REPORTS_DB` created once (`mannerpath-<env>-reports`), its id landed by reviewed PR, `migrations-reports` applied,
       `report_store_meta` reads `mannerpath-reports` / `reports-store.v1`; a Time Travel bookmark recorded
       (`docs/OPERATIONS.md`, "Report store")
