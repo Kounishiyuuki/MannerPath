@@ -688,7 +688,10 @@ BEGIN
 END;
 
 -- F3, runtime: identity continuity on the latest premise. The new record is linked (in this batch) to the same entity as
--- the previous authority's record, and that entity is the spot's. Same source alone is not continuity.
+-- the previous authority's record, and that entity is the spot's. Same source alone is not continuity, and neither is
+-- the link's method label: a raw_identical link must be raw-identical by the matcher's own definition (equal
+-- raw_sha256, src/pipeline/match.ts), and any other link must be the current reviewed matchedToEntity application of
+-- this record (ADR-0008, review_match_applications, whose own trigger checks the decision is current).
 CREATE TRIGGER spot_location_authorities_continuation_identity
 BEFORE INSERT ON spot_location_authorities
 WHEN NEW.kind = 'continuation' AND NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
@@ -697,7 +700,11 @@ WHEN NEW.kind = 'continuation' AND NOT ((EXISTS (SELECT 1 FROM promotion_bootstr
     JOIN source_record_entities ep ON ep.source_entity_id = e.source_entity_id
     JOIN spot_source_entities l ON l.source_entity_id = e.source_entity_id
     WHERE e.record_id = NEW.evidence_record_id AND e.release_id = NEW.evidence_release_id AND l.spot_id = NEW.spot_id
-      AND ep.record_id = (SELECT evidence_record_id FROM spot_location_authorities WHERE spot_id = NEW.spot_id AND seq = NEW.seq - 1))
+      AND ep.record_id = (SELECT evidence_record_id FROM spot_location_authorities WHERE spot_id = NEW.spot_id AND seq = NEW.seq - 1)
+      AND ((e.method = 'raw_identical' AND (SELECT raw_sha256 FROM source_records WHERE record_id = e.record_id)
+              = (SELECT raw_sha256 FROM source_records WHERE record_id = ep.record_id))
+        OR EXISTS (SELECT 1 FROM review_match_applications a WHERE a.record_id = e.record_id AND a.release_id = e.release_id
+              AND a.decision = 'matchedToEntity' AND a.source_entity_id = e.source_entity_id)))
 BEGIN
   SELECT RAISE(ABORT, 'spot_location_authorities: a continuation continues the previous authority''s entity, which is the spot''s');
 END;
@@ -757,11 +764,14 @@ BEGIN
   SELECT RAISE(ABORT, 'spot_location_authorities: a carried spot is not exactly its latest location authority');
 END;
 
--- F1: the entity link of a record cited as location evidence is fixed (REPLACE and UPDATE alike).
+-- F1: the entity link of a record cited as location evidence is fixed (REPLACE and UPDATE alike). REPLACE can displace
+-- a row through either uniqueness of the table — the record (PK) or (source_entity_id, release_id) — so both conflict
+-- paths are refused whenever the row they would delete is a cited record's link.
 CREATE TRIGGER source_record_entities_location_evidence_replace
 BEFORE INSERT ON source_record_entities
-WHEN EXISTS (SELECT 1 FROM source_record_entities WHERE record_id = NEW.record_id)
-  AND EXISTS (SELECT 1 FROM spot_location_authorities WHERE evidence_record_id = NEW.record_id)
+WHEN EXISTS (SELECT 1 FROM source_record_entities x
+  WHERE (x.record_id = NEW.record_id OR (x.source_entity_id = NEW.source_entity_id AND x.release_id = NEW.release_id))
+    AND x.record_id IN (SELECT evidence_record_id FROM spot_location_authorities))
 BEGIN
   SELECT RAISE(ABORT, 'source_record_entities: the entity link of a record cited as location evidence is fixed');
 END;

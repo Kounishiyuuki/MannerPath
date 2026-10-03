@@ -21,6 +21,7 @@ import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { observeRelease } from "../src/pipeline/observe.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
+import { buildPromotionBundle } from "../src/pipeline/promotion.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => db.raw.prepare(sql).get(...p) as Row | undefined;
@@ -325,4 +326,119 @@ test("continuation monotonicity: no rollback to an older record, no duplicate-cu
   const now = all(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq", id).at(-1)!;
   assert.throws(() => insertRow(db, "spot_location_authorities", { ...now, seq: now.seq + 1, ...evidenceOf(d.evidence_record_id),
     recorded_at: "2026-10-31T00:00:00Z" }), /spot_location_authorities/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Round 5 B1: REPLACE cannot displace a cited record's entity link through either uniqueness
+
+test("a cited record's entity link cannot be displaced by REPLACE on (source_entity_id, release_id) or record_id", async () => {
+  const { db, adapter } = await areaPipeline();
+  const id = await exactChain(db, adapter, "D");
+  db.raw.exec("PRAGMA recursive_triggers = OFF");
+  const latest = one(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq DESC LIMIT 1", id)!;
+  const link = one(db, "SELECT * FROM source_record_entities WHERE record_id = ?", latest.evidence_record_id)!;
+  const other = one(db, "SELECT record_id FROM source_records WHERE release_id = ? AND record_id <> ?", link.release_id, link.record_id)!.record_id;
+  const displace = (t: SqliteD1, o: Row) => insertRow(t, "source_record_entities", o, "INSERT OR REPLACE");
+  // Another record + the cited link's (entity, release): the UNIQUE(source_entity_id, release_id) conflict path.
+  assert.throws(() => displace(db, { ...link, record_id: other, method: "raw_identical" }), /entity link of a record cited as location evidence is fixed/);
+  // The cited record itself: the PK conflict path.
+  assert.throws(() => displace(db, { ...link, method: "raw_identical", note: "rewritten" }), /fixed/);
+  assert.throws(() => db.raw.prepare("UPDATE source_record_entities SET note = 'x' WHERE record_id = ?").run(link.record_id), /fixed/);
+  assert.throws(() => db.raw.prepare("DELETE FROM source_record_entities WHERE record_id = ?").run(link.record_id), /do not delete/);
+  assert.deepEqual(one(db, "SELECT * FROM source_record_entities WHERE record_id = ?", link.record_id), link);
+
+  // With the guard removed, the displaced link makes the shared decision fail closed everywhere.
+  const { db: t, adapter: ta } = await areaPipeline();
+  const tid = await exactChain(t, ta, "D");
+  t.raw.exec("PRAGMA recursive_triggers = OFF");
+  await published(t);
+  const tl = one(t, "SELECT e.* FROM source_record_entities e JOIN spot_location_authorities a ON a.evidence_record_id = e.record_id WHERE a.spot_id = ? ORDER BY a.seq DESC LIMIT 1", tid)!;
+  const tOther = one(t, "SELECT record_id FROM source_records WHERE release_id = ? AND record_id <> ?", tl.release_id, tl.record_id)!.record_id;
+  withoutTrigger(t.raw, "source_record_entities_location_evidence_replace", () => displace(t, { ...tl, record_id: tOther, method: "raw_identical" }));
+  assert.equal(one(t, "SELECT count(*) n FROM source_record_entities WHERE record_id = ?", tl.record_id)!.n, 0, "the cited link was displaced");
+  assert.equal(await quality(t), "fail", "quality fails");
+  assert.equal((await detail(t, tid)).status, 404, "not served");
+  const registry = { source: () => ta.registry, terms: () => { throw new Error("no terms"); } };
+  await assert.rejects(() => buildPromotionBundle(t, { registry }), /does not match its canonical row|draw existence evidence|crosses a source boundary|promotion export refused/, "promotion refused");
+  assert.equal((await published(t)).some((s) => s.id === tid), false, "not republished");
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Round 5 B2: a continuation's identity is true raw identity or a current reviewed application, never a method label
+
+async function pendingRelease(rows: Parameters<typeof csv>[0]) {
+  const { db, adapter } = await areaPipeline();
+  const id = await exactChain(db, adapter, "E");
+  const latest = one(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq DESC LIMIT 1", id)!;
+  const entity = one(db, "SELECT source_entity_id FROM source_record_entities WHERE record_id = ?", latest.evidence_record_id)!.source_entity_id;
+  const f = await ingestRelease(db, adapter, csv(rows), meta("2026-10-22"));
+  await observeRelease(db, adapter, f.releaseId);
+  const record = (ref: string) => one(db, "SELECT r.record_id, o.observation_id, rel.content_sha256 FROM source_records r JOIN source_observations o USING (record_id) JOIN source_releases rel ON rel.release_id = r.release_id WHERE r.release_id = ? AND r.upstream_row_ref = ?", f.releaseId, ref)!;
+  const link = (rec: Row, method: string) => insertRow(db, "source_record_entities", { record_id: rec.record_id, release_id: f.releaseId,
+    source_entity_id: entity, method, matcher_version: "direct-sql", decided_at: "2026-10-23T00:00:00Z", note: null });
+  const continuation = (rec: Row) => insertRow(db, "spot_location_authorities", { ...latest, seq: latest.seq + 1, kind: "continuation",
+    evidence_release_id: f.releaseId, evidence_release_content_sha256: rec.content_sha256, evidence_record_id: rec.record_id,
+    evidence_observation_id: rec.observation_id, relocation_review_item_id: null, recorded_at: "2026-10-23T00:00:00Z" });
+  return { db, adapter, id, latest, f, record, link, continuation };
+}
+
+test("continuation identity: a self-declared raw_identical link to another spot's raw values is refused (Codex round 5)", async () => {
+  const { db, id, latest, record, link, continuation } = await pendingRelease(["impostorAtD", "exact"]);
+  const before = {
+    authorities: all(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ?", id),
+    provenance: all(db, "SELECT * FROM spot_field_provenance WHERE spot_id = ? ORDER BY field", id),
+    spot: one(db, "SELECT * FROM spots WHERE spot_id = ?", id),
+    published: (await published(db)).find((s) => s.id === id),
+    applications: count(db, "review_match_applications"),
+  };
+  const impostor = record("7");
+  // Strictly newer, same coordinate, no review: the link claims raw_identical with the spot's entity.
+  link(impostor, "raw_identical");
+  assert.throws(() => continuation(impostor), /continues the previous authority's entity/);
+  assert.equal(all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length, latest.seq, "no authority appended");
+  assert.deepEqual(all(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ?", id), before.authorities);
+  assert.deepEqual(all(db, "SELECT * FROM spot_field_provenance WHERE spot_id = ? ORDER BY field", id), before.provenance, "provenance unchanged");
+  assert.throws(() => db.raw.prepare("UPDATE spot_field_provenance SET record_id = ? WHERE spot_id = ? AND field = 'location'").run(impostor.record_id, id),
+    /location authority/, "provenance cannot follow the impostor");
+  assert.deepEqual(one(db, "SELECT * FROM spots WHERE spot_id = ?", id), before.spot, "canonical spot unchanged");
+  assert.deepEqual((await published(db)).find((s) => s.id === id), before.published, "publication unchanged");
+  assert.equal(count(db, "review_match_applications") - before.applications, 0, "the attack records no review application");
+});
+
+test("continuation identity: true raw identity or a current reviewed application passes; false or unreviewed links fail", async () => {
+  // True raw-identical (the matcher's own definition: equal raw_sha256): PASS.
+  {
+    const { db, id, latest, record, link, continuation } = await pendingRelease(["exactMovedD", "exact"]);
+    const same = record("1");
+    link(same, "raw_identical");
+    continuation(same);
+    assert.equal(all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length, latest.seq + 1);
+  }
+  // Not raw-identical (a different seats cell), labelled raw_identical: REJECT. Labelled manual without a reviewed
+  // application (no / stale review): REJECT.
+  for (const method of ["raw_identical", "manual"]) {
+    const { db, id, latest, record, link, continuation } = await pendingRelease(["exactMovedDSeats", "exact"]);
+    const changed = record("1");
+    // A manual link without a current reviewed application is already refused when linked (0011); either way no
+    // continuation can follow it.
+    try { link(changed, method); } catch (e) { assert.match(String(e), /requires a review_match_application/, method); }
+    assert.throws(() => continuation(changed), /continues the previous authority's entity/, method);
+    assert.equal(all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length, latest.seq);
+  }
+  // Valid current reviewed identity (ADR-0008 decision + application, through the pipeline): PASS.
+  {
+    const { db, adapter } = await areaPipeline();
+    const id = await exactChain(db, adapter, "E");
+    const seq = all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length;
+    const f = await nextRelease(db, adapter, ["exactMovedDSeats", "exact"], "2026-10-22", "2026-10-23T00:00:00Z");
+    assert.equal(f.first.status, "needsReview", "not raw-identical: the matcher asks for review");
+    // Before the decision: nothing appended.
+    assert.equal(all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length, seq);
+    await decideIdentity(db, (f.first as { reviewItemIds: number[] }).reviewItemIds[0], id, "2026-10-23T01:00:00Z");
+    assert.equal((await f.resolve("2026-10-23T02:00:00Z")).status, "resolved");
+    const last = one(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq DESC LIMIT 1", id)!;
+    assert.deepEqual([last.seq, last.kind, last.evidence_release_id], [seq + 1, "continuation", f.releaseId]);
+    assert.equal(count(db, "review_match_applications") > 0, true);
+    assert.equal((await published(db)).find((s) => s.id === id)?.verification.locationPrecision, "publisherPoint");
+  }
 });

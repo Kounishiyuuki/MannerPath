@@ -39,11 +39,15 @@ export const ROWS = {
   // Later reviewed ADR-0009 relocations of the place after it became exact (C, then D).
   exactMovedC: `1,公園内喫煙所,,${MOVED_C.latitude},${MOVED_C.longitude},smoking`,
   exactMovedD: `1,公園内喫煙所,,${MOVED_D.latitude},${MOVED_D.longitude},smoking`,
+  // The same place as exactMovedD with a different seats cell: not raw-identical, identical observation (a reviewed match).
+  exactMovedDSeats: `1,公園内喫煙所,,${MOVED_D.latitude},${MOVED_D.longitude},smoking`,
+  // ANOTHER place, first listed later, at exactly the current point of the park spot (raw values of a different spot).
+  impostorAtD: `7,別の喫煙所,,${MOVED_D.latitude},${MOVED_D.longitude},smoking`,
   // A place first listed in a later release, inside the same park.
   newInPark: `6,公園内第二喫煙所,${PARK.areaName},,,smoking`,
 } as const;
 export const RELEASE_A = ["park", "anchored", "exact", "host", "noAnchor", "closed"] as const;
-const EXTRA: Partial<Record<keyof typeof ROWS, string>> = { park: ",36,140" };
+const EXTRA: Partial<Record<keyof typeof ROWS, string>> = { park: ",36,140", exactMovedDSeats: ",1," };
 export const csv = (rows: readonly (keyof typeof ROWS)[]) => new TextEncoder().encode([HEADER, ...rows.map((r) => ROWS[r] + (EXTRA[r] ?? ",,"))].join("\n"));
 export const meta = (observedOn: string): ReleaseMetadata => ({ sourceUrl: "https://example.invalid/list.csv", observedOn, fetchedAt: NOW, httpLastModified: null });
 

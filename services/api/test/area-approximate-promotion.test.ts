@@ -284,8 +284,13 @@ test("forged current or historical location evidence is refused on import (v2 an
     const chunk = manifest.chunks.find((c) => c.table === "promotion_location_evidence_attestations") ?? manifest.chunks[0];
     const path = join(root, "bundle", chunk.file);
     const { writeFile } = await import("node:fs/promises");
-    await writeFile(path, (await readFile(path, "utf8")).replace("'current'", "'historical'"));
-    await assert.rejects(() => verifyPromotionV4(join(root, "bundle")));
+    const before = await readFile(path, "utf8");
+    // The untampered bundle verifies under its reviewed digest, so the rejection below is the tamper's.
+    assert.deepEqual(await verifyPromotionV4(join(root, "bundle"), manifest.wholeBundleSha256), manifest);
+    const tampered = before.replace("'current'", "'historical'");
+    assert.notEqual(tampered, before);
+    await writeFile(path, tampered);
+    await assert.rejects(() => verifyPromotionV4(join(root, "bundle"), manifest.wholeBundleSha256), /invalid or oversized artifact file|sha256|digest|mismatch/i);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

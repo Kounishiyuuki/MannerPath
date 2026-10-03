@@ -13,7 +13,7 @@
 //   - the latest authority is itself checked against the evidence that exists NOW (review F1): its release (source and
 //     digest), its record in that release, and its observation (record, release, source, mapping, coordinate, anchor
 //     claim, location rule and columns) — or, in a promoted database, the carried evidence attestation for that
-//     observation. Evidence rewritten underneath an unchanged authority is `invalid`.
+//     observation — and the record is still linked to one of the spot's own entities. Evidence rewritten underneath an unchanged authority is `invalid`.
 // Nothing is inferred from a binding, an upgrade or a source alone; the latest authority row decides.
 
 export const AREA_ANCHOR_RULE_PREFIX = "area-anchor.v1:";
@@ -72,6 +72,8 @@ export const LOCATION_STATE_COLUMNS = `lp.rule AS location_rule, lp.record_id AS
     WHEN lrel.release_id IS NULL OR lrel.source_id IS NOT lau.evidence_source_id
       OR lrel.content_sha256 IS NOT lau.evidence_release_content_sha256 THEN 0
     WHEN NOT EXISTS (SELECT 1 FROM source_records lrec WHERE lrec.record_id = lau.evidence_record_id AND lrec.release_id = lau.evidence_release_id) THEN 0
+    WHEN NOT EXISTS (SELECT 1 FROM source_record_entities lre JOIN spot_source_entities lse ON lse.source_entity_id = lre.source_entity_id
+      WHERE lre.record_id = lau.evidence_record_id AND lre.release_id = lau.evidence_release_id AND lse.spot_id = s.spot_id) THEN 0
     WHEN le.observation_id IS NOT NULL THEN (le.source_id = lau.evidence_source_id AND le.release_id = lau.evidence_release_id
       AND le.release_content_sha256 = lau.evidence_release_content_sha256 AND le.record_id = lau.evidence_record_id
       AND le.mapping_version = lau.mapping_version AND le.location_rule = lau.location_rule

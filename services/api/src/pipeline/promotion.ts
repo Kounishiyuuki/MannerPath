@@ -531,11 +531,15 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
   const attestations = new Map((rows.get("promotion_location_evidence_attestations") ?? []).map((e) => [Number(e.observation_id), e]));
   const releasesById = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), r]));
   const recordRelease = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), Number(r.release_id)]));
+  const recordEntity = new Map((rows.get("source_record_entities") ?? []).map((e) => [Number(e.record_id), e]));
+  const spotEntities = new Set((rows.get("spot_source_entities") ?? []).map((l) => `${String(l.spot_id)}|${Number(l.source_entity_id)}`));
   // F1/F2: the latest authority equals the carried evidence (release, record, observation attestation), as in SQL.
   const evidenceOk = (l: Row): number => {
     const rel = releasesById.get(Number(l.evidence_release_id)), e = attestations.get(Number(l.evidence_observation_id));
     return rel !== undefined && rel.source_id === l.evidence_source_id && rel.content_sha256 === l.evidence_release_content_sha256
       && recordRelease.get(Number(l.evidence_record_id)) === Number(l.evidence_release_id) && e !== undefined
+      && Number(recordEntity.get(Number(l.evidence_record_id))?.release_id) === Number(l.evidence_release_id)
+      && spotEntities.has(`${String(l.spot_id)}|${Number(recordEntity.get(Number(l.evidence_record_id))?.source_entity_id)}`)
       && e.source_id === l.evidence_source_id && Number(e.release_id) === Number(l.evidence_release_id)
       && e.release_content_sha256 === l.evidence_release_content_sha256 && Number(e.record_id) === Number(l.evidence_record_id)
       && e.mapping_version === l.mapping_version && e.location_rule === l.location_rule && e.location_columns_json === l.location_columns_json
