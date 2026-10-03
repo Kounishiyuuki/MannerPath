@@ -1,0 +1,508 @@
+{
+  "research_date": "2026-10-04",
+  "base_commit": "aab8305",
+  "decision": "NOT WORTH V1",
+  "publication_approved": false,
+  "legal_review": "LEGAL REVIEW REQUIRED",
+  "queries": {
+    "features": {
+      "endpoint": "https://overpass-api.de/api/interpreter",
+      "ql": "[out:json][timeout:90];area[\"ISO3166-1\"=\"JP\"][\"admin_level\"=\"2\"]->.jp;(nwr[\"amenity\"=\"smoking_area\"](area.jp);nwr[\"smoking\"~\"^(dedicated|isolated|separated)$\"](area.jp););out meta center;",
+      "response_sha256": "742370b3217c69b00abea3a168f53b347be73011eb6ce1f89f6874aa0642936b",
+      "bytes": 1878613,
+      "snapshot": {
+        "timestamp_osm_base": "2026-10-03T18:55:02Z",
+        "timestamp_areas_base": "2026-10-03T02:09:07Z",
+        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+      },
+      "remark": null
+    },
+    "prefectures": {
+      "endpoint": "https://overpass-api.de/api/interpreter",
+      "ql": "[out:json][timeout:90];area[\"ISO3166-1\"=\"JP\"][\"admin_level\"=\"2\"]->.jp;nwr[\"amenity\"=\"smoking_area\"](area.jp)->.all;area[\"ISO3166-2\"~\"^JP-\"][\"admin_level\"=\"4\"]->.prefs;foreach.prefs->.p(.p out tags;nwr.all(area.p);out count;);",
+      "response_sha256": "71b9934f88a9b675c381763888f50f7cfc7fe25429bbc93e5d6bb3510b570a4c",
+      "snapshot": {
+        "timestamp_osm_base": "2026-10-03T18:58:00Z",
+        "timestamp_areas_base": "2026-10-03T02:09:07Z",
+        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+      },
+      "remark": null
+    },
+    "yamagata_additional_zones": {
+      "endpoint": "https://overpass-api.de/api/interpreter",
+      "ql": "[out:json][timeout:30];area[\"ISO3166-2\"=\"JP-06\"][\"admin_level\"=\"4\"]->.p;(way[\"area\"=\"yes\"][\"smoking\"=\"dedicated\"](area.p);relation[\"area\"=\"yes\"][\"smoking\"=\"dedicated\"](area.p););out count;",
+      "response_sha256": "1b2480cf306e868ca71d62fe69670bd8b74471d8d5f7e10789270cd3e1546e59",
+      "snapshot": {
+        "timestamp_osm_base": "2026-10-03T19:03:06Z",
+        "timestamp_areas_base": "2026-10-03T02:09:07Z",
+        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+      },
+      "remark": null,
+      "count": 0
+    }
+  },
+  "counts": {
+    "query_union": 2743,
+    "amenity_smoking_area": 1030,
+    "core_element_types": {
+      "node": 913,
+      "way": 115,
+      "relation": 2
+    },
+    "core_smoking_values": {
+      "missing": 944,
+      "yes": 75,
+      "dedicated": 10,
+      "outside": 1
+    },
+    "noncore_smoking_values": {
+      "separated": 1133,
+      "isolated": 522,
+      "dedicated": 58
+    },
+    "additional_dedicated_areas": 16,
+    "additional_element_types": {
+      "way": 15,
+      "relation": 1
+    },
+    "strict_host_free_features": 1046,
+    "excluded_or_held_noncore": 1697,
+    "core_access_values": {
+      "unknown": 1016,
+      "yes": 9,
+      "private": 1,
+      "permissive": 1,
+      "customers": 3
+    },
+    "core_metadata_presence": {
+      "name": 107,
+      "opening_hours": 45,
+      "check_date": 122,
+      "source": 151,
+      "level": 75,
+      "indoor": 14
+    },
+    "verified_distinct_current_places": null,
+    "net_new_relative_to_official": null,
+    "production_publishable_now": 0
+  },
+  "taginfo_crosscheck": {
+    "url": "https://taginfo.geofabrik.de/asia:japan/api/4/tag/stats?key=amenity&value=smoking_area",
+    "data_until": "2026-10-02T20:05:20Z",
+    "total": 4,
+    "data": [
+      {
+        "type": "all",
+        "count": 1028,
+        "count_fraction": 0.0
+      },
+      {
+        "type": "nodes",
+        "count": 911,
+        "count_fraction": 0.0002
+      },
+      {
+        "type": "ways",
+        "count": 115,
+        "count_fraction": 0.0
+      },
+      {
+        "type": "relations",
+        "count": 2,
+        "count_fraction": 0.0
+      }
+    ]
+  },
+  "limitations": [
+    "OSM elements are not deduplicated physical places",
+    "Not a ground-truth survey or publication approval",
+    "Query covers specified exact tags only; semicolon values and other schemas not exhaustively searched",
+    "Area membership may have lag and boundary effects",
+    "Raw extracts and element-level records remain outside git"
+  ],
+  "prefectures": {
+    "basis": "47-prefecture core aggregation; additional dedicated zones cannot extend coverage because Yamagata has zero area=yes + smoking=dedicated ways/relations",
+    "rows": [
+      {
+        "iso": "JP-01",
+        "name": "北海道",
+        "count": 36,
+        "nodes": 34,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-02",
+        "name": "青森県",
+        "count": 2,
+        "nodes": 2,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-03",
+        "name": "岩手県",
+        "count": 3,
+        "nodes": 2,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-04",
+        "name": "宮城県",
+        "count": 16,
+        "nodes": 15,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-05",
+        "name": "秋田県",
+        "count": 6,
+        "nodes": 3,
+        "ways": 3,
+        "relations": 0
+      },
+      {
+        "iso": "JP-06",
+        "name": "山形県",
+        "count": 0,
+        "nodes": 0,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-07",
+        "name": "福島県",
+        "count": 6,
+        "nodes": 6,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-08",
+        "name": "茨城県",
+        "count": 23,
+        "nodes": 21,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-09",
+        "name": "栃木県",
+        "count": 14,
+        "nodes": 12,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-10",
+        "name": "群馬県",
+        "count": 7,
+        "nodes": 6,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-11",
+        "name": "埼玉県",
+        "count": 50,
+        "nodes": 41,
+        "ways": 9,
+        "relations": 0
+      },
+      {
+        "iso": "JP-12",
+        "name": "千葉県",
+        "count": 53,
+        "nodes": 52,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-13",
+        "name": "東京都",
+        "count": 271,
+        "nodes": 241,
+        "ways": 28,
+        "relations": 2
+      },
+      {
+        "iso": "JP-14",
+        "name": "神奈川県",
+        "count": 103,
+        "nodes": 89,
+        "ways": 14,
+        "relations": 0
+      },
+      {
+        "iso": "JP-15",
+        "name": "新潟県",
+        "count": 4,
+        "nodes": 3,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-16",
+        "name": "富山県",
+        "count": 3,
+        "nodes": 3,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-17",
+        "name": "石川県",
+        "count": 3,
+        "nodes": 2,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-18",
+        "name": "福井県",
+        "count": 1,
+        "nodes": 1,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-19",
+        "name": "山梨県",
+        "count": 24,
+        "nodes": 24,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-20",
+        "name": "長野県",
+        "count": 7,
+        "nodes": 6,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-21",
+        "name": "岐阜県",
+        "count": 16,
+        "nodes": 15,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-22",
+        "name": "静岡県",
+        "count": 29,
+        "nodes": 27,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-23",
+        "name": "愛知県",
+        "count": 11,
+        "nodes": 9,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-24",
+        "name": "三重県",
+        "count": 7,
+        "nodes": 7,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-25",
+        "name": "滋賀県",
+        "count": 12,
+        "nodes": 9,
+        "ways": 3,
+        "relations": 0
+      },
+      {
+        "iso": "JP-26",
+        "name": "京都府",
+        "count": 54,
+        "nodes": 47,
+        "ways": 7,
+        "relations": 0
+      },
+      {
+        "iso": "JP-27",
+        "name": "大阪府",
+        "count": 86,
+        "nodes": 75,
+        "ways": 11,
+        "relations": 0
+      },
+      {
+        "iso": "JP-28",
+        "name": "兵庫県",
+        "count": 19,
+        "nodes": 18,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-29",
+        "name": "奈良県",
+        "count": 7,
+        "nodes": 7,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-30",
+        "name": "和歌山県",
+        "count": 2,
+        "nodes": 0,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-31",
+        "name": "鳥取県",
+        "count": 4,
+        "nodes": 4,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-32",
+        "name": "島根県",
+        "count": 3,
+        "nodes": 3,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-33",
+        "name": "岡山県",
+        "count": 10,
+        "nodes": 10,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-34",
+        "name": "広島県",
+        "count": 17,
+        "nodes": 11,
+        "ways": 6,
+        "relations": 0
+      },
+      {
+        "iso": "JP-35",
+        "name": "山口県",
+        "count": 2,
+        "nodes": 2,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-36",
+        "name": "徳島県",
+        "count": 3,
+        "nodes": 3,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-37",
+        "name": "香川県",
+        "count": 5,
+        "nodes": 4,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-38",
+        "name": "愛媛県",
+        "count": 8,
+        "nodes": 6,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-39",
+        "name": "高知県",
+        "count": 4,
+        "nodes": 3,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-40",
+        "name": "福岡県",
+        "count": 27,
+        "nodes": 26,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-41",
+        "name": "佐賀県",
+        "count": 3,
+        "nodes": 0,
+        "ways": 3,
+        "relations": 0
+      },
+      {
+        "iso": "JP-42",
+        "name": "長崎県",
+        "count": 1,
+        "nodes": 1,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-43",
+        "name": "熊本県",
+        "count": 9,
+        "nodes": 7,
+        "ways": 2,
+        "relations": 0
+      },
+      {
+        "iso": "JP-44",
+        "name": "大分県",
+        "count": 11,
+        "nodes": 10,
+        "ways": 1,
+        "relations": 0
+      },
+      {
+        "iso": "JP-45",
+        "name": "宮崎県",
+        "count": 14,
+        "nodes": 14,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-46",
+        "name": "鹿児島県",
+        "count": 18,
+        "nodes": 18,
+        "ways": 0,
+        "relations": 0
+      },
+      {
+        "iso": "JP-47",
+        "name": "沖縄県",
+        "count": 16,
+        "nodes": 14,
+        "ways": 2,
+        "relations": 0
+      }
+    ],
+    "covered": 46,
+    "row_count": 47,
+    "sum": 1030,
+    "strict_host_free_covered": 46
+  }
+}
