@@ -101,27 +101,40 @@ Purpose: prove that the pipeline supports more than one municipality/source, rep
 
 Target: all ordinance-designated cities and prefectural capitals, prioritizing high-traffic station areas.
 
-### N3 — nationwide release gate
+### N3 — nationwide coverage targets
 
-Target: quantitative nationwide coverage and quality thresholds below.
+Target: the quantitative coverage targets below, pursued continuously before and after v1.
 
-## 6. Nationwide release gate
+## 6. v1 release gate and coverage targets
 
-These are product release targets and may be tightened as measurements improve:
+**Release gate (maintainer decision 2026-10-03, PRODUCT_REQUIREMENTS §10).** v1 ships when nationwide behavior and
+evidence integrity hold — not when a coverage number is reached. These must pass (the quality report enforces the
+integrity rows as failing checks):
 
-| Metric | Gate |
+| Gate | Must hold |
 | --- | --- |
-| Major stations | At least 95% of the top 50 and 80% of the top 300 passenger-volume stations have a published spot within 500 m |
-| Nearest-spot distribution around top 300 stations | Median <= 300 m; p90 <= 800 m |
-| Population-weighted coverage | At least 85% of densely inhabited areas and 60% nationwide population coverage have a published spot within 1 km |
-| Regional representation | 47/47 prefectures represented; every prefectural-capital central station has at least one published spot within 1 km |
-| Major municipality representation | All ordinance-designated cities and Tokyo 23 wards have reviewed source coverage |
-| Freshness | Reported per tier (`freshness.v1`: fresh / aging / stale / unknown); at least 90% of **official** spots fresh; reviewed-source fetch checks within 30 days. Staleness labels a spot, it never removes it |
+| Nationwide behavior | Search, sync and UI work at any point in Japan; a region without data shows an honest empty / coverage state (`404 tileNotPublished` is cached as empty, `docs/API.md`) |
+| No fabrication | No spot without approved evidence; no host-based or map-vendor inference |
 | Existence evidence | 100% of published spots carry an explicit evidence class (`verification.existence`), no exceptions |
-| Confidence integrity | 0 spots labelled above their evidence (`confidence-never-overstated`) |
+| Confidence integrity | 0 spots labelled above their evidence (`confidence-never-overstated`, `area-anchor-never-exact`) |
 | Publication conflicts | 0 unresolved conflicts capable of producing a false actionable claim |
-| Source review | 0 unreviewed sources in published data |
+| Source review | 0 unreviewed or unapproved sources in published data; every published source carries its license and attribution |
+| Freshness | Reported per tier (`freshness.v1`: fresh / aging / stale / unknown); staleness labels a spot, it never removes it |
 | Unknown fields | Reported transparently by source/region; unknown is not converted to false |
+
+**Coverage targets (measured continuously; not release blockers).** They direct which lawful data to add next and are
+reported in every quality report, before and after release. Not reaching one never justifies inventing data or hiding
+a gap; reaching one never relaxes an integrity row above.
+
+| Metric | Target |
+| --- | --- |
+| Published spots | Reported in total, per source, per tier and per prefecture |
+| Major stations | 95% of the top 50 and 80% of the top 300 passenger-volume stations have a published spot within 500 m |
+| Nearest-spot distribution around top 300 stations | Median <= 300 m; p90 <= 800 m |
+| Population/usage-weighted coverage | 85% of densely inhabited areas and 60% of the nationwide population within 1 km of a published spot |
+| Regional representation | Prefectures with at least one published spot (47 is the long-term target, not a v1 requirement); prefectural-capital central stations within 1 km |
+| Major municipality representation | Ordinance-designated cities and Tokyo 23 wards with reviewed source coverage |
+| Official freshness | At least 90% of **official** spots fresh; reviewed-source fetch checks within 30 days |
 
 Population/station reference datasets used only to measure coverage still require their own license review.
 
@@ -149,7 +162,7 @@ Reports remain evidence proposals, not direct canonical edits.
 - a new community spot is `communityReported` on one moderated, consented report with an exact pin and an explicit
   known spot type, and `communityVerified` with independent corroboration (ADR-0012);
 - host/business existence is never sufficient evidence;
-- only reviewed community-derived records may count toward the nationwide release gate, in their own tier.
+- only reviewed community-derived records may count toward the coverage targets (§6), in their own tier.
 
 Implemented for new spots by Issue #123 (ADR-0007 and ADR-0006 community amendments). Originally a reviewer applied an explicit application of at least two accepted, queued reports from distinct submitters at one report's pin, entering the ordinary resolver as a `userReport` source with evidence quality `communityReviewed`; ADR-0012 below adds the single-report tier. Such spots count toward the §6 gate only once they are published. They are not published today: the community source is blocked until user-submission reuse rights exist (Issue #124). Existing-spot reports are connected to reviewed effects and, for `prohibited`, a corroborated publication hold (Issue #127).
 
@@ -261,8 +274,9 @@ rights are granted:
 - **Aim the first campaigns:** `npm run coverage:targets` turns the 33 route-C research targets into a plan linked to
   seed areas (`docs/research/community-acquisition/2026-10-01-targets.json`: 24 linked, 9 needing a seed area).
 - **Measure honestly:** `nationwide.communityAcquisition` in the quality report — tiers apart, 47 prefectures, seed
-  stations official-only vs all-visible. The user-facing KPI is all-visible coverage (target: 47/47 prefectures with
-  usable spots); official coverage is reported beside it and never inflated.
+  stations official-only vs all-visible. The user-facing KPI is all-visible coverage (long-term target: 47/47
+  prefectures with usable spots; a coverage target, not a release blocker, §6); official coverage is reported beside it
+  and never inflated.
 - **Later:** venue/operator self-registration as its own operator source; photo evidence as its own issue.
 
 ## 14. Nationwide community seed campaign (#149)

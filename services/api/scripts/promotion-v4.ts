@@ -45,7 +45,7 @@ if (command === "prepare-import") {
   // Preflight before even creating a target file. Applying cannot accidentally clobber the origin.
   if (command === "apply-local") await verifyPromotionV4(directory, digest);
   const fresh = !existsSync(database);
-  const db = new DatabaseSync(resolve(database), command === "build" ? { readOnly: true } : undefined);
+  const db = new DatabaseSync(resolve(database), command === "build" ? { readOnly: true } : {});
   try {
     db.exec("PRAGMA foreign_keys=ON; PRAGMA cache_size=-2048; PRAGMA temp_store=FILE;");
     if (fresh) {

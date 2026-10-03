@@ -618,8 +618,8 @@ decided by four values; the committed environments carry only the first.
   `400 reportSchemaUnsupported`, and a report is stored only after its assertion verified
   (`attestation_status = 'verified'`). A device that reports a build not in
   `REPORT_APP_ATTEST_BUNDLE_VERSIONS` is refused with `detail: bundleVersion`, so add a new build's
-  `CFBundleVersion` before it reaches testers. Before setting them on any long-lived remote environment, settle the
-  blue/green carry-over question in step 6 and confirm #35 on a physical device. The one exception
+  `CFBundleVersion` before it reaches testers. Before setting them on any long-lived remote environment, confirm #35 on a
+  physical device (the blue/green carry-over is settled: reports, keys and rate limits live in REPORTS_DB, ADR-0014). The one exception
   is the disposable E2E environment below, which exists to run that physical-device check.
 - Local and test keep `REPORT_ATTESTATION=disabled`: schema 1, unattested, `notProvided`. Do not
   switch a remote environment to `disabled` to "turn reports on" — that accepts unattested reports.

@@ -217,8 +217,9 @@ removing a security or product capability.
 
 ## 22. Nationwide completion
 
-Practical coverage in all 47 prefectures, measured per tier by NATIONWIDE_DATA_STRATEGY's gate. Do not confuse
-official-only coverage with all-visible coverage. Seed coverage ≠ spot coverage; source count ≠ product coverage;
+v1 ships on nationwide behavior, honest empty/coverage states and evidence integrity (NATIONWIDE_DATA_STRATEGY §6
+release gate); coverage across the 47 prefectures, major cities, stations and population is measured per tier as
+continuous targets, not as a release blocker. Do not confuse official-only coverage with all-visible coverage. Seed coverage ≠ spot coverage; source count ≠ product coverage;
 "N municipal sources collected" is not completion.
 
 ## 23. Research rules

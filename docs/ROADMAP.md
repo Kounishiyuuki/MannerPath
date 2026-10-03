@@ -102,9 +102,13 @@ Rollout stages:
 
 - N1: Tokyo 23 wards + Osaka;
 - N2: ordinance-designated cities + prefectural capitals;
-- N3: nationwide gate.
+- N3: nationwide coverage targets (continuous; not a release blocker).
 
-## Phase 8 — Nationwide quality and coverage gate
+v1 release gate (PRODUCT_REQUIREMENTS §10, NATIONWIDE_DATA_STRATEGY §6): nationwide behavior, honest empty/coverage
+states and evidence integrity. Coverage (spot count, prefectures, major cities and stations, population-weighted) is
+measured continuously and keeps improving after release.
+
+## Phase 8 — Nationwide quality gate and coverage measurement
 
 - calculate station-area and population-weighted coverage, reported as official-source coverage and all usable
   coverage, with each community tier separate;
@@ -114,7 +118,8 @@ Rollout stages:
 - enforce freshness reporting and per-source unknown-rate reporting;
 - validate tile density/payload thresholds at nationwide scale.
 
-Exit: the quantitative gate in `NATIONWIDE_DATA_STRATEGY.md` passes.
+Exit: the v1 release gate in `NATIONWIDE_DATA_STRATEGY.md` §6 passes (integrity and nationwide behavior). The coverage
+targets in the same section are measured and reported; they continue after release and do not block it.
 
 ## Phase 9 — Final product and UI completion
 

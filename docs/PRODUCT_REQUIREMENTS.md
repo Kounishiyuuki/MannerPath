@@ -225,16 +225,25 @@ The app must visibly distinguish route unavailable from spot unavailable.
 
 A bounded, reviewable geography may be used during development and source onboarding, but **MannerPath is not product-complete while its real-data coverage is limited to one municipality or one launch region**.
 
-The product-completion target is practical nationwide discovery in Japan:
+The product target is practical nationwide discovery in Japan.
 
-- the client and backend search/sync path must function anywhere in Japan;
-- published spots must come only from approved evidence; lack of data never authorizes invention or host-based inference;
-- all 47 prefectures must be represented by reviewed coverage before the nationwide release gate can pass;
-- prefectural capitals, Tokyo 23 wards, ordinance-designated cities and major station areas must be covered to the quantitative gate defined in `NATIONWIDE_DATA_STRATEGY.md`;
-- freshness, unresolved-conflict and evidence-quality gates apply nationwide, not only to the original Taito fixture;
-- a location with no approved nearby spot must show an honest empty/coverage state rather than a fabricated result.
+**v1 release policy (maintainer decision, 2026-10-03).** The App Store release is gated on behavior and evidence
+integrity, not on reaching a coverage number:
 
-Nationwide rollout is a data-quality milestone, not an import-volume milestone. Development may proceed in stages (N1 → N2 → N3), but the app is not considered finished merely because a single-region beta works.
+- search, sync and every UI surface work correctly at any point in Japan;
+- a place or region without data shows an honest empty / coverage state; nothing is fabricated, and lack of data never
+  authorizes invention or host-based inference;
+- every published spot carries approved, reviewed evidence (the integrity gates in `NATIONWIDE_DATA_STRATEGY.md` §6:
+  evidence class, confidence never overstated, zero unresolved conflicts, zero unreviewed sources, freshness and
+  unknowns reported);
+- having at least one spot in each of the 47 prefectures is **not** a release blocker;
+- as much lawful, approved data as possible is imported before and after release;
+- coverage is measured continuously — spot count, prefectures, prefectural capitals and ordinance-designated cities,
+  major stations, population/usage-weighted coverage — as targets that drive improvement after release, never as a
+  reason to fabricate or to hide a gap.
+
+Nationwide rollout is a data-quality programme, not an import-volume milestone: coverage keeps improving after v1
+(N1 → N2 → N3 remain the rollout stages), and a single-region beta is still not the product.
 
 ## 11. Product UI and Apple-platform quality requirement
 
@@ -257,7 +266,8 @@ Visual completion means the primary flows are coherent and usable in loaded, emp
 The implementation order is intentional:
 
 1. complete nationwide-capable data architecture and source onboarding;
-2. reach the nationwide quality/coverage gate;
+2. pass the v1 release gate (§10: nationwide behavior, honest empty states, evidence integrity); coverage targets keep
+   improving and are not release blockers;
 3. finish functional product behavior across iPhone, Watch and widgets;
 4. finish the Apple-platform UI/accessibility pass;
 5. only then perform the paid Apple Developer Program signing/provisioning gate, App Groups/App Attest device verification, physical-device E2E, TestFlight and App Store release work.
