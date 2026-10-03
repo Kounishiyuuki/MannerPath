@@ -690,8 +690,9 @@ END;
 -- F3, runtime: identity continuity on the latest premise. The new record is linked (in this batch) to the same entity as
 -- the previous authority's record, and that entity is the spot's. Same source alone is not continuity, and neither is
 -- the link's method label: a raw_identical link must be raw-identical by the matcher's own definition (equal
--- raw_sha256, src/pipeline/match.ts), and any other link must be the current reviewed matchedToEntity application of
--- this record (ADR-0008, review_match_applications, whose own trigger checks the decision is current).
+-- raw_sha256, src/pipeline/match.ts), and any other link must be a reviewed matchedToEntity application of this record
+-- that is STILL current (ADR-0008): its decision is the item's latest decision, itself matchedToEntity to the same
+-- entity. An application stays as immutable history after a later decision supersedes it, but it no longer counts.
 CREATE TRIGGER spot_location_authorities_continuation_identity
 BEFORE INSERT ON spot_location_authorities
 WHEN NEW.kind = 'continuation' AND NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
@@ -703,8 +704,14 @@ WHEN NEW.kind = 'continuation' AND NOT ((EXISTS (SELECT 1 FROM promotion_bootstr
       AND ep.record_id = (SELECT evidence_record_id FROM spot_location_authorities WHERE spot_id = NEW.spot_id AND seq = NEW.seq - 1)
       AND ((e.method = 'raw_identical' AND (SELECT raw_sha256 FROM source_records WHERE record_id = e.record_id)
               = (SELECT raw_sha256 FROM source_records WHERE record_id = ep.record_id))
-        OR EXISTS (SELECT 1 FROM review_match_applications a WHERE a.record_id = e.record_id AND a.release_id = e.release_id
-              AND a.decision = 'matchedToEntity' AND a.source_entity_id = e.source_entity_id)))
+        OR EXISTS (SELECT 1 FROM review_match_applications a
+              JOIN review_items i ON i.review_item_id = a.review_item_id
+              JOIN review_decisions d ON d.review_decision_id = a.review_decision_id
+            WHERE a.record_id = e.record_id AND a.release_id = e.release_id
+              AND a.decision = 'matchedToEntity' AND a.source_entity_id = e.source_entity_id
+              AND i.kind = 'ambiguousMatch' AND i.record_id = a.record_id AND i.release_id = a.release_id
+              AND d.review_item_id = i.review_item_id AND d.decision = 'matchedToEntity' AND d.source_entity_id = a.source_entity_id
+              AND a.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id))))
 BEGIN
   SELECT RAISE(ABORT, 'spot_location_authorities: a continuation continues the previous authority''s entity, which is the spot''s');
 END;
@@ -762,6 +769,30 @@ WHEN EXISTS (SELECT 1 FROM spot_location_authorities a JOIN spots s ON s.spot_id
     AND NOT EXISTS (SELECT 1 FROM promotion_location_evidence_attestations e WHERE e.observation_id = a.evidence_observation_id AND e.scope = 'current'))
 BEGIN
   SELECT RAISE(ABORT, 'spot_location_authorities: a carried spot is not exactly its latest location authority');
+END;
+
+-- Round 6: replaces 0016's source_record_entities_manual_requires_application. A reviewed ('manual') link needs the
+-- record's review_match_application to be current WHEN the link is written — its decision is still the item's latest
+-- decision, and that decision is matchedToEntity to this entity — not merely to exist: a decision added to the item
+-- after the application supersedes it (the application row itself stays as immutable history). The bootstrap branch
+-- (the attested applied decision) is unchanged.
+DROP TRIGGER source_record_entities_manual_requires_application;
+CREATE TRIGGER source_record_entities_manual_requires_application
+BEFORE INSERT ON source_record_entities
+WHEN NEW.method = 'manual'
+  AND NOT EXISTS (SELECT 1 FROM review_match_applications a
+      JOIN review_items i ON i.review_item_id = a.review_item_id
+      JOIN review_decisions d ON d.review_decision_id = a.review_decision_id
+    WHERE a.record_id = NEW.record_id AND a.release_id = NEW.release_id
+      AND a.decision = 'matchedToEntity' AND a.source_entity_id = NEW.source_entity_id
+      AND i.kind = 'ambiguousMatch' AND i.record_id = a.record_id AND i.release_id = a.release_id
+      AND d.review_item_id = i.review_item_id AND d.decision = 'matchedToEntity' AND d.source_entity_id = a.source_entity_id
+      AND a.review_decision_id = (SELECT max(review_decision_id) FROM review_decisions WHERE review_item_id = i.review_item_id))
+  AND NOT EXISTS (SELECT 1 FROM promotion_review_match_attestations a
+    WHERE a.record_id = NEW.record_id AND a.release_id = NEW.release_id
+      AND a.decision = 'matchedToEntity' AND a.source_entity_id = NEW.source_entity_id)
+BEGIN
+  SELECT RAISE(ABORT, 'source_record_entities: a manual decision requires a review_match_application of the item''s current matchedToEntity decision');
 END;
 
 -- F1: the entity link of a record cited as location evidence is fixed (REPLACE and UPDATE alike). REPLACE can displace

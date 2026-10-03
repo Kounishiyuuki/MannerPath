@@ -21,6 +21,7 @@ import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { observeRelease } from "../src/pipeline/observe.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
+import { recordReviewDecision } from "../src/pipeline/review-queue.ts";
 import { buildPromotionBundle } from "../src/pipeline/promotion.ts";
 
 type Row = Record<string, any>;
@@ -440,5 +441,101 @@ test("continuation identity: true raw identity or a current reviewed application
     assert.deepEqual([last.seq, last.kind, last.evidence_release_id], [seq + 1, "continuation", f.releaseId]);
     assert.equal(count(db, "review_match_applications") > 0, true);
     assert.equal((await published(db)).find((s) => s.id === id)?.verification.locationPrecision, "publisherPoint");
+  }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Round 6: a review application superseded by a later decision on its item no longer counts (manual link, continuation)
+
+async function reviewedPending() {
+  const { db, adapter } = await areaPipeline();
+  const id = await exactChain(db, adapter, "E");
+  const latest = one(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq DESC LIMIT 1", id)!;
+  const entity = one(db, "SELECT source_entity_id FROM source_record_entities WHERE record_id = ?", latest.evidence_record_id)!.source_entity_id as number;
+  // F: the same place with a different seats cell: not raw-identical, so the matcher raises an ambiguousMatch item.
+  const f = await nextRelease(db, adapter, ["exactMovedDSeats", "exact"], "2026-10-22", "2026-10-23T00:00:00Z");
+  const itemId = (f.first as { reviewItemIds: number[] }).reviewItemIds[0];
+  const rec = one(db, `SELECT r.record_id, o.observation_id, rel.content_sha256 FROM source_records r JOIN source_observations o USING (record_id)
+    JOIN source_releases rel ON rel.release_id = r.release_id WHERE r.release_id = ? AND r.upstream_row_ref = '1'`, f.releaseId)!;
+  const otherEntity = one(db, "SELECT source_entity_id FROM source_entities WHERE source_entity_id <> ? ORDER BY source_entity_id LIMIT 1", entity)!.source_entity_id as number;
+  const decide = (decision: "matchedToEntity" | "confirmedNew", sourceEntityId: number | undefined, at: string) =>
+    recordReviewDecision(db, { reviewItemId: itemId, decision, ...(sourceEntityId === undefined ? {} : { sourceEntityId }), decidedBy: "reviewer", decidedAt: at });
+  const apply = () => {
+    const d = one(db, "SELECT review_decision_id, source_entity_id FROM review_decisions WHERE review_item_id = ? ORDER BY review_decision_id DESC LIMIT 1", itemId)!;
+    insertRow(db, "review_match_applications", { review_item_id: itemId, review_decision_id: d.review_decision_id, decision: "matchedToEntity",
+      record_id: rec.record_id, release_id: f.releaseId, source_entity_id: d.source_entity_id, executor_version: "review-match-application.v1",
+      applied_at: "2026-10-23T02:00:00Z" });
+  };
+  const link = (sourceEntityId = entity) => insertRow(db, "source_record_entities", { record_id: rec.record_id, release_id: f.releaseId,
+    source_entity_id: sourceEntityId, method: "manual", matcher_version: "direct-sql", decided_at: "2026-10-23T03:00:00Z", note: null });
+  const continuation = () => insertRow(db, "spot_location_authorities", { ...latest, seq: latest.seq + 1, kind: "continuation",
+    evidence_release_id: f.releaseId, evidence_release_content_sha256: rec.content_sha256, evidence_record_id: rec.record_id,
+    evidence_observation_id: rec.observation_id, relocation_review_item_id: null, recorded_at: "2026-10-23T04:00:00Z" });
+  const snapshot = async () => ({
+    authorities: all(db, "SELECT * FROM spot_location_authorities WHERE spot_id = ?", id),
+    provenance: all(db, "SELECT * FROM spot_field_provenance WHERE spot_id = ? ORDER BY field", id),
+    spot: one(db, "SELECT * FROM spots WHERE spot_id = ?", id),
+    published: (await published(db)).find((s) => s.id === id),
+  });
+  return { db, id, entity, otherEntity, decide, apply, link, continuation, snapshot };
+}
+
+test("superseded review application: a later decision on the item refuses the manual link and the continuation (Codex round 6)", async () => {
+  // CASE 1: matchedToEntity -> application -> confirmedNew -> manual link: REJECT.
+  {
+    const r = await reviewedPending();
+    await r.decide("matchedToEntity", r.entity, "2026-10-23T01:00:00Z");
+    r.apply();
+    await r.decide("confirmedNew", undefined, "2026-10-23T02:30:00Z");
+    assert.throws(() => r.link(), /current matchedToEntity decision/);
+    assert.equal(count(r.db, "review_match_applications") > 0, true, "the superseded application stays as history");
+  }
+  // CASE 2: matchedToEntity -> application -> manual link (valid then) -> confirmedNew -> continuation: REJECT.
+  {
+    const r = await reviewedPending();
+    await r.decide("matchedToEntity", r.entity, "2026-10-23T01:00:00Z");
+    r.apply();
+    r.link();
+    await r.decide("confirmedNew", undefined, "2026-10-23T03:30:00Z");
+    const before = await r.snapshot();
+    assert.throws(() => r.continuation(), /continues the previous authority's entity/);
+    assert.deepEqual(await r.snapshot(), before, "no authority, provenance, spot or publication change");
+  }
+  // CASE 4: a later decision for ANOTHER entity is refused by the review queue itself (not a candidate of the item);
+  // and any later decision — even a re-decision for the same entity — supersedes the applied one, so the old
+  // application can no longer carry the continuation.
+  {
+    const r = await reviewedPending();
+    await r.decide("matchedToEntity", r.entity, "2026-10-23T01:00:00Z");
+    r.apply();
+    r.link();
+    await assert.rejects(() => r.decide("matchedToEntity", r.otherEntity, "2026-10-23T03:15:00Z"), /not valid for this review item/);
+    await r.decide("matchedToEntity", r.entity, "2026-10-23T03:30:00Z");
+    const before = await r.snapshot();
+    assert.throws(() => r.continuation(), /continues the previous authority's entity/);
+    assert.deepEqual(await r.snapshot(), before);
+  }
+});
+
+test("current review application: manual link and continuation pass; true raw identity still needs no review", async () => {
+  // CASE 3: the latest decision is still matchedToEntity with its current application.
+  {
+    const r = await reviewedPending();
+    await r.decide("matchedToEntity", r.entity, "2026-10-23T01:00:00Z");
+    r.apply();
+    r.link();
+    r.continuation();
+    assert.equal(one(r.db, "SELECT kind FROM spot_location_authorities WHERE spot_id = ? ORDER BY seq DESC LIMIT 1", r.id)!.kind, "continuation");
+  }
+  // CASE 5: true raw-identical continuation through the pipeline, with no review application at all.
+  {
+    const { db, adapter } = await areaPipeline();
+    const id = await exactChain(db, adapter, "E");
+    const before = count(db, "review_match_applications");
+    const seq = all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length;
+    const f = await nextRelease(db, adapter, ["exactMovedD", "exact"], "2026-10-22", "2026-10-23T00:00:00Z");
+    assert.equal(f.first.status, "resolved");
+    assert.equal(all(db, "SELECT 1 FROM spot_location_authorities WHERE spot_id = ?", id).length, seq + 1);
+    assert.equal(count(db, "review_match_applications"), before, "no review involved");
   }
 });
