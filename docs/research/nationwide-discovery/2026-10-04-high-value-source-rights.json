@@ -1,0 +1,487 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-10-04",
+  "timezone": "Asia/Tokyo",
+  "base_commit": "f53477898a0971d0bbc6877dd559e5296a50d845",
+  "issues": [
+    67,
+    113,
+    137,
+    141
+  ],
+  "scope": "Research only; bounded primary-official checks; no rights grant, source approval, canonical values, geocoding or publication",
+  "classification_definitions": {
+    "A": "Ready with exact publisher point",
+    "B": "Ready with reviewed reusable same-publication area anchor",
+    "C": "Rights ONLY unresolved; all other readiness premises established",
+    "D": "Coordinate/location blocker",
+    "E": "Current-operation blocker or unresolved row-level qualifications",
+    "F": "Insufficient source evidence",
+    "G": "Exact license scope unknown",
+    "H": "Access blocker"
+  },
+  "summary": {
+    "candidate_sources": 9,
+    "onboarding_ready_sources": 0,
+    "newly_resolved_rights_blockers": 0,
+    "A": 0,
+    "B": 0,
+    "C": 0,
+    "conditional_derived_address_sources": 5,
+    "note": "Classification may have multiple blockers. Rights are recorded separately: do not label a multi-blocker source C. Historical >=27 impact is not a fresh current eligible count."
+  },
+  "candidates": [
+    {
+      "id": "ward-chuo",
+      "name": "中央区",
+      "priority": "P0",
+      "official_url": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html",
+      "resource_urls": [
+        "https://www.city.chuo.lg.jp/shisetsu/chizu/csv/map_data.csv",
+        "https://www.city.chuo.lg.jp/shared/system/js/maps/prev_csv_gmap2.js",
+        "https://www.city.chuo.lg.jp/shisetsu/map/sonota/index.html"
+      ],
+      "terms_urls": [
+        "https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html",
+        "https://www.city.chuo.lg.jp/kusei/gaiyou/toukeidate/opendata.html",
+        "https://www.city.chuo.lg.jp/documents/984/02termsofuse.pdf"
+      ],
+      "checked_at": "2026-10-03T16:30:38.805773+00:00",
+      "existence_evidence": "Official designated smoking inventory and smoking-labeled publisher map CSV. Fresh raw:771 rows,79 smoking-title rows=76 exact category13007003000+3 parent13007000000. All79 supplied lat/lng pairs pass Japan numeric range check; coordinate semantics/CRS not explicitly established.",
+      "operation_evidence": {
+        "status": "partial_review_required",
+        "page_date": "2026-10-02",
+        "detail": "Fresh HTML has79 h4 site headings. Seven whole-site indefinite suspensions, one dated inspection whose possible extension remains unresolved, one paper-cigarette restriction, and a relocated/reopened GS parking site. No automatic currently-operating subset; prior72 exact/7 nonexact name correspondence remains historical and is not a fresh match approval."
+      },
+      "location_availability": {
+        "publisher_point": "79 candidate numeric pairs; unchanged SHA from prior review; row identity/relocation and semantics require review",
+        "address": "Current inventory supplies addresses",
+        "area_anchor": "No separately reviewed same-publication area point; unrelated licensed park CSV cannot anchor this unlicensed smoking release under v1",
+        "derived": "Not needed for valid publisher rows; no geocoding performed"
+      },
+      "rights": {
+        "verdict": "not_established_for_exact_smoking_resource",
+        "reuse": "Ordinary site restricts unauthorized republication/adaptation beyond statutory exceptions. No project reuse grant found.",
+        "modification": "Requires permission for ordinary site; CC BY4 modification grant scoped to listed open data only.",
+        "redistribution": "No permission established for smoking CSV or smoking HTML.",
+        "commercial_use": "Open-data page permits commercial reuse only inside its scope; ordinary smoking resource not covered.",
+        "attribution": "No sufficient licensed basis for smoking resource. If later catalog-covered, PDF asks title, Chuo, CC BY4 URL and modification notice for app/database.",
+        "storage_api_tile_db": "Publication/storage/reformatting rights for exact resource unresolved; unauthorized republication/adaptation restriction conflicts with intended project use without a grant.",
+        "scope": "PDF opening defines listed open-data page, and section3 limits precedence to that site. Current35-row catalog has zero smoking labels and no map_data.csv. General website coverage includes text/PDF/other data."
+      },
+      "classification": [
+        "E"
+      ],
+      "exact_blocker": "Exact resource reuse permission absent; per-row current operation, relocation and point semantics remain review items. C is not a claim that rights are the only blocker for all79.",
+      "onboarding_readiness": "BLOCKED",
+      "rights_blocker_resolved": false,
+      "location_lane": "publisherPoint_candidate_only",
+      "next_action": "Ask health-policy publisher and policy-planning open-data owner to explicitly cover smoking CSV/HTML, normalization, DB retention, commercial API/tile redistribution and attribution; reconcile suspended/relocated rows after permission. No inquiry sent.",
+      "retrieval_receipts": [
+        {
+          "url": "https://www.city.chuo.lg.jp/shisetsu/map/sonota/index.html",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:31.889462+00:00",
+          "sha256": "f578abc79b2813f3cc95dfd38d316692e90b1a7b09eacf63d729b1c8039ce7b2",
+          "bytes": 14255,
+          "last_modified": "Thu, 30 Jul 2026 10:36:53 GMT"
+        },
+        {
+          "url": "https://www.city.chuo.lg.jp/shared/system/js/maps/prev_csv_gmap2.js",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:33.059209+00:00",
+          "sha256": "2bf4bc4c4eb623a74018b18412071f33e21e70818caf453c7819e8c0b0af13fb",
+          "bytes": 20138,
+          "last_modified": "Thu, 26 Jan 2023 04:06:35 GMT"
+        },
+        {
+          "url": "https://www.city.chuo.lg.jp/shisetsu/chizu/csv/map_data.csv",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:34.222031+00:00",
+          "sha256": "fa01ff6cd368dc32da68eca0148ca43ee31e8c823e5e8d0a692afc35d5edcbfe",
+          "bytes": 177844,
+          "last_modified": "Tue, 29 Sep 2026 15:31:12 GMT"
+        },
+        {
+          "url": "https://www.city.chuo.lg.jp/documents/984/open_data_list.csv",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:35.357229+00:00",
+          "sha256": "dd8a75fc39a5220fc0c65aca886284113b3caa8d8993d2137181e20cdf96bef3",
+          "bytes": 7150,
+          "last_modified": "Wed, 30 Sep 2026 02:15:06 GMT"
+        },
+        {
+          "url": "https://www.city.chuo.lg.jp/kusei/gaiyou/toukeidate/opendata.html",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:36.495044+00:00",
+          "sha256": "a3bd5a0b51d916a1db196c06b9ac5214ca24c2bd452fa53195a92b945bda2a47",
+          "bytes": 25271,
+          "last_modified": "Wed, 30 Sep 2026 02:15:06 GMT"
+        },
+        {
+          "url": "https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:37.653103+00:00",
+          "sha256": "84a2dd309de8aeb7696ffe9a7977c9ec56b27fd8a9cf666ae7763fcf5a4cc62c",
+          "bytes": 24047,
+          "last_modified": "Fri, 31 Jul 2026 00:00:13 GMT"
+        },
+        {
+          "url": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html",
+          "status": 200,
+          "checked_at": "2026-10-03T16:30:38.805773+00:00",
+          "sha256": "ce221dfe3716bd8d21f2d64f621e91faa9e497315e2eaca0923d78a1599614d9",
+          "bytes": 43744,
+          "last_modified": "Thu, 01 Oct 2026 15:31:02 GMT"
+        }
+      ],
+      "rights_blocked": true
+    },
+    {
+      "id": "city-hiroshima",
+      "name": "広島市",
+      "official_url": "https://www.city.hiroshima.lg.jp/living/gomi-kankyo/1021281/1037470/1024206.html",
+      "resource_urls": [
+        "https://www.city.hiroshima.lg.jp/living/gomi-kankyo/1021281/1037470/1024206.html",
+        "https://hiroshima-opendata.dataeye.jp/resources/10099"
+      ],
+      "terms_urls": [
+        "https://www.city.hiroshima.lg.jp/about/1010662.html",
+        "https://www.city.hiroshima.lg.jp/shisei/gyosei/1021856/1006054/1027540/1018959.html"
+      ],
+      "existence_evidence": "Official page lists six smoking booths, specifically established as smoking locations, not inferred from park existence.",
+      "operation_evidence": "Live official list checked; page updated 2025-02-16 describes six installed booths and user rules, with warning individual booths may close if manners do not improve. No current closure notice on list.",
+      "location_availability": {
+        "publisher_points": false,
+        "addresses": "Six park/street/block descriptions; not exact booth coordinates",
+        "area_anchor": "Official park/green-space open-data resource 10099 discovered through city park OD page, but individual matching anchor coordinates and rights not yet reviewed; no accepted anchor."
+      },
+      "rights": {
+        "reuse": "No established permission for smoking page",
+        "modification": "Ordinary terms expressly restrict unauthorized modification",
+        "redistribution": "Ordinary terms expressly restrict unauthorized copying/republication/printing distribution",
+        "commercial": "Ordinary terms restrict unauthorized sale; commercial database permission not established",
+        "attribution": "No reusable smoking dataset license established",
+        "storage_conflicts": "Broad ordinary-site use/copy/republication restrictions conflict with assuming database/API/tile permission",
+        "scope": "Ordinary site-wide terms apply unless special terms. OD terms cover OD site data/linked data and do not automatically cover smoking page. Municipal OD inventory delegates exact license review to resource metadata."
+      },
+      "classification": [
+        "D"
+      ],
+      "blockers": [
+        "Explicit permission / exact OD listing for smoking inventory required",
+        "No reviewed reusable smoking point or matched area representative anchor"
+      ],
+      "derived_candidate": "Addresses can be revisited only after smoking-inventory rights resolution and ADR-0011 approval; not currently ready",
+      "checked_at": "2026-10-03T16:32:12.078711+00:00",
+      "review_scope": "Bounded review of exact official smoking inventory and site/OD terms, not a jurisdiction-wide absence claim",
+      "priority": "P1",
+      "onboarding_readiness": "BLOCKED",
+      "rights_blocker_resolved": false,
+      "exact_blocker": "Explicit permission / exact OD listing for smoking inventory required; No reviewed reusable smoking point or matched area representative anchor",
+      "rights_blocked": true,
+      "location_lane": "address_only_conditional_derived"
+    },
+    {
+      "id": "city-kawasaki",
+      "name": "川崎市",
+      "official_url": "https://www.city.kawasaki.jp/kurashi/category/262-2-4-0-0-0-0-0-0-0.html",
+      "resource_urls": [
+        "https://www.city.kawasaki.jp/kurashi/category/262-2-4-0-0-0-0-0-0-0.html"
+      ],
+      "terms_urls": [
+        "https://www.city.kawasaki.jp/main/site_policy/0000000027.html",
+        "https://www.city.kawasaki.jp/170/cmsfiles/contents/0000057/57493/kawasakiod_rules.pdf"
+      ],
+      "existence_evidence": "Official table explicitly lists 12 designated smoking locations installed by city, rather than host-only evidence.",
+      "operation_evidence": "Live page checked; update 2025-08-07; current 12-site list and ongoing instructions request use of designated sites. No closure indication in table.",
+      "location_availability": {
+        "publisher_points": false,
+        "addresses": "12 street/block/relative-address rows including stairs, deck and station plazas; numeric smoking coordinates absent",
+        "area_anchor": "No reviewed reusable representative point established. Station/building points cannot become publisherPoint."
+      },
+      "rights": {
+        "reuse": "No established permission for smoking page",
+        "modification": "Site reuse request clause expressly conditions use on contents remaining unmodified",
+        "redistribution": "Unauthorized copying/republication forbidden; advance contact requested",
+        "commercial": "No commercial permission for smoking page established",
+        "attribution": "If exact smoking data enters OD list: title, Kawasaki city, CC BY 2.1 JP link; modified works require modification attribution",
+        "storage_conflicts": "Ordinary-site no-copy and no-modification conditions cannot be assumed compatible with transformed database/API/tile outputs",
+        "scope": "OD PDF explicitly applies to datasets listed on Kawasaki OD list, with exceptions. CC BY 2.1 permits modified database use for those datasets, but current smoking page catalog inclusion not established."
+      },
+      "classification": [
+        "D"
+      ],
+      "blockers": [
+        "Explicit permission or smoking inventory OD listing required; must permit modification, commercial storage and redistribution",
+        "No reviewed reusable location point/area anchor"
+      ],
+      "derived_candidate": "Address candidates only after rights resolution and ADR-0011 approval; not ready",
+      "checked_at": "2026-10-03T16:32:12.078774+00:00",
+      "review_scope": "Bounded review of exact official smoking inventory and site/OD terms, not a jurisdiction-wide absence claim",
+      "access_update": "Prior category_8/category_10 404 observations remain historical; both returned HTTP 200 on this review. Public facilities list six items, environment four; neither category lists smoking inventory.",
+      "priority": "P1",
+      "onboarding_readiness": "BLOCKED",
+      "rights_blocker_resolved": false,
+      "exact_blocker": "Explicit permission or smoking inventory OD listing required; must permit modification, commercial storage and redistribution; No reviewed reusable location point/area anchor",
+      "rights_blocked": true,
+      "location_lane": "address_only_conditional_derived"
+    },
+    {
+      "checked_at": "2026-10-03T16:30:50+00:00",
+      "classification": [
+        "D",
+        "E"
+      ],
+      "onboarding_readiness": "BLOCKED",
+      "exact_blocker": "Ordinary smoking publication has no established permission for storage, modification and API/tile/database redistribution; no adopted publisher coordinates or reviewed reusable same-publication numerical area/host anchor. Public seven-site list has a latest-condition disclaimer and requires individual current-operation confirmation; the separate five subsidized rooms have explicit current-operation wording.",
+      "location_availability": {
+        "publisher_point": false,
+        "address": true,
+        "reviewed_reusable_same_publication_anchor": false,
+        "areaApproximate_ready": false,
+        "derived_candidate": "Only after applicable permission is established and ADR-0011 is approved; no geocoding or activation performed.",
+        "detail": "Public locations have street/block/address-area references and diagrams; subsidized five have street addresses, some building/floor details. No publisher numerical points inspected."
+      },
+      "official_url": "https://www.city.shinjuku.lg.jp/seikatsu/file11_01_00003.html",
+      "resource_urls": [
+        "https://www.city.shinjuku.lg.jp/seikatsu/file11_01_00003.html",
+        "https://www.city.shinjuku.lg.jp/kenkou/eisei01_000001_00005.html"
+      ],
+      "terms_urls": [
+        "https://www.city.shinjuku.lg.jp/kusei/about.html",
+        "https://www.city.shinjuku.lg.jp/opendata/opendata_top.html"
+      ],
+      "existence_evidence": "Seven named public smoking locations and five subsidized public smoking rooms are explicitly listed by the ward.",
+      "operation_evidence": "Subsidized list updated 2026-03-30 expressly identifies the five rooms as currently operating, with hours and closure qualifications; public list updated 2024-08-05 and warns latest conditions may differ.",
+      "rights": {
+        "verdict": "Explicit permission required for ordinary smoking publication; no rights blocker resolved",
+        "reuse": "Not granted for intended product use",
+        "modification": "Not established; ordinary unauthorized secondary use restricted",
+        "redistribution": "Not established; ordinary unauthorized reproduction/distribution restricted",
+        "commercial_use": "Not granted for intended product use",
+        "attribution": "No smoking-data attribution license established; credit alone is not permission",
+        "storage_redistribution_conflicts": "Website terms reserve content rights; reproduction/download limited to individual noncommercial purposes, and modification/distribution/publication need prior permission.",
+        "scope": "CC BY 2.1 Japan applies only listed open-data catalog datasets, not all site content. Re-fetched catalog CSV https://www.city.shinjuku.lg.jp/content/000428573.csv (51357 bytes, CP932); no 喫煙/たばこ/タバコ matches."
+      },
+      "name": "新宿区",
+      "id": "ward-shinjuku",
+      "priority": "P1",
+      "rights_blocker_resolved": false,
+      "rights_blocked": true,
+      "location_lane": "address_only_conditional_derived"
+    },
+    {
+      "checked_at": "2026-10-03T16:30:50+00:00",
+      "classification": [
+        "D"
+      ],
+      "onboarding_readiness": "BLOCKED",
+      "exact_blocker": "Ordinary smoking publication has no established permission for storage, modification and API/tile/database redistribution; no adopted publisher coordinates or reviewed reusable same-publication numerical area/host anchor.",
+      "location_availability": {
+        "publisher_point": false,
+        "address": true,
+        "reviewed_reusable_same_publication_anchor": false,
+        "areaApproximate_ready": false,
+        "derived_candidate": "Only after applicable permission is established and ADR-0011 is approved; no geocoding or activation performed.",
+        "detail": "Street addresses and some building/floor details; geography links point to Google Maps and are excluded from canonical numerical anchors."
+      },
+      "official_url": "https://www.city.bunkyo.lg.jp/b003/p006762.html",
+      "resource_urls": [
+        "https://www.city.bunkyo.lg.jp/b003/p006762.html",
+        "https://www.city.bunkyo.lg.jp/b037/p005122.html"
+      ],
+      "terms_urls": [
+        "https://www.city.bunkyo.lg.jp/b003/p006007/index.html",
+        "https://www.city.bunkyo.lg.jp/b004/p006749.html",
+        "https://www.city.bunkyo.lg.jp/documents/9212/20201214171329.pdf"
+      ],
+      "existence_evidence": "Two designated smoking sites plus six explicitly described subsidized indoor smoking rooms. Host existence is not used as smoking evidence.",
+      "operation_evidence": "Indoor list updated 2026-06-22 gives opening/start dates, hours and day/temporary-closure qualifications for six rooms. General facility list dated 2024-01-24 has two designated locations.",
+      "rights": {
+        "verdict": "Explicit permission required for ordinary smoking publication; no rights blocker resolved",
+        "reuse": "Not granted for intended product use",
+        "modification": "Not established; ordinary unauthorized secondary use restricted",
+        "redistribution": "Not established; ordinary unauthorized reproduction/distribution restricted",
+        "commercial_use": "Not granted for intended product use",
+        "attribution": "No smoking-data attribution license established; credit alone is not permission",
+        "storage_redistribution_conflicts": "Website policy updated 2026-04-16 prohibits unauthorized usage/reposting/secondary use and directs requests to each page contact.",
+        "scope": "Test open-data portal lists CC BY4 and open-data terms, but inspected HTML has no smoking entries. No dataset license established for ordinary smoking pages. Linked terms PDF was not readable through web fetch; no claim that it covers ordinary site content."
+      },
+      "name": "文京区",
+      "id": "ward-bunkyo",
+      "priority": "P1",
+      "rights_blocker_resolved": false,
+      "rights_blocked": true,
+      "location_lane": "address_only_conditional_derived"
+    },
+    {
+      "checked_at": "2026-10-03T16:30:50+00:00",
+      "classification": [
+        "D"
+      ],
+      "onboarding_readiness": "BLOCKED",
+      "exact_blocker": "Ordinary smoking publication has no established permission for storage, modification and API/tile/database redistribution; no adopted publisher coordinates or reviewed reusable same-publication numerical area/host anchor.",
+      "location_availability": {
+        "publisher_point": false,
+        "address": true,
+        "reviewed_reusable_same_publication_anchor": false,
+        "areaApproximate_ready": false,
+        "derived_candidate": "Only after applicable permission is established and ADR-0011 is approved; no geocoding or activation performed.",
+        "detail": "Takashimadaira eight-chome block2; Narimasu two-chome block12; diagrams/photos. No adopted numerical publisher coordinates or anchor."
+      },
+      "official_url": "https://www.city.itabashi.tokyo.jp/bousai/kougai/bika/kitsuen/1019824.html",
+      "resource_urls": [
+        "https://www.city.itabashi.tokyo.jp/bousai/kougai/bika/kitsuen/1019824.html"
+      ],
+      "terms_urls": [
+        "https://www.city.itabashi.tokyo.jp/kusei/kouhou/about/index.html",
+        "https://www.city.itabashi.tokyo.jp/kusei/joho/sisetsu/1031246.html"
+      ],
+      "existence_evidence": "Two public smoking rooms explicitly installed to prevent secondhand exposure: Takashimadaira and Narimasu station south exit EXA FIRST.",
+      "operation_evidence": "List updated 2024-03-28 states ward/private operators, opening dates and daily usable hours (07:00–20:00;10:00–22:30). Page remains accessible; no fetched-date-as-observation inference.",
+      "rights": {
+        "verdict": "Explicit permission required for ordinary smoking publication; no rights blocker resolved",
+        "reuse": "Not granted for intended product use",
+        "modification": "Not established; ordinary unauthorized secondary use restricted",
+        "redistribution": "Not established; ordinary unauthorized reproduction/distribution restricted",
+        "commercial_use": "Not granted for intended product use",
+        "attribution": "No smoking-data attribution license established; credit alone is not permission",
+        "storage_redistribution_conflicts": "Ordinary site policy prohibits unauthorized reproduction/repurposing except statutory exceptions.",
+        "scope": "GIS open-data page updated 2026-02-04 licenses only specified section data under CC BY4; list has no smoking category. Existing unrelated host points cannot supply smoking existence or automatically become same-publication anchors."
+      },
+      "name": "板橋区",
+      "id": "ward-itabashi",
+      "priority": "P1",
+      "rights_blocker_resolved": false,
+      "rights_blocked": true,
+      "location_lane": "address_only_conditional_derived"
+    },
+    {
+      "name": "MLIT Shinjuku R2",
+      "official_url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2",
+      "resource_urls": [
+        "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2/resource/f78d039e-7bb6-4b6a-9f5f-2b5a39e309d6",
+        "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2/resource/33e78a35-c16a-4746-b451-47c6122ed51b"
+      ],
+      "access": "Fresh web dataset open 403; host stopped; no registration/authentication attempted",
+      "classification": [
+        "H",
+        "E",
+        "G"
+      ],
+      "operation_evidence": "No actual feature matched to current operation",
+      "onboarding_readiness": "BLOCKED",
+      "id": "national-mlit-indoor",
+      "priority": "P2",
+      "checked_at": "2026-10-03T16:32:00Z",
+      "location_availability": {
+        "detail": "Specification F024 smoking representative Point is schema only; actual geometry/count remains unknown",
+        "publisher_point_accepted": false,
+        "same_publication_anchor_accepted": false
+      },
+      "existence_evidence": "Actual archive smoking feature unknown; F024 schema is not existence evidence.",
+      "exact_blocker": "Fresh web dataset open 403; host stopped; no registration/authentication attempted; Prior exact dataset terms GST2.0/CC BY4.0 retained; no fresh archive-specific rights inspection possible; Specification F024 smoking representative Point is schema only; actual geometry/count remains unknown",
+      "rights_blocker_resolved": false,
+      "rights": {
+        "verdict": "Prior exact dataset terms GST2.0/CC BY4.0 retained; no fresh archive-specific rights inspection possible",
+        "reuse": "Not established for acquired smoking resource",
+        "modification": "Not established for exact smoking resource",
+        "redistribution": "Not established for exact smoking resource",
+        "commercial_use": "Not established for exact smoking resource",
+        "attribution": "Exact selected-resource attribution must be reviewed; no permission inferred",
+        "storage_api_tile_db": "No scoped storage/redistribution permission established for inspected smoking payload",
+        "scope": "Exact archive/layer scope unknown"
+      },
+      "location_lane": "unknown_archive_geometry",
+      "terms_urls": [
+        "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2/resource/e3b28fde-5546-4c9d-956b-69363d707835"
+      ],
+      "terms_evidence_freshness": "Historical 2026-10-01 review only; fresh host403"
+    },
+    {
+      "name": "Suginami GIS / ordinary official smoking list",
+      "official_url": "https://www.city.suginami.tokyo.jp/s102/688.html",
+      "resource_urls": [
+        "https://suginami.geocloud.jp/"
+      ],
+      "terms_urls": [
+        "https://www.city.suginami.tokyo.jp/about/17.html",
+        "https://www.city.suginami.tokyo.jp/s005/8444.html",
+        "https://www.city.suginami.tokyo.jp/documents/8444/opdata-riyoukiyaku.pdf"
+      ],
+      "access": "Fresh GIS web open 403 host stopped; official ordinary HTML and open-data PDF readable",
+      "classification": [
+        "H",
+        "G",
+        "D"
+      ],
+      "operation_evidence": "Official page updated 2025-04-01 presents six station-front and two indoor smoking places with opening times for indoor facilities",
+      "onboarding_readiness": "BLOCKED",
+      "id": "ward-suginami",
+      "priority": "P2",
+      "checked_at": "2026-10-03T16:32:00Z",
+      "location_availability": {
+        "detail": "Six station-side anchors and two street addresses; no reviewed reusable numeric Point/area anchor acquired",
+        "publisher_point_accepted": false,
+        "same_publication_anchor_accepted": false
+      },
+      "existence_evidence": "Official page updated 2025-04-01 presents six station-front and two indoor smoking places with opening times for indoor facilities",
+      "exact_blocker": "Fresh GIS web open 403 host stopped; official ordinary HTML and open-data PDF readable; Ordinary website unauthorized reproduction/modification restricted. CC BY4.0 terms cover published open data, not established for smoking HTML or inaccessible GIS smoking layer; Six station-side anchors and two street addresses; no reviewed reusable numeric Point/area anchor acquired",
+      "rights_blocker_resolved": false,
+      "rights": {
+        "verdict": "Ordinary website unauthorized reproduction/modification restricted. CC BY4.0 terms cover published open data, not established for smoking HTML or inaccessible GIS smoking layer",
+        "reuse": "Not established for acquired smoking resource",
+        "modification": "Not established for exact smoking resource",
+        "redistribution": "Not established for exact smoking resource",
+        "commercial_use": "Not established for exact smoking resource",
+        "attribution": "Open data requires name, Suginami publisher, CC BY4.0 URL and change notice; must not imply ward-created modified output",
+        "storage_api_tile_db": "No scoped storage/redistribution permission established for inspected smoking payload",
+        "scope": "Open-data permission does not automatically cover ordinary website smoking publication"
+      },
+      "location_lane": "unreviewed_area_or_address_lead"
+    },
+    {
+      "name": "Yamanashi prefectural office smoking places",
+      "official_url": "https://www.pref.yamanashi.jp/chosya/",
+      "resource_urls": [
+        "https://www.pref.yamanashi.jp/documents/99075/kituenjyo.pdf"
+      ],
+      "terms_urls": [
+        "https://www.pref.yamanashi.jp/info/howto_site.html",
+        "https://www.pref.yamanashi.jp/opendata/kiyaku.html"
+      ],
+      "access": "Web surfaced primary official HTML (crawl 4 months old) and PDF (11 months old). Fresh normal urllib GET at 2026-10-03T16:30:53.117729Z returned403; direct host stopped. Terms primary web crawl available; direct access not claimed restored",
+      "classification": [
+        "H",
+        "G",
+        "D",
+        "E"
+      ],
+      "operation_evidence": "Cached primary page updated2025-12-03 says outside-annex room abolished/moved2024-02-19 to north-annex floor6 shared with staff. Linked PDF R6.2.19 labels roof access beside floor6 lift hall, weekdays07:30–17:30; old location unavailable. Current fresh operation requires verification",
+      "onboarding_readiness": "BLOCKED / REVIEW REQUIRED",
+      "id": "pref-yamanashi",
+      "priority": "P2",
+      "checked_at": "2026-10-03T16:32:00Z",
+      "location_availability": {
+        "detail": "Same publication gives north-annex floor6/roof anchor; county-office street address only site footer is host address, not numeric smoking Point or reviewed reusable representative anchor",
+        "publisher_point_accepted": false,
+        "same_publication_anchor_accepted": false
+      },
+      "existence_evidence": "Cached primary page updated2025-12-03 says outside-annex room abolished/moved2024-02-19 to north-annex floor6 shared with staff. Linked PDF R6.2.19 labels roof access beside floor6 lift hall, weekdays07:30–17:30; old location unavailable. Current fresh operation requires verification",
+      "exact_blocker": "Web surfaced primary official HTML (crawl 4 months old) and PDF (11 months old). Fresh normal urllib GET at 2026-10-03T16:30:53.117729Z returned403; direct host stopped. Terms primary web crawl available; direct access not claimed restored; General site terms restrict unauthorized reuse; page-specific exception permitted but none established. Open-data terms scope explicitly platform/catalog data; cannot extend to ordinary /chosya/ PDF; Same publication gives north-annex floor6/roof anchor; county-office street address only site footer is host address, not numeric smoking Point or reviewed reusable representative anchor",
+      "rights_blocker_resolved": false,
+      "rights": {
+        "verdict": "General site terms restrict unauthorized reuse; page-specific exception permitted but none established. Open-data terms scope explicitly platform/catalog data; cannot extend to ordinary /chosya/ PDF",
+        "reuse": "Not established for acquired smoking resource",
+        "modification": "Open-data scope permits edits with change notice, but no applicability to smoking resource established",
+        "redistribution": "Open-data scope CC BY4.0-compatible, not established for smoking resource",
+        "commercial_use": "Explicitly allowed within designated open-data scope only",
+        "attribution": "Exact selected-resource attribution must be reviewed; no permission inferred",
+        "storage_api_tile_db": "Ordinary website reuse restriction unresolved for DB/API/tile use; written permission or exact open-data designation required",
+        "scope": "Open-data permission does not automatically cover ordinary website smoking publication"
+      },
+      "location_lane": "unreviewed_area_or_address_lead"
+    }
+  ]
+}
