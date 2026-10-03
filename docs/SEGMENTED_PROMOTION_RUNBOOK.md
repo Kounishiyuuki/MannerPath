@@ -143,9 +143,10 @@ and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after it
 continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
 are never reassembled into one promotion SQL statement.
 
-ADR-0017 (migration 0030): v4 also carries `area_location_anchors`, `area_precision_upgrades` and
-`spot_location_anchors` for published spots, right after `spots` (bindings must precede the area-anchor location
+ADR-0017 (migration 0030): v4 also carries `area_location_anchors`, `area_precision_upgrades`,
+`spot_location_anchors` and `spot_location_authorities` (the whole chain) for published spots, right after `spots` (bindings must precede the area-anchor location
 provenance they justify). An anchor or binding may cite an earlier release than the one promoted; those columns are
 attestations accepted only while the bootstrap is open. The per-part tile validator reads each spot's location-state
 closure, so `areaApproximate` and upgraded bodies are rebuilt from canonical state. `area_anchor_relocation_deltas` is a
-runtime relocation audit and stays in the origin database.
+runtime relocation audit and stays in the origin database. The v3/v4 completion refuses to seal while a carried spot is
+not exactly its latest location authority.

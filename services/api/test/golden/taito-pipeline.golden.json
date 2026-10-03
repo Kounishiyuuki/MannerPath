@@ -166,6 +166,7 @@
         "area_location_anchors": 0,
         "area_precision_upgrades": 0,
         "spot_location_anchors": 0,
+        "spot_location_authorities": 0,
         "spot_source_entities": 32,
         "spot_field_provenance": 162,
         "spot_field_attenuations": 6,
@@ -173,9 +174,9 @@
         "tile_snapshot_parts": 5,
         "tile_snapshot_spots": 32
       },
-      "contentSha256": "b9a143c3f73bb27d06973653722866e5ebba4a6cb7bd4e03bc8f4306c9f40b8d"
+      "contentSha256": "98ff60d8d125eb4c6ad9d2575b8e329371061fff9bcbcff6044a531aea0b1802"
     },
-    "sqlSha256": "e0048f64500f7d37b1be945326ba1995844ba38af04bfae6dd908b51e6be83a9"
+    "sqlSha256": "286b61fda21410a7c927b559e03909aa7043455fbb1fa038ea2eeb77eb875901"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",
@@ -6803,6 +6804,7 @@
       }
     ],
     "spot_location_anchors": [],
+    "spot_location_authorities": [],
     "spot_source_entities": [
       {
         "source_entity_id": 1,

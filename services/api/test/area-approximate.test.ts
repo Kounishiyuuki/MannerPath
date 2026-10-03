@@ -148,9 +148,9 @@ test("an anchor cannot be recorded from an unapproved source or for a record out
   const row = one(db, "SELECT * FROM area_location_anchors")!;
   const insert = (o: Row) => db.raw.prepare(`INSERT INTO area_location_anchors (${Object.keys(o).join(", ")}) VALUES (${Object.keys(o).map(() => "?").join(", ")})`).run(...Object.values(o));
   const fresh = { ...row, anchor_id: "aa_two", evidence_sha256: "b".repeat(64) };
-  assert.throws(() => insert({ ...fresh, origin_record_values_json: '["P1","偽の公園","","35","139","area"]' }), /its own reviewed publication/);
-  assert.throws(() => insert({ ...fresh, origin_release_content_sha256: "c".repeat(64) }), /its own reviewed publication/);
-  assert.throws(() => insert({ ...fresh, origin_record_id: 2 }), /its own reviewed publication/);
+  assert.throws(() => insert({ ...fresh, origin_record_values_json: '["P1","偽の公園","","35","139","area"]' }), /its own reviewed publication|does not state this area point/);
+  assert.throws(() => insert({ ...fresh, origin_release_content_sha256: "c".repeat(64) }), /its own reviewed publication|does not state this area point/);
+  assert.throws(() => insert({ ...fresh, origin_record_id: 2 }), /its own reviewed publication|does not state this area point/);
   db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(sourceId);
   assert.throws(() => insert(fresh), /approved \(rights-reviewed\)/);
 });
@@ -165,7 +165,7 @@ test("INSERT OR REPLACE cannot rewrite an anchor, a binding or an upgrade, with 
   const anchor = one(db, "SELECT * FROM area_location_anchors")!;
   const binding = one(db, "SELECT * FROM spot_location_anchors")!;
   const replace = (table: string, o: Row) => db.raw.prepare(`INSERT OR REPLACE INTO ${table} (${Object.keys(o).join(", ")}) VALUES (${Object.keys(o).map(() => "?").join(", ")})`).run(...Object.values(o));
-  assert.throws(() => replace("area_location_anchors", { ...anchor, latitude: 35.7 }), /immutable/, "same primary key");
+  assert.throws(() => replace("area_location_anchors", { ...anchor, latitude: 35.7 }), /immutable|does not state this area point/, "same primary key");
   assert.throws(() => replace("area_location_anchors", { ...anchor, anchor_id: "aa_other" }), /immutable/, "same unique evidence digest");
   assert.throws(() => replace("spot_location_anchors", { ...binding, bound_at: "2026-10-30T00:00:00Z" }), /immutable/, "active binding");
   assert.throws(() => replace("spot_location_anchors", { ...binding, anchor_id: anchor.anchor_id, record_id: 999 }), /immutable|same release/);
@@ -175,7 +175,7 @@ test("INSERT OR REPLACE cannot rewrite an anchor, a binding or an upgrade, with 
   assert.throws(() => db.raw.prepare("UPDATE area_location_anchors SET latitude = 35").run(), /immutable/);
   assert.throws(() => db.raw.prepare("DELETE FROM area_location_anchors").run(), /immutable/);
   // Coordinate mismatch by REPLACE of the spot's pin: refused by the anchored-pin guard and ADR-0009's.
-  assert.throws(() => db.raw.prepare("UPDATE spots SET latitude = ? WHERE spot_id = ?").run(35.7, spot.spot_id), /area-anchored spot|reviewed relocation application/);
+  assert.throws(() => db.raw.prepare("UPDATE spots SET latitude = ? WHERE spot_id = ?").run(35.7, spot.spot_id), /area-anchored spot|location authority|reviewed relocation application/);
   assert.deepEqual(one(db, "SELECT * FROM area_location_anchors"), anchor);
   assert.deepEqual(one(db, "SELECT * FROM spot_location_anchors"), binding);
 });
@@ -185,12 +185,13 @@ test("INSERT OR REPLACE cannot rewrite an anchor, a binding or an upgrade, with 
 
 test("tampered location state is never published or served (tile and detail share one invariant)", async () => {
   const scenarios: [string, (db: SqliteD1, spotId: string) => void][] = [
-    ["location provenance deleted", (db, id) => db.raw.prepare("DELETE FROM spot_field_provenance WHERE spot_id = ? AND field = 'location'").run(id)],
-    ["provenance names another anchor", (db, id) => withoutTrigger(db.raw, "spot_field_provenance_area_anchor_update",
+    ["location provenance deleted", (db, id) => withoutTrigger(db.raw, "spot_field_provenance_location_authority_delete",
+      () => db.raw.prepare("DELETE FROM spot_field_provenance WHERE spot_id = ? AND field = 'location'").run(id))],
+    ["provenance names another anchor", (db, id) => withoutTrigger(db.raw, "spot_field_provenance_location_authority_update",
       () => db.raw.prepare("UPDATE spot_field_provenance SET rule = 'area-anchor.v1:aa_other' WHERE spot_id = ? AND field = 'location'").run(id))],
-    ["non-anchor rule with an active binding", (db, id) => withoutTrigger(db.raw, "spot_field_provenance_area_anchor_update",
+    ["non-anchor rule with an active binding", (db, id) => withoutTrigger(db.raw, "spot_field_provenance_location_authority_update",
       () => db.raw.prepare("UPDATE spot_field_provenance SET rule = 'test.point.v1' WHERE spot_id = ? AND field = 'location'").run(id))],
-    ["coordinate is not the anchor", (db, id) => withoutTrigger(db.raw, "spots_anchored_coordinate_fixed", () => withoutTrigger(db.raw,
+    ["coordinate is not the anchor", (db, id) => withoutTrigger(db.raw, "spots_location_authority_coordinate", () => withoutTrigger(db.raw,
       "spots_coordinate_requires_relocation_application", () => withoutTrigger(db.raw, "spots_published_stay_publishable",
         () => db.raw.prepare("UPDATE spots SET latitude = 35.71551 WHERE spot_id = ?").run(id))))],
     ["binding outside the anchor's publication", (db, id) => {
@@ -216,11 +217,21 @@ test("tampered location state is never published or served (tile and detail shar
     assert.equal((await detail(db, id)).status, 404, `${name}: not served`);
   }
   // The decision itself, both directions.
-  const base = { latitude: 1, longitude: 2, location_rule: "area-anchor.v1:aa_x", location_source_id: "s", lb_anchor_id: "aa_x", lb_release_sha256: "r",
-    la_anchor_id: "aa_x", la_source_id: "s", la_latitude: 1, la_longitude: 2, la_area_name: "公園", la_area_kind: "park", la_release_sha256: "r" };
+  const base = { latitude: 1, longitude: 2, location_rule: "area-anchor.v1:aa_x", location_record_id: 1, location_columns_json: '["area"]',
+    location_source_id: "s", lb_anchor_id: "aa_x", lb_release_sha256: "r",
+    la_anchor_id: "aa_x", la_source_id: "s", la_latitude: 1, la_longitude: 2, la_area_name: "公園", la_area_kind: "park", la_release_sha256: "r",
+    lau_precision: "areaApproximate", lau_anchor_id: "aa_x", lau_source_id: "s", lau_record_id: 1, lau_rule: "area-anchor.v1:aa_x",
+    lau_columns_json: '["area"]', lau_latitude: 1, lau_longitude: 2 };
+  const exact = { ...base, location_rule: "test.point.v1", location_record_id: 7, location_columns_json: '["lat","lon"]',
+    lu_anchor_id: "aa_x", lu_precision: "publisherPoint", lau_precision: "publisherPoint", lau_record_id: 7, lau_rule: "test.point.v1", lau_columns_json: '["lat","lon"]' };
   assert.equal(locationState(base).kind, "areaApproximate");
-  assert.equal(locationState({ ...base, lu_anchor_id: "aa_x", lu_precision: "publisherPoint", lu_source_id: "s", lu_rule: "test.point.v1", lu_latitude: 1, lu_longitude: 2 }).kind, "invalid", "an upgrade without its exact evidence");
-  assert.equal(locationState({ ...base, location_rule: "test.point.v1", lu_anchor_id: "aa_x", lu_precision: "publisherPoint", lu_source_id: "s", lu_rule: "test.point.v1", lu_latitude: 1, lu_longitude: 2 }).kind, "upgraded");
+  assert.equal(locationState({ ...base, lu_anchor_id: "aa_x", lu_precision: "publisherPoint" }).kind, "invalid", "an upgrade while the authority is approximate");
+  assert.equal(locationState(exact).kind, "upgraded");
+  assert.equal(locationState({ ...exact, lu_anchor_id: null }).kind, "invalid", "exact authority without its reviewed upgrade");
+  for (const [field, value] of [["location_record_id", 8], ["location_columns_json", '["lon","lat"]'], ["location_rule", "test.other.v1"], ["latitude", 1.5]] as const) {
+    assert.equal(locationState({ ...exact, [field]: value }).kind, "invalid", `published ${field} is not the current authority`);
+  }
+  assert.equal(locationState({ ...base, lau_anchor_id: null, lau_precision: null }).kind, "invalid", "an anchor rule or binding without an authority chain");
   assert.equal(locationState({ ...base, lb_anchor_id: null, la_anchor_id: null }).kind, "invalid", "an anchor rule without a binding");
   assert.equal(locationState({ ...base, la_source_id: "other" }).kind, "invalid", "location evidence from another source");
 });
@@ -241,7 +252,7 @@ test("same-coordinate upgrade: exact-point evidence + reviewed identity; spot ID
     VALUES (?, 'aa_ueno', 'sameCoordinate', 'publisherPoint', 'insideArea', 'test-area-city', 1, ?, ?, ?, 'test-area.map.v1', 'test.point.v1', '["lat","lon"]',
       ?, ?, ?, ?, 1, 1, 'r', 'area-precision-upgrade.v1', 'area-precision-upgrade-application.v1', ?)`)
     .run(before.id, shaA, anchoredObs.record_id, anchoredObs.observation_id, PARK.latitude, PARK.longitude, PARK.latitude, PARK.longitude, NOW),
-    /area_precision_upgrades: (no exact-point observation|not the current|the exact evidence is not|the evidence release is not pending)/);
+    /area_precision_upgrades: (no exact-point observation|not the current|the exact evidence is not|the evidence release is not pending|the review compared another)/);
 
   const b = await nextRelease(db, adapter, ["exactAtAnchor", "exact"], "2026-10-10");
   assert.equal(b.first.status, "needsReview");
@@ -374,6 +385,22 @@ test("the nationwide replay classifier: location eligibility and current operati
     const c = classifyApproximate({ ...base, text });
     assert.equal(c.category, "E-currentOperation", `${text}: never A while closure evidence is unreconciled`);
     assert.equal(c.adr0017RemovesLocationBlocker, true, "location eligibility is recorded separately");
+  }
+  // N1: a current-operation blocker the review left unresolved is E, never counterfactual A (city-sendai's case).
+  for (const code of ["currentOperation", "currentOperationNotEstablished", "currentOperationUnknown"]) {
+    const c = classifyApproximate({ ...base, blockerCodes: [code] });
+    assert.equal(c.category, "E-currentOperation", `${code}: unknown operation is not operating`);
+    assert.equal(c.adr0017RemovesLocationBlocker, true);
+    assert.equal(classifyApproximate({ ...base, blockerCodes: [code, "exactResourceRights"] }).category, "C-rightsBlocked", "rights still come first");
+  }
+  const { readFile } = await import("node:fs/promises");
+  const replay = JSON.parse(await readFile(new URL("../../../docs/research/2026-10-02-approximate-location-replay.json", import.meta.url), "utf8"));
+  const sendai = replay.targets.find((t: { targetId: string }) => t.targetId === "city-sendai");
+  assert.deepEqual([sendai.category, sendai.categoryIfRightsGranted], ["C-rightsBlocked", "E-currentOperation"]);
+  assert.deepEqual(replay.summary.rescuedIfRightsGranted, []);
+  for (const t of replay.targets) {
+    assert.equal(classifyApproximate({ ...t, location: t.locationForm, text: [t.note ?? ""].join(" ") }).category === "A-rescuedByAreaApproximate"
+      && t.blockerCodes.some((c: string) => c.startsWith("currentOperation")), false, `${t.targetId}: unresolved operation never A`);
   }
   assert.equal(classifyApproximate({ ...base, explicitExistence: false, text: "street-smoking prohibited-district policy" }).category, "B-existenceInsufficient");
   assert.equal(classifyApproximate({ ...base, location: "unestablished" }).adr0017RemovesLocationBlocker, false);

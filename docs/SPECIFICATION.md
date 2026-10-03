@@ -238,11 +238,14 @@ document (and ADR) in the same change.
 - [x] `areaApproximate` end to end: migration 0030, resolver/publication, tile/detail DTOs, promotion, quality check
       `area-anchor-never-exact`, iPhone/Watch/widget copy and VoiceOver (ADR-0017 §Implementation).
 - [x] Precision-upgrade path keeping the stable spot ID: exact-point evidence + reviewed identity
-      (`area_precision_upgrades`); any coordinate change stays ADR-0009; anchors bound to their own publication.
+      (`area_precision_upgrades`, current comparison only); any coordinate change stays ADR-0009; anchors bound to their
+      own publication; the per-spot location authority chain (`spot_location_authorities`) carries the current
+      authority through later relocations.
 - [ ] Outside-area and community-pin upgrades (fail closed in v1).
 - [x] Nationwide replay (`docs/research/2026-10-02-approximate-location-replay.md`): nothing rescued today; rights first.
 - [ ] Anchor policy v2: anchors from a separate dataset of the same publisher (with that dataset's attribution in tiles).
-- [ ] Reuse-rights requests for the replay's location-eligible targets (仙台市 park data first: it would be A).
+- [ ] Reuse-rights requests for the replay's location-eligible targets (仙台市 park data first: with rights it stops at E until
+      its current operation is established).
 - [x] Photo evidence ADR: ADR-0016 (technical foundation, disabled by default).
 - [ ] Photo intake prerequisites (ADR-0016): reviewed photo-consent terms version, fenced private storage adapter
       with expiry, deletion scheduler/alerting, Apple production transport, real-device accessibility, Workers

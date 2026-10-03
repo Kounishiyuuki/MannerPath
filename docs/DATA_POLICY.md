@@ -134,8 +134,11 @@ centre labelled as an exact or publisher point. Address geocoding remains govern
 Anchor policy v1 (`area-anchor-policy.v1`, migration 0030) accepts only an anchor stated by the same publication (the
 same release file) as the existence evidence (`reuse_basis = sameReviewedPublication`), so the tile's existing
 attribution covers it, and only through an exact-point evidence upgrade can a spot leave `areaApproximate`; each anchor
-records its publication (release digest, row values), reference, review and policy version, and the quality check
-`area-anchor-never-exact` fails if any published spot's label differs from its location state (ADR-0017).
+records its publication (release digest, row values, mapping version and the columns its point is read from — the
+schema re-reads the point from the raw record), reference, review and policy version. An anchored spot's location
+provenance and coordinate are always exactly its latest location authority (anchor, reviewed exact upgrade, later
+reviewed ADR-0009 relocation or reviewed continuity), all append-only; an upgrade needs a current comparison. The
+quality check `area-anchor-never-exact` fails if any published spot's label differs from its location state (ADR-0017).
 
 Third-party services (Google Maps, Apple Maps, OSM, blogs, other apps, social posts) may be used as discovery leads
 even where their terms forbid reuse; discovery is not provenance and nothing is copied from them into the canonical

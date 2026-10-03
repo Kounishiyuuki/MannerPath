@@ -228,9 +228,9 @@ facility and a reviewed reusable anchor of that area exists, the record is an `a
 whose only content is a host point, with no statement that a smoking place exists there, stays blocked. The replay above
 predates ADR-0017; its ADR-0017 replay is `docs/research/2026-10-02-approximate-location-replay.md`: of 202 replayed
 targets, ADR-0017 removes the location blocker for 21 (39 places stated), but every one is still blocked first by
-unreviewed reuse rights, so none is publishable today. With rights granted, 仙台市 (one park, same-source anchor) would
-be publishable; 18 more need an anchor (policy v2), 7 address-only ones need ADR-0011 and 5 have closure evidence to
-reconcile first.
+unreviewed reuse rights, so none is publishable today. Even with rights granted none reaches A: 仙台市 (one park,
+same-source anchor) and 22 others stop at E (closure evidence, or current operation the review left unresolved —
+unknown is not "operating"), 11 need an anchor (policy v2) and 5 address-only ones need ADR-0011.
 
 Ordering from here:
 

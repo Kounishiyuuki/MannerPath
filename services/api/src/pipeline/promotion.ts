@@ -182,7 +182,7 @@ const TABLES: readonly TableSpec[] = [
     // bundle does not carry, so those columns travel as attested values (0030 checks them while the bootstrap is open)
     // and never as a current release. Bindings precede spot_field_provenance, whose area-anchor rows they justify.
     table: "area_location_anchors",
-    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
+    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_mapping_version", "origin_name_column", "origin_latitude_column", "origin_longitude_column", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
     sql: `SELECT * FROM area_location_anchors WHERE origin_source_id = (${RELEASE_SOURCE})
           AND anchor_id IN (SELECT anchor_id FROM spot_location_anchors WHERE spot_id IN (${PUBLISHED_SPOTS})) ORDER BY anchor_id`,
   },
@@ -196,6 +196,13 @@ const TABLES: readonly TableSpec[] = [
     columns: ["spot_id", "anchor_id", "record_id", "record_release_content_sha256", "resolver_version", "bound_at"],
     sql: `SELECT b.* FROM spot_location_anchors b JOIN area_location_anchors a ON a.anchor_id = b.anchor_id
           WHERE a.origin_source_id = (${RELEASE_SOURCE}) AND b.spot_id IN (${PUBLISHED_SPOTS}) ORDER BY b.spot_id`,
+  },
+  {
+    // The whole location authority chain (history and current authority), in sequence; it must precede the location
+    // provenance, which 0030 requires to equal the latest row.
+    table: "spot_location_authorities",
+    columns: ["spot_id", "seq", "kind", "precision", "anchor_id", "evidence_source_id", "evidence_release_id", "evidence_release_content_sha256", "evidence_record_id", "evidence_observation_id", "mapping_version", "location_rule", "location_columns_json", "latitude", "longitude", "relocation_review_item_id", "recorded_at"],
+    sql: `SELECT * FROM spot_location_authorities WHERE evidence_source_id = (${RELEASE_SOURCE}) AND spot_id IN (${PUBLISHED_SPOTS}) ORDER BY spot_id, seq`,
   },
   {
     table: "spot_source_entities",
@@ -480,22 +487,31 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
   const anchorsById = new Map((rows.get("area_location_anchors") ?? []).map((a) => [String(a.anchor_id), a]));
   const bindings = new Map((rows.get("spot_location_anchors") ?? []).map((b) => [String(b.spot_id), b]));
   const upgrades = new Map((rows.get("area_precision_upgrades") ?? []).map((u) => [String(u.spot_id), u]));
+  const latestAuthority = new Map<string, Row>();
+  for (const a of rows.get("spot_location_authorities") ?? []) {
+    const prev = latestAuthority.get(String(a.spot_id));
+    if (!prev || Number(a.seq) > Number(prev.seq)) latestAuthority.set(String(a.spot_id), a);
+  }
   const locations = new Map((rows.get("spot_field_provenance") ?? []).filter((p) => p.field === "location").map((p) => [String(p.spot_id), p]));
   const releaseSource = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), String(r.source_id)]));
   const recordSource = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), releaseSource.get(Number(r.release_id)) ?? null]));
   const spotsById = new Map(spots.map((s) => {
     if ("location_rule" in s) return [String(s.spot_id), s];
-    const b = bindings.get(String(s.spot_id)), u = upgrades.get(String(s.spot_id)), p = locations.get(String(s.spot_id));
+    const id = String(s.spot_id);
+    const b = bindings.get(id), u = upgrades.get(id), p = locations.get(id), l = latestAuthority.get(id);
     const a = b === undefined ? undefined : anchorsById.get(String(b.anchor_id));
-    return [String(s.spot_id), {
+    return [id, {
       ...s,
-      location_rule: p?.rule ?? null, location_source_id: p === undefined ? null : recordSource.get(Number(p.record_id)) ?? null,
+      location_rule: p?.rule ?? null, location_record_id: p?.record_id ?? null, location_columns_json: p?.source_columns_json ?? null,
+      location_source_id: p === undefined ? null : recordSource.get(Number(p.record_id)) ?? null,
       lb_anchor_id: b?.anchor_id ?? null, lb_release_sha256: b?.record_release_content_sha256 ?? null,
       la_anchor_id: a?.anchor_id ?? null, la_source_id: a?.origin_source_id ?? null, la_latitude: a?.latitude ?? null,
       la_longitude: a?.longitude ?? null, la_area_name: a?.area_name ?? null, la_area_kind: a?.area_kind ?? null,
       la_release_sha256: a?.origin_release_content_sha256 ?? null,
-      lu_anchor_id: u?.anchor_id ?? null, lu_precision: u?.target_precision ?? null, lu_source_id: u?.evidence_source_id ?? null,
-      lu_rule: u?.evidence_location_rule ?? null, lu_latitude: u?.new_latitude ?? null, lu_longitude: u?.new_longitude ?? null,
+      lu_anchor_id: u?.anchor_id ?? null, lu_precision: u?.target_precision ?? null,
+      lau_precision: l?.precision ?? null, lau_anchor_id: l?.anchor_id ?? null, lau_source_id: l?.evidence_source_id ?? null,
+      lau_record_id: l?.evidence_record_id ?? null, lau_rule: l?.location_rule ?? null, lau_columns_json: l?.location_columns_json ?? null,
+      lau_latitude: l?.latitude ?? null, lau_longitude: l?.longitude ?? null,
     }];
   }));
   const sourcesById = new Map(sources.map((s) => [String(s.source_id), s]));

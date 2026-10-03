@@ -7,6 +7,9 @@ import {
   recordAreaAnchor,
 } from "../../src/pipeline/area-anchor.ts";
 import { parseCsv } from "../../src/pipeline/csv.ts";
+import { applyAreaPrecisionUpgrade } from "../../src/pipeline/area-anchor.ts";
+import { applyReviewedRelocation } from "../../src/pipeline/relocation-application.ts";
+import { holdRelocationCandidate } from "../../src/pipeline/relocation-hold.ts";
 import { ingestRelease, type ReleaseMetadata } from "../../src/pipeline/ingest.ts";
 import { resolveFirstRelease } from "../../src/pipeline/resolve.ts";
 import { recordReviewDecision } from "../../src/pipeline/review-queue.ts";
@@ -16,6 +19,8 @@ import { SqliteD1 } from "./sqlite-d1.ts";
 
 export const PARK = { anchorId: "aa_ueno", areaName: "上野恩賜公園", latitude: 35.7155, longitude: 139.7733 } as const;
 export const MOVED = { latitude: 35.715, longitude: 139.774 } as const;
+export const MOVED_C = { latitude: 35.7148, longitude: 139.7745 } as const;
+export const MOVED_D = { latitude: 35.7146, longitude: 139.775 } as const;
 const HEADER = "id,name,area,lat,lon,statement";
 // statement: "smoking" = the publisher states a smoking place (inside `area` when lat/lon are empty); "area" = the
 // row states an area's own point (an anchor origin, never a spot); "" = a place/host only; "closed" = closed.
@@ -29,6 +34,9 @@ export const ROWS = {
   // The same place in a later release, now with its own point: at the anchor's coordinate, or elsewhere in the park.
   exactAtAnchor: `1,公園内喫煙所,,${PARK.latitude},${PARK.longitude},smoking`,
   exactMoved: `1,公園内喫煙所,,${MOVED.latitude},${MOVED.longitude},smoking`,
+  // Later reviewed ADR-0009 relocations of the place after it became exact (C, then D).
+  exactMovedC: `1,公園内喫煙所,,${MOVED_C.latitude},${MOVED_C.longitude},smoking`,
+  exactMovedD: `1,公園内喫煙所,,${MOVED_D.latitude},${MOVED_D.longitude},smoking`,
   // A place first listed in a later release, inside the same park.
   newInPark: `6,公園内第二喫煙所,${PARK.areaName},,,smoking`,
 } as const;
@@ -54,7 +62,7 @@ export function areaAdapter(sourceId: string, kind: "municipal" | "operator" = "
     assertResolvable: () => {},
     // The gate decides scope: a host-only, area, closed or un-anchorable row stays raw evidence and creates no spot.
     includesRecord: (v) => evaluateAreaApproximate(candidate(v)).verdict !== "rejected",
-    areaPoint: (v) => v[5] === "area" ? { areaName: v[1], latitude: Number(v[3]), longitude: Number(v[4]) } : null,
+    areaPoint: (v) => v[5] === "area" ? { areaName: v[1], latitude: Number(v[3]), longitude: Number(v[4]), columns: { name: "name", latitude: "lat", longitude: "lon" } } : null,
     observe(v): SourceObservation {
       const base = {
         name: v[1], supportsPaper: "unknown" as const, supportsHeated: "unknown" as const,
@@ -117,4 +125,39 @@ export async function nextRelease(db: SqliteD1, adapter: SourceAdapter, rows: re
 export async function decideIdentity(db: SqliteD1, itemId: number, spotId: string, at = "2026-10-11T01:00:00Z") {
   const entity = (db.raw.prepare("SELECT source_entity_id FROM spot_source_entities WHERE spot_id = ?").get(spotId) as { source_entity_id: number }).source_entity_id;
   return recordReviewDecision(db, { reviewItemId: itemId, decision: "matchedToEntity", sourceEntityId: entity, decidedBy: "reviewer", decidedAt: at });
+}
+
+/**
+ * A approximate -> B same-coordinate exact upgrade -> C reviewed ADR-0009 relocation -> D another relocation, with an
+ * unchanged re-listing (a continuation) after D. Each later release is resolved to `resolved`. Returns the spot id.
+ */
+export async function exactChain(db: SqliteD1, adapter: SourceAdapter, until: "B" | "C" | "D" | "E" = "E"): Promise<string> {
+  const spotId = spotByName(db, "公園内喫煙所").spot_id as string;
+  const b = await nextRelease(db, adapter, ["exactAtAnchor", "exact"], "2026-10-10");
+  const bItem = (b.first as { reviewItemIds: number[] }).reviewItemIds[0];
+  await decideIdentity(db, bItem, spotId);
+  const evidence = (db.raw.prepare("SELECT record_id FROM source_records WHERE release_id = ? AND upstream_row_ref = '1'").get(b.releaseId) as { record_id: number }).record_id;
+  await applyAreaPrecisionUpgrade(db, adapter, { spotId, evidenceRecordId: evidence, identityReviewItemId: bItem, targetPrecision: "publisherPoint",
+    areaPremise: "insideArea", reviewedBy: "reviewer", now: "2026-10-12T00:00:00Z" });
+  await b.resolve("2026-10-13T00:00:00Z");
+  if (until === "B") return spotId;
+  const relocate = async (row: "exactMovedC" | "exactMovedD", observedOn: string, day: number) => {
+    const at = (h: number) => `2026-10-${String(day).padStart(2, "0")}T${String(h).padStart(2, "0")}:00:00Z`;
+    const r = await nextRelease(db, adapter, [row, "exact"], observedOn, at(0));
+    await decideIdentity(db, (r.first as { reviewItemIds: number[] }).reviewItemIds[0], spotId, at(1));
+    const second = await r.resolve(at(2));
+    const itemId = (second as { reviewItemIds: number[] }).reviewItemIds[0];
+    await holdRelocationCandidate(db, adapter, itemId, { now: at(3) });
+    await recordReviewDecision(db, { reviewItemId: itemId, decision: "relocationConfirmed", decidedBy: "reviewer", decidedAt: at(4) });
+    await applyReviewedRelocation(db, adapter, itemId, { now: at(5) });
+    const done = await r.resolve(at(6));
+    if (done.status !== "resolved") throw new Error(`exactChain ${row}: ${JSON.stringify(done)}`);
+  };
+  await relocate("exactMovedC", "2026-10-14", 15);
+  if (until === "C") return spotId;
+  await relocate("exactMovedD", "2026-10-16", 17);
+  if (until === "D") return spotId;
+  const e = await nextRelease(db, adapter, ["exactMovedD", "exact"], "2026-10-18", "2026-10-19T00:00:00Z");
+  if (e.first.status !== "resolved") throw new Error(`exactChain continuation: ${JSON.stringify(e.first)}`);
+  return spotId;
 }

@@ -15,17 +15,14 @@
       "H-other": 7
     },
     "categoriesIfRightsGranted": {
-      "A-rescuedByAreaApproximate": 1,
       "B-existenceInsufficient": 135,
-      "D-noReusableAnchor": 18,
-      "E-currentOperation": 5,
+      "D-noReusableAnchor": 11,
+      "E-currentOperation": 23,
       "F-prohibitionOrConflict": 14,
-      "G-geocodingNeeded": 7,
-      "H-other": 22
+      "G-geocodingNeeded": 5,
+      "H-other": 14
     },
-    "rescuedIfRightsGranted": [
-      "city-sendai"
-    ],
+    "rescuedIfRightsGranted": [],
     "rescuedSources": [],
     "locationBlockerRemovedByAdr0017": [
       "city-chiba",
@@ -71,6 +68,7 @@
       "addressOnly": 8,
       "closureEvidencePresent": 7,
       "conflictNeedsReconciliation": 3,
+      "currentOperationUnresolved": 131,
       "existenceNotExplicit": 149,
       "noReusableAnchor": 20,
       "prohibition": 11,
@@ -108,7 +106,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -132,7 +131,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -156,9 +156,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -180,9 +181,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -204,7 +206,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -228,9 +231,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -252,7 +256,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -276,7 +281,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -300,9 +306,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -324,7 +331,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -348,9 +356,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -372,9 +381,10 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "addressOnly"
       ],
-      "categoryIfRightsGranted": "G-geocodingNeeded"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -396,7 +406,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -420,7 +431,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -446,7 +458,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -470,7 +483,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -496,7 +510,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -519,7 +534,8 @@
       "category": "H-other",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "H-other"
     },
@@ -543,7 +559,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -567,7 +584,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -591,7 +609,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -615,7 +634,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -638,9 +658,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -662,7 +683,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -685,7 +707,8 @@
       "category": "H-other",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "H-other"
     },
@@ -709,7 +732,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -732,9 +756,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -756,9 +781,10 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "addressOnly"
       ],
-      "categoryIfRightsGranted": "G-geocodingNeeded"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -780,7 +806,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -804,7 +831,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -828,9 +856,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -852,7 +881,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -876,7 +906,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -902,7 +933,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "H-other"
     },
@@ -925,9 +957,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -948,9 +981,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -971,9 +1005,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -994,9 +1029,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -1017,9 +1053,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -1041,7 +1078,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1064,9 +1102,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "A-rescuedByAreaApproximate"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -1087,9 +1126,10 @@
       "category": "C-rightsBlocked",
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
-      "categoryIfRightsGranted": "H-other"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -1111,7 +1151,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "rightsUnreviewed",
-        "closureEvidencePresent"
+        "closureEvidencePresent",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "E-currentOperation"
     },
@@ -1137,7 +1178,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1161,7 +1203,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1185,7 +1228,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1209,7 +1253,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1233,9 +1278,10 @@
       "adr0017RemovesLocationBlocker": true,
       "reasons": [
         "rightsUnreviewed",
+        "currentOperationUnresolved",
         "noReusableAnchor"
       ],
-      "categoryIfRightsGranted": "D-noReusableAnchor"
+      "categoryIfRightsGranted": "E-currentOperation"
     },
     {
       "file": "2026-10-01-official-reverse-reviews.json",
@@ -1257,7 +1303,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1281,7 +1328,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1307,7 +1355,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1331,7 +1380,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "rightsUnreviewed",
-        "closureEvidencePresent"
+        "closureEvidencePresent",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "E-currentOperation"
     },
@@ -1356,7 +1406,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1381,7 +1432,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1406,7 +1458,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1431,7 +1484,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1456,7 +1510,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1481,7 +1536,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1506,7 +1562,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1531,7 +1588,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1556,7 +1614,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1581,7 +1640,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1606,7 +1666,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1631,7 +1692,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1656,7 +1718,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1681,7 +1744,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1706,7 +1770,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1731,7 +1796,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1756,7 +1822,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "reviewPendingOrAccess"
+        "reviewPendingOrAccess",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1782,7 +1849,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -1830,7 +1898,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2066,7 +2135,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2162,7 +2232,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2210,7 +2281,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2258,7 +2330,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2425,7 +2498,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2450,7 +2524,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2522,7 +2597,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2592,7 +2668,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2812,7 +2889,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2862,7 +2940,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -2935,7 +3014,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3009,7 +3089,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3034,7 +3115,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3059,7 +3141,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3086,7 +3169,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3113,7 +3197,8 @@
       "reasons": [
         "conflictNeedsReconciliation",
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "F-prohibitionOrConflict"
     },
@@ -3140,7 +3225,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3165,7 +3251,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3190,7 +3277,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3215,7 +3303,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3242,7 +3331,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3269,7 +3359,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3294,7 +3385,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3319,7 +3411,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3346,7 +3439,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3371,7 +3465,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3396,7 +3491,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3421,7 +3517,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3446,7 +3543,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3473,7 +3571,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3498,7 +3597,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3523,7 +3623,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3550,7 +3651,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3577,7 +3679,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3602,7 +3705,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3627,7 +3731,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3654,7 +3759,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3679,7 +3785,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3706,7 +3813,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3731,7 +3839,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3756,7 +3865,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3783,7 +3893,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3810,7 +3921,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3835,7 +3947,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3860,7 +3973,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3887,7 +4001,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3914,7 +4029,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3941,7 +4057,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3966,7 +4083,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -3993,7 +4111,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4018,7 +4137,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4043,7 +4163,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4070,7 +4191,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4097,7 +4219,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4122,7 +4245,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4147,7 +4271,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4172,7 +4297,8 @@
       "adr0017RemovesLocationBlocker": false,
       "reasons": [
         "existenceNotExplicit",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4199,7 +4325,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4460,7 +4587,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },
@@ -4581,7 +4709,8 @@
       "reasons": [
         "existenceNotExplicit",
         "reviewPendingOrAccess",
-        "rightsUnreviewed"
+        "rightsUnreviewed",
+        "currentOperationUnresolved"
       ],
       "categoryIfRightsGranted": "B-existenceInsufficient"
     },

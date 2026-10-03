@@ -43,6 +43,13 @@ CREATE TABLE area_location_anchors (
   origin_release_content_sha256   TEXT NOT NULL CHECK (length(origin_release_content_sha256) = 64 AND origin_release_content_sha256 NOT GLOB '*[^0-9a-f]*'),
   origin_record_id                INTEGER NOT NULL,
   origin_record_values_json       TEXT NOT NULL CHECK (json_valid(origin_record_values_json) AND json_type(origin_record_values_json) = 'array'),
+  -- The reviewed point derivation (B4): the adapter mapping version and the header columns of that publication whose
+  -- verbatim values ARE the area name and the coordinate. The database reads the point out of the record itself, so a
+  -- typed or guessed coordinate cannot be bound to a genuine publication, not even by direct SQL.
+  origin_mapping_version          TEXT NOT NULL CHECK (origin_mapping_version <> ''),
+  origin_name_column              TEXT NOT NULL CHECK (origin_name_column <> ''),
+  origin_latitude_column          TEXT NOT NULL CHECK (origin_latitude_column <> ''),
+  origin_longitude_column         TEXT NOT NULL CHECK (origin_longitude_column <> ''),
   -- Human-readable pointer into that publication (file + row). Not the provenance boundary; also screened below.
   origin_reference                TEXT NOT NULL CHECK (length(origin_reference) BETWEEN 1 AND 500),
   reuse_basis                     TEXT NOT NULL CHECK (reuse_basis IN ('sameReviewedPublication')),
@@ -79,6 +86,35 @@ WHEN (NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1
       AND rel.content_sha256 = NEW.origin_release_content_sha256 AND r.raw_values_json = NEW.origin_record_values_json)
 BEGIN
   SELECT RAISE(ABORT, 'area_location_anchors: the anchor must cite a record of its own reviewed publication (release digest and values)');
+END;
+
+-- B4: the point is exactly what the cited record states in the reviewed columns of its own header: the area name
+-- verbatim, and the latitude/longitude as plain decimal text equal to the stored numbers. Checked whenever the release
+-- exists here; only an open promotion bootstrap may carry a historical release's anchor (attestation).
+CREATE TRIGGER area_location_anchors_origin_point
+BEFORE INSERT ON area_location_anchors
+WHEN (NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
+    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions))) OR EXISTS (SELECT 1 FROM source_releases WHERE release_id = NEW.origin_release_id))
+  AND NOT EXISTS (SELECT 1 FROM source_records r JOIN source_releases rel ON rel.release_id = r.release_id
+    WHERE r.record_id = NEW.origin_record_id AND rel.release_id = NEW.origin_release_id
+      AND json_extract(r.raw_values_json, '$[' || (SELECT h.key FROM json_each(rel.header_json) h WHERE h.value = NEW.origin_name_column) || ']') = NEW.area_name
+      AND json_extract(r.raw_values_json, '$[' || (SELECT h.key FROM json_each(rel.header_json) h WHERE h.value = NEW.origin_latitude_column) || ']') NOT GLOB '*[^0-9.]*'
+      AND json_extract(r.raw_values_json, '$[' || (SELECT h.key FROM json_each(rel.header_json) h WHERE h.value = NEW.origin_longitude_column) || ']') NOT GLOB '*[^0-9.]*'
+      AND CAST(json_extract(r.raw_values_json, '$[' || (SELECT h.key FROM json_each(rel.header_json) h WHERE h.value = NEW.origin_latitude_column) || ']') AS REAL) = NEW.latitude
+      AND CAST(json_extract(r.raw_values_json, '$[' || (SELECT h.key FROM json_each(rel.header_json) h WHERE h.value = NEW.origin_longitude_column) || ']') AS REAL) = NEW.longitude)
+BEGIN
+  SELECT RAISE(ABORT, 'area_location_anchors: the publication''s record does not state this area point in the reviewed columns');
+END;
+
+-- B4: the reviewed mapping version is the one the release was observed under (runtime; an attestation on import).
+CREATE TRIGGER area_location_anchors_origin_mapping
+BEFORE INSERT ON area_location_anchors
+WHEN NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
+    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions)))
+  AND EXISTS (SELECT 1 FROM source_observations o WHERE o.release_id = NEW.origin_release_id)
+  AND NOT EXISTS (SELECT 1 FROM source_observations o WHERE o.release_id = NEW.origin_release_id AND o.mapping_version = NEW.origin_mapping_version)
+BEGIN
+  SELECT RAISE(ABORT, 'area_location_anchors: the mapping version is not the one this publication is observed under');
 END;
 
 -- Defence in depth only; the publication linkage above is the boundary.
@@ -239,15 +275,31 @@ BEGIN
   SELECT RAISE(ABORT, 'area_precision_upgrades: the evidence release is not pending');
 END;
 
--- Import (open bootstrap): the carried state is the attestation; the spot must already be at the exact point.
-CREATE TRIGGER area_precision_upgrades_import
+-- B3: the upgrade's comparison is current: the identity item compared exactly the evidence release (its fingerprint)
+-- with the source's CURRENT applied release, the spot's current location authority is on that current release, and
+-- no other non-rejected release of the source is newer than the current one (a competing release makes the review
+-- stale). Otherwise not one row is written.
+CREATE TRIGGER area_precision_upgrades_comparison_current
 BEFORE INSERT ON area_precision_upgrades
-WHEN ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
+WHEN NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
     OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions)))
-  AND NOT EXISTS (SELECT 1 FROM spots s WHERE s.spot_id = NEW.spot_id AND s.latitude = NEW.new_latitude AND s.longitude = NEW.new_longitude)
+  AND NOT EXISTS (SELECT 1 FROM review_items i JOIN source_releases p ON p.release_id = i.previous_release_id
+      JOIN source_releases r ON r.release_id = i.release_id
+    WHERE i.review_item_id = NEW.identity_review_item_id AND i.release_id = NEW.evidence_release_id
+      AND i.release_content_sha256 = NEW.evidence_release_content_sha256 AND r.content_sha256 = NEW.evidence_release_content_sha256
+      AND r.status = 'ingested' AND p.status = 'applied' AND p.is_current = 1 AND p.source_id = NEW.evidence_source_id
+      AND (SELECT a.evidence_release_id FROM spot_location_authorities a WHERE a.spot_id = NEW.spot_id
+           ORDER BY a.seq DESC LIMIT 1) = p.release_id
+      AND NOT EXISTS (SELECT 1 FROM source_releases o WHERE o.source_id = p.source_id
+        AND o.release_id NOT IN (i.release_id, i.previous_release_id) AND o.status <> 'rejected'
+        AND (o.observed_on IS NULL OR p.observed_on IS NULL OR o.observed_on > p.observed_on)))
 BEGIN
-  SELECT RAISE(ABORT, 'area_precision_upgrades: a carried upgrade must describe the carried spot''s coordinate');
+  SELECT RAISE(ABORT, 'area_precision_upgrades: the review compared another or no longer current pair of releases (stale or competing)');
 END;
+
+-- Import (open bootstrap): the carried state is the attestation. A carried upgrade is history — the spot may since have
+-- moved through later reviewed relocations — so the carried spot's coordinate is checked against its LATEST carried
+-- location authority when the bootstrap is sealed (spot_location_authorities_sealed_*), not against the upgrade.
 
 CREATE TRIGGER area_precision_upgrades_immutable BEFORE UPDATE ON area_precision_upgrades
 BEGIN SELECT RAISE(ABORT, 'area_precision_upgrades are immutable'); END;
@@ -287,16 +339,16 @@ BEGIN
   SELECT RAISE(ABORT, 'spot_location_anchors: anchor policy v1 binds only within the anchor''s own publication (same release)');
 END;
 
--- The pin is exactly the anchor's point. Only a carried, already-upgraded spot (open bootstrap) sits elsewhere, and
--- then exactly at its upgrade's exact point.
+-- The pin is exactly the anchor's point. Only a carried, already-upgraded spot (open bootstrap) sits elsewhere: at its
+-- latest carried location authority, which the bootstrap seal checks (spot_location_authorities_sealed_*).
 CREATE TRIGGER spot_location_anchors_coordinate
 BEFORE INSERT ON spot_location_anchors
 WHEN NOT EXISTS (SELECT 1 FROM spots s JOIN area_location_anchors a ON a.anchor_id = NEW.anchor_id
     WHERE s.spot_id = NEW.spot_id AND s.latitude = a.latitude AND s.longitude = a.longitude
       AND NOT EXISTS (SELECT 1 FROM area_precision_upgrades u WHERE u.spot_id = NEW.spot_id AND u.upgrade_kind = 'relocated'))
   AND NOT (((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
-    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions))) AND EXISTS (SELECT 1 FROM spots s JOIN area_precision_upgrades u ON u.spot_id = s.spot_id
-    WHERE s.spot_id = NEW.spot_id AND u.anchor_id = NEW.anchor_id AND s.latitude = u.new_latitude AND s.longitude = u.new_longitude))
+    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions))) AND EXISTS (SELECT 1 FROM area_precision_upgrades u
+    WHERE u.spot_id = NEW.spot_id AND u.anchor_id = NEW.anchor_id))
 BEGIN
   SELECT RAISE(ABORT, 'spot_location_anchors: a spot is bound at exactly its anchor coordinate');
 END;
@@ -307,39 +359,221 @@ CREATE TRIGGER spot_location_anchors_no_delete BEFORE DELETE ON spot_location_an
 BEGIN SELECT RAISE(ABORT, 'spot_location_anchors are immutable'); END;
 
 -- ---------------------------------------------------------------------------------------------------------
--- An anchored spot's pin moves only as the reviewed relocation its upgrade names (ADR-0009 + ADR-0017 §6).
-CREATE TRIGGER spots_anchored_coordinate_fixed
+-- ---------------------------------------------------------------------------------------------------------
+-- B1/B2: the CURRENT location authority of every spot that was ever area-anchored, as an append-only chain. Seq 1 is
+-- the anchor (areaApproximate); an exactUpgrade row is the first exact authority (its area_precision_upgrades row stays
+-- as history); a relocation row is a later reviewed ADR-0009 move of the exact point; a continuation row is the same
+-- location evidence carried to a newer record of the spot's entity (raw-identical or reviewed match, unchanged rule,
+-- columns and coordinate). The spot's coordinate and location provenance always equal the LATEST row exactly
+-- (triggers below); the shared public decision (src/tiles/location-state.ts) re-checks the same equality, so a
+-- tampered record, observation, release, rule or columns is refused or never published.
+CREATE TABLE spot_location_authorities (
+  spot_id                         TEXT NOT NULL REFERENCES spots (spot_id),
+  seq                             INTEGER NOT NULL CHECK (seq >= 1),
+  kind                            TEXT NOT NULL CHECK (kind IN ('areaAnchor', 'exactUpgrade', 'relocation', 'continuation')),
+  precision                       TEXT NOT NULL CHECK (precision IN ('areaApproximate', 'publisherPoint')),
+  anchor_id                       TEXT NOT NULL REFERENCES area_location_anchors (anchor_id),
+  evidence_source_id              TEXT NOT NULL REFERENCES sources (source_id),
+  evidence_release_id             INTEGER NOT NULL,
+  evidence_release_content_sha256 TEXT NOT NULL CHECK (length(evidence_release_content_sha256) = 64 AND evidence_release_content_sha256 NOT GLOB '*[^0-9a-f]*'),
+  evidence_record_id              INTEGER NOT NULL,
+  evidence_observation_id         INTEGER NOT NULL,
+  mapping_version                 TEXT NOT NULL CHECK (mapping_version <> ''),
+  location_rule                   TEXT NOT NULL CHECK (location_rule <> ''),
+  location_columns_json           TEXT NOT NULL CHECK (json_valid(location_columns_json) AND json_type(location_columns_json) = 'array'),
+  latitude                        REAL NOT NULL CHECK (latitude BETWEEN -90 AND 90),
+  longitude                       REAL NOT NULL CHECK (longitude BETWEEN -180 AND 180),
+  -- relocation rows: the ADR-0009 relocationCandidate whose application moves the spot.
+  relocation_review_item_id       INTEGER,
+  recorded_at                     TEXT NOT NULL,
+  PRIMARY KEY (spot_id, seq),
+  CHECK ((kind = 'areaAnchor') = (seq = 1)),
+  CHECK ((kind = 'relocation') = (relocation_review_item_id IS NOT NULL)),
+  CHECK (kind NOT IN ('areaAnchor') OR precision = 'areaApproximate'),
+  CHECK (kind NOT IN ('exactUpgrade', 'relocation') OR precision = 'publisherPoint'),
+  CHECK ((precision = 'areaApproximate') = (location_rule GLOB 'area-anchor.*'))
+) WITHOUT ROWID;
+
+CREATE TRIGGER spot_location_authorities_no_replace
+BEFORE INSERT ON spot_location_authorities
+WHEN EXISTS (SELECT 1 FROM spot_location_authorities WHERE spot_id = NEW.spot_id AND seq = NEW.seq)
+  OR NEW.seq <> 1 + coalesce((SELECT max(seq) FROM spot_location_authorities WHERE spot_id = NEW.spot_id), 0)
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities are append-only, in sequence');
+END;
+
+-- Every row belongs to the spot's binding and its anchor's source (policy v1: one source per chain).
+CREATE TRIGGER spot_location_authorities_binding
+BEFORE INSERT ON spot_location_authorities
+WHEN NOT EXISTS (SELECT 1 FROM spot_location_anchors b JOIN area_location_anchors a ON a.anchor_id = b.anchor_id
+  WHERE b.spot_id = NEW.spot_id AND b.anchor_id = NEW.anchor_id AND a.origin_source_id = NEW.evidence_source_id)
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: not the spot''s anchor binding');
+END;
+
+-- Seq 1: the anchor itself, from the binding's existence record, at the anchor's point with its anchor rule.
+CREATE TRIGGER spot_location_authorities_area_anchor
+BEFORE INSERT ON spot_location_authorities
+WHEN NEW.kind = 'areaAnchor' AND NOT EXISTS (SELECT 1 FROM spot_location_anchors b JOIN area_location_anchors a ON a.anchor_id = b.anchor_id
+  WHERE b.spot_id = NEW.spot_id AND b.record_id = NEW.evidence_record_id
+    AND b.record_release_content_sha256 = NEW.evidence_release_content_sha256
+    AND a.latitude = NEW.latitude AND a.longitude = NEW.longitude AND NEW.location_rule = 'area-anchor.v1:' || a.anchor_id
+    AND a.origin_mapping_version = NEW.mapping_version)
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: the anchor authority is not the spot''s binding');
+END;
+
+-- exactUpgrade: exactly the reviewed upgrade's evidence (always: upgrades travel before authorities on import).
+CREATE TRIGGER spot_location_authorities_exact_upgrade
+BEFORE INSERT ON spot_location_authorities
+WHEN NEW.kind = 'exactUpgrade' AND NOT EXISTS (SELECT 1 FROM area_precision_upgrades u
+  WHERE u.spot_id = NEW.spot_id AND u.anchor_id = NEW.anchor_id AND u.target_precision = NEW.precision
+    AND u.evidence_source_id = NEW.evidence_source_id AND u.evidence_release_id = NEW.evidence_release_id
+    AND u.evidence_release_content_sha256 = NEW.evidence_release_content_sha256 AND u.evidence_record_id = NEW.evidence_record_id
+    AND u.evidence_observation_id = NEW.evidence_observation_id AND u.evidence_mapping_version = NEW.mapping_version
+    AND u.evidence_location_rule = NEW.location_rule AND u.evidence_location_columns_json = NEW.location_columns_json
+    AND u.new_latitude = NEW.latitude AND u.new_longitude = NEW.longitude)
+  OR (NEW.kind = 'exactUpgrade' AND (SELECT precision FROM spot_location_authorities WHERE spot_id = NEW.spot_id
+    ORDER BY seq DESC LIMIT 1) IS NOT 'areaApproximate')
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: not exactly the spot''s reviewed area precision upgrade');
+END;
+
+-- Runtime: a row other than the anchor cites a real observation of the cited record, release and mapping, stating
+-- exactly this rule, columns and coordinate (and the anchor claim exactly when approximate).
+CREATE TRIGGER spot_location_authorities_observation
+BEFORE INSERT ON spot_location_authorities
+WHEN NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
+    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions)))
+  AND NOT EXISTS (SELECT 1 FROM source_observations o JOIN source_releases rel ON rel.release_id = o.release_id
+    WHERE o.observation_id = NEW.evidence_observation_id AND o.record_id = NEW.evidence_record_id
+      AND o.release_id = NEW.evidence_release_id AND rel.source_id = NEW.evidence_source_id
+      AND rel.content_sha256 = NEW.evidence_release_content_sha256 AND o.mapping_version = NEW.mapping_version
+      AND o.latitude = NEW.latitude AND o.longitude = NEW.longitude
+      AND json_extract(o.claims_json, '$.locationAnchorId') IS (CASE WHEN NEW.precision = 'areaApproximate' THEN NEW.anchor_id END)
+      AND EXISTS (SELECT 1 FROM json_each(o.field_provenance_json) p
+        WHERE json_extract(p.value, '$.field') = 'location' AND json_extract(p.value, '$.rule') = NEW.location_rule
+          AND json(json_extract(p.value, '$.columns')) = json(NEW.location_columns_json)))
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: no observation states exactly this location evidence');
+END;
+
+-- continuation: the same location evidence (precision, rule, columns, coordinate) carried to another record of the
+-- spot's own entity. Runtime: the record is linked to the spot's entity in this same batch.
+CREATE TRIGGER spot_location_authorities_continuation
+BEFORE INSERT ON spot_location_authorities
+WHEN NEW.kind = 'continuation' AND (
+  NOT EXISTS (SELECT 1 FROM spot_location_authorities a WHERE a.spot_id = NEW.spot_id
+    AND a.seq = NEW.seq - 1 AND a.precision = NEW.precision AND a.location_rule = NEW.location_rule
+    AND a.location_columns_json = NEW.location_columns_json AND a.latitude = NEW.latitude AND a.longitude = NEW.longitude
+    AND a.evidence_record_id <> NEW.evidence_record_id)
+  OR (NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
+    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions))) AND NOT EXISTS (SELECT 1 FROM source_record_entities e JOIN spot_source_entities l ON l.source_entity_id = e.source_entity_id
+    WHERE e.record_id = NEW.evidence_record_id AND e.release_id = NEW.evidence_release_id AND l.spot_id = NEW.spot_id)))
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: a continuation carries unchanged evidence to a record of the spot''s own entity');
+END;
+
+-- relocation: a later reviewed ADR-0009 move of an EXACT spot, from its current authority's point (runtime: exactly the
+-- current, actionable relocation of this spot; import: the carried attestation of one).
+CREATE TRIGGER spot_location_authorities_relocation
+BEFORE INSERT ON spot_location_authorities
+WHEN NEW.kind = 'relocation' AND (
+  (SELECT precision FROM spot_location_authorities WHERE spot_id = NEW.spot_id ORDER BY seq DESC LIMIT 1) IS NOT 'publisherPoint'
+  OR (NOT ((EXISTS (SELECT 1 FROM promotion_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_bootstrap_completions))
+    OR (EXISTS (SELECT 1 FROM promotion_multi_bootstraps) AND NOT EXISTS (SELECT 1 FROM promotion_multi_bootstrap_completions))) AND NOT EXISTS (SELECT 1 FROM review_relocation_application_premises v
+    WHERE v.review_item_id = NEW.relocation_review_item_id AND v.spot_id = NEW.spot_id
+      AND v.new_observation_id = NEW.evidence_observation_id AND v.record_id = NEW.evidence_record_id
+      AND v.new_latitude = NEW.latitude AND v.new_longitude = NEW.longitude
+      AND v.old_latitude = (SELECT latitude FROM spot_location_authorities WHERE spot_id = NEW.spot_id ORDER BY seq DESC LIMIT 1)
+      AND v.old_longitude = (SELECT longitude FROM spot_location_authorities WHERE spot_id = NEW.spot_id ORDER BY seq DESC LIMIT 1))))
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: not the current ADR-0009 relocation of this exact spot');
+END;
+
+-- Sealing a bootstrap (v2: promotion_bootstrap_completions; v3/v4: promotion_multi_bootstrap_completions): every carried
+-- chain explains its spot. The coordinate and the location provenance are exactly the latest authority; every binding
+-- has its anchor authority and every upgrade its exactUpgrade authority.
+CREATE TRIGGER spot_location_authorities_sealed_v2
+BEFORE INSERT ON promotion_bootstrap_completions
+WHEN EXISTS (SELECT 1 FROM spot_location_authorities a JOIN spots s ON s.spot_id = a.spot_id
+    LEFT JOIN spot_field_provenance p ON p.spot_id = a.spot_id AND p.field = 'location'
+    WHERE a.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = a.spot_id)
+      AND (s.latitude <> a.latitude OR s.longitude <> a.longitude OR p.record_id IS NOT a.evidence_record_id
+        OR p.rule IS NOT a.location_rule OR p.source_columns_json IS NOT a.location_columns_json))
+  OR EXISTS (SELECT 1 FROM spot_location_anchors b WHERE NOT EXISTS (SELECT 1 FROM spot_location_authorities a
+    WHERE a.spot_id = b.spot_id AND a.seq = 1 AND a.anchor_id = b.anchor_id))
+  OR EXISTS (SELECT 1 FROM area_precision_upgrades u WHERE NOT EXISTS (SELECT 1 FROM spot_location_authorities a
+    WHERE a.spot_id = u.spot_id AND a.kind = 'exactUpgrade'))
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: a carried spot is not exactly its latest location authority');
+END;
+
+CREATE TRIGGER spot_location_authorities_sealed_multi
+BEFORE INSERT ON promotion_multi_bootstrap_completions
+WHEN EXISTS (SELECT 1 FROM spot_location_authorities a JOIN spots s ON s.spot_id = a.spot_id
+    LEFT JOIN spot_field_provenance p ON p.spot_id = a.spot_id AND p.field = 'location'
+    WHERE a.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = a.spot_id)
+      AND (s.latitude <> a.latitude OR s.longitude <> a.longitude OR p.record_id IS NOT a.evidence_record_id
+        OR p.rule IS NOT a.location_rule OR p.source_columns_json IS NOT a.location_columns_json))
+  OR EXISTS (SELECT 1 FROM spot_location_anchors b WHERE NOT EXISTS (SELECT 1 FROM spot_location_authorities a
+    WHERE a.spot_id = b.spot_id AND a.seq = 1 AND a.anchor_id = b.anchor_id))
+  OR EXISTS (SELECT 1 FROM area_precision_upgrades u WHERE NOT EXISTS (SELECT 1 FROM spot_location_authorities a
+    WHERE a.spot_id = u.spot_id AND a.kind = 'exactUpgrade'))
+BEGIN
+  SELECT RAISE(ABORT, 'spot_location_authorities: a carried spot is not exactly its latest location authority');
+END;
+
+CREATE TRIGGER spot_location_authorities_immutable BEFORE UPDATE ON spot_location_authorities
+BEGIN SELECT RAISE(ABORT, 'spot_location_authorities are append-only'); END;
+CREATE TRIGGER spot_location_authorities_no_delete BEFORE DELETE ON spot_location_authorities
+BEGIN SELECT RAISE(ABORT, 'spot_location_authorities are append-only'); END;
+
+-- The coordinate of a spot with an authority chain is always its latest authority's: it moves only after a reviewed
+-- exactUpgrade or relocation row naming exactly that move was appended (ADR-0009 still performs the move itself).
+CREATE TRIGGER spots_location_authority_coordinate
 BEFORE UPDATE OF latitude, longitude ON spots
 WHEN NOT (NEW.latitude IS OLD.latitude AND NEW.longitude IS OLD.longitude)
-  AND EXISTS (SELECT 1 FROM spot_location_anchors WHERE spot_id = OLD.spot_id)
-  AND NOT EXISTS (SELECT 1 FROM area_precision_upgrades u WHERE u.spot_id = OLD.spot_id AND u.upgrade_kind = 'relocated'
-    AND u.old_latitude = OLD.latitude AND u.old_longitude = OLD.longitude
-    AND u.new_latitude = NEW.latitude AND u.new_longitude = NEW.longitude)
+  AND EXISTS (SELECT 1 FROM spot_location_authorities WHERE spot_id = OLD.spot_id)
+  AND NOT EXISTS (SELECT 1 FROM spot_location_authorities a WHERE a.spot_id = OLD.spot_id
+    AND a.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = OLD.spot_id)
+    AND a.kind IN ('exactUpgrade', 'relocation') AND a.latitude = NEW.latitude AND a.longitude = NEW.longitude
+    AND EXISTS (SELECT 1 FROM spot_location_authorities b WHERE b.spot_id = a.spot_id AND b.seq = a.seq - 1
+      AND b.latitude = OLD.latitude AND b.longitude = OLD.longitude))
 BEGIN
-  SELECT RAISE(ABORT, 'spots: an area-anchored spot moves only through its reviewed area precision upgrade and ADR-0009 relocation');
+  SELECT RAISE(ABORT, 'spots: a spot with a location authority moves only to a newly appended reviewed authority''s point');
 END;
 
--- Location provenance of an anchored spot: an area-anchor rule is written only for the spot's own binding; it may be
--- moved to a newer record of the same publication series unchanged (raw-identical evidence), or replaced exactly by
--- the exact-point evidence its upgrade recorded. Nothing else rewrites it.
-CREATE TRIGGER spot_field_provenance_area_anchor_insert
+-- Location provenance of a spot with an authority chain (and any area-anchor provenance) is exactly its latest
+-- authority's record, rule and columns: INSERT, UPDATE and DELETE alike (REPLACE is an INSERT here). Nothing is
+-- exempt after an upgrade.
+CREATE TRIGGER spot_field_provenance_location_authority_insert
 BEFORE INSERT ON spot_field_provenance
-WHEN NEW.field = 'location' AND NEW.rule GLOB 'area-anchor.*'
-  AND NOT EXISTS (SELECT 1 FROM spot_location_anchors b WHERE b.spot_id = NEW.spot_id AND NEW.rule = 'area-anchor.v1:' || b.anchor_id)
+WHEN NEW.field = 'location' AND (NEW.rule GLOB 'area-anchor.*' OR EXISTS (SELECT 1 FROM spot_location_authorities WHERE spot_id = NEW.spot_id))
+  AND NOT EXISTS (SELECT 1 FROM spot_location_authorities a WHERE a.spot_id = NEW.spot_id
+    AND a.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = NEW.spot_id)
+    AND a.evidence_record_id = NEW.record_id AND a.location_rule = NEW.rule AND a.location_columns_json = NEW.source_columns_json)
 BEGIN
-  SELECT RAISE(ABORT, 'spot_field_provenance: an area-anchor location names the spot''s own anchor binding');
+  SELECT RAISE(ABORT, 'spot_field_provenance: an anchored spot''s location is exactly its current location authority');
 END;
 
-CREATE TRIGGER spot_field_provenance_area_anchor_update
+CREATE TRIGGER spot_field_provenance_location_authority_update
 BEFORE UPDATE ON spot_field_provenance
-WHEN OLD.field = 'location' AND (OLD.rule GLOB 'area-anchor.*' OR NEW.rule GLOB 'area-anchor.*')
-  AND NOT (NEW.field = OLD.field AND NEW.spot_id = OLD.spot_id AND NEW.rule = OLD.rule AND NEW.source_columns_json = OLD.source_columns_json
-    AND NOT EXISTS (SELECT 1 FROM area_precision_upgrades u WHERE u.spot_id = OLD.spot_id))
-  AND NOT (NEW.field = OLD.field AND NEW.spot_id = OLD.spot_id AND EXISTS (SELECT 1 FROM area_precision_upgrades u
-    WHERE u.spot_id = OLD.spot_id AND OLD.rule = 'area-anchor.v1:' || u.anchor_id AND NEW.rule = u.evidence_location_rule
-      AND NEW.record_id = u.evidence_record_id AND json(NEW.source_columns_json) = json(u.evidence_location_columns_json)))
+WHEN (OLD.field = 'location' OR NEW.field = 'location')
+  AND (EXISTS (SELECT 1 FROM spot_location_authorities WHERE spot_id IN (OLD.spot_id, NEW.spot_id)) OR NEW.rule GLOB 'area-anchor.*' OR OLD.rule GLOB 'area-anchor.*')
+  AND NOT (NEW.field = 'location' AND OLD.field = 'location' AND NEW.spot_id = OLD.spot_id
+    AND EXISTS (SELECT 1 FROM spot_location_authorities a WHERE a.spot_id = NEW.spot_id
+      AND a.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = NEW.spot_id)
+      AND a.evidence_record_id = NEW.record_id AND a.location_rule = NEW.rule AND a.location_columns_json = NEW.source_columns_json))
 BEGIN
-  SELECT RAISE(ABORT, 'spot_field_provenance: an area-anchor location changes only to the exact evidence its upgrade recorded');
+  SELECT RAISE(ABORT, 'spot_field_provenance: an anchored spot''s location changes only to its newly appended location authority');
+END;
+
+CREATE TRIGGER spot_field_provenance_location_authority_delete
+BEFORE DELETE ON spot_field_provenance
+WHEN OLD.field = 'location' AND EXISTS (SELECT 1 FROM spot_location_authorities WHERE spot_id = OLD.spot_id)
+BEGIN
+  SELECT RAISE(ABORT, 'spot_field_provenance: an anchored spot''s location evidence is never deleted');
 END;
 
 -- ---------------------------------------------------------------------------------------------------------
@@ -563,6 +797,7 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM spot_location_anchors)
   OR EXISTS (SELECT 1 FROM area_precision_upgrades)
   OR EXISTS (SELECT 1 FROM area_anchor_relocation_deltas)
+  OR EXISTS (SELECT 1 FROM spot_location_authorities)
 BEGIN
   SELECT RAISE(ABORT, 'promotion_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database');
 END;
@@ -644,6 +879,7 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM spot_location_anchors)
   OR EXISTS (SELECT 1 FROM area_precision_upgrades)
   OR EXISTS (SELECT 1 FROM area_anchor_relocation_deltas)
+  OR EXISTS (SELECT 1 FROM spot_location_authorities)
 BEGIN
   SELECT RAISE(ABORT, 'promotion_multi_bootstraps: a promotion bundle bootstraps only an empty, freshly migrated database');
 END;
@@ -718,4 +954,5 @@ WHEN EXISTS (SELECT 1 FROM sources)
   OR EXISTS (SELECT 1 FROM spot_location_anchors)
   OR EXISTS (SELECT 1 FROM area_precision_upgrades)
   OR EXISTS (SELECT 1 FROM area_anchor_relocation_deltas)
+  OR EXISTS (SELECT 1 FROM spot_location_authorities)
 BEGIN SELECT RAISE(ABORT, 'v4 requires a fresh GREEN database'); END;

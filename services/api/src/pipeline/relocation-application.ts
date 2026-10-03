@@ -8,6 +8,7 @@
 import { type Db, type DbStatement } from "../db.ts";
 import { DATA_TILE_ZOOM, formatTileId, tileForCoordinate } from "../geo/tile.ts";
 import { rederiveObservation } from "./observe.ts";
+import { authorityStatement, latestLocationAuthority } from "./resolve.ts";
 import { RELOCATION_POLICY_VERSION, sameCoordinate } from "./relocation.ts";
 import { HOLD_RELOCATION_UNDER_REVIEW } from "./relocation-hold.ts";
 import { RELOCATION_REVIEW_DECISION_VERSION, REVIEW_DECISION_VERSION } from "./review-queue.ts";
@@ -146,7 +147,17 @@ export async function applyReviewedRelocation(
   }
   const newTile = tileForCoordinate(next.observation.latitude, next.observation.longitude, DATA_TILE_ZOOM);
 
-  await db.batch([...(opts.prepend ?? []), db.prepare(
+  // ADR-0017: an exact spot with a location authority chain (it was once area-anchored) moves only after its next authority
+  // row names exactly this reviewed relocation (0030); the move itself is unchanged. The area→exact upgrade path brings
+  // its own exactUpgrade authority in `prepend`.
+  const authority = opts.areaAnchorDelta ? null : await latestLocationAuthority(db, spotId);
+  const relocationAuthority = authority === null ? [] : [authorityStatement(db, {
+    spotId, seq: authority.seq + 1, kind: "relocation", precision: authority.precision, anchorId: authority.anchor_id,
+    sourceId: adapter.registry.sourceId, releaseId: next.releaseId, releaseSha: (await db.prepare("SELECT content_sha256 FROM source_releases WHERE release_id = ?")
+      .bind(next.releaseId).first<{ content_sha256: string }>())!.content_sha256,
+    record: next, mappingVersion: adapter.mappingVersion, now: opts.now, relocationReviewItemId: reviewItemId,
+  })];
+  await db.batch([...(opts.prepend ?? []), ...relocationAuthority, db.prepare(
     `INSERT INTO review_relocation_applications (review_item_id, review_decision_id, identity_review_decision_id,
        review_relocation_hold_id, spot_id, source_entity_id, record_id, release_id, previous_record_id, previous_release_id,
        previous_observation_id, new_observation_id, mapping_version, old_latitude, old_longitude, old_tile_id,

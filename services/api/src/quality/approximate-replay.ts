@@ -8,13 +8,15 @@
 //   B existenceInsufficient     the source does not state that a smoking place exists (a host, a catalog, a policy).
 //   C rightsBlocked             existence is explicit, but the exact resource's reuse terms are not reviewed.
 //   D noReusableAnchor          existence and rights would allow it, but no reviewed reusable area anchor exists.
-//   E currentOperation          explicit closure/suspension evidence for the place.
+//   E currentOperation          explicit closure/suspension evidence, or current operation unresolved by the review
+//                               (`currentOperation` / `currentOperationNotEstablished` blockers).
 //   F prohibitionOrConflict     a ban, or publications that conflict and need reconciliation.
 //   G geocodingNeeded           located only by street address: ADR-0011 (Proposed), not an area anchor.
 //   H other                     review pending, raw unreadable, or already a published source.
 //
 // Precedence is F, B, H(pending/access), C, E, G, D, A: the strongest reason a target cannot publish is its category.
-// E (closure/suspension evidence) is independent of location form: it outranks G/D/A for every location.
+// E (closure/suspension evidence, or an unresolved current-operation blocker) is independent of location form: it
+// outranks G/D/A for every location. Unknown current operation is not "operating": it is never counted as A.
 // `adr0017RemovesLocationBlocker` is recorded separately: whether the exact-point blocker is answered by ADR-0017 once
 // the target's other gates (usually rights) are cleared.
 
@@ -52,6 +54,7 @@ export const RIGHTS = ["exactResourceRights", "scopedExactLicense", "exactReuseL
 const PENDING = ["substantiveReviewPending", "substantiveSourceReviewPending", "resourceNotInspected", "rawUnavailable", "accessBlocked",
   "accessBlockedHostStopped"];
 const CONFLICT = ["closureOrAvailabilityRequiresReconciliation", "publisherJurisdictionMismatch"];
+export const CURRENT_OPERATION = ["currentOperation", "currentOperationNotEstablished", "currentOperationUnknown"];
 const EXISTENCE = ["explicitSmokingPlaceEvidence", "explicitSmokingEvidence", "noSmokingEvidence", "noSmokingPoint",
   "specificExistenceNotEstablished", "noPermittedSmokingPlaceEvidence", "exactFacilityInventoryNotEstablished"];
 
@@ -69,6 +72,7 @@ export function classifyApproximate(r: ReplayRecord): { category: ReplayCategory
   if (has(r.blockerCodes, PENDING)) reasons.push("reviewPendingOrAccess");
   if (has(r.blockerCodes, RIGHTS)) reasons.push("rightsUnreviewed");
   if (/\bclosed\b|closure|suspended|abolished|休止|閉鎖|廃止/i.test(r.text) && r.explicitExistence) reasons.push("closureEvidencePresent");
+  if (has(r.blockerCodes, CURRENT_OPERATION)) reasons.push("currentOperationUnresolved");
   if (r.location === "addressOnly") reasons.push("addressOnly");
   if (r.location === "areaOrHost" && !r.reusableAnchor) reasons.push("noReusableAnchor");
 
@@ -83,7 +87,7 @@ export function classifyApproximate(r: ReplayRecord): { category: ReplayCategory
   // Location eligibility and current operation are independent axes: closure, suspension or abolition evidence that the
   // review has not reconciled per place keeps a target out of A whatever its location form (it stays recorded in
   // adr0017RemovesLocationBlocker).
-  else if (reasons.includes("closureEvidencePresent")) category = "E-currentOperation";
+  else if (reasons.includes("closureEvidencePresent") || reasons.includes("currentOperationUnresolved")) category = "E-currentOperation";
   else if (r.location === "addressOnly") category = "G-geocodingNeeded";
   else if (r.location === "areaOrHost" && !r.reusableAnchor) category = "D-noReusableAnchor";
   else if (adr0017RemovesLocationBlocker) category = "A-rescuedByAreaApproximate";
