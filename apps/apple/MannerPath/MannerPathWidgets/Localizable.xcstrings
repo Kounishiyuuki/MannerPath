@@ -141,6 +141,16 @@
         }
       }
     },
+    "Verified 1 day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日前に確認"
+          }
+        }
+      }
+    },
     "Verified today": {
       "localizations": {
         "ja": {

@@ -121,6 +121,26 @@
         }
       }
     },
+    "Verified 1 day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日前に確認"
+          }
+        }
+      }
+    },
+    "Verified less than a day ago": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24時間以内に確認"
+          }
+        }
+      }
+    },
     "Location is approximate, within %@": {
       "localizations": {
         "ja": {
