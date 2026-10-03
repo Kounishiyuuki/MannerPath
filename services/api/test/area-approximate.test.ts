@@ -33,7 +33,8 @@ const count = (db: SqliteD1, table: string) => (one(db, `SELECT count(*) n FROM 
 
 async function published(db: SqliteD1): Promise<TileSpotV1[]> {
   await publishTiles(db, { now: "2026-10-20T00:00:00Z" });
-  return (await readPublishedTiles(db)).flatMap((t) => t.spots).sort((a, b) => a.name!.localeCompare(b.name!));
+  // Code-point order by id: locale-independent (a locale-aware compare orders Japanese names differently under ja_JP).
+  return (await readPublishedTiles(db)).flatMap((t) => t.spots).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 const byName = (spots: TileSpotV1[], name: string) => spots.find((s) => s.name === name);
 const detail = async (db: SqliteD1, id: string) => app.request(`/v1/spots/${id}`, {}, { DB: db });
@@ -44,7 +45,7 @@ const detail = async (db: SqliteD1, id: string) => app.request(`/v1/spots/${id}`
 test("official evidence + an anchor of the same publication publishes as areaApproximate; exact spots are unchanged", async () => {
   const { db } = await areaPipeline();
   const spots = await published(db);
-  assert.deepEqual(spots.map((s) => s.name), ["公園内喫煙所", "駅前喫煙所"]);
+  assert.deepEqual(new Set(spots.map((s) => s.name)), new Set(["公園内喫煙所", "駅前喫煙所"]));
   const approx = byName(spots, "公園内喫煙所")!;
   assert.deepEqual([approx.latitude, approx.longitude], [PARK.latitude, PARK.longitude]);
   assert.equal(approx.verification.existence, "official");
