@@ -13,6 +13,20 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
     // ADR-0017: the nearest place's pin is an area anchor, so its distance is approximate. Optional so a glance
     // written by an older build decodes (and is shown exactly as before).
     var locationIsApproximate: Bool? = nil
+    // ADR-0012 existence tier raw value of the nearest place. Optional so a glance written by an older build decodes;
+    // absent or unrecognised reads as unknown, never as confirmed.
+    var existence: String? = nil
+
+    /// ADR-0012 label for the widget, worded as in the app. Never above the evidence.
+    var existenceLabel: String {
+        switch existence {
+        case "official": String(localized: "Officially confirmed")
+        case "operator": String(localized: "Confirmed by the operator")
+        case "communityVerified": String(localized: "Confirmed by users")
+        case "communityReported": String(localized: "User report · unconfirmed")
+        default: String(localized: "Confirmation status unknown")
+        }
+    }
 
     func validated() throws -> Self {
         guard version == Self.version, computedAt.timeIntervalSince1970.isFinite, locationObservedAt.timeIntervalSince1970.isFinite,
