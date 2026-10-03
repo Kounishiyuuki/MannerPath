@@ -181,8 +181,14 @@ const TABLES: readonly TableSpec[] = [
     // bindings — independent of which release is current: an anchor's publication may be an earlier release that this
     // bundle does not carry, so those columns travel as attested values (0030 checks them while the bootstrap is open)
     // and never as a current release. Bindings precede spot_field_provenance, whose area-anchor rows they justify.
+    table: "area_point_mappings",
+    columns: ["source_id", "mapping_version", "name_column", "latitude_column", "longitude_column", "policy_version", "reviewed_by", "reviewed_on", "recorded_at"],
+    // F4: the source's reviewed area-point mappings, through which every carried anchor's point is re-read on import.
+    sql: `SELECT * FROM area_point_mappings WHERE source_id = (${RELEASE_SOURCE}) ORDER BY mapping_version`,
+  },
+  {
     table: "area_location_anchors",
-    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_mapping_version", "origin_name_column", "origin_latitude_column", "origin_longitude_column", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
+    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_header_json", "origin_mapping_version", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
     sql: `SELECT * FROM area_location_anchors WHERE origin_source_id = (${RELEASE_SOURCE})
           AND anchor_id IN (SELECT anchor_id FROM spot_location_anchors WHERE spot_id IN (${PUBLISHED_SPOTS})) ORDER BY anchor_id`,
   },
@@ -196,6 +202,35 @@ const TABLES: readonly TableSpec[] = [
     columns: ["spot_id", "anchor_id", "record_id", "record_release_content_sha256", "resolver_version", "bound_at"],
     sql: `SELECT b.* FROM spot_location_anchors b JOIN area_location_anchors a ON a.anchor_id = b.anchor_id
           WHERE a.origin_source_id = (${RELEASE_SOURCE}) AND b.spot_id IN (${PUBLISHED_SPOTS}) ORDER BY b.spot_id`,
+  },
+  {
+    // F2: one evidence attestation per observation the carried authority chain cites (a bundle carries no observations).
+    // `current` when that observation's release is the source's current release — the one this bundle carries (0030
+    // checks it against the carried release and record) — `historical` otherwise. Read from the runtime observations here, or from the attestations
+    // of a database that was itself bootstrapped, so a re-export is identical.
+    table: "promotion_location_evidence_attestations",
+    columns: ["observation_id", "scope", "source_id", "release_id", "release_content_sha256", "record_id", "header_json", "record_values_json", "mapping_version", "location_rule", "location_columns_json", "latitude", "longitude", "anchor_id"],
+    sql: `SELECT o.observation_id, CASE WHEN rel.is_current = 1 THEN 'current' ELSE 'historical' END AS scope, o.source_id, o.release_id,
+            rel.content_sha256 AS release_content_sha256, o.record_id, rel.header_json, r.raw_values_json AS record_values_json,
+            o.mapping_version,
+            (SELECT json_extract(p.value, '$.rule') FROM json_each(o.field_provenance_json) p WHERE json_extract(p.value, '$.field') = 'location') AS location_rule,
+            (SELECT json(json_extract(p.value, '$.columns')) FROM json_each(o.field_provenance_json) p WHERE json_extract(p.value, '$.field') = 'location') AS location_columns_json,
+            o.latitude, o.longitude, json_extract(o.claims_json, '$.locationAnchorId') AS anchor_id
+          FROM source_observations o
+          JOIN source_records r ON r.record_id = o.record_id
+          JOIN source_releases rel ON rel.release_id = o.release_id
+          WHERE o.observation_id IN (SELECT evidence_observation_id FROM spot_location_authorities
+              WHERE evidence_source_id = (${RELEASE_SOURCE}) AND spot_id IN (${PUBLISHED_SPOTS}))
+            AND NOT EXISTS (SELECT 1 FROM promotion_location_evidence_attestations x WHERE x.observation_id = o.observation_id)
+          UNION ALL
+          SELECT observation_id, CASE WHEN EXISTS (SELECT 1 FROM source_releases c WHERE c.release_id = x.release_id AND c.is_current = 1)
+              THEN 'current' ELSE 'historical' END, source_id, release_id,
+            release_content_sha256, record_id, header_json, record_values_json, mapping_version, location_rule,
+            location_columns_json, latitude, longitude, anchor_id
+          FROM promotion_location_evidence_attestations x
+          WHERE observation_id IN (SELECT evidence_observation_id FROM spot_location_authorities
+              WHERE evidence_source_id = (${RELEASE_SOURCE}) AND spot_id IN (${PUBLISHED_SPOTS}))
+          ORDER BY observation_id`,
   },
   {
     // The whole location authority chain (history and current authority), in sequence; it must precede the location
@@ -493,6 +528,20 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
     if (!prev || Number(a.seq) > Number(prev.seq)) latestAuthority.set(String(a.spot_id), a);
   }
   const locations = new Map((rows.get("spot_field_provenance") ?? []).filter((p) => p.field === "location").map((p) => [String(p.spot_id), p]));
+  const attestations = new Map((rows.get("promotion_location_evidence_attestations") ?? []).map((e) => [Number(e.observation_id), e]));
+  const releasesById = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), r]));
+  const recordRelease = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), Number(r.release_id)]));
+  // F1/F2: the latest authority equals the carried evidence (release, record, observation attestation), as in SQL.
+  const evidenceOk = (l: Row): number => {
+    const rel = releasesById.get(Number(l.evidence_release_id)), e = attestations.get(Number(l.evidence_observation_id));
+    return rel !== undefined && rel.source_id === l.evidence_source_id && rel.content_sha256 === l.evidence_release_content_sha256
+      && recordRelease.get(Number(l.evidence_record_id)) === Number(l.evidence_release_id) && e !== undefined
+      && e.source_id === l.evidence_source_id && Number(e.release_id) === Number(l.evidence_release_id)
+      && e.release_content_sha256 === l.evidence_release_content_sha256 && Number(e.record_id) === Number(l.evidence_record_id)
+      && e.mapping_version === l.mapping_version && e.location_rule === l.location_rule && e.location_columns_json === l.location_columns_json
+      && e.latitude === l.latitude && e.longitude === l.longitude
+      && (e.anchor_id ?? null) === (l.precision === "areaApproximate" ? l.anchor_id : null) ? 1 : 0;
+  };
   const releaseSource = new Map((rows.get("source_releases") ?? []).map((r) => [Number(r.release_id), String(r.source_id)]));
   const recordSource = new Map((rows.get("source_records") ?? []).map((r) => [Number(r.record_id), releaseSource.get(Number(r.release_id)) ?? null]));
   const spotsById = new Map(spots.map((s) => {
@@ -511,7 +560,7 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
       lu_anchor_id: u?.anchor_id ?? null, lu_precision: u?.target_precision ?? null,
       lau_precision: l?.precision ?? null, lau_anchor_id: l?.anchor_id ?? null, lau_source_id: l?.evidence_source_id ?? null,
       lau_record_id: l?.evidence_record_id ?? null, lau_rule: l?.location_rule ?? null, lau_columns_json: l?.location_columns_json ?? null,
-      lau_latitude: l?.latitude ?? null, lau_longitude: l?.longitude ?? null,
+      lau_latitude: l?.latitude ?? null, lau_longitude: l?.longitude ?? null, lau_evidence_ok: l === undefined ? null : evidenceOk(l),
     }];
   }));
   const sourcesById = new Map(sources.map((s) => [String(s.source_id), s]));
@@ -811,7 +860,7 @@ export async function buildMultiSourcePromotionBundle(
     let sql = spec.sql;
     // The original table specifications remain the source of truth for columns and ordering.
     // Replace only their release/source predicates with a single JSON-set parameter.
-    if (perSource) sql = sql.replace(`= (${RELEASE_SOURCE})`,
+    if (perSource) sql = sql.replaceAll(`= (${RELEASE_SOURCE})`,
       "IN (SELECT source_id FROM source_releases WHERE release_id IN (SELECT value FROM json_each(?)))");
     else if (scoped) sql = sql.replace(/release_id = \?/g, "release_id IN (SELECT value FROM json_each(?))");
     const collected = await rowsOf(db, { ...spec, sql }, scoped ? JSON.stringify(perSource ? anchorIds : releaseIds) : undefined);

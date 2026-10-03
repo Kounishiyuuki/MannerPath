@@ -55,10 +55,34 @@ an area/host to stand as an explicitly approximate pin.
 
 ## Implementation (2026-10-02, revised after review)
 
-**Schema (migration 0030).** Five tables, every one append-only. Each has a BEFORE INSERT trigger refusing a row whose
+**Authority model (review rounds 3–4).** Five layers, kept apart:
+1. *Evidence storage* — `source_releases`, `source_records`, `source_observations`: append-only at runtime; 0030 adds
+   BEFORE INSERT guards so `INSERT OR REPLACE` cannot rewrite them either (F1), and fixes the entity link of a record
+   once an authority cites it.
+2. *Reviewed point authority* — `area_point_mappings` (which header columns of a source's publications are the area
+   name, latitude and longitude, per mapping version; from the reviewed adapter code, immutable) plus each anchor's
+   publication (release digest, header, record values): the database reads the point through those reviewed columns
+   only (F4), so other numeric cells of the same record, a typed point or another record's point cannot be bound.
+3. *Current location authority* — the latest `spot_location_authorities` row, re-checked by the shared public decision
+   against the evidence that exists now: release, record, and the cited observation (or, in a promoted database, its
+   carried attestation). Evidence rewritten underneath an unchanged authority is invalid (F1).
+4. *Historical audit chain* — anchor, initial exact upgrade (`area_precision_upgrades`), relocations, continuations.
+   A continuation moves only forward (F3): the previous authority's release is the source's applied current release,
+   the new one is the pending release compared against it, observed later, with no competing release, and the new
+   record continues the previous record's entity, which is the spot's.
+5. *Promotion attestation* — `promotion_location_evidence_attestations`, written only while a bootstrap is open (F2).
+   `current` rows must equal the release and record the bundle carries and a reviewed mapping, with the coordinate the
+   record states (or the cited anchor's point); `historical` rows exist only for releases outside the bundle and are
+   self-checked the same way. A carried authority must equal its attestation exactly, and the seal requires every
+   chain to end on current evidence. There is no blanket "bootstrap, so skip".
+
+**Schema (migration 0030).** Seven tables, every one append-only. Each has a BEFORE INSERT trigger refusing a row whose
 key or unique digest already exists, so `INSERT OR REPLACE` cannot rewrite one (SQLite's REPLACE deletes without firing
 DELETE triggers while `recursive_triggers` is off); UPDATE and DELETE are refused outright.
 
+- `area_point_mappings`: the reviewed area-point columns per (source, mapping version), registered from
+  `SourceAdapter.areaPointColumns`; an anchor references it and names no columns of its own.
+- `promotion_location_evidence_attestations`: the import-only evidence attestations of layer 5 above.
 - `area_location_anchors`: one reviewed anchor bound to **one publication** — the origin release (content digest) and
   the record in it that states the area's point, with that record's verbatim values. `recordAreaAnchor` resolves the
   record by publisher row reference and checks the registry's coordinate against it through the adapter's reviewed

@@ -53,6 +53,8 @@ test("the bundle carries the whole evidence-to-publication chain for the current
     area_location_anchors: 0,
     spot_location_anchors: 0,
     area_precision_upgrades: 0,
+    area_point_mappings: 0,
+    promotion_location_evidence_attestations: 0,
     spot_location_authorities: 0,
     tile_snapshots: 5,
     tile_snapshot_parts: 5,

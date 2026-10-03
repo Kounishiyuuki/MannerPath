@@ -21,7 +21,9 @@ export const PARK = { anchorId: "aa_ueno", areaName: "上野恩賜公園", latit
 export const MOVED = { latitude: 35.715, longitude: 139.774 } as const;
 export const MOVED_C = { latitude: 35.7148, longitude: 139.7745 } as const;
 export const MOVED_D = { latitude: 35.7146, longitude: 139.775 } as const;
-const HEADER = "id,name,area,lat,lon,statement";
+// seats/capacity: other numeric cells of the same rows (the park row states 36 seats, capacity 140) that are NOT its
+// point; the reviewed area-point mapping reads lat/lon only (F4).
+const HEADER = "id,name,area,lat,lon,statement,seats,capacity";
 // statement: "smoking" = the publisher states a smoking place (inside `area` when lat/lon are empty); "area" = the
 // row states an area's own point (an anchor origin, never a spot); "" = a place/host only; "closed" = closed.
 export const ROWS = {
@@ -41,7 +43,8 @@ export const ROWS = {
   newInPark: `6,公園内第二喫煙所,${PARK.areaName},,,smoking`,
 } as const;
 export const RELEASE_A = ["park", "anchored", "exact", "host", "noAnchor", "closed"] as const;
-export const csv = (rows: readonly (keyof typeof ROWS)[]) => new TextEncoder().encode([HEADER, ...rows.map((r) => ROWS[r])].join("\n"));
+const EXTRA: Partial<Record<keyof typeof ROWS, string>> = { park: ",36,140" };
+export const csv = (rows: readonly (keyof typeof ROWS)[]) => new TextEncoder().encode([HEADER, ...rows.map((r) => ROWS[r] + (EXTRA[r] ?? ",,"))].join("\n"));
 export const meta = (observedOn: string): ReleaseMetadata => ({ sourceUrl: "https://example.invalid/list.csv", observedOn, fetchedAt: NOW, httpLastModified: null });
 
 export function areaAdapter(sourceId: string, kind: "municipal" | "operator" = "municipal", anchors = [PARK]): SourceAdapter {
@@ -62,7 +65,8 @@ export function areaAdapter(sourceId: string, kind: "municipal" | "operator" = "
     assertResolvable: () => {},
     // The gate decides scope: a host-only, area, closed or un-anchorable row stays raw evidence and creates no spot.
     includesRecord: (v) => evaluateAreaApproximate(candidate(v)).verdict !== "rejected",
-    areaPoint: (v) => v[5] === "area" ? { areaName: v[1], latitude: Number(v[3]), longitude: Number(v[4]), columns: { name: "name", latitude: "lat", longitude: "lon" } } : null,
+    areaPoint: (v) => v[5] === "area" ? { areaName: v[1], latitude: Number(v[3]), longitude: Number(v[4]) } : null,
+    areaPointColumns: { name: "name", latitude: "lat", longitude: "lon", reviewedBy: "maintainer", reviewedOn: "2026-10-02" },
     observe(v): SourceObservation {
       const base = {
         name: v[1], supportsPaper: "unknown" as const, supportsHeated: "unknown" as const,

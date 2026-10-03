@@ -273,7 +273,7 @@ test("promotion v3 carries several additive community releases to a fresh databa
     batch: (queries) => db.batch(queries),
   };
   const bundle = await buildMultiSourcePromotionBundle(boundedDb, { registry: SIMULATED_REGISTRY });
-  assert.ok(statements <= 25, `promotion must read tables as sets, got ${statements} statements`);
+  assert.ok(statements <= 27, `promotion must read tables as sets, got ${statements} statements`);
   const community = bundle.manifest.sources.find((s) => s.sourceId === COMMUNITY_SOURCE_ID)!;
   assert.deepEqual(community.additiveReleases!.map((r) => r.releaseId), [first.releaseId, second.releaseId].sort((a, b) => a - b));
   assert.equal(community.releaseId, Math.min(first.releaseId, second.releaseId), "the anchor is the lowest release");

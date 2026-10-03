@@ -163,9 +163,11 @@
         "promotion_review_match_attestations": 0,
         "source_record_entities": 34,
         "spots": 32,
+        "area_point_mappings": 0,
         "area_location_anchors": 0,
         "area_precision_upgrades": 0,
         "spot_location_anchors": 0,
+        "promotion_location_evidence_attestations": 0,
         "spot_location_authorities": 0,
         "spot_source_entities": 32,
         "spot_field_provenance": 162,
@@ -174,9 +176,9 @@
         "tile_snapshot_parts": 5,
         "tile_snapshot_spots": 32
       },
-      "contentSha256": "98ff60d8d125eb4c6ad9d2575b8e329371061fff9bcbcff6044a531aea0b1802"
+      "contentSha256": "9898470a2019140eaa566cb210a01d09020cde77ea61829ccf780746e45019dd"
     },
-    "sqlSha256": "286b61fda21410a7c927b559e03909aa7043455fbb1fa038ea2eeb77eb875901"
+    "sqlSha256": "1e81e8fd9f88f33b29197b69341d09521395cebcf5598e1dae0caa4b6b866723"
   },
   "quality": {
     "generator": "nationwide-data-quality.v1",
@@ -3667,6 +3669,7 @@
     "app_attest_keys": [],
     "area_anchor_relocation_deltas": [],
     "area_location_anchors": [],
+    "area_point_mappings": [],
     "area_precision_upgrades": [],
     "community_absence_applications": [],
     "community_absence_evidence": [],
@@ -3687,6 +3690,7 @@
     "promotion_bootstrap_completions": [],
     "promotion_bootstraps": [],
     "promotion_cross_source_merge_attestations": [],
+    "promotion_location_evidence_attestations": [],
     "promotion_multi_bootstrap_additive_releases": [],
     "promotion_multi_bootstrap_completions": [],
     "promotion_multi_bootstrap_sources": [],

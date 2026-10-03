@@ -23,6 +23,7 @@ import { withinJapan } from "../geo/japan.ts";
 import { AREA_ANCHOR_RULE_PREFIX } from "../tiles/location-state.ts";
 import { rederiveObservation } from "./observe.ts";
 import { applyReviewedRelocation } from "./relocation-application.ts";
+import { registerAreaPointMapping } from "./area-point-mapping.ts";
 import { authorityStatement, latestLocationAuthority } from "./resolve.ts";
 import type { FieldProvenance, SourceAdapter, SourceObservation } from "./source-adapter.ts";
 
@@ -83,12 +84,12 @@ export async function recordAreaAnchor(db: Db, adapter: SourceAdapter, a: Review
   const problems = validateAreaAnchor(a);
   if (problems.length > 0) throw new Error(`area anchor ${a.anchorId}: ${problems.join(", ")}`);
   if (adapter.registry.sourceId !== a.originSourceId) throw new Error(`area anchor ${a.anchorId}: adapter is ${adapter.registry.sourceId}, not ${a.originSourceId}`);
-  if (!adapter.areaPoint) throw new Error(`area anchor ${a.anchorId}: ${a.originSourceId} has no reviewed areaPoint mapping`);
+  if (!adapter.areaPoint || !adapter.areaPointColumns) throw new Error(`area anchor ${a.anchorId}: ${a.originSourceId} has no reviewed areaPoint mapping`);
   const record = await db.prepare(
-    `SELECT r.record_id, r.release_id, r.raw_values_json FROM source_records r JOIN source_releases rel ON rel.release_id = r.release_id
+    `SELECT r.record_id, r.release_id, r.raw_values_json, rel.header_json FROM source_records r JOIN source_releases rel ON rel.release_id = r.release_id
      WHERE rel.source_id = ? AND rel.content_sha256 = ? AND r.upstream_row_ref = ?`,
   ).bind(a.originSourceId, a.originReleaseContentSha256, a.originUpstreamRowRef)
-    .first<{ record_id: number; release_id: number; raw_values_json: string }>();
+    .first<{ record_id: number; release_id: number; raw_values_json: string; header_json: string }>();
   if (!record) throw new Error(`area anchor ${a.anchorId}: row ${a.originUpstreamRowRef} of release ${a.originReleaseContentSha256} is not in this database`);
   const stated = adapter.areaPoint(JSON.parse(record.raw_values_json));
   if (!stated || stated.areaName !== a.areaName || stated.latitude !== a.latitude || stated.longitude !== a.longitude) {
@@ -96,7 +97,7 @@ export async function recordAreaAnchor(db: Db, adapter: SourceAdapter, a: Review
   }
   const digest = await sha256Hex(JSON.stringify([
     a.anchorId, a.areaName, a.areaKind, a.latitude, a.longitude, a.originKind, a.originSourceId, a.originReleaseContentSha256,
-    record.raw_values_json, adapter.mappingVersion, stated.columns, a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn,
+    record.raw_values_json, adapter.mappingVersion, a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn,
   ]));
   const existing = await db.prepare("SELECT evidence_sha256 FROM area_location_anchors WHERE anchor_id = ?")
     .bind(a.anchorId).first<{ evidence_sha256: string }>();
@@ -104,16 +105,17 @@ export async function recordAreaAnchor(db: Db, adapter: SourceAdapter, a: Review
     if (existing.evidence_sha256 !== digest) throw new Error(`area anchor ${a.anchorId} was recorded with different evidence; record a new anchor id`);
     return;
   }
+  // The point is read through the source's reviewed area-point mapping (0030 area_point_mappings), never through columns
+  // this call names.
+  await registerAreaPointMapping(db, adapter, now);
   await db.prepare(
     `INSERT INTO area_location_anchors (anchor_id, area_name, area_kind, latitude, longitude, origin_kind, origin_source_id,
-       origin_release_id, origin_release_content_sha256, origin_record_id, origin_record_values_json, origin_mapping_version,
-       origin_name_column, origin_latitude_column, origin_longitude_column, origin_reference,
-       reuse_basis, policy_version, reviewed_by, reviewed_on, evidence_sha256, recorded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       origin_release_id, origin_release_content_sha256, origin_record_id, origin_record_values_json, origin_header_json,
+       origin_mapping_version, origin_reference, reuse_basis, policy_version, reviewed_by, reviewed_on, evidence_sha256, recorded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).bind(a.anchorId, a.areaName, a.areaKind, a.latitude, a.longitude, a.originKind, a.originSourceId, record.release_id,
-    a.originReleaseContentSha256, record.record_id, record.raw_values_json, adapter.mappingVersion, stated.columns.name,
-    stated.columns.latitude, stated.columns.longitude, a.originReference, a.reuseBasis, a.policyVersion,
-    a.reviewedBy, a.reviewedOn, digest, now).run();
+    a.originReleaseContentSha256, record.record_id, record.raw_values_json, record.header_json, adapter.mappingVersion,
+    a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn, digest, now).run();
 }
 
 /**
@@ -327,13 +329,13 @@ export async function applyAreaPrecisionUpgrade(db: Db, adapter: SourceAdapter, 
   // The upgrade's evidence becomes the spot's current location authority (0030 checks it equals the upgrade exactly).
   const latest = await latestLocationAuthority(db, input.spotId);
   if (!latest || latest.precision !== "areaApproximate") throw fail("its current location authority is not its area anchor");
-  const authority = authorityStatement(db, {
+  const authority = authorityStatement(db, adapter, {
     spotId: input.spotId, seq: latest.seq + 1, kind: "exactUpgrade", precision: plan.precision, anchorId: binding.anchor_id,
     sourceId: adapter.registry.sourceId, releaseId: evidence.releaseId, releaseSha: release.content_sha256, record: evidence,
-    mappingVersion: adapter.mappingVersion, now: input.now,
+    now: input.now,
   });
   if (plan.kind === "sameCoordinate") {
-    await db.batch([upgrade, authority]);
+    await db.batch([upgrade, ...authority]);
     return { status: "applied", spotId: input.spotId, kind: "sameCoordinate" };
   }
   // The move is the ADR-0009 application; the upgrade row precedes it in the same batch, so the anchored-pin trigger
@@ -347,7 +349,7 @@ export async function applyAreaPrecisionUpgrade(db: Db, adapter: SourceAdapter, 
     `INSERT INTO area_anchor_relocation_deltas (review_item_id, spot_id, anchor_id, previous_observation_id, new_observation_id, recorded_at)
      VALUES (?, ?, ?, ?, ?, ?)`,
   ).bind(input.relocationReviewItemId, input.spotId, binding.anchor_id, details.previousObservationId ?? null, details.newObservationId ?? null, input.now);
-  const result = await applyReviewedRelocation(db, adapter, input.relocationReviewItemId!, { now: input.now, prepend: [delta, upgrade, authority], areaAnchorDelta: true });
+  const result = await applyReviewedRelocation(db, adapter, input.relocationReviewItemId!, { now: input.now, prepend: [delta, upgrade, ...authority], areaAnchorDelta: true });
   if (result.status !== "applied") throw fail(`its relocation is ${result.status}`);
   return { status: "applied", spotId: input.spotId, kind: "relocated" };
 }

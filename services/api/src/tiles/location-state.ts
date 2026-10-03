@@ -10,6 +10,10 @@
 //   - exact authority: also a reviewed upgrade of that binding as history (the first exact authority);
 //   - an anchor rule, binding or upgrade without a chain, or any mismatch, is `invalid`: never published, never served,
 //     refused by promotion.
+//   - the latest authority is itself checked against the evidence that exists NOW (review F1): its release (source and
+//     digest), its record in that release, and its observation (record, release, source, mapping, coordinate, anchor
+//     claim, location rule and columns) — or, in a promoted database, the carried evidence attestation for that
+//     observation. Evidence rewritten underneath an unchanged authority is `invalid`.
 // Nothing is inferred from a binding, an upgrade or a source alone; the latest authority row decides.
 
 export const AREA_ANCHOR_RULE_PREFIX = "area-anchor.v1:";
@@ -41,6 +45,8 @@ export interface LocationStateRow {
   lau_columns_json?: string | null;
   lau_latitude?: number | null;
   lau_longitude?: number | null;
+  /** 1 when the latest authority equals the evidence that exists now (release, record, observation or attestation). */
+  lau_evidence_ok?: number | null;
 }
 
 export type AreaKind = "park" | "station" | "facility" | "airport" | "commercialBuilding" | "other";
@@ -60,14 +66,36 @@ export const LOCATION_STATE_COLUMNS = `lp.rule AS location_rule, lp.record_id AS
   lu.anchor_id AS lu_anchor_id, lu.target_precision AS lu_precision,
   lau.precision AS lau_precision, lau.anchor_id AS lau_anchor_id, lau.evidence_source_id AS lau_source_id,
   lau.evidence_record_id AS lau_record_id, lau.location_rule AS lau_rule, lau.location_columns_json AS lau_columns_json,
-  lau.latitude AS lau_latitude, lau.longitude AS lau_longitude`;
+  lau.latitude AS lau_latitude, lau.longitude AS lau_longitude,
+  CASE
+    WHEN lau.spot_id IS NULL THEN NULL
+    WHEN lrel.release_id IS NULL OR lrel.source_id IS NOT lau.evidence_source_id
+      OR lrel.content_sha256 IS NOT lau.evidence_release_content_sha256 THEN 0
+    WHEN NOT EXISTS (SELECT 1 FROM source_records lrec WHERE lrec.record_id = lau.evidence_record_id AND lrec.release_id = lau.evidence_release_id) THEN 0
+    WHEN le.observation_id IS NOT NULL THEN (le.source_id = lau.evidence_source_id AND le.release_id = lau.evidence_release_id
+      AND le.release_content_sha256 = lau.evidence_release_content_sha256 AND le.record_id = lau.evidence_record_id
+      AND le.mapping_version = lau.mapping_version AND le.location_rule = lau.location_rule
+      AND le.location_columns_json = lau.location_columns_json AND le.latitude = lau.latitude AND le.longitude = lau.longitude
+      AND le.anchor_id IS (CASE WHEN lau.precision = 'areaApproximate' THEN lau.anchor_id END))
+    WHEN lo.observation_id IS NOT NULL THEN (lo.record_id = lau.evidence_record_id AND lo.release_id = lau.evidence_release_id
+      AND lo.source_id = lau.evidence_source_id AND lo.mapping_version = lau.mapping_version
+      AND lo.latitude = lau.latitude AND lo.longitude = lau.longitude
+      AND json_extract(lo.claims_json, '$.locationAnchorId') IS (CASE WHEN lau.precision = 'areaApproximate' THEN lau.anchor_id END)
+      AND EXISTS (SELECT 1 FROM json_each(lo.field_provenance_json) lp2 WHERE json_extract(lp2.value, '$.field') = 'location'
+        AND json_extract(lp2.value, '$.rule') = lau.location_rule
+        AND json(json_extract(lp2.value, '$.columns')) = json(lau.location_columns_json)))
+    ELSE 0
+  END AS lau_evidence_ok`;
 
 export const LOCATION_STATE_JOINS = `LEFT JOIN spot_field_provenance lp ON lp.spot_id = s.spot_id AND lp.field = 'location'
   LEFT JOIN spot_location_anchors lb ON lb.spot_id = s.spot_id
   LEFT JOIN area_location_anchors la ON la.anchor_id = lb.anchor_id
   LEFT JOIN area_precision_upgrades lu ON lu.spot_id = s.spot_id
   LEFT JOIN spot_location_authorities lau ON lau.spot_id = s.spot_id
-    AND lau.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = s.spot_id)`;
+    AND lau.seq = (SELECT max(seq) FROM spot_location_authorities WHERE spot_id = s.spot_id)
+  LEFT JOIN source_releases lrel ON lrel.release_id = lau.evidence_release_id
+  LEFT JOIN promotion_location_evidence_attestations le ON le.observation_id = lau.evidence_observation_id
+  LEFT JOIN source_observations lo ON lo.observation_id = lau.evidence_observation_id`;
 
 const AREA_KINDS = new Set(["park", "station", "facility", "airport", "commercialBuilding", "other"]);
 
@@ -85,6 +113,8 @@ export function locationState(r: LocationStateRow): LocationState {
   }
   if (!bound || r.la_anchor_id !== r.lb_anchor_id || r.lau_anchor_id !== r.lb_anchor_id) return invalid("authorityWithoutItsBinding");
   if (r.lb_release_sha256 !== r.la_release_sha256) return invalid("bindingOutsideAnchorPublication");
+  // The current authority must still be exactly the evidence that exists now (F1).
+  if (Number(r.lau_evidence_ok) !== 1) return invalid("authorityEvidenceNotCurrent");
   // The current authority is exact: the published location evidence must be exactly it.
   if (r.location_record_id !== r.lau_record_id || rule !== r.lau_rule || r.location_columns_json !== r.lau_columns_json) {
     return invalid("locationEvidenceIsNotTheCurrentAuthority");

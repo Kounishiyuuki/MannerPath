@@ -190,3 +190,114 @@ test("a carried chain must explain its spot when the bootstrap is sealed (v2 and
     assert.throws(() => applyPromotionBundle(migratedSqlite(), truncated), /location authority/);
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// F2: current evidence vs historical attestation — one trust boundary for v2, v3 and v4
+
+/** Splits one bundle INSERT line into its columns and literal values (quotes respected). */
+function parseInsert(line: string): { table: string; columns: string[]; values: string[] } | null {
+  const m = /^INSERT INTO (\w+) \(([^)]*)\) VALUES \((.*)\);$/.exec(line);
+  if (!m) return null;
+  const values: string[] = [];
+  let cur = "", quoted = false;
+  for (let i = 0; i < m[3].length; i++) {
+    const ch = m[3][i];
+    if (ch === "'") { if (quoted && m[3][i + 1] === "'") { cur += "''"; i++; continue; } quoted = !quoted; }
+    if (ch === "," && !quoted) { values.push(cur.trim()); cur = ""; continue; }
+    cur += ch;
+  }
+  values.push(cur.trim());
+  return { table: m[1], columns: m[2].split(", "), values };
+}
+/** Rewrites columns of the bundle rows of `table` that `where` selects; refuses a no-op. */
+function rewrite(sql: string, table: string, where: (row: Record<string, string>) => boolean, set: Record<string, string>): string {
+  let touched = 0;
+  const out = sql.split("\n").map((line) => {
+    const p = parseInsert(line);
+    if (!p || p.table !== table) return line;
+    const row = Object.fromEntries(p.columns.map((c, i) => [c, p.values[i]]));
+    if (!where(row)) return line;
+    touched++;
+    const values = p.columns.map((c, i) => (c in set ? set[c] : p.values[i]));
+    return `INSERT INTO ${table} (${p.columns.join(", ")}) VALUES (${values.join(", ")});`;
+  }).join("\n");
+  assert.ok(touched > 0, `rewrite ${table}: nothing matched`);
+  return out;
+}
+
+test("promoted location evidence: the latest authority is current evidence, earlier ones explicit historical attestations", async () => {
+  const { db, adapter, spotId } = await stateDb("D-exactAfterUpgradeRelocations");
+  const registry = registryOf(adapter);
+  for (const build of [async () => (await buildPromotionBundle(db, { registry })).sql, async () => (await buildMultiSourcePromotionBundle(db, { registry })).sql]) {
+    const target = migratedSqlite();
+    applyPromotionBundle(target, await build());
+    const rows = target.prepare(`SELECT a.seq, a.kind, e.scope FROM spot_location_authorities a
+      JOIN promotion_location_evidence_attestations e ON e.observation_id = a.evidence_observation_id WHERE a.spot_id = ? ORDER BY a.seq`).all(spotId) as Record<string, unknown>[];
+    assert.deepEqual(rows.map((r) => [r.seq, r.kind, r.scope]), [
+      [1, "areaAnchor", "historical"], [2, "exactUpgrade", "historical"], [3, "relocation", "historical"],
+      [4, "relocation", "historical"], [5, "continuation", "current"],
+    ]);
+    // After sealing, nothing more can be attested: the trust boundary closes with the bootstrap.
+    assert.throws(() => target.prepare("INSERT INTO promotion_location_evidence_attestations SELECT observation_id + 100, scope, source_id, release_id, release_content_sha256, record_id + 100, header_json, record_values_json, mapping_version, location_rule, location_columns_json, latitude, longitude, anchor_id FROM promotion_location_evidence_attestations LIMIT 1").run(),
+      /only an open promotion bootstrap|bootstrap is complete/);
+  }
+});
+
+test("forged current or historical location evidence is refused on import (v2 and v3; v4 shares the schema)", async () => {
+  const { db, adapter, spotId } = await stateDb("D-exactAfterUpgradeRelocations");
+  const registry = registryOf(adapter);
+  const sid = `'${spotId}'`;
+  const latestAuthority = (r: Record<string, string>) => r.spot_id === sid && r.seq === "5";
+  const currentEvidence = (r: Record<string, string>) => r.scope === "'current'";
+  const historicalEvidence = (r: Record<string, string>) => r.scope === "'historical'" && r.release_id === "4";
+  for (const build of [async () => (await buildPromotionBundle(db, { registry })).sql, async () => (await buildMultiSourcePromotionBundle(db, { registry })).sql]) {
+    const good = await build();
+    const tampers: [string, string][] = [
+      ["current authority digest forged", rewrite(good, "spot_location_authorities", latestAuthority, { evidence_release_content_sha256: `'${"f".repeat(64)}'` })],
+      ["current authority mapping forged", rewrite(good, "spot_location_authorities", latestAuthority, { mapping_version: "'test-area.map.v9'" })],
+      ["current authority release mismatch", rewrite(good, "spot_location_authorities", latestAuthority, { evidence_release_id: "4" })],
+      ["current authority record mismatch", rewrite(good, "spot_location_authorities", latestAuthority, { evidence_record_id: "14" })],
+      ["current authority coordinate forged", rewrite(good, "spot_location_authorities", latestAuthority, { latitude: "36", longitude: "140" })],
+      ["current evidence: observation values forged", rewrite(good, "promotion_location_evidence_attestations", currentEvidence, { latitude: "36", longitude: "140" })],
+      ["current evidence: record values forged", rewrite(good, "promotion_location_evidence_attestations", currentEvidence,
+        { record_values_json: `'["1","公園内喫煙所","","36","140","smoking","",""]'`, latitude: "36", longitude: "140" })],
+      ["current evidence: digest forged", rewrite(good, "promotion_location_evidence_attestations", currentEvidence, { release_content_sha256: `'${"f".repeat(64)}'` })],
+      ["current evidence: unreviewed mapping", rewrite(rewrite(good, "promotion_location_evidence_attestations", currentEvidence, { mapping_version: "'test-area.map.v9'" }),
+        "spot_location_authorities", latestAuthority, { mapping_version: "'test-area.map.v9'" })],
+      ["current evidence presented as historical", rewrite(good, "promotion_location_evidence_attestations", currentEvidence, { scope: "'historical'" })],
+      ["historical attestation presented as current", rewrite(good, "promotion_location_evidence_attestations", historicalEvidence, { scope: "'current'" })],
+      ["historical attestation: values not the stated point", rewrite(good, "promotion_location_evidence_attestations", historicalEvidence, { latitude: "36", longitude: "140" })],
+      ["stale continuation: the chain ends on historical evidence", rewrite(good, "spot_location_authorities", latestAuthority,
+        { evidence_release_id: "4", evidence_release_content_sha256: rewriteValue(good, "promotion_location_evidence_attestations", historicalEvidence, "release_content_sha256"),
+          evidence_record_id: "11", evidence_observation_id: "7" })],
+      ["wrong reviewed columns", rewrite(good, "area_point_mappings", () => true, { latitude_column: "'seats'", longitude_column: "'capacity'" })],
+    ];
+    for (const [name, sql] of tampers) {
+      assert.notEqual(sql, good, name);
+      assert.throws(() => applyPromotionBundle(migratedSqlite(), sql), (e: Error) => { if (process.env.SHOW_TAMPER) console.log(name, "=>", e.message); return /spot_location_authorities|promotion_location_evidence_attestations|area_location_anchors/.test(e.message); }, name);
+    }
+  }
+  // v4: a tampered chunk no longer matches its manifest, and a re-signed one meets the same schema triggers.
+  const root = await mkdtemp(join(tmpdir(), "area-v4-evidence-"));
+  try {
+    const manifest = await exportPromotionV4(db.raw, join(root, "bundle"), { chunkBytes: 90_000, registry });
+    const chunk = manifest.chunks.find((c) => c.table === "promotion_location_evidence_attestations") ?? manifest.chunks[0];
+    const path = join(root, "bundle", chunk.file);
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(path, (await readFile(path, "utf8")).replace("'current'", "'historical'"));
+    await assert.rejects(() => verifyPromotionV4(join(root, "bundle")));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+/** One literal of the first matching row (for building a consistent forgery). */
+function rewriteValue(sql: string, table: string, where: (row: Record<string, string>) => boolean, column: string): string {
+  for (const line of sql.split("\n")) {
+    const p = parseInsert(line);
+    if (!p || p.table !== table) continue;
+    const row = Object.fromEntries(p.columns.map((c, i) => [c, p.values[i]]));
+    if (where(row)) return row[column];
+  }
+  throw new Error(`no ${table} row`);
+}

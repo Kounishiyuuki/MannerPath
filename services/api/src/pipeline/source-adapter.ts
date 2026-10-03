@@ -131,11 +131,12 @@ export interface SourceAdapter {
    * this same publication), or null. Only `recordAreaAnchor` reads it, to check a reviewed anchor against the
    * publication instead of trusting a typed coordinate. Absent: this source supplies no anchors.
    */
-  areaPoint?(values: readonly string[]): {
-    areaName: string; latitude: number; longitude: number;
-    /** The header columns whose verbatim values are the name and the coordinate (the database re-reads them, 0030). */
-    columns: { name: string; latitude: string; longitude: string };
-  } | null;
+  areaPoint?(values: readonly string[]): { areaName: string; latitude: number; longitude: number } | null;
+  /**
+   * ADR-0017 (0030 area_point_mappings): the reviewed header columns `areaPoint` reads, registered once per mapping
+   * version and immutable; the database reads every anchor's point through them (an anchor never names its own columns).
+   */
+  areaPointColumns?: { name: string; latitude: string; longitude: string; reviewedBy: string; reviewedOn: string };
   /** The field mapping: one in-scope raw record -> its normalized observation. Call through
    * observeSourceRecord at shared boundaries to enforce finite global coordinate ranges. */
   observe(values: readonly string[]): SourceObservation;

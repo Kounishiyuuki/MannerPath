@@ -151,12 +151,12 @@ export async function applyReviewedRelocation(
   // row names exactly this reviewed relocation (0030); the move itself is unchanged. The area→exact upgrade path brings
   // its own exactUpgrade authority in `prepend`.
   const authority = opts.areaAnchorDelta ? null : await latestLocationAuthority(db, spotId);
-  const relocationAuthority = authority === null ? [] : [authorityStatement(db, {
+  const relocationAuthority = authority === null ? [] : authorityStatement(db, adapter, {
     spotId, seq: authority.seq + 1, kind: "relocation", precision: authority.precision, anchorId: authority.anchor_id,
     sourceId: adapter.registry.sourceId, releaseId: next.releaseId, releaseSha: (await db.prepare("SELECT content_sha256 FROM source_releases WHERE release_id = ?")
       .bind(next.releaseId).first<{ content_sha256: string }>())!.content_sha256,
-    record: next, mappingVersion: adapter.mappingVersion, now: opts.now, relocationReviewItemId: reviewItemId,
-  })];
+    record: next, now: opts.now, relocationReviewItemId: reviewItemId,
+  });
   await db.batch([...(opts.prepend ?? []), ...relocationAuthority, db.prepare(
     `INSERT INTO review_relocation_applications (review_item_id, review_decision_id, identity_review_decision_id,
        review_relocation_hold_id, spot_id, source_entity_id, record_id, release_id, previous_record_id, previous_release_id,

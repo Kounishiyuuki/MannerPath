@@ -58,7 +58,7 @@ test("official evidence + an anchor of the same publication publishes as areaApp
   const a = one(db, `SELECT a.*, b.record_release_content_sha256 FROM spot_location_anchors b JOIN area_location_anchors a USING (anchor_id) WHERE b.spot_id = ?`, approx.id)!;
   assert.equal(a.origin_release_content_sha256, await releaseSha(RELEASE_A));
   assert.equal(a.record_release_content_sha256, a.origin_release_content_sha256, "binding and anchor are one publication");
-  assert.deepEqual(JSON.parse(a.origin_record_values_json), ["P1", PARK.areaName, "", String(PARK.latitude), String(PARK.longitude), "area"]);
+  assert.deepEqual(JSON.parse(a.origin_record_values_json), ["P1", PARK.areaName, "", String(PARK.latitude), String(PARK.longitude), "area", "36", "140"]);
   assert.deepEqual([a.reuse_basis, a.policy_version, a.reviewed_by], ["sameReviewedPublication", AREA_ANCHOR_POLICY_VERSION, "maintainer"]);
   const res = await detail(db, approx.id);
   assert.equal(res.status, 200);
@@ -148,7 +148,7 @@ test("an anchor cannot be recorded from an unapproved source or for a record out
   const row = one(db, "SELECT * FROM area_location_anchors")!;
   const insert = (o: Row) => db.raw.prepare(`INSERT INTO area_location_anchors (${Object.keys(o).join(", ")}) VALUES (${Object.keys(o).map(() => "?").join(", ")})`).run(...Object.values(o));
   const fresh = { ...row, anchor_id: "aa_two", evidence_sha256: "b".repeat(64) };
-  assert.throws(() => insert({ ...fresh, origin_record_values_json: '["P1","偽の公園","","35","139","area"]' }), /its own reviewed publication|does not state this area point/);
+  assert.throws(() => insert({ ...fresh, origin_record_values_json: '["P1","偽の公園","","35","139","area","36","140"]' }), /its own reviewed publication|does not state this area point/);
   assert.throws(() => insert({ ...fresh, origin_release_content_sha256: "c".repeat(64) }), /its own reviewed publication|does not state this area point/);
   assert.throws(() => insert({ ...fresh, origin_record_id: 2 }), /its own reviewed publication|does not state this area point/);
   db.raw.prepare("UPDATE sources SET publication_status = 'blocked' WHERE source_id = ?").run(sourceId);
@@ -221,10 +221,11 @@ test("tampered location state is never published or served (tile and detail shar
     location_source_id: "s", lb_anchor_id: "aa_x", lb_release_sha256: "r",
     la_anchor_id: "aa_x", la_source_id: "s", la_latitude: 1, la_longitude: 2, la_area_name: "公園", la_area_kind: "park", la_release_sha256: "r",
     lau_precision: "areaApproximate", lau_anchor_id: "aa_x", lau_source_id: "s", lau_record_id: 1, lau_rule: "area-anchor.v1:aa_x",
-    lau_columns_json: '["area"]', lau_latitude: 1, lau_longitude: 2 };
+    lau_columns_json: '["area"]', lau_latitude: 1, lau_longitude: 2, lau_evidence_ok: 1 };
   const exact = { ...base, location_rule: "test.point.v1", location_record_id: 7, location_columns_json: '["lat","lon"]',
     lu_anchor_id: "aa_x", lu_precision: "publisherPoint", lau_precision: "publisherPoint", lau_record_id: 7, lau_rule: "test.point.v1", lau_columns_json: '["lat","lon"]' };
   assert.equal(locationState(base).kind, "areaApproximate");
+  assert.equal(locationState({ ...base, lau_evidence_ok: 0 }).kind, "invalid", "the authority's evidence was rewritten underneath it");
   assert.equal(locationState({ ...base, lu_anchor_id: "aa_x", lu_precision: "publisherPoint" }).kind, "invalid", "an upgrade while the authority is approximate");
   assert.equal(locationState(exact).kind, "upgraded");
   assert.equal(locationState({ ...exact, lu_anchor_id: null }).kind, "invalid", "exact authority without its reviewed upgrade");
