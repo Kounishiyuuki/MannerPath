@@ -74,6 +74,21 @@ class MannerPathUITestCase: XCTestCase {
         XCTAssertEqual(app.staticTexts.matching(leak).count, 0, "Developer text is visible", file: file, line: line)
     }
 
+    // Captures every section of Data & Privacy, top to Diagnostics, for visual review in the current phase.
+    func tourDataAndPrivacy() {
+        app.buttons["データとプライバシー"].tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        screenshot("40-privacy-top")
+        for (index, header) in ["報告", "情報の品質", "診断情報"].enumerated() {
+            scrollTo(text(header))
+            screenshot("4\(index + 1)-privacy-\(header)")
+        }
+        let diagnostics = textContaining("クラッシュ報告ツールは含まれていません")
+        scrollTo(diagnostics)
+        screenshot("44-privacy-diagnostics")
+        assertNoDeveloperText()
+    }
+
     func waitForResults(file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 30), "No nearby results", file: file, line: line)
     }
@@ -280,6 +295,12 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(resultRows.firstMatch.exists, "Saved places stay listed during destination search")
     }
 
+    func testDataAndPrivacyFullPage() {
+        launch()
+        waitForResults()
+        tourDataAndPrivacy()
+    }
+
     func testIconOnlyActionsHaveLabels() {
         launch()
         waitForResults()
@@ -313,6 +334,13 @@ final class D_CleanOfflineUITests: MannerPathUITestCase {
                        "Must not claim saved results that do not exist")
         XCTAssertFalse(textContaining("保存済みの下書きはこのデバイスに残ります").exists)
         screenshot("12-clean-offline")
+        // Reporting availability is unknown here: Data & Privacy must not advertise intake.
+        app.buttons["データとプライバシー"].tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        scrollTo(textContaining("報告機能を利用できるか確認できませんでした"))
+        XCTAssertFalse(textContaining("報告は審査対象の提案です").exists)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        tourDataAndPrivacy()
     }
 }
 
