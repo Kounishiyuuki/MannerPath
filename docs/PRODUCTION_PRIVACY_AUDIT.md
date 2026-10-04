@@ -202,15 +202,17 @@ Existing deployment checks must not be performed with a mutating smoke/report cl
 
 ## Policy and deployment decisions
 
-### Published Privacy Policy comparison — correction required
+### Initial public-policy capture and subsequent repository correction
 
-**Status 2026-10-05:** Policy lane (2026-10-05): the published policy no longer asserts a running server or live log settings; §2 now says providers may process/record IP and request information, error diagnostics may remain, and confirmed fields/retention will be added; §8/§9 disclose the Gmail support mailbox. Last updated 2026-10-05 (JA/EN). Still open: actual provider fields/retention after deployment, §5 gate/build evidence, mailbox retention.
+**Status 2026-10-05:** Policy lane (2026-10-05): the repository policy no longer asserts a running server or live log settings; §2 now says providers may process/record IP and request information, error diagnostics may remain, and confirmed fields/retention will be added; §8/§9 disclose the Gmail support mailbox. Last updated 2026-10-05 (JA/EN). Still open: actual provider fields/retention after deployment, §5 gate/build evidence, mailbox retention.
+
+Initial audit capture (before this policy correction; historical evidence):
 
 `https://kounishiyuuki.github.io/MannerPath/privacy/` returned its Japanese/English page via read-only HTTPS
 GET on 2026-10-05 JST (effective/updated October 4, 2026). The page correctly describes tile IDs, on-device
 GPS, Apple services, no app analytics/crash SDK, and intended initial-v1 reports/auth/photos unavailable.
 However §2 presents the server as already running on Cloudflare and invocation logs as disabled in actual
-server settings. This audit finds no configured production Worker. **Correction is required**: distinguish
+server settings. This audit finds no configured production Worker. **The initial audit required a correction**: distinguish
 planned/repository configuration from live deployment until verified, in both languages. Proposed meaning:
 “The initial production service is being prepared on Cloudflare. Its reviewed configuration disables automatic
 invocation logs; actual deployment settings will be verified before release.” Do not claim an observed live disable.
@@ -265,7 +267,7 @@ These checks do not establish live privacy behavior.
 - Correct/publish the bilingual policy, verify archive/manifests, resolve all UNKNOWN categories and sign final
   ASC answers before submission. This documentation can merge independently of these submission gates. No deployment or activation is authorized by this record.
 
-## Next policy lane — concrete bilingual handoff (do not edit `site/` in this PR)
+## Policy lane handoff — wording completed, evidence still pending
 
 **Status 2026-10-05:** items 1–2 done with durable wording (no time-bound “being prepared” sentence and no live-setting claim). Item 3 is done as wording only: processing/recording is possible, and fields/retention will be added. Items 5–6: the §6 provider note, the §9 identification claim softened, the Gmail mailbox disclosed, and dates updated. Evidence-dependent parts of 3–6 remain open.
 

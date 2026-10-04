@@ -143,7 +143,8 @@ create the bound R2 bucket, without which `wrangler deploy` fails.
 - [ ] Separately authorize resource provisioning/deployment after production D1/R2 inventory and reviewed IDs/preflight; never reuse E2E resources by assumption.
 - [ ] Obtain read-only Logpush/analytics/retention evidence and sanitized IP/UA/path/time/request-ID field assessment; resolve prohibited location history.
 - [ ] Verify deployed version/settings, config false/false, unavailable report/auth intake, photos off, no community activation and empty crons; no mutating audit probes.
-- [x] Correct published policy §2 live-server/logging claims in both languages (2026-10-05).
+- [x] Correct repository policy §2 live-server/logging wording in both languages (2026-10-05).
+- [ ] Verify merged Pages workflow and live bilingual policy date/§2/contact/links.
 - [ ] Reconcile provider/support retention in the policy after deployment evidence.
 - [ ] Close audit's UNKNOWN Privacy Label categories; match Photos/Crash source conclusions to archive; owner signs ASC answers.
 
@@ -158,5 +159,5 @@ Next provisioning lane: separately authorize R2 enablement, canonical D1 `manner
 D1 `mannerpath-production-reports` and R2 `mannerpath-raw-artifacts-production` creation; review distinct IDs
 and production-only safety-test updates, remote migrations/canonical promotion, then Worker deployment.
 Keep required attestation, reports/auth unavailable, photos off, crons empty and community inactive.
-Policy wording corrections and revision dates landed 2026-10-05; evidence-dependent §2/§5/§9 details remain in the
+Repository policy wording corrections and revision dates updated 2026-10-05; Pages publication must be verified; evidence-dependent §2/§5/§9 details remain in the
 [audit handoff](PRODUCTION_PRIVACY_AUDIT.md).

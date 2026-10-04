@@ -83,7 +83,8 @@ Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product 
 App Functionality, not tracking pending evidence). Photos/Videos and Crash Data are **NOT COLLECTED**
 for the reviewed shipping composition, pending signed archive / matching production deployment verification. No type is
 confirmed COLLECTED by live production records. Missing production is not a “Data Not Collected” signoff.
-Published policy §2 live-server/logging claims were corrected on 2026-10-05 (no running-server or live-setting assertion); provider/support retention remains manual.
+Repository policy §2 live-server/logging wording was corrected on 2026-10-05 (no running-server or
+live-setting assertion); publication awaits Pages verification. Provider/support retention remains manual.
 
 #179 public-site evidence is closed: Release `MannerPathPublicSiteURL` is
 `https://kounishiyuuki.github.io/MannerPath/`; Release navigation to privacy/ and support/ is verified;

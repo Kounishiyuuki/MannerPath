@@ -330,7 +330,7 @@ remain separate checks; URL configuration/reachability is no longer a blocker.
 | --- | --- |
 | Support URL (required ASC) | Public HTTPS page; MannerPath identity, monitored contact, help for permissions/offline/coverage and correction/removal inquiries; accessible without account |
 | Privacy Policy URL (required ASC) | Public HTTPS policy, effective date, operator/contact, precise-on-device vs tile network data, MapKit/Maps, actual providers/logs/retention, no intentional history, tracking status, local caches/drafts, reports/photos off, rights/deletion/support process |
-| In-app privacy policy access | #179 verifies Release-built Data & Privacy links to the published Privacy Policy and Support; policy content needs the audit handoff corrections |
+| In-app privacy policy access | #179 verifies Release-built Data & Privacy links to the published Privacy Policy and Support; repository wording corrected in #180; live publication and evidence-dependent audit handoff remain to verify |
 | Report terms URL | Approved version/public page before report intake; candidate/draft must not be represented as approved. Not a first-read-only-v1 blocker if intake stays off |
 | General terms/EULA URL | Optional public product terms; standard Apple EULA can apply without inventing a custom terms URL |
 | Marketing URL | Optional; blank is preferable until real page exists |
@@ -458,12 +458,12 @@ No live production records confirm COLLECTED; no overall “Data Not Collected�
 is absent, so runtime gate/version checks and App Review backend readiness remain blocked. Photos/Crash
 answers still require signed archive / matching production deployment checks. Logpush/analytics/provider retention,
 alternate/historical data and support handling need maintainer evidence. The public bilingual policy is
-reachable; its §2 live-server/logging assertions were corrected on 2026-10-05, and verified provider fields/retention
+reachable; repository §2 live-server/logging wording was corrected on 2026-10-05 (live publication awaits Pages verification), and verified provider fields/retention
 are added after deployment. Do not submit
 until these gates and all UNKNOWN classifications are closed. Remote provisioning/deployment is separate work.
 
 Finalization against main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841` incorporates #179's confirmed
 Release public-site origin, Privacy Policy/Support navigation, empty Debug origin and contact. Existing
-Privacy Label classifications above remain unchanged. Policy lane (2026-10-05): the published policy no longer asserts a running server or live log settings; §2 now says providers may process/record IP and request information, error diagnostics may remain, and confirmed fields/retention will be added; §8/§9 disclose the Gmail support mailbox. Last updated 2026-10-05 (JA/EN). Still open: actual provider fields/retention after deployment, §5 gate/build evidence, mailbox retention.
+Privacy Label classifications above remain unchanged. Policy lane (2026-10-05): the repository policy no longer asserts a running server or live log settings; §2 now says providers may process/record IP and request information, error diagnostics may remain, and confirmed fields/retention will be added; §8/§9 disclose the Gmail support mailbox. Last updated 2026-10-05 (JA/EN). Still open: actual provider fields/retention after deployment, §5 gate/build evidence, mailbox retention.
 Next production lane separately provisions the two D1 databases and bound R2 bucket, reviews real IDs,
 applies approved migrations/promotion and deploys the production Worker; see audit's exact sequence.
