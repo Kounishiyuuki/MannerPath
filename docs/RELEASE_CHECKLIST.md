@@ -34,6 +34,12 @@ report endpoints answer `503 attestationUnavailable`, `/v1/config` says `reports
 reporting, and the smoke check treats `503` as a pass. Read-only nationwide discovery needs none of the
 Apple-Developer-Program items below.
 
+Privacy submission gate: the [2026-10-05 production audit](PRODUCTION_PRIVACY_AUDIT.md) confirms repository
+settings and authenticated inventory. The configured production Worker and production-named D1 resources
+are absent in the audited account; R2 reports not enabled. Logpush returned 403; analytics, retention and
+eventual live report/auth gates remain UNKNOWN. Complete its maintainer checks before deployment/privacy signoff;
+local readiness above does not establish a production deployment or permit “Data Not Collected”.
+
 ## 2. Production configuration
 
 | Name | Kind | Where | Required for |
@@ -101,7 +107,8 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 
 **Release freeze (2026-10-04, release candidate on d511f1a).** Backend code is frozen for v1: no new architecture,
 features or data sources. Only P0 fixes and small, local P1 fixes land before submission. The read-only v1 release
-needs no secret and no Developer Program item; it waits only on the production Cloudflare values (§2, §3 step 1).
+needs no secret and no Developer Program item; backend provisioning waits on the production Cloudflare
+values (§2, §3 step 1). App Store submission also requires the production privacy evidence/signoff above.
 
 **Remaining P0:** none.
 
@@ -129,3 +136,26 @@ create the bound R2 bucket, without which `wrangler deploy` fails.
   already serves reads without it (report routes `503 reportStoreUnavailable`).
 - A missing `--chunk-bytes` on `promotion:v4:build` reports the generic "invalid chunk byte budget".
 - `/v1/config` advertises report schema `2..2` / `appAttest` while `available: false`; clients gate on `available`.
+
+## Authenticated privacy release gate (2026-10-05)
+
+- [ ] Confirm intended Cloudflare account and signed release API origin; configured production Worker is absent.
+- [ ] Separately authorize resource provisioning/deployment after production D1/R2 inventory and reviewed IDs/preflight; never reuse E2E resources by assumption.
+- [ ] Obtain read-only Logpush/analytics/retention evidence and sanitized IP/UA/path/time/request-ID field assessment; resolve prohibited location history.
+- [ ] Verify deployed version/settings, config false/false, unavailable report/auth intake, photos off, no community activation and empty crons; no mutating audit probes.
+- [ ] Correct published policy §2 in both languages and reconcile provider/support retention.
+- [ ] Close audit's UNKNOWN Privacy Label categories; match Photos/Crash source conclusions to archive; owner signs ASC answers.
+
+These checks remain submission blockers. Merging this documentation closes no submission gate and authorizes no Cloudflare mutation.
+
+#179 incorporated from main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841`:
+Release public-site origin `https://kounishiyuuki.github.io/MannerPath/`, privacy/ and support/ navigation,
+Debug empty origin and `mannerpath.support@gmail.com` contact are confirmed. Do not reopen link-reachability
+as a blocker; signed distribution evidence and mail delivery remain separate.
+
+Next provisioning lane: separately authorize R2 enablement, canonical D1 `mannerpath-production`, durable
+D1 `mannerpath-production-reports` and R2 `mannerpath-raw-artifacts-production` creation; review distinct IDs
+and production-only safety-test updates, remote migrations/canonical promotion, then Worker deployment.
+Keep required attestation, reports/auth unavailable, photos off, crons empty and community inactive.
+Next policy lane owns bilingual §2/§5/§6/§9 corrections and revision dates, detailed in the
+[audit handoff](PRODUCTION_PRIVACY_AUDIT.md). No resource/action or `site/` change was executed here.

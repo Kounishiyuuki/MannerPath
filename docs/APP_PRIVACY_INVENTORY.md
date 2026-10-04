@@ -5,22 +5,27 @@ Connect "App Privacy" questionnaire. **This is not a legal determination.** Wher
 falls into is a judgment call, the row says so and the maintainer decides. Re-derive this table when report,
 networking, location or photo code changes. Canonical policy: ADR-0007 (report privacy), `docs/DATA_POLICY.md`.
 
-"Collected" below follows Apple's meaning: data transmitted off the device and retained by us longer than needed
-to service the request in real time. Data that only stays on the device is not "collected".
+"Collected" below follows Apple's meaning: data transmitted off the device and accessible to us or our partners
+longer than needed to service the request in real time. Data that only stays on the device is not "collected".
 
 ## Summary
 
+Report/auth/photo rows below describe implemented capabilities, not initial-v1 availability. Initial v1
+requires reports and App Attest registration unavailable, with photos disabled. Authenticated follow-up found no configured production Worker or production-named D1 resources in the
+audited account; R2 reports not enabled. Retention and eventual runtime gates remain unverified: see [production audit](PRODUCTION_PRIVACY_AUDIT.md) and
+[submission §2](APP_STORE_SUBMISSION.md) for conditional release answers.
+
 | Data | Leaves the device? | Collected (retained)? | Linked to user? | Tracking? | Purpose |
 | --- | --- | --- | --- | --- | --- |
-| Precise location (device GPS) | No | No | — | No | On-device nearby ranking, distance/bearing |
-| Coarse location (implicit, tile requests) | Yes: tile ids z14–16 | See note 1 | No account exists | No | App functionality (map data download) |
+| Precise location (device GPS) | Not sent to MannerPath backend for browsing; Apple framework/service communication assessed separately | No in audited MannerPath browsing flow | — | No | On-device nearby ranking, distance/bearing |
+| Coarse location (implicit, tile requests) | Yes: tile ids z14–16 | See note 1 | Unknown; no account does not exclude device/IP linkage | No | App functionality (map data download) |
 | Location chosen by the user (report pin) | Yes, only in a submitted report | Yes | See note 2 | No | App functionality (place reports/corrections) |
 | User content: report note, free-text claims | Yes, only in a submitted report | Yes, minimized by retention pass | See note 2 | No | App functionality (moderation of place data) |
-| Photos (report evidence) | Yes, only if the user attaches one | Yes, deleted by retention pass | See note 2 | No | App functionality (evidence for a report) |
-| Identifier: report `installId` (random UUID) | Yes, in a submitted report | Hash only (raw value not stored) | See note 2 | No | App functionality / abuse prevention |
-| App Attest key id, attestation, assertions | Yes, with a report | Key id + public key registered | See note 2 | No | App integrity / fraud prevention |
-| Diagnostics / crash / analytics | No SDK, no MetricKit upload | No | — | No | — |
-| Contacts, email, name, account | Not requested | No | — | No | — |
+| Photos (dormant report evidence capability) | Only after separate photo intake activation; shipping upload disabled | If activated: yes, deleted by retention pass | See note 2 | No | App functionality (evidence for a report) |
+| Identifier: report `installId` (random UUID) | Yes, in a submitted report | Unattested: install-ID hash; attested: key-derived submitter hash; raw UUID not stored | See note 2 | No | App functionality / abuse prevention |
+| App Attest key id, attestation, assertions | Yes, during registration/authorization when enabled; can precede report acceptance | Key id + public key registered | See note 2 | No | App integrity / fraud prevention |
+| Diagnostics / crash / analytics | No app SDK or MetricKit upload; provider/Worker diagnostics possible | UNKNOWN for retained provider/Worker data | UNKNOWN | No tracking found in app | See production audit |
+| Contacts, email, name, account | Not requested by browsing/report flows; external support mail is separate | No for these app flows; support retention unverified | — | No tracking found in app | Support workflow requires assessment |
 
 Tracking: `NSPrivacyTracking = false`, `NSPrivacyTrackingDomains = []` in both app manifests; no ad/attribution
 SDK, no IDFA, no `identifierForVendor`.
@@ -38,7 +43,8 @@ SDK, no IDFA, no `identifierForVendor`.
 - **Photos** — chosen via `PhotosPicker` (no library-wide access), re-encoded and stripped of metadata segments
   before upload (`Features/Reports/ReportPhotos.swift` `normalize`), so no EXIF GPS is sent.
 - **installId** — random UUID kept in `UserDefaults` (`UserDefaultsInstallID`, `ReportStorage.swift`); the server
-  stores only `sha256(pepper + installId)` (`services/api/src/reports/create.ts` `submitterHash`).
+  stores only a submitter hash: unattested submissions hash the install ID; attested submissions hash
+  `attestedSubmitter(keyId)` (`services/api/src/app.ts`, `reports/create.ts`).
 - **App Attest** — `DCAppAttestService` key id/attestation/assertion sent to `/v1/app-attest/*` and with reports
   (`Features/Reports/AppAttestDevice.swift`, `ReportAuthorizer.swift`).
 - **Diagnostics** — no crash/analytics SDK, no MetricKit subscriber, no `Logger` upload in app sources.
@@ -47,12 +53,14 @@ SDK, no IDFA, no `identifierForVendor`.
 
 1. **Tile ids + IP.** A z14 tile is roughly 2 km across. Whether the backend/CDN retains request logs (IP + tile
    path) beyond real-time servicing decides if this is "Coarse Location — collected". Check the Cloudflare
-   logging/Logpush configuration of the deployment; the repository does not show it.
+   logging/Logpush configuration of the deployment. Committed invocation logs are disabled but console logs remain enabled;
+   Hono exception logs are possible. Actual account settings/retention are UNKNOWN ([audit](PRODUCTION_PRIVACY_AUDIT.md)).
 2. **Linked to user?** There is no account, but `installId` hash and App Attest key id let several reports from
    one install be correlated. Whether that counts as "linked to the user's identity" for App Store purposes is a
    maintainer/legal decision; the conservative answer is "linked" for report-related rows.
 3. Report-related rows only apply when the report feature is enabled in the shipped build/deployment
-   (`/v1/config` `reports.available`).
+   (`/v1/config` `reports.available`), and App Attest registration must be assessed independently.
+   Photos are disabled in the shipping composition regardless of dormant photo code.
 
 ## Privacy manifests
 
@@ -66,3 +74,18 @@ SDK, no IDFA, no `identifierForVendor`.
 GRDB is the only third-party dependency (`Package.resolved`). `NSPrivacyCollectedDataTypes` is empty in the app
 manifests; if the maintainer declares report data as collected in App Store Connect, consider adding matching
 entries to the iPhone manifest so the generated privacy report agrees.
+
+## Final audit classifications (2026-10-05)
+
+The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls final release recommendations:
+Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product Interaction are
+**UNKNOWN / SUBMISSION BLOCKER**; Coarse Location is **CONSERVATIVE DISCLOSURE** (collected, linked,
+App Functionality, not tracking pending evidence). Photos/Videos and Crash Data are **NOT COLLECTED**
+for the reviewed shipping composition, pending signed archive / matching production deployment verification. No type is
+confirmed COLLECTED by live production records. Missing production is not a “Data Not Collected” signoff.
+Published policy §2 requires correction of live-server/logging claims; provider/support retention remains manual.
+
+#179 public-site evidence is closed: Release `MannerPathPublicSiteURL` is
+`https://kounishiyuuki.github.io/MannerPath/`; Release navigation to privacy/ and support/ is verified;
+Debug is empty; contact is `mannerpath.support@gmail.com`. This does not close provider/support retention.
+The audit's next-policy-lane handoff lists bilingual §2/§5/§6/§9 corrections; `site/` is unchanged here.
