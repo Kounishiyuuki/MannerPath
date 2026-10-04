@@ -63,6 +63,8 @@ export async function releasePreflight(o: PreflightOptions): Promise<PreflightRe
   if (env.observability?.logs?.invocation_logs !== false) problems.push(`env.${o.env}: invocation logs must stay disabled (they persist tile URLs)`);
   if ((env.triggers?.crons ?? []).length !== 0) problems.push(`env.${o.env}: no cron schedule may be committed`);
   if (!db || !reports) problems.push(`env.${o.env}: both DB and REPORTS_DB bindings are required`);
+  const bucket = ((env.r2_buckets ?? []) as { binding: string; bucket_name: string }[]).find((b) => b.binding === "RAW_ARTIFACTS")?.bucket_name;
+  if (!bucket) problems.push(`env.${o.env}: the RAW_ARTIFACTS R2 binding is required`);
   else {
     if (db.migrations_dir !== "migrations") problems.push(`env.${o.env}: DB must use migrations_dir "migrations"`);
     if (reports.migrations_dir !== "migrations-reports") problems.push(`env.${o.env}: REPORTS_DB must use migrations_dir "migrations-reports"`);
@@ -97,7 +99,7 @@ export async function releasePreflight(o: PreflightOptions): Promise<PreflightRe
   } catch (e) {
     problems.push(`import plan does not verify: ${e instanceof Error ? e.message : String(e)}`);
   }
-  if (problems.length > 0 || !db || !reports) return { problems, launch: [], rollback: [] };
+  if (problems.length > 0 || !db || !reports || !bucket) return { problems, launch: [], rollback: [] };
 
   const e = `--env ${o.env} --remote`;
   const host = o.workerHost ?? "<worker-host>";
@@ -105,6 +107,7 @@ export async function releasePreflight(o: PreflightOptions): Promise<PreflightRe
   const launch = [
     `# First launch: ${db.database_name} is empty and not yet served, so the binding form addresses it. For a later`,
     `# data release use blue/green instead (docs/OPERATIONS.md step 6): never import into the live database.`,
+    `npx wrangler r2 bucket create ${bucket}            # once per environment; the deploy fails without the bound bucket`,
     `npx wrangler d1 migrations apply DB ${e}`,
     `npx wrangler d1 migrations list DB ${e}            # expect: no pending migrations`,
     `npx wrangler d1 migrations apply REPORTS_DB ${e}`,

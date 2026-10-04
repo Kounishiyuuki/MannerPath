@@ -8,7 +8,7 @@ Release policy: `PRODUCT_REQUIREMENTS.md` §10 and `NATIONWIDE_DATA_STRATEGY.md`
 honest empty/coverage states and evidence integrity; coverage targets are measured continuously and are not release
 blockers.
 
-## 1. Readiness (audited 2026-10-03 against `main` f534778; production preflight re-checked against aab8305)
+## 1. Readiness (audited 2026-10-03 against `main` f534778; production preflight re-checked against aab8305; release candidate re-verified against d511f1a on 2026-10-04)
 
 | Area | Status | Evidence |
 | --- | --- | --- |
@@ -57,7 +57,9 @@ committed environment; report routes stay `503`). Steps 1–4 are local; `releas
 steps with every path, digest and expected value filled in, and opens no connection.
 
 1. Create both databases and land their ids (the only Cloudflare values the repository needs):
-   `npx wrangler d1 create mannerpath-production` and `npx wrangler d1 create mannerpath-production-reports`. Land both
+   `npx wrangler d1 create mannerpath-production` and `npx wrangler d1 create mannerpath-production-reports`, plus the
+   bound R2 bucket `npx wrangler r2 bucket create mannerpath-raw-artifacts-production` (the preflight also prints it;
+   `wrangler deploy` fails if a bound bucket does not exist). Land both
    `database_id`s in `env.production` of `services/api/wrangler.jsonc` in one reviewed PR, relaxing
    `test/deploy-config.test.ts`'s placeholder assertion for `production` only in the same PR. Before opening it:
    `npm run release:preflight -- --env production --plan-dir <plan> --expected-digest <d> --expected-plan-digest <pd>
@@ -96,7 +98,14 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 
 ## 4. Open items
 
+**Release freeze (2026-10-04, release candidate on d511f1a).** Backend code is frozen for v1: no new architecture,
+features or data sources. Only P0 fixes and small, local P1 fixes land before submission. The read-only v1 release
+needs no secret and no Developer Program item; it waits only on the production Cloudflare values (§2, §3 step 1).
+
 **Remaining P0:** none.
+
+**P1 before App Store submission (backend):** none open. Fixed in the release candidate: the preflight and §3 now
+create the bound R2 bucket, without which `wrangler deploy` fails.
 
 **Remaining P1 (before report intake only; read-only v1 does not need them)**
 - Before report intake is enabled: schedule the daily retention pass against production REPORTS_DB (maintainer

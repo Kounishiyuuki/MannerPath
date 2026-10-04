@@ -38,7 +38,7 @@ test("release preflight: committed placeholders block; real ids print the launch
   const run = ok.launch.filter((l) => !l.startsWith("#"));
   const at = (re: RegExp) => run.findIndex((l) => re.test(l));
   // migrate both -> initialize -> digest check -> chunks in order -> re-verify -> finalize -> sealed -> deploy -> smoke
-  const order = [/migrations apply DB /, /migrations apply REPORTS_DB /, /initialize\.sql/, /manifest_sha256/, /chunk-0001\.sql/,
+  const order = [/r2 bucket create mannerpath-raw-artifacts-production/, /migrations apply DB /, /migrations apply REPORTS_DB /, /initialize\.sql/, /manifest_sha256/, /chunk-0001\.sql/,
     /verify-import-plan/, /finalize\.sql/, /sealed/, /wrangler deploy --env production$/, /smoke\.ts --base-url https:\/\/api\.example\.invalid --remote --tile 14\//];
   const positions = order.map(at);
   assert.ok(positions.every((i) => i >= 0), `every step present: ${positions}`);
