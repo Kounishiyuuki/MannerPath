@@ -38,7 +38,8 @@
     "promotion:v4:apply-local": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts apply-local",
     "scale:promotion:v4": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/scale-promotion-v4.ts",
     "promotion:v4:prepare-import": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts prepare-import",
-    "promotion:v4:verify-import-plan": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts verify-import-plan"
+    "promotion:v4:verify-import-plan": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts verify-import-plan",
+    "release:preflight": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/release-preflight.ts"
   },
   "dependencies": {
     "fast-png": "8.0.0",

@@ -8,7 +8,7 @@ Release policy: `PRODUCT_REQUIREMENTS.md` §10 and `NATIONWIDE_DATA_STRATEGY.md`
 honest empty/coverage states and evidence integrity; coverage targets are measured continuously and are not release
 blockers.
 
-## 1. Readiness (audited 2026-10-03 against `main` f534778)
+## 1. Readiness (audited 2026-10-03 against `main` f534778; production preflight re-checked against aab8305)
 
 | Area | Status | Evidence |
 | --- | --- | --- |
@@ -23,6 +23,8 @@ blockers.
 | Schema / version compatibility | READY | `minimumSupportedSchemaVersions` ≤ `schemaVersions`; pre-ADR-0015 clients keep z14 v1 tiles |
 | Rollback | READY | `DB` `database_id` revert (blue kept), `wrangler rollback` for code, report intake stop by removing `REPORT_APP_ATTEST_APP_ID` |
 | Smoke test | READY | `scripts/smoke.ts`: 8/8 locally against the 6-source corpus (config, tile 200/304/404, detail, attribution, report gate) |
+| Production preflight | READY | `npm run release:preflight` (local, read-only): committed env safety, real/distinct/unshared ids, import plan against both reviewed digests, then the ordered launch and rollback commands (`test/release-preflight.test.ts`) |
+| Read-only v1, reports off | READY | `wrangler dev --env production` with no secrets: `/v1/reports`, `/v1/app-attest/*` `503 attestationUnavailable`; photos `503 photoEvidenceDisabled`; writes to read routes `404`; reads `200` |
 | Empty regions | READY | an unpublished tile is `404 tileNotPublished`, cached by the client as empty (`docs/API.md`) |
 | Edge rate limit | WAITING_FOR_DEVELOPER_PROGRAM (with report intake) | IP-keyed Cloudflare rule on `POST /v1/reports` and `/v1/app-attest/*` before App Attest values are set (ADR-0007 §5) |
 | Community publication (#124) | technically READY; not activated | WAITING_FOR_MAINTAINER_INPUT (`docs/legal/COMMUNITY_PUBLICATION_DECISION.md` §0) |
@@ -50,29 +52,53 @@ Invocation logs stay disabled (`test/deploy-config.test.ts`); no other variable 
 
 ## 3. Production launch steps (maintainer)
 
-1. `npx wrangler d1 create mannerpath-production` and `mannerpath-production-reports`; land both ids in a reviewed PR
-   (relax the placeholder assertion for that environment in the same PR).
-2. `npx wrangler d1 migrations apply DB --env production --remote`; `… REPORTS_DB --env production --remote`; both
-   `migrations list` show nothing pending.
-3. Locally: `npm run local:migrate`, `npm run local:pipeline -- <source>` for every reviewed source, `npm run
-   local:quality` (no failed check; record the coverage numbers as the launch baseline).
-4. `npm run promotion:v4:build -- --database <local sqlite> --dir <bundle> --chunk-bytes 4194304`; record the
-   `wholeBundleSha256` in the review; `promotion:v4:verify` and `promotion:v4:apply-local` into a new file must
-   complete (`SEGMENTED_PROMOTION_RUNBOOK.md`); then `promotion:v4:prepare-import` for the remote import plan.
-5. Apply the import plan to the empty production database (`SEGMENTED_PROMOTION_RUNBOOK.md`, one reviewed file at a
-   time); `promotionReadiness` must report completed.
-6. `npx wrangler deploy --env production`.
-7. `scripts/smoke.ts --base-url https://<production host> --remote --tile <a published tile>`: all checks pass,
-   report gate `503` (intake off).
-8. Point the release build's `MANNERPATH_API_BASE_URL` at the production origin.
+Read-only v1 needs the canonical `DB` with data and a migrated, empty `REPORTS_DB` (the binding is part of the
+committed environment; report routes stay `503`). Steps 1–4 are local; `release:preflight` then prints the remote
+steps with every path, digest and expected value filled in, and opens no connection.
+
+1. Create both databases and land their ids (the only Cloudflare values the repository needs):
+   `npx wrangler d1 create mannerpath-production` and `npx wrangler d1 create mannerpath-production-reports`. Land both
+   `database_id`s in `env.production` of `services/api/wrangler.jsonc` in one reviewed PR, relaxing
+   `test/deploy-config.test.ts`'s placeholder assertion for `production` only in the same PR. Before opening it:
+   `npm run release:preflight -- --env production --plan-dir <plan> --expected-digest <d> --expected-plan-digest <pd>
+   --pre-landing --database-id <uuid> --reports-database-id <uuid>`.
+2. Locally, from a fresh state: `npm run local:migrate`, `npm run local:pipeline -- <source>` for every reviewed source,
+   `npm run local:quality` — no failed check; record `nationwide.publishedSpots` and the coverage fields as the launch
+   baseline in the deployment record.
+3. `npm run promotion:v4:build -- --database <local sqlite> --dir <bundle> --chunk-bytes 4194304`; a second person
+   records `wholeBundleSha256` in the review; `promotion:v4:verify` and `promotion:v4:apply-local` into a new file
+   must complete; `promotion:v4:prepare-import -- --dir <bundle> --expected-digest <d> --out <plan>`; the reviewer
+   records `wholePlanSha256`.
+4. After the ids have landed: `npm run release:preflight -- --env production --plan-dir <plan> --expected-digest <d>
+   --expected-plan-digest <pd> --worker-host <production host>` must print `PREFLIGHT OK`.
+5. Run the printed launch commands top to bottom in the maintainer terminal; each `# expect:` must match before the
+   next line: migrate `DB` and `REPORTS_DB` (nothing pending) → `initialize.sql` → manifest digest = reviewed digest
+   → each chunk after its `next_chunk` check → re-verify the plan → `finalize.sql` → sealed = 1 → `wrangler deploy
+   --env production` → remote smoke (readiness `completed`, every check ok, report gate `503`).
+6. Point the release build's `MANNERPATH_API_BASE_URL` at the production origin (HTTPS).
+
+The printed sequence was executed end to end against local D1 (`--local --persist-to`) and served with
+`wrangler dev --env production`: readiness `completed`, smoke 8/8, empty region `404 tileNotPublished`.
 
 Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous database until the new one has settled.
+
+### Rollback order
+
+1. Bad Worker code: `npx wrangler rollback --env production` (data untouched), then remote smoke.
+2. Bad data after a later blue/green release: restore the previous `DB` `database_id` (reviewed PR) →
+   `npx wrangler deploy --env production` → remote smoke. **This is safe only while the previous database has the
+   schema the running Worker reads.** If the release also added a canonical migration the Worker depends on, roll the
+   Worker back to the version that served that database as well (`wrangler rollback`), or apply the new migration to
+   it first; never serve a database older than the code's schema.
+3. First launch (no previous database): `npx wrangler delete --env production` takes the API down; the databases are
+   kept; the app falls back to its cached tiles.
+4. `REPORTS_DB` is never part of a rollback (ADR-0014).
 
 ## 4. Open items
 
 **Remaining P0:** none.
 
-**Remaining P1**
+**Remaining P1 (before report intake only; read-only v1 does not need them)**
 - Before report intake is enabled: schedule the daily retention pass against production REPORTS_DB (maintainer
   terminal, `reports:moderate … retain`) so the 90-day ceiling holds; there is no automated remote retention.
 - Before report intake is enabled: the IP-keyed edge rate-limit rule (above).
@@ -86,3 +112,10 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 - Community publication (#124): terms APPROVE/HOLD/CHANGE, operator, contact, terms URL, governing law, §4.2 reuse,
   §8 withdrawal option, §10 liability wording, attribution. Until then `COMMUNITY_PUBLICATION` stays `pending`.
 - Production Cloudflare account ownership and the two production database ids (step 1).
+- The production Worker host (`--worker-host`, and the app's `MANNERPATH_API_BASE_URL`).
+
+**P2 (recorded, not fixed)**
+- Read-only v1 still needs `REPORTS_DB` created and migrated, because the binding is committed; the Worker itself
+  already serves reads without it (report routes `503 reportStoreUnavailable`).
+- A missing `--chunk-bytes` on `promotion:v4:build` reports the generic "invalid chunk byte budget".
+- `/v1/config` advertises report schema `2..2` / `appAttest` while `available: false`; clients gate on `available`.
