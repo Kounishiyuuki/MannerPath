@@ -6,6 +6,33 @@ struct AboutPrivacyView: View {
 
     var body: some View {
         List {
+            Section {
+                if let links = PublicSite.links {
+                    Link(destination: links.privacyPolicy) {
+                        Label("Privacy Policy", systemImage: "hand.raised")
+                    }
+                    Link(destination: links.support) {
+                        Label("Support", systemImage: "questionmark.circle")
+                    }
+                }
+                Link(destination: PublicSite.contactURL) {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Contact by email")
+                            Text(verbatim: PublicSite.contactEmail)
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "envelope")
+                    }
+                }
+                LabeledContent("Operator") { Text(verbatim: PublicSite.operatorName) }
+            } header: {
+                Text("Privacy Policy and Support")
+            } footer: {
+                Text("Questions, privacy requests, and corrections or removal of place information can be sent by email.")
+            }
+
             Section("Eligibility and local rules") {
                 Text("MannerPath is for people who are legally permitted to smoke. A place appearing nearby does not guarantee that smoking is currently legal there. Follow posted signs, on-site rules, and local law.")
             }

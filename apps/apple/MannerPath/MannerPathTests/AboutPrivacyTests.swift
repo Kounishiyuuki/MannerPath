@@ -103,3 +103,23 @@ struct AboutPrivacyTests {
         #expect(requests.allSatisfy { $0.httpMethod == "GET" && $0.url?.path == "/v1/config" })
     }
 }
+
+struct PublicSiteTests {
+    @Test func linksComeOnlyFromAnHTTPSSiteOrigin() {
+        let links = PublicSite.links(from: "https://kounishiyuuki.github.io/MannerPath")
+        #expect(links?.privacyPolicy.absoluteString == "https://kounishiyuuki.github.io/MannerPath/privacy/")
+        #expect(links?.support.absoluteString == "https://kounishiyuuki.github.io/MannerPath/support/")
+        #expect(PublicSite.links(from: "https://kounishiyuuki.github.io/MannerPath/") == links)
+        // Unset (the default build setting), non-HTTPS or malformed values never produce a link.
+        for value in [nil, "", "http://kounishiyuuki.github.io/MannerPath/", "https://", "kounishiyuuki.github.io",
+                      "https://user:pw@kounishiyuuki.github.io/", "https://kounishiyuuki.github.io/?a=1",
+                      "https://kounishiyuuki.github.io/#x"] {
+            #expect(PublicSite.links(from: value) == nil, "\(String(describing: value))")
+        }
+    }
+
+    @Test func contactIsTheConfirmedMailbox() {
+        #expect(PublicSite.contactURL.absoluteString == "mailto:mannerpath.support@gmail.com")
+        #expect(PublicSite.operatorName == "MannerPath 運営")
+    }
+}
