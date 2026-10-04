@@ -320,7 +320,7 @@ private struct ReportPinPicker: View {
                     MapReader { proxy in
                         Map(position: $position) {
                             if let candidate {
-                                Annotation("Proposed pin", coordinate: CLLocationCoordinate2D(
+                                Annotation(String(localized: "Proposed pin"), coordinate: CLLocationCoordinate2D(
                                     latitude: candidate.latitude, longitude: candidate.longitude
                                 )) { Image(systemName: "mappin.circle.fill").font(.largeTitle).foregroundStyle(.red) }
                             }

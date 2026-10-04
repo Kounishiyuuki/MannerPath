@@ -87,7 +87,7 @@ struct SpotDetailView: View {
                                 CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
                             })
                             .stroke(.blue, lineWidth: 5)
-                            Annotation("Place", coordinate: CLLocationCoordinate2D(
+                            Annotation(String(localized: "Place"), coordinate: CLLocationCoordinate2D(
                                 latitude: spot.latitude, longitude: spot.longitude
                             )) { Image(systemName: "mappin.circle.fill").foregroundStyle(.red) }
                         }
