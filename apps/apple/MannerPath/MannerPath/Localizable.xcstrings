@@ -1,6 +1,56 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Downloading place data sends geographic tile IDs, rather than raw device GPS coordinates, to MannerPath's service. Network services may process IP addresses and request information.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所情報の取得では、端末のGPS座標そのものではなく、地域を示すタイルIDをMannerPathのサービスに送信します。通信サービスはIPアドレスやリクエスト情報を処理する場合があります。"
+          }
+        }
+      }
+    },
+    "Apple MapKit search and routing, and system Maps, may communicate location and request information with Apple's services.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple MapKitの検索・経路案内やマップアプリでは、位置情報やリクエスト情報がAppleのサービスとやり取りされる場合があります。"
+          }
+        }
+      }
+    },
+    "Browsing does not register this device for reports. Secure registration is attempted only when you submit a report, if required.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所情報の閲覧では、報告用の端末登録は行いません。安全な送信のための登録は、報告を送信する際に必要な場合のみ試行します。"
+          }
+        }
+      }
+    },
+    "Photo uploads are unavailable in this version.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このバージョンでは写真を送信できません。"
+          }
+        }
+      }
+    },
+    "Any saved report draft remains on this device. You can review or discard it even when reporting is unavailable.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの報告の下書きは、このデバイスに残ります。報告を送信できない場合も、下書きを確認または破棄できます。"
+          }
+        }
+      }
+    },
     "%lld places": {
       "localizations": {
         "ja": {
@@ -561,12 +611,12 @@
         }
       }
     },
-    "Cached nearby data remains available offline. Walking routes may require a network connection.": {
+    "With cached data and a usable location, saved places, straight-line distance and direction remain available offline. Offline walking routes are not provided.": {
       "localizations": {
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存済みの近くの場所はオフラインでも確認できます。徒歩ルートには通信が必要な場合があります。"
+            "value": "保存済みのデータと利用できる現在地があれば、オフラインでも場所情報、直線距離、方角を確認できます。オフラインの徒歩経路案内には対応していません。"
           }
         }
       }
@@ -1431,12 +1481,12 @@
         }
       }
     },
-    "MannerPath does not intentionally collect a history of your locations.": {
+    "MannerPath does not intentionally save a history of your locations.": {
       "localizations": {
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "MannerPathは位置情報の履歴を意図的に収集しません。"
+            "value": "MannerPathは、位置情報の履歴を意図的に保存しません。"
           }
         }
       }
@@ -2627,12 +2677,12 @@
         }
       }
     },
-    "This beta does not include third-party analytics, advertising trackers, or a crash-reporting SDK.": {
+    "MannerPath does not include third-party analytics, advertising trackers, or a crash-reporting SDK.": {
       "localizations": {
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このベータ版には、外部の利用状況解析、広告用トラッカー、クラッシュ報告ツールは含まれていません。"
+            "value": "MannerPathには、外部の利用状況解析、広告用トラッカー、クラッシュ報告ツールは含まれていません。"
           }
         }
       }
