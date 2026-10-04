@@ -4412,6 +4412,66 @@
           }
         }
       }
+    },
+    "Privacy Policy": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーポリシー"
+          }
+        }
+      }
+    },
+    "Support": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サポート"
+          }
+        }
+      }
+    },
+    "Contact by email": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メールで問い合わせ"
+          }
+        }
+      }
+    },
+    "Operator": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運営者"
+          }
+        }
+      }
+    },
+    "Privacy Policy and Support": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーポリシーとサポート"
+          }
+        }
+      }
+    },
+    "Questions, privacy requests, and corrections or removal of place information can be sent by email.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ご質問、プライバシーに関するご請求、場所の情報の修正・削除のご依頼は、メールでお送りください。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

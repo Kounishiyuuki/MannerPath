@@ -9,9 +9,12 @@ trap 'rm -rf "$derived_data"' EXIT
 check_plist() {
   local plist="$derived_data/Build/Products/Debug-iphonesimulator/MannerPath.app/Info.plist"
   local expected="$1"
+  local expected_site="$2"
   local actual
   actual=$(plutil -extract MannerPathAPIBaseURL raw "$plist")
   test "$actual" = "$expected"
+  actual=$(plutil -extract MannerPathPublicSiteURL raw "$plist")
+  test "$actual" = "$expected_site"
   python3 - "$plist" <<'PY'
 import plistlib
 import sys
@@ -29,10 +32,11 @@ PY
 
 xcodebuild build -quiet -project "$project" -scheme MannerPath \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$derived_data" \
-  CODE_SIGNING_ALLOWED=NO MANNERPATH_API_BASE_URL=https://example.invalid
-check_plist https://example.invalid
+  CODE_SIGNING_ALLOWED=NO MANNERPATH_API_BASE_URL=https://example.invalid \
+  MANNERPATH_PUBLIC_SITE_URL=https://site.example.invalid/MannerPath/
+check_plist https://example.invalid https://site.example.invalid/MannerPath/
 
 xcodebuild build -quiet -project "$project" -scheme MannerPath \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$derived_data" \
-  CODE_SIGNING_ALLOWED=NO MANNERPATH_API_BASE_URL=
-check_plist ''
+  CODE_SIGNING_ALLOWED=NO MANNERPATH_API_BASE_URL= MANNERPATH_PUBLIC_SITE_URL=
+check_plist '' ''
