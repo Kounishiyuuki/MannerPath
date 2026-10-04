@@ -58,7 +58,7 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
-                        AboutPrivacyView(sources: model.sources)
+                        AboutPrivacyView(sources: model.sources, reportModel: reportModel)
                     } label: {
                         Label("Data & Privacy", systemImage: "info.circle")
                     }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AboutPrivacyView: View {
     let sources: [SpotSource]
+    let reportModel: ReportModel
 
     var body: some View {
         List {
@@ -11,8 +12,10 @@ struct AboutPrivacyView: View {
 
             Section("Location") {
                 Label("Your current location is used on this device to rank nearby places and calculate distance and direction.", systemImage: "location")
-                Label("MannerPath does not intentionally collect a history of your locations.", systemImage: "clock.arrow.circlepath")
-                Label("Cached nearby data remains available offline. Walking routes may require a network connection.", systemImage: "internaldrive")
+                Label("MannerPath does not intentionally save a history of your locations.", systemImage: "clock.arrow.circlepath")
+                Text("Downloading place data sends geographic tile IDs, rather than raw device GPS coordinates, to MannerPath's service. Network services may process IP addresses and request information.")
+                Text("Apple MapKit search and routing, and system Maps, may communicate location and request information with Apple's services.")
+                Label("With cached data and a usable location, saved places, straight-line distance and direction remain available offline. Offline walking routes are not provided.", systemImage: "internaldrive")
             }
 
             Section("Apple Watch") {
@@ -20,9 +23,12 @@ struct AboutPrivacyView: View {
             }
 
             Section("Reports") {
-                Text("Reports are proposals for review and do not immediately change a listing.")
-                Text("For a missing or moved place, the proposed location is a map pin you choose. MannerPath does not automatically use your device position as that pin.")
-                Text("A saved draft stays on this device until it is submitted or discarded.")
+                ForEach(AboutPrivacyCopy.reportParagraphs(for: reportModel.availability), id: \.self) { paragraph in
+                    Text(verbatim: paragraph)
+                }
+                Text("Browsing does not register this device for reports. Secure registration is attempted only when you submit a report, if required.")
+                Text("Photo uploads are unavailable in this version.")
+                Text("Any saved report draft remains on this device. You can review or discard it even when reporting is unavailable.")
             }
 
             Section("Data quality") {
@@ -33,10 +39,29 @@ struct AboutPrivacyView: View {
             }
 
             Section("Diagnostics") {
-                Text("This beta does not include third-party analytics, advertising trackers, or a crash-reporting SDK.")
+                Text("MannerPath does not include third-party analytics, advertising trackers, or a crash-reporting SDK.")
             }
         }
         .navigationTitle("Data & Privacy")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Uses the same live availability as report entry points; unknown must never advertise intake.
+nonisolated enum AboutPrivacyCopy {
+    static func reportParagraphs(for availability: ReportAvailability) -> [String] {
+        switch availability {
+        case .unknown:
+            [String(localized: "Report availability could not be checked. Try again when connected.")]
+        case .unavailable:
+            [String(localized: "Reports are currently unavailable.")]
+        case .incompatible:
+            [String(localized: "Update the app to submit reports.")]
+        case .attestationUnsupported:
+            [String(localized: "Secure reporting isn't supported on this device.")]
+        case .available:
+            [String(localized: "Reports are proposals for review and do not immediately change a listing."),
+             String(localized: "For a missing or moved place, the proposed location is a map pin you choose. MannerPath does not automatically use your device position as that pin.")]
+        }
     }
 }
