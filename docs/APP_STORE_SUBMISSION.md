@@ -412,9 +412,9 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 
 ### Claude Code handoff (separate writer/branch; this lane does not edit code)
 
-1. Public-site URLs/contact and Release links are completed by #179. Next policy lane corrects bilingual
-   server/logging claims and retention/support handling per [audit handoff](PRODUCTION_PRIVACY_AUDIT.md);
-   no `site/` edit in this lane. Remaining physical-device mail/accessibility checks are separate.
+1. Public-site URLs/contact and Release links are completed by #179. The bilingual server/logging claims were
+   corrected on 2026-10-05; provider fields/retention are added after deployment evidence
+   ([audit handoff](PRODUCTION_PRIVACY_AUDIT.md)). Remaining physical-device mail/accessibility checks are separate.
 2. Once actual collection is decided, update iPhone/Watch manifests only for each bundle's actual flows; audit
    widget required-reason APIs and pinned GRDB resource embedding. Do not declare device GPS merely for local ranking.
 3. If exemption is approved, optionally add `ITSAppUsesNonExemptEncryption=false` to the correct generated plist/build
@@ -458,12 +458,12 @@ No live production records confirm COLLECTED; no overall “Data Not Collected�
 is absent, so runtime gate/version checks and App Review backend readiness remain blocked. Photos/Crash
 answers still require signed archive / matching production deployment checks. Logpush/analytics/provider retention,
 alternate/historical data and support handling need maintainer evidence. The public bilingual policy is
-reachable but §2 requires correcting live-server/logging assertions until deployment is verified. Do not submit
+reachable; its §2 live-server/logging assertions were corrected on 2026-10-05, and verified provider fields/retention
+are added after deployment. Do not submit
 until these gates and all UNKNOWN classifications are closed. Remote provisioning/deployment is separate work.
 
 Finalization against main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841` incorporates #179's confirmed
 Release public-site origin, Privacy Policy/Support navigation, empty Debug origin and contact. Existing
-Privacy Label classifications above remain unchanged. Next policy lane must correct §2 server status/logging,
-clarify provider retention, verify §5 gates and §6/§9 analytics/support claims in both languages.
+Privacy Label classifications above remain unchanged. Policy lane (2026-10-05): the published policy no longer asserts a running server or live log settings; §2 now says providers may process/record IP and request information, error diagnostics may remain, and confirmed fields/retention will be added; §8/§9 disclose the Gmail support mailbox. Last updated 2026-10-05 (JA/EN). Still open: actual provider fields/retention after deployment, §5 gate/build evidence, mailbox retention.
 Next production lane separately provisions the two D1 databases and bound R2 bucket, reviews real IDs,
 applies approved migrations/promotion and deploys the production Worker; see audit's exact sequence.
