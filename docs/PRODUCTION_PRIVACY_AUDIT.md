@@ -1,6 +1,9 @@
 # Production privacy audit — read-only v2
 
-Audited 2026-10-05 JST against `origin/main` **d70139ce726055610e35e1276145fae40b13d1fc**.
+Authenticated Cloudflare evidence collected 2026-10-05 JST against main
+`d70139ce726055610e35e1276145fae40b13d1fc`; documentation finalized against
+`origin/main` **7d8cbab0ba28bc28eb17a56546f7f97b158b3841**, incorporating #179.
+Cloudflare evidence was not re-collected during this documentation finalization.
 **PRODUCTION EVIDENCE INCOMPLETE — MAINTAINER CHECK REQUIRED.** This record does not approve
 “Data Not Collected”, deployment, submission or report activation. No Cloudflare resource or setting was changed.
 
@@ -76,9 +79,15 @@ Release changes inspected:
 | #175 | `19c36a9` | Availability-aware Reports/privacy UI; no browsing registration |
 | #176 | `3464587` | Visual RC/local fixture evidence; not production traffic evidence |
 | #177 | `d70139c` | Public policy/support and configured app links |
+| #179 | `7d8cbab` | Release public-site origin and both in-app links verified; Debug origin empty |
 
 Worker source and `wrangler.jsonc` did not change in these PRs. Public-site owner/contact information
-is now supplied (#177, [PUBLIC_SITE.md](PUBLIC_SITE.md)); the public privacy page was verified reachable in this follow-up; the release build's URLs still need verification.
+is supplied (#177/#179, [PUBLIC_SITE.md](PUBLIC_SITE.md)). #179 confirms Release Info.plist
+`MannerPathPublicSiteURL=https://kounishiyuuki.github.io/MannerPath/`, with Release-build navigation to
+`https://kounishiyuuki.github.io/MannerPath/privacy/` and
+`https://kounishiyuuki.github.io/MannerPath/support/` verified. Debug's public-site URL is empty.
+Contact is `mannerpath.support@gmail.com`. These public-site URL/access gates are closed; they do not
+establish a production API origin, signed distribution archive, mailbox delivery or live privacy settings.
 
 ## Confirmed implementation facts
 
@@ -149,10 +158,10 @@ No category is confirmed **COLLECTED** by observed production records.
 | Coarse Location | **CONSERVATIVE DISCLOSURE** | Pending retained-field evidence, recommend collected, linked, App Functionality, not tracking for identifiable geographic requests. This fallback does not remove the audit blocker or authorize location history |
 | Device ID | **UNKNOWN / SUBMISSION BLOCKER** | No browsing registration in source, but no production auth gate/version or retained provider-identifier evidence |
 | User Content | **UNKNOWN / SUBMISSION BLOCKER** | Intended report intake off; absence of Worker is not a tested gate. Historical reports and customer-support retention/optional-disclosure eligibility unverified |
-| Photos/Videos | **NOT COLLECTED** | Audited shipping composition has no uploader/store and config hard-codes photos off. Applies to reviewed composition only; verify archive and matching deployment before submission |
+| Photos/Videos | **NOT COLLECTED** | Audited shipping composition has no uploader/store and config hard-codes photos off. Applies to reviewed composition only; verify signed archive and matching production deployment before submission |
 | Diagnostics | **UNKNOWN / SUBMISSION BLOCKER** | No app upload; retained framework/provider diagnostic fields, correlation, purpose and retention unresolved. Do not equate an exception with an iOS crash |
 | Usage Data / Product Interaction | **UNKNOWN / SUBMISSION BLOCKER** | No app analytics SDK; inaccessible account analytics/exports do not prove no retained interaction data. Aggregate counts alone do not establish collection |
-| Crash Data | **NOT COLLECTED** | No app crash SDK/MetricKit upload in reviewed implementation; verify signed archive/dependencies. Apple system diagnostics are a separate workflow |
+| Crash Data | **NOT COLLECTED** | No app crash SDK/MetricKit upload in reviewed implementation; verify signed archive/dependencies and matching production deployment. Apple system diagnostics are a separate workflow |
 
 **Top-level recommendation:** do not select “Data Not Collected” or submit yet. Resolve UNKNOWN categories,
 then enter actual collected types; the Coarse Location fallback is a conservative disclosure, not observed
@@ -162,7 +171,7 @@ not an assertion of a production build verification.
 
 Support mail/external public-site visits require a separate workflow check (retained email/content, providers,
 purpose and applicable optional-disclosure criteria). A mailto link is not an in-app collection SDK, but optional
-support is not automatically exempt. Do not infer mailbox retention or public-site publication from code.
+support is not automatically exempt. Public-site publication and Release navigation are confirmed by #179; mailbox retention remains unverified.
 
 ## Exact maintainer checks — read-only only
 
@@ -220,20 +229,21 @@ conservative disclosure alone does not authorize prohibited history. Sampling is
 Before production deployment: complete account inventory; review real, distinct D1 IDs and the bound R2 resource;
 complete local preflight/data review; obtain logging/privacy signoff; preserve required attestation, unavailable
 report/auth configuration, photos off and crons empty. Resource provisioning/deployment remain separate maintainer
-operations. After deployment, confirm actual settings/version/gates and signed-build traffic, publish the real
-policy/support URLs, then finalize ASC labels. **UNKNOWN remains a submission gate.**
+operations. After deployment, confirm actual settings/version/gates and signed-build traffic, publish the
+corrected policy at the already-confirmed public URL, then finalize ASC labels. **UNKNOWN remains a submission gate.**
 
 ## Validation
 
 Documentation-only change. Existing API/contract tests exercise committed deployment safety, config availability,
 fail-closed App Attest and photo gates; they do not validate an account's settings or personal-data retention.
-Authenticated follow-up validation (2026-10-05 JST):
+Authenticated follow-up validation, rerun after #179 finalization (2026-10-05 JST):
 
 - `PATH=/opt/homebrew/opt/node@24/bin:$PATH make api-validate` — PASS (typecheck, API tests and discovery tests; exit 0).
 - `make contract` — PASS (`MannerPath contract files present.`; exit 0).
 - `git diff --check` — PASS (exit 0).
 
-Focused read-only document review found no blocking issue; repository/E2E console logging wording was clarified.
+Focused read-only final document review found no findings. The initial finalization `make contract` attempt
+from `services/api` reported `No rule to make target 'contract'`; rerunning from repository root passed.
 These checks do not establish live privacy behavior.
 
 ## Submission blockers and maintainer actions
@@ -251,4 +261,47 @@ These checks do not establish live privacy behavior.
   rejection. After separate deployment, GET config and inspect reviewed code/settings/build traffic; do not
   create reports, keys or photos in a read-only audit.
 - Correct/publish the bilingual policy, verify archive/manifests, resolve all UNKNOWN categories and sign final
-  ASC answers before submission. No deployment, activation or main merge is authorized by this record.
+  ASC answers before submission. This documentation can merge independently of these submission gates. No deployment or activation is authorized by this record.
+
+## Next policy lane — concrete bilingual handoff (do not edit `site/` in this PR)
+
+#179 closes URL configuration and Release-link reachability, not policy accuracy. The next writer owns
+`site/privacy/index.html` and publication through the existing Pages workflow:
+
+1. §2 server status: replace Japanese “本アプリのサーバーは Cloudflare 上で動作しています。” and English
+   “MannerPath's server runs on Cloudflare.” with preparation wording until production exists. Suggested Japanese:
+   “初回公開版のサーバーは Cloudflare 上で準備中です。公開前に本番環境の設定を確認します。” Suggested English:
+   “The initial production service is being prepared on Cloudflare. We will verify its settings before release.”
+2. §2 logging: change the Japanese/English assertion that actual server settings turn off invocation logs to
+   “レビュー済みの設定では、自動 invocation log を無効にしています。本番環境への反映は公開前に確認します。” /
+   “The reviewed configuration disables automatic invocation logs. We will verify the deployed settings before release.”
+   Keep the no-identification/no-location-history commitment; do not claim inaccessible provider records are absent.
+3. §2 provider processing: after manual evidence, state actual retained IP/UA/URL/tile/time/request-ID and diagnostic
+   fields, purposes, retention duration or criteria, export recipients and deletion/access handling. Until evidence
+   exists, explicitly distinguish processing possibilities from verified retention; invent no duration or disablement.
+4. §5 reports/auth/photos: retain intended read-only-v1 behavior, but confirm deployed gates and signed-build traffic
+   before presenting it as release evidence. Feature activation requires a separate policy/label review first.
+5. §6 analytics and §9 identifying data/contact: distinguish no app SDK from provider analytics/diagnostics;
+   substantiate the normally-no-identifying-data statement and customer-support handling. Confirm mailbox delivery,
+   response owner and retention/deletion criteria; the address itself is already confirmed.
+6. Update the Japanese/English revision dates together and verify both corrected pages and Release navigation.
+   Preserve #179's known origin, privacy/support URLs, Debug behavior and contact; do not reopen those resolved gates.
+
+## Next provisioning lane — remote actions requiring separate authorization
+
+This is a plan only; none of these actions was executed. Follow [release checklist §3](RELEASE_CHECKLIST.md)
+and [OPERATIONS.md](OPERATIONS.md), with reviewed corpus/plan digests and privacy signoff:
+
+1. Confirm release account and inventory again to avoid duplicates; enable R2 through the maintainer dashboard.
+2. Create canonical D1 `mannerpath-production`, durable D1 `mannerpath-production-reports`, and R2 bucket
+   `mannerpath-raw-artifacts-production`. Never reuse `mannerpath-e2e-p35` by assumption.
+3. Land real, distinct production D1 IDs and production-only placeholder-test changes in a reviewed PR;
+   verify RAW_ARTIFACTS binding and run pre-landing/local publication/preflight review.
+4. Separately authorize remote migrations for both D1 streams and reviewed canonical promotion/import/finalization,
+   then Worker deployment `mannerpath-api-production`. These are remote writes, outside this audit.
+5. Set/verify the release HTTPS API origin, deployed version/bindings and actual observability. Keep invocation logs
+   off; review console error context/exports for prohibited fields. Keep crons empty and community inactive.
+   Read-only v1 needs no report-enabling secrets; preserve required attestation with intake unavailable and photos off.
+6. After deployment, collect read-only config/gate/build evidence and resolve Logpush/analytics/retention manual
+   checks. No registration/test report/photo creation is authorized as part of a read-only verification.
+   Finish policy/labels/archive checks before App Store submission.

@@ -81,6 +81,11 @@ The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls final
 Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product Interaction are
 **UNKNOWN / SUBMISSION BLOCKER**; Coarse Location is **CONSERVATIVE DISCLOSURE** (collected, linked,
 App Functionality, not tracking pending evidence). Photos/Videos and Crash Data are **NOT COLLECTED**
-for the reviewed shipping composition, pending matching archive/deployment verification. No type is
+for the reviewed shipping composition, pending signed archive / matching production deployment verification. No type is
 confirmed COLLECTED by live production records. Missing production is not a “Data Not Collected” signoff.
 Published policy §2 requires correction of live-server/logging claims; provider/support retention remains manual.
+
+#179 public-site evidence is closed: Release `MannerPathPublicSiteURL` is
+`https://kounishiyuuki.github.io/MannerPath/`; Release navigation to privacy/ and support/ is verified;
+Debug is empty; contact is `mannerpath.support@gmail.com`. This does not close provider/support retention.
+The audit's next-policy-lane handoff lists bilingual §2/§5/§6/§9 corrections; `site/` is unchanged here.

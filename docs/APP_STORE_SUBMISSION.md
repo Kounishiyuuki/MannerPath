@@ -322,14 +322,15 @@ Reviewer instructions to finalize with the signed build:
 
 ## 8. Required URLs, legal pages and contact
 
-Update 2026-10-04: operator **MannerPath 運営**, contact **mannerpath.support@gmail.com** and GitHub Pages publication are confirmed; the pages and in-app access exist ([PUBLIC_SITE.md](PUBLIC_SITE.md)). The pages were published and verified over HTTPS on 2026-10-04, and Release builds carry the site origin (in-app links). Earlier text: no production URL/operator/contact was established by this packet. No example domain or personal email is
-promoted to an official value. A dedicated MannerPath mailbox is recommended but must be created/tested.
+Update 2026-10-04: operator **MannerPath 運営**, contact **mannerpath.support@gmail.com** and GitHub Pages publication are confirmed; the pages and in-app access exist ([PUBLIC_SITE.md](PUBLIC_SITE.md)). The pages were published and verified over HTTPS on 2026-10-04, and Release builds carry the site origin (in-app links). PR #179 verifies Release-built navigation to both pages, Debug public-site URL empty and the
+`mannerpath.support@gmail.com` contact. Mail delivery/compose, response ownership and support retention
+remain separate checks; URL configuration/reachability is no longer a blocker.
 
 | Item | Owner must supply / acceptance check |
 | --- | --- |
 | Support URL (required ASC) | Public HTTPS page; MannerPath identity, monitored contact, help for permissions/offline/coverage and correction/removal inquiries; accessible without account |
 | Privacy Policy URL (required ASC) | Public HTTPS policy, effective date, operator/contact, precise-on-device vs tile network data, MapKit/Maps, actual providers/logs/retention, no intentional history, tracking status, local caches/drafts, reports/photos off, rights/deletion/support process |
-| In-app privacy policy access | Existing Data & Privacy screen is explanatory copy, not verified access to a complete public policy; Claude Code handoff below |
+| In-app privacy policy access | #179 verifies Release-built Data & Privacy links to the published Privacy Policy and Support; policy content needs the audit handoff corrections |
 | Report terms URL | Approved version/public page before report intake; candidate/draft must not be represented as approved. Not a first-read-only-v1 blocker if intake stays off |
 | General terms/EULA URL | Optional public product terms; standard Apple EULA can apply without inventing a custom terms URL |
 | Marketing URL | Optional; blank is preferable until real page exists |
@@ -399,7 +400,7 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 
 | Blocker / decision | Evidence to close / owner |
 | --- | --- |
-| Public support/privacy pages and identity/contact | Maintainer supplies real URLs, operator, copyright holder, dedicated mailbox, review person/phone |
+| Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
 | First-v1 reports/auth/photos off | Maintainer signs deployment decision and captures §2.4 checks; community stays pending |
 | Production backend / selected data rights | Follow #170 [release checklist](RELEASE_CHECKLIST.md); record HTTPS host, final bundle/source attribution; no source research required |
@@ -411,9 +412,9 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 
 ### Claude Code handoff (separate writer/branch; this lane does not edit code)
 
-1. Once URLs/contact are approved, add accessible full privacy policy and support contact/link to the existing
-   About/Data & Privacy flow as required by review guidelines; replace stale beta terminology for production.
-   Files likely include `apps/apple/MannerPath/MannerPath/Features/About/AboutPrivacyView.swift` and localized strings.
+1. Public-site URLs/contact and Release links are completed by #179. Next policy lane corrects bilingual
+   server/logging claims and retention/support handling per [audit handoff](PRODUCTION_PRIVACY_AUDIT.md);
+   no `site/` edit in this lane. Remaining physical-device mail/accessibility checks are separate.
 2. Once actual collection is decided, update iPhone/Watch manifests only for each bundle's actual flows; audit
    widget required-reason APIs and pinned GRDB resource embedding. Do not declare device GPS merely for local ranking.
 3. If exemption is approved, optionally add `ITSAppUsesNonExemptEncryption=false` to the correct generated plist/build
@@ -455,7 +456,14 @@ Final classifications from [production audit](PRODUCTION_PRIVACY_AUDIT.md):
 
 No live production records confirm COLLECTED; no overall “Data Not Collected” approval. Production Worker
 is absent, so runtime gate/version checks and App Review backend readiness remain blocked. Photos/Crash
-answers still require signed-archive/matching-deployment checks. Logpush/analytics/provider retention,
+answers still require signed archive / matching production deployment checks. Logpush/analytics/provider retention,
 alternate/historical data and support handling need maintainer evidence. The public bilingual policy is
 reachable but §2 requires correcting live-server/logging assertions until deployment is verified. Do not submit
 until these gates and all UNKNOWN classifications are closed. Remote provisioning/deployment is separate work.
+
+Finalization against main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841` incorporates #179's confirmed
+Release public-site origin, Privacy Policy/Support navigation, empty Debug origin and contact. Existing
+Privacy Label classifications above remain unchanged. Next policy lane must correct §2 server status/logging,
+clarify provider retention, verify §5 gates and §6/§9 analytics/support claims in both languages.
+Next production lane separately provisions the two D1 databases and bound R2 bucket, reviews real IDs,
+applies approved migrations/promotion and deploys the production Worker; see audit's exact sequence.

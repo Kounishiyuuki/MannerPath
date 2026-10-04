@@ -146,4 +146,16 @@ create the bound R2 bucket, without which `wrangler deploy` fails.
 - [ ] Correct published policy §2 in both languages and reconcile provider/support retention.
 - [ ] Close audit's UNKNOWN Privacy Label categories; match Photos/Crash source conclusions to archive; owner signs ASC answers.
 
-These checks remain submission blockers. No main merge or Cloudflare mutation occurred in this audit.
+These checks remain submission blockers. Merging this documentation closes no submission gate and authorizes no Cloudflare mutation.
+
+#179 incorporated from main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841`:
+Release public-site origin `https://kounishiyuuki.github.io/MannerPath/`, privacy/ and support/ navigation,
+Debug empty origin and `mannerpath.support@gmail.com` contact are confirmed. Do not reopen link-reachability
+as a blocker; signed distribution evidence and mail delivery remain separate.
+
+Next provisioning lane: separately authorize R2 enablement, canonical D1 `mannerpath-production`, durable
+D1 `mannerpath-production-reports` and R2 `mannerpath-raw-artifacts-production` creation; review distinct IDs
+and production-only safety-test updates, remote migrations/canonical promotion, then Worker deployment.
+Keep required attestation, reports/auth unavailable, photos off, crons empty and community inactive.
+Next policy lane owns bilingual §2/§5/§6/§9 corrections and revision dates, detailed in the
+[audit handoff](PRODUCTION_PRIVACY_AUDIT.md). No resource/action or `site/` change was executed here.
