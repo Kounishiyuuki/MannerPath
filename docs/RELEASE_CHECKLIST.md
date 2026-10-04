@@ -34,6 +34,11 @@ report endpoints answer `503 attestationUnavailable`, `/v1/config` says `reports
 reporting, and the smoke check treats `503` as a pass. Read-only nationwide discovery needs none of the
 Apple-Developer-Program items below.
 
+Privacy submission gate: the [2026-10-05 production audit](PRODUCTION_PRIVACY_AUDIT.md) confirms repository
+settings only. Cloudflare account access failed; deployed logging/retention, resource existence and live
+report/auth gates remain UNKNOWN. Complete its read-only maintainer checks before deployment/privacy signoff;
+local readiness above does not establish a production deployment or permit “Data Not Collected”.
+
 ## 2. Production configuration
 
 | Name | Kind | Where | Required for |
@@ -101,7 +106,8 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 
 **Release freeze (2026-10-04, release candidate on d511f1a).** Backend code is frozen for v1: no new architecture,
 features or data sources. Only P0 fixes and small, local P1 fixes land before submission. The read-only v1 release
-needs no secret and no Developer Program item; it waits only on the production Cloudflare values (§2, §3 step 1).
+needs no secret and no Developer Program item; backend provisioning waits on the production Cloudflare
+values (§2, §3 step 1). App Store submission also requires the production privacy evidence/signoff above.
 
 **Remaining P0:** none.
 

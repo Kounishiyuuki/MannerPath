@@ -538,7 +538,9 @@ No CDN configuration is introduced. The behaviour is the one the responses alrea
 
 ## Monitoring and logging policy
 
-**Automatic invocation logs are disabled in every environment.** Cloudflare's Fetch invocation logs
+**Committed configuration disables automatic invocation logs in every environment.** Live settings and
+provider retention require the [production privacy audit](PRODUCTION_PRIVACY_AUDIT.md); they are not established
+by this file. Cloudflare's Fetch invocation logs
 record the request URL, and a MannerPath tile path *is* the z14 cell a user was looking at, with a
 timestamp. Persisting those builds a location history, which this project must not keep. Sampling is
 **not** a fix: a sampled invocation log is a smaller location history, not the absence of one. The
@@ -555,9 +557,13 @@ What remains:
 
 - **Aggregate platform metrics** (Workers and D1 analytics): request counts, status-code and error
   rates, CPU time, duration, D1 query counts. These are counters, not per-request records, and carry
-  no URL, IP or identifier. This is what the dashboard and any alert are built on.
+  no URL, IP or identifier in these aggregate counters. This is the intended dashboard/alert basis;
+  account-level products and additional retained records still need verification.
 - **Explicit log lines**, if code ever writes one. Logs stay enabled for that reason, under the
-  rules below. Today the service writes none on the request path.
+  rules below. No application-authored request logger exists, but the pinned Hono default error
+  handler calls `console.error(err)` for unhandled exceptions. Scheduled source checks also log
+  run/source/status/outcome. Logs enabled therefore does not mean no diagnostics are retained;
+  inspect actual error fields and retention before privacy signoff.
 - **Deploy and rollback history**, which is about the Worker, not about users.
 
 Invariants for anything added later:

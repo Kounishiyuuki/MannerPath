@@ -87,6 +87,11 @@ it is not permission to ignore diagnostics or identifiers present in logs.
 
 ### 2.3 Tile path + IP: Location collection?
 
+Latest evidence: [production privacy audit, 2026-10-05](PRODUCTION_PRIVACY_AUDIT.md). Committed settings/source
+were verified; Cloudflare authentication failed, so live logging, retention and resource existence remain
+UNKNOWN / MAINTAINER CHECK. No “Data Not Collected” signoff is supported yet. Console logs are enabled and
+framework exception logs are possible even with invocation logs disabled.
+
 Inference: z14–16 tile paths select a geographic area associated with the request. Retaining that path with IP
 beyond real-time service can collect Location, even without raw GPS or intentional history. Recommend Coarse
 Location for this area-based request. Inspect the actual zoom/area resolution and whether logs reconstruct a
