@@ -63,6 +63,7 @@ struct NearbyWidgetView: View {
                             Text("\((distance / 1_000).formatted(.number.precision(.fractionLength(1)))) km away")
                         }
                     }
+                    Text(glance.existenceLabel).font(.caption2).lineLimit(1)
                     Text(verification(glance.lastVerifiedAt, now: entry.date))
                         .font(.caption2).foregroundStyle(.secondary)
                 }

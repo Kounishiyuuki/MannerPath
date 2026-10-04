@@ -41,6 +41,26 @@ struct NearbyGlanceTests {
         #expect(throws: Error.self) { try NearbyGlanceCodec.encode(bad) }
     }
 
+    @Test func existenceTierRoundTripsAndOlderGlanceReadsUnknown() throws {
+        let tiered = NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: "spot1", name: "Place",
+                                  distanceMeters: 120, lastVerifiedAt: nil, existence: "communityReported")
+        let decoded = try NearbyGlanceCodec.decode(NearbyGlanceCodec.encode(tiered))
+        #expect(decoded.existence == "communityReported")
+        #expect(decoded.existenceLabel == String(localized: "User report · unconfirmed"))
+        let older = try NearbyGlanceCodec.decode(Data(#"{"version":1,"computedAt":1800000000,"locationObservedAt":1800000000,"locationIsLastKnown":false,"spotID":"s","name":"P","distanceMeters":1}"#.utf8))
+        #expect(older.existence == nil)
+        #expect(older.existenceLabel == String(localized: "Confirmation status unknown"))
+        let future = NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: "s", name: "P",
+                                  distanceMeters: 1, lastVerifiedAt: nil, existence: "openData")
+        #expect(future.existenceLabel == String(localized: "Confirmation status unknown"))
+        for (raw, label) in [("official", "Officially confirmed"), ("operator", "Confirmed by the operator"),
+                             ("communityVerified", "Confirmed by users")] {
+            let value = NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: "s", name: "P",
+                                     distanceMeters: 1, lastVerifiedAt: nil, existence: raw)
+            #expect(value.existenceLabel == String(localized: String.LocalizationValue(label)))
+        }
+    }
+
     @Test func appIntentOpensApp() async throws {
         #expect(OpenNearbyIntent.openAppWhenRun)
         _ = try await OpenNearbyIntent().perform()
