@@ -4392,6 +4392,26 @@
           }
         }
       }
+    },
+    "Proposed pin": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案するピン"
+          }
+        }
+      }
+    },
+    "Place": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

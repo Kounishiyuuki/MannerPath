@@ -74,6 +74,21 @@ class MannerPathUITestCase: XCTestCase {
         XCTAssertEqual(app.staticTexts.matching(leak).count, 0, "Developer text is visible", file: file, line: line)
     }
 
+    // Captures every section of Data & Privacy, top to Diagnostics, for visual review in the current phase.
+    func tourDataAndPrivacy() {
+        app.buttons["データとプライバシー"].tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        screenshot("40-privacy-top")
+        for (index, header) in ["報告", "情報の品質", "診断情報"].enumerated() {
+            scrollTo(text(header))
+            screenshot("4\(index + 1)-privacy-\(header)")
+        }
+        let diagnostics = textContaining("クラッシュ報告ツールは含まれていません")
+        scrollTo(diagnostics)
+        screenshot("44-privacy-diagnostics")
+        assertNoDeveloperText()
+    }
+
     func waitForResults(file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 30), "No nearby results", file: file, line: line)
     }
@@ -121,7 +136,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(row("直線距離").exists)
         screenshot("03-detail-top")
         XCTAssertFalse(textContaining("更新中のため").exists, "Footer must not claim an update that is not running")
-        scrollTo(app.buttons["Appleマップで徒歩ルートを開く"])
+        scrollTo(app.buttons["open-walking-directions"])
         for label in ["利用条件", "最終確認日", "情報の新しさ"] {
             scrollTo(row(label))
         }
@@ -245,7 +260,6 @@ final class B_OnlineUITests: MannerPathUITestCase {
         note.tap()
         note.typeText("UIテスト")
         screenshot("09-report-draft")
-        XCTAssertTrue(app.buttons["審査用に送信"].exists, "Submit stays available but is never tapped here")
 
         app.buttons["閉じる"].tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
@@ -254,6 +268,8 @@ final class B_OnlineUITests: MannerPathUITestCase {
         resume.tap()
         XCTAssertTrue(app.navigationBars["場所の情報を報告"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["地図でピンを選ぶ"].exists, "Draft type survived closing")
+        // Submit stays available but is never tapped here; checked with the keyboard down so the row can be reached.
+        scrollTo(app.buttons["審査用に送信"])
         app.buttons["下書きを破棄"].tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
         scrollTo(app.buttons["この場所の情報を報告"])
@@ -277,6 +293,12 @@ final class B_OnlineUITests: MannerPathUITestCase {
         screenshot("10-destination")
         XCTAssertTrue(app.navigationBars["近くの場所"].exists)
         XCTAssertTrue(resultRows.firstMatch.exists, "Saved places stay listed during destination search")
+    }
+
+    func testDataAndPrivacyFullPage() {
+        launch()
+        waitForResults()
+        tourDataAndPrivacy()
     }
 
     func testIconOnlyActionsHaveLabels() {
@@ -312,6 +334,13 @@ final class D_CleanOfflineUITests: MannerPathUITestCase {
                        "Must not claim saved results that do not exist")
         XCTAssertFalse(textContaining("保存済みの下書きはこのデバイスに残ります").exists)
         screenshot("12-clean-offline")
+        // Reporting availability is unknown here: Data & Privacy must not advertise intake.
+        app.buttons["データとプライバシー"].tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        scrollTo(textContaining("報告機能を利用できるか確認できませんでした"))
+        XCTAssertFalse(textContaining("報告は審査対象の提案です").exists)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        tourDataAndPrivacy()
     }
 }
 
@@ -331,5 +360,116 @@ final class F_LocationNotDeterminedUITests: MannerPathUITestCase {
         XCTAssertTrue(app.buttons["現在地を使用"].waitForExistence(timeout: 15))
         XCTAssertEqual(resultRows.count, 0)
         screenshot("14-location-not-determined")
+    }
+}
+
+// Runs only against the local copy prepared by services/api/scripts/local-ui-fixture.ts (TEST ONLY): an
+// areaApproximate spot in 上野恩賜公園, a communityReported ashtray beside the fixed location, and the Taito corpus.
+final class G_VisualAuditUITests: MannerPathUITestCase {
+    func row(valueContaining fragment: String) -> XCUIElement {
+        resultRows.matching(NSPredicate(format: "value CONTAINS %@", fragment)).firstMatch
+    }
+
+    func openRow(_ element: XCUIElement) {
+        scrollTo(element)
+        element.tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+    }
+
+    func testApproximatePlaceNeverReadsAsExact() {
+        launch()
+        waitForResults()
+        let approximate = row(valueContaining: "位置は上野恩賜公園内の目安です")
+        scrollTo(approximate)
+        screenshot("20-list-approximate-row")
+        approximate.tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["approximate-location-note"].exists)
+        XCTAssertTrue(textContaining("約").exists, "Approximate distance is prefixed with 約")
+        screenshot("21-detail-approximate-top")
+        let directions = app.buttons["open-walking-directions"]
+        scrollTo(directions)
+        XCTAssertEqual(directions.label, "この付近へ案内")
+        screenshot("22-detail-approximate-directions")
+        scrollTo(row("位置情報"))
+        screenshot("23-detail-approximate-evidence")
+    }
+
+    func testCommunityReportedPlaceNeverReadsAsOfficial() {
+        launch()
+        waitForResults()
+        let community = row(valueContaining: "利用者報告")
+        scrollTo(community)
+        XCTAssertFalse(community.value.debugDescription.contains("公式"))
+        screenshot("24-list-community-row")
+        community.tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        screenshot("25-detail-community-top")
+        let note = textContaining("1人の利用者の報告をMannerPathが審査したもの")
+        scrollTo(note)
+        XCTAssertFalse(textContaining("公式確認済み").exists)
+        screenshot("26-detail-community-evidence")
+        assertNoDeveloperText()
+    }
+
+    func testExactPlaceDirectionsHandOffToMaps() {
+        launch()
+        waitForResults()
+        openRow(row(valueContaining: "公式確認済み"))
+        // Taito leaves tobacco support unstated: unknown must stay unknown, never no.
+        for label in ["紙巻きたばこ", "加熱式たばこ"] {
+            let value = row(label)
+            scrollTo(value)
+            XCTAssertTrue(value.label.contains("不明"), "\(label) shows \(value.label)")
+        }
+        screenshot("27-detail-unknown-values")
+        let directions = app.buttons["open-walking-directions"]
+        scrollTo(directions)
+        XCTAssertEqual(directions.label, "この場所へ案内")
+        screenshot("28-detail-route-preview")
+        directions.tap()
+        let maps = XCUIApplication(bundleIdentifier: "com.apple.Maps")
+        XCTAssertTrue(maps.wait(for: .runningForeground, timeout: 15), "Apple Maps did not open")
+        let attachment = XCTAttachment(screenshot: maps.screenshot())
+        attachment.name = "\(phase)-29-maps-handoff"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        app.activate()
+    }
+
+    func testAddPlaceWarnsAboutNearbyDuplicateAndShowsTerms() {
+        launch()
+        waitForResults()
+        // A draft left by an earlier test replaces the add action with "continue saved report".
+        let saved = app.buttons["保存済みの報告を再開"]
+        if saved.exists {
+            saved.tap()
+            app.buttons["下書きを破棄"].tap()
+        }
+        let add = app.buttons.matching(NSPredicate(format: "label == '喫煙場所を追加'")).firstMatch
+        XCTAssertTrue(add.waitForExistence(timeout: 10))
+        add.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        screenshot("30-add-place")
+        app.buttons["地図でピンを選ぶ"].tap()
+        XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForExistence(timeout: 10))
+        app.buttons["地図の中心を使用"].tap()
+        let confirm = app.buttons["提案するピンを確定"]
+        scrollTo(confirm)
+        screenshot("31-add-place-pin")
+        confirm.tap()
+        let duplicate = text("これではありませんか？")
+        XCTAssertTrue(duplicate.waitForExistence(timeout: 10), "No duplicate warning for a pin beside a listed place")
+        scrollTo(duplicate)
+        screenshot("32-add-place-duplicate")
+        let terms = app.buttons["報告に関する規約を読む"]
+        scrollTo(terms)
+        screenshot("33-add-place-consent")
+        terms.tap()
+        XCTAssertTrue(app.navigationBars["報告に関する規約"].waitForExistence(timeout: 10))
+        screenshot("34-report-terms")
+        app.buttons["完了"].tap()
+        app.buttons["下書きを破棄"].tap()
+        XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
     }
 }

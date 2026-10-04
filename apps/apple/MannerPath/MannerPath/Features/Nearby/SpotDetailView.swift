@@ -87,7 +87,7 @@ struct SpotDetailView: View {
                                 CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
                             })
                             .stroke(.blue, lineWidth: 5)
-                            Annotation("Place", coordinate: CLLocationCoordinate2D(
+                            Annotation(String(localized: "Place"), coordinate: CLLocationCoordinate2D(
                                 latitude: spot.latitude, longitude: spot.longitude
                             )) { Image(systemName: "mappin.circle.fill").foregroundStyle(.red) }
                         }
@@ -145,8 +145,13 @@ struct SpotDetailView: View {
             }
 
             Section("Evidence and freshness") {
+                // A Label as the value of a Form LabeledContent laid out ~140 pt of blank space below the row (iOS 26).
                 LabeledContent("Evidence") {
-                    Label(SpotPresentation.evidence(spot), systemImage: SpotPresentation.existenceSymbol(spot.verification.existenceTier))
+                    HStack(spacing: 6) {
+                        Image(systemName: SpotPresentation.existenceSymbol(spot.verification.existenceTier))
+                            .accessibilityHidden(true)
+                        Text(SpotPresentation.evidence(spot))
+                    }
                 }
                 if let confirmations = spot.verification.confirmations {
                     LabeledContent("Independent user confirmations", value: "\(confirmations)")
