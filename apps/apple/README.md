@@ -17,7 +17,7 @@ The iPhone app stores tile snapshots in its Application Support directory. It re
 
 ## Public site links
 
-`MANNERPATH_PUBLIC_SITE_URL` (Info.plist `MannerPathPublicSiteURL`) is the HTTPS origin of the published Privacy Policy/Support site (`docs/PUBLIC_SITE.md`). When it is empty or invalid, Data & Privacy shows only the email contact and operator; set it for release builds the same way as `MANNERPATH_API_BASE_URL`.
+`MANNERPATH_PUBLIC_SITE_URL` (Info.plist `MannerPathPublicSiteURL`) is the HTTPS origin of the published Privacy Policy/Support site (`docs/PUBLIC_SITE.md`). The Release configuration commits `https://kounishiyuuki.github.io/MannerPath/`; Debug leaves it unset, so development and test builds show only the email contact and operator. An `xcodebuild` override still wins.
 
 ## App Attest reporting (Issue #46)
 
