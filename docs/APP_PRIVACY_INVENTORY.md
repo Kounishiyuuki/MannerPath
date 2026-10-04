@@ -11,8 +11,8 @@ longer than needed to service the request in real time. Data that only stays on 
 ## Summary
 
 Report/auth/photo rows below describe implemented capabilities, not initial-v1 availability. Initial v1
-requires reports and App Attest registration unavailable, with photos disabled. Production retention and
-availability remain unverified: see [production audit](PRODUCTION_PRIVACY_AUDIT.md) and
+requires reports and App Attest registration unavailable, with photos disabled. Authenticated follow-up found no configured production Worker or production-named D1 resources in the
+audited account; R2 reports not enabled. Retention and eventual runtime gates remain unverified: see [production audit](PRODUCTION_PRIVACY_AUDIT.md) and
 [submission §2](APP_STORE_SUBMISSION.md) for conditional release answers.
 
 | Data | Leaves the device? | Collected (retained)? | Linked to user? | Tracking? | Purpose |
@@ -74,3 +74,13 @@ SDK, no IDFA, no `identifierForVendor`.
 GRDB is the only third-party dependency (`Package.resolved`). `NSPrivacyCollectedDataTypes` is empty in the app
 manifests; if the maintainer declares report data as collected in App Store Connect, consider adding matching
 entries to the iPhone manifest so the generated privacy report agrees.
+
+## Final audit classifications (2026-10-05)
+
+The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls final release recommendations:
+Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product Interaction are
+**UNKNOWN / SUBMISSION BLOCKER**; Coarse Location is **CONSERVATIVE DISCLOSURE** (collected, linked,
+App Functionality, not tracking pending evidence). Photos/Videos and Crash Data are **NOT COLLECTED**
+for the reviewed shipping composition, pending matching archive/deployment verification. No type is
+confirmed COLLECTED by live production records. Missing production is not a “Data Not Collected” signoff.
+Published policy §2 requires correction of live-server/logging claims; provider/support retention remains manual.

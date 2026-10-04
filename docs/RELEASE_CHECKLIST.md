@@ -35,8 +35,9 @@ reporting, and the smoke check treats `503` as a pass. Read-only nationwide disc
 Apple-Developer-Program items below.
 
 Privacy submission gate: the [2026-10-05 production audit](PRODUCTION_PRIVACY_AUDIT.md) confirms repository
-settings only. Cloudflare account access failed; deployed logging/retention, resource existence and live
-report/auth gates remain UNKNOWN. Complete its read-only maintainer checks before deployment/privacy signoff;
+settings and authenticated inventory. The configured production Worker and production-named D1 resources
+are absent in the audited account; R2 reports not enabled. Logpush returned 403; analytics, retention and
+eventual live report/auth gates remain UNKNOWN. Complete its maintainer checks before deployment/privacy signoff;
 local readiness above does not establish a production deployment or permit “Data Not Collected”.
 
 ## 2. Production configuration
@@ -135,3 +136,14 @@ create the bound R2 bucket, without which `wrangler deploy` fails.
   already serves reads without it (report routes `503 reportStoreUnavailable`).
 - A missing `--chunk-bytes` on `promotion:v4:build` reports the generic "invalid chunk byte budget".
 - `/v1/config` advertises report schema `2..2` / `appAttest` while `available: false`; clients gate on `available`.
+
+## Authenticated privacy release gate (2026-10-05)
+
+- [ ] Confirm intended Cloudflare account and signed release API origin; configured production Worker is absent.
+- [ ] Separately authorize resource provisioning/deployment after production D1/R2 inventory and reviewed IDs/preflight; never reuse E2E resources by assumption.
+- [ ] Obtain read-only Logpush/analytics/retention evidence and sanitized IP/UA/path/time/request-ID field assessment; resolve prohibited location history.
+- [ ] Verify deployed version/settings, config false/false, unavailable report/auth intake, photos off, no community activation and empty crons; no mutating audit probes.
+- [ ] Correct published policy §2 in both languages and reconcile provider/support retention.
+- [ ] Close audit's UNKNOWN Privacy Label categories; match Photos/Crash source conclusions to archive; owner signs ASC answers.
+
+These checks remain submission blockers. No main merge or Cloudflare mutation occurred in this audit.

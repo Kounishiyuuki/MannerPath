@@ -88,9 +88,11 @@ it is not permission to ignore diagnostics or identifiers present in logs.
 ### 2.3 Tile path + IP: Location collection?
 
 Latest evidence: [production privacy audit, 2026-10-05](PRODUCTION_PRIVACY_AUDIT.md). Committed settings/source
-were verified; Cloudflare authentication failed, so live logging, retention and resource existence remain
-UNKNOWN / MAINTAINER CHECK. No “Data Not Collected” signoff is supported yet. Console logs are enabled and
-framework exception logs are possible even with invocation logs disabled.
+were verified; refreshed OAuth succeeded. The configured production Worker and production-named D1
+resources are absent from the audited account, and R2 reports not enabled. Logpush inventory returned 403;
+analytics/retention and eventual live gates remain UNKNOWN / MANUAL CHECK. No “Data Not Collected” signoff is supported yet. Committed console logs are enabled (also observed
+in E2E inventory); production settings are unavailable. Framework exception logs remain possible even
+with invocation logs disabled.
 
 Inference: z14–16 tile paths select a geographic area associated with the request. Retaining that path with IP
 beyond real-time service can collect Location, even without raw GPS or intentional history. Recommend Coarse
@@ -435,3 +437,25 @@ No third-party blog is a decision basis. GRDB upstream is used only to verify it
 Validation for this docs-only change: `git diff --check`, `make contract`, local reference/metadata limit checks,
 and direct opening of the cited Apple pages and pinned GRDB manifest. No app/build/device/production/ASC action
 is implied. Re-run contract/diff checks after final edits; actual command outcomes are recorded in the PR.
+
+## Authenticated privacy audit addendum (2026-10-05; supersedes conditional table where unresolved)
+
+Final classifications from [production audit](PRODUCTION_PRIVACY_AUDIT.md):
+
+| Category | Final recommendation |
+| --- | --- |
+| Precise Location | UNKNOWN / SUBMISSION BLOCKER |
+| Coarse Location | CONSERVATIVE DISCLOSURE: collected, linked, App Functionality, not tracking pending evidence |
+| Device ID | UNKNOWN / SUBMISSION BLOCKER |
+| User Content | UNKNOWN / SUBMISSION BLOCKER |
+| Photos/Videos | NOT COLLECTED in reviewed shipping composition |
+| Diagnostics | UNKNOWN / SUBMISSION BLOCKER |
+| Usage Data / Product Interaction | UNKNOWN / SUBMISSION BLOCKER |
+| Crash Data | NOT COLLECTED in reviewed app instrumentation |
+
+No live production records confirm COLLECTED; no overall “Data Not Collected” approval. Production Worker
+is absent, so runtime gate/version checks and App Review backend readiness remain blocked. Photos/Crash
+answers still require signed-archive/matching-deployment checks. Logpush/analytics/provider retention,
+alternate/historical data and support handling need maintainer evidence. The public bilingual policy is
+reachable but §2 requires correcting live-server/logging assertions until deployment is verified. Do not submit
+until these gates and all UNKNOWN classifications are closed. Remote provisioning/deployment is separate work.
