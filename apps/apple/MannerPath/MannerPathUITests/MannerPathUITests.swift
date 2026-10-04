@@ -473,3 +473,68 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
     }
 }
+
+// Release-build check of the public site links (docs/PUBLIC_SITE.md). Needs the internet and a Release build,
+// so it is not part of scripts/run-iphone-ui-tests.sh phases; run it as documented in docs/PUBLIC_SITE.md.
+final class H_PublicSiteLinksUITests: MannerPathUITestCase {
+    let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+
+    func openDataAndPrivacy() {
+        launch()
+        let privacy = app.buttons["データとプライバシー"]
+        XCTAssertTrue(privacy.waitForExistence(timeout: 30))
+        privacy.tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+    }
+
+    func assertSafariShows(_ heading: String, shot: String) {
+        XCTAssertTrue(safari.wait(for: .runningForeground, timeout: 20), "Safari did not open")
+        let title = safari.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", heading)).firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 30), "\(heading) not shown")
+        XCTAssertFalse(safari.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS '404'")).firstMatch.exists)
+        let address = safari.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS 'kounishiyuuki.github.io' OR value CONTAINS 'kounishiyuuki.github.io'")).firstMatch
+        // The capsule briefly shows a transient label (e.g. Reader available) before the domain.
+        let addressShown = address.waitForExistence(timeout: 10)
+        if !addressShown {
+            let tree = XCTAttachment(string: safari.debugDescription)
+            tree.name = "\(phase)-safari-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+        }
+        XCTAssertTrue(addressShown, "Address is not the published site")
+        let attachment = XCTAttachment(screenshot: safari.screenshot())
+        attachment.name = "\(phase)-\(shot)"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    func testPrivacyPolicyAndSupportOpenThePublishedPages() {
+        openDataAndPrivacy()
+        let policy = app.buttons["プライバシーポリシー"]
+        XCTAssertTrue(policy.exists, "Privacy Policy link missing: MannerPathPublicSiteURL not set in this build")
+        XCTAssertTrue(app.buttons["サポート"].exists)
+        screenshot("50-privacy-links")
+        policy.tap()
+        assertSafariShows("MannerPath プライバシーポリシー", shot: "51-safari-privacy")
+        app.activate()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        app.buttons["サポート"].tap()
+        assertSafariShows("MannerPath サポート", shot: "52-safari-support")
+        app.activate()
+    }
+
+    func testEmailContactAddressesTheSupportMailbox() {
+        openDataAndPrivacy()
+        let contact = app.buttons.matching(NSPredicate(format: "label CONTAINS 'mannerpath.support@gmail.com'")).firstMatch
+        XCTAssertTrue(contact.exists, "Email contact missing")
+        contact.tap()
+        // The simulator has no Mail account; capture whatever the system shows for the mailto: hand-off.
+        sleep(3)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let attachment = XCTAttachment(screenshot: springboard.screenshot())
+        attachment.name = "\(phase)-53-mailto"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}

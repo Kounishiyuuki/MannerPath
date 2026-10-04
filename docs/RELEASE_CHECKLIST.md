@@ -53,7 +53,7 @@ local readiness above does not establish a production deployment or permit “Da
 | `REPORT_APP_ATTEST_ENVIRONMENT` | secret | `production` for TestFlight/App Store | report intake (Developer Program) |
 | `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | secret | exact `CFBundleVersion` list in users' hands | report intake (Developer Program) |
 | `MANNERPATH_API_BASE_URL` | Xcode build setting (uncommitted xcconfig) | HTTPS origin of the production Worker | app build |
-| `MANNERPATH_PUBLIC_SITE_URL` | Xcode build setting (uncommitted xcconfig) | HTTPS origin of the published GitHub Pages site (`docs/PUBLIC_SITE.md`); empty hides the Privacy Policy/Support links | app build |
+| `MANNERPATH_PUBLIC_SITE_URL` | Xcode build setting, committed for Release (Debug unset) | `https://kounishiyuuki.github.io/MannerPath/` (`docs/PUBLIC_SITE.md`); empty hides the Privacy Policy/Support links | app build |
 
 Invocation logs stay disabled (`test/deploy-config.test.ts`); no other variable or secret exists.
 

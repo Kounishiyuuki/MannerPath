@@ -249,8 +249,8 @@ Description ≤4,000 characters, promotional text ≤170, keywords ≤100 UTF-8 
 | Subtitle | `喫煙可能場所と利用条件を確認` |
 | Keywords | `喫煙所,灰皿設置,指定場所,利用条件,徒歩案内,位置情報` (74 UTF-8 bytes; no competitor/brand names) |
 | Promotional text (optional) | `喫煙可能場所の位置、利用条件、情報源を確認。周囲の掲示や施設のルールを優先し、案内情報を参考にしてください。` |
-| Support URL | `https://kounishiyuuki.github.io/MannerPath/support/` once GitHub Pages is live ([PUBLIC_SITE.md](PUBLIC_SITE.md)) |
-| Privacy Policy URL | `https://kounishiyuuki.github.io/MannerPath/privacy/` once GitHub Pages is live ([PUBLIC_SITE.md](PUBLIC_SITE.md)) |
+| Support URL | `https://kounishiyuuki.github.io/MannerPath/support/` (live 2026-10-04, [PUBLIC_SITE.md](PUBLIC_SITE.md)) |
+| Privacy Policy URL | `https://kounishiyuuki.github.io/MannerPath/privacy/` (live 2026-10-04, [PUBLIC_SITE.md](PUBLIC_SITE.md)) |
 | Report terms URL | `[MAINTAINER: future approved report-terms page; not an ASC standalone required field]` |
 | Marketing URL (optional) | Leave blank until an actual neutral product page exists |
 | Copyright | `2026 [MAINTAINER: actual rights holder]` (ASC supplies ©) |
@@ -322,7 +322,7 @@ Reviewer instructions to finalize with the signed build:
 
 ## 8. Required URLs, legal pages and contact
 
-Update 2026-10-04: operator **MannerPath 運営**, contact **mannerpath.support@gmail.com** and GitHub Pages publication are confirmed; the pages and in-app access exist ([PUBLIC_SITE.md](PUBLIC_SITE.md)). The URLs stay candidates until the first Pages deployment is verified. Earlier text: no production URL/operator/contact was established by this packet. No example domain or personal email is
+Update 2026-10-04: operator **MannerPath 運営**, contact **mannerpath.support@gmail.com** and GitHub Pages publication are confirmed; the pages and in-app access exist ([PUBLIC_SITE.md](PUBLIC_SITE.md)). The pages were published and verified over HTTPS on 2026-10-04, and Release builds carry the site origin (in-app links). Earlier text: no production URL/operator/contact was established by this packet. No example domain or personal email is
 promoted to an official value. A dedicated MannerPath mailbox is recommended but must be created/tested.
 
 | Item | Owner must supply / acceptance check |
