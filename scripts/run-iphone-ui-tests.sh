@@ -59,7 +59,7 @@ xcrun simctl spawn "$sim" defaults write -g AppleLocale ja_JP
 xcrun simctl location "$sim" set 35.7118,139.7775
 
 start_worker() {
-  (cd services/api && npm run --silent dev >"$worker_log" 2>&1) &
+  (cd services/api && npm run --silent dev -- "$@" >>"$worker_log" 2>&1) &
   worker_pid=$!
   for _ in $(seq 60); do
     curl -fsS http://127.0.0.1:8787/v1/config >/dev/null 2>&1 && return 0
@@ -139,6 +139,23 @@ run_phase clean-offline -only-testing:MannerPathUITests/D_CleanOfflineUITests
 
 xcrun simctl privacy "$sim" revoke location "$bundle_id"
 run_phase denied -only-testing:MannerPathUITests/E_LocationDeniedUITests
+
+# Visual audit: states the Taito fixture never produces (areaApproximate, communityReported), added by
+# services/api/scripts/local-ui-fixture.ts to a disposable copy of the local state, never the default one.
+fixture_state=services/api/.wrangler/state.ui-fixture
+rm -rf "$fixture_state"
+cp -R services/api/.wrangler/state "$fixture_state"
+fixture_db=""
+for f in "$fixture_state"/v3/d1/miniflare-D1DatabaseObject/*.sqlite; do
+  sqlite3 "$f" "SELECT 1 FROM spots LIMIT 1" >/dev/null 2>&1 && fixture_db=$f && break
+done
+(cd services/api && node --experimental-strip-types --experimental-sqlite --no-warnings \
+  scripts/local-ui-fixture.ts "${fixture_db#services/api/}") >>"$results/setup.log" 2>&1
+start_worker --persist-to .wrangler/state.ui-fixture
+fresh_install
+xcrun simctl privacy "$sim" grant location "$bundle_id"
+run_phase visual-audit -only-testing:MannerPathUITests/G_VisualAuditUITests
+stop_worker
 
 echo "Result bundles: $results"
 if (( ${#failed_phases[@]} )); then
