@@ -16,9 +16,11 @@ Docs/read-only reconciliation against main `cef7f055d0a3cb1b4d1baf223097b8c0e1b2
 device or provider audit is claimed. Completed: production launch (513 spots / 6 approved sources / community 0),
 Release production API origin, iPhone-only + Watch decision, production destination browsing from outside Japan,
 Reduce Motion simulator check (#191), and Taito processing notice / Watch license Link (#193). Reports/auth/photos
-remain unavailable and community inactive. App Icon plumbing is ready; artwork is still missing.
+remain unavailable and community inactive. App Icon follow-up: maintainer-selected artwork is now in both
+iPhone/Watch slots; unsigned archive inclusion verified 2026-10-06 ([distribution readiness §3.1](APPLE_DISTRIBUTION_READINESS.md#31-app-icon-follow-up-2026-10-06)).
 
-- **Submission P0:** App Icon artwork for iPhone and Watch; verify the final archive after adding it.
+- **App Icon submission P0: RESOLVED (technical inclusion).** Both hosts have CFBundleIcons / Assets.car /
+  compiled AppIcon in the unsigned Release archive. Final signed/physical/asset-rights checks remain open.
 - **Open implementation P1 for read-only v1:** none identified in this reconciliation. Report-intake-only P1s
   below are not read-only submission requirements; they do not authorize activation.
 - **Still blocking submission:** paid Developer Program/team confirmation, provisioning/App Groups/App Attest
@@ -44,7 +46,7 @@ remain unavailable and community inactive. App Icon plumbing is ready; artwork i
 | Read-only v1, reports off | READY | `wrangler dev --env production` with no secrets: `/v1/reports`, `/v1/app-attest/*` `503 attestationUnavailable`; photos `503 photoEvidenceDisabled`; writes to read routes `404`; reads `200` |
 | Empty regions | READY | an unpublished tile is `404 tileNotPublished`, cached by the client as empty (`docs/API.md`) |
 | Edge rate limit | WAITING_FOR_DEVELOPER_PROGRAM (with report intake) | IP-keyed Cloudflare rule on `POST /v1/reports` and `/v1/app-attest/*` before App Attest values are set (ADR-0007 §5) |
-| Apple signing / provisioning | WAITING_FOR_DEVELOPER_PROGRAM (repo side READY; App Icon P0 open) | `APPLE_DISTRIBUTION_READINESS.md`: team set at project level for all four bundles; unsigned Release archive succeeds; signed archive blocked only by profiles/App Groups/App Attest provisioning |
+| Apple signing / provisioning | WAITING_FOR_DEVELOPER_PROGRAM (repo side READY; App Icon technical P0 resolved) | `APPLE_DISTRIBUTION_READINESS.md`: team set at project level for all four bundles; unsigned Release archive succeeds with icons; signed archive blocked by profiles/App Groups/App Attest provisioning |
 | Community publication (#124) | technically READY; not activated | WAITING_FOR_MAINTAINER_INPUT (`docs/legal/COMMUNITY_PUBLICATION_DECISION.md` §0) |
 
 **v1 without report intake is a valid release.** With `REPORT_ATTESTATION=required` and no App Attest values, the
@@ -134,7 +136,8 @@ features or data sources. Only P0 fixes and small, local P1 fixes land before su
 needs no secret and no Developer Program item; production backend launch is completed (postdeployment
 evidence below). App Store submission still requires provider privacy evidence/signoff and signed-build checks.
 
-**Remaining backend P0:** none. App Store submission still has the App Icon artwork P0 above.
+**Remaining backend P0:** none. App Icon artwork/archive-inclusion P0 is resolved; the signed-device,
+privacy, legal/rights and other submission gates above remain open.
 
 **P1 before App Store submission (backend):** none open. The bound R2 bucket is created once in §3 step 1;
 the preflight launch sequence checks its existence read-only before migrations and deployment, without repeating provisioning.
