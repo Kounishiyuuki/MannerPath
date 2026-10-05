@@ -681,6 +681,7 @@
 		000000000000000112000000 /* Release configuration for PBXNativeTarget "MannerPath" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MANNERPATH_API_BASE_URL = "https://mannerpath-api-production.happywestyuki.workers.dev";
 				MANNERPATH_PUBLIC_SITE_URL = "https://kounishiyuuki.github.io/MannerPath/";
 				CODE_SIGN_ENTITLEMENTS = MannerPath.entitlements;
 				CODE_SIGN_STYLE = Automatic;
