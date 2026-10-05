@@ -105,7 +105,10 @@ entries to the iPhone manifest so the generated privacy report agrees.
 
 ## Evidence classifications and final entry proposal (2026-10-05)
 
-The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls final release recommendations:
+The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls evidence classifications,
+not the conservative proposed ASC selections below. Reconciled against main `cef7f05` on 2026-10-06:
+backend launch/runtime uncertainty is resolved; the remaining gate is maintainer final decision plus
+provider/support and signed-build privacy review. No factual UNKNOWN is resolved by this reconciliation.
 Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product Interaction are
 **UNKNOWN / SUBMISSION BLOCKER**; Coarse Location is **CONSERVATIVE DISCLOSURE** (collected, linked,
 App Functionality, not tracking pending evidence). Photos/Videos and Crash Data are **NOT COLLECTED**

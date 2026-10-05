@@ -413,10 +413,13 @@ These checks do not establish live privacy behavior.
 6. Update the Japanese/English revision dates together and verify both corrected pages and Release navigation.
    Preserve #179's known origin, privacy/support URLs, Debug behavior and contact; do not reopen those resolved gates.
 
-## Next provisioning lane — remote actions requiring separate authorization
+## Historical provisioning plan — completed, do not replay
 
-This is a plan only; none of these actions was executed. Follow [release checklist §3](RELEASE_CHECKLIST.md)
-and [OPERATIONS.md](OPERATIONS.md), with reviewed corpus/plan digests and privacy signoff:
+This was the predeployment plan, not a current submission blocker. Separately authorized provisioning,
+REPORTS_DB recovery, promotion and deployment completed before the current postdeployment audit above.
+#186/#191/#193 also confirm Release API origin and destination/source UI evidence. Retained below for
+history only; do not repeat resource creation, migrations, recovery, import or deploy. Provider fields/retention,
+support handling, signed-build privacy evidence and maintainer final decision remain open.
 
 1. Confirm release account and inventory again to avoid duplicates; enable R2 through the maintainer dashboard.
 2. Create canonical D1 `mannerpath-production`, durable D1 `mannerpath-production-reports`, and R2 bucket
