@@ -5,7 +5,7 @@ evidence live in [APP_STORE_SUBMISSION.md](APP_STORE_SUBMISSION.md) (§ numbers 
 evidence classifications are owned by [PRODUCTION_PRIVACY_AUDIT.md](PRODUCTION_PRIVACY_AUDIT.md) (#178/#185).
 The final conservative ASC input proposal is in [submission §2.2](APP_STORE_SUBMISSION.md),
 not a claim that all proposed collection was observed. Privacy entry updated 2026-10-05 against main
-`7203af2b23909544189b7f1bf5762af9f37b2c18`; older build/metadata evidence remains dated below.
+`cb8de215e55897a6315a7d38a59cf4886505c5e7` (#185/#186); older build/metadata evidence remains dated below.
 This sheet authorizes no submission, deployment or Cloudflare change.
 
 Status legend:
@@ -29,6 +29,7 @@ Status legend:
 | Device families | iPhone app and iPhone widget `1` (iPhone only), Watch app `4`; no native iPad target. iPad users run the iPhone app in compatibility mode ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | CONFIRMED (maintainer decision 2026-10-05) |
 | App localizations | development region `en`; Japanese `ja` translations present | CONFIRMED |
 | Public site origin in Release builds | `https://kounishiyuuki.github.io/MannerPath/` (Debug unset) | CONFIRMED (#179) |
+| API origin in Release builds | `https://mannerpath-api-production.happywestyuki.workers.dev` (Debug unset); Release Info.plist and simulator production connection verified | CONFIRMED (#186); signed distribution archive remains separate |
 | **App icon** | iPhone asset catalog has **no `AppIcon` set**; Watch `AppIcon` set has an empty 1024 slot | **P0 — see §8** |
 
 ## 2. App Information (ASC → App Information)
@@ -119,7 +120,7 @@ Location permission is When In Use. MannerPath uses the device location for near
 
 Reports, report device registration and photo uploads are unavailable in this initial version. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
 
-Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at [WAITING-PRODUCTION: HTTPS API origin]. To see populated results, [WAITING-PRODUCTION: tested steps and location]. Then open a place's details (access, uncertainty, sources and attribution), the walking-route preview and the Apple Maps handoff. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
+Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results, [WAITING-PRODUCTION: tested steps and location]. Then open a place's details (access, uncertainty, sources and attribution), the walking-route preview and the Apple Maps handoff. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
 ```
 
 Reviewer steps (attach with the notes once the WAITING items are filled):
@@ -153,8 +154,8 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 
 **WAITING-PRODUCTION** (backend exists; remaining release/provider evidence):
 
-- Production HTTPS API origin in the Release build, reachable during review; review-notes markers in §5.
-- Backend report/auth/photo gates verified by #185; signed-build browsing traffic/availability still to confirm.
+- ~~Production HTTPS API origin in the Release build~~ done by #186: committed origin, Release-built Info.plist and simulator live refresh/detail/attribution verified; readiness completed, reports/photos config false. The remaining §5 marker is tested reviewer steps.
+- Backend gates verified by #185 and Release simulator availability by #186; community remains pending. Signed distribution/hardware browsing traffic still to confirm.
 - **App Privacy (ASC → App Privacy): concrete final proposal ready for owner approval, no input performed.**
   Choose **Yes, we collect data from this app**. Select Precise Location, Coarse Location, Device ID,
   Customer Support, Other Diagnostic Data, Product Interaction and Email Address. Choose **Linked / not
@@ -164,7 +165,9 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
   **also select Photos or Videos and Crash Data, Linked / not tracking / App Functionality**. Report-only
   Other User Content stays unselected while intake is unavailable. Never choose Data Not Collected.
   Retention UNKNOWNs remain evidence gaps, not unanswered ASC checkboxes; owner must approve assumptions,
-  actual purposes/partner tracking, policy/manifests and the signed archive before publishing.
+  actual purposes/partner tracking, policy/manifests and the signed archive before publishing. The per-type
+  over-disclosure risks and evidence needed to narrow each choice are in submission §2.2; no proposed
+  Precise Location/Device ID collection is asserted as an observed fact.
 - Content Rights for the final published corpus (release manifest and licenses).
 - Store screenshots with production data (§6).
 

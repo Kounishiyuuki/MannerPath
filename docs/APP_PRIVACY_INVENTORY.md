@@ -15,6 +15,13 @@ longer than needed to service the request in real time. Data that only stays on 
 Its COLLECTED choices are risk-based disclosure proposals, not newly observed collection; the factual
 UNKNOWN findings in the audit remain unchanged. This does not authorize ASC input or submission.
 
+Aligned with main `cb8de215e55897a6315a7d38a59cf4886505c5e7`: #186 confirms the Release production
+origin in build settings/Info.plist and live simulator refresh/detail/attribution, config reports/photos false
+and readiness completed. Community remains pending. The app sends tile IDs, not raw precise GPS, to
+MannerPath. This is connection evidence, not retention/collection evidence or signed-archive signoff.
+Submission §2.2 now lists each proposed selection's over-disclosure risk and evidence needed to narrow it;
+Precise Location and Device ID COLLECTED proposals must not be presented as observed collection.
+
 Report/auth/photo rows below describe implemented capabilities, not initial-v1 availability. Initial v1
 requires reports and App Attest registration unavailable, with photos disabled. Postdeployment read-only
 audit (2026-10-05, main `ae3bd0a`) confirms the production Worker/version, distinct D1/R2 bindings,
