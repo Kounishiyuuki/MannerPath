@@ -498,8 +498,8 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-        A00000000000000000000111 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
-        A00000000000000000000112 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+        A00000000000000000000111 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
+        A00000000000000000000112 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
         A00000000000000000000211 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Debug; };
         A00000000000000000000212 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Release; };
 		000000000000000011000000 /* Debug configuration for PBXProject "MannerPath" */ = {
@@ -674,7 +674,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -719,7 +719,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
