@@ -109,6 +109,29 @@ struct NearbyLocationModelTests {
         #expect(model.dataState == .waitingForLocation)
     }
 
+    @Test func deniedDestinationRefreshDoesNotRequestDeviceLocationOrPublishCompanionCorpus() async throws {
+        let destinationTile = try tile(at: origin)
+        let location = FakeLocationProvider(state: .denied)
+        let store = FakeTileData(cached: [destinationTile.id: [spot("saved", at: origin, tile: destinationTile)]])
+        let model = NearbyModel(location: location, repository: store, refresher: store)
+        var companionPublications = 0
+        model.onCachedCorpusChange = { _, _, _ in companionPublications += 1 }
+        model.onCachedGlanceChange = { _, _ in companionPublications += 1 }
+        model.selectDestination(PlaceDestination(id: UUID(), name: "Saved", coordinate: origin))
+        #expect(await waitUntil { model.dataState == .refreshed })
+        let before = await store.refreshCount()
+        model.refresh()
+        #expect(await waitUntil {
+            let count = await store.refreshCount()
+            return model.dataState == .refreshed && count == before + 9
+        })
+        #expect(location.refreshCount == 0)
+        #expect(model.results.map(\.spot.id) == ["saved"])
+        #expect(companionPublications == 0)
+        model.refreshDeviceLocation()
+        #expect(location.refreshCount == 1)
+    }
+
     @Test func reportingEmptyStateInvitationRequiresAvailableReports() {
         for availability in [ReportAvailability.unknown, .unavailable, .incompatible, .attestationUnsupported] {
             #expect(NearbyEmptyStateCopy.description(for: availability) == String(localized: "Coverage varies by area. Only published places are shown."))

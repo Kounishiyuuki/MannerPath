@@ -40,6 +40,13 @@ enum RouteDetourRanker {
     static let algorithmVersion = 1
     static let maximumRoutedCandidates = 5
     static let maximumDirectionsRequests = 1 + 2 * maximumRoutedCandidates
+    static let maximumWalkingDetourDistanceMeters = 10_000.0
+
+    static func canRequestWalkingDetours(from origin: SpotCoordinate, to destination: SpotCoordinate) -> Bool {
+        guard origin.isValid, destination.isValid else { return false }
+        let distance = NearbySearch.straightLineDistance(from: origin, to: destination)
+        return distance.isFinite && distance <= maximumWalkingDetourDistanceMeters
+    }
 
     // Straight-line excess is only a lower-cost shortlist heuristic. Actual ranking uses walking ETAs.
     static func candidates(

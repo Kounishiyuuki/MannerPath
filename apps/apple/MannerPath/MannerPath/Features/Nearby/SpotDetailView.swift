@@ -237,8 +237,13 @@ struct SpotDetailView: View {
         previewRouter.cancel()
         previewRoute = nil
         previewUnavailable = false
+        previewLoading = false
         guard let routeOrigin else {
-            previewLoading = false
+            return
+        }
+        guard RouteDetourRanker.canRequestWalkingDetours(from: routeOrigin,
+            to: SpotCoordinate(latitude: spot.latitude, longitude: spot.longitude)) else {
+            previewUnavailable = true
             return
         }
         previewLoading = true

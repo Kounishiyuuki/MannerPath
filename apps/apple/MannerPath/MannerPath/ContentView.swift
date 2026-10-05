@@ -27,6 +27,11 @@ struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     locationSection
+                    if model.destination != nil {
+                        Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("refreshDestination")
+                    }
 
                     if model.browsingCoordinate != nil {
                         dataStatus
@@ -375,10 +380,8 @@ struct ContentView: View {
                 case .loading: Label("Checking walking detours. Saved places remain available below.", systemImage: "figure.walk")
                 case .ready: Text("Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.")
                 case .unavailable:
-                    Label(model.resultsLocation?.isLastKnown == true
-                          ? "A current location is needed for walking detours. Showing straight-line distance and bearing."
-                          : "Walking routes unavailable. Showing saved places by straight-line distance and bearing.",
-                          systemImage: "wifi.exclamationmark")
+                    Label { Text(verbatim: model.routeUnavailableDescription) }
+                    icon: { Image(systemName: "wifi.exclamationmark") }
                 }
             }
             if model.results.isEmpty {
@@ -524,7 +527,7 @@ struct ContentView: View {
         case .notDetermined:
             VStack(alignment: .leading, spacing: 12) {
                 Text("Use your location to rank nearby permitted places by straight-line distance.")
-                Button("Use My Location") { model.refresh() }
+                Button("Use My Location") { model.refreshDeviceLocation() }
                     .buttonStyle(.borderedProminent)
             }
         case .locating:
@@ -552,7 +555,7 @@ struct ContentView: View {
         case .unavailable:
             VStack(alignment: .leading, spacing: 12) {
                 locationMessage("Location could not be determined. Try again.")
-                Button("Try Again") { model.refresh() }
+                Button("Try Again") { model.refreshDeviceLocation() }
                     .buttonStyle(.bordered)
             }
         case .usable(let location):
@@ -561,8 +564,10 @@ struct ContentView: View {
                     Text(location.isLastKnown ? "Last device location" : "Device location")
                         .font(.subheadline.weight(.semibold))
                     if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                    Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
-                        .buttonStyle(.bordered)
+                    if model.destination == nil {
+                        Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
+                            .buttonStyle(.bordered)
+                    }
                 }
                 Text("Updated \(location.timestamp.formatted(date: .abbreviated, time: .shortened)) · about \(Int(location.horizontalAccuracyMeters.rounded())) m accuracy")
                     .font(.footnote)

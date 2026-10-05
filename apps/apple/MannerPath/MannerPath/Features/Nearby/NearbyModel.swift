@@ -77,6 +77,11 @@ final class NearbyModel {
     private(set) var resultsArea: NearbyArea?
     var resultsLocation: DeviceLocation? { resultsArea?.deviceLocation }
     var browsingCoordinate: SpotCoordinate? { destination?.coordinate ?? displayLocation?.coordinate }
+    var routeUnavailableDescription: String {
+        displayLocation == nil || displayLocation?.isLastKnown == true
+            ? String(localized: "A current location is needed for walking detours. Showing straight-line distance and bearing.")
+            : String(localized: "Walking routes unavailable. Showing saved places by straight-line distance and bearing.")
+    }
     private(set) var sources: [SpotSource] = []
     private var lastUsableLocation: DeviceLocation?
 
@@ -203,6 +208,10 @@ final class NearbyModel {
 
     func refresh() {
         if let destination { load(for: .destination(destination)) }
+        else { refreshDeviceLocation() }
+    }
+
+    func refreshDeviceLocation() {
         location.refresh()
     }
 
@@ -414,6 +423,7 @@ final class NearbyModel {
         guard let destination, let origin = displayLocation?.coordinate,
               resultsArea?.coordinate == destination.coordinate,
               displayLocation?.isLastKnown == false,
+              RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination.coordinate),
               let walkingRouter, !results.isEmpty else { return }
         let currentGeneration = routeGeneration
         let candidates = RouteDetourRanker.candidates(results, from: origin, to: destination.coordinate)

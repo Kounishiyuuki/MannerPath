@@ -48,12 +48,12 @@ class MannerPathUITestCase: XCTestCase {
     }
 
     // Scrolls the frontmost scroll view until the element is hittable.
-    func scrollTo(_ element: XCUIElement, maxSwipes: Int = 60, file: StaticString = #filePath, line: UInt = #line) {
+    func scrollTo(_ element: XCUIElement, upwards: Bool = false, maxSwipes: Int = 60, file: StaticString = #filePath, line: UInt = #line) {
         var swipes = 0
         while !(element.exists && element.isHittable) && swipes < maxSwipes {
             // Drag along the left margin: a swipe from the screen centre can land on a map and pan it.
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.75))
-            start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.35)))
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: upwards ? 0.35 : 0.75))
+            start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: upwards ? 0.75 : 0.35)))
             swipes += 1
         }
         if !(element.exists && element.isHittable) {
@@ -588,6 +588,11 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         scrollTo(match)
         match.tap()
         XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40), "Destination tiles produced no published places")
+        let refresh = app.buttons["refreshDestination"]
+        scrollTo(refresh, upwards: true)
+        refresh.tap()
+        XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
+        XCTAssertTrue(resultRows.firstMatch.exists)
         XCTAssertTrue(app.descendants(matching: .any)["nearbyMap"].exists)
         screenshot("80-production-destination")
         let first = resultRows.firstMatch
@@ -595,6 +600,8 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         first.tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
         XCTAssertTrue(text("距離と方角は選択した目的地を基準にした目安です。端末の現在地からの距離や徒歩ルートではありません。").exists)
+        XCTAssertTrue(text("徒歩ルートを利用できません。上の直線距離と方角は引き続き確認できます。").exists ||
+                      text("徒歩ルートの確認には現在地が必要です。直線距離の目安は引き続き確認できます。").exists)
         let attribution = app.buttons["情報源と法的な出典表示"]
         scrollTo(attribution)
         attribution.tap()
@@ -610,5 +617,28 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         clear.tap()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30))
         XCTAssertEqual(resultRows.count, 0, "Destination places must not remain in the device-area list")
+    }
+}
+
+final class K_DeniedProductionDestinationUITests: MannerPathUITestCase {
+    func testDeniedDestinationCanRefreshWithoutLocationPermission() {
+        launch()
+        XCTAssertTrue(textContaining("位置情報の利用がオフです").waitForExistence(timeout: 15))
+        let search = app.textFields["Appleマップで目的地を検索"]
+        scrollTo(search)
+        search.tap()
+        search.typeText("浅草駅 東京\n")
+        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        XCTAssertTrue(match.waitForExistence(timeout: 40))
+        scrollTo(match)
+        match.tap()
+        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40))
+        let refresh = app.buttons["refreshDestination"]
+        scrollTo(refresh, upwards: true)
+        refresh.tap()
+        XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
+        XCTAssertTrue(resultRows.firstMatch.exists)
+        XCTAssertTrue(textContaining("位置情報の利用がオフです").exists)
+        XCTAssertFalse(app.alerts.firstMatch.exists)
     }
 }
