@@ -39,6 +39,11 @@ npm run local:smoke      # read-only smoke checks against http://127.0.0.1:8787
 npm run local:export     # validate local state and build the promotion bundle (local D1 only)
 ```
 
+Production REPORTS_DB 0003 parser-failure recovery uses the narrowly scoped
+[`reports:migration` import/verify workflow](REPORTS_MIGRATION_RECOVERY.md). It preserves existing
+migration bytes and requires separate interactive production authorization; ordinary migrations
+and canonical promotion remain separate. Production launch is STOPPED pending that review and recovery.
+
 `local:smoke` verifies `/v1/config`, a tile `200`, the `ETag`/`304` pair, the `tileNotPublished`
 `404`, spot detail, attribution and how the report endpoint is configured. It targets loopback
 unless both `--base-url` and `--remote` are given, and it never submits a valid report.
