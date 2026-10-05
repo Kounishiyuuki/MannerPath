@@ -6,6 +6,23 @@ import Testing
 struct MannerPathWatch_Watch_AppTests {
     private let now = Date(timeIntervalSince1970: 1_700_000_000)
 
+    @Test func sourceRightsPreserveAttributionAndLicenseAccessWithSafeFallback() throws {
+        let text = "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+        let urls: [String?] = ["https://creativecommons.org/licenses/by/4.0/legalcode.ja", nil, "javascript:alert(1)", "https://"]
+        for rawURL in urls {
+            let source = WatchSource(id: "source", displayName: "台東区", licenseName: "CC BY 4.0",
+                licenseURL: rawURL, attributionText: text)
+            let payload = WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: now, snapshotID: UUID(),
+                spots: [spot("place")], sources: [source])
+            let decoded = try WatchCodec.snapshot(WatchCodec.encode(payload))
+            #expect(decoded.sources[0].attributionText == text)
+            #expect(decoded.sources[0].licenseURL == rawURL)
+            #expect((SourceAttributionPresentation.licenseURL(rawURL) != nil) == (rawURL?.hasPrefix("https://creativecommons.org/") == true))
+        }
+        #expect(!SourceAttributionPresentation.modificationNotice.isEmpty)
+        #expect(!text.contains(SourceAttributionPresentation.modificationNotice))
+    }
+
     private func spot(_ id: String, longitude: Double = 0, type: String = "ashtray",
                       access: String = "public", paper: String = "yes",
                       verified: Date? = nil) -> WatchSpot {

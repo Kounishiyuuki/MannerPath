@@ -43,7 +43,7 @@ Status legend:
 | SKU | any stable internal string, e.g. `mannerpath-ios-1` (never shown to users) | MAINTAINER |
 | Primary category | Navigation | CONFIRMED |
 | Secondary category | Utilities | CONFIRMED |
-| Content Rights | “Yes, contains third-party content”; necessary-rights declaration only after [production corpus audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md) gates: municipal open data and Apple Maps (§5) | CONFIRMED live corpus/licenses/API attribution (513 / 6 / community 0); Taito modification-notice P1 / Watch license-access gap unresolved; signed-build/assets and MAINTAINER legal signoff pending |
+| Content Rights | “Yes, contains third-party content”; necessary-rights declaration only after [production corpus audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md) gates: municipal open data and Apple Maps (§5) | CONFIRMED live corpus/licenses/API attribution (513 / 6 / community 0); Taito app-side notice / Watch license Link IMPLEMENTED; signed iPhone/Watch visual/link verification, assets and MAINTAINER legal signoff pending |
 | Age Rating | questionnaire answers in §4 below | CONFIRMED answers; result calculated by Apple |
 | License agreement | Apple standard EULA | CONFIRMED |
 
@@ -168,7 +168,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
   actual purposes/partner tracking, policy/manifests and the signed archive before publishing. The per-type
   over-disclosure risks and evidence needed to narrow each choice are in submission §2.2; no proposed
   Precise Location/Device ID collection is asserted as an observed fact.
-- ~~Content Rights final production corpus identity/license/API evidence~~ confirmed by [rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md). Taito modification-notice P1, Watch license-access gap, final signed-build/asset checks and MAINTAINER legal signoff remain; do not enter the necessary-rights declaration yet.
+- ~~Content Rights final production corpus identity/license/API evidence~~ confirmed by [rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md). Taito app-side notice and Watch license Link implemented; final signed iPhone/Watch visual/link/asset checks and MAINTAINER legal signoff remain; do not enter the necessary-rights declaration yet.
 - Store screenshots with production data (§6).
 
 **BLOCKED-DEVELOPER-PROGRAM** (membership, signing, devices; exact steps in [APPLE_DISTRIBUTION_READINESS.md](APPLE_DISTRIBUTION_READINESS.md) §4):

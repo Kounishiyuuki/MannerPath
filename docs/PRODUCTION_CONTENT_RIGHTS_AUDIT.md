@@ -2,8 +2,10 @@
 
 Audited 2026-10-05 against main `0acbc7188fb314a1fa8698a748124dc20d4bb895`.
 This is repository/public-license release evidence, **not legal advice, maintainer legal signoff,
-or authorization to submit in App Store Connect (ASC)**. No production mutation, source addition,
-community activation, OSM adoption, code change or artifact regeneration was performed.
+or authorization to submit in App Store Connect (ASC)**. The initial audit performed no production mutation,
+source addition, community activation, OSM adoption, code change or artifact regeneration.
+The Apple-side follow-up below implements separate processing notices and Watch license links only;
+it does not change the production corpus, API metadata, registry or promotion artifacts.
 
 ## 1. Decision and remaining gate
 
@@ -14,12 +16,13 @@ requires rights/permission in every selected App Store country/region. Do not se
 
 **CONFIRMED: the live municipal corpus is the reviewed 513 spots / six approved sources / community 0.**
 Source-specific reuse permissions, release fingerprints and API attribution agree with the reviewed registry.
-Five sources carry explicit extraction/normalization/change notices. **Overall rights-condition completion
-is not CONFIRMED: Taito's recipient-facing modification indication is unresolved (§5).**
-This is a conservative submission evidence blocker, not an assertion that the publisher's license is absent
-or that a legal violation has been established. It cannot be closed by this audit's maintainer signoff alone.
+Five sources carry explicit extraction/normalization/change notices in API metadata. Taito's separate
+app-side modification indication and Watch license access are now **IMPLEMENTED**, not signed-release
+verified (§4/§5). **Overall rights-condition completion is not CONFIRMED:** final recipient-facing checks
+and maintainer legal signoff remain. This is not an assertion that the publisher's license is absent
+or that a legal violation has been established.
 
-After that issue is resolved, the operator still must approve the rights declaration for actual storefronts,
+Even with these UI remedies implemented, the operator still must approve the rights declaration for actual storefronts,
 the final signed iPhone/Watch attribution surfaces, MapKit presentation, shipped assets/screenshots and
 downstream terms/technical restrictions. None of those approvals is recorded as complete here.
 
@@ -85,7 +88,7 @@ Neither license grants third-party trademark/personality rights or government en
 
 | Source | Source-specific conditions / additional app or database considerations | Release inclusion basis / unresolved point |
 | --- | --- | --- |
-| Taito | Preserve four prescribed elements, original CSV URL, no-warranty sentence and license link. Ward asks new products/services to contact its information policy department; record maintainer handling, not prior permission inferred. General CC change condition is separate from four-element example | Pinned licensed CSV; 34 raw rows, 32 public after conservative holds. Four elements match; change indication unresolved (§5) |
+| Taito | Preserve four prescribed elements, original CSV URL, no-warranty sentence and license link. Ward asks new products/services to contact its information policy department; record maintainer handling, not prior permission inferred. General CC change condition is separate from four-element example | Pinned licensed CSV; 34 raw rows, 32 public after conservative holds. Four elements match; separate app-side change indication implemented, final signed presentation still required (§5) |
 | Osaka | Author, supplied title, dataset/raw/license URLs, disclaimer, derived-use credit. Do not replace resource-specific 2.1 JP with generic site 4.0. No conflicting downstream restrictions/technical protection | Only 344 designated-smoking rows; information-provided venues/recycling not public; explicit extraction/normalization credit |
 | Koto | Tokyo modified-database credit example, title, Tokyo/ward credit, license/raw URL, changes/disclaimer. Terms exclude unrelated site imagery/logos and prohibit public-order/security misuse; no special smoking-app license found | Only three station points; park resource blocked despite same package license; modified-database notice included |
 | Kyoto | Per-resource license; retain copyright holder and edition, credit 京都市オープンデータ, changes/disclaimer. Unlicensed site design, logos, photos not covered. Portal showcase contact is for optional listing, not an app-use permission prerequisite | Category 138 scoped to 17 reviewed points; two conflicting 西大路 rows withheld; ordinary current-operation HTML not copied |
@@ -143,10 +146,15 @@ Repository UI path checked without code edits: `TileSpotMapper` preserves licens
 `SpotDetailView` uses detail `verification.sources` (nearby sources as fallback), then
 `NearbyAttributionView` displays the full attribution, license name and HTTP(S) license link.
 The cached sources/about route uses the same view. `WatchSnapshot`/`PhoneWatchSync` preserve the strings;
-Watch `ContentView` renders source, license name and attribution as text, **not a license hyperlink**.
-The URL survives in the snapshot but is not separately displayed there; Taito's attribution itself has
-no license URI. Adequate Watch access to the license via the companion iPhone must be documented or
-fixed in separately approved work before declaring §3(a)(1)(C)/§3(a)(2) coverage complete.
+At the initial audit, Watch `ContentView` rendered source, license name and attribution as text,
+not a license hyperlink; the URL survived only in the snapshot. The Apple-side follow-up adds a
+SwiftUI `Link` in the Watch Source section for a valid absolute HTTP(S) `licenseURL`, using shared
+`SourceAttributionPresentation.licenseURL` validation. Missing, relative, unsupported-scheme, hostless,
+credential-bearing or whitespace-containing URLs produce no active link; attribution/license text is
+retained, and a nonempty invalid URL remains plain text. The iPhone license link uses the same validator.
+The default system URL-opening behavior is retained; this does not promise offline web access or an
+embedded Watch browser. Final signed Watch/paired-iPhone link opening and return navigation still require
+verification before declaring §3(a)(1)(C)/§3(a)(2) coverage complete.
 Existing #186 Release simulator
 evidence confirms production detail/attribution connectivity, not new visual proof for each of these six spots.
 **No six-source signed-archive/iPhone/Watch visual or license-link interaction test was run in this audit.**
@@ -154,7 +162,7 @@ Maintainer must confirm full, untruncated/readable notices and usable source/lic
 source URLs in attribution text are not asserted to be individually tappable links by this code inspection.
 MapKit's own displayed credit must remain intact; municipal licenses do not license Apple map imagery.
 
-## 5. Unresolved Taito modification indication (P1)
+## 5. Taito modification indication — app-side implementation
 
 [CC BY 4.0 §3(a)(1)(B)](https://creativecommons.org/licenses/by/4.0/legalcode.ja) requires indicating
 modifications; §3(a)(2) allows a reasonable contextual presentation. §2(a)(4) distinguishes necessary
@@ -164,17 +172,36 @@ classification or copyrightability of individual municipal facts.
 Observed engineering evidence: `services/api/src/pipeline/taito.ts` extracts/normalizes source values;
 `taitoAttenuations` conservatively weakens hours/lifecycle/publication using the reviewed conflict reference.
 The prescribed four-element attribution is retained exactly but does **not** identify MannerPath's changes.
-The iPhone/Watch source views add no separate modification notice; uncertainty labels and internal
-provenance do not demonstrate that recipient-facing condition. Independent reviewer inspection agreed.
+At the initial audit the iPhone/Watch source views added no separate modification notice; uncertainty
+labels and internal provenance did not demonstrate that recipient-facing condition.
 
 Consequently the earlier four-element wording approval (#22) and today's exact metadata match are
 **not** treated as a complete CC change-notice determination. Before declaring all rights conditions met,
-either document a qualified rights determination that the existing presentation satisfies the requirement,
-or approve a focused separate notice identifying extraction/normalization/conservative hours handling,
-preserving the prescribed wording and verifying its recipient-facing coverage. A future implementation
-and any deployment/artifact update need their own approved scope; this audit makes none.
-The separate Watch license-access gap in §4 also requires a documented contextual sufficiency
-determination or a reviewed UI remedy; merely storing the URL in `WatchSnapshot` does not display it.
+verify the separate app-side notice and license access in the submitted build, then obtain the maintainer's
+rights determination. **Taito modification indication = IMPLEMENTED; Watch license access = IMPLEMENTED;
+final signed iPhone/Watch visual/link verification = STILL REQUIRED; maintainer legal/rights signoff = STILL REQUIRED.**
+
+`SourceAttributionPresentation.modificationNotice` is a shared, localized app-side notice, shown in the
+iPhone Sources screen's separate **MannerPath processing** section (detail and cached/About entry paths)
+and in Watch detail's **Source** section. It describes the app's processing across sources, not a claim
+added to a publisher's notice, and has no source-ID condition or DTO/schema change:
+
+> MannerPath extracts and normalizes smoking-place data from the original sources. Some access conditions and opening hours may be treated conservatively; unknown conditions are not confirmation.
+
+> MannerPathは元データから喫煙場所の情報を抽出・正規化しています。一部の利用条件や営業時間等を保守的に扱う場合があります。不明な条件は、利用可能であることの確認を意味しません。
+
+The exact four-element `TAITO_ATTRIBUTION_TEXT` above is not appended to, replaced or rewritten.
+Phone-to-Watch encoding preserves the original attribution bytes and `licenseURL`; neither the notice
+nor URL validation edits the source metadata. Both notices remain available with cached sources offline.
+Local tests cover exact Taito text/transfer, URL preservation and valid/nil/invalid link eligibility;
+recipient-facing UI coverage is distinct from final signed-device readability, system link opening and
+legal sufficiency. No backend, production data or promotion artifact change is part of this follow-up.
+Simulator follow-up evidence: a Release iPhone test using the unchanged production API displays the
+Japanese processing notice, exact Taito prescribed text and reachable license Link; Watch Debug UI tests
+display the English notice/reachable Link and retain source text with nil/invalid URLs. These use the
+existing simulator test harness, not a new production fixture path. Link page loading on a signed paired
+Watch/iPhone and six-source signed visual checks are still unverified; do not substitute these simulator
+checks for them. The adopted bundle/plan still verify against the exact digests in §2.
 
 ## 6. Excluded sources and final owner checklist
 
@@ -193,11 +220,12 @@ Submission handoff:
 
 - [x] Actual 513/six-source corpus and exact reviewed releases confirmed, license metadata and six representative API notices matched.
 - [x] Commercial reuse/derivation/redistribution permission basis documented; OSM/community/blocked source contamination absent.
-- [ ] Resolve Taito P1 change-indication evidence gate (§5); do not merely sign it away.
-- [ ] Resolve Watch license-access evidence gap (§4), then verify all six notices/license access in final signed iPhone/Watch surfaces and offline cache; preserve MapKit credit.
+- [x] Implement a separate recipient-facing Taito processing notice without changing prescribed attribution (§5); implementation only, not legal sufficiency approval.
+- [x] Implement Watch Source license access for valid HTTP(S) URLs with safe fallback (§4); implementation only, not final signed link-opening verification.
+- [ ] Verify all six notices/license access in final signed iPhone/Watch surfaces and offline cache, including notice readability, Watch/paired-iPhone system opening and return navigation; preserve MapKit credit.
 - [ ] Maintainer confirms shipped icon/screenshots/assets, storefront rights and downstream EULA/technical restrictions do not contradict source licenses; handle ward contact request.
 - [ ] Maintainer records final legal/rights signoff and only then enters ASC's necessary-rights declaration.
 
-No license-unavailable municipal source was found. **Not yet “maintainer signoff only”:** the Taito notice
-gate and Watch license-access gap remain, plus final-build/asset checks. This result does not reopen OSM or community legal work as a v1
+No license-unavailable municipal source was found. **Not yet “maintainer signoff only”:** the two UI
+remedies are implemented, but final signed-build notice/link/asset checks remain. This result does not reopen OSM or community legal work as a v1
 corpus prerequisite, and authorizes neither production changes nor ASC submission.

@@ -301,7 +301,7 @@ rights or permission for the selected storefronts **only after verifying the fin
 The [2026-10-05 production Content Rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md) confirms
 513 published spots / six reviewed municipal sources / community 0 and exact release/license/API
 attribution matches. **Overall rights-condition completion is not approved:** Taito's recipient-facing
-modification indication remains a P1 evidence blocker, and Watch license access is unresolved; final signed-build/asset checks and maintainer
+modification indication and Watch license access are implemented in Apple UI, without changing API/source metadata; final signed iPhone/Watch notice/link verification, asset checks and maintainer
 legal/storefront/downstream-terms signoff are still required. This is not a legal violation finding.
 Do not answer “no third-party content”: official municipal data and Apple maps are third-party content.
 Apple's required rights standard: [App information / Content Rights](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/).
@@ -309,7 +309,7 @@ Apple's required rights standard: [App information / Content Rights](https://dev
 | Content | Current repository status / release evidence needed |
 | --- | --- |
 | Official sources | CONFIRMED live exact six-source release SHA/license matches in [rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md); commercial sharing/derivation basis documented, with scoped exclusions retained |
-| Attribution | Six representative live API notices match registry/bundle; repository UI path preserves them. Taito change indication / Watch license access unresolved; final signed iPhone/Watch visual/link checks and Apple MapKit attribution still required |
+| Attribution | Six representative live API notices match registry/bundle; repository UI preserves them. Separate Taito processing notice and Watch HTTP(S) license Link implemented; final signed iPhone/Watch visual/link checks, offline notice access and Apple MapKit attribution still required |
 | User reports | `COMMUNITY_PUBLICATION` pending: source blocked; raw notes, hashes, keys and photos never public. No community rights assertion in first-v1 packet |
 | Candidate community terms | [Decision packet](legal/COMMUNITY_PUBLICATION_DECISION.md) is awaiting maintainer approval; not an effective production license |
 | OpenPOI / Overture candidates | Not introduced for this release; no new investigation or rights claim here |

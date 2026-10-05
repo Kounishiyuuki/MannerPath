@@ -2,6 +2,36 @@ import Foundation
 import XCTest
 
 final class MannerPathWatch_Watch_AppUITests: XCTestCase {
+    @MainActor
+    func testSourceRightsNoticeAndLicenseLinkAreAccessible() throws {
+        let app = try launch(licenseURL: "https://creativecommons.org/licenses/by/4.0/")
+        XCTAssertTrue(app.buttons["watch-spot-first"].waitForExistence(timeout: 5))
+        app.buttons["watch-spot-first"].tap()
+        let notice = app.staticTexts["sourceModificationNotice"]
+        scrollUntilHittable(notice, in: app)
+        XCTAssertTrue(notice.label.contains("extracts and normalizes"))
+        attach(app, named: "watch-source-modification-notice")
+        let link = app.descendants(matching: .any)["sourceLicenseLink"].firstMatch
+        scrollUntilHittable(link, in: app)
+        XCTAssertTrue(link.isEnabled)
+        XCTAssertTrue(link.label.contains("Open license information"))
+        XCTAssertTrue(app.staticTexts["Fixture attribution"].exists)
+        attach(app, named: "watch-source-license-link")
+    }
+
+    @MainActor
+    func testSourceWithoutValidLicenseURLRetainsAttributionWithoutLink() throws {
+        let urls: [String?] = [nil, "javascript:alert(1)"]
+        for rawURL in urls {
+            let app = try launch(licenseURL: rawURL)
+            XCTAssertTrue(app.buttons["watch-spot-first"].waitForExistence(timeout: 5))
+            app.buttons["watch-spot-first"].tap()
+            scrollUntilHittable(app.staticTexts["Fixture attribution"], in: app)
+            XCTAssertFalse(app.descendants(matching: .any)["sourceLicenseLink"].firstMatch.exists)
+            XCTAssertTrue(app.staticTexts["CC BY"].exists)
+            app.terminate()
+        }
+    }
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
@@ -59,7 +89,10 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         attach(app, named: "watch-detail-directions")
 
         scrollUntilHittable(app.staticTexts["Fixture publisher"], in: app)
-        XCTAssertTrue(app.staticTexts["Source"].exists)
+        let sourceHeader = app.staticTexts["Source"]
+        scrollUntilHittable(sourceHeader, in: app, direction: .down, fineScroll: true)
+        XCTAssertTrue(sourceHeader.isHittable)
+        scrollUntilHittable(app.staticTexts["Fixture publisher"], in: app)
         attach(app, named: "watch-detail-source")
     }
 
@@ -129,7 +162,7 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
 
     @MainActor
     private func launch(scenario: String = "snapshot", eligible: Bool = true, stale: Bool = false,
-                        location: String = "none", language: String = "en") throws -> XCUIApplication {
+                        location: String = "none", language: String = "en", licenseURL: String? = nil) throws -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--mannerpath-watch-ui-test", "-AppleLanguages", "(\(language))",
                                "-AppleLocale", language == "ja" ? "ja_JP" : "en_US"]
@@ -137,13 +170,13 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         app.launchEnvironment["MANNERPATH_WATCH_UI_TEST_ELIGIBLE"] = eligible ? "yes" : "no"
         app.launchEnvironment["MANNERPATH_WATCH_UI_TEST_LOCATION"] = location
         if scenario == "snapshot" {
-            app.launchEnvironment["MANNERPATH_WATCH_UI_TEST_SNAPSHOT"] = try fixture(stale: stale)
+            app.launchEnvironment["MANNERPATH_WATCH_UI_TEST_SNAPSHOT"] = try fixture(stale: stale, licenseURL: licenseURL)
         }
         app.launch()
         return app
     }
 
-    private func fixture(stale: Bool) throws -> String {
+    private func fixture(stale: Bool, licenseURL: String? = nil) throws -> String {
         let now = Date().timeIntervalSince1970
         func spot(_ id: String, _ name: String, _ longitude: Double, _ type: String,
                   _ paper: String) -> [String: Any] {
@@ -153,6 +186,9 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
              "evidenceQuality": "officialListing", "evidenceQualityVersion": "evidence-quality.v1",
              "lastVerifiedAt": now - 86_400, "sourceIDs": ["fixture"]]
         }
+        var source: [String: Any] = ["id": "fixture", "displayName": "Fixture publisher",
+            "licenseName": "CC BY", "attributionText": "Fixture attribution"]
+        if let licenseURL { source["licenseURL"] = licenseURL }
         let payload: [String: Any] = [
             "schemaVersion": 1, "revision": 1, "generatedAt": now - (stale ? 7_200 : 0),
             "snapshotID": UUID().uuidString,
@@ -160,8 +196,7 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
                       spot("second", "Beni Outdoor Area", 0.002, "designatedOutdoorArea", "unknown"),
                       spot("third", "Cobalt Room", 0.003, "publicSmokingRoom", "no"),
                       spot("fourth", "Fourth Place", 0.004, "ashtray", "unknown")],
-            "sources": [["id": "fixture", "displayName": "Fixture publisher",
-                         "licenseName": "CC BY", "attributionText": "Fixture attribution"]]
+            "sources": [source]
         ]
         return try JSONSerialization.data(withJSONObject: payload).base64EncodedString()
     }
@@ -170,13 +205,17 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
 
     @MainActor
     private func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication,
-                                    direction: ScrollDirection = .up) {
+                                    direction: ScrollDirection = .up, fineScroll: Bool = false) {
         for _ in 0..<20 where !element.isHittable {
             let start = app.coordinate(withNormalizedOffset:
                 CGVector(dx: 0.5, dy: direction == .up ? 0.78 : 0.42))
             let end = app.coordinate(withNormalizedOffset:
-                CGVector(dx: 0.5, dy: direction == .up ? 0.55 : 0.65))
-            start.press(forDuration: 0.01, thenDragTo: end)
+                CGVector(dx: 0.5, dy: direction == .up ? (fineScroll ? 0.70 : 0.55) : (fineScroll ? 0.50 : 0.65)))
+            if fineScroll {
+                start.press(forDuration: 0.01, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+            } else {
+                start.press(forDuration: 0.01, thenDragTo: end)
+            }
         }
         if !element.isHittable {
             attach(app, named: "unreachable-\(element.identifier)")
