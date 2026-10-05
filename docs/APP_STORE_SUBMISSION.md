@@ -64,29 +64,66 @@ and system Maps can communicate with Apple; never promise that no location ever 
 Confirm the release's framework/provider behavior against Apple's privacy guidance, rather than classifying
 system Maps handoff as MannerPath retaining GPS.
 
-### 2.2 Initial v1: recommended answers, subject to production verification
+### 2.2 V1 final ASC answer proposal — conservative disclosure
 
-“—” means linkage/purpose questions are not presented for an uncollected type, not proof of anonymization.
-All rows are **NOT TRACKING**. No advertising, marketing or analytics purpose is recommended.
+Decision draft prepared after #185 on main `7203af2b23909544189b7f1bf5762af9f37b2c18`.
+This is the recommended input proposal, **not a legal determination, observed collection finding or
+authorization to publish/submit**. It supersedes earlier conditional input recommendations, not the
+audit's factual UNKNOWNs. No new provider evidence, production changes or ASC input occurred in this lane.
 
-| Data / ASC category | COLLECTED / NOT COLLECTED | LINKED / NOT LINKED | PURPOSE / evidence |
-| --- | --- | --- | --- |
-| Device GPS / Precise Location | NOT COLLECTED by MannerPath backend | — | On-device ranking/distance/bearing; `Core/Location/DeviceLocationService.swift`, `Core/Networking/TileAPIClient.swift` |
-| Tile request location / Coarse Location | Conditional; CONSERVATIVE ANSWER: COLLECTED until log audit closes | CONSERVATIVE ANSWER: LINKED if retained with IP or correlatable request identifiers; NOT LINKED only with demonstrated pre-collection de-identification | App Functionality: tile downloads/security; see §2.3 |
-| User-selected report pin | NOT COLLECTED while report intake unavailable | — | No submitted report; local drafts do not count |
-| Notes / structured report claims / Other User Content | NOT COLLECTED while report intake unavailable | — | Local drafts only |
-| Photos or Videos | NOT COLLECTED | — | `photoEvidenceEnabled:false`; no evidence upload |
-| Random install UUID / submitter hash / Device ID | NOT COLLECTED while report/auth intake unavailable | — | Local UUID may exist; no browsing transmission |
-| App Attest key ID / Device ID; attestation/assertions | NOT COLLECTED only if registration/challenge/assertion flows unavailable too | — | Confirm no registration occurs merely by browsing |
-| Diagnostics / Other Diagnostic Data, Performance Data | NOT COLLECTED by app instrumentation; conditional on backend/provider retained technical logs | If collected with IP/key: CONSERVATIVE ANSWER LINKED | App Functionality if retained for security/reliability; audit actual payloads |
-| Analytics / Product Interaction, Other Usage Data | NOT COLLECTED by app analytics; conditional on provider use of request logs | If implemented, reassess linkage | No analytics SDK; if logs are used to measure behavior, add Analytics and actual Usage Data categories |
-| Crash Data | NOT COLLECTED by app | — | No crash SDK/MetricKit upload; Apple system-provided diagnostics are not an app-integrated collection pipeline |
-| Name, email, contacts, account, payment data | NOT COLLECTED by these app flows | — | No account/payment/contact access; separately assess support workflow if an in-app form is added |
+Apple's current [definitions](https://developer.apple.com/app-store/app-privacy-details/) and
+[ASC entry instructions](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/)
+were rechecked 2026-10-05. Collection concerns access after real-time servicing, not on-device use alone.
+Identifier-linked data is not anonymous merely because no account exists. Location precision and IP
+classification depend on the information/use, not the absence of raw GPS. Support's optional-disclosure
+exception requires all criteria; this proposal does not assume that exception applies.
 
-**ASC top-level answer:** “No, we do not collect data” only after proving no retained label data across the
-release and providers. Otherwise choose “Yes” and enter the audited types above. The conservative fallback is
-**Coarse Location, linked, App Functionality, not tracking**, plus any additional categories actually retained;
-it is not permission to ignore diagnostics or identifiers present in logs.
+**Top-level ASC answer: Yes, we collect data from this app. Do not choose Data Not Collected.**
+Use the exact category names below. COLLECTED rows mean select that checkbox; NOT COLLECTED means
+leave it unselected. “—” means ASC does not ask linkage/purpose for an unselected category, not NOT LINKED.
+LINKED is the conservative selection because pre-collection de-identification has not been established.
+
+| Data type / exact ASC selection | Collected / Not Collected | Linked / Not Linked | Tracking | Purpose to select | Evidence for v1 | Why this is the conservative proposal |
+| --- | --- | --- | --- | --- | --- | --- |
+| Precise Location → **Precise Location** | **COLLECTED (conservative)** | **LINKED** | **No** | **App Functionality** | Raw device GPS is not sent to MannerPath; tile IDs are. Provider field/retention and geographic reconstruction precision remain unresolved (§2.3) | Include the higher-precision category while resolution/use cannot be excluded. This does not claim GPS upload or that every tile/IP is precise; narrow only after evidence |
+| Coarse Location → **Coarse Location** | **COLLECTED (conservative)** | **LINKED** | **No** | **App Functionality** | Geographic tile requests reach backend; invocation logs off, remaining provider copies unresolved | Preserve #178/#185's location fallback; no proof of non-retention or de-identification |
+| Identifiers → **Device ID** | **COLLECTED (conservative)** | **LINKED** | **No** | **App Functionality** | Reports/App Attest inactive, current key counts 0; provider IP/UA/identifier handling unverified | Cover possible persistent device correlation for security. A request ID or IP alone is not automatically a device ID; inclusion is a precaution, not a new finding |
+| User Content → **Customer Support** | **COLLECTED (support-inclusive)** | **LINKED** | **No** | **App Functionality** | Public policy says Gmail receives sender/content for support; report notes/claims cannot be submitted in v1 | Include optional support instead of assuming an exemption or extending report inactivity to all content. **Other User Content** report-only notes/claims remain unselected while inactive |
+| Diagnostics → **Other Diagnostic Data** | **COLLECTED (conservative)** | **LINKED** | **No** | **App Functionality** | No app telemetry SDK; Worker console persistence on, exceptions possible; retained fields/plan unknown | Cover service reliability/security diagnostics rather than asserting disabled invocation logs eliminate them. Performance Data is not selected solely from this possibility; add it if retained performance information is established |
+| Usage Data → **Product Interaction** | **COLLECTED (conservative)** | **LINKED** | **No** | **App Functionality + Analytics (conservative)** | Requests reflect use of geographic data; no app analytics SDK, but provider use/exports inaccessible | Include potentially retained interaction records and possible behavior/usage measurement. Analytics is a proposed inclusive purpose, not proof an analytics SDK or behavioral analysis exists |
+| User Content → **Photos or Videos** | **NOT COLLECTED for reviewed shipping flows; condition P below** | **—** | **No use for tracking** | **—** | Config photos false, no shipping uploader/store, current photo counts 0 | Do not declare dormant evidence features active. Signed archive/support attachments must satisfy P; otherwise use the explicit COLLECTED fallback |
+| Diagnostics → **Crash Data** | **NOT COLLECTED for reviewed app instrumentation; condition C below** | **—** | **No use for tracking** | **—** | No crash SDK/MetricKit upload in reviewed app; Apple system diagnostics separate; Worker errors do not establish iOS crash uploads | Preserve the evidence-scoped conclusion, not a blanket provider claim. If C cannot be met, use the explicit COLLECTED fallback |
+| Contact Info → **Email Address** (additional support checkbox) | **COLLECTED (support-inclusive)** | **LINKED** | **No** | **App Functionality** | Published Gmail contact processes sender address/content | Customer Support does not replace the Email Address category; do not omit it because browsing has no account |
+
+**Operational checklist for this proposal:** select Precise Location, Coarse Location, Device ID,
+Customer Support, Other Diagnostic Data, Product Interaction and Email Address. For each selected type,
+choose linked, not used for tracking, and the purposes above. Do not select report-only Other User Content,
+advertising data, personalization or marketing solely because dormant code exists.
+
+**P (Photos/Videos):** owner verifies the signed iPhone/Watch/widget composition still has no upload and
+the app-associated support workflow does not collect/retain user photo/video attachments. If support
+attachments are retained, or that exclusion cannot be confirmed at entry time, **select Photos or Videos:
+COLLECTED, LINKED, not tracking, App Functionality**. This fallback does not enable photo intake or
+erase the original NOT COLLECTED conclusion for the disabled shipping report flow.
+
+**C (Crash Data):** owner verifies final archive/dependencies have no app crash-upload path and no
+app-associated support/diagnostic workflow retains user crash reports. Apple system-sharing alone is not
+an app-owned uploader; neither is a generic Worker exception. If a crash-report collection workflow exists
+or cannot be excluded at entry time, **select Crash Data: COLLECTED, LINKED, not tracking, App Functionality**.
+Until P/C are confirmed, the safest inclusive checklist is the seven selections above **plus both
+Photos or Videos and Crash Data**; all are linked, App Functionality, with Analytics additionally on
+Product Interaction. This is a concrete fallback, not an UNKNOWN response in ASC.
+
+Tracking **No** is proposed for the reviewed service/security/support-only v1, with no advertising SDK,
+IDFA or cross-company ad/broker use found. Unknown retention does not itself mean tracking. Owner must
+confirm partners do not use the data for advertising measurement/targeting or broker sharing; if they do,
+reassess tracking/ATT and policy before submission rather than blindly ticking No or adding Yes as a workaround.
+Other purposes, including the Analytics fallback, must be reconciled to actual provider use by the owner.
+
+Broad disclosure does **not** cure prohibited identifiable location history, grant permission to collect
+data, settle provider retention, replace policy/manifest review or bypass signed-build/owner signoff.
+Keep UNKNOWN evidence in the audit; accept the conservative proposal explicitly, or narrow it with
+documented evidence. Reconcile the public policy and bundle-owned manifest declarations before publishing.
 
 ### 2.3 Tile path + IP: Location collection?
 
@@ -452,7 +489,9 @@ is implied. Re-run contract/diff checks after final edits; actual command outcom
 
 ## Authenticated privacy audit addendum (2026-10-05; supersedes conditional table where unresolved)
 
-Final classifications from [production audit](PRODUCTION_PRIVACY_AUDIT.md):
+Evidence classifications from [production audit](PRODUCTION_PRIVACY_AUDIT.md), not ASC input choices:
+the final conservative entry proposal in §2.2 supersedes this table for proposed checkbox selections.
+UNKNOWN findings remain evidence gaps; they are not silently converted into observed collection.
 
 | Category | Final recommendation |
 | --- | --- |

@@ -10,6 +10,11 @@ longer than needed to service the request in real time. Data that only stays on 
 
 ## Summary
 
+**ASC decision proposal (2026-10-05, after #185):** use the actionable conservative entry table in
+[submission §2.2](APP_STORE_SUBMISSION.md).
+Its COLLECTED choices are risk-based disclosure proposals, not newly observed collection; the factual
+UNKNOWN findings in the audit remain unchanged. This does not authorize ASC input or submission.
+
 Report/auth/photo rows below describe implemented capabilities, not initial-v1 availability. Initial v1
 requires reports and App Attest registration unavailable, with photos disabled. Postdeployment read-only
 audit (2026-10-05, main `ae3bd0a`) confirms the production Worker/version, distinct D1/R2 bindings,
@@ -79,7 +84,7 @@ GRDB is the only third-party dependency (`Package.resolved`). `NSPrivacyCollecte
 manifests; if the maintainer declares report data as collected in App Store Connect, consider adding matching
 entries to the iPhone manifest so the generated privacy report agrees.
 
-## Final audit classifications (2026-10-05)
+## Evidence classifications and final entry proposal (2026-10-05)
 
 The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls final release recommendations:
 Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product Interaction are
@@ -92,6 +97,24 @@ provider identifiers, support and historical/build evidence. No type is confirme
 personal records. “Data Not Collected” remains unsupported: Logpush, plan and field-key access returned
 403; Analytics Engine inventory returned 404. No absence inference is made from these errors.
 Corrected JA/EN policy dated 2026-10-05 is now verified live; provider/support retention remains manual.
+
+For actual ASC entry, do not stop at UNKNOWN or answer “Data Not Collected”. The proposed checklist is:
+
+- Select Precise Location and Coarse Location, Device ID, Other Diagnostic Data and Product Interaction
+  as **COLLECTED, LINKED** under the conservative assumptions explained in submission §2.2. Raw GPS is
+  still not sent to MannerPath; a retained path/IP is not automatically precise location or a device ID.
+- Select **Customer Support** under User Content, plus **Email Address**: include the published Gmail
+  support workflow rather than claiming disabled report intake excludes all content/contact collection.
+  Do not rely on optional-disclosure eligibility without proving it.
+- Photos/Videos and Crash Data remain **NOT COLLECTED for reviewed shipping flows**, subject to the
+  signed archive and support-channel conditions in §2.2. If those conditions cannot be confirmed, the
+  explicit conservative fallback is COLLECTED, LINKED, App Functionality, not an UNKNOWN entry.
+- Proposed Tracking answer is **No** for service/security/support uses, not proof about inaccessible
+  partner exports. Owner confirms actual purposes/no advertising or broker use before publishing; a
+  broader disclosure cannot repair prohibited location history, missing policy/manifest evidence or ATT.
+
+Each exact ASC checkbox, linkage, tracking, purpose, evidence and conservative rationale is maintained
+once in submission §2.2; the entry sheet points to that same table to avoid divergent answers.
 
 #179 public-site evidence is closed: Release `MannerPathPublicSiteURL` is
 `https://kounishiyuuki.github.io/MannerPath/`; Release navigation to privacy/ and support/ is verified;
