@@ -5,6 +5,12 @@ the processed (`.xcent`) entitlements of a Release build, a Release archive and 
 Local only: no Developer Portal, App Store Connect, Cloudflare or backend operation; no `-allowProvisioningUpdates`
 (it would create profiles). No icon artwork is added.
 
+Docs-only reconciliation on 2026-10-06 against main `cef7f055d0a3cb1b4d1baf223097b8c0e1b24cd9`:
+the historical archive results below are not rerun here. #191/#193 confirm production Release J/K/L,
+Reduce Motion simulator behavior, source processing notice and Watch license Link implementation.
+Icon plumbing is complete; icon images, paid team confirmation, provisioning, signed archive/TestFlight
+and physical-device evidence remain open. No Developer Portal or App Store Connect change is implied.
+
 ## 1. Bundles and signing
 
 | Bundle | Bundle ID | Family | Signing | Team | Entitlements file |

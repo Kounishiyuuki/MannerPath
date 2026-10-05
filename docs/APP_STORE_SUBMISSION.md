@@ -6,7 +6,13 @@ which includes #170 / #171 / #172. Apple rules can change: recheck the linked pa
 This is an engineering recommendation, not legal advice or a guarantee of App Review approval.
 
 **Entry sheet (2026-10-05):** [APP_STORE_CONNECT_ENTRY.md](APP_STORE_CONNECT_ENTRY.md) lists every ASC value as
-CONFIRMED / MAINTAINER / WAITING-PRODUCTION / BLOCKED-DEVELOPER-PROGRAM, in entry order. It found a **P0**: no app icon.
+CONFIRMED / MAINTAINER / WAITING-PRODUCTION / BLOCKED-DEVELOPER-PROGRAM, in entry order. The remaining
+**P0 is App Icon artwork**, not plumbing (iPhone/Watch sets and build settings are ready).
+
+Reconciled 2026-10-06 against main `cef7f055d0a3cb1b4d1baf223097b8c0e1b24cd9`:
+production launch and Release origin, outside-Japan destination browsing (Release J/K/L), Reduce Motion
+simulator checks, iPhone-only + Watch scope, and Content Rights technical fixes are complete (#191/#193).
+This is existing evidence reconciliation, not new Mac/device/provider validation or submission approval.
 
 Scope: App Store Connect inputs and release evidence. No Apple code change, production deployment,
 source research, or community activation. No OpenPOI / Overture additions or OSM adoption.
@@ -491,13 +497,13 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 | iPad keep/remove — **resolved 2026-10-05** | v1 is iPhone + Apple Watch only; iPad audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) |
 | Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
-| First-v1 reports/auth/photos off | Maintainer signs deployment decision and captures §2.4 checks; community stays pending |
-| Production backend / selected data rights | Follow #170 [release checklist](RELEASE_CHECKLIST.md); record HTTPS host, final bundle/source attribution; no source research required |
+| First-v1 reports/auth/photos off | Runtime/config/authorized smoke confirmed by #185; community stays pending. Preserve this configuration; maintainer release decision and signed-build traffic checks remain |
+| Production backend / selected data rights | Launch SUCCESS and live corpus/licenses/API attribution CONFIRMED (513 / 6 / community 0). Taito separate processing notice and Watch license Link IMPLEMENTED (#193). Final signed rights display/link/MapKit/assets/storefront checks and maintainer legal/rights signoff remain; do not repeat launch |
 | Signed distribution archive / physical device evidence | Developer Program, provisioning/App Groups, iPhone/Watch/widget E2E, TestFlight and final privacy report |
 | Age answers / minimum age / storefronts | Maintainer confirms Frequent recommendation, calculated/regional ratings, Japan-first recommendation and eligibility/EULA policy |
 | Export exemption | Maintainer checks final linked code/territories and ASC result; do not substitute “no encryption” |
-| Screenshots and reviewer populated-area access | Actual final UI captures, sizes, tested location/steps and reviewed Notes without markers |
-| Release UI completeness | Claude Code checks lingering “This beta” in `AboutPrivacyView.swift`, complete privacy policy and easy contact access; no UI edits in this lane |
+| Final screenshots / Review Notes | Remote populated-area path confirmed on production Release J/K/L; [entry sheet §5](APP_STORE_CONNECT_ENTRY.md#5-app-review-notes-and-reviewer-steps) has tested draft steps. Final selected screenshots/sizes, signed-build checks and maintainer-approved Notes still required |
+| Final signed UI verification | Release simulator/public policy/contact-link and Reduce Motion evidence complete; signed-device readability, accessibility, Maps/mail/Watch behavior remain. The old “This beta” check is not an open source-code blocker (`AboutPrivacyView.swift` no longer contains it) |
 
 ### Claude Code handoff (separate writer/branch; this lane does not edit code)
 
@@ -534,7 +540,7 @@ Evidence classifications from [production audit](PRODUCTION_PRIVACY_AUDIT.md), n
 the final conservative entry proposal in §2.2 supersedes this table for proposed checkbox selections.
 UNKNOWN findings remain evidence gaps; they are not silently converted into observed collection.
 
-| Category | Final recommendation |
+| Category | Evidence classification (not the proposed ASC selection) |
 | --- | --- |
 | Precise Location | UNKNOWN / SUBMISSION BLOCKER |
 | Coarse Location | CONSERVATIVE DISCLOSURE: collected, linked, App Functionality, not tracking pending evidence |
@@ -552,7 +558,9 @@ flows, not provider/history/support collection. Photos/Crash answers still requi
 Logpush/plan/field discovery 403, Analytics Engine 404, alternate/historical data and support handling
 remain maintainer evidence gaps. Corrected bilingual policy dated 2026-10-05 is verified live and has no
 observed runtime contradiction; evidenced fields/retention still need a focused policy follow-up.
-Do not submit until these gates and all UNKNOWN classifications are closed.
+Do not submit until maintainer-approved Privacy Label answers, policy/manifest/provider-support review and
+signed-build gates are complete. The conservative proposal in §2.2 is available for owner decision; factual
+UNKNOWNs must remain recorded rather than being silently changed to observed collection or noncollection.
 
 Finalization against main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841` incorporates #179's confirmed
 Release public-site origin, Privacy Policy/Support navigation, empty Debug origin and contact. Existing

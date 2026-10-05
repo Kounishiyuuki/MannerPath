@@ -61,7 +61,7 @@ Status legend:
 | Screenshots | §6 | partly BLOCKED (see §6) |
 | Sign-in required | **No** (there are no accounts) | CONFIRMED |
 | App Review contact | first/last name, phone (international format), email | MAINTAINER |
-| App Review notes | §5 text; one marker is WAITING-PRODUCTION | partly WAITING-PRODUCTION |
+| App Review notes | §5 draft with tested destination steps; final maintainer approval and signed-build checks remain | MAINTAINER / BLOCKED-DEVELOPER-PROGRAM; populated-area path CONFIRMED on Release simulator |
 | Version release | **Manually release this version** (allows final backend/privacy checks after approval) | CONFIRMED |
 
 Description (paste as plain text):
@@ -120,13 +120,16 @@ Location permission is When In Use. MannerPath uses the device location for near
 
 Reports, report device registration and photo uploads are unavailable in this initial version. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
 
-Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results, [WAITING-PRODUCTION: tested steps and location]. Then open a place's details (access, uncertainty, sources and attribution), the walking-route preview and the Apple Maps handoff. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
+Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results from outside Japan, search for “浅草駅 東京” in destination search and select the result, then open a published place's details and sources. This displays the selected destination's area, not your current location. Walking routes may be unavailable far from the destination; straight-line distance and bearing remain available. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
 ```
 
-Reviewer steps (attach with the notes once the WAITING items are filled):
+Reviewer steps (draft, not final approved Review Notes; Release simulator J/K/L and source-rights UI confirmed
+by #191/#193; signed-device/Maps/Watch checks remain):
 
 1. Fresh install → eligibility notice → 確認しました → allow location While Using.
-2. Populated area (WAITING-PRODUCTION: steps that work from outside Japan with the release build) → list/map → place detail → sources → walking route → Apple Maps.
+2. Search “浅草駅 東京” → select destination → published list/map → place detail → sources. Refresh also works
+   with location denied; clear the destination to return to the device area. For a distant current location, do not
+   require a walking route (10 km gate); verify Apple Maps handoff separately on the signed build.
 3. Filters (type, tobacco, access) and clearing them.
 4. Data & Privacy → プライバシーポリシー / サポート open the published pages; メールで問い合わせ addresses mannerpath.support@gmail.com.
 5. Airplane mode after loading: cached places, distance and direction remain; route unavailability is explained.
@@ -141,8 +144,8 @@ Use final-build UI only, Japanese localization, no synthetic place data. Current
 
 | Set | Size to upload | Required? | Status |
 | --- | --- | --- | --- |
-| iPhone 6.9" | 1320 × 2868 portrait (iPhone 17 Pro Max class) | Yes | Capturable on the simulator now from a Release build, but must show **production data** → WAITING-PRODUCTION |
-| Apple Watch | 416 × 496 (Series 10/11 46mm class), one size for all localizations | Yes for the Watch app | WAITING-PRODUCTION data; the #176 simulator captures used fixture data and are not store assets |
+| iPhone 6.9" | 1320 × 2868 portrait (iPhone 17 Pro Max class) | Yes | Production Release capture path CONFIRMED (#191/#193); final selected screenshots/localization/size/maintainer approval still required |
+| Apple Watch | 416 × 496 (Series 10/11 46mm class), one size for all localizations | Yes for the Watch app | Final production-data captures and signed paired-device verification required; #176/#193 fixture simulator captures are not store assets. Destination corpus is not propagated to Watch |
 
 v1 screenshot sets are **iPhone + Apple Watch only**: the app is iPhone-only, so no iPad set is required.
 
@@ -152,9 +155,11 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 
 ## 7. Waiting / blocked items
 
-**WAITING-PRODUCTION** (backend exists; remaining release/provider evidence):
+**REMAINING RELEASE / PRIVACY EVIDENCE** (not a pending backend launch):
 
-- ~~Production HTTPS API origin in the Release build~~ done by #186: committed origin, Release-built Info.plist and simulator live refresh/detail/attribution verified; readiness completed, reports/photos config false. The remaining §5 marker is tested reviewer steps.
+- ~~Production HTTPS API origin / remote populated-area access~~ done by #186/#190/#191/#193: committed
+  origin and Release simulator destination/list/map/detail/source/refresh/clear verified, including denied
+  location and AX5. §5 provides tested draft steps; final Review Notes are still maintainer-owned.
 - Backend gates verified by #185 and Release simulator availability by #186; community remains pending. Signed distribution/hardware browsing traffic still to confirm.
 - **App Privacy (ASC → App Privacy): concrete final proposal ready for owner approval, no input performed.**
   Choose **Yes, we collect data from this app**. Select Precise Location, Coarse Location, Device ID,
@@ -180,6 +185,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
   optional `ITSAppUsesNonExemptEncryption = NO` only after that confirmation.
 - Physical-device checks: widgets (3 families), VoiceOver order, Reduce Motion/Transparency, contrast, Maps handoff
   screen, mail compose from the contact link, Watch on hardware.
+  Reduce Motion simulator confirmation (#191) is complete; it does not replace physical-device checks.
 
 **MAINTAINER** (personal or legal input; not stored in the repository):
 

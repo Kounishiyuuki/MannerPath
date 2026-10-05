@@ -10,6 +10,23 @@ blockers.
 
 ## 1. Readiness (audited 2026-10-03 against `main` f534778; production preflight re-checked against aab8305; release candidate re-verified against d511f1a on 2026-10-04)
 
+### Submission blocker reconciliation (2026-10-06)
+
+Docs/read-only reconciliation against main `cef7f055d0a3cb1b4d1baf223097b8c0e1b24cd9`; no new build,
+device or provider audit is claimed. Completed: production launch (513 spots / 6 approved sources / community 0),
+Release production API origin, iPhone-only + Watch decision, production destination browsing from outside Japan,
+Reduce Motion simulator check (#191), and Taito processing notice / Watch license Link (#193). Reports/auth/photos
+remain unavailable and community inactive. App Icon plumbing is ready; artwork is still missing.
+
+- **Submission P0:** App Icon artwork for iPhone and Watch; verify the final archive after adding it.
+- **Open implementation P1 for read-only v1:** none identified in this reconciliation. Report-intake-only P1s
+  below are not read-only submission requirements; they do not authorize activation.
+- **Still blocking submission:** paid Developer Program/team confirmation, provisioning/App Groups/App Attest
+  entitlement checks, signed archive/TestFlight/privacy report, physical-device checks, signed iPhone/Watch rights
+  display and license opening, final MapKit credits/assets/storefront checks, maintainer legal/rights and App Privacy
+  decisions (including unresolved provider/support evidence), final screenshots/Review Notes and personal ASC input.
+  Implementation and simulator evidence do not close these gates. See [entry sheet §7](APP_STORE_CONNECT_ENTRY.md#7-waiting--blocked-items).
+
 | Area | Status | Evidence |
 | --- | --- | --- |
 | Canonical migrations (`migrations/`, 0001–0030) | READY | fresh and populated-pre-0030 local D1 migrations, integrity and FK checks, trigger compile checks (#164) |
@@ -35,11 +52,11 @@ report endpoints answer `503 attestationUnavailable`, `/v1/config` says `reports
 reporting, and the smoke check treats `503` as a pass. Read-only nationwide discovery needs none of the
 Apple-Developer-Program items below.
 
-Privacy submission gate: the [2026-10-05 production audit](PRODUCTION_PRIVACY_AUDIT.md) confirms repository
-settings and authenticated inventory. The configured production Worker and production-named D1 resources
-are absent in the audited account; R2 reports not enabled. Logpush returned 403; analytics, retention and
-eventual live report/auth gates remain UNKNOWN. Complete its maintainer checks before deployment/privacy signoff;
-local readiness above does not establish a production deployment or permit “Data Not Collected”.
+Privacy submission gate: the [2026-10-05 postdeployment audit](PRODUCTION_PRIVACY_AUDIT.md) confirms the
+deployed Worker, production D1/R2, completed readiness and inactive report/auth/photo runtime gates.
+Resource-absence statements belong to its historical predeployment snapshot, not current blockers.
+Logpush returned 403; analytics, provider fields/retention, support handling and signed-build evidence remain
+unresolved. Complete maintainer privacy checks/signoff; launch success does not permit “Data Not Collected”.
 
 ## 2. Production configuration
 
@@ -59,6 +76,10 @@ local readiness above does not establish a production deployment or permit “Da
 Invocation logs stay disabled (`test/deploy-config.test.ts`); no other variable or secret exists.
 
 ## 3. Production launch steps (maintainer)
+
+**Completed for the current production release.** The sequence below is retained as a runbook, not an open
+submission task or permission to replay creation/migrations/import/deployment. Current evidence is in the
+postdeployment gate below and `PRODUCTION_PRIVACY_AUDIT.md`.
 
 Read-only v1 needs the canonical `DB` with data and a migrated, empty `REPORTS_DB` (the binding is part of the
 committed environment; report routes stay `503`). Step 1 provisions remote resources; steps 2–4 are local. `release:preflight` then prints the remote
@@ -113,7 +134,7 @@ features or data sources. Only P0 fixes and small, local P1 fixes land before su
 needs no secret and no Developer Program item; production backend launch is completed (postdeployment
 evidence below). App Store submission still requires provider privacy evidence/signoff and signed-build checks.
 
-**Remaining P0:** none.
+**Remaining backend P0:** none. App Store submission still has the App Icon artwork P0 above.
 
 **P1 before App Store submission (backend):** none open. The bound R2 bucket is created once in §3 step 1;
 the preflight launch sequence checks its existence read-only before migrations and deployment, without repeating provisioning.
@@ -124,7 +145,8 @@ the preflight launch sequence checks its existence read-only before migrations a
 - Before report intake is enabled: the IP-keyed edge rate-limit rule (above).
 
 **WAITING_FOR_DEVELOPER_PROGRAM**
-- App Attest values for production and the physical-device register/assert/report run (#35).
+- App Attest provisioning/entitlement checks for the signed binary; production values and the physical-device
+  register/assert/report run (#35) are for later report intake only, not read-only v1 activation requirements.
 - Signed archive, App Group provisioning, physical iPhone/Watch/widget E2E, TestFlight.
 - Enabling report intake (needs App Attest), and with it the edge rate-limit rule and retention schedule.
 
@@ -135,8 +157,8 @@ the preflight launch sequence checks its existence read-only before migrations a
 - Signed release build's `MANNERPATH_API_BASE_URL` must match the now-confirmed production Worker host.
 
 **P2 (recorded, not fixed)**
-- Read-only v1 still needs `REPORTS_DB` created and migrated, because the binding is committed; the Worker itself
-  already serves reads without it (report routes `503 reportStoreUnavailable`).
+- Resolved: production `REPORTS_DB` exists and migrations 0001–0003 are applied (including authorized #183
+  recovery); pending migrations 0. Do not recreate it or replay recovery for submission.
 - A missing `--chunk-bytes` on `promotion:v4:build` reports the generic "invalid chunk byte budget".
 - `/v1/config` advertises report schema `2..2` / `appAttest` while `available: false`; clients gate on `available`.
 
