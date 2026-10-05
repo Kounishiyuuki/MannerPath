@@ -201,11 +201,23 @@ struct ContentView: View {
                     .font(.footnote)
             }
             Section("Source") {
+                if !(model.snapshot?.sources(for: result.spot).isEmpty ?? true) {
+                    Text("MannerPath processing").font(.headline)
+                    Text(verbatim: SourceAttributionPresentation.modificationNotice)
+                        .font(.footnote)
+                        .accessibilityIdentifier("sourceModificationNotice")
+                }
                 ForEach(model.snapshot?.sources(for: result.spot) ?? [], id: \.self) { source in
                     Text(source.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                          ? String(localized: "Source name unavailable") : source.displayName)
                     if let attribution = source.attributionText { Text(attribution).font(.footnote) }
                     if let license = source.licenseName { Text(license).font(.footnote) }
+                    if let url = SourceAttributionPresentation.licenseURL(source.licenseURL) {
+                        Link("Open license information", destination: url)
+                            .accessibilityIdentifier("sourceLicenseLink")
+                    } else if let rawURL = source.licenseURL, !rawURL.isEmpty {
+                        Text(verbatim: rawURL).font(.footnote)
+                    }
                 }
                 if result.spot.sourceIDs.isEmpty { Text("Source details unavailable") }
             }

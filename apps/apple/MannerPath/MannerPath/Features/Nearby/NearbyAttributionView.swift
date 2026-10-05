@@ -9,6 +9,13 @@ struct NearbyAttributionView: View {
                 Text("Attribution for sources stored with the nearby tile cache. This information remains available without a network connection. A source can appear more than once when saved tiles contain different wording.")
                     .font(.footnote)
             }
+            if !sources.isEmpty {
+                Section("MannerPath processing") {
+                    Text(verbatim: SourceAttributionPresentation.modificationNotice)
+                        .font(.footnote)
+                        .accessibilityIdentifier("sourceModificationNotice")
+                }
+            }
             if sources.isEmpty {
                 ContentUnavailableView("No cached source attribution", systemImage: "doc.text.magnifyingglass")
             } else {
@@ -26,9 +33,9 @@ struct NearbyAttributionView: View {
                         }
                         LabeledContent("License", value: source.licenseName ?? String(localized: "Unknown"))
                         if let rawURL = source.licenseURL {
-                            if let url = URL(string: rawURL),
-                               ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
+                            if let url = SourceAttributionPresentation.licenseURL(rawURL) {
                                 Link("Open license information", destination: url)
+                                    .accessibilityIdentifier("sourceLicenseLink")
                             } else {
                                 Text(rawURL).textSelection(.enabled)
                             }

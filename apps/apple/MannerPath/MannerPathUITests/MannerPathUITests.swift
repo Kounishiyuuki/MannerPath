@@ -607,7 +607,16 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         attribution.tap()
         XCTAssertTrue(app.navigationBars["情報源"].waitForExistence(timeout: 10))
         XCTAssertTrue(textContaining("台東区").exists)
+        let notice = app.descendants(matching: .any)["sourceModificationNotice"].firstMatch
+        scrollTo(notice)
+        XCTAssertTrue(notice.label.contains("MannerPathは元データから喫煙場所の情報を抽出・正規化"))
+        screenshot("82-production-source-processing-notice")
+        let prescribed = textContaining("台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ")
+        scrollTo(prescribed)
+        let licenseLink = app.descendants(matching: .any)["sourceLicenseLink"].firstMatch
+        scrollTo(licenseLink)
         XCTAssertTrue(text("ライセンス").exists)
+        XCTAssertTrue(licenseLink.isHittable)
         screenshot("81-production-destination-attribution")
         assertNoDeveloperText()
         app.navigationBars.buttons.element(boundBy: 0).tap()
