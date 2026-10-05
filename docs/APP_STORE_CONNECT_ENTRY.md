@@ -2,8 +2,10 @@
 
 What to type into App Store Connect (ASC), in order, and what cannot be typed yet. Rationale, Apple references and
 evidence live in [APP_STORE_SUBMISSION.md](APP_STORE_SUBMISSION.md) (§ numbers below point there); privacy
-classifications are owned by [PRODUCTION_PRIVACY_AUDIT.md](PRODUCTION_PRIVACY_AUDIT.md) (#178) and are not
-re-decided here. Checked 2026-10-05 against `origin/main` **5f13320** (includes #179 and #180).
+evidence classifications are owned by [PRODUCTION_PRIVACY_AUDIT.md](PRODUCTION_PRIVACY_AUDIT.md) (#178/#185).
+The final conservative ASC input proposal is in [submission §2.2](APP_STORE_SUBMISSION.md),
+not a claim that all proposed collection was observed. Privacy entry updated 2026-10-05 against main
+`cb8de215e55897a6315a7d38a59cf4886505c5e7` (#185/#186); older build/metadata evidence remains dated below.
 This sheet authorizes no submission, deployment or Cloudflare change.
 
 Status legend:
@@ -12,7 +14,7 @@ Status legend:
 | --- | --- |
 | **CONFIRMED** | Final value, verified against the repository/build settings or published pages; type it as written |
 | **MAINTAINER** | Personal/legal input only the maintainer can supply; nothing is invented here |
-| **WAITING-PRODUCTION** | Needs the production Worker/deployment and its audit evidence (none exists today, #178) |
+| **WAITING-PRODUCTION** | Needs release-build/provider evidence; backend deployment/runtime evidence now exists (#185), but signed-build and provider-retention checks remain |
 | **BLOCKED-DEVELOPER-PROGRAM** | Needs the paid membership, signing, a signed archive, TestFlight or physical devices |
 
 ## 1. Build facts (verified in the Xcode project)
@@ -27,6 +29,7 @@ Status legend:
 | Device families | iPhone app and iPhone widget `1` (iPhone only), Watch app `4`; no native iPad target. iPad users run the iPhone app in compatibility mode ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | CONFIRMED (maintainer decision 2026-10-05) |
 | App localizations | development region `en`; Japanese `ja` translations present | CONFIRMED |
 | Public site origin in Release builds | `https://kounishiyuuki.github.io/MannerPath/` (Debug unset) | CONFIRMED (#179) |
+| API origin in Release builds | `https://mannerpath-api-production.happywestyuki.workers.dev` (Debug unset); Release Info.plist and simulator production connection verified | CONFIRMED (#186); signed distribution archive remains separate |
 | **App icon** | iPhone asset catalog has **no `AppIcon` set**; Watch `AppIcon` set has an empty 1024 slot | **P0 — see §8** |
 
 ## 2. App Information (ASC → App Information)
@@ -149,14 +152,22 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 
 ## 7. Waiting / blocked items
 
-**WAITING-PRODUCTION** (production Worker absent today; #178):
+**WAITING-PRODUCTION** (backend exists; remaining release/provider evidence):
 
-- ~~Production HTTPS API origin in the Release build~~ done 2026-10-05 (`https://mannerpath-api-production.happywestyuki.workers.dev`, readiness `completed`); the remaining review-notes marker in §5 is the tested populated-area steps.
-- Runtime evidence that reports, report device registration and photos are unavailable on the deployed service.
-- **App Privacy (ASC → App Privacy): do not fill yet.** #178 classifications stand: Precise Location, Device ID,
-  User Content, Diagnostics, Usage Data — UNKNOWN / SUBMISSION BLOCKER; Coarse Location — CONSERVATIVE DISCLOSURE;
-  Photos/Videos and Crash Data — NOT COLLECTED subject to signed-archive / matching-deployment checks.
-  Never choose “Data Not Collected”. Then reconcile the public policy §2 with the observed provider fields/retention.
+- ~~Production HTTPS API origin in the Release build~~ done by #186: committed origin, Release-built Info.plist and simulator live refresh/detail/attribution verified; readiness completed, reports/photos config false. The remaining §5 marker is tested reviewer steps.
+- Backend gates verified by #185 and Release simulator availability by #186; community remains pending. Signed distribution/hardware browsing traffic still to confirm.
+- **App Privacy (ASC → App Privacy): concrete final proposal ready for owner approval, no input performed.**
+  Choose **Yes, we collect data from this app**. Select Precise Location, Coarse Location, Device ID,
+  Customer Support, Other Diagnostic Data, Product Interaction and Email Address. Choose **Linked / not
+  used for Tracking / App Functionality** for each; additionally **Analytics** for Product Interaction as
+  an inclusive fallback. See submission §2.2 for every category's evidence and conservative rationale.
+  Photos/Videos and Crash Data stay NOT COLLECTED only under §2.2 conditions P/C. If not confirmed,
+  **also select Photos or Videos and Crash Data, Linked / not tracking / App Functionality**. Report-only
+  Other User Content stays unselected while intake is unavailable. Never choose Data Not Collected.
+  Retention UNKNOWNs remain evidence gaps, not unanswered ASC checkboxes; owner must approve assumptions,
+  actual purposes/partner tracking, policy/manifests and the signed archive before publishing. The per-type
+  over-disclosure risks and evidence needed to narrow each choice are in submission §2.2; no proposed
+  Precise Location/Device ID collection is asserted as an observed fact.
 - Content Rights for the final published corpus (release manifest and licenses).
 - Store screenshots with production data (§6).
 
@@ -204,6 +215,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 6. Version 1.0: promotional text, description, keywords, support/marketing URL, copyright (§3).
 7. Screenshots: iPhone and Apple Watch (§6).
 8. App Review: sign-in No, contact, notes with the WAITING markers filled (§5).
-9. App Privacy: privacy policy URL `https://kounishiyuuki.github.io/MannerPath/privacy/`, then the data-type answers
-   **only after #178's UNKNOWN categories are closed** (§7).
+9. App Privacy: privacy policy URL `https://kounishiyuuki.github.io/MannerPath/privacy/`, then the exact
+   conservative checklist in §7 / submission §2.2 after owner approval. Keep factual UNKNOWNs documented;
+   do not treat broad disclosure as privacy signoff or authorization to publish/submit.
 10. Version release: manual. Add for Review → Submit only after every WAITING / BLOCKED / P0 item above is closed.
