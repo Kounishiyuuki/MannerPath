@@ -615,7 +615,15 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         app.navigationBars.buttons.element(boundBy: 0).tap()
         let clear = app.buttons["消去"]
         scrollTo(clear)
+        // scrollTo stops once the button is hittable, which can be the home-indicator edge where a synthesized tap
+        // is swallowed; move it clear of the bottom edge first.
+        if clear.frame.maxY > app.windows.firstMatch.frame.maxY - 120 {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.75))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.55)))
+        }
         clear.tap()
+        // The cleared destination row disappears before the device area reloads; a missed tap fails here, not later.
+        XCTAssertTrue(app.buttons["消去"].waitForNonExistence(timeout: 10), "Destination was not cleared")
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30))
         XCTAssertEqual(resultRows.count, 0, "Destination places must not remain in the device-area list")
     }
