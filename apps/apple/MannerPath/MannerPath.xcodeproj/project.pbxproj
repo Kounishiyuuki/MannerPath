@@ -639,6 +639,7 @@
 		000000000000000111000000 /* Debug configuration for PBXNativeTarget "MannerPath" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MannerPath.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -682,6 +683,7 @@
 		000000000000000112000000 /* Release configuration for PBXNativeTarget "MannerPath" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				MANNERPATH_API_BASE_URL = "https://mannerpath-api-production.happywestyuki.workers.dev";
 				MANNERPATH_PUBLIC_SITE_URL = "https://kounishiyuuki.github.io/MannerPath/";
 				CODE_SIGN_ENTITLEMENTS = MannerPath.entitlements;
