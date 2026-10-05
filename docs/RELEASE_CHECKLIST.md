@@ -109,8 +109,8 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 
 **Release freeze (2026-10-04, release candidate on d511f1a).** Backend code is frozen for v1: no new architecture,
 features or data sources. Only P0 fixes and small, local P1 fixes land before submission. The read-only v1 release
-needs no secret and no Developer Program item; backend provisioning waits on the production Cloudflare
-values (§2, §3 step 1). App Store submission also requires the production privacy evidence/signoff above.
+needs no secret and no Developer Program item; production backend launch is completed (postdeployment
+evidence below). App Store submission still requires provider privacy evidence/signoff and signed-build checks.
 
 **Remaining P0:** none.
 
@@ -130,8 +130,8 @@ the preflight launch sequence checks its existence read-only before migrations a
 **WAITING_FOR_MAINTAINER_INPUT**
 - Community publication (#124): terms APPROVE/HOLD/CHANGE, operator, contact, terms URL, governing law, §4.2 reuse,
   §8 withdrawal option, §10 liability wording, attribution. Until then `COMMUNITY_PUBLICATION` stays `pending`.
-- Production Cloudflare account ownership and the two production database ids (step 1).
-- The production Worker host (`--worker-host`, and the app's `MANNERPATH_API_BASE_URL`).
+- Provider log fields/plan/export retention and final privacy signoff (postdeployment audit below).
+- Signed release build's `MANNERPATH_API_BASE_URL` must match the now-confirmed production Worker host.
 
 **P2 (recorded, not fixed)**
 - Read-only v1 still needs `REPORTS_DB` created and migrated, because the binding is committed; the Worker itself
@@ -141,25 +141,27 @@ the preflight launch sequence checks its existence read-only before migrations a
 
 ## Authenticated privacy release gate (2026-10-05)
 
-- [ ] Confirm intended Cloudflare account and signed release API origin; configured production Worker is absent.
-- [ ] Separately authorize resource provisioning/deployment after production D1/R2 inventory and reviewed IDs/preflight; never reuse E2E resources by assumption.
+- [x] Confirm deployed backend account/origin/version: main `ae3bd0a`, account `26b626fb954591ebe35313a5328cae0e`, `https://mannerpath-api-production.happywestyuki.workers.dev`; signed release build origin remains a separate gate.
+- [x] Separately authorized provisioning/recovery/promotion/deployment completed; distinct production D1 IDs and R2 verified, no E2E reuse. Do not repeat these actions in the privacy audit.
 - [ ] Obtain read-only Logpush/analytics/retention evidence and sanitized IP/UA/path/time/request-ID field assessment; resolve prohibited location history.
-- [ ] Verify deployed version/settings, config false/false, unavailable report/auth intake, photos off, no community activation and empty crons; no mutating audit probes.
+- [x] Verify deployed version/settings/config false/false, required-but-unconfigured report/auth intake, photos off, community pending and empty crons; no mutating audit probes. POST gate evidence uses settings/code and prior authorized smoke, not GET 404 alone.
 - [x] Correct repository policy §2 live-server/logging wording in both languages (2026-10-05).
-- [ ] Verify merged Pages workflow and live bilingual policy date/§2/contact/links.
+- [x] Verify live bilingual policy date/§2/contact/links (2026-10-05 corrections present); #179 Release navigation evidence retained.
 - [ ] Reconcile provider/support retention in the policy after deployment evidence.
 - [ ] Close audit's UNKNOWN Privacy Label categories; match Photos/Crash source conclusions to archive; owner signs ASC answers.
 
-These checks remain submission blockers. Merging this documentation closes no submission gate and authorizes no Cloudflare mutation.
+Unchecked items remain submission blockers. Backend/runtime and live-publication evidence gates above are
+closed, but final Privacy Label, signed archive/build-origin and provider/support signoff are not. This
+documentation authorizes no Cloudflare mutation. Details: [postdeployment audit](PRODUCTION_PRIVACY_AUDIT.md).
 
 #179 incorporated from main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841`:
 Release public-site origin `https://kounishiyuuki.github.io/MannerPath/`, privacy/ and support/ navigation,
 Debug empty origin and `mannerpath.support@gmail.com` contact are confirmed. Do not reopen link-reachability
 as a blocker; signed distribution evidence and mail delivery remain separate.
 
-Next provisioning lane: separately authorize R2 enablement, canonical D1 `mannerpath-production`, durable
-D1 `mannerpath-production-reports` and R2 `mannerpath-raw-artifacts-production` creation; review distinct IDs
-and production-only safety-test updates, remote migrations/canonical promotion, then Worker deployment.
+Provisioning/launch is completed: canonical D1 `mannerpath-production`, durable D1
+`mannerpath-production-reports`, R2 `mannerpath-raw-artifacts-production` and the production Worker exist.
+Read-only audit reconfirms 513 published spots / 6 sources / community 0. Do not repeat provisioning or launch.
 Keep required attestation, reports/auth unavailable, photos off, crons empty and community inactive.
-Repository policy wording corrections and revision dates updated 2026-10-05; Pages publication must be verified; evidence-dependent §2/§5/§9 details remain in the
+Repository policy wording corrections and revision dates updated 2026-10-05 and confirmed live; signed-build and evidence-dependent §2/§5/§9 details remain in the
 [audit handoff](PRODUCTION_PRIVACY_AUDIT.md).
