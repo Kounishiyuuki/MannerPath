@@ -88,8 +88,9 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         XCTAssertTrue(directions.isHittable, "Directions should precede source and attribution content")
         attach(app, named: "watch-detail-directions")
 
+        scrollUntilHittable(app.staticTexts["Fixture publisher"], in: app)
         let sourceHeader = app.staticTexts["Source"]
-        scrollUntilHittable(sourceHeader, in: app)
+        scrollUntilHittable(sourceHeader, in: app, direction: .down, fineScroll: true)
         XCTAssertTrue(sourceHeader.isHittable)
         scrollUntilHittable(app.staticTexts["Fixture publisher"], in: app)
         attach(app, named: "watch-detail-source")
@@ -204,13 +205,17 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
 
     @MainActor
     private func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication,
-                                    direction: ScrollDirection = .up) {
+                                    direction: ScrollDirection = .up, fineScroll: Bool = false) {
         for _ in 0..<20 where !element.isHittable {
             let start = app.coordinate(withNormalizedOffset:
                 CGVector(dx: 0.5, dy: direction == .up ? 0.78 : 0.42))
             let end = app.coordinate(withNormalizedOffset:
-                CGVector(dx: 0.5, dy: direction == .up ? 0.55 : 0.65))
-            start.press(forDuration: 0.01, thenDragTo: end)
+                CGVector(dx: 0.5, dy: direction == .up ? (fineScroll ? 0.70 : 0.55) : (fineScroll ? 0.50 : 0.65)))
+            if fineScroll {
+                start.press(forDuration: 0.01, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+            } else {
+                start.press(forDuration: 0.01, thenDragTo: end)
+            }
         }
         if !element.isHittable {
             attach(app, named: "unreachable-\(element.identifier)")
