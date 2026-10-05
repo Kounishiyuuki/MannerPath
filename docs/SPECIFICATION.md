@@ -157,6 +157,26 @@ Any future adoption follows ADR-0010 and legal review.
 
 Presentation, routing and destination search only (ADR-0001, DATA_POLICY). Not the canonical smoking-place database;
 Apple POIs are never bulk-harvested.
+An explicitly selected destination is the iPhone browsing area's tile/ranking origin, distinct from the
+device location used for walking routes and companion nearby data. Only its 3×3 neighborhood is displayed;
+clearing selection returns to device tiles. Generation checks reject stale loads after selection changes.
+Search failure preserves the selected area; tile/config failure preserves only that area's cached spots,
+not the previous area's corpus. Destination cache works offline; absence of a cache is not absence of spots.
+Destination Refresh reloads its tiles without requesting device location, including when location is denied.
+Explicit Use My Location / location retry actions remain separate. Walking-unavailable copy uses the actual
+device location's freshness, never the destination corpus origin.
+While destination browsing is active, device events update the iPhone's route origin but do not reload/publish
+device tiles to Watch/widgets. Existing companion snapshots retain their own timestamps; explicit replay uses
+only the last genuine device corpus, and terminal permission/location failure invalidates that replay.
+Clearing the destination resumes device-area loading/publication. There is no background companion tile loader;
+relabeling destination or old device tiles with a new device origin is not an acceptable freshness fix.
+`RouteDetourRanker.maximumWalkingDetourDistanceMeters` limits automatic detour requests to a 10 km
+straight-line device-to-destination distance: roughly two hours at 5 km/h already exceeds a short local
+walking detour, and actual pedestrian paths can be longer. This is a product request-budget policy, not a
+MapKit service limit or proof that a path is walkable. At/below the limit existing ETA/candidate semantics
+remain; beyond it no detour request runs and published destination spots keep straight-line fallback.
+Automatic spot-detail walking previews apply the same gate to device-to-spot distance. Explicit Apple Maps
+handoff remains available; browsing a distant place does not automatically request a walking route.
 
 ## 13. Publication
 
@@ -178,8 +198,11 @@ removal reason.
 
 ## 16. Privacy
 
-No raw location history; no account for browse/search; routine sync by tile ID (PRODUCT_REQUIREMENTS §8). Community
-reports follow ADR-0007 minimization and retention, free text and personal metadata included. Photos (ADR-0016)
+No raw location history; no account for browse/search; routine sync by tile ID (PRODUCT_REQUIREMENTS §8).
+Destination browsing sends geographic tile IDs derived on-device, not destination names/search text/exact
+coordinates or raw device GPS, to MannerPath. Requested areas can reveal interests and are not proof of device
+position. Provider-retention/linkage UNKNOWNs and the conservative ASC proposal remain unchanged.
+Community reports follow ADR-0007 minimization and retention, free text and personal metadata included. Photos (ADR-0016)
 persist only a freshly encoded derivative without EXIF/GPS/device/capture metadata, stay private, never outlive the
 parent report's `minimize_after`, and live in `REPORTS_DB`/private object storage, never in canonical `DB`, promotion
 bundles or tiles. Metadata removal does not remove visible faces or plates; moderators reject such images.

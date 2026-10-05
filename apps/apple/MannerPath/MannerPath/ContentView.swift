@@ -27,14 +27,20 @@ struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     locationSection
+                    if model.destination != nil {
+                        Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("refreshDestination")
+                    }
 
-                    if model.displayLocation != nil {
+                    if model.browsingCoordinate != nil {
                         dataStatus
                         if !model.results.isEmpty { mapSection }
                         listSection
                         nearbyTasksSection
-                        destinationSection
                     }
+
+                    destinationSection
 
                     reportSection
                 }
@@ -68,16 +74,15 @@ struct ContentView: View {
                 if let selection = detailSelection(id: id) {
                     SpotDetailView(
                         result: selection.result,
-                        locationAccuracyMeters: selection.location.horizontalAccuracyMeters,
-                        estimateFromPreviousLocation: selection.location.coordinate != model.displayLocation?.coordinate ||
-                            selection.location.isLastKnown,
-                        routeOrigin: !selection.location.isLastKnown &&
-                            model.displayLocation?.isLastKnown == false &&
-                            selection.location.coordinate == model.displayLocation?.coordinate
-                            ? selection.location.coordinate : nil,
+                        locationAccuracyMeters: selection.area.deviceLocation?.horizontalAccuracyMeters ?? 0,
+                        estimateFromPreviousLocation: !selection.area.isDestination &&
+                            (selection.area.coordinate != model.displayLocation?.coordinate ||
+                             selection.area.deviceLocation?.isLastKnown == true),
+                        routeOrigin: model.displayLocation?.isLastKnown == false ? model.displayLocation?.coordinate : nil,
                         nearbySources: selection.nearbySources,
                         reportAvailability: reportModel.availability,
                         hasSavedReport: reportModel.draft != nil,
+                        distanceFromDestination: selection.area.isDestination,
                         onReport: { type in
                             reportModel.start(type: type, spotId: selection.result.spot.id,
                                               subjectName: SpotPresentation.name(selection.result.spot))
@@ -96,6 +101,7 @@ struct ContentView: View {
         }
         .onOpenURL { url in
             guard let parsed = NearbyGlance.spotID(from: url) else { return }
+            if model.destination != nil { selectDestination(nil) }
             path = []
             if let id = parsed { path.append(id) }
         }
@@ -139,7 +145,7 @@ struct ContentView: View {
             if !mapPositionedByUser { recenterMap() }
         }
         .onChange(of: model.destination) { _, _ in
-            if !mapPositionedByUser { recenterMap() }
+            recenterMap()
         }
         .onChange(of: filters) { _, updated in
             model.setFilters(updated)
@@ -212,7 +218,7 @@ struct ContentView: View {
     }
 
     private var mapCenter: SpotCoordinate? {
-        (model.resultsLocation ?? model.displayLocation)?.coordinate
+        model.resultsArea?.coordinate ?? model.browsingCoordinate
     }
 
     private var adaptiveRowLayout: AnyLayout {
@@ -264,20 +270,20 @@ struct ContentView: View {
     }
 
     private func recenterMap() {
-        guard let location = model.resultsLocation ?? model.displayLocation else { return }
-        var minLatitude = location.coordinate.latitude
+        guard let centerCoordinate = mapCenter else { return }
+        var minLatitude = centerCoordinate.latitude
         var maxLatitude = minLatitude
         var minLongitudeOffset = 0.0
         var maxLongitudeOffset = 0.0
         for coordinate in resultCoordinates {
             minLatitude = min(minLatitude, coordinate.latitude)
             maxLatitude = max(maxLatitude, coordinate.latitude)
-            let offset = (coordinate.longitude - location.coordinate.longitude + 540)
+            let offset = (coordinate.longitude - centerCoordinate.longitude + 540)
                 .truncatingRemainder(dividingBy: 360) - 180
             minLongitudeOffset = min(minLongitudeOffset, offset)
             maxLongitudeOffset = max(maxLongitudeOffset, offset)
         }
-        var centerLongitude = location.coordinate.longitude +
+        var centerLongitude = centerCoordinate.longitude +
             (minLongitudeOffset + maxLongitudeOffset) / 2
         if centerLongitude > 180 { centerLongitude -= 360 }
         if centerLongitude < -180 { centerLongitude += 360 }
@@ -296,15 +302,21 @@ struct ContentView: View {
     }
 
     private func openDetail(_ result: NearbyResult) {
-        guard let location = model.resultsLocation else { return }
-        selectedSnapshot = DetailSelection(result: result, location: location, nearbySources: model.sources)
+        guard let area = model.resultsArea else { return }
+        selectedSnapshot = DetailSelection(result: result, area: area, nearbySources: model.sources)
         path.append(result.spot.id)
+    }
+
+    private func selectDestination(_ selected: PlaceDestination?) {
+        path = []
+        selectedSnapshot = nil
+        model.selectDestination(selected)
     }
 
     private func detailSelection(id: String) -> DetailSelection? {
         if let result = model.result(id: id) ?? model.cachedResult(id: id),
-           let location = model.resultsLocation {
-            return DetailSelection(result: result, location: location, nearbySources: model.sources)
+           let area = model.resultsArea {
+            return DetailSelection(result: result, area: area, nearbySources: model.sources)
         }
         guard model.displayLocation != nil, selectedSnapshot?.result.spot.id == id else { return nil }
         return switch model.dataState {
@@ -319,7 +331,8 @@ struct ContentView: View {
                 Text("Map")
                     .font(.headline)
                 Spacer()
-                Button("Recenter", systemImage: "location.north.line") { recenterMap() }
+                Button(model.destination == nil ? "Recenter" : "Recenter on destination",
+                       systemImage: "location.north.line") { recenterMap() }
                     .buttonStyle(.bordered)
             }
             ClusteredSpotMap(
@@ -331,7 +344,7 @@ struct ContentView: View {
                                accessibilityValue: [SpotPresentation.evidence(result.spot), SpotPresentation.approximateLocationNote(result.spot)]
                                    .compactMap { $0 }.joined(separator: ", "))
                 },
-                user: (model.resultsLocation ?? model.displayLocation).map { location in
+                user: model.displayLocation.map { location in
                     ClusteredSpotMap.Marker(
                         title: location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
                             ? String(localized: "Last location used for distances") : String(localized: "Your location"),
@@ -356,19 +369,19 @@ struct ContentView: View {
 
     private var listSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(model.destination == nil ? "Nearby places" : "Nearby places for your walk")
+            Text(model.destination == nil ? "Nearby places" : "Places near your destination")
                 .font(.title3.weight(.semibold))
                 .accessibilityAddTraits(.isHeader)
             if model.destination != nil {
+                Text("Straight-line distances and bearings below are from the selected destination, not your device location.")
+                    .font(.footnote)
                 switch model.routeState {
                 case .idle: EmptyView()
                 case .loading: Label("Checking walking detours. Saved places remain available below.", systemImage: "figure.walk")
                 case .ready: Text("Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.")
                 case .unavailable:
-                    Label(model.resultsLocation?.isLastKnown == true
-                          ? "A current location is needed for walking detours. Showing straight-line distance and bearing."
-                          : "Walking routes unavailable. Showing saved places by straight-line distance and bearing.",
-                          systemImage: "wifi.exclamationmark")
+                    Label { Text(verbatim: model.routeUnavailableDescription) }
+                    icon: { Image(systemName: "wifi.exclamationmark") }
                 }
             }
             if model.results.isEmpty {
@@ -379,14 +392,14 @@ struct ContentView: View {
                 } else {
                     unfilteredEmptyState
                 }
-            } else if let location = model.resultsLocation {
+            } else if let area = model.resultsArea {
                 ForEach(displayResults, id: \.nearby.spot.id) { ranked in
                     Button {
                         openDetail(ranked.nearby)
                     } label: {
                         NearbySpotRow(result: ranked.nearby, detourSeconds: ranked.detourSeconds,
                                       routeMode: model.destination != nil,
-                                      locationAccuracyMeters: location.horizontalAccuracyMeters)
+                                      locationAccuracyMeters: area.deviceLocation?.horizontalAccuracyMeters ?? 0)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("nearbyResultRow")
@@ -408,7 +421,7 @@ struct ContentView: View {
             ContentUnavailableView {
                 Label("No published spots in this nearby area", systemImage: "mappin.slash")
             } description: {
-                Text("If you know a smoking place here, you can add it for review.")
+                Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability))
             } actions: {
                 if case .available = reportModel.availability, reportModel.canStartReport {
                     Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
@@ -452,7 +465,7 @@ struct ContentView: View {
             ForEach(model.destinationMatches) { match in
                 Button {
                     destinationQuery = match.name
-                    model.selectDestination(match)
+                    selectDestination(match)
                 } label: {
                     HStack {
                         Image(systemName: "mappin")
@@ -466,12 +479,13 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("destinationMatch")
             }
             if let destination = model.destination {
                 HStack {
                     Label(destination.name, systemImage: "flag.checkered")
                     Spacer()
-                    Button("Clear") { model.selectDestination(nil) }
+                    Button("Clear") { selectDestination(nil) }
                 }
                 .font(.subheadline)
             }
@@ -487,7 +501,9 @@ struct ContentView: View {
             EmptyView()
         case .readingCache:
             Label(model.results.isEmpty ? "Reading saved nearby places…" :
-                    "Updating nearby places; distances use the previous device location…",
+                    model.destination == nil
+                        ? "Updating nearby places; distances use the previous device location…"
+                        : "Updating destination places; distances use the selected destination…",
                   systemImage: "internaldrive")
         case .refreshing:
             Label("Showing saved places; refreshing…", systemImage: "arrow.clockwise")
@@ -511,7 +527,7 @@ struct ContentView: View {
         case .notDetermined:
             VStack(alignment: .leading, spacing: 12) {
                 Text("Use your location to rank nearby permitted places by straight-line distance.")
-                Button("Use My Location") { model.refresh() }
+                Button("Use My Location") { model.refreshDeviceLocation() }
                     .buttonStyle(.borderedProminent)
             }
         case .locating:
@@ -539,7 +555,7 @@ struct ContentView: View {
         case .unavailable:
             VStack(alignment: .leading, spacing: 12) {
                 locationMessage("Location could not be determined. Try again.")
-                Button("Try Again") { model.refresh() }
+                Button("Try Again") { model.refreshDeviceLocation() }
                     .buttonStyle(.bordered)
             }
         case .usable(let location):
@@ -548,8 +564,10 @@ struct ContentView: View {
                     Text(location.isLastKnown ? "Last device location" : "Device location")
                         .font(.subheadline.weight(.semibold))
                     if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                    Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
-                        .buttonStyle(.bordered)
+                    if model.destination == nil {
+                        Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
+                            .buttonStyle(.bordered)
+                    }
                 }
                 Text("Updated \(location.timestamp.formatted(date: .abbreviated, time: .shortened)) · about \(Int(location.horizontalAccuracyMeters.rounded())) m accuracy")
                     .font(.footnote)
@@ -570,8 +588,18 @@ struct ContentView: View {
 
 private struct DetailSelection {
     let result: NearbyResult
-    let location: DeviceLocation
+    let area: NearbyArea
     let nearbySources: [SpotSource]
+}
+
+@MainActor
+enum NearbyEmptyStateCopy {
+    static func description(for availability: ReportAvailability) -> String {
+        if case .available = availability {
+            return String(localized: "If you know a smoking place here, you can add it for review.")
+        }
+        return String(localized: "Coverage varies by area. Only published places are shown.")
+    }
 }
 
 private struct NearbySpotRow: View {

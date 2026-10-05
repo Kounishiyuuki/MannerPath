@@ -15,6 +15,28 @@ enum RouteDataState: Equatable {
     case idle, loading, ready, unavailable
 }
 
+enum NearbyArea {
+    case device(DeviceLocation)
+    case destination(PlaceDestination)
+
+    var coordinate: SpotCoordinate {
+        switch self {
+        case .device(let location): location.coordinate
+        case .destination(let place): place.coordinate
+        }
+    }
+
+    var deviceLocation: DeviceLocation? {
+        if case .device(let location) = self { return location }
+        return nil
+    }
+
+    var isDestination: Bool {
+        if case .destination = self { return true }
+        return false
+    }
+}
+
 @Observable
 @MainActor
 final class NearbyModel {
@@ -34,10 +56,10 @@ final class NearbyModel {
     /// The zoom tiles are read and synced at: the cache's namespace offline, GET /v1/config online (ADR-0015).
     private var dataZoom = SlippyTile.defaultDataZoom
     private var cachedSpots: [Spot] = []
-    private var lastCacheReadFailed = false
     private var lastRouteKey: RouteRequestKey?
     private var lastDetours: [String: TimeInterval] = [:]
     private var lastRouteComputedAt: Date?
+    private var deviceCorpus: (spots: [Spot], sources: [SpotSource], location: DeviceLocation, cacheReadFailed: Bool)?
     var onCachedCorpusChange: (([Spot], [SpotSource], SpotCoordinate) -> Void)?
     var onCachedGlanceChange: (([Spot], DeviceLocation) -> Void)?
 
@@ -52,7 +74,14 @@ final class NearbyModel {
     private(set) var locationState: NearbyLocationState
     private(set) var dataState: NearbyDataState = .waitingForLocation
     private(set) var results: [NearbyResult] = []
-    private(set) var resultsLocation: DeviceLocation?
+    private(set) var resultsArea: NearbyArea?
+    var resultsLocation: DeviceLocation? { resultsArea?.deviceLocation }
+    var browsingCoordinate: SpotCoordinate? { destination?.coordinate ?? displayLocation?.coordinate }
+    var routeUnavailableDescription: String {
+        displayLocation == nil || displayLocation?.isLastKnown == true
+            ? String(localized: "A current location is needed for walking detours. Showing straight-line distance and bearing.")
+            : String(localized: "Walking routes unavailable. Showing saved places by straight-line distance and bearing.")
+    }
     private(set) var sources: [SpotSource] = []
     private var lastUsableLocation: DeviceLocation?
 
@@ -70,25 +99,25 @@ final class NearbyModel {
 
     // Widget links use the unfiltered corpus, while ordinary Nearby results keep user filters.
     func cachedResult(id: String) -> NearbyResult? {
-        guard let origin = resultsLocation?.coordinate else { return nil }
+        guard let origin = resultsArea?.coordinate else { return nil }
         return NearbySearch.rank(cachedSpots, from: origin, at: Date()).first { $0.spot.id == id }
     }
 
     var hasUnfilteredResults: Bool {
-        guard let origin = resultsLocation?.coordinate else { return false }
+        guard let origin = resultsArea?.coordinate else { return false }
         return !NearbySearch.rank(cachedSpots, from: origin, at: Date()).isEmpty
     }
 
     func publishCachedCorpusForWatch() {
-        guard let location = resultsLocation else { return }
-        onCachedCorpusChange?(cachedSpots, sources, location.coordinate)
-        if !lastCacheReadFailed { onCachedGlanceChange?(cachedSpots, location) }
+        guard let deviceCorpus else { return }
+        onCachedCorpusChange?(deviceCorpus.spots, deviceCorpus.sources, deviceCorpus.location.coordinate)
+        if !deviceCorpus.cacheReadFailed { onCachedGlanceChange?(deviceCorpus.spots, deviceCorpus.location) }
     }
 
     func setFilters(_ updated: NearbyFilters) {
         guard updated != filters else { return }
         filters = updated
-        if let origin = resultsLocation {
+        if let origin = resultsArea {
             results = NearbySearch.rank(cachedSpots, from: origin.coordinate, filters: filters, at: Date())
         }
         updateRoutes()
@@ -96,7 +125,7 @@ final class NearbyModel {
     }
 
     func refreshTimeDependentResults(at date: Date) {
-        guard let origin = resultsLocation else { return }
+        guard let origin = resultsArea else { return }
         let oldIDs = results.map(\.spot.id)
         results = NearbySearch.rank(cachedSpots, from: origin.coordinate, filters: filters, at: date)
         if results.map(\.spot.id) != oldIDs { updateRoutes() }
@@ -135,6 +164,16 @@ final class NearbyModel {
         searchingDestination = false
         destinationSearchFailed = false
         destination = selected
+        if let selected {
+            load(for: .destination(selected))
+        } else if let location = displayLocation {
+            load(for: .device(location))
+        } else {
+            generation += 1
+            loadTask?.cancel()
+            enter([])
+            dataState = .waitingForLocation
+        }
         updateRoutes()
     }
 
@@ -158,7 +197,7 @@ final class NearbyModel {
             self?.receive(state)
         }
         if case .usable(let deviceLocation) = locationState {
-            load(for: deviceLocation)
+            load(for: .device(deviceLocation))
         }
     }
 
@@ -168,11 +207,25 @@ final class NearbyModel {
     }
 
     func refresh() {
+        if let destination { load(for: .destination(destination)) }
+        else { refreshDeviceLocation() }
+    }
+
+    func refreshDeviceLocation() {
         location.refresh()
     }
 
     private func receive(_ state: NearbyLocationState) {
         locationState = state
+        if destination != nil {
+            if case .usable(let deviceLocation) = state { lastUsableLocation = deviceLocation }
+            else if case .locating = state {} else {
+                lastUsableLocation = nil
+                deviceCorpus = nil
+            }
+            updateRoutes()
+            return
+        }
         searchGeneration += 1
         searchTask?.cancel()
         destinationMatches = []
@@ -180,7 +233,7 @@ final class NearbyModel {
         invalidateRoutes()
         if case .usable(let deviceLocation) = state {
             lastUsableLocation = deviceLocation
-            load(for: deviceLocation)
+            load(for: .device(deviceLocation))
         } else if case .locating = state, lastUsableLocation != nil {
             generation += 1
             loadTask?.cancel()
@@ -190,30 +243,31 @@ final class NearbyModel {
             loadTask?.cancel()
             results = []
             cachedSpots = []
-            resultsLocation = nil
+            resultsArea = nil
             sources = []
             activeTileIDs = []
             lastUsableLocation = nil
+            deviceCorpus = nil
             dataState = .waitingForLocation
         }
     }
 
-    private func load(for deviceLocation: DeviceLocation) {
+    private func load(for area: NearbyArea) {
         generation += 1
         let currentGeneration = generation
         loadTask?.cancel()
 
         guard let repository else {
             results = []
-            resultsLocation = nil
+            resultsArea = nil
             sources = []
             activeTileIDs = []
             dataState = .cacheUnavailable
             return
         }
-        guard let initialTiles = Self.neighborhood(of: deviceLocation, zoom: dataZoom) else {
+        guard let initialTiles = Self.neighborhood(of: area.coordinate, zoom: dataZoom) else {
             results = []
-            resultsLocation = nil
+            resultsArea = nil
             sources = []
             activeTileIDs = []
             dataState = .cacheUnavailable
@@ -221,13 +275,17 @@ final class NearbyModel {
         }
 
         enter(initialTiles)
+        if resultsArea != nil, area.isDestination || resultsArea?.isDestination == true {
+            resultsArea = area
+            results = NearbySearch.rank(cachedSpots, from: area.coordinate, filters: filters, at: Date())
+        }
         dataState = .readingCache
         loadTask = Task { [weak self] in
             guard let self else { return }
             var tiles = initialTiles
             // Offline reads follow the cache's own namespace, whatever zoom this model last used.
             if let cachedZoom = try? await repository.dataZoom(), cachedZoom != dataZoom,
-               let moved = Self.neighborhood(of: deviceLocation, zoom: cachedZoom) {
+               let moved = Self.neighborhood(of: area.coordinate, zoom: cachedZoom) {
                 guard currentGeneration == generation else { return }
                 dataZoom = cachedZoom
                 tiles = moved
@@ -245,7 +303,7 @@ final class NearbyModel {
                 }
                 guard currentGeneration == generation else { return }
             }
-            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation,
+            publish(cachedByTile, sourcesByTile: sourcesByTile, from: area,
                     cacheReadFailed: cacheReadFailed, generation: currentGeneration)
 
             guard let refresher else {
@@ -264,7 +322,7 @@ final class NearbyModel {
                 return
             }
             guard currentGeneration == generation else { return }
-            if serverZoom != dataZoom, let moved = Self.neighborhood(of: deviceLocation, zoom: serverZoom) {
+            if serverZoom != dataZoom, let moved = Self.neighborhood(of: area.coordinate, zoom: serverZoom) {
                 dataZoom = serverZoom
                 tiles = moved
                 enter(tiles)
@@ -298,16 +356,16 @@ final class NearbyModel {
                 }
                 guard currentGeneration == generation else { return }
             }
-            publish(cachedByTile, sourcesByTile: sourcesByTile, from: deviceLocation,
+            publish(cachedByTile, sourcesByTile: sourcesByTile, from: area,
                     cacheReadFailed: cacheReadFailed, generation: currentGeneration)
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
         }
     }
 
-    private static func neighborhood(of deviceLocation: DeviceLocation, zoom: Int) -> [SlippyTile]? {
+    private static func neighborhood(of coordinate: SpotCoordinate, zoom: Int) -> [SlippyTile]? {
         (try? SlippyTile.forCoordinate(
-            latitude: deviceLocation.coordinate.latitude,
-            longitude: deviceLocation.coordinate.longitude,
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude,
             zoom: zoom
         ))?.neighborhood3x3()
     }
@@ -317,7 +375,7 @@ final class NearbyModel {
         if tileIDs != activeTileIDs {
             results = []
             cachedSpots = []
-            resultsLocation = nil
+            resultsArea = nil
             sources = []
         }
         activeTileIDs = tileIDs
@@ -326,7 +384,7 @@ final class NearbyModel {
     private func publish(
         _ cachedByTile: [String: [Spot]],
         sourcesByTile: [String: [SpotSource]],
-        from deviceLocation: DeviceLocation,
+        from area: NearbyArea,
         cacheReadFailed: Bool,
         generation currentGeneration: Int
     ) {
@@ -335,9 +393,8 @@ final class NearbyModel {
         let spots = cachedByTile.keys.sorted().flatMap { cachedByTile[$0] ?? [] }
             .filter { seenIDs.insert($0.id).inserted }
         cachedSpots = spots
-        lastCacheReadFailed = cacheReadFailed
-        results = NearbySearch.rank(spots, from: deviceLocation.coordinate, filters: filters, at: Date())
-        resultsLocation = deviceLocation
+        results = NearbySearch.rank(spots, from: area.coordinate, filters: filters, at: Date())
+        resultsArea = area
         var seenSources = Set<SpotSource>()
         sources = sourcesByTile.keys.sorted().flatMap { sourcesByTile[$0] ?? [] }
             .filter { seenSources.insert($0).inserted }
@@ -345,8 +402,11 @@ final class NearbyModel {
                 ($0.displayName, $0.id, $0.attributionText ?? "") <
                 ($1.displayName, $1.id, $1.attributionText ?? "")
             }
-        onCachedCorpusChange?(spots, sources, deviceLocation.coordinate)
-        if !cacheReadFailed { onCachedGlanceChange?(spots, deviceLocation) }
+        if let deviceLocation = area.deviceLocation {
+            deviceCorpus = (spots, sources, deviceLocation, cacheReadFailed)
+            onCachedCorpusChange?(spots, sources, deviceLocation.coordinate)
+            if !cacheReadFailed { onCachedGlanceChange?(spots, deviceLocation) }
+        }
         updateRoutes()
     }
 
@@ -360,10 +420,10 @@ final class NearbyModel {
 
     private func updateRoutes() {
         invalidateRoutes()
-        guard let destination, let origin = resultsLocation?.coordinate,
-              origin == displayLocation?.coordinate,
-              resultsLocation?.isLastKnown == false,
+        guard let destination, let origin = displayLocation?.coordinate,
+              resultsArea?.coordinate == destination.coordinate,
               displayLocation?.isLastKnown == false,
+              RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination.coordinate),
               let walkingRouter, !results.isEmpty else { return }
         let currentGeneration = routeGeneration
         let candidates = RouteDetourRanker.candidates(results, from: origin, to: destination.coordinate)

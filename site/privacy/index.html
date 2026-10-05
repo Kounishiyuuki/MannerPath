@@ -37,7 +37,7 @@
 <ul>
 <li>地図表示、目的地検索、徒歩ルートの確認には Apple MapKit を使います。これらの機能では、位置情報や検索語などのリクエスト情報が Apple のサービスとやり取りされる場合があります。</li>
 <li>「案内」を選ぶと、Apple の「マップ」アプリに目的地を渡します。</li>
-<li>目的地検索の結果は画面表示にのみ使い、MannerPath のサーバーには送りません。</li>
+<li>目的地検索の結果は、目的地付近の場所の表示に使います。目的地名、検索語、正確な目的地の座標は MannerPath のサーバーに送りません。目的地を選ぶと、その座標から端末上で計算した地域の番号（タイル ID）をサーバーに送り、公開済みの場所データを取得します。要求の対象地域は推測できますが、端末の現在地とは限りません。</li>
 <li>Apple による情報の取り扱いは、Apple のプライバシーポリシーに従います。</li>
 </ul>
 
@@ -107,7 +107,7 @@
 <ul>
 <li>Maps, destination search and walking-route previews use Apple MapKit, which may exchange location and request information, such as search terms, with Apple's services.</li>
 <li>Choosing directions hands the destination to Apple's Maps app.</li>
-<li>Destination search results are used only on screen and are not sent to MannerPath's server.</li>
+<li>Destination search results are used to show places near the selected destination. Destination names, search text and exact destination coordinates are not sent to MannerPath's server. Selecting a destination sends geographic tile IDs computed on your device from that coordinate to fetch published place data. The requested area can be inferred, but it need not be your device's current location.</li>
 <li>Apple handles this information under Apple's privacy policy.</li>
 </ul>
 

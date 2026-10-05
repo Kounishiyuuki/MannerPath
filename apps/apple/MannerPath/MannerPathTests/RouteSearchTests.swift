@@ -188,9 +188,10 @@ struct RouteSearchTests {
         #expect(await waitUntil { router.requests.count == 1 })
         let moved = SpotCoordinate(latitude: 35, longitude: 139.0002)
         location.send(.usable(deviceLocation(moved)))
-        #expect(model.routeState == .unavailable)
+        #expect(model.routeState == .loading)
         #expect(model.routeResults.first?.detourSeconds == nil)
-        #expect(await waitUntil { model.resultsLocation?.coordinate == moved })
+        #expect(model.displayLocation?.coordinate == moved)
+        #expect(model.resultsArea?.coordinate == destination)
         #expect(await waitUntil { router.requests.count == 2 })
         router.succeed(0, seconds: 100)
         #expect(await waitUntil { router.completed.contains(0) })
@@ -224,14 +225,78 @@ struct RouteSearchTests {
         #expect(model.results.map(\.spot.id) == ["cached"])
         model.selectDestination(current)
         #expect(model.destinationMatches.isEmpty)
-        #expect(model.results.map(\.spot.id) == ["cached"])
+        #expect(await waitUntil { model.results.map(\.spot.id) == ["cached"] })
         model.selectDestination(nil)
         #expect(model.destination == nil)
-        #expect(model.results.map(\.spot.id) == ["cached"])
+        #expect(await waitUntil { model.results.map(\.spot.id) == ["cached"] })
+    }
+
+    @Test func destinationUnavailableCopyUsesActualDeviceFreshness() async throws {
+        let location = TestLocation(state: .usable(DeviceLocation(coordinate: origin, timestamp: .now,
+            horizontalAccuracyMeters: 10, isApproximate: false, isLastKnown: true)))
+        let router = ImmediateRouter()
+        let model = try makeModel(spots: [spot("saved", offset: 0.001)], router: router, location: location)
+        model.selectDestination(place(destination))
+        #expect(await waitUntil { model.resultsArea?.isDestination == true })
+        #expect(model.resultsLocation == nil)
+        #expect(model.routeUnavailableDescription == String(localized: "A current location is needed for walking detours. Showing straight-line distance and bearing."))
+        #expect(router.requests.isEmpty)
+        location.send(.denied)
+        #expect(model.routeUnavailableDescription == String(localized: "A current location is needed for walking detours. Showing straight-line distance and bearing."))
+        location.send(.usable(deviceLocation(origin)))
+        #expect(await waitUntil { model.routeState == .ready })
+        #expect(model.routeUnavailableDescription == String(localized: "Walking routes unavailable. Showing saved places by straight-line distance and bearing."))
+    }
+
+    @Test func walkingDistanceGatePreservesLocalRoutingButSkipsIntercontinentalRequests() async throws {
+        let router = ImmediateRouter()
+        let location = TestLocation(state: .usable(deviceLocation(origin)))
+        let model = try makeModel(spots: [spot("saved", offset: 0.001)], router: router, location: location)
+        model.selectDestination(place(destination))
+        #expect(await waitUntil { model.routeState == .ready })
+        let before = router.requests.count
+        location.send(.usable(deviceLocation(SpotCoordinate(latitude: 37.323, longitude: -122.032))))
+        try await Task.sleep(for: .milliseconds(350))
+        #expect(router.requests.count == before)
+        #expect(model.routeState == .unavailable)
+        #expect(model.results.map(\.spot.id) == ["saved"])
+        #expect(model.routeResults.first?.detourSeconds == nil)
+        #expect(RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination))
+        #expect(!RouteDetourRanker.canRequestWalkingDetours(from: origin, to: SpotCoordinate(latitude: 35, longitude: 140)))
+        #expect(!RouteDetourRanker.canRequestWalkingDetours(from: origin, to: SpotCoordinate(latitude: .nan, longitude: 139)))
+    }
+
+    @Test func walkingDistanceGateIncludesItsBoundary() {
+        let measured = NearbySearch.straightLineDistance(from: origin, to: destination)
+        let within = SpotCoordinate(latitude: origin.latitude,
+            longitude: origin.longitude + (destination.longitude - origin.longitude) *
+                (RouteDetourRanker.maximumWalkingDetourDistanceMeters - 1) / measured)
+        let beyond = SpotCoordinate(latitude: origin.latitude,
+            longitude: origin.longitude + (destination.longitude - origin.longitude) *
+                (RouteDetourRanker.maximumWalkingDetourDistanceMeters + 1) / measured)
+        #expect(RouteDetourRanker.canRequestWalkingDetours(from: origin, to: within))
+        #expect(!RouteDetourRanker.canRequestWalkingDetours(from: origin, to: beyond))
+        #expect(RouteDetourRanker.canRequestWalkingDetours(from: origin, to: origin))
     }
 
     private func ids(_ spots: [Spot], filters: NearbyFilters) -> [String] {
         NearbySearch.rank(spots, from: origin, filters: filters, at: .now).map(\.spot.id)
+    }
+
+    @Test func destinationSearchFailurePreservesSelectedAreaAndItsSavedSpots() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [spot("cached", offset: 0.001)], search: search)
+        #expect(await waitUntil { model.results.count == 1 })
+        let selected = place(destination)
+        model.selectDestination(selected)
+        #expect(await waitUntil { model.dataState == .cacheOnly })
+        model.searchDestination("unavailable")
+        #expect(await waitUntil { search.queries.count == 1 })
+        search.fail(0)
+        #expect(await waitUntil { model.destinationSearchFailed })
+        #expect(model.destination == selected)
+        #expect(model.resultsArea?.coordinate == destination)
+        #expect(model.results.map(\.spot.id) == ["cached"])
     }
 
     private func hours(status: SpotOpeningHours.Status, kind: SpotParsedOpeningHours.Kind,
@@ -350,5 +415,8 @@ private final class ControlledDestinationSearch: DestinationSearching {
     }
     func succeed(_ index: Int, matches: [PlaceDestination]) {
         pending.removeValue(forKey: index)?.resume(returning: matches)
+    }
+    func fail(_ index: Int) {
+        pending.removeValue(forKey: index)?.resume(throwing: TestRouteError.unavailable)
     }
 }
