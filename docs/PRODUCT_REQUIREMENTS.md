@@ -125,6 +125,9 @@ not approve photo intake and #124 still gates publication. Photos never supply E
 or establish permission to smoke, and the ordinary report flow remains unchanged with the feature off.
 
 - destination search and route-detour ranking;
+- selecting a destination loads only that area's published tiles and ranks its spots from the destination;
+  clearing it restores device-location discovery. MapKit results are ephemeral search coordinates, never spots.
+  Walking-route origins remain the device location; destination browsing is not sent to Watch/widgets as nearby data.
 - favorites/recent spots stored locally;
 - cached region management;
 - explicit offline state UI.

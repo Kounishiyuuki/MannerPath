@@ -9,6 +9,7 @@ struct SpotDetailView: View {
     let nearbySources: [SpotSource]
     let reportAvailability: ReportAvailability
     let hasSavedReport: Bool
+    var distanceFromDestination = false
     /// ADR-0013: start a structured report of this type about this place.
     let onReport: (ReportType) -> Void
     /// ADR-0013 one-tap "it was here".
@@ -40,7 +41,9 @@ struct SpotDetailView: View {
                 }
                 detailText("Bearing", SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))
             } footer: {
-                Text(estimateFromPreviousLocation
+                Text(distanceFromDestination
+                     ? "Distance and bearing are estimates from the selected destination, not your device location or a walking route."
+                     : estimateFromPreviousLocation
                      ? "Distance and bearing are estimates from a previous device location, not a walking route."
                      : "Distance and bearing are estimates from your device location, not a walking route.")
             }

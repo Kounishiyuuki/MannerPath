@@ -41,6 +41,7 @@ struct AboutPrivacyView: View {
                 Label("Your current location is used on this device to rank nearby places and calculate distance and direction.", systemImage: "location")
                 Label("MannerPath does not intentionally save a history of your locations.", systemImage: "clock.arrow.circlepath")
                 Text("Downloading place data sends geographic tile IDs, rather than raw device GPS coordinates, to MannerPath's service. Network services may process IP addresses and request information.")
+                Text("Selecting a destination downloads place data for that area using tile IDs. The destination name, search text and exact coordinate are not sent to MannerPath's service.")
                 Text("Apple MapKit search and routing, and system Maps, may communicate location and request information with Apple's services.")
                 Label("With cached data and a usable location, saved places, straight-line distance and direction remain available offline. Offline walking routes are not provided.", systemImage: "internaldrive")
             }

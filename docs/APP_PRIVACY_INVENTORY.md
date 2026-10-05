@@ -51,6 +51,18 @@ SDK, no IDFA, no `identifierForVendor`.
   `NearbySearch.rank` on-device; `PhoneGlancePublisher` writes the nearest place to the App Group file for the
   widget (on-device). Tile requests send a tile id, not the coordinate (`Core/Networking/TileAPIClient.swift`,
   `v1/tiles/{z}/{x}/{y}`, `SlippyTile.supportedDataZooms = 14...16`).
+- **Destination-area browsing** — `NearbyModel` computes the selected destination's 3×3 tile neighborhood,
+  using the same config/ETag/part/cache client. MannerPath receives those geographic tile IDs, not the
+  destination name, search query, exact destination coordinate or raw device GPS. MapKit search/routing still
+  communicates with Apple. The selection is in-memory, not saved as a spot or shared to Watch/widget nearby
+  state. Cached **published tiles** remain on-device for offline use. A requested area can reveal a place of
+  interest but is not proof the device is there; no new identifier, analytics SDK or reporting collection is added.
+  Existing coarse-location/Product Interaction conservative proposals and provider UNKNOWNs are not resolved
+  by this change; Precise Location remains a proposal, not an observed GPS-upload claim.
+  The live policy checked 2026-10-05 said destination results were only used on screen/not sent. The repository
+  policy now narrows that sentence to names/queries/exact coordinates and explicitly discloses derived tile IDs
+  in Japanese/English; publish that policy clarification before distributing this changed app. This PR does not
+  publish the site or approve ASC inputs. In-app Data & Privacy carries the same explanation.
 - **Report pin** — `ReportRequest.proposedLocation` (`Features/Reports/ReportDomain.swift`) is a pin the user
   places on a map, quantized to 5 decimals (`ReportCoordinate.quantized`). It is not the device GPS fix.
 - **Note / claims** — `ReportRequest.note`, claim fields. The retention pass

@@ -6,6 +6,117 @@ import Testing
 struct NearbyLocationModelTests {
     private let origin = SpotCoordinate(latitude: 35.7112, longitude: 139.77377)
 
+    @Test func destinationLoadsOnlyItsNeighborhoodAndClearRestoresDeviceArea() async throws {
+        let far = SpotCoordinate(latitude: 34.68, longitude: 135.5)
+        let homeTile = try tile(at: origin)
+        let farTile = try tile(at: far)
+        let store = FakeTileData(cached: [homeTile.id: [spot("home", at: origin, tile: homeTile)],
+                                        farTile.id: [spot("destination", at: far, tile: farTile)]])
+        let model = NearbyModel(location: FakeLocationProvider(state: .usable(deviceLocation(at: origin))),
+                                repository: store, refresher: store)
+        #expect(await waitUntil { model.dataState == .refreshed })
+        #expect(model.results.map(\.spot.id) == ["home"])
+        let before = await store.refreshCount()
+        model.selectDestination(PlaceDestination(id: UUID(), name: "Far", coordinate: far))
+        #expect(model.results.isEmpty)
+        #expect(await waitUntil { model.dataState == .refreshed })
+        #expect(model.results.map(\.spot.id) == ["destination"])
+        #expect(model.resultsArea?.coordinate == far)
+        #expect(model.resultsLocation == nil)
+        #expect(model.displayLocation?.coordinate == origin)
+        #expect(Set(Array((await store.refreshedTileIDs()).dropFirst(before))) == Set(farTile.neighborhood3x3().map(\.id)))
+        model.selectDestination(nil)
+        #expect(await waitUntil { model.dataState == .refreshed })
+        #expect(model.results.map(\.spot.id) == ["home"])
+        #expect(model.resultsLocation?.coordinate == origin)
+    }
+
+    @Test func rapidDestinationsIgnoreLateResponseAndNeverPublishDestinationToCompanions() async throws {
+        let first = SpotCoordinate(latitude: 34.68, longitude: 135.5)
+        let second = SpotCoordinate(latitude: 35.01, longitude: 135.77)
+        let homeTile = try tile(at: origin)
+        let firstTile = try tile(at: first)
+        let secondTile = try tile(at: second)
+        let gate = RefreshGate()
+        let store = FakeTileData(cached: [homeTile.id: [spot("home", at: origin, tile: homeTile)],
+                                         secondTile.id: [spot("second", at: second, tile: secondTile)]],
+                                 replacements: [firstTile.id: [spot("late-first", at: first, tile: firstTile)]],
+                                 gate: gate, gatedTiles: Set(firstTile.neighborhood3x3().map(\.id)))
+        let location = FakeLocationProvider(state: .usable(deviceLocation(at: origin)))
+        let model = NearbyModel(location: location, repository: store, refresher: store)
+        #expect(await waitUntil { model.dataState == .refreshed })
+        var watchOrigins: [SpotCoordinate] = []
+        var glanceOrigins: [SpotCoordinate] = []
+        model.onCachedCorpusChange = { _, _, coordinate in watchOrigins.append(coordinate) }
+        model.onCachedGlanceChange = { _, location in glanceOrigins.append(location.coordinate) }
+        model.selectDestination(PlaceDestination(id: UUID(), name: "First", coordinate: first))
+        #expect(await waitUntil { (await store.refreshedTileIDs()).contains(firstTile.id) })
+        model.selectDestination(PlaceDestination(id: UUID(), name: "Second", coordinate: second))
+        #expect(await waitUntil { model.dataState == .refreshed && model.resultsArea?.coordinate == second })
+        location.send(.usable(deviceLocation(at: origin)))
+        await gate.release()
+        #expect(await waitUntil { (await store.cachedSpotIDs(in: firstTile.id)) == ["late-first"] })
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(model.results.map(\.spot.id) == ["second"])
+        #expect(model.resultsArea?.coordinate == second)
+        #expect(watchOrigins.isEmpty)
+        #expect(glanceOrigins.isEmpty)
+        model.publishCachedCorpusForWatch()
+        #expect(watchOrigins == [origin])
+        #expect(glanceOrigins == [origin])
+        location.send(.denied)
+        model.publishCachedCorpusForWatch()
+        #expect(watchOrigins == [origin])
+        #expect(glanceOrigins == [origin])
+        #expect(model.resultsArea?.coordinate == second)
+    }
+
+    @Test func destinationFailureKeepsOnlyDestinationCacheAndNotPreviousArea() async throws {
+        let far = SpotCoordinate(latitude: 34.68, longitude: 135.5)
+        let empty = SpotCoordinate(latitude: 40, longitude: -74)
+        let homeTile = try tile(at: origin)
+        let farTile = try tile(at: far)
+        let emptyTile = try tile(at: empty)
+        let store = FakeTileData(cached: [homeTile.id: [spot("home", at: origin, tile: homeTile)],
+                                         farTile.id: [spot("saved-destination", at: far, tile: farTile)]],
+                                 failing: Set((farTile.neighborhood3x3() + emptyTile.neighborhood3x3()).map(\.id)))
+        let model = NearbyModel(location: FakeLocationProvider(state: .usable(deviceLocation(at: origin))),
+                                repository: store, refresher: store)
+        #expect(await waitUntil { model.dataState == .refreshed })
+        model.selectDestination(PlaceDestination(id: UUID(), name: "Far", coordinate: far))
+        #expect(await waitUntil { model.dataState == .refreshFailed })
+        #expect(model.results.map(\.spot.id) == ["saved-destination"])
+        model.selectDestination(PlaceDestination(id: UUID(), name: "Uncached", coordinate: empty))
+        #expect(model.results.isEmpty)
+        #expect(await waitUntil { model.dataState == .refreshFailed })
+        #expect(model.results.isEmpty)
+    }
+
+    @Test func offlineDestinationWorksWithoutLocationPermissionAndClearWaitsForLocation() async throws {
+        let destinationTile = try tile(at: origin)
+        let store = FakeTileData(cached: [destinationTile.id: [spot("offline", at: origin, tile: destinationTile)]],
+                                 prepareFails: true)
+        let model = NearbyModel(location: FakeLocationProvider(state: .denied), repository: store, refresher: store)
+        model.selectDestination(PlaceDestination(id: UUID(), name: "Saved", coordinate: origin))
+        #expect(await waitUntil { model.dataState == .refreshFailed })
+        #expect(model.results.map(\.spot.id) == ["offline"])
+        #expect(await store.refreshCount() == 0)
+        #expect(model.displayLocation == nil)
+        #expect(model.resultsArea?.isDestination == true)
+        model.selectDestination(nil)
+        #expect(model.results.isEmpty)
+        #expect(model.resultsArea == nil)
+        #expect(model.dataState == .waitingForLocation)
+    }
+
+    @Test func reportingEmptyStateInvitationRequiresAvailableReports() {
+        for availability in [ReportAvailability.unknown, .unavailable, .incompatible, .attestationUnsupported] {
+            #expect(NearbyEmptyStateCopy.description(for: availability) == String(localized: "Coverage varies by area. Only published places are shown."))
+        }
+        let limits = ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096)
+        #expect(NearbyEmptyStateCopy.description(for: .available(limits)) == String(localized: "If you know a smoking place here, you can add it for review."))
+    }
+
     @Test func permissionIsRequestedOnlyByExplicitAction() async {
         let location = FakeLocationProvider(state: .notDetermined)
         let store = FakeTileData()

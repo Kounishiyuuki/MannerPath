@@ -571,3 +571,44 @@ final class I_ProductionAPIUITests: MannerPathUITestCase {
         assertNoDeveloperText()
     }
 }
+
+final class J_ProductionDestinationUITests: MannerPathUITestCase {
+    func testOutsideJapanDestinationLoadsPublishedTokyoPlaces() {
+        launch()
+        XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
+        XCTAssertEqual(resultRows.count, 0)
+        XCTAssertFalse(text("この付近の喫煙場所を知っていれば、審査用に追加できます。").exists)
+        let search = app.textFields["Appleマップで目的地を検索"]
+        scrollTo(search)
+        XCTAssertTrue(search.exists)
+        search.tap()
+        search.typeText("浅草駅 東京\n")
+        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        XCTAssertTrue(match.waitForExistence(timeout: 40), "Real MapKit search returned no destination")
+        scrollTo(match)
+        match.tap()
+        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40), "Destination tiles produced no published places")
+        XCTAssertTrue(app.descendants(matching: .any)["nearbyMap"].exists)
+        screenshot("80-production-destination")
+        let first = resultRows.firstMatch
+        scrollTo(first)
+        first.tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        XCTAssertTrue(text("距離と方角は選択した目的地を基準にした目安です。端末の現在地からの距離や徒歩ルートではありません。").exists)
+        let attribution = app.buttons["情報源と法的な出典表示"]
+        scrollTo(attribution)
+        attribution.tap()
+        XCTAssertTrue(app.navigationBars["情報源"].waitForExistence(timeout: 10))
+        XCTAssertTrue(textContaining("台東区").exists)
+        XCTAssertTrue(text("ライセンス").exists)
+        screenshot("81-production-destination-attribution")
+        assertNoDeveloperText()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let clear = app.buttons["消去"]
+        scrollTo(clear)
+        clear.tap()
+        XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30))
+        XCTAssertEqual(resultRows.count, 0, "Destination places must not remain in the device-area list")
+    }
+}

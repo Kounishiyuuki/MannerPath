@@ -188,9 +188,10 @@ struct RouteSearchTests {
         #expect(await waitUntil { router.requests.count == 1 })
         let moved = SpotCoordinate(latitude: 35, longitude: 139.0002)
         location.send(.usable(deviceLocation(moved)))
-        #expect(model.routeState == .unavailable)
+        #expect(model.routeState == .loading)
         #expect(model.routeResults.first?.detourSeconds == nil)
-        #expect(await waitUntil { model.resultsLocation?.coordinate == moved })
+        #expect(model.displayLocation?.coordinate == moved)
+        #expect(model.resultsArea?.coordinate == destination)
         #expect(await waitUntil { router.requests.count == 2 })
         router.succeed(0, seconds: 100)
         #expect(await waitUntil { router.completed.contains(0) })
@@ -224,14 +225,30 @@ struct RouteSearchTests {
         #expect(model.results.map(\.spot.id) == ["cached"])
         model.selectDestination(current)
         #expect(model.destinationMatches.isEmpty)
-        #expect(model.results.map(\.spot.id) == ["cached"])
+        #expect(await waitUntil { model.results.map(\.spot.id) == ["cached"] })
         model.selectDestination(nil)
         #expect(model.destination == nil)
-        #expect(model.results.map(\.spot.id) == ["cached"])
+        #expect(await waitUntil { model.results.map(\.spot.id) == ["cached"] })
     }
 
     private func ids(_ spots: [Spot], filters: NearbyFilters) -> [String] {
         NearbySearch.rank(spots, from: origin, filters: filters, at: .now).map(\.spot.id)
+    }
+
+    @Test func destinationSearchFailurePreservesSelectedAreaAndItsSavedSpots() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [spot("cached", offset: 0.001)], search: search)
+        #expect(await waitUntil { model.results.count == 1 })
+        let selected = place(destination)
+        model.selectDestination(selected)
+        #expect(await waitUntil { model.dataState == .cacheOnly })
+        model.searchDestination("unavailable")
+        #expect(await waitUntil { search.queries.count == 1 })
+        search.fail(0)
+        #expect(await waitUntil { model.destinationSearchFailed })
+        #expect(model.destination == selected)
+        #expect(model.resultsArea?.coordinate == destination)
+        #expect(model.results.map(\.spot.id) == ["cached"])
     }
 
     private func hours(status: SpotOpeningHours.Status, kind: SpotParsedOpeningHours.Kind,
@@ -350,5 +367,8 @@ private final class ControlledDestinationSearch: DestinationSearching {
     }
     func succeed(_ index: Int, matches: [PlaceDestination]) {
         pending.removeValue(forKey: index)?.resume(returning: matches)
+    }
+    func fail(_ index: Int) {
+        pending.removeValue(forKey: index)?.resume(throwing: TestRouteError.unavailable)
     }
 }

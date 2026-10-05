@@ -1,6 +1,27 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Recenter on destination": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "目的地付近に戻す" } } }
+    },
+    "Updating destination places; distances use the selected destination…": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "目的地付近の場所を更新中です。距離は選択した目的地を基準にしています…" } } }
+    },
+    "Places near your destination": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "目的地付近の場所" } } }
+    },
+    "Straight-line distances and bearings below are from the selected destination, not your device location.": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "以下の直線距離と方角は、端末の現在地ではなく、選択した目的地を基準にしています。" } } }
+    },
+    "Distance and bearing are estimates from the selected destination, not your device location or a walking route.": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "距離と方角は選択した目的地を基準にした目安です。端末の現在地からの距離や徒歩ルートではありません。" } } }
+    },
+    "Coverage varies by area. Only published places are shown.": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "掲載範囲は地域によって異なります。公開済みの場所のみ表示します。" } } }
+    },
+    "Selecting a destination downloads place data for that area using tile IDs. The destination name, search text and exact coordinate are not sent to MannerPath's service.": {
+      "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "目的地を選ぶと、その地域のタイルIDを使って場所情報を取得します。目的地名、検索語、正確な座標はMannerPathのサービスに送信しません。" } } }
+    },
     "Downloading place data sends geographic tile IDs, rather than raw device GPS coordinates, to MannerPath's service. Network services may process IP addresses and request information.": {
       "localizations": {
         "ja": {
