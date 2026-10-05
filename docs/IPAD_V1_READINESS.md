@@ -71,6 +71,9 @@ XCTest screenshots taken in landscape were cropped/black-banded; direct simulato
 
 ## 6. App Icon — exact missing state (P0, artwork from maintainer)
 
+Update 2026-10-05 (distribution readiness): the iPhone `AppIcon.appiconset` slot and the iPhone
+`ASSETCATALOG_COMPILER_APPICON_NAME` were added; only the artwork remains. The table below is the state at audit time.
+
 | Target | Asset catalog | `ASSETCATALOG_COMPILER_APPICON_NAME` | Missing |
 | --- | --- | --- | --- |
 | MannerPath (iPhone app) | `MannerPath/Assets.xcassets` contains only `AccentColor.colorset` | **not set** (Debug and Release) | an `AppIcon.appiconset` with a 1024 × 1024 iOS universal image (optional dark and tinted variants), and the build setting `AppIcon` on both configurations |

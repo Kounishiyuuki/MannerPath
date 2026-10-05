@@ -487,7 +487,7 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 
 | Blocker / decision | Evidence to close / owner |
 | --- | --- |
-| **App icon (P0, found 2026-10-05)** | iPhone asset catalog has no `AppIcon` set and the Watch `AppIcon` slot is empty; maintainer supplies rights-cleared 1024 × 1024 artwork, Claude Code adds it, archive verifies ([entry sheet §8](APP_STORE_CONNECT_ENTRY.md)) |
+| **App icon (P0, found 2026-10-05)** | Plumbing ready (iPhone and Watch `AppIcon` sets and settings; empty 1024 slots); maintainer supplies rights-cleared 1024 × 1024 artwork and the archive must show `CFBundleIcons` ([distribution readiness](APPLE_DISTRIBUTION_READINESS.md)) |
 | iPad keep/remove — **resolved 2026-10-05** | v1 is iPhone + Apple Watch only; iPad audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) |
 | Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
