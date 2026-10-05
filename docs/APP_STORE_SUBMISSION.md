@@ -30,8 +30,8 @@ maintainer markers below into App Store Connect. Save evidence and the final ans
       If EU availability is selected, complete applicable trader/compliance information; do not infer trader status.
 - [ ] iOS App → version 1.0: choose the processed release build; confirm version/build numbers match the archive;
       fill description, keywords, optional promotional text, support URL, optional marketing URL and copyright (§6).
-- [ ] Upload localized iPhone **and iPad** screenshots plus Apple Watch assets (§9); inspect Media Manager.
-      Both app Release device families `1,2` are currently supported. Widgets have no separate store listing.
+- [ ] Upload localized iPhone screenshots plus Apple Watch assets (§9); inspect Media Manager.
+      v1 is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`, maintainer decision 2026-10-05); no iPad set. Widgets have no separate store listing.
 - [ ] App Review Information: Sign-in Required **No**, contact first/last name, reachable phone/email,
       final notes and review instructions (§7); attach a short flow video if geographic access is difficult.
 - [ ] Version release: recommend **Manual release**, allowing final backend/privacy checks after approval.
@@ -358,8 +358,8 @@ Use actual final-build UI, no synthetic permitted-place data or disabled reports
 - [ ] iPhone: recommend 6.9-inch portrait **1320 × 2868**; verify accepted well at upload.
       Apple currently accepts alternatives 1260 × 2736 and 1290 × 2796 for that set.
       If no 6.9-inch set, supply required 6.5-inch set; consult live table, not a remembered device name.
-- [ ] iPad: app Release `TARGETED_DEVICE_FAMILY = "1,2"`; supply required 13-inch set,
-      **2064 × 2752** or **2048 × 2732** portrait (landscape swapped), captured on actual iPad UI.
+- [x] iPad: not required. v1 is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`); iPad runs it in iPhone compatibility mode
+      ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)). Native iPad support is reconsidered after v1.
 - [ ] Apple Watch: supply screenshot set in Media Manager for shipping Watch app; all captures in a set use
       one supported size across **all localizations**. Recommend **416 × 496** for a matching tested
       Series 10/11/12 capture; alternatives include 422 × 514 and 410 × 502. Verify the actual device/table.
@@ -404,12 +404,12 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 | Blocker / decision | Evidence to close / owner |
 | --- | --- |
 | **App icon (P0, found 2026-10-05)** | iPhone asset catalog has no `AppIcon` set and the Watch `AppIcon` slot is empty; maintainer supplies rights-cleared 1024 × 1024 artwork, Claude Code adds it, archive verifies ([entry sheet §8](APP_STORE_CONNECT_ENTRY.md)) |
-| iPad keep/remove | `TARGETED_DEVICE_FAMILY = 1,2` needs iPad screenshots and an iPad visual audit, or narrowing to iPhone before upload |
+| iPad keep/remove — **resolved 2026-10-05** | v1 is iPhone + Apple Watch only; iPad audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) |
 | Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
 | First-v1 reports/auth/photos off | Maintainer signs deployment decision and captures §2.4 checks; community stays pending |
 | Production backend / selected data rights | Follow #170 [release checklist](RELEASE_CHECKLIST.md); record HTTPS host, final bundle/source attribution; no source research required |
-| Signed distribution archive / physical device evidence | Developer Program, provisioning/App Groups, iPhone/iPad/Watch/widget E2E, TestFlight and final privacy report |
+| Signed distribution archive / physical device evidence | Developer Program, provisioning/App Groups, iPhone/Watch/widget E2E, TestFlight and final privacy report |
 | Age answers / minimum age / storefronts | Maintainer confirms Frequent recommendation, calculated/regional ratings, Japan-first recommendation and eligibility/EULA policy |
 | Export exemption | Maintainer checks final linked code/territories and ASC result; do not substitute “no encryption” |
 | Screenshots and reviewer populated-area access | Actual final UI captures, sizes, tested location/steps and reviewed Notes without markers |
