@@ -5,6 +5,9 @@ Target: mid-October 2026. Checked 2026-10-04 against `origin/main` **d511f1a**,
 which includes #170 / #171 / #172. Apple rules can change: recheck the linked pages at submission.
 This is an engineering recommendation, not legal advice or a guarantee of App Review approval.
 
+**Entry sheet (2026-10-05):** [APP_STORE_CONNECT_ENTRY.md](APP_STORE_CONNECT_ENTRY.md) lists every ASC value as
+CONFIRMED / MAINTAINER / WAITING-PRODUCTION / BLOCKED-DEVELOPER-PROGRAM, in entry order. It found a **P0**: no app icon.
+
 Scope: App Store Connect inputs and release evidence. No Apple code change, production deployment,
 source research, or community activation. No OpenPOI / Overture additions or OSM adoption.
 The recommended first release is **read-only: reports, App Attest registration and photos unavailable**.
@@ -400,6 +403,8 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 
 | Blocker / decision | Evidence to close / owner |
 | --- | --- |
+| **App icon (P0, found 2026-10-05)** | iPhone asset catalog has no `AppIcon` set and the Watch `AppIcon` slot is empty; maintainer supplies rights-cleared 1024 × 1024 artwork, Claude Code adds it, archive verifies ([entry sheet §8](APP_STORE_CONNECT_ENTRY.md)) |
+| iPad keep/remove | `TARGETED_DEVICE_FAMILY = 1,2` needs iPad screenshots and an iPad visual audit, or narrowing to iPhone before upload |
 | Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
 | First-v1 reports/auth/photos off | Maintainer signs deployment decision and captures §2.4 checks; community stays pending |
