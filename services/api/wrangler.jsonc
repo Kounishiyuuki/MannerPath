@@ -1,10 +1,9 @@
 // Worker configuration. The top level is the LOCAL development environment; `env.staging` and
 // `env.production` are the staging / production-like shapes described in `../../docs/OPERATIONS.md`.
 //
-// No environment here can reach a real database: every `database_id` is a placeholder (all zeros for the canonical
-// `DB`, all zeros but a final 1 for `REPORTS_DB`, so the two never share local state), and a `--remote` or `deploy`
-// command fails until a maintainer creates the database and lands the real ID in a reviewed change
-// (`services/AGENTS.md`). That is deliberate, and `test/deploy-config.test.ts` enforces it.
+// Local and staging retain placeholder database IDs. Production binds the separately provisioned databases;
+// `test/deploy-config.test.ts` pins their IDs for review. Remote migrations, writes and deployment remain
+// separate maintainer actions (`../../docs/RELEASE_CHECKLIST.md` §3).
 //
 // Two D1 bindings (ADR-0014). `DB` is the canonical DATA_DB: tiles, spots, provenance, publication; it is replaced by
 // every blue/green cutover, and a cutover changes ONLY this binding. `REPORTS_DB` is the durable report store:
@@ -90,13 +89,13 @@
         {
           "binding": "DB",
           "database_name": "mannerpath-production",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "ffbaea1e-b57e-4064-abeb-a0c53f459662",
           "migrations_dir": "migrations"
         },
         {
           "binding": "REPORTS_DB",
           "database_name": "mannerpath-production-reports",
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "e641b1df-8042-4522-8463-804c6ba57868",
           "migrations_dir": "migrations-reports"
         }
       ]

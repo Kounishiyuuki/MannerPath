@@ -107,7 +107,7 @@ export async function releasePreflight(o: PreflightOptions): Promise<PreflightRe
   const launch = [
     `# First launch: ${db.database_name} is empty and not yet served, so the binding form addresses it. For a later`,
     `# data release use blue/green instead (docs/OPERATIONS.md step 6): never import into the live database.`,
-    `npx wrangler r2 bucket create ${bucket}            # once per environment; the deploy fails without the bound bucket`,
+    `npx wrangler r2 bucket info ${bucket}            # expect: the provisioned bucket exists; stop if this check fails`,
     `npx wrangler d1 migrations apply DB ${e}`,
     `npx wrangler d1 migrations list DB ${e}            # expect: no pending migrations`,
     `npx wrangler d1 migrations apply REPORTS_DB ${e}`,

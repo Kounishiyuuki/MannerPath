@@ -60,13 +60,13 @@ Invocation logs stay disabled (`test/deploy-config.test.ts`); no other variable 
 ## 3. Production launch steps (maintainer)
 
 Read-only v1 needs the canonical `DB` with data and a migrated, empty `REPORTS_DB` (the binding is part of the
-committed environment; report routes stay `503`). Steps 1–4 are local; `release:preflight` then prints the remote
+committed environment; report routes stay `503`). Step 1 provisions remote resources; steps 2–4 are local. `release:preflight` then prints the remote
 steps with every path, digest and expected value filled in, and opens no connection.
 
 1. Create both databases and land their ids (the only Cloudflare values the repository needs):
    `npx wrangler d1 create mannerpath-production` and `npx wrangler d1 create mannerpath-production-reports`, plus the
-   bound R2 bucket `npx wrangler r2 bucket create mannerpath-raw-artifacts-production` (the preflight also prints it;
-   `wrangler deploy` fails if a bound bucket does not exist). Land both
+   bound R2 bucket `npx wrangler r2 bucket create mannerpath-raw-artifacts-production` once during provisioning.
+   The launch sequence only checks that this bucket exists; it never creates it again. Land both
    `database_id`s in `env.production` of `services/api/wrangler.jsonc` in one reviewed PR, relaxing
    `test/deploy-config.test.ts`'s placeholder assertion for `production` only in the same PR. Before opening it:
    `npm run release:preflight -- --env production --plan-dir <plan> --expected-digest <d> --expected-plan-digest <pd>
@@ -81,7 +81,9 @@ steps with every path, digest and expected value filled in, and opens no connect
 4. After the ids have landed: `npm run release:preflight -- --env production --plan-dir <plan> --expected-digest <d>
    --expected-plan-digest <pd> --worker-host <production host>` must print `PREFLIGHT OK`.
 5. Run the printed launch commands top to bottom in the maintainer terminal; each `# expect:` must match before the
-   next line: migrate `DB` and `REPORTS_DB` (nothing pending) → `initialize.sql` → manifest digest = reviewed digest
+   next line: confirm the provisioned bucket exists with `npx wrangler r2 bucket info mannerpath-raw-artifacts-production`
+   (stop if this read-only check fails; `wrangler deploy` requires the bound bucket) → migrate `DB` and `REPORTS_DB`
+   (nothing pending) → `initialize.sql` → manifest digest = reviewed digest
    → each chunk after its `next_chunk` check → re-verify the plan → `finalize.sql` → sealed = 1 → `wrangler deploy
    --env production` → remote smoke (readiness `completed`, every check ok, report gate `503`).
 6. Point the release build's `MANNERPATH_API_BASE_URL` at the production origin (HTTPS).
@@ -112,8 +114,8 @@ values (§2, §3 step 1). App Store submission also requires the production priv
 
 **Remaining P0:** none.
 
-**P1 before App Store submission (backend):** none open. Fixed in the release candidate: the preflight and §3 now
-create the bound R2 bucket, without which `wrangler deploy` fails.
+**P1 before App Store submission (backend):** none open. The bound R2 bucket is created once in §3 step 1;
+the preflight launch sequence checks its existence read-only before migrations and deployment, without repeating provisioning.
 
 **Remaining P1 (before report intake only; read-only v1 does not need them)**
 - Before report intake is enabled: schedule the daily retention pass against production REPORTS_DB (maintainer
