@@ -171,7 +171,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 - Content Rights for the final published corpus (release manifest and licenses).
 - Store screenshots with production data (§6).
 
-**BLOCKED-DEVELOPER-PROGRAM** (membership, signing, devices):
+**BLOCKED-DEVELOPER-PROGRAM** (membership, signing, devices; exact steps in [APPLE_DISTRIBUTION_READINESS.md](APPLE_DISTRIBUTION_READINESS.md) §4):
 
 - Active membership, agreements, App ID / App Group provisioning, App Attest entitlement environment.
 - Signed archive, upload, processed build, TestFlight; Xcode Privacy Report from the archive.
