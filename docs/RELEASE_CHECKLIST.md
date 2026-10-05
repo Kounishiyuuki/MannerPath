@@ -164,5 +164,10 @@ Provisioning/launch is completed: canonical D1 `mannerpath-production`, durable 
 `mannerpath-production-reports`, R2 `mannerpath-raw-artifacts-production` and the production Worker exist.
 Read-only audit reconfirms 513 published spots / 6 sources / community 0. Do not repeat provisioning or launch.
 Keep required attestation, reports/auth unavailable, photos off, crons empty and community inactive.
+Content Rights live evidence is now [CONFIRMED for corpus identity/licenses/API attribution](PRODUCTION_CONTENT_RIGHTS_AUDIT.md)
+(513 / six approved municipal sources / community 0; exact reviewed bundle/release matches).
+This does not approve the full necessary-rights declaration: Taito modification-notice P1 / Watch license-access gap remain,
+plus final signed iPhone/Watch attribution/asset checks and maintainer legal/storefront signoff.
+No registry, corpus, artifact or production changes are authorized by that audit.
 Repository policy wording corrections and revision dates updated 2026-10-05 and confirmed live; signed-build and evidence-dependent §2/§5/§9 details remain in the
 [audit handoff](PRODUCTION_PRIVACY_AUDIT.md).

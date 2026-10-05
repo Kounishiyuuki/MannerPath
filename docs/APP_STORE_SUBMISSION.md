@@ -298,13 +298,18 @@ Code/plist edits, if desired to automate the declaration, go to Claude Code (§1
 
 **Proposed answer:** Yes, the app contains/shows/accesses third-party content, and the operator has the necessary
 rights or permission for the selected storefronts **only after verifying the final published corpus**.
+The [2026-10-05 production Content Rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md) confirms
+513 published spots / six reviewed municipal sources / community 0 and exact release/license/API
+attribution matches. **Overall rights-condition completion is not approved:** Taito's recipient-facing
+modification indication remains a P1 evidence blocker, and Watch license access is unresolved; final signed-build/asset checks and maintainer
+legal/storefront/downstream-terms signoff are still required. This is not a legal violation finding.
 Do not answer “no third-party content”: official municipal data and Apple maps are third-party content.
 Apple's required rights standard: [App information / Content Rights](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/).
 
 | Content | Current repository status / release evidence needed |
 | --- | --- |
-| Official sources | Approved scoped publications in [SOURCES.md](SOURCES.md); review exact source/release digest, reuse terms, attribution/change notices and permitted downstream use in final promotion bundle |
-| Attribution | Source attribution is in API DTOs and iPhone/Watch detail/about surfaces; verify archive + final server response, including source and license links; maintain Apple MapKit attribution |
+| Official sources | CONFIRMED live exact six-source release SHA/license matches in [rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md); commercial sharing/derivation basis documented, with scoped exclusions retained |
+| Attribution | Six representative live API notices match registry/bundle; repository UI path preserves them. Taito change indication / Watch license access unresolved; final signed iPhone/Watch visual/link checks and Apple MapKit attribution still required |
 | User reports | `COMMUNITY_PUBLICATION` pending: source blocked; raw notes, hashes, keys and photos never public. No community rights assertion in first-v1 packet |
 | Candidate community terms | [Decision packet](legal/COMMUNITY_PUBLICATION_DECISION.md) is awaiting maintainer approval; not an effective production license |
 | OpenPOI / Overture candidates | Not introduced for this release; no new investigation or rights claim here |
@@ -313,6 +318,8 @@ Apple's required rights standard: [App information / Content Rights](https://dev
 
 [DATA_POLICY.md](DATA_POLICY.md) supplies the source/publication boundary. #170's local six-source/513-spot
 validation is evidence of a tested bundle, **not** proof of today's live production content or worldwide rights.
+Today's live corpus proof is the separate [production rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md),
+not a retroactive promotion of #170's local evidence to production evidence.
 Retain the exact release manifest/license evidence; withhold unapproved sources. Do not browse new data sources
 as part of closing this checklist.
 
