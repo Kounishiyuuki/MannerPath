@@ -133,7 +133,8 @@ struct ClusteredSpotMap: UIViewRepresentable {
 
         if regionRequest != coordinator.appliedRegionRequest, let region {
             coordinator.appliedRegionRequest = regionRequest
-            map.setRegion(region, animated: coordinator.hasAppliedRegion)
+            // Like the cluster zoom below: a programmatic move (destination, back to current location) honors Reduce Motion.
+            map.setRegion(region, animated: coordinator.hasAppliedRegion && !UIAccessibility.isReduceMotionEnabled)
             coordinator.hasAppliedRegion = true
         }
     }
