@@ -90,12 +90,12 @@ it is not permission to ignore diagnostics or identifiers present in logs.
 
 ### 2.3 Tile path + IP: Location collection?
 
-Latest evidence: [production privacy audit, 2026-10-05](PRODUCTION_PRIVACY_AUDIT.md). Committed settings/source
-were verified; refreshed OAuth succeeded. The configured production Worker and production-named D1
-resources are absent from the audited account, and R2 reports not enabled. Logpush inventory returned 403;
-analytics/retention and eventual live gates remain UNKNOWN / MANUAL CHECK. No “Data Not Collected” signoff is supported yet. Committed console logs are enabled (also observed
-in E2E inventory); production settings are unavailable. Framework exception logs remain possible even
-with invocation logs disabled.
+Latest evidence: [postdeployment privacy audit, 2026-10-05](PRODUCTION_PRIVACY_AUDIT.md), main `ae3bd0a`.
+Production version/bindings and live config/readiness are verified. Invocation logs are disabled; console
+logs are enabled and persisted, traces disabled, Worker Logpush false, tail consumers empty, crons empty.
+Account Logpush, plan and telemetry field discovery returned 403; Analytics Engine inventory returned 404.
+Provider retained fields, exports, historical data and applicable retention remain UNKNOWN / MANUAL CHECK.
+No “Data Not Collected” signoff is supported. Framework exceptions can still emit persisted diagnostics.
 
 Inference: z14–16 tile paths select a geographic area associated with the request. Retaining that path with IP
 beyond real-time service can collect Location, even without raw GPS or intentional history. Recommend Coarse
@@ -124,6 +124,12 @@ configuration, following [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Configuri
 collection without a new binary. Update labels, public policy and relevant manifest/build before activation.
 **CONSERVATIVE ANSWER:** if availability/registration cannot be proven off, use the enabled table and close
 that uncertainty before submission; do not advertise reports as disabled without evidence.
+
+Postdeployment check now confirms config false/false, required-but-unconfigured App Attest bindings,
+disabled photo composition and 0 current reports/keys/challenges/photos. GETs to POST-only intake paths
+return 404 and are not POST-gate tests; no audit submission/registration/photo probe was made. The earlier
+authorized launch smoke recorded report 503. Signed-build browsing traffic and provider/history/support
+questions remain open; this closes the backend intake-state uncertainty only.
 
 ### 2.5 If reports are enabled later — separate answers
 
@@ -459,16 +465,18 @@ Final classifications from [production audit](PRODUCTION_PRIVACY_AUDIT.md):
 | Usage Data / Product Interaction | UNKNOWN / SUBMISSION BLOCKER |
 | Crash Data | NOT COLLECTED in reviewed app instrumentation |
 
-No live production records confirm COLLECTED; no overall “Data Not Collected” approval. Production Worker
-is absent, so runtime gate/version checks and App Review backend readiness remain blocked. Photos/Crash
-answers still require signed archive / matching production deployment checks. Logpush/analytics/provider retention,
-alternate/historical data and support handling need maintainer evidence. The public bilingual policy is
-reachable; repository §2 live-server/logging wording was corrected on 2026-10-05 (live publication awaits Pages verification), and verified provider fields/retention
-are added after deployment. Do not submit
-until these gates and all UNKNOWN classifications are closed. Remote provisioning/deployment is separate work.
+No retained personal records confirm COLLECTED; no overall “Data Not Collected” approval. Postdeployment
+audit verifies backend version/settings, ready data (513 spots / 6 sources / community 0) and inactive
+report/auth/photo paths. Device ID and User Content intake uncertainty is closed only for these backend
+flows, not provider/history/support collection. Photos/Crash answers still require signed archive checks.
+Logpush/plan/field discovery 403, Analytics Engine 404, alternate/historical data and support handling
+remain maintainer evidence gaps. Corrected bilingual policy dated 2026-10-05 is verified live and has no
+observed runtime contradiction; evidenced fields/retention still need a focused policy follow-up.
+Do not submit until these gates and all UNKNOWN classifications are closed.
 
 Finalization against main `7d8cbab0ba28bc28eb17a56546f7f97b158b3841` incorporates #179's confirmed
 Release public-site origin, Privacy Policy/Support navigation, empty Debug origin and contact. Existing
 Privacy Label classifications above remain unchanged. Policy lane (2026-10-05): the repository policy no longer asserts a running server or live log settings; §2 now says providers may process/record IP and request information, error diagnostics may remain, and confirmed fields/retention will be added; §8/§9 disclose the Gmail support mailbox. Last updated 2026-10-05 (JA/EN). Still open: actual provider fields/retention after deployment, §5 gate/build evidence, mailbox retention.
-Next production lane separately provisions the two D1 databases and bound R2 bucket, reviews real IDs,
-applies approved migrations/promotion and deploys the production Worker; see audit's exact sequence.
+The earlier provisioning plan is completed by separately authorized launch/recovery work. Do not repeat
+resource creation, migrations, import or deployment for this audit. Current evidence supersedes earlier
+absence/publication-pending statements; owner signoff and signed-build/provider evidence remain required.
