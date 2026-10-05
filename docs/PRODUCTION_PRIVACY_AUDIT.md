@@ -1,4 +1,124 @@
-# Production privacy audit — read-only v2
+# Production privacy audit — read-only postdeployment
+
+## Current postdeployment evidence (2026-10-05 JST)
+
+This section supersedes the predeployment snapshot below for current production state and release
+recommendations. Audit source: main `ae3bd0aaffcf99b77fb57e0c7991b898e498ca50` (#183 landed).
+Account: `26b626fb954591ebe35313a5328cae0e`; origin:
+`https://mannerpath-api-production.happywestyuki.workers.dev`.
+**Runtime/settings gates resolved; provider retention/fields and final Privacy Label remain incomplete.**
+This audit performed no remote mutation, deployment, secret change, activation or log-setting change.
+
+### Deployed version and authenticated settings
+
+Wrangler 4.135.0 / Node 24.21.0 read-only deployment/version queries identify Worker
+`mannerpath-api-production`, deployment `d9be6cc8-b68a-4246-8a5d-78c37b67d6d0`, active version
+`893b2548-0871-4d75-ad20-369ab42911c6` at 100%, created `2026-10-05T06:28:20.382542Z`.
+The local launch receipt associates this version with the audited main; this is not signed Apple archive evidence.
+
+| Evidence | Observed current value |
+| --- | --- |
+| DB binding | `mannerpath-production`, `ffbaea1e-b57e-4064-abeb-a0c53f459662` |
+| REPORTS_DB binding | `mannerpath-production-reports`, `e641b1df-8042-4522-8463-804c6ba57868`; distinct from DB |
+| RAW_ARTIFACTS | `mannerpath-raw-artifacts-production` |
+| Vars / other bindings | `REPORT_ATTESTATION=required`; no App Attest configuration, secret, photo-store or Analytics Engine binding returned |
+| Observability | enabled; head sampling 1; `redact_query_string:false` |
+| Workers Logs | enabled; `persist:true`, sampling 1, **`invocation_logs:false`** |
+| Traces | `enabled:false`; returned persist/sampling defaults do not mean traces enabled |
+| Worker exports | `logpush:false`, `tail_consumers:[]`; account-wide exports are not established by this |
+| Schedules | `/schedules` HTTP 200, `schedules:[]` |
+
+Settings and schedules GETs returned HTTP 200. Installed Wrangler's authenticated API client was used
+without directly reading credential files; local evidence output contains only sanitized settings/counts.
+No token, raw IP, User-Agent value, customer record or destination credential was saved.
+
+### Live runtime and no-write gate verification
+
+- GET `/v1/config`: HTTP 200, `reports.available:false`, `reports.attestation:appAttest`,
+  `reports.photoEvidenceEnabled:false`. The advertised report schema is capability, not availability.
+- GET `/v1/readiness`: HTTP 200, `completed:true`, `state:completed`.
+- Read-only D1 counts: 513 distinct published spots, 6 approved sources, 0 community published.
+  REPORTS_DB has 0 reports, App Attest keys, challenges, evidence photos and photo requests.
+  All returned SQL metadata has `rows_written:0`, `changed_db:false`. These counts do not prove absence of
+  deleted historical records, exports, backups or alternate-target data.
+- GET `/v1/reports`, `/v1/app-attest/challenges`, `/v1/app-attest/keys` and
+  `/v1/reports/privacy-audit-nonexistent/photos`: HTTP 404 `notFound` (POST-only routes).
+  **These GET responses do not test POST availability.** No submission/registration/photo POST was made.
+- Current binding/config evidence plus reviewed deployed code establish required-but-unconfigured App Attest:
+  report/challenge/registration handlers fail closed with 503 before storing records; photo composition is
+  disabled and returns 503 `photoEvidenceDisabled`. The earlier authorized launch smoke recorded report
+  POST 503 `attestationUnavailable` and 8/8 PASS; that is prior launch evidence, not a repeated audit probe.
+- `COMMUNITY_PUBLICATION` is a code constant `pending`, not a runtime var; reviewed deployed main and
+  community count 0 establish no publication activation. Signed-build browsing traffic remains unverified.
+
+### Provider evidence and remaining field/retention limits
+
+| Read-only endpoint / scope | Result and conclusion |
+| --- | --- |
+| Account `/logpush/jobs` | HTTP 403 code 10000: jobs, destinations, field selections, export retention/access/deletion UNKNOWN |
+| Account `/analytics_engine/datasets` | HTTP 404 code 11000: account enablement/datasets UNKNOWN; no AE binding in this Worker is confirmed separately |
+| Account `/subscriptions` | HTTP 403 code 10000: applicable plan/retention UNKNOWN |
+| `/workers/observability/telemetry/keys` | HTTP 403 code 10000; documented read-only List keys POST, production service filter and deployment-to-audit window; no event values queried |
+| Workers Logs contents / history | Field discovery denied; no raw events, tail session or deliberately induced exception. Occurrence, retained fields and historical contents UNKNOWN |
+| Other security/platform analytics, public site/support | Provider-internal retention, exports, alternate services and Gmail/GitHub Pages handling UNKNOWN; not covered by Worker disable flags |
+
+Automatic invocation logs are confirmed disabled, but console/error logs are persist-enabled. The reviewed
+Hono default exception handler can emit diagnostics; this audit did not cause a failure to manufacture evidence.
+`redact_query_string:false` is not a promise of sanitized URLs in any remaining log context.
+IP, User-Agent, request URL/path/tile ID, timestamp and request ID can exist in provider request processing;
+**whether each is retained, correlated, exported or used beyond real-time service remains UNKNOWN**.
+Do not equate settings with proof that historical logs are empty or that no identifiable tile history exists.
+
+[Workers Logs documentation](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
+checked 2026-10-05 distinguishes invocation and console logs, and lists Free 3-day / Paid 7-day retention
+at this date (pricing changes announced for December 1). Plan access was denied, so neither duration is
+assigned to this account; other provider/export retention is not inferred. The
+[List keys API](https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/keys/)
+was used only for field-name discovery, not a settings write or saved query.
+
+### Current App Privacy decision
+
+Apply [Apple's collection and category definitions](https://developer.apple.com/app-store/app-privacy-details/)
+(rechecked 2026-10-05); off-device real-time processing alone is not the retained collection test.
+
+| Category | Current recommendation / scope |
+| --- | --- |
+| Precise Location | UNKNOWN overall; raw GPS absent in reviewed browsing flow, retained geographic path precision/provider behavior unresolved |
+| Coarse Location | CONSERVATIVE DISCLOSURE remains: collected, linked, App Functionality, not tracking pending retained-field evidence; not observed collection or permission for location history |
+| Device ID | Report/App Attest collection path resolved inactive and current key/challenge counts 0; overall UNKNOWN for provider identifiers, history and signed-build traffic |
+| User Content | Report flow resolved inactive and current report count 0; overall UNKNOWN for support-mail retention/optional-disclosure eligibility and history |
+| Photos/Videos | NOT COLLECTED by reviewed shipping composition and matched current backend; signed archive verification still required; no guarantee about external support attachments |
+| Diagnostics | UNKNOWN; no app uploader found, but persist-enabled exception/provider diagnostics, fields/linkage/retention unresolved |
+| Usage Data / Product Interaction | UNKNOWN; no app SDK or deployed AE binding, but account analytics, exports and retained request use unresolved |
+| Crash Data | NOT COLLECTED by reviewed app instrumentation; signed archive still required; Worker exceptions are not proof of iOS crash collection |
+
+**Do not select “Data Not Collected” or finalize ASC answers yet.** Runtime gate/version uncertainty is
+closed for this origin, not the whole partner/build/support audit. No retained personal-data category was
+confirmed by records here. Owner must resolve remaining evidence, choose actual purposes/linkage, reconcile
+manifests/policy, inspect the signed build and sign submission. No advertising/tracking code was found;
+unknown account/export behavior is not closed by that source finding.
+
+### Live policy consistency and focused follow-up
+
+HTTPS GET of [published bilingual policy](https://kounishiyuuki.github.io/MannerPath/privacy/) succeeded;
+JA/EN both show October 5, 2026 revision. Corrected §2 discloses possible provider IP/request/diagnostic
+records without claiming verified retention or zero logs. §5 unavailable reporting/registration/photos
+matches current deployment; §6 distinguishes app SDKs from provider records; §8/§9 disclose Gmail support.
+No observed runtime contradiction requires an emergency policy fix. A focused site-docs follow-up can
+replace §2's future/intention wording with the confirmed Cloudflare service and disabled invocation logs,
+while explicitly preserving console/error persistence and unknown provider/export retention. Do not invent
+durations or expand the claim to “no request logs”. Add verified fields/purposes/retention and support deletion
+criteria only when obtained. No public-site file/publication change is part of this audit.
+
+Remaining signoff: read-only dashboard/authorized provider evidence for retained fields, applicable plan,
+exports/security/analytics/history, support retention, signed archive/manifests and actual browsing network.
+Production resources already exist: **do not repeat provisioning/migrations/import/deployment** from the
+historical next-lane plan below. Re-audit before any separately approved feature activation.
+
+Docs-only validation: `make contract` and `git diff --check` PASS. No backend code was changed;
+no mutating smoke/client, deployment, log tail, source refresh or customer-data export was run in this audit.
+
+## Historical predeployment snapshot (superseded for current state)
 
 Authenticated Cloudflare evidence collected 2026-10-05 JST against main
 `d70139ce726055610e35e1276145fae40b13d1fc`; documentation finalized against

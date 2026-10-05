@@ -11,9 +11,12 @@ longer than needed to service the request in real time. Data that only stays on 
 ## Summary
 
 Report/auth/photo rows below describe implemented capabilities, not initial-v1 availability. Initial v1
-requires reports and App Attest registration unavailable, with photos disabled. Authenticated follow-up found no configured production Worker or production-named D1 resources in the
-audited account; R2 reports not enabled. Retention and eventual runtime gates remain unverified: see [production audit](PRODUCTION_PRIVACY_AUDIT.md) and
-[submission §2](APP_STORE_SUBMISSION.md) for conditional release answers.
+requires reports and App Attest registration unavailable, with photos disabled. Postdeployment read-only
+audit (2026-10-05, main `ae3bd0a`) confirms the production Worker/version, distinct D1/R2 bindings,
+reports unavailable, unconfigured required App Attest, photos off, community pending, crons empty and
+invocation logs disabled. Console logs remain persist-enabled. Provider retained fields/plan/exports and
+signed-build traffic remain unverified: see [production audit](PRODUCTION_PRIVACY_AUDIT.md) and
+[submission §2](APP_STORE_SUBMISSION.md). Backend availability is resolved, not final label approval.
 
 | Data | Leaves the device? | Collected (retained)? | Linked to user? | Tracking? | Purpose |
 | --- | --- | --- | --- | --- | --- |
@@ -54,7 +57,8 @@ SDK, no IDFA, no `identifierForVendor`.
 1. **Tile ids + IP.** A z14 tile is roughly 2 km across. Whether the backend/CDN retains request logs (IP + tile
    path) beyond real-time servicing decides if this is "Coarse Location — collected". Check the Cloudflare
    logging/Logpush configuration of the deployment. Committed invocation logs are disabled but console logs remain enabled;
-   Hono exception logs are possible. Actual account settings/retention are UNKNOWN ([audit](PRODUCTION_PRIVACY_AUDIT.md)).
+   Hono exception logs are possible. Deployed invocation logs are confirmed disabled and console persistence
+   enabled; retained fields and account/provider/export retention remain UNKNOWN ([audit](PRODUCTION_PRIVACY_AUDIT.md)).
 2. **Linked to user?** There is no account, but `installId` hash and App Attest key id let several reports from
    one install be correlated. Whether that counts as "linked to the user's identity" for App Store purposes is a
    maintainer/legal decision; the conservative answer is "linked" for report-related rows.
@@ -81,10 +85,13 @@ The [authenticated production audit](PRODUCTION_PRIVACY_AUDIT.md) controls final
 Precise Location, Device ID, User Content, Diagnostics and Usage Data / Product Interaction are
 **UNKNOWN / SUBMISSION BLOCKER**; Coarse Location is **CONSERVATIVE DISCLOSURE** (collected, linked,
 App Functionality, not tracking pending evidence). Photos/Videos and Crash Data are **NOT COLLECTED**
-for the reviewed shipping composition, pending signed archive / matching production deployment verification. No type is
-confirmed COLLECTED by live production records. Missing production is not a “Data Not Collected” signoff.
-Repository policy §2 live-server/logging wording was corrected on 2026-10-05 (no running-server or
-live-setting assertion); publication awaits Pages verification. Provider/support retention remains manual.
+for the reviewed shipping composition. Matching backend deployment is now verified; signed archive
+verification remains open. Report/auth Device ID and report User Content paths are confirmed inactive,
+with current reports/keys/challenges/photos counts 0, but overall categories remain UNKNOWN for
+provider identifiers, support and historical/build evidence. No type is confirmed COLLECTED by retained
+personal records. “Data Not Collected” remains unsupported: Logpush, plan and field-key access returned
+403; Analytics Engine inventory returned 404. No absence inference is made from these errors.
+Corrected JA/EN policy dated 2026-10-05 is now verified live; provider/support retention remains manual.
 
 #179 public-site evidence is closed: Release `MannerPathPublicSiteURL` is
 `https://kounishiyuuki.github.io/MannerPath/`; Release navigation to privacy/ and support/ is verified;
