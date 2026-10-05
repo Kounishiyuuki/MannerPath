@@ -29,7 +29,10 @@ async function plan(t: { after(fn: () => unknown): void }) {
 
 test("release preflight: committed placeholders block; real ids print the launch in the one safe order", async (t) => {
   const p = await plan(t);
-  const blocked = await releasePreflight({ config: committed, env: "production", ...p });
+  const placeholders = JSON.parse(JSON.stringify(committed));
+  placeholders.env.production.d1_databases[0].database_id = "00000000-0000-0000-0000-000000000000";
+  placeholders.env.production.d1_databases[1].database_id = "00000000-0000-0000-0000-000000000001";
+  const blocked = await releasePreflight({ config: placeholders, env: "production", ...p });
   assert.deepEqual(blocked.launch, []);
   assert.equal(blocked.problems.filter((x) => /still the placeholder/.test(x)).length, 2);
 
@@ -38,12 +41,14 @@ test("release preflight: committed placeholders block; real ids print the launch
   const run = ok.launch.filter((l) => !l.startsWith("#"));
   const at = (re: RegExp) => run.findIndex((l) => re.test(l));
   // migrate both -> initialize -> digest check -> chunks in order -> re-verify -> finalize -> sealed -> deploy -> smoke
-  const order = [/r2 bucket create mannerpath-raw-artifacts-production/, /migrations apply DB /, /migrations apply REPORTS_DB /, /initialize\.sql/, /manifest_sha256/, /chunk-0001\.sql/,
+  const order = [/r2 bucket info mannerpath-raw-artifacts-production/, /migrations apply DB /, /migrations apply REPORTS_DB /, /initialize\.sql/, /manifest_sha256/, /chunk-0001\.sql/,
     /verify-import-plan/, /finalize\.sql/, /sealed/, /wrangler deploy --env production$/, /smoke\.ts --base-url https:\/\/api\.example\.invalid --remote --tile 14\//];
   const positions = order.map(at);
   assert.ok(positions.every((i) => i >= 0), `every step present: ${positions}`);
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, "steps in order");
   assert.ok(run.every((l) => !/--env staging/.test(l)), "never addresses staging");
+  assert.ok(run.every((l) => !/r2 bucket create/.test(l)), "provisioning is never repeated during launch");
+  assert.equal(run[0], `npx wrangler r2 bucket info ${committed.env.production.r2_buckets[0].bucket_name}            # expect: the provisioned bucket exists; stop if this check fails`);
   assert.ok(ok.launch.join("\n").includes(p.expectedDigest), "the reviewed digest is checked against the target");
   assert.ok(ok.rollback.some((l) => /wrangler rollback --env production/.test(l)));
 });
@@ -57,6 +62,7 @@ test("release preflight: unsafe config, bad ids or an unreviewed plan block the 
     ["reports not required", (() => { const c = clone(); c.env.production.vars.REPORT_ATTESTATION = "disabled"; return c; })(), {}, {}, /REPORT_ATTESTATION/],
     ["invocation logs on", (() => { const c = clone(); c.env.production.observability.logs.invocation_logs = true; return c; })(), {}, {}, /invocation logs/],
     ["cron committed", (() => { const c = clone(); c.env.production.triggers.crons = ["0 * * * *"]; return c; })(), {}, {}, /cron/],
+    ["raw artifacts binding missing", (() => { const c = clone(); c.env.production.r2_buckets = []; return c; })(), {}, {}, /RAW_ARTIFACTS/],
     ["plan digest not the reviewed one", committed, {}, { expectedPlanDigest: "0".repeat(64) }, /does not verify/],
     ["bundle digest not the reviewed one", committed, {}, { expectedDigest: "f".repeat(64) }, /does not verify/],
   ];
@@ -73,4 +79,14 @@ test("release preflight: unsafe config, bad ids or an unreviewed plan block the 
   }
   const r = await releasePreflight({ config: shared, env: "production", ...p });
   assert.ok(r.problems.some((x) => /shares a database id/.test(x)), r.problems.join("; "));
+});
+
+test("release preflight: bucket existence check uses the selected environment's configured name", async (t) => {
+  const p = await plan(t);
+  const config = JSON.parse(JSON.stringify(committed));
+  config.env.production.r2_buckets[0].bucket_name = "mannerpath-raw-artifacts-reviewed-production";
+  const result = await releasePreflight({ config, env: "production", ...p, preLanding: REAL });
+  assert.deepEqual(result.problems, []);
+  const checks = result.launch.filter((command) => /r2 bucket/.test(command));
+  assert.deepEqual(checks, ["npx wrangler r2 bucket info mannerpath-raw-artifacts-reviewed-production            # expect: the provisioned bucket exists; stop if this check fails"]);
 });

@@ -57,7 +57,7 @@ the previous one kept for rollback (`../../docs/OPERATIONS.md` step 6).
 Standing up and verifying a staging / production-like environment is `../../docs/OPERATIONS.md`;
 nothing in this repository deploys or migrates a remote database.
 
-Only local D1 is configured. `wrangler.jsonc` also carries the `staging` and `production` environment shapes, but every one of them keeps the all-zero placeholder `database_id`, so nothing here can target a remote database (`test/deploy-config.test.ts` enforces it).
+Local and `staging` D1 bindings retain placeholder IDs. `env.production` binds the separately provisioned `mannerpath-production` and `mannerpath-production-reports` databases; `test/deploy-config.test.ts` pins their exact IDs. The bound `mannerpath-raw-artifacts-production` R2 bucket is also provisioned. This completes resource creation only: remote migrations, data import, deployment and report/community activation remain separate maintainer actions under `../../docs/RELEASE_CHECKLIST.md` §3.
 The Taito source is `approved` in the registry (`docs/SOURCES.md`), so `local:pipeline` resolves all 34 records into canonical spots and publishes 32 of them into 5 z14 tile snapshots with the approved attribution text; the other 2 are withheld by the Issue #42 reconciliation (`docs/BETA_DATA_QUALITY.md` §3a). Sources that are not approved are excluded and listed under `excluded` in the publish report, and the D1 publication trigger rejects them even if the publisher is bypassed.
 
 `local:pipeline` creates the Taito registry row from the reviewed entry in `src/pipeline/registry.ts` only when it is missing, and never rewrites an existing row. A local database created before the approval still holds the older `blocked` Taito row; upgrade it deliberately with:

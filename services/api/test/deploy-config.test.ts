@@ -1,7 +1,7 @@
 // Deployment configuration guard (docs/OPERATIONS.md, services/AGENTS.md).
 //
 // These assertions are about what may be *committed*, not about what a maintainer does at the
-// console: no environment in the repository may point at a real database, hold a secret, commit the
+// console: only production may point at its provisioned databases; no environment may hold a secret, commit the
 // App Attest App ID (its App ID prefix is usually the Team ID), or accept unattested reports remotely (Issue #37).
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -48,17 +48,17 @@ test("staging and production-like environments exist and are distinctly named", 
   assert.equal(new Set(names).size, names.length);
 });
 
-test("no committed environment can reach a real database", () => {
+test("only production binds its provisioned databases; local and staging retain placeholders", () => {
   for (const [name, env] of environments) {
     const databases = env.d1_databases;
     assert.equal(Array.isArray(databases) && databases.length === 2, true, `${name}: two D1 bindings (DB, REPORTS_DB)`);
     const [db, reports] = databases;
     assert.equal(db.binding, "DB", `${name}: binding name`);
     assert.equal(db.migrations_dir, "migrations", `${name}: migrations dir`);
-    assert.equal(db.database_id, PLACEHOLDER_DATABASE_ID, `${name}: database_id must stay the placeholder`);
+    assert.equal(db.database_id, name === "production" ? "ffbaea1e-b57e-4064-abeb-a0c53f459662" : PLACEHOLDER_DATABASE_ID, `${name}: canonical database_id must match the reviewed target`);
     assert.equal(reports.binding, "REPORTS_DB", `${name}: report store binding name`);
     assert.equal(reports.migrations_dir, "migrations-reports", `${name}: report store migrations dir`);
-    assert.equal(reports.database_id, PLACEHOLDER_REPORTS_DATABASE_ID, `${name}: REPORTS_DB database_id must stay the placeholder`);
+    assert.equal(reports.database_id, name === "production" ? "e641b1df-8042-4522-8463-804c6ba57868" : PLACEHOLDER_REPORTS_DATABASE_ID, `${name}: REPORTS_DB database_id must match the reviewed target`);
   }
 });
 
