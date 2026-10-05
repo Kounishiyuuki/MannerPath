@@ -24,7 +24,7 @@ Status legend:
 | Version / build | `MARKETING_VERSION 1.0`, `CURRENT_PROJECT_VERSION 1` (raise the build number for each upload) | CONFIRMED |
 | Display name | `MannerPath` | CONFIRMED |
 | Minimum OS | iOS 18.0, watchOS 11.0 | CONFIRMED |
-| Device families | iPhone app `1,2` (iPhone **and iPad**), Watch app `4` | CONFIRMED (see §6 iPad decision) |
+| Device families | iPhone app and iPhone widget `1` (iPhone only), Watch app `4`; no native iPad target. iPad users run the iPhone app in compatibility mode ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | CONFIRMED (maintainer decision 2026-10-05) |
 | App localizations | development region `en`; Japanese `ja` translations present | CONFIRMED |
 | Public site origin in Release builds | `https://kounishiyuuki.github.io/MannerPath/` (Debug unset) | CONFIRMED (#179) |
 | **App icon** | iPhone asset catalog has **no `AppIcon` set**; Watch `AppIcon` set has an empty 1024 slot | **P0 — see §8** |
@@ -139,10 +139,11 @@ Use final-build UI only, Japanese localization, no synthetic place data. Current
 | Set | Size to upload | Required? | Status |
 | --- | --- | --- | --- |
 | iPhone 6.9" | 1320 × 2868 portrait (iPhone 17 Pro Max class) | Yes | Capturable on the simulator now from a Release build, but must show **production data** → WAITING-PRODUCTION |
-| iPad 13" | 2064 × 2752 portrait | Yes, while `TARGETED_DEVICE_FAMILY` includes iPad | **MAINTAINER decision first**: iPad layout has not been visually audited (#176 covered iPhone/Watch). Either audit iPad and capture, or remove iPad (`1,2` → `1`) before upload |
 | Apple Watch | 416 × 496 (Series 10/11 46mm class), one size for all localizations | Yes for the Watch app | WAITING-PRODUCTION data; the #176 simulator captures used fixture data and are not store assets |
 
-Suggested 5-shot iPhone sequence (same for iPad): nearby map + list; place detail with sources/evidence; walking
+v1 screenshot sets are **iPhone + Apple Watch only**: the app is iPhone-only, so no iPad set is required.
+
+Suggested 5-shot iPhone sequence: nearby map + list; place detail with sources/evidence; walking
 route preview / Maps handoff; approximate-location or filter state; Data & Privacy. Watch: nearby list; place
 detail with distance/direction. Exclude brands, smoking imagery, purchase cues and coverage/permission guarantees.
 
@@ -176,14 +177,13 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 - Trader status if any EU storefront is selected (not recommended for v1, below).
 - Minimum-use-age policy decision; legal sufficiency of the policy text.
 - Support mailbox delivery and response owner (mannerpath.support@gmail.com).
-- iPad keep/remove decision (§6).
 
 ## 8. Focused-fix candidates found while preparing this sheet
 
 | Severity | Finding | Fix (needs the maintainer's artwork) |
 | --- | --- | --- |
-| **P0** | No app icon: the iPhone asset catalog lacks the `AppIcon` set that `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` names; the Watch `AppIcon` set has no image. ASC rejects uploads without the required icons | Add owner-supplied, rights-cleared 1024 × 1024 artwork (no tobacco imagery or brands) to an iPhone `AppIcon` set and the Watch `AppIcon` set; verify in the archive |
-| P1 (decision) | iPad is a supported family but has not been visually audited, and iPad screenshots are required | Audit iPad layouts and capture, or narrow to iPhone before the first upload |
+| **P0** | No app icon. iPhone target: no `AppIcon` set in `MannerPath/Assets.xcassets` **and** no `ASSETCATALOG_COMPILER_APPICON_NAME` build setting (that setting exists only on the Watch target). Watch target: `AppIcon.appiconset` exists with one watchOS 1024 × 1024 slot and no image. Exact list: [IPAD_V1_READINESS.md §6](IPAD_V1_READINESS.md). ASC rejects uploads without the required icons | Add owner-supplied, rights-cleared 1024 × 1024 artwork (no tobacco imagery or brands) to an iPhone `AppIcon` set and the Watch `AppIcon` set; verify in the archive |
+| Resolved | iPad decision: v1 is iPhone + Apple Watch only (`TARGETED_DEVICE_FAMILY = 1`); the iPad simulator audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | — |
 
 ## 9. Pricing and availability
 
@@ -202,7 +202,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 4. Pricing and Availability: free, Japan (§9).
 5. Upload the signed build; answer export compliance for it (§7).
 6. Version 1.0: promotional text, description, keywords, support/marketing URL, copyright (§3).
-7. Screenshots: iPhone, iPad (or remove iPad first), Watch (§6).
+7. Screenshots: iPhone and Apple Watch (§6).
 8. App Review: sign-in No, contact, notes with the WAITING markers filled (§5).
 9. App Privacy: privacy policy URL `https://kounishiyuuki.github.io/MannerPath/privacy/`, then the data-type answers
    **only after #178's UNKNOWN categories are closed** (§7).
