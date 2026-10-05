@@ -43,8 +43,9 @@ xcodebuild build -quiet -project "$project" -scheme MannerPath \
   CODE_SIGNING_ALLOWED=NO MANNERPATH_API_BASE_URL= MANNERPATH_PUBLIC_SITE_URL=
 check_plist '' ''
 
-# The committed defaults: Debug leaves the public site unset (links hidden in development and tests); Release
-# always carries the published GitHub Pages origin (docs/PUBLIC_SITE.md), with no override needed.
+# The committed defaults: Debug leaves both origins unset (cache-only Nearby, links hidden; development and tests
+# pass an override); Release always carries the production API origin (docs/RELEASE_CHECKLIST.md §2) and the
+# published GitHub Pages origin (docs/PUBLIC_SITE.md), with no override needed.
 xcodebuild build -quiet -project "$project" -scheme MannerPath \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$derived_data" \
   CODE_SIGNING_ALLOWED=NO
@@ -53,5 +54,6 @@ check_plist '' ''
 xcodebuild build -quiet -project "$project" -scheme MannerPath -configuration Release \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$derived_data" \
   CODE_SIGNING_ALLOWED=NO
-check_plist '' https://kounishiyuuki.github.io/MannerPath/ Release
+check_plist https://mannerpath-api-production.happywestyuki.workers.dev https://kounishiyuuki.github.io/MannerPath/ Release
+echo "Release MannerPathAPIBaseURL: https://mannerpath-api-production.happywestyuki.workers.dev"
 echo "Release MannerPathPublicSiteURL: https://kounishiyuuki.github.io/MannerPath/"

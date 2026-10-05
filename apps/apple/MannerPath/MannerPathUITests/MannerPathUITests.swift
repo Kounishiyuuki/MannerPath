@@ -538,3 +538,36 @@ final class H_PublicSiteLinksUITests: MannerPathUITestCase {
         add(attachment)
     }
 }
+
+// Release-build check against the production API (docs/RELEASE_CHECKLIST.md §2). Needs the internet, a Release
+// build (MANNERPATH_API_BASE_URL) and a Taito location; not part of scripts/run-iphone-ui-tests.sh phases.
+// Read-only: it never opens a report form or submits anything.
+final class I_ProductionAPIUITests: MannerPathUITestCase {
+    func testReleaseBuildReadsProductionDataWithReportsUnavailable() {
+        launch()
+        waitForResults()
+        XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30), "Live refresh did not succeed")
+        screenshot("70-production-nearby")
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙場所を追加'")).firstMatch.exists,
+                       "Add-place must be hidden while production reports are unavailable")
+
+        let first = resultRows.firstMatch
+        scrollTo(first)
+        first.tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        XCTAssertTrue(row("直線距離").exists)
+        screenshot("71-production-detail")
+        let unavailable = text("現在、報告機能を利用できません。")
+        scrollTo(unavailable)
+        XCTAssertFalse(app.buttons["この場所の情報を報告"].exists)
+        let attribution = app.buttons["情報源と法的な出典表示"]
+        scrollTo(attribution)
+        screenshot("72-production-detail-sources")
+        attribution.tap()
+        XCTAssertTrue(app.navigationBars["情報源"].waitForExistence(timeout: 10))
+        XCTAssertTrue(text("ライセンス").waitForExistence(timeout: 5))
+        XCTAssertTrue(textContaining("台東区").exists, "Taito attribution expected from the production tile")
+        screenshot("73-production-attribution")
+        assertNoDeveloperText()
+    }
+}

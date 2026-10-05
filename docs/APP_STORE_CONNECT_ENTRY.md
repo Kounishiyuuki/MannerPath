@@ -117,7 +117,7 @@ Location permission is When In Use. MannerPath uses the device location for near
 
 Reports, report device registration and photo uploads are unavailable in this initial version. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
 
-Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at [WAITING-PRODUCTION: HTTPS API origin]. To see populated results, [WAITING-PRODUCTION: tested steps and location]. Then open a place's details (access, uncertainty, sources and attribution), the walking-route preview and the Apple Maps handoff. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
+Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results, [WAITING-PRODUCTION: tested steps and location]. Then open a place's details (access, uncertainty, sources and attribution), the walking-route preview and the Apple Maps handoff. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
 ```
 
 Reviewer steps (attach with the notes once the WAITING items are filled):
@@ -151,7 +151,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 
 **WAITING-PRODUCTION** (production Worker absent today; #178):
 
-- Production HTTPS API origin in the Release build, reachable during review; review-notes markers in §5.
+- ~~Production HTTPS API origin in the Release build~~ done 2026-10-05 (`https://mannerpath-api-production.happywestyuki.workers.dev`, readiness `completed`); the remaining review-notes marker in §5 is the tested populated-area steps.
 - Runtime evidence that reports, report device registration and photos are unavailable on the deployed service.
 - **App Privacy (ASC → App Privacy): do not fill yet.** #178 classifications stand: Precise Location, Device ID,
   User Content, Diagnostics, Usage Data — UNKNOWN / SUBMISSION BLOCKER; Coarse Location — CONSERVATIVE DISCLOSURE;

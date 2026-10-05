@@ -52,7 +52,7 @@ local readiness above does not establish a production deployment or permit “Da
 | `REPORT_APP_ATTEST_APP_ID` | secret | `<App ID prefix>.<bundle id>` | report intake (Developer Program) |
 | `REPORT_APP_ATTEST_ENVIRONMENT` | secret | `production` for TestFlight/App Store | report intake (Developer Program) |
 | `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | secret | exact `CFBundleVersion` list in users' hands | report intake (Developer Program) |
-| `MANNERPATH_API_BASE_URL` | Xcode build setting (uncommitted xcconfig) | HTTPS origin of the production Worker | app build |
+| `MANNERPATH_API_BASE_URL` | Xcode build setting, committed for Release (Debug unset) | `https://mannerpath-api-production.happywestyuki.workers.dev` (production Worker); Debug/tests pass an override | app build |
 | `MANNERPATH_PUBLIC_SITE_URL` | Xcode build setting, committed for Release (Debug unset) | `https://kounishiyuuki.github.io/MannerPath/` (`docs/PUBLIC_SITE.md`); empty hides the Privacy Policy/Support links | app build |
 
 Invocation logs stay disabled (`test/deploy-config.test.ts`); no other variable or secret exists.
@@ -86,7 +86,7 @@ steps with every path, digest and expected value filled in, and opens no connect
    (nothing pending) → `initialize.sql` → manifest digest = reviewed digest
    → each chunk after its `next_chunk` check → re-verify the plan → `finalize.sql` → sealed = 1 → `wrangler deploy
    --env production` → remote smoke (readiness `completed`, every check ok, report gate `503`).
-6. Point the release build's `MANNERPATH_API_BASE_URL` at the production origin (HTTPS).
+6. Point the release build's `MANNERPATH_API_BASE_URL` at the production origin (HTTPS). Done 2026-10-05: Release carries `https://mannerpath-api-production.happywestyuki.workers.dev`, checked by `scripts/check-iphone-api-base-url.sh`.
 
 The printed sequence was executed end to end against local D1 (`--local --persist-to`) and served with
 `wrangler dev --env production`: readiness `completed`, smoke 8/8, empty region `404 tileNotPublished`.
