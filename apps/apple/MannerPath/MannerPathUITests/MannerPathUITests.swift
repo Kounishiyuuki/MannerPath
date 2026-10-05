@@ -13,12 +13,13 @@ class MannerPathUITestCase: XCTestCase {
         continueAfterFailure = false
     }
 
-    func launch(acceptingEligibility: Bool = true) {
+    func launch(acceptingEligibility: Bool = true, extraArguments: [String] = []) {
         app.launchArguments = ["-AppleLanguages", "(ja)", "-AppleLocale", "ja_JP"]
         if acceptingEligibility {
             // Standard UserDefaults argument domain; the app's own storage is unchanged.
             app.launchArguments += ["-eligibilityNoticeAccepted", "YES"]
         }
+        app.launchArguments += extraArguments
         app.launch()
     }
 
@@ -614,7 +615,15 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         app.navigationBars.buttons.element(boundBy: 0).tap()
         let clear = app.buttons["消去"]
         scrollTo(clear)
+        // scrollTo stops once the button is hittable, which can be the home-indicator edge where a synthesized tap
+        // is swallowed; move it clear of the bottom edge first.
+        if clear.frame.maxY > app.windows.firstMatch.frame.maxY - 120 {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.75))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.55)))
+        }
         clear.tap()
+        // The cleared destination row disappears before the device area reloads; a missed tap fails here, not later.
+        XCTAssertTrue(app.buttons["消去"].waitForNonExistence(timeout: 10), "Destination was not cleared")
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30))
         XCTAssertEqual(resultRows.count, 0, "Destination places must not remain in the device-area list")
     }
@@ -640,5 +649,36 @@ final class K_DeniedProductionDestinationUITests: MannerPathUITestCase {
         XCTAssertTrue(resultRows.firstMatch.exists)
         XCTAssertTrue(textContaining("位置情報の利用がオフです").exists)
         XCTAssertFalse(app.alerts.firstMatch.exists)
+    }
+}
+
+// #190 follow-up: the destination Refresh at the largest accessibility text size (AX5). The size is forced for this
+// app only through the standard UIKit launch argument, so it runs with the production destination tests (J/K) and
+// needs no simulator-wide setting. The button must stay fully on screen, keep a 44 pt hit target and its label.
+final class L_ProductionDestinationLargeTextUITests: MannerPathUITestCase {
+    func testDestinationRefreshFitsAtLargestAccessibilityTextSize() {
+        launch(extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        let search = app.textFields["Appleマップで目的地を検索"]
+        XCTAssertTrue(search.waitForExistence(timeout: 40))
+        scrollTo(search)
+        search.tap()
+        search.typeText("浅草駅 東京\n")
+        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        XCTAssertTrue(match.waitForExistence(timeout: 40), "Real MapKit search returned no destination")
+        scrollTo(match)
+        match.tap()
+        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40), "Destination tiles produced no published places")
+        let refresh = app.buttons["refreshDestination"]
+        scrollTo(refresh, upwards: true)
+        let window = app.windows.firstMatch.frame
+        XCTAssertEqual(refresh.label, "更新")
+        XCTAssertGreaterThanOrEqual(refresh.frame.minX, window.minX, "Refresh starts off screen at AX5")
+        XCTAssertLessThanOrEqual(refresh.frame.maxX, window.maxX, "Refresh is clipped at AX5")
+        XCTAssertGreaterThanOrEqual(refresh.frame.height, 44, "Refresh hit target is below 44 pt at AX5")
+        screenshot("90-destination-refresh-ax5")
+        refresh.tap()
+        XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
+        XCTAssertTrue(resultRows.firstMatch.exists)
+        assertNoDeveloperText()
     }
 }
