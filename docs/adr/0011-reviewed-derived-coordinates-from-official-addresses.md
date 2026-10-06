@@ -161,8 +161,22 @@ prefectures (広島県, 神奈川県) would reach the gate. Details: `docs/resea
 
 ## Consequences
 
-- The foundation lets a future approval be a small, reviewable switch rather than new machinery.
+- The foundation is inert evaluation and review storage, not a complete activation path. A future approval still
+  requires complete persisted evidence, canonical authority/provenance linkage, relocation integration, promotion
+  and attribution work; changing a policy constant alone is insufficient.
 - Adopting decision 8 alone unlocks nothing today; license work (asking publishers for reuse terms) comes first
   and would often yield publisher coordinates anyway.
 - The ABR dataset (≈ 400 MB for one prefecture's download) is never committed. A reviewed setup pins it by content
   digest in `REVIEWED_GEOCODERS.datasetReleases`, which is empty now, so every real run fails closed.
+
+## Foundation hardening / readiness audit (2026-10-07)
+
+Decision 8 remains **not approved**. Gate `derived-coordinate-gate.v2` now enforces the verbatim input, binds
+complete main/secondary geocode output and supplied source/record gate context to the digest, and requires
+exactly the named boolean review checks and nonblank block/parcel site evidence. Existing v1 review digests
+do not approve v2 evaluations. Migration 0031 prevents REPLACE rewriting inert evidence/review rows and
+enforces strict approval checks/nonblank site evidence; migration 0022 is unchanged.
+
+This does not add a resolver consumer, source approval, dataset pin or publication lane. Full persisted
+evaluation reconstruction, raw-address authority, rerun storage, provenance/relocation/promotion and attribution
+remain future activation work. See [readiness packet](../research/2026-10-07-derived-coordinate-readiness.md).
