@@ -739,3 +739,67 @@ final class L_ProductionDestinationLargeTextUITests: MannerPathUITestCase {
         assertNoDeveloperText()
     }
 }
+
+// Map-first shell under accessibility display settings (Reduce Motion, Reduce Transparency, Increase Contrast), set on
+// the simulator outside the app. Read-only against the production API with a Taito location, like I; not part of
+// scripts/run-iphone-ui-tests.sh phases. Measures the 44 pt targets of the controls the shell added.
+final class M_MapFirstAccessibilityUITests: MannerPathUITestCase {
+    func selectedPinElement(_ label: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+    }
+
+    // System toolbar items are measured and recorded only: their hit region is UIKit's, and resizing them would mean
+    // replacing a system control (docs/DESIGN.md §8). Controls MannerPath draws itself must be at least 44 pt.
+    func assertTarget(_ element: XCUIElement, _ name: String, systemControl: Bool = false,
+                      file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(element.waitForExistence(timeout: 10), "\(name) missing", file: file, line: line)
+        XCTAssertTrue(element.isHittable, "\(name) not hittable", file: file, line: line)
+        let frame = element.frame
+        if !systemControl {
+            XCTAssertGreaterThanOrEqual(frame.width, 44, "\(name) is \(frame.width) pt wide", file: file, line: line)
+            XCTAssertGreaterThanOrEqual(frame.height, 44, "\(name) is \(frame.height) pt high", file: file, line: line)
+        }
+        let note = XCTAttachment(string: "\(name): \(frame.width) x \(frame.height) pt")
+        note.name = "\(phase)-target-\(name)"
+        note.lifetime = .keepAlways
+        add(note)
+    }
+
+    func testShellSheetAndSelectedMarkerUnderDisplaySettings() throws {
+        launch()
+        waitForResults()
+        assertFullScreenMap()
+        screenshot("60-shell")
+        for name in ["絞り込み", "現在地に戻す", "データとプライバシー"] {
+            assertTarget(app.buttons[name], name, systemControl: true)
+        }
+
+        let pins = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'"))
+        let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'"))
+        XCTAssertTrue(pins.firstMatch.waitForExistence(timeout: 10) || clusters.firstMatch.waitForExistence(timeout: 10))
+        for _ in 0..<4 where !pins.allElementsBoundByIndex.contains(where: \.isHittable) {
+            clusters.allElementsBoundByIndex.first(where: \.isHittable)?.tap()
+            sleep(2)
+        }
+        let pin = try XCTUnwrap(pins.allElementsBoundByIndex.first(where: \.isHittable))
+        let pinLabel = pin.label
+        pin.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["selectedSpotSummary"].waitForExistence(timeout: 10))
+        assertTarget(selectedPinElement(pinLabel), "selectedPin", systemControl: true)
+        // Selection is stated in words, not only by the yellow marker.
+        XCTAssertTrue(text("選択中の場所").exists)
+        let selectedPin = selectedPinElement(pinLabel)
+        XCTAssertTrue(String(describing: selectedPin.value ?? "").hasPrefix("選択中"), "Selected pin value: \(String(describing: selectedPin.value))")
+        assertTarget(app.buttons["selectedSpotDetails"], "selectedSpotDetails")
+        assertTarget(app.buttons["clearSelectedSpot"], "clearSelectedSpot")
+        screenshot("61-selected")
+
+        app.buttons["selectedSpotDetails"].tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
+        assertFullScreenMap()
+        screenshot("62-back-to-sheet")
+        assertNoDeveloperText()
+    }
+}

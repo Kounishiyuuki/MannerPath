@@ -195,6 +195,9 @@ struct ClusteredSpotMap: UIViewRepresentable {
             view.markerTintColor = SpotMapCluster.tint(selected: selected)
             view.glyphTintColor = selected ? .black : .white
             view.glyphImage = UIImage(systemName: SpotMapCluster.glyph(spot.pin.existence))
+            // Selection is not colour alone: the selected pin also takes MapKit's enlarged selected marker and sits on top.
+            view.zPriority = selected ? .max : .defaultUnselected
+            view.setSelected(selected, animated: !UIAccessibility.isReduceMotionEnabled)
             view.accessibilityValue = selected
                 ? [String(localized: "Selected"), spot.pin.accessibilityValue].joined(separator: ", ")
                 : spot.pin.accessibilityValue

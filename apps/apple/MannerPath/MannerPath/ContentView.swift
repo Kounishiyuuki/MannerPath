@@ -746,12 +746,17 @@ private struct SelectedSpotSummary: View {
                     .foregroundStyle(.secondary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
-                Button("Clear selection", systemImage: "xmark.circle.fill", action: onClear)
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.secondary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-                    .accessibilityIdentifier("clearSelectedSpot")
+                // The frame sits on the label so it is the button's own hit region. 46, not 44: iOS 26 draws a floating
+                // (non-large) sheet scaled to its inset width (386/402 on iPhone 17), and 44 pt measured 42.2 pt on screen.
+                Button(action: onClear) {
+                    Label("Clear selection", systemImage: "xmark.circle.fill")
+                        .labelStyle(.iconOnly)
+                        .frame(minWidth: 46, minHeight: 46)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("clearSelectedSpot")
             }
             Text(SpotPresentation.name(result.spot))
                 .font(.title3.weight(.semibold))
