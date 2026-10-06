@@ -30,7 +30,7 @@ Status legend:
 | App localizations | development region `en`; Japanese `ja` translations present | CONFIRMED |
 | Public site origin in Release builds | `https://kounishiyuuki.github.io/MannerPath/` (Debug unset) | CONFIRMED (#179) |
 | API origin in Release builds | `https://mannerpath-api-production.happywestyuki.workers.dev` (Debug unset); Release Info.plist and simulator production connection verified | CONFIRMED (#186); signed distribution archive remains separate |
-| **App icon** | iPhone and Watch `AppIcon` sets and settings exist with empty 1024 × 1024 slots; artwork missing | **P0 — see §8** |
+| **App icon** | Same maintainer-selected opaque sRGB 1024 × 1024 master in iPhone and Watch AppIcon sets; unsigned archive CFBundleIcons / Assets.car / compiled AppIcon verified | **RESOLVED (technical); final signed/physical/asset-rights checks remain — see §8** |
 
 ## 2. App Information (ASC → App Information)
 
@@ -197,9 +197,9 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 
 ## 8. Focused-fix candidates found while preparing this sheet
 
-| Severity | Finding | Fix (needs the maintainer's artwork) |
+| Severity | Finding | Evidence / remaining checks |
 | --- | --- | --- |
-| **P0** | No app icon artwork. Plumbing is ready: iPhone `AppIcon.appiconset` (iOS universal 1024 slot) and `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`; Watch `AppIcon.appiconset` (watchOS 1024 slot) and setting. Both slots are empty, so the archive has no `CFBundleIcons`; ASC rejects the upload | Maintainer supplies rights-cleared 1024 × 1024 artwork (no tobacco imagery or brands); add the files to both slots ([APPLE_DISTRIBUTION_READINESS.md](APPLE_DISTRIBUTION_READINESS.md) §4 step 3) |
+| **Resolved P0 (2026-10-06)** | App Icon artwork and technical archive inclusion, iPhone + Watch | Maintainer-approved downscaled master, CFBundleIcons / Assets.car / 1024 px AppIcon in unsigned archive ([distribution readiness §3.1](APPLE_DISTRIBUTION_READINESS.md#31-app-icon-follow-up-2026-10-06)). Signed/device/asset-rights signoff remains open; not ASC upload approval |
 | Resolved | iPad decision: v1 is iPhone + Apple Watch only (`TARGETED_DEVICE_FAMILY = 1`); the iPad simulator audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | — |
 
 ## 9. Pricing and availability

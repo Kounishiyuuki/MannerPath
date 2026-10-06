@@ -6,8 +6,10 @@ which includes #170 / #171 / #172. Apple rules can change: recheck the linked pa
 This is an engineering recommendation, not legal advice or a guarantee of App Review approval.
 
 **Entry sheet (2026-10-05):** [APP_STORE_CONNECT_ENTRY.md](APP_STORE_CONNECT_ENTRY.md) lists every ASC value as
-CONFIRMED / MAINTAINER / WAITING-PRODUCTION / BLOCKED-DEVELOPER-PROGRAM, in entry order. The remaining
-**P0 is App Icon artwork**, not plumbing (iPhone/Watch sets and build settings are ready).
+CONFIRMED / MAINTAINER / WAITING-PRODUCTION / BLOCKED-DEVELOPER-PROGRAM, in entry order.
+**App Icon artwork/archive-inclusion P0 is RESOLVED 2026-10-06**: the maintainer-selected 1024 px master
+is in both iPhone/Watch slots and unsigned archive CFBundleIcons / Assets.car / AppIcon renditions are verified.
+This does not close signing, physical-device or legal/asset-rights gates.
 
 Reconciled 2026-10-06 against main `cef7f055d0a3cb1b4d1baf223097b8c0e1b24cd9`:
 production launch and Release origin, outside-Japan destination browsing (Release J/K/L), Reduce Motion
@@ -493,7 +495,7 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 
 | Blocker / decision | Evidence to close / owner |
 | --- | --- |
-| **App icon (P0, found 2026-10-05)** | Plumbing ready (iPhone and Watch `AppIcon` sets and settings; empty 1024 slots); maintainer supplies rights-cleared 1024 × 1024 artwork and the archive must show `CFBundleIcons` ([distribution readiness](APPLE_DISTRIBUTION_READINESS.md)) |
+| **App icon — P0 RESOLVED 2026-10-06** | Same adopted master in both slots; unsigned archive CFBundleIcons / Assets.car / 1024 px AppIcon verified ([distribution readiness §3.1](APPLE_DISTRIBUTION_READINESS.md#31-app-icon-follow-up-2026-10-06)). Final signed-device appearance and asset-rights signoff remain separate |
 | iPad keep/remove — **resolved 2026-10-05** | v1 is iPhone + Apple Watch only; iPad audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) |
 | Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
