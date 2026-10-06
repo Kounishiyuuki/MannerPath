@@ -2,6 +2,7 @@
 """Inspect an iPhone .app or .xcarchive before the physical beta matrix."""
 import argparse
 import ipaddress
+import json
 import pathlib
 import plistlib
 import re
@@ -10,6 +11,8 @@ import sys
 from urllib.parse import urlparse
 
 GROUP = "group.com.kounishiyuuki.MannerPath"
+PRODUCTION_API = "https://mannerpath-api-production.happywestyuki.workers.dev"
+PUBLIC_SITE = "https://kounishiyuuki.github.io/MannerPath/"
 IDS = {
     "iPhone app": "com.kounishiyuuki.MannerPath",
     "iPhone widget": "com.kounishiyuuki.MannerPath.widgets",
@@ -101,6 +104,34 @@ def valid_host(host):
     return bool(labels) and all(re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", label) for label in labels)
 
 
+def check_icon(bundle, info, label):
+    icons = info.get("CFBundleIcons")
+    primary = icons.get("CFBundlePrimaryIcon") if isinstance(icons, dict) else None
+    if not isinstance(primary, dict) or primary.get("CFBundleIconName") != "AppIcon":
+        fail(f"{label}: CFBundleIcons.CFBundlePrimaryIcon.CFBundleIconName must be AppIcon")
+    assets = bundle / "Assets.car"
+    if not assets.is_file():
+        fail(f"{label}: Assets.car missing")
+    try:
+        result = subprocess.run(["xcrun", "assetutil", "--info", str(assets)],
+                                capture_output=True)
+    except OSError:
+        fail(f"{label}: assetutil unavailable; install/select Xcode to verify AppIcon")
+    if result.returncode:
+        fail(f"{label}: assetutil could not inspect Assets.car")
+    try:
+        renditions = json.loads(result.stdout)
+    except (ValueError, UnicodeDecodeError):
+        fail(f"{label}: invalid assetutil output")
+    if not isinstance(renditions, list) or not any(
+        isinstance(item, dict) and item.get("Name") == "AppIcon"
+        and item.get("PixelWidth") == 1024 and item.get("PixelHeight") == 1024
+        for item in renditions
+    ):
+        fail(f"{label}: AppIcon 1024x1024 rendition missing")
+    print(f"{label}: AppIcon metadata, Assets.car and 1024x1024 rendition verified")
+
+
 def inspect(path, unsigned):
     if path.suffix == ".xcarchive":
         app = one(path / "Products/Applications", "MannerPath.app", "iPhone app")
@@ -119,6 +150,12 @@ def inspect(path, unsigned):
         actual = info.get("CFBundleIdentifier")
         if actual != IDS[label]:
             fail(f"{label}: CFBundleIdentifier {actual!r}; expected {IDS[label]!r}")
+        if not info.get("CFBundleVersion") or not info.get("CFBundleShortVersionString"):
+            fail(f"{label}: version/build missing")
+        if label in ("iPhone app", "Watch app"):
+            privacy = plist(bundle / "PrivacyInfo.xcprivacy")
+            if not isinstance(privacy, dict):
+                fail(f"{label}: PrivacyInfo.xcprivacy must be a dictionary")
         if not unsigned:
             platform = info.get("DTPlatformName")
             expected_platform = "iphoneos" if label.startswith("iPhone") else "watchos"
@@ -135,6 +172,14 @@ def inspect(path, unsigned):
             if environment not in ("development", "production"):
                 fail(f"iPhone app: App Attest environment {environment!r}; expected development or production")
         print(f"{label}: {actual} | App Group: {GROUP}")
+    if infos["iPhone app"].get("UIDeviceFamily") != [1]:
+        fail("iPhone app: UIDeviceFamily must be [1] (iPhone-only)")
+    for label in ("iPhone app", "Watch app"):
+        check_icon(bundles[label], infos[label], label)
+    for label, info in infos.items():
+        for key in ("CFBundleVersion", "CFBundleShortVersionString"):
+            if info[key] != infos["iPhone app"][key]:
+                fail(f"{label}: {key} does not match iPhone app")
     origin = infos["iPhone app"].get("MannerPathAPIBaseURL")
     try:
         parsed = urlparse(origin) if isinstance(origin, str) else None
@@ -147,10 +192,15 @@ def inspect(path, unsigned):
         valid_authority = False
     if not valid_authority or parsed.scheme != "https" or parsed.username or parsed.password or parsed.path not in ("", "/") or parsed.query or parsed.fragment:
         fail("iPhone app: MannerPathAPIBaseURL is missing or invalid; set an HTTPS API origin for the beta build")
+    if origin != PRODUCTION_API:
+        fail("iPhone app: MannerPathAPIBaseURL must match the production Release origin")
+    if infos["iPhone app"].get("MannerPathPublicSiteURL") != PUBLIC_SITE:
+        fail("iPhone app: MannerPathPublicSiteURL must match the production public site")
     version = infos["iPhone app"].get("CFBundleVersion")
     if not version:
         fail("iPhone app: CFBundleVersion missing; App Attest server allowlisting needs it")
     print(f"MannerPathAPIBaseURL: {origin}")
+    print(f"MannerPathPublicSiteURL: {PUBLIC_SITE}")
     print(f"CFBundleVersion for App Attest server: {version}")
     print(f"App Attest declared entitlement: {environment} ({'source file only' if unsigned else 'signed artifact'}; TestFlight uses production)")
     print("Embedding: iPhone widget, Watch app, Watch widget present")

@@ -9,7 +9,7 @@ if [[ $# -ne 0 ]]; then
   echo "usage: $0 [signed MannerPath.app or .xcarchive]" >&2
   exit 2
 fi
-: "${MANNERPATH_API_BASE_URL:?Set MANNERPATH_API_BASE_URL to the beta HTTPS origin}"
+: "${MANNERPATH_API_BASE_URL:?Set MANNERPATH_API_BASE_URL to the production Release HTTPS origin}"
 derived_data=$(mktemp -d)
 trap 'rm -rf "$derived_data"' EXIT
 xcodebuild build -quiet -project apps/apple/MannerPath/MannerPath.xcodeproj \
