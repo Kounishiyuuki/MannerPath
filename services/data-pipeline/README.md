@@ -34,6 +34,29 @@ rebuilds reports after parser changes without network access. JSON and sibling M
 reports include coverage and explicit truncation. Persisted host stops remain in force;
 restarting the command does not probe a blocked host again.
 
+The report's **Manual review queue** is independent of coverage/publication approval.
+Each target and resource gets an advisory classification and P0–P3 review priority;
+keyword hits and coordinate availability are signals, never verified smoking Points.
+P2 means both rights and coordinates are unknown; P1 means one remains unknown (or a
+promising candidate still lacks the strict P0 signals); P3 covers access/format blocks,
+external referrals, negatives and other manual follow-up. P0 only orders human review.
+`READY_FOR_RIGHTS_REVIEW` never means approved or ready to implement.
+
+No license prose is parsed into rights. `licenseMetadata` and `attributionMetadata`
+are retained as evidence, not permissions. A positive rights signal requires an
+exact-resource `approvalGate.exactDataset` URL match, boolean `exactApplicableLicense`
+equal to `true`, boolean `redistributionAllowed` and `derivationAllowed` equal to
+`true`, nonempty metadata and no `licenseUnknown` blocker. Existing textual
+deep-review gates remain unknown; their narrative is never interpreted as approval.
+P0 additionally requires boolean `publisherCoordinates` and `currentOperationEvidence`
+signals, all-row coordinate availability, no blockers and no truncation. Even these
+signals require independent final human review. Partial coordinates, column names or
+Point geometry alone do not establish a usable smoking-point coordinate chain.
+Explicit `externalReferenceOnly: true` or the same blocker code marks an external
+referral; URLs/page text are not guessed into that classification. Unknown stays
+unknown if that metadata is absent. Existing reviewed source IDs label only the
+target as implemented, never newly discovered resources in the same jurisdiction.
+
 Catalog connectors cover CKAN, ArcGIS REST, static dataset pages and CSV/JSON indexes.
 Inspectors cover CSV/TSV (UTF-8 and CP932), JSON/GeoJSON, a bounded KML subset,
 KMZ, SHP ZIP attributes/PRJ, GPKG attributes/CRS metadata, XLS/XLSX workbooks (sheets,
