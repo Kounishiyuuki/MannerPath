@@ -191,16 +191,69 @@ Dynamic Type参考: [WWDC24](https://developer.apple.com/videos/play/wwdc2024/10
 
 ## Phase 2 boundary / implementation blockers
 
-fetchしたmainには既にMap-first sheet/List・selection関連コードがある。それだけを現行事実として確認した。
-Claudeの別branchのsearchable/sheet/List/summary CTA/selection P2 fixesは取得・推測・レビューしていない。
-Phase 2完了後に新mainを再確認することが実装開始gate。
+### PR #208 interface review (2026-10-07 follow-up)
 
-必要interface:
+Reviewed HEAD: `d3f8efec9ba2cafe3138b6890b5e8cbca94aa44e`, based on #203 main
+`d971cd775b49a6078955948ba4a2a3455af9eac1`. #208 is still unmerged; these are verified
+interfaces of that HEAD, not claims about main. No Swift changes were made by this audit.
+Recheck only subsequent HEAD changes after Phase 2 merges.
+
+Confirmed against code, DESIGN changes in #208, #203 and the #202 API-gap audit:
+- Full-screen `ClusteredSpotMap` remains under a native sheet with its own `NavigationStack(path:)`.
+- Sheet content uses inset-grouped `List` / `Section`. Only system `.medium / .large` detents;
+  no 25% fraction, custom detent or measured collapsed height. Detail push uses large; back uses medium.
+- Native `.searchable` submits through existing `model.searchDestination` / MapKit search.
+  No new backend query/raw-coordinate transport. Destination model, generation/cancellation,
+  device/destination corpus isolation and J/K/L domain paths are unchanged.
+- Selected summary directions CTA is text-only at every text size, uses
+  `SpotPresentation.navigationTitle` and existing `AppleMapsHandoff.openWalkingDirections`.
+  publisherPoint/communityPinned use 「この場所へ案内」; approximate/derived/unknown/nil use 「この付近へ案内」.
+- Evidence and precision stay independent. The precision-note helper still omits nil;
+  explicit missing-precision explanation remains Phase 3 work.
+- Detail initializer/callbacks, `DetailSelection`, distance-origin semantics and fresh-device
+  routeOrigin are unchanged. Phase 3 must reuse these interfaces and the navigation owner.
+
+Verdict: **MERGE READY; no P0/P1, required API gap, domain regression or scope expansion found.**
+Nonblocking P2 follow-ups:
+1. `ContentView.swift:107`: summary scroll observes only selectedSpotID changes. First selection after
+   scrolling works; selected-pin re-tap keeps visual selection, but re-tapping that same pin after
+   scrolling the summary away does not bring it back. This is an edge of DESIGN §5.5's scroll intent.
+   25% detent removal is complete. Track the remaining same-ID scroll interaction separately;
+   do not opportunistically rewrite the root shell in Phase 3.
+2. `MannerPathUITests.swift:592`: official CTA test uses precision-note presence as an exactness proxy.
+   communityPinned has a note yet is exact; nil has no note yet uses the area CTA. Current official
+   fixture does not cover those cases. Production helper is correct. Future coverage should use
+   explicit precision fixtures, including nil and communityPinned.
+Neither is a required #208 pre-merge fix.
+
+Test-report reconciliation (reported results vs independently observed evidence):
+- Local UI script phase selection corresponds to 31 test executions; H/I/J/K/L contain six methods.
+  Their result bundles were not obtained or rerun in this review.
+- M contains one method run externally under five display settings. It checks custom-control 44pt
+  frames, hitability and selected-pin AX value. It does not automate real VoiceOver traversal/order.
+- AX5 summary test checks reachability, labels and height; it explicitly leaves rendered truncation
+  to screenshot inspection. Exact/approximate AX5 full-text screenshots and 44.17/55.7pt measurements
+  are Claude-reported evidence, not measurements independently repeated here.
+- New List scroll animation disables animation under Reduce Motion; existing MapKit animation
+  respects that setting. System surfaces remain; no custom blur/glass. AccentColor/brand assets
+  are unchanged. Increase Contrast/Dark/Reduce Transparency claims are consistent with code;
+  physical rendering and actual VoiceOver remain manual verification limits.
+- `make apple-validate` is independently run on an isolated copy of the specified HEAD;
+  its result is recorded in the #207 PR. No #208 branch mutation or merge is performed.
+
+### Local cache metadata clarification from #202
+
+Cache state can be passed into Detail without an API change. An exact last-successful sync timestamp
+is not currently persisted in CachedTile: do not invent it from generation/verification dates.
+If that timestamp is required, define local metadata first; otherwise show existing cache/update
+state. Keep it scoped to the selected corpus, separate from evidence observation/review time.
+
+必要interface（#208で上記確認済み。以下はPhase 3保全要件）:
 - stable spot IDによるnavigationと、選択時のresult/area/source snapshotの維持。
 - distance原点（destination/device/previous）とrouteOrigin（fresh device）を混同しない。
 - reportAvailability/hasSavedReport/onReport/onConfirmStillHereの既存意味を保持。
 - summaryとDetailで共通 `navigationTitle` / precision / evidence presentationを使う。
-- cache state/sync時刻を選択corpusと一緒に渡す。別areaの現在stateをsnapshotに誤付与しない。
+- cache state/取得可能なcache metadataを選択corpusと一緒に渡す。正確なsync時刻は上記のlocal metadata判断に従う。別areaの現在stateをsnapshotに誤付与しない。
 - Detail push/back時のsheet detentとselectionの所有者はPhase 2に従う。Phase 3で新しいsheet/navigation shellを作らない。
 
 blocker: 半径付き円だけは根拠不足（省略可）。Phase 2 interface確定・上記unknown/preview意味の統一・
