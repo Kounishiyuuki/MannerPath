@@ -49,14 +49,30 @@ nonisolated enum SpotMapCluster {
                                    longitudeDelta: max(0.0008, (maxLon - minLon) * 1.5)))
     }
 
-    // Tells official and community listings apart without alarming colours: red for official/operator evidence,
-    // orange for user-confirmed places, grey (with an outline glyph) for a single report.
-    static func tint(_ existence: ExistenceEvidence) -> UIColor {
+    // docs/DESIGN.md §9: every pin is neutral, whatever its evidence; only the selected pin uses MannerPath Yellow.
+    // Evidence is told apart by the glyph (and the VoiceOver value), never by colour alone.
+    static func tint(selected: Bool) -> UIColor {
+        selected ? UIColor(named: "MannerPathYellow") ?? .systemOrange : .systemGray
+    }
+
+    static func glyph(_ existence: ExistenceEvidence) -> String {
         switch existence {
-        case .official, .operator: .systemRed
-        case .communityVerified: .systemOrange
-        case .communityReported, .unknown: .systemGray
+        case .official: "checkmark.seal.fill"
+        case .operator: "building.2.fill"
+        case .communityVerified: "person.2.fill"
+        case .communityReported: "person.fill"
+        case .unknown: "questionmark.circle.fill"
         }
+    }
+
+    /// The map rect for a region, so it can be shown with edge padding that keeps it clear of the Nearby sheet.
+    static func mapRect(for region: MKCoordinateRegion) -> MKMapRect {
+        let topLeft = MKMapPoint(CLLocationCoordinate2D(latitude: region.center.latitude + region.span.latitudeDelta / 2,
+                                                        longitude: region.center.longitude - region.span.longitudeDelta / 2))
+        let bottomRight = MKMapPoint(CLLocationCoordinate2D(latitude: region.center.latitude - region.span.latitudeDelta / 2,
+                                                            longitude: region.center.longitude + region.span.longitudeDelta / 2))
+        return MKMapRect(x: min(topLeft.x, bottomRight.x), y: min(topLeft.y, bottomRight.y),
+                         width: abs(bottomRight.x - topLeft.x), height: abs(bottomRight.y - topLeft.y))
     }
 }
 
@@ -102,6 +118,9 @@ struct ClusteredSpotMap: UIViewRepresentable {
     /// Applied whenever `regionRequest` changes (Recenter, new results); otherwise the user's camera is kept.
     let region: MKCoordinateRegion?
     let regionRequest: Int
+    let selectedSpotID: String?
+    /// Height of the screen covered by the Nearby sheet; programmatic camera moves fit their region above it.
+    let bottomInset: CGFloat
     let onUserMovedMap: () -> Void
     let onSelectSpot: (String) -> Void
 
@@ -121,6 +140,7 @@ struct ClusteredSpotMap: UIViewRepresentable {
         let coordinator = context.coordinator
         coordinator.onUserMovedMap = onUserMovedMap
         coordinator.onSelectSpot = onSelectSpot
+        coordinator.bottomInset = bottomInset
 
         let (remove, add) = SpotMapAnnotationDiff.diff(current: coordinator.pins.mapValues(\.pin), next: pins)
         map.removeAnnotations(remove.compactMap { coordinator.pins.removeValue(forKey: $0) })
@@ -128,13 +148,23 @@ struct ClusteredSpotMap: UIViewRepresentable {
         for annotation in added { coordinator.pins[annotation.pin.id] = annotation }
         map.addAnnotations(added)
 
+        if selectedSpotID != coordinator.selectedSpotID {
+            let changed = [coordinator.selectedSpotID, selectedSpotID].compactMap { $0 }
+            coordinator.selectedSpotID = selectedSpotID
+            for id in changed {
+                if let annotation = coordinator.pins[id], let view = map.view(for: annotation) as? MKMarkerAnnotationView {
+                    coordinator.style(view, for: annotation)
+                }
+            }
+        }
+
         coordinator.setFixed(.user, user, on: map)
         coordinator.setFixed(.destination, destination, on: map)
 
         if regionRequest != coordinator.appliedRegionRequest, let region {
             coordinator.appliedRegionRequest = regionRequest
             // Like the cluster zoom below: a programmatic move (destination, back to current location) honors Reduce Motion.
-            map.setRegion(region, animated: coordinator.hasAppliedRegion && !UIAccessibility.isReduceMotionEnabled)
+            coordinator.show(region, on: map, animated: coordinator.hasAppliedRegion && !UIAccessibility.isReduceMotionEnabled)
             coordinator.hasAppliedRegion = true
         }
     }
@@ -152,6 +182,23 @@ struct ClusteredSpotMap: UIViewRepresentable {
         var hasAppliedRegion = false
         var onUserMovedMap: () -> Void = {}
         var onSelectSpot: (String) -> Void = { _ in }
+        var selectedSpotID: String?
+        var bottomInset: CGFloat = 0
+
+        func show(_ region: MKCoordinateRegion, on map: MKMapView, animated: Bool) {
+            let padding = UIEdgeInsets(top: 24, left: 24, bottom: bottomInset + 24, right: 24)
+            map.setVisibleMapRect(SpotMapCluster.mapRect(for: region), edgePadding: padding, animated: animated)
+        }
+
+        fileprivate func style(_ view: MKMarkerAnnotationView, for spot: SpotAnnotation) {
+            let selected = spot.pin.id == selectedSpotID
+            view.markerTintColor = SpotMapCluster.tint(selected: selected)
+            view.glyphTintColor = selected ? .black : .white
+            view.glyphImage = UIImage(systemName: SpotMapCluster.glyph(spot.pin.existence))
+            view.accessibilityValue = selected
+                ? [String(localized: "Selected"), spot.pin.accessibilityValue].joined(separator: ", ")
+                : spot.pin.accessibilityValue
+        }
 
         fileprivate func setFixed(_ kind: FixedAnnotation.Kind, _ marker: Marker?, on map: MKMapView) {
             if let (annotation, current) = fixed[kind] {
@@ -172,17 +219,13 @@ struct ClusteredSpotMap: UIViewRepresentable {
                 view.clusteringIdentifier = Self.clusteringIdentifier
                 view.displayPriority = .defaultHigh
                 view.canShowCallout = false
-                view.markerTintColor = SpotMapCluster.tint(spot.pin.existence)
-                view.glyphImage = UIImage(systemName: spot.pin.existence == .communityReported || spot.pin.existence == .unknown
-                                          ? "mappin" : "mappin.circle.fill")
+                style(view, for: spot)
                 view.accessibilityLabel = String(localized: "Show details for \(spot.pin.title)")
-                view.accessibilityValue = spot.pin.accessibilityValue
                 view.accessibilityTraits = .button
                 return view
             case let cluster as MKClusterAnnotation:
                 let view = mapView.dequeueReusableAnnotationView(withIdentifier: Self.clusterReuse, for: cluster) as! MKMarkerAnnotationView
-                let members = cluster.memberAnnotations.compactMap { ($0 as? SpotAnnotation)?.pin.existence }
-                view.markerTintColor = SpotMapCluster.tint(SpotMapCluster.existence(of: members))
+                view.markerTintColor = SpotMapCluster.tint(selected: false)
                 view.glyphText = "\(cluster.memberAnnotations.count)"
                 view.displayPriority = .defaultHigh
                 view.canShowCallout = false
@@ -214,7 +257,7 @@ struct ClusteredSpotMap: UIViewRepresentable {
                 }
                 guard let region = SpotMapCluster.expansionRegion(for: coordinates) else { return }
                 onUserMovedMap()
-                mapView.setRegion(region, animated: !UIAccessibility.isReduceMotionEnabled)
+                show(region, on: mapView, animated: !UIAccessibility.isReduceMotionEnabled)
             case let spot as SpotAnnotation:
                 onSelectSpot(spot.pin.id)
             default:

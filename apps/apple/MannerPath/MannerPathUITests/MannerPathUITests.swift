@@ -93,6 +93,15 @@ class MannerPathUITestCase: XCTestCase {
     func waitForResults(file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 30), "No nearby results", file: file, line: line)
     }
+
+    var nearbyMap: XCUIElement { app.descendants(matching: .any)["nearbyMap"] }
+
+    // docs/DESIGN.md §5.1: the map stays the full-screen root in every state; the sheet explains the state over it.
+    func assertFullScreenMap(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(nearbyMap.waitForExistence(timeout: 10), "Map is missing", file: file, line: line)
+        let window = app.windows.firstMatch.frame
+        XCTAssertGreaterThanOrEqual(nearbyMap.frame.height, window.height * 0.9, "Map is not full screen", file: file, line: line)
+    }
 }
 
 final class A_FirstLaunchUITests: MannerPathUITestCase {
@@ -112,9 +121,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
     func testNearbyLoadedShowsMapAndFirstResultWithoutScrolling() {
         launch()
         waitForResults()
-        let map = app.descendants(matching: .any)["nearbyMap"]
-        XCTAssertTrue(map.exists)
-        XCTAssertGreaterThanOrEqual(map.frame.height, 200, "Map is too cramped to use")
+        assertFullScreenMap()
         let first = resultRows.firstMatch
         if phase != "large-text" {
             let window = app.windows.firstMatch.frame
@@ -164,7 +171,44 @@ final class B_OnlineUITests: MannerPathUITestCase {
         }
         let pin = try XCTUnwrap(pins.allElementsBoundByIndex.first(where: \.isHittable), "no single pin after expanding clusters")
         pin.tap()
+        // A pin selects first (docs/DESIGN.md §5.5): a summary in the sheet, details one explicit step further.
+        let summary = app.descendants(matching: .any)["selectedSpotSummary"]
+        XCTAssertTrue(summary.waitForExistence(timeout: 10), "Pin tap did not show the selected-place summary")
+        XCTAssertFalse(app.navigationBars["場所の詳細"].exists)
+        XCTAssertTrue(text("選択中の場所").exists)
+        screenshot("15-selected-spot")
+        app.buttons["selectedSpotDetails"].tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
+        app.buttons["clearSelectedSpot"].tap()
+        XCTAssertTrue(summary.waitForNonExistence(timeout: 5))
+    }
+
+    // The standard sheet collapses over the map and expands to the full list; the map never goes away.
+    func testSheetCollapsesAndExpandsOverMap() {
+        launch()
+        waitForResults()
+        assertFullScreenMap()
+        let window = app.windows.firstMatch.frame
+        let title = app.navigationBars["近くの場所"]
+        XCTAssertTrue(title.exists)
+        let mediumTop = title.frame.minY
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        sleep(1)
+        XCTAssertGreaterThan(title.frame.minY, mediumTop, "Sheet did not collapse")
+        XCTAssertGreaterThan(title.frame.minY, window.height * 0.6)
+        XCTAssertTrue(nearbyMap.exists)
+        screenshot("16-sheet-collapsed")
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+        sleep(1)
+        XCTAssertLessThan(title.frame.minY, window.height * 0.25, "Sheet did not expand")
+        XCTAssertTrue(resultRows.firstMatch.isHittable, "Expanded sheet does not show the nearby list")
+        XCTAssertTrue(nearbyMap.exists)
+        screenshot("17-sheet-expanded")
     }
 
     func testPhysicalTypeFilterEmptiesAndClearRestores() {
@@ -321,6 +365,7 @@ final class C_OfflineWithCacheUITests: MannerPathUITestCase {
         waitForResults()
         XCTAssertTrue(textContaining("読み込み、または更新できませんでした").waitForExistence(timeout: 30))
         XCTAssertFalse(text("近くの場所の情報を読み込めませんでした").exists)
+        assertFullScreenMap()
         screenshot("11-offline-cached")
     }
 }
@@ -334,6 +379,7 @@ final class D_CleanOfflineUITests: MannerPathUITestCase {
         XCTAssertFalse(textContaining("利用可能な保存済みの結果を表示します").exists,
                        "Must not claim saved results that do not exist")
         XCTAssertFalse(textContaining("保存済みの下書きはこのデバイスに残ります").exists)
+        assertFullScreenMap()
         screenshot("12-clean-offline")
         // Reporting availability is unknown here: Data & Privacy must not advertise intake.
         app.buttons["データとプライバシー"].tap()
@@ -351,6 +397,7 @@ final class E_LocationDeniedUITests: MannerPathUITestCase {
         XCTAssertTrue(textContaining("位置情報の利用がオフです").waitForExistence(timeout: 15))
         XCTAssertTrue(app.buttons["設定を開く"].exists)
         XCTAssertEqual(resultRows.count, 0)
+        assertFullScreenMap()
         screenshot("13-location-denied")
     }
 }
@@ -360,6 +407,7 @@ final class F_LocationNotDeterminedUITests: MannerPathUITestCase {
         launch()
         XCTAssertTrue(app.buttons["現在地を使用"].waitForExistence(timeout: 15))
         XCTAssertEqual(resultRows.count, 0)
+        assertFullScreenMap()
         screenshot("14-location-not-determined")
     }
 }
