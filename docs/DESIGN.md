@@ -94,9 +94,10 @@ Decisions:
   appearance plus a high-contrast variant. Use it through `.tint` / `Color.accentColor`, never as a hard-coded hex.
 - Yellow is for: the selected map marker, the one primary CTA per screen (`.borderedProminent`), the nearest
   distance figure, and widget accents. It is **not** for backgrounds, cards, list rows or evidence state.
-- Stitch disagrees with itself on the light accent (`#F5A623` vs `#D98200`). `#F5A623` on white does not reach text
-  contrast; use the darker value wherever the accent colours text or a glyph on a light background. Final values
-  must be checked with Xcode's Accessibility Inspector before shipping (unverified here).
+- **Decided (§9.1):** text, SF Symbols and small accents use `#D98200`; the selected marker, larger filled selected
+  states and the primary CTA use `#F5A623`. Where either value lacks contrast in context, use the system foreground
+  (`.primary` / `.secondary`) instead of the yellow. Final values must be checked with Xcode's Accessibility
+  Inspector before shipping.
 - The Stitch Material-style palette (`primary #835500`, `tertiary #006e28`, `surface #faf9fe`, …) is not used; system
   colours replace it.
 
@@ -159,7 +160,7 @@ Evidence labels (wording owned by ADR-0012 / `SpotPresentation`):
 
 | Evidence | Symbol | Tint |
 | --- | --- | --- |
-| official / operator | `checkmark.seal.fill` | accent or neutral (decision in §9) |
+| official / operator | `checkmark.seal.fill` | neutral (decided §9.2) |
 | community verified | `person.2.fill` | neutral |
 | community reported (single) | `person.fill.questionmark` | secondary |
 | unknown | `questionmark.circle` | secondary |
@@ -236,8 +237,8 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
   walking directions, use and access, evidence and freshness, suggest a correction. Title 「Place details」.
 - **Stitch target (`地点詳細（公式・正確位置）`):** place name as title, primary 「この場所へ案内」, attributes,
   evidence and freshness, report entry.
-- **Apple-native:** keep `Form`/inset-grouped `List`. Navigation title = place name (inline). Toolbar: Share (only
-  if sharing exists in product requirements). One primary `.borderedProminent` CTA. Map preview, if any, is a
+- **Apple-native:** keep `Form`/inset-grouped `List`. Navigation title = place name (inline). No Share or Bookmark
+  in v1 (decided §9.3). One primary `.borderedProminent` CTA. Map preview, if any, is a
   non-interactive MapKit snapshot or `Map` — not a custom image.
 - **Required change:** mostly copy and hierarchy; align CTA wording; replace the red `mappin.circle.fill` glyph in
   directions with a neutral or accent glyph.
@@ -392,14 +393,15 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 - Custom fonts (Stitch `Inter`), custom card containers, nested rounded rectangles.
 - Gamification: points, streaks, badges as rewards, confirmation counters as achievement.
 
-## 9. Open decisions (need product owner)
+## 9. Maintainer decisions (2026-10-06)
 
-1. Light accent value: `#F5A623` (Stitch theme) or `#D98200` (Stitch spec, text-safe). Recommendation: `#D98200`
-   for glyph/text use, `#F5A623` only for large fills such as the selected marker.
-2. Official-evidence marker tint: neutral with filled glyph, or accent. Accent on every official marker risks
-   exceeding the 5–10 % accent budget; recommendation: neutral, accent reserved for selection.
-3. Whether sharing / bookmarking (Stitch detail toolbar) are product features. Not in scope until
-   `docs/PRODUCT_REQUIREMENTS.md` says so.
+1. **MannerPath Yellow.** `#D98200` for text, SF Symbols and small accents; `#F5A623` for the selected marker,
+   larger filled selected states and the primary CTA. Yellow stays at roughly 5–10 % of a screen. When contrast is
+   insufficient, the system foreground colour takes precedence over yellow.
+2. **Official-evidence marker: neutral.** Being official is not emphasised with yellow or red; only the selected
+   state uses MannerPath Yellow.
+3. **Share / Bookmark: not in v1.** Their presence in Stitch samples does not make them MannerPath v1 product
+   requirements.
 
 ## 10. Current vs target summary
 
