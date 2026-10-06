@@ -1,6 +1,7 @@
 import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
+import {manualReviewTriage} from './evaluator.mjs';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const references = evidence => [...new Set((evidence || []).map(item => item.reference).filter(Boolean))];
@@ -67,6 +68,24 @@ export function buildReport(manifest, state, reviews = []) {
     return {prefecture, coverage, reviewedSourceIds, trackedGroups: groups.length, scannedGroups: groups.filter(t => t.completedAt).length};
   });
   const scanned = resources.filter(resource => ['rawScanned', 'candidate'].includes(resource.status));
+  const resourceByUrl = new Map(resources.map(resource => [resource.rawUrl, resource]));
+  const manualReviewQueue = targets.flatMap(target => {
+    const context = {review: target.deepReview, blockerCodes: target.blockerCodes};
+    return [{target: target.id, candidate: target.jurisdiction, scope: 'target',
+      ...manualReviewTriage(state.targets[target.id], {...context, reviewedSourceIds: target.reviewedSourceIds, targetOnly: true})},
+    ...target.resourceUrls.map(rawUrl => ({target: target.id, candidate: rawUrl, scope: 'resource',
+      ...manualReviewTriage({...state.resources[rawUrl], ...resourceByUrl.get(rawUrl), rawUrl,
+        truncated: target.truncated || state.resources[rawUrl]?.truncated || false},
+      {...context, review: legacyReviews.find(review => review.rawUrl === rawUrl && review.verdict === 'blocked') || context.review})}))];
+  });
+  const linkedResources = new Set(targets.flatMap(target => target.resourceUrls));
+  for (const resource of resources.filter(resource => !linkedResources.has(resource.rawUrl))) {
+    manualReviewQueue.push({target: null, candidate: resource.rawUrl, scope: 'resource',
+      ...manualReviewTriage({...state.resources[resource.rawUrl], ...resource},
+        {review: legacyReviews.find(review => review.rawUrl === resource.rawUrl && review.verdict === 'blocked')})});
+  }
+  manualReviewQueue.sort((first, second) => first.priority.localeCompare(second.priority) ||
+    String(first.target).localeCompare(String(second.target)) || first.candidate.localeCompare(second.candidate));
   return {
     version: 1, generatedAt: new Date().toISOString(), approvalAutomated: false,
     scanScope: 'Bounded catalog/index scans, not an exhaustive absence claim. Prior inspections are separately counted.',
@@ -95,7 +114,7 @@ export function buildReport(manifest, state, reviews = []) {
       coveredCapitals: targets.filter(t => t.roles.includes('prefecturalCapital') && t.coverage === 'covered').length,
       coveredOrdinanceCities: targets.filter(t => t.roles.includes('ordinanceDesignatedCity') && t.coverage === 'covered').length,
       coveredTokyoWards: targets.filter(t => t.roles.includes('tokyoWard') && t.coverage === 'covered').length,
-    }, passSummary: passSummary(targets, resources), prefectures, targets, resources, reviews,
+    }, passSummary: passSummary(targets, resources), prefectures, targets, resources, reviews, manualReviewQueue,
   };
 }
 
@@ -132,6 +151,11 @@ export function markdownReport(report) {
   for (const [role, label] of [['prefecturalCapital', 'Prefectural capitals'], ['ordinanceDesignatedCity', 'Ordinance cities'], ['tokyoWard', 'Tokyo wards'], ['operator', 'Operators']]) {
     lines.push('', `## ${label}`, '', rows(['Target', 'Coverage', 'Discovery', 'Truncated', 'Blocker codes'], report.targets.filter(t => role === 'operator' ? t.kind === role : t.roles.includes(role)).map(t => [t.jurisdiction, t.coverage, t.discoveryStatus, t.truncated, t.blockerCodes.join(', ')])));
   }
+  lines.push('', '## Manual review queue', '',
+    'Priority orders human review only, never publication or implementation approval. Keyword/coordinate signals are not verified smoking Points or publisher rights. Unknown stays unknown.', '',
+    rows(['Target', 'Candidate', 'Scope', 'Smoking evidence', 'Rights status', 'Coordinate status', 'Classification', 'Blocker', 'Review priority'],
+      (report.manualReviewQueue || []).map(item => [item.target, item.candidate, item.scope, item.smokingEvidence,
+        item.rights, item.coordinates, item.classification, item.blockerCodes.join(', '), item.priority])));
   return lines.join('\n') + '\n';
 }
 
