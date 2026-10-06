@@ -105,6 +105,17 @@ unproven. No source assertions or validation gates were bypassed.
 
 ## 4. User actions to reach TestFlight (in order)
 
+Before upload, `./scripts/apple-beta-preflight.sh <archive>` fails closed unless both
+iPhone/Watch hosts declare `AppIcon` in `CFBundleIcons.CFBundlePrimaryIcon`, contain
+`Assets.car`, and expose a compiled 1024 × 1024 AppIcon rendition through Xcode's
+`assetutil`. Missing tools or unreadable catalogs are failures, not skipped checks.
+The checker also requires the exact production API and public-site URLs, iPhone-only
+`UIDeviceFamily [1]`, all four expected bundle identifiers with matching version/build,
+and privacy manifests in both app hosts. Widget manifests are not newly required.
+Run `python3 scripts/test-apple-beta-preflight.py` for focused failure fixtures.
+`--unsigned-build` checks these artifact gates using source entitlements but does not
+bypass signed-mode signature/profile checks or provide TestFlight/device evidence.
+
 | # | Where | Action |
 | --- | --- | --- |
 | 1 | developer.apple.com | Complete Developer Program enrollment; accept agreements |

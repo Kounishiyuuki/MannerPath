@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import importlib.util
+import json
 import pathlib
 import plistlib
 import shutil
@@ -27,29 +28,113 @@ class PreflightTests(unittest.TestCase):
                       self.app / "Watch/MannerPathWatch Watch App.app/PlugIns/MannerPathWatchWidgets.appex"]
         for (label, identifier), path in zip(preflight.IDS.items(), self.paths):
             path.mkdir(parents=True)
-            info = {"CFBundleIdentifier": identifier, "CFBundleVersion": "42"}
+            info = {"CFBundleIdentifier": identifier, "CFBundleVersion": "42",
+                    "CFBundleShortVersionString": "1.0"}
             if label == "iPhone app":
-                info["MannerPathAPIBaseURL"] = "https://example.invalid"
+                info["MannerPathAPIBaseURL"] = preflight.PRODUCTION_API
+                info["MannerPathPublicSiteURL"] = preflight.PUBLIC_SITE
+                info["UIDeviceFamily"] = [1]
+            if label in ("iPhone app", "Watch app"):
+                info["CFBundleIcons"] = {"CFBundlePrimaryIcon": {"CFBundleIconName": "AppIcon"}}
+                (path / "Assets.car").write_bytes(b"fixture")
+            (path / "PrivacyInfo.xcprivacy").write_bytes(plistlib.dumps({}))
             (path / "Info.plist").write_bytes(plistlib.dumps(info))
 
     def check(self):
-        with redirect_stdout(StringIO()) as output:
+        with patch.object(preflight.subprocess, "run", return_value=self.asset_result()), redirect_stdout(StringIO()) as output:
             preflight.inspect(self.app, True)
         return output.getvalue()
+
+    def asset_result(self):
+        return subprocess.CompletedProcess([], 0, stdout=json.dumps([
+            {"Name": "AppIcon", "PixelWidth": 1024, "PixelHeight": 1024}
+        ]).encode())
+
+    def test_icon_metadata_missing_or_wrong_fails_for_both_hosts(self):
+        for path, label in ((self.app, "iPhone app"), (self.paths[2], "Watch app")):
+            info_path = path / "Info.plist"
+            original = plistlib.loads(info_path.read_bytes())
+            for icons in (None, {}, {"CFBundlePrimaryIcon": {}},
+                          {"CFBundlePrimaryIcon": {"CFBundleIconName": "Wrong"}}):
+                with self.subTest(label=label, icons=icons):
+                    info = dict(original)
+                    if icons is None:
+                        info.pop("CFBundleIcons")
+                    else:
+                        info["CFBundleIcons"] = icons
+                    info_path.write_bytes(plistlib.dumps(info))
+                    with self.assertRaisesRegex(ValueError, label + ": CFBundleIcons"):
+                        self.check()
+            info_path.write_bytes(plistlib.dumps(original))
+
+    def test_missing_assets_fails_for_both_hosts(self):
+        for path in (self.app, self.paths[2]):
+            assets = path / "Assets.car"
+            assets.unlink()
+            with self.assertRaisesRegex(ValueError, "Assets.car missing"):
+                self.check()
+            assets.write_bytes(b"fixture")
+
+    def test_cli_missing_icon_exits_with_clear_failure(self):
+        info_path = self.app / "Info.plist"
+        info = plistlib.loads(info_path.read_bytes())
+        info.pop("CFBundleIcons")
+        info_path.write_bytes(plistlib.dumps(info))
+        result = subprocess.run(["python3", str(SCRIPT), str(self.app), "--unsigned-build"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("FAIL: iPhone app: CFBundleIcons", result.stderr)
+
+    def test_missing_or_invalid_rendition_fails(self):
+        for output in (b"[]", b"{}", b"invalid", b'[{"Name":"AppIcon","PixelWidth":60,"PixelHeight":60}]'):
+            with self.subTest(output=output), patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=output)):
+                with self.assertRaisesRegex(ValueError, "rendition missing|invalid assetutil output"):
+                    preflight.check_icon(self.app, plistlib.loads((self.app / "Info.plist").read_bytes()), "iPhone app")
+
+    def test_assetutil_failure_is_not_skipped(self):
+        for result in (subprocess.CompletedProcess([], 1, stdout=b""), OSError("missing")):
+            with patch.object(preflight.subprocess, "run", **({"side_effect": result} if isinstance(result, OSError) else {"return_value": result})):
+                with self.assertRaisesRegex(ValueError, "assetutil"):
+                    preflight.check_icon(self.app, plistlib.loads((self.app / "Info.plist").read_bytes()), "iPhone app")
+
+    def test_release_metadata_failures(self):
+        for key, value, message in (("UIDeviceFamily", [1, 2], "iPhone-only"),
+                                    ("MannerPathAPIBaseURL", "https://example.invalid", "production Release origin"),
+                                    ("MannerPathPublicSiteURL", "https://example.invalid/", "production public site"),
+                                    ("CFBundleShortVersionString", "", "version/build missing")):
+            info_path = self.app / "Info.plist"
+            original = plistlib.loads(info_path.read_bytes())
+            info = dict(original)
+            info[key] = value
+            info_path.write_bytes(plistlib.dumps(info))
+            with self.assertRaisesRegex(ValueError, message):
+                self.check()
+            info_path.write_bytes(plistlib.dumps(original))
+
+    def test_missing_privacy_and_mismatched_embedded_version_fail(self):
+        privacy = self.paths[2] / "PrivacyInfo.xcprivacy"
+        privacy.unlink()
+        with self.assertRaisesRegex(ValueError, "PrivacyInfo.xcprivacy"):
+            self.check()
+        privacy.write_bytes(plistlib.dumps({}))
+        info_path = self.paths[3] / "Info.plist"
+        info = plistlib.loads(info_path.read_bytes())
+        info["CFBundleVersion"] = "43"
+        info_path.write_bytes(plistlib.dumps(info))
+        with self.assertRaisesRegex(ValueError, "CFBundleVersion does not match"):
+            self.check()
 
     def test_valid_unsigned_bundle_is_labeled(self):
         self.assertIn("UNSIGNED BUILD", self.check())
         self.assertIn("CFBundleVersion for App Attest server: 42", self.check())
 
     def test_missing_embedded_watch_widget_fails(self):
-        (self.paths[-1] / "Info.plist").unlink()
-        self.paths[-1].rmdir()
+        shutil.rmtree(self.paths[-1])
         with self.assertRaisesRegex(ValueError, "Watch widget: expected exactly one"):
             self.check()
 
     def test_missing_iphone_widget_fails(self):
-        (self.paths[1] / "Info.plist").unlink()
-        self.paths[1].rmdir()
+        shutil.rmtree(self.paths[1])
         with self.assertRaisesRegex(ValueError, "iPhone widget: expected exactly one"):
             self.check()
 
@@ -118,6 +203,15 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected 'iphoneos' for signed device evidence"):
             preflight.inspect(self.app, False)
 
+    def test_signed_mode_does_not_bypass_signature_failure(self):
+        info_path = self.app / "Info.plist"
+        info = plistlib.loads(info_path.read_bytes())
+        info["DTPlatformName"] = "iphoneos"
+        info_path.write_bytes(plistlib.dumps(info))
+        with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, stdout=b"")):
+            with self.assertRaisesRegex(ValueError, "code signature verification failed"):
+                preflight.inspect(self.app, False)
+
     def test_missing_app_attest_fails(self):
         missing = pathlib.Path(self.temp.name) / "missing.entitlements"
         missing.write_bytes(plistlib.dumps({"com.apple.security.application-groups": [preflight.GROUP]}))
@@ -138,6 +232,8 @@ class PreflightTests(unittest.TestCase):
             (path / "embedded.mobileprovision").write_bytes(b"fixture")
 
         def codesign(command, **_):
+            if command[0] == "xcrun":
+                return self.asset_result()
             if "--verify" in command:
                 return subprocess.CompletedProcess(command, 0, stdout=b"")
             if command[0] == "security":
@@ -157,7 +253,7 @@ class PreflightTests(unittest.TestCase):
         with patch.object(preflight.subprocess, "run", side_effect=codesign) as run:
             with redirect_stdout(StringIO()) as output:
                 preflight.inspect(archive, False)
-        self.assertEqual(run.call_count, 12)
+        self.assertEqual(run.call_count, 14)
         self.assertIn("signed artifact entitlements", output.getvalue())
 
     def test_missing_profile_fails_signed_mode(self):
