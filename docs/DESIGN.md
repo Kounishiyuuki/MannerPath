@@ -86,18 +86,19 @@ What Stitch does **not** provide, and this document therefore does not invent:
 | Brand yellow (Stitch `customColor` / `primary_container`) | `#F5A623` | — | Stitch design theme |
 | Pressed (Stitch `overrideSecondaryColor`) | `#E69500` | — | Stitch design theme |
 | Accent, dark (Stitch design system) | — | `#FFB340` | Stitch design Markdown |
-| Accent, text-safe light (Stitch spec §2.1, "contrast 4.8:1") | `#D98200` | `#F5A623` | Stitch native spec |
+| Stitch spec "accentColor" (claimed 4.8:1; measured 2.94:1 on white) — reference only, **not used for shipping text** | `#D98200` | `#F5A623` | Stitch native spec |
 
 Decisions:
 
-- Implement as the `AccentColor` asset (currently empty, so the app uses system blue) with a light and a dark
-  appearance plus a high-contrast variant. Use it through `.tint` / `Color.accentColor`, never as a hard-coded hex.
-- Yellow is for: the selected map marker, the one primary CTA per screen (`.borderedProminent`), the nearest
-  distance figure, and widget accents. It is **not** for backgrounds, cards, list rows or evidence state.
-- **Decided (§9.1):** text, SF Symbols and small accents use `#D98200`; the selected marker, larger filled selected
-  states and the primary CTA use `#F5A623`. Where either value lacks contrast in context, use the system foreground
-  (`.primary` / `.secondary`) instead of the yellow. Final values must be checked with Xcode's Accessibility
-  Inspector before shipping.
+- **Global `AccentColor` stays the system tint (§9.1).** Text, SF Symbols, toolbar, navigation and links use system
+  foreground / system tint colours, never yellow.
+- MannerPath Yellow is a separate brand asset, `MannerPathYellow` = `#F5A623`, used only for the selected map
+  marker, larger filled selected states and the primary CTA background. Content on it uses a colour with real
+  contrast (black: 10.36:1); white on `#F5A623` is 2.03:1 and is not used.
+- Yellow never carries meaning by itself (selection is also stated in text / VoiceOver) and stays at roughly 5–10 %
+  of a screen. It is **not** for backgrounds, cards, list rows, evidence state or text.
+- Contrast measured with the WCAG 2 relative-luminance formula (2026-10-06): `#D98200` on white 2.94:1, on
+  `#F2F2F7` 2.63:1 — below 4.5:1 for text, so `#D98200` is not a text-safe token. `#F5A623` on `#1C1C1E` 8.39:1.
 - The Stitch Material-style palette (`primary #835500`, `tertiary #006e28`, `surface #faf9fe`, …) is not used; system
   colours replace it.
 
@@ -132,7 +133,8 @@ Decisions:
 
 | Token | Implementation |
 | --- | --- |
-| accent | `AccentColor` asset (light / dark / high contrast) |
+| accent | system tint (`AccentColor` left at the system default) |
+| brand | `MannerPathYellow` asset (`#F5A623`): selected marker, filled selected state, primary CTA background only |
 | backgrounds, labels, separators, fills | system semantic colours |
 | type | SwiftUI text styles + Dynamic Type |
 | spacing | system defaults; `padding()` |
@@ -368,7 +370,7 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 | VoiceOver | Rows combine into one element: label = place name, value = distance, evidence, precision, freshness, access (Stitch spec §4 example), hint = what activation does. Markers keep the evidence + approximate value already passed to `ClusteredSpotMap`. Sheet detent changes are announced by the system. |
 | Reduce Motion | Use system sheet/selection animations only; camera moves on selection use no animation (or a cross-fade) when `accessibilityReduceMotion` is on. |
 | Reduce Transparency | Nothing to do beyond using system materials; the system swaps glass for opaque. No custom translucency that would ignore the setting. |
-| Increase Contrast | `AccentColor` asset gets a high-contrast variant; system colours adapt automatically. |
+| Increase Contrast | System colours adapt automatically. `MannerPathYellow` is never the only carrier of meaning, so it needs no high-contrast variant; content on it is black. |
 | Colour independence | Every status = symbol + text (§4). |
 
 ## 7. Liquid Glass policy
@@ -395,9 +397,12 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 
 ## 9. Maintainer decisions (2026-10-06)
 
-1. **MannerPath Yellow.** `#D98200` for text, SF Symbols and small accents; `#F5A623` for the selected marker,
-   larger filled selected states and the primary CTA. Yellow stays at roughly 5–10 % of a screen. When contrast is
-   insufficient, the system foreground colour takes precedence over yellow.
+1. **MannerPath Yellow (revised 2026-10-06, PR #203).** Global `AccentColor` stays the system tint. `#F5A623` is a
+   brand accent only for the selected marker, larger filled selected states and the primary CTA background, with
+   black (or another measured high-contrast) foreground. Text, SF Symbols, toolbar, navigation and links use system
+   foreground / tint. `#D98200` is not adopted as a text-safe token (2.94:1 on white); it remains only as a Stitch
+   reference value and is not used for shipping text. Yellow stays at roughly 5–10 % of a screen and is never the
+   meaning of a state by itself.
 2. **Official-evidence marker: neutral.** Being official is not emphasised with yellow or red; only the selected
    state uses MannerPath Yellow.
 3. **Share / Bookmark: not in v1.** Their presence in Stitch samples does not make them MannerPath v1 product
@@ -412,7 +417,7 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 | Pin tap | Pushes detail | Selects, summary in sheet, then detail |
 | Marker tint | Red (official) / orange / grey | Neutral by glyph; accent only for selection |
 | Destination | Inline `TextField` | `.searchable` |
-| Accent | Empty `AccentColor` (system blue) | MannerPath Yellow asset with dark/high-contrast |
+| Accent | Empty `AccentColor` (system blue) | Unchanged system tint; `MannerPathYellow` brand asset for selection / primary CTA |
 | Add-place pin | Red pin | Accent pin, same flow |
 | Watch | List-first | List-first (row hierarchy tweaks) |
 | Widgets | 3 families | Same families, accent/typography tweaks |

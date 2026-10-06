@@ -21,11 +21,61 @@ struct ContentView: View {
     @State private var destinationQuery = ""
     @State private var showingEligibility = false
     @State private var showingFilters = false
+    @State private var showingNearbySheet = false
+    @State private var sheetDetent: PresentationDetent = .medium
+    @State private var selectedSpotID: String?
 
+    private static let collapsedDetent = PresentationDetent.fraction(0.25)
+
+    // docs/DESIGN.md §5.1–5.5: the map fills the screen and Nearby lives in a standard, non-dismissable sheet over it.
+    // The sheet holds its own NavigationStack, so details and every other sheet are presented from inside it.
     var body: some View {
+        GeometryReader { proxy in
+            nearbyMap(bottomInset: proxy.size.height * (sheetDetent == Self.collapsedDetent ? 0.25 : 0.5))
+        }
+        .ignoresSafeArea()
+        .sheet(isPresented: $showingNearbySheet) {
+            nearbySheet
+        }
+        .onOpenURL { url in
+            guard let parsed = NearbyGlance.spotID(from: url) else { return }
+            if model.destination != nil { selectDestination(nil) }
+            path = []
+            if let id = parsed { path.append(id) }
+        }
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active && eligibilityNoticeAccepted { activateNearby() }
+        }
+        .fullScreenCover(isPresented: $showingEligibility, onDismiss: { showingNearbySheet = eligibilityNoticeAccepted }) {
+            EligibilityNoticeView {
+                eligibilityNoticeAccepted = true
+                showingEligibility = false
+                if scenePhase == .active { activateNearby() }
+            }
+        }
+        .task {
+            if eligibilityNoticeAccepted { showingNearbySheet = true } else { showingEligibility = true }
+        }
+        .onChange(of: mapCenter, initial: true) { _, _ in
+            if !mapPositionedByUser { recenterMap() }
+        }
+        .onChange(of: resultCoordinates) { _, _ in
+            if !mapPositionedByUser { recenterMap() }
+        }
+        .onChange(of: model.destination) { _, _ in
+            recenterMap()
+        }
+        .onChange(of: filters) { _, updated in
+            model.setFilters(updated)
+            PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.save(updated))
+        }
+    }
+
+    private var nearbySheet: some View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    sheetSummary
                     locationSection
                     if model.destination != nil {
                         Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
@@ -35,7 +85,6 @@ struct ContentView: View {
 
                     if model.browsingCoordinate != nil {
                         dataStatus
-                        if !model.results.isEmpty { mapSection }
                         listSection
                         nearbyTasksSection
                     }
@@ -47,6 +96,7 @@ struct ContentView: View {
                 .padding()
             }
             .navigationTitle("Nearby")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(filters == NearbyFilters() ? "Filters" : "Filters active",
@@ -63,8 +113,14 @@ struct ContentView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
+                    Button(model.destination == nil ? "Recenter" : "Recenter on destination",
+                           systemImage: "location.north.line") { recenterMap() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
                         AboutPrivacyView(sources: model.sources, reportModel: reportModel)
+                            // Not a `path` push, so the detent follows here: a full page needs the full sheet.
+                            .onAppear { sheetDetent = .large }
                     } label: {
                         Label("Data & Privacy", systemImage: "info.circle")
                     }
@@ -99,15 +155,6 @@ struct ContentView: View {
                 }
             }
         }
-        .onOpenURL { url in
-            guard let parsed = NearbyGlance.spotID(from: url) else { return }
-            if model.destination != nil { selectDestination(nil) }
-            path = []
-            if let id = parsed { path.append(id) }
-        }
-        .onChange(of: scenePhase, initial: true) { _, phase in
-            if phase == .active && eligibilityNoticeAccepted { activateNearby() }
-        }
         .sheet(isPresented: $showingReport) {
             ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate,
                            nearbySpots: model.results.map(\.spot))
@@ -128,28 +175,13 @@ struct ContentView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        .fullScreenCover(isPresented: $showingEligibility) {
-            EligibilityNoticeView {
-                eligibilityNoticeAccepted = true
-                showingEligibility = false
-                if scenePhase == .active { activateNearby() }
-            }
-        }
-        .task {
-            if !eligibilityNoticeAccepted { showingEligibility = true }
-        }
-        .onChange(of: mapCenter, initial: true) { _, _ in
-            if !mapPositionedByUser { recenterMap() }
-        }
-        .onChange(of: resultCoordinates) { _, _ in
-            if !mapPositionedByUser { recenterMap() }
-        }
-        .onChange(of: model.destination) { _, _ in
-            recenterMap()
-        }
-        .onChange(of: filters) { _, updated in
-            model.setFilters(updated)
-            PhoneWatchSync.shared.publish(preferences: WatchPreferenceStore.save(updated))
+        .presentationDetents([Self.collapsedDetent, .medium, .large], selection: $sheetDetent)
+        .presentationDragIndicator(.visible)
+        .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        .interactiveDismissDisabled()
+        .onChange(of: path) { _, newPath in
+            // A pushed detail needs the full height; coming back returns to the list over the map.
+            sheetDetent = newPath.isEmpty ? .medium : .large
         }
     }
 
@@ -325,45 +357,69 @@ struct ContentView: View {
         }
     }
 
-    private var mapSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Map")
-                    .font(.headline)
-                Spacer()
-                Button(model.destination == nil ? "Recenter" : "Recenter on destination",
-                       systemImage: "location.north.line") { recenterMap() }
-                    .buttonStyle(.bordered)
+    // Always on screen, with or without results: an empty, offline or denied state is explained in the sheet, never by
+    // replacing the map.
+    private func nearbyMap(bottomInset: CGFloat) -> some View {
+        ClusteredSpotMap(
+            pins: model.results.map { result in
+                SpotMapPin(id: result.spot.id, title: SpotPresentation.name(result.spot),
+                           coordinate: SpotCoordinate(latitude: result.spot.latitude, longitude: result.spot.longitude),
+                           existence: result.spot.verification.existenceTier,
+                           // ADR-0017: an area-anchor pin says it is approximate to VoiceOver too.
+                           accessibilityValue: [SpotPresentation.evidence(result.spot), SpotPresentation.approximateLocationNote(result.spot)]
+                               .compactMap { $0 }.joined(separator: ", "))
+            },
+            user: model.displayLocation.map { location in
+                ClusteredSpotMap.Marker(
+                    title: location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
+                        ? String(localized: "Last location used for distances") : String(localized: "Your location"),
+                    coordinate: location.coordinate)
+            },
+            destination: model.destination.map {
+                ClusteredSpotMap.Marker(title: String(localized: "Destination: \($0.name)"), coordinate: $0.coordinate)
+            },
+            region: mapRegion,
+            regionRequest: mapRegionRequest,
+            selectedSpotID: selectedResult?.spot.id,
+            bottomInset: bottomInset,
+            onUserMovedMap: { mapPositionedByUser = true },
+            onSelectSpot: { id in
+                guard model.results.contains(where: { $0.spot.id == id }) else { return }
+                selectedSpotID = id
+                path = []
+                sheetDetent = .medium
             }
-            ClusteredSpotMap(
-                pins: model.results.map { result in
-                    SpotMapPin(id: result.spot.id, title: SpotPresentation.name(result.spot),
-                               coordinate: SpotCoordinate(latitude: result.spot.latitude, longitude: result.spot.longitude),
-                               existence: result.spot.verification.existenceTier,
-                               // ADR-0017: an area-anchor pin says it is approximate to VoiceOver too.
-                               accessibilityValue: [SpotPresentation.evidence(result.spot), SpotPresentation.approximateLocationNote(result.spot)]
-                                   .compactMap { $0 }.joined(separator: ", "))
-                },
-                user: model.displayLocation.map { location in
-                    ClusteredSpotMap.Marker(
-                        title: location.isLastKnown || location.coordinate != model.displayLocation?.coordinate
-                            ? String(localized: "Last location used for distances") : String(localized: "Your location"),
-                        coordinate: location.coordinate)
-                },
-                destination: model.destination.map {
-                    ClusteredSpotMap.Marker(title: String(localized: "Destination: \($0.name)"), coordinate: $0.coordinate)
-                },
-                region: mapRegion,
-                regionRequest: mapRegionRequest,
-                onUserMovedMap: { mapPositionedByUser = true },
-                onSelectSpot: { id in
-                    if let result = model.results.first(where: { $0.spot.id == id }) { openDetail(result) }
-                }
+        )
+        .accessibilityIdentifier("nearbyMap")
+        .accessibilityLabel("Nearby places map")
+        .accessibilityHint("Select a pin to see a summary in the Nearby list")
+    }
+
+    /// The selected pin, while it is still among the shown results.
+    private var selectedResult: NearbyResult? {
+        selectedSpotID.flatMap { id in model.results.first { $0.spot.id == id } }
+    }
+
+    // What the collapsed sheet shows: the selected place, or the count and nearest place already listed below.
+    @ViewBuilder
+    private var sheetSummary: some View {
+        if let result = selectedResult {
+            SelectedSpotSummary(
+                result: result,
+                locationAccuracyMeters: model.resultsArea?.deviceLocation?.horizontalAccuracyMeters ?? 0,
+                onShowDetails: { openDetail(result) },
+                onClear: { selectedSpotID = nil }
             )
-            .frame(height: 240)
-            .accessibilityIdentifier("nearbyMap")
-            .accessibilityLabel("Nearby places map")
-            .accessibilityHint("Explore place pins or use the list below for full details")
+        } else if model.destination == nil, let nearest = displayResults.first?.nearby {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(model.results.count) places")
+                    .font(.headline)
+                Text("Nearest: \(SpotPresentation.name(nearest.spot)) · \(SpotPresentation.distance(nearest))")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("nearbySheetSummary")
         }
     }
 
@@ -671,5 +727,61 @@ private struct NearbySpotRow: View {
         parts.append(SpotPresentation.evidence(result.spot))
         parts.append(SpotPresentation.confirmation(result))
         return parts.joined(separator: ", ")
+    }
+}
+
+/// docs/DESIGN.md §5.5: a tapped pin is summarised in the sheet first; details are one explicit step further.
+/// Evidence and the approximate-location note stay separate labels, as in the list row.
+private struct SelectedSpotSummary: View {
+    let result: NearbyResult
+    let locationAccuracyMeters: Double
+    let onShowDetails: () -> Void
+    let onClear: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Selected place")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                // The frame sits on the label so it is the button's own hit region. 46, not 44: iOS 26 draws a floating
+                // (non-large) sheet scaled to its inset width (386/402 on iPhone 17), and 44 pt measured 42.2 pt on screen.
+                Button(action: onClear) {
+                    Label("Clear selection", systemImage: "xmark.circle.fill")
+                        .labelStyle(.iconOnly)
+                        .frame(minWidth: 46, minHeight: 46)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("clearSelectedSpot")
+            }
+            Text(SpotPresentation.name(result.spot))
+                .font(.title3.weight(.semibold))
+            Text("\(SpotPresentation.distance(result)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
+                .font(.subheadline)
+            Label("\(SpotPresentation.evidence(result.spot)) · \(SpotPresentation.confirmation(result))",
+                  systemImage: SpotPresentation.existenceSymbol(result.spot.verification.existenceTier))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            if let note = SpotPresentation.approximateLocationNote(result.spot) {
+                Label(note, systemImage: "mappin.and.ellipse")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            // Black on MannerPath Yellow: white text on #F5A623 is about 2:1, black is about 10:1.
+            Button(action: onShowDetails) {
+                Text("Show place details")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .foregroundStyle(.black)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color("MannerPathYellow"))
+            .accessibilityIdentifier("selectedSpotDetails")
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("selectedSpotSummary")
     }
 }

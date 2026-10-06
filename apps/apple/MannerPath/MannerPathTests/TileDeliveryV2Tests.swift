@@ -263,6 +263,24 @@ struct TileDeliveryV2Tests {
         #expect(SpotMapCluster.expansionRegion(for: []) == nil)
     }
 
+    // docs/DESIGN.md §9: evidence never sets a pin's colour; it is told apart by glyph, and only selection is yellow.
+    @Test func pinsAreNeutralUntilSelectedAndEvidenceUsesGlyphs() {
+        #expect(SpotMapCluster.tint(selected: false) == .systemGray)
+        #expect(SpotMapCluster.tint(selected: true) != .systemGray)
+        #expect(SpotMapCluster.tint(selected: true) != .systemRed)
+        let all: [ExistenceEvidence] = [.official, .operator, .communityVerified, .communityReported, .unknown]
+        #expect(Set(all.map(SpotMapCluster.glyph)).count == all.count)
+    }
+
+    @Test func mapRectCoversTheRegion() {
+        let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 35.71, longitude: 139.77),
+                                        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.03))
+        let rect = SpotMapCluster.mapRect(for: region)
+        let back = MKCoordinateRegion(rect)
+        #expect(abs(back.center.latitude - 35.71) < 1e-6 && abs(back.center.longitude - 139.77) < 1e-6)
+        #expect(abs(back.span.longitudeDelta - 0.03) < 1e-6)
+    }
+
     @Test func aDenseTileStillSendsTheWatchABoundedDecodableSnapshot() throws {
         let origin = SpotCoordinate(latitude: 35.7112, longitude: 139.77377)
         let dense = try mapped(tile, spots: (1...2_223).map { spot($0, in: tile) }).spots
