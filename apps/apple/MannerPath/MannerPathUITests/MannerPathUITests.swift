@@ -90,11 +90,95 @@ class MannerPathUITestCase: XCTestCase {
         assertNoDeveloperText()
     }
 
+    // List rows are created only near the visible part of the sheet, so at large text sizes the first row can still
+    // be off screen; the summary 「N件の場所」 (shown whenever there are results and no destination) counts too.
     func waitForResults(file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 30), "No nearby results", file: file, line: line)
+        let summary = app.descendants(matching: .any)["nearbySheetSummary"]
+        let found = NSPredicate { _, _ in self.resultRows.firstMatch.exists || summary.exists }
+        let expectation = XCTNSPredicateExpectation(predicate: found, object: nil)
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: 30), .completed, "No nearby results", file: file, line: line)
+    }
+
+    /// After choosing a destination: its Refresh leads the destination list, and the first place row may sit below a
+    /// long note at large text sizes (List creates rows only near the visible part), so scroll to it.
+    func waitForDestinationResults(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(app.buttons["refreshDestination"].waitForExistence(timeout: 40), "Destination was not selected",
+                      file: file, line: line)
+        scrollTo(resultRows.firstMatch, file: file, line: line)
+    }
+
+    /// Expands the sheet and brings the selected summary's directions button on screen, for screenshots at any text size.
+    func showSelectedCallToAction(file: StaticString = #filePath, line: UInt = #line) {
+        let title = app.navigationBars["近くの場所"]
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+        sleep(1)
+        scrollTo(app.buttons["selectedSpotDirections"], file: file, line: line)
     }
 
     var nearbyMap: XCUIElement { app.descendants(matching: .any)["nearbyMap"] }
+
+    /// The system search field (`.searchable`) of the Nearby sheet.
+    var destinationSearch: XCUIElement { app.searchFields.firstMatch }
+
+    /// The number of shown places, read from the sheet summary 「N件の場所」: List rows are lazy, so counting row
+    /// elements counts only what is on screen.
+    func shownPlaceCount(file: StaticString = #filePath, line: UInt = #line) -> Int {
+        let summary = app.descendants(matching: .any)["nearbySheetSummary"]
+        XCTAssertTrue(summary.waitForExistence(timeout: 10), "No nearby summary", file: file, line: line)
+        return Int(summary.label.prefix { $0.isNumber }) ?? -1
+    }
+
+    /// Taps a single spot pin, expanding clusters first (ADR-0015). `value` narrows to pins whose VoiceOver value
+    /// contains that text.
+    @discardableResult
+    func selectPin(valueContaining value: String? = nil, afterRecenter prepare: (() -> Void)? = nil,
+                   file: StaticString = #filePath, line: UInt = #line) throws -> XCUIElement {
+        var predicate = "label ENDSWITH 'の詳細を表示'"
+        if let value { predicate += " AND value CONTAINS '\(value)'" }
+        let pins = app.buttons.matching(NSPredicate(format: predicate))
+        let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'"))
+        XCTAssertTrue(pins.firstMatch.waitForExistence(timeout: 10) || clusters.firstMatch.waitForExistence(timeout: 10),
+                      file: file, line: line)
+        // A cluster tap zooms into that cluster only. Search the cluster tree depth first; every branch starts again
+        // from the recentred map and replays its path (clusters ordered by position, so a path is repeatable).
+        func hittableClusters() -> [XCUIElement] {
+            clusters.allElementsBoundByIndex.filter(\.isHittable)
+                .sorted { ($0.frame.minY, $0.frame.minX) < ($1.frame.minY, $1.frame.minX) }
+        }
+        func found() -> Bool { pins.allElementsBoundByIndex.contains(where: \.isHittable) }
+        func explore(_ path: [Int]) -> Bool {
+            app.buttons["現在地に戻す"].tap()
+            sleep(2)
+            prepare?()
+            for index in path {
+                let level = hittableClusters()
+                guard index < level.count else { return false }
+                level[index].tap()
+                sleep(2)
+            }
+            if found() { return true }
+            guard path.count < 3 else { return false }
+            let count = hittableClusters().count
+            for index in 0..<count where explore(path + [index]) { return true }
+            return false
+        }
+        if prepare != nil || !found(), !explore([]) {
+            app.buttons["現在地に戻す"].tap()
+            sleep(2)
+            let tree = XCTAttachment(string: app.debugDescription)
+            tree.name = "\(phase)-pin-search-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+            screenshot("pin-search-failure")
+        }
+        let pin = try XCTUnwrap(pins.allElementsBoundByIndex.first(where: \.isHittable),
+                                "no single pin after expanding clusters", file: file, line: line)
+        pin.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["selectedSpotSummary"].waitForExistence(timeout: 10),
+                      "Pin tap did not show the selected-place summary", file: file, line: line)
+        return pin
+    }
 
     // docs/DESIGN.md §5.1: the map stays the full-screen root in every state; the sheet explains the state over it.
     func assertFullScreenMap(file: StaticString = #filePath, line: UInt = #line) {
@@ -161,32 +245,50 @@ final class B_OnlineUITests: MannerPathUITestCase {
     func testMapPinOpensDetail() throws {
         launch()
         waitForResults()
-        // Pins are clustered (ADR-0015); a cluster tap zooms in until a single pin can be tapped.
-        let pins = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'"))
-        let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'"))
-        XCTAssertTrue(pins.firstMatch.waitForExistence(timeout: 10) || clusters.firstMatch.waitForExistence(timeout: 10))
-        for _ in 0..<4 where !pins.allElementsBoundByIndex.contains(where: \.isHittable) {
-            clusters.allElementsBoundByIndex.first(where: \.isHittable)?.tap()
-            sleep(2)
-        }
-        let pin = try XCTUnwrap(pins.allElementsBoundByIndex.first(where: \.isHittable), "no single pin after expanding clusters")
-        pin.tap()
         // A pin selects first (docs/DESIGN.md §5.5): a summary in the sheet, details one explicit step further.
+        try selectPin()
         let summary = app.descendants(matching: .any)["selectedSpotSummary"]
-        XCTAssertTrue(summary.waitForExistence(timeout: 10), "Pin tap did not show the selected-place summary")
         XCTAssertFalse(app.navigationBars["場所の詳細"].exists)
         XCTAssertTrue(text("選択中の場所").exists)
+        // The directions call to action is the detail view's own, by location precision (ADR-0017).
+        let directions = app.buttons["selectedSpotDirections"]
+        XCTAssertTrue(directions.exists)
+        XCTAssertTrue(["この場所へ案内", "この付近へ案内"].contains(directions.label), directions.label)
+        let ctaLabel = directions.label
         screenshot("15-selected-spot")
         app.buttons["selectedSpotDetails"].tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        let detailDirections = app.buttons["open-walking-directions"]
+        scrollTo(detailDirections)
+        XCTAssertEqual(detailDirections.label, ctaLabel, "Summary and detail disagree on exact/approximate")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
         app.buttons["clearSelectedSpot"].tap()
         XCTAssertTrue(summary.waitForNonExistence(timeout: 5))
     }
 
-    // The standard sheet collapses over the map and expands to the full list; the map never goes away.
-    func testSheetCollapsesAndExpandsOverMap() {
+    // Codex P2 (#203): re-tapping the selected pin keeps it selected; only Clear removes the selection.
+    func testReTappingSelectedPinKeepsSelection() throws {
+        launch()
+        waitForResults()
+        let pin = try selectPin()
+        let summary = app.descendants(matching: .any)["selectedSpotSummary"]
+        let name = pin.label
+        let selected = app.buttons.matching(NSPredicate(format: "label == %@", name)).firstMatch
+        XCTAssertTrue(String(describing: selected.value ?? "").hasPrefix("選択中"))
+        selected.tap()
+        sleep(1)
+        XCTAssertTrue(summary.exists, "Re-tap cleared the summary")
+        XCTAssertTrue(String(describing: selected.value ?? "").hasPrefix("選択中"), "Re-tap dropped the selected state")
+        selected.tap()
+        sleep(1)
+        XCTAssertTrue(summary.exists)
+        screenshot("18-reselected")
+    }
+
+    // The standard sheet moves between the system medium and large detents over the map; the map never goes away,
+    // and the sheet cannot be dismissed. A selection made while the list is scrolled shows its summary at the top.
+    func testSheetMovesBetweenMediumAndLargeOverMap() throws {
         launch()
         waitForResults()
         assertFullScreenMap()
@@ -194,27 +296,64 @@ final class B_OnlineUITests: MannerPathUITestCase {
         let title = app.navigationBars["近くの場所"]
         XCTAssertTrue(title.exists)
         let mediumTop = title.frame.minY
-        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
-        XCTAssertTrue(title.waitForExistence(timeout: 5))
-        sleep(1)
-        XCTAssertGreaterThan(title.frame.minY, mediumTop, "Sheet did not collapse")
-        XCTAssertGreaterThan(title.frame.minY, window.height * 0.6)
-        XCTAssertTrue(nearbyMap.exists)
-        screenshot("16-sheet-collapsed")
+        XCTAssertGreaterThan(mediumTop, window.height * 0.3, "Sheet does not start at medium")
         title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
         sleep(1)
         XCTAssertLessThan(title.frame.minY, window.height * 0.25, "Sheet did not expand")
         XCTAssertTrue(resultRows.firstMatch.isHittable, "Expanded sheet does not show the nearby list")
         XCTAssertTrue(nearbyMap.exists)
-        screenshot("17-sheet-expanded")
+        screenshot("17-sheet-large")
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
+        sleep(1)
+        XCTAssertTrue(title.exists, "Sheet was dismissed")
+        XCTAssertGreaterThan(title.frame.minY, window.height * 0.3, "Sheet did not return to medium")
+        screenshot("16-sheet-medium")
+
+        // Scroll the list, then select: the summary must come back into view (Codex P2 #203).
+        scrollTo(resultRows.element(boundBy: 4))
+        // Scrolling can grow the sheet to large; bring it back to medium so pins are reachable, keeping the scroll.
+        if title.frame.minY < window.height * 0.3 {
+            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
+            sleep(1)
+        }
+        try selectPin()
+        let summary = app.descendants(matching: .any)["selectedSpotSummary"]
+        XCTAssertTrue(app.buttons["selectedSpotDirections"].waitForExistence(timeout: 5))
+        sleep(1)
+        XCTAssertTrue(app.buttons["selectedSpotDirections"].isHittable, "Selected summary is off screen")
+        XCTAssertTrue(summary.exists)
+    }
+
+    // Codex P2 (#203): at the largest accessibility text size the selected summary is complete — name, evidence,
+    // directions and details are all reachable inside the sheet, none clipped away.
+    func testSelectedSummaryIsCompleteAtLargeText() throws {
+        launch()
+        waitForResults()
+        try selectPin()
+        // At AX5 the medium sheet shows little; expand it as a reader would, keeping the summary at the top.
+        let title = app.navigationBars["近くの場所"]
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+        sleep(1)
+        XCTAssertTrue(text("選択中の場所").exists || app.descendants(matching: .any)["selectedSpotSummary"].exists)
+        // The accessibility label is the full string even when drawn truncated; truncation is checked on screenshot 19.
+        XCTAssertTrue(["この場所へ案内", "この付近へ案内"].contains(app.buttons["selectedSpotDirections"].label))
+        for element in [app.buttons["selectedSpotDirections"], app.buttons["selectedSpotDetails"]] {
+            scrollTo(element)
+            XCTAssertTrue(element.isHittable)
+            XCTAssertGreaterThanOrEqual(element.frame.height, 44)
+            XCTAssertLessThanOrEqual(element.frame.maxX, app.windows.firstMatch.frame.maxX)
+        }
+        screenshot("19-selected-large-text")
     }
 
     func testPhysicalTypeFilterEmptiesAndClearRestores() {
         launch()
         waitForResults()
-        let before = resultRows.count
+        let before = shownPlaceCount()
         app.buttons["絞り込み"].tap()
         let typeMenu = app.buttons["場所の種類: 指定なし"]
         XCTAssertTrue(typeMenu.waitForExistence(timeout: 10))
@@ -232,7 +371,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         clear.tap()
         waitForResults()
         XCTAssertTrue(app.buttons["絞り込み"].exists)
-        XCTAssertEqual(resultRows.count, before)
+        XCTAssertEqual(shownPlaceCount(), before)
 
         // Reopening shows the cleared state, not the earlier selection.
         app.buttons["絞り込み"].tap()
@@ -243,7 +382,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
     func testTobaccoFilterKeepsUnknownSupportVisible() {
         launch()
         waitForResults()
-        let before = resultRows.count
+        let before = shownPlaceCount()
         app.buttons["絞り込み"].tap()
         let picker = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'たばこの種類'")).firstMatch
         XCTAssertTrue(picker.waitForExistence(timeout: 10))
@@ -252,7 +391,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         app.buttons["完了"].tap()
         waitForResults()
         // Only the fixture's heated-only booth is confirmed unsupported; unknown support stays listed.
-        XCTAssertEqual(resultRows.count, before - 1)
+        XCTAssertEqual(shownPlaceCount(), before - 1)
         XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS '加熱式たばこ専用'")).firstMatch.exists)
         app.buttons["絞り込み中"].tap()
         let reopened = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'たばこの種類'")).firstMatch
@@ -323,8 +462,10 @@ final class B_OnlineUITests: MannerPathUITestCase {
     func testDestinationSearchCanBeOperated() {
         launch()
         waitForResults()
-        let field = app.textFields.matching(NSPredicate(format: "placeholderValue == 'Appleマップで目的地を検索'")).firstMatch
-        scrollTo(field)
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
+        XCTAssertEqual(app.textFields.matching(NSPredicate(format: "placeholderValue == 'Appleマップで目的地を検索'")).count, 0,
+                       "The inline destination text field is replaced by the system search field")
         field.tap()
         field.typeText("上野駅")
         // Submit from the keyboard: the keyboard's own search key shares the "検索" label.
@@ -351,7 +492,8 @@ final class B_OnlineUITests: MannerPathUITestCase {
         waitForResults()
         XCTAssertTrue(app.buttons["絞り込み"].exists)
         XCTAssertTrue(app.buttons["データとプライバシー"].exists)
-        XCTAssertTrue(app.buttons["更新"].exists)
+        // The location row sits below the results; List creates rows only near the visible part of the sheet.
+        scrollTo(app.buttons["更新"])
         XCTAssertTrue(app.buttons["現在地に戻す"].exists)
         let row = resultRows.firstMatch
         XCTAssertFalse(row.label.isEmpty)
@@ -423,6 +565,39 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         scrollTo(element)
         element.tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+    }
+
+    // ADR-0017 on the map: an area-anchor pin's summary says 「この付近へ案内」 and shows its precision line.
+    func testApproximatePinSummaryNeverReadsAsExact() throws {
+        launch()
+        waitForResults()
+        // This fixture's area anchor clusters right under the current-location marker, which always draws on top
+        // (required priority), so the cluster cannot be tapped at the default zoom. Zoom in beside the marker first,
+        // as a person would.
+        try selectPin(valueContaining: "位置は上野恩賜公園内の目安です") {
+            let me = self.app.otherElements.matching(NSPredicate(format: "label == '現在地'")).firstMatch
+            guard me.exists else { return }
+            for _ in 0..<2 {
+                me.coordinate(withNormalizedOffset: CGVector(dx: -1.5, dy: -0.5)).doubleTap()
+                sleep(2)
+            }
+        }
+        XCTAssertEqual(app.buttons["selectedSpotDirections"].label, "この付近へ案内")
+        XCTAssertTrue(app.descendants(matching: .any)["selectedSpotPrecision"].exists)
+        showSelectedCallToAction()
+        screenshot("20b-selected-approximate")
+    }
+
+    // An exact point (no precision note) says 「この場所へ案内」; any precision note means 「この付近へ案内」.
+    func testOfficialPinSummaryCallToActionFollowsPrecision() throws {
+        launch()
+        waitForResults()
+        try selectPin(valueContaining: "公式確認済み")
+        let label = app.buttons["selectedSpotDirections"].label
+        let hasPrecisionNote = app.descendants(matching: .any)["selectedSpotPrecision"].exists
+        XCTAssertEqual(label, hasPrecisionNote ? "この付近へ案内" : "この場所へ案内")
+        showSelectedCallToAction()
+        screenshot("27b-selected-official")
     }
 
     func testApproximatePlaceNeverReadsAsExact() {
@@ -627,16 +802,15 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
         XCTAssertEqual(resultRows.count, 0)
         XCTAssertFalse(text("この付近の喫煙場所を知っていれば、審査用に追加できます。").exists)
-        let search = app.textFields["Appleマップで目的地を検索"]
-        scrollTo(search)
-        XCTAssertTrue(search.exists)
+        let search = destinationSearch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
         search.typeText("浅草駅 東京\n")
         let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
         XCTAssertTrue(match.waitForExistence(timeout: 40), "Real MapKit search returned no destination")
         scrollTo(match)
         match.tap()
-        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40), "Destination tiles produced no published places")
+        waitForDestinationResults()
         let refresh = app.buttons["refreshDestination"]
         scrollTo(refresh, upwards: true)
         refresh.tap()
@@ -690,21 +864,22 @@ final class K_DeniedProductionDestinationUITests: MannerPathUITestCase {
     func testDeniedDestinationCanRefreshWithoutLocationPermission() {
         launch()
         XCTAssertTrue(textContaining("位置情報の利用がオフです").waitForExistence(timeout: 15))
-        let search = app.textFields["Appleマップで目的地を検索"]
-        scrollTo(search)
+        let search = destinationSearch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
         search.typeText("浅草駅 東京\n")
         let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
         XCTAssertTrue(match.waitForExistence(timeout: 40))
         scrollTo(match)
         match.tap()
-        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40))
+        waitForDestinationResults()
         let refresh = app.buttons["refreshDestination"]
         scrollTo(refresh, upwards: true)
         refresh.tap()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
         XCTAssertTrue(resultRows.firstMatch.exists)
-        XCTAssertTrue(textContaining("位置情報の利用がオフです").exists)
+        // The location row follows the results; List creates it once it scrolls into view.
+        scrollTo(textContaining("位置情報の利用がオフです"))
         XCTAssertFalse(app.alerts.firstMatch.exists)
     }
 }
@@ -715,16 +890,15 @@ final class K_DeniedProductionDestinationUITests: MannerPathUITestCase {
 final class L_ProductionDestinationLargeTextUITests: MannerPathUITestCase {
     func testDestinationRefreshFitsAtLargestAccessibilityTextSize() {
         launch(extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
-        let search = app.textFields["Appleマップで目的地を検索"]
+        let search = destinationSearch
         XCTAssertTrue(search.waitForExistence(timeout: 40))
-        scrollTo(search)
         search.tap()
         search.typeText("浅草駅 東京\n")
         let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
         XCTAssertTrue(match.waitForExistence(timeout: 40), "Real MapKit search returned no destination")
         scrollTo(match)
         match.tap()
-        XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 40), "Destination tiles produced no published places")
+        waitForDestinationResults()
         let refresh = app.buttons["refreshDestination"]
         scrollTo(refresh, upwards: true)
         let window = app.windows.firstMatch.frame
@@ -735,7 +909,8 @@ final class L_ProductionDestinationLargeTextUITests: MannerPathUITestCase {
         screenshot("90-destination-refresh-ax5")
         refresh.tap()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
-        XCTAssertTrue(resultRows.firstMatch.exists)
+        // At AX5 the first row sits below the long destination notes; List creates it once it scrolls into view.
+        scrollTo(resultRows.firstMatch)
         assertNoDeveloperText()
     }
 }
@@ -790,6 +965,7 @@ final class M_MapFirstAccessibilityUITests: MannerPathUITestCase {
         XCTAssertTrue(text("選択中の場所").exists)
         let selectedPin = selectedPinElement(pinLabel)
         XCTAssertTrue(String(describing: selectedPin.value ?? "").hasPrefix("選択中"), "Selected pin value: \(String(describing: selectedPin.value))")
+        assertTarget(app.buttons["selectedSpotDirections"], "selectedSpotDirections")
         assertTarget(app.buttons["selectedSpotDetails"], "selectedSpotDetails")
         assertTarget(app.buttons["clearSelectedSpot"], "clearSelectedSpot")
         screenshot("61-selected")

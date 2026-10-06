@@ -197,19 +197,20 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 - **Required change:** stop using red as the "official" tint (red reads as a warning); select-then-summarise in the
   sheet instead of pushing detail immediately.
 
-### 5.3 Bottom sheet — collapsed / expanded
+### 5.3 Bottom sheet — medium / large
 
 - **Current:** no persistent sheet; sheets are used only for report, quick confirm and filters.
 - **Stitch target:** detents ≈ 0.12 (nearest only), ≈ 0.42 (three nearest + actions), large (full list); grabber
   visible; map remains interactive.
-- **Apple-native:** one non-dismissable `.sheet` with
-  `.presentationDetents([.height(<collapsed>), .medium, .large], selection:)`,
-  `.presentationDragIndicator(.visible)`, `.presentationBackgroundInteraction(.enabled(upThrough: .medium))`,
-  `.interactiveDismissDisabled()`. System sheet background (no `presentationBackground` override), so it gains
-  Liquid Glass on iOS 26. Collapsed height must fit the nearest-row content at default Dynamic Type and grow at
-  accessibility sizes (use a measured height, not a fixed 88 pt).
-  - **Collapsed:** data status line + nearest spot (name, distance, evidence, precision).
-  - **Medium / expanded:** nearby list (§5.4).
+- **Apple-native (decided 2026-10-07, Phase 2):** one non-dismissable `.sheet` with the two system detents
+  `.presentationDetents([.medium, .large], selection:)`, `.presentationDragIndicator(.visible)`,
+  `.presentationBackgroundInteraction(.enabled(upThrough: .medium))`, `.interactiveDismissDisabled()`. System
+  sheet background (no `presentationBackground` override), so it gains Liquid Glass on iOS 26.
+  - **Medium = the compact / "collapsed" resting state:** map visible above; the sheet starts with the summary
+    (count + nearest, or the selected place) as the first row of the results section, then the nearest results.
+  - **Large:** full list, search results, details and Data & Privacy.
+  - No smaller collapsed detent: a fixed `.fraction(0.25)` (Phase 1) clipped the summary, evidence and precision at
+    large Dynamic Type sizes. Do not bring it back with a custom detent or a fixed/measured height.
 - **Required change:** new sheet container; push navigation (detail) happens inside the sheet's own
   `NavigationStack` or the root stack — decide at implementation; do not build a custom draggable panel.
 
@@ -231,6 +232,12 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 - **Apple-native:** the sheet switches to a summary for the selected spot: title, distance/time, evidence label,
   precision label, freshness, `Button` 「この場所へ案内」/「この付近へ案内」 (`.borderedProminent`), and 「詳細」
   navigation. Deselecting returns to the list.
+  - The directions button's label is **text only** (no SF Symbol) at every Dynamic Type size: the full wording is
+    the exact/approximate distinction itself and must never truncate (an icon beside it did at AX5). Exact point →
+    「この場所へ案内」; approximate or unknown precision → 「この付近へ案内」 (ADR-0017). Black text on
+    `MannerPathYellow`.
+  - Re-tapping the selected pin keeps the selection; only the Clear button removes it. Selecting scrolls the
+    sheet to the summary.
 - **Required change:** new selection state in the sheet; reuse `SpotPresentation` and `ApproximateLocation` copy.
 
 ### 5.6 Spot Detail — exact
@@ -366,7 +373,7 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 
 | Setting | Rule |
 | --- | --- |
-| Dynamic Type | All text uses text styles; rows wrap rather than truncate; `ViewThatFits` / `AnyLayout` (the existing `adaptiveRowLayout`) switches horizontal → vertical at accessibility sizes. Collapsed sheet height grows with content. |
+| Dynamic Type | All text uses text styles; rows wrap rather than truncate; `ViewThatFits` / `AnyLayout` (the existing `adaptiveRowLayout`) switches horizontal → vertical at accessibility sizes. The sheet uses only system detents (medium / large), so content scrolls rather than clips. |
 | VoiceOver | Rows combine into one element: label = place name, value = distance, evidence, precision, freshness, access (Stitch spec §4 example), hint = what activation does. Markers keep the evidence + approximate value already passed to `ClusteredSpotMap`. Sheet detent changes are announced by the system. |
 | Reduce Motion | Use system sheet/selection animations only; camera moves on selection use no animation (or a cross-fade) when `accessibilityReduceMotion` is on. |
 | Reduce Transparency | Nothing to do beyond using system materials; the system swaps glass for opaque. No custom translucency that would ignore the setting. |
@@ -413,7 +420,7 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 | Area | Current | Target |
 | --- | --- | --- |
 | iPhone shell | ScrollView with 240 pt embedded map | Full-screen map + persistent native sheet |
-| Results | Inline buttons in ScrollView | `List` in sheet with collapsed/medium/large |
+| Results | Inline buttons in ScrollView | `List` in sheet with medium/large |
 | Pin tap | Pushes detail | Selects, summary in sheet, then detail |
 | Marker tint | Red (official) / orange / grey | Neutral by glyph; accent only for selection |
 | Destination | Inline `TextField` | `.searchable` |
