@@ -1,0 +1,558 @@
+{
+  "version": 1,
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "scope": "Offline advisory evidence only. READY is not production approval. Quality/promotion and latest live operation are not evaluated.",
+  "queue": {
+    "needsRightsReview": [],
+    "needsCoordinateReview": [],
+    "adapterMissing": [],
+    "fixtureMissing": [],
+    "testsMissing": [],
+    "driftDetected": [],
+    "blocked": [],
+    "readyForLocalImplementationReview": [],
+    "readyForLocalValidation": [
+      "koto-station-smoking-areas",
+      "kyoto-public-smoking-places",
+      "minato-designated-smoking-areas",
+      "musashino-public-smoking-areas",
+      "osaka-designated-smoking-areas",
+      "taito-public-smoking-areas"
+    ],
+    "needsQualityEvidence": [
+      "koto-station-smoking-areas",
+      "kyoto-public-smoking-places",
+      "minato-designated-smoking-areas",
+      "musashino-public-smoking-areas",
+      "osaka-designated-smoking-areas",
+      "taito-public-smoking-areas"
+    ],
+    "needsPromotionEvidence": [
+      "koto-station-smoking-areas",
+      "kyoto-public-smoking-places",
+      "minato-designated-smoking-areas",
+      "musashino-public-smoking-areas",
+      "osaka-designated-smoking-areas",
+      "taito-public-smoking-areas"
+    ]
+  },
+  "sources": [
+    {
+      "sourceId": "taito-public-smoking-areas",
+      "state": "LOCAL_PIPELINE_READY",
+      "approvalAutomated": false,
+      "productionApproval": false,
+      "publicationStatus": "approved",
+      "publisher": "台東区 公衆喫煙所",
+      "resourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "smokingEvidence": {
+        "status": "existing-repository-review",
+        "reference": "docs/SOURCES.md"
+      },
+      "rights": {
+        "status": "RIGHTS_REVIEWED",
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "metadata": "Existing reviewed registry, not newly inferred permission",
+        "commercialReuse": "see docs/SOURCES.md"
+      },
+      "attribution": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "coordinates": {
+        "status": "COORDINATE_AUTHORITY_REVIEWED",
+        "kind": "publisherPoint",
+        "columns": [
+          "緯度",
+          "経度"
+        ]
+      },
+      "operation": "pinned-release review only; latest live operation unknown",
+      "adapter": true,
+      "registryEntry": true,
+      "fixture": true,
+      "tests": true,
+      "discoveryMetadata": true,
+      "pinnedRelease": {
+        "sourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+        "observedOn": "2026-08-18",
+        "fetchedAt": "2026-09-20T00:00:00Z",
+        "httpLastModified": "Fri, 11 Sep 2026 07:48:17 GMT",
+        "contentSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+        "file": "20260818_koshukitsuenjo.csv",
+        "rawRows": 34,
+        "observedRows": 34
+      },
+      "latestLiveRelease": "unknown",
+      "quality": "notEvaluated",
+      "promotion": "notEvaluated",
+      "baseline": {
+        "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+        "header": [
+          "#",
+          "市区町村コード",
+          "自治体名称",
+          "名称",
+          "名称カナ",
+          "設置位置",
+          "方書",
+          "利用開始時間",
+          "利用終了時間",
+          "緯度",
+          "経度",
+          "特記事項"
+        ],
+        "coordinateColumns": [
+          "緯度",
+          "経度"
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "attributionMetadata": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+      },
+      "drift": {
+        "status": "notObserved",
+        "changes": []
+      },
+      "refreshTarget": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "blockers": [],
+      "nextAction": "Run fresh local:pipeline -- taito-public-smoking-areas, local:quality and verified promotion; READY is not production approval."
+    },
+    {
+      "sourceId": "osaka-designated-smoking-areas",
+      "state": "LOCAL_PIPELINE_READY",
+      "approvalAutomated": false,
+      "productionApproval": false,
+      "publicationStatus": "approved",
+      "publisher": "大阪市指定喫煙所（マップナビおおさか）",
+      "resourceUrl": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+      "smokingEvidence": {
+        "status": "existing-repository-review",
+        "reference": "docs/SOURCES.md"
+      },
+      "rights": {
+        "status": "RIGHTS_REVIEWED",
+        "licenseName": "CC BY 2.1 JP",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.1/jp/",
+        "metadata": "Existing reviewed registry, not newly inferred permission",
+        "commercialReuse": "see docs/SOURCES.md"
+      },
+      "attribution": "出典：大阪市「マップナビおおさか 施設情報ポイントデータ（環境・リサイクル）」 https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html 元データ https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv CC BY 2.1 JP https://creativecommons.org/licenses/by/2.1/jp/ 本ページに掲載しているデータの使用で生じた結果等については、大阪市は一切の責任を負いません。MannerPathが大阪市指定喫煙所を抽出・正規化して作成。",
+      "coordinates": {
+        "status": "COORDINATE_AUTHORITY_REVIEWED",
+        "kind": "publisherPoint",
+        "columns": [
+          "経度",
+          "緯度"
+        ]
+      },
+      "operation": "pinned-release review only; latest live operation unknown",
+      "adapter": true,
+      "registryEntry": true,
+      "fixture": true,
+      "tests": true,
+      "discoveryMetadata": true,
+      "pinnedRelease": {
+        "sourceUrl": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+        "observedOn": null,
+        "fetchedAt": "2026-09-28T09:06:31Z",
+        "httpLastModified": "Sat, 26 Sep 2026 14:06:05 GMT",
+        "contentSha256": "f58b62791396bc46ceca436a7c4ad598520a5c9dd4162b37723ef519399e69ce",
+        "file": "opendata_1012.csv",
+        "rawRows": 524,
+        "observedRows": 344
+      },
+      "latestLiveRelease": "unknown",
+      "quality": "notEvaluated",
+      "promotion": "notEvaluated",
+      "baseline": {
+        "rawUrl": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+        "header": [
+          "施設名称",
+          "所在地",
+          "施設名かな",
+          "カテゴリ",
+          "分類",
+          "TEL",
+          "FAX",
+          "URL",
+          "URL2",
+          "バリアフリー情報",
+          "詳細情報",
+          "備考",
+          "経度",
+          "緯度",
+          "分類"
+        ],
+        "coordinateColumns": [
+          "経度",
+          "緯度"
+        ],
+        "licenseName": "CC BY 2.1 JP",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.1/jp/",
+        "attributionMetadata": "出典：大阪市「マップナビおおさか 施設情報ポイントデータ（環境・リサイクル）」 https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html 元データ https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv CC BY 2.1 JP https://creativecommons.org/licenses/by/2.1/jp/ 本ページに掲載しているデータの使用で生じた結果等については、大阪市は一切の責任を負いません。MannerPathが大阪市指定喫煙所を抽出・正規化して作成。"
+      },
+      "drift": {
+        "status": "notObserved",
+        "changes": []
+      },
+      "refreshTarget": null,
+      "blockers": [],
+      "nextAction": "Run fresh local:pipeline -- osaka-designated-smoking-areas, local:quality and verified promotion; READY is not production approval."
+    },
+    {
+      "sourceId": "koto-station-smoking-areas",
+      "state": "LOCAL_PIPELINE_READY",
+      "approvalAutomated": false,
+      "productionApproval": false,
+      "publicationStatus": "approved",
+      "publisher": "江東区 公共喫煙所一覧（駅前）",
+      "resourceUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "smokingEvidence": {
+        "status": "existing-repository-review",
+        "reference": "docs/SOURCES.md"
+      },
+      "rights": {
+        "status": "RIGHTS_REVIEWED",
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "metadata": "Existing reviewed registry, not newly inferred permission",
+        "commercialReuse": "see docs/SOURCES.md"
+      },
+      "attribution": "このデータベースは、以下の著作物を改変して利用しています。公共喫煙所一覧（駅前）、東京都・江東区、クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/ 元データ https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv MannerPathが抽出・正規化して作成。コンテンツ提供者は内容を保証せず、利用により生じた損害について責任を負いません。利用規約 https://portal.data.metro.tokyo.lg.jp/terms/",
+      "coordinates": {
+        "status": "COORDINATE_AUTHORITY_REVIEWED",
+        "kind": "publisherPoint",
+        "columns": [
+          "緯度",
+          "経度"
+        ]
+      },
+      "operation": "pinned-release review only; latest live operation unknown",
+      "adapter": true,
+      "registryEntry": true,
+      "fixture": true,
+      "tests": true,
+      "discoveryMetadata": true,
+      "pinnedRelease": {
+        "sourceUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+        "observedOn": null,
+        "fetchedAt": "2026-09-29T04:56:43Z",
+        "httpLastModified": "Thu, 15 Jan 2026 02:59:37 GMT",
+        "contentSha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d",
+        "file": "131083_237_public_smoking_area_station.csv",
+        "rawRows": 3,
+        "observedRows": 3
+      },
+      "latestLiveRelease": "unknown",
+      "quality": "notEvaluated",
+      "promotion": "notEvaluated",
+      "baseline": {
+        "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+        "header": [
+          "緯度",
+          "経度",
+          "喫煙所名",
+          "場所"
+        ],
+        "coordinateColumns": [
+          "緯度",
+          "経度"
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "attributionMetadata": "このデータベースは、以下の著作物を改変して利用しています。公共喫煙所一覧（駅前）、東京都・江東区、クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/ 元データ https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv MannerPathが抽出・正規化して作成。コンテンツ提供者は内容を保証せず、利用により生じた損害について責任を負いません。利用規約 https://portal.data.metro.tokyo.lg.jp/terms/"
+      },
+      "drift": {
+        "status": "notObserved",
+        "changes": []
+      },
+      "refreshTarget": null,
+      "blockers": [],
+      "nextAction": "Run fresh local:pipeline -- koto-station-smoking-areas, local:quality and verified promotion; READY is not production approval."
+    },
+    {
+      "sourceId": "musashino-public-smoking-areas",
+      "state": "LOCAL_PIPELINE_READY",
+      "approvalAutomated": false,
+      "productionApproval": false,
+      "publicationStatus": "approved",
+      "publisher": "武蔵野市 公衆喫煙所（地域生活環境指標）",
+      "resourceUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "smokingEvidence": {
+        "status": "existing-repository-review",
+        "reference": "docs/SOURCES.md"
+      },
+      "rights": {
+        "status": "RIGHTS_REVIEWED",
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "metadata": "Existing reviewed registry, not newly inferred permission",
+        "commercialReuse": "see docs/SOURCES.md"
+      },
+      "attribution": "出典：武蔵野市「4(2)トイレおよび路上禁煙エリア・公衆喫煙所 令和4年版地域生活環境指標」 https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html 元データ https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが公衆喫煙所のKML Pointを抽出・正規化して作成。武蔵野市による推奨・保証を意味しません。",
+      "coordinates": {
+        "status": "COORDINATE_AUTHORITY_REVIEWED",
+        "kind": "publisherPoint",
+        "columns": [
+          "Placemark/Point/coordinates"
+        ]
+      },
+      "operation": "pinned-release review only; latest live operation unknown",
+      "adapter": true,
+      "registryEntry": true,
+      "fixture": true,
+      "tests": true,
+      "discoveryMetadata": true,
+      "pinnedRelease": {
+        "sourceUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+        "observedOn": null,
+        "fetchedAt": "2026-09-29T16:10:07Z",
+        "httpLastModified": "Tue, 18 Apr 2023 04:43:38 GMT",
+        "contentSha256": "fc6986b986ec315691299a12583f14a8fd942e34075fd1e9e44837dc72c57a7c",
+        "file": "doc.kml",
+        "rawRows": 25,
+        "observedRows": 3
+      },
+      "latestLiveRelease": "unknown",
+      "quality": "notEvaluated",
+      "promotion": "notEvaluated",
+      "baseline": {
+        "rawUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+        "header": [
+          "Placemark XML"
+        ],
+        "coordinateColumns": [
+          "Placemark/Point/coordinates"
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "attributionMetadata": "出典：武蔵野市「4(2)トイレおよび路上禁煙エリア・公衆喫煙所 令和4年版地域生活環境指標」 https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html 元データ https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが公衆喫煙所のKML Pointを抽出・正規化して作成。武蔵野市による推奨・保証を意味しません。"
+      },
+      "drift": {
+        "status": "notObserved",
+        "changes": []
+      },
+      "refreshTarget": null,
+      "blockers": [],
+      "nextAction": "Run fresh local:pipeline -- musashino-public-smoking-areas, local:quality and verified promotion; READY is not production approval."
+    },
+    {
+      "sourceId": "minato-designated-smoking-areas",
+      "state": "LOCAL_PIPELINE_READY",
+      "approvalAutomated": false,
+      "productionApproval": false,
+      "publicationStatus": "approved",
+      "publisher": "港区 指定喫煙場所（施設情報）",
+      "resourceUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "smokingEvidence": {
+        "status": "existing-repository-review",
+        "reference": "docs/SOURCES.md"
+      },
+      "rights": {
+        "status": "RIGHTS_REVIEWED",
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "metadata": "Existing reviewed registry, not newly inferred permission",
+        "commercialReuse": "see docs/SOURCES.md"
+      },
+      "attribution": "出典：港区オープンデータカタログサイト「複合施設・男女平等参画施設・その他の施設」 https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo 元データ https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv （2026年9月30日に利用） CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが指定喫煙場所を抽出・正規化して作成。",
+      "coordinates": {
+        "status": "COORDINATE_AUTHORITY_REVIEWED",
+        "kind": "publisherPoint",
+        "columns": [
+          "緯度",
+          "経度"
+        ]
+      },
+      "operation": "pinned-release review only; latest live operation unknown",
+      "adapter": true,
+      "registryEntry": true,
+      "fixture": true,
+      "tests": true,
+      "discoveryMetadata": true,
+      "pinnedRelease": {
+        "sourceUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+        "observedOn": null,
+        "fetchedAt": "2026-09-29T15:18:42.326Z",
+        "httpLastModified": "Thu, 16 Jul 2026 05:32:22 GMT",
+        "contentSha256": "d11ad6a5c2c72bba114d58bc7cce9f84f54338c75ee37cdd275b7680c6314220",
+        "file": "minatokushisetsujoho_fukugo.csv",
+        "rawRows": 169,
+        "observedRows": 114
+      },
+      "latestLiveRelease": "unknown",
+      "quality": "notEvaluated",
+      "promotion": "notEvaluated",
+      "baseline": {
+        "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+        "header": [
+          "最終更新日",
+          "ページタイトル",
+          "分類",
+          "第1分類",
+          "第2分類",
+          "ファイルパス",
+          "地区",
+          "紹介文",
+          "所在地",
+          "連絡先",
+          "開館時間",
+          "休業日",
+          "施設の概要",
+          "受付時間",
+          "電車",
+          "バス",
+          "駐車場",
+          "駐輪場",
+          "画像1",
+          "画像キャプション1",
+          "画像2",
+          "画像キャプション2",
+          "画像3",
+          "画像キャプション3",
+          "画像4",
+          "画像キャプション4",
+          "画像5",
+          "画像キャプション5",
+          "緯度",
+          "経度",
+          ""
+        ],
+        "coordinateColumns": [
+          "緯度",
+          "経度"
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "attributionMetadata": "出典：港区オープンデータカタログサイト「複合施設・男女平等参画施設・その他の施設」 https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo 元データ https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv （2026年9月30日に利用） CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが指定喫煙場所を抽出・正規化して作成。"
+      },
+      "drift": {
+        "status": "notObserved",
+        "changes": []
+      },
+      "refreshTarget": null,
+      "blockers": [],
+      "nextAction": "Run fresh local:pipeline -- minato-designated-smoking-areas, local:quality and verified promotion; READY is not production approval."
+    },
+    {
+      "sourceId": "kyoto-public-smoking-places",
+      "state": "LOCAL_PIPELINE_READY",
+      "approvalAutomated": false,
+      "productionApproval": false,
+      "publicationStatus": "approved",
+      "publisher": "京都市 公設喫煙場所（施設情報一覧）",
+      "resourceUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "smokingEvidence": {
+        "status": "existing-repository-review",
+        "reference": "docs/SOURCES.md"
+      },
+      "rights": {
+        "status": "RIGHTS_REVIEWED",
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "metadata": "Existing reviewed registry, not newly inferred permission",
+        "commercialReuse": "see docs/SOURCES.md"
+      },
+      "attribution": "出典：京都市オープンデータ「京都市等の施設に関する情報（一覧表）」施設情報一覧（令和８年９月３日現在） https://data.city.kyoto.lg.jp/dataset/00003/ 著作権者 京都市 クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/legalcode.ja MannerPathが喫煙場所カテゴリを抽出・正規化して作成。京都市は本データの利用により生じた結果について責任を負いません。",
+      "coordinates": {
+        "status": "COORDINATE_AUTHORITY_REVIEWED",
+        "kind": "publisherPoint",
+        "columns": [
+          "緯度(lat)",
+          "経度(lng)"
+        ]
+      },
+      "operation": "pinned-release review only; latest live operation unknown",
+      "adapter": true,
+      "registryEntry": true,
+      "fixture": true,
+      "tests": true,
+      "discoveryMetadata": true,
+      "pinnedRelease": {
+        "sourceUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+        "observedOn": "2026-09-03",
+        "fetchedAt": "2026-09-29T17:12:54Z",
+        "httpLastModified": null,
+        "contentSha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc",
+        "file": "20260903_shisetsu.csv",
+        "rawRows": 1777,
+        "observedRows": 17
+      },
+      "latestLiveRelease": "unknown",
+      "quality": "notEvaluated",
+      "promotion": "notEvaluated",
+      "baseline": {
+        "rawUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+        "header": [
+          "所管局",
+          "所管課",
+          "ID番号（id)",
+          "公共施設の名称(name)",
+          "よみがな（kana）",
+          "緯度(lat)",
+          "経度(lng)",
+          "カテゴリ(cate_id)",
+          "行政区コード(dist_id)",
+          "施設のご案内（利用目的・実施内容等）(note)",
+          "郵便番号(zip)",
+          "所在地(address)",
+          "施設写真（外観等）１(pic)",
+          "運営主体(subject)",
+          "電話番号(tel)",
+          "ＦＡＸ番号(fax)",
+          "ＨＰリンク(url)",
+          "主な設備(aim)",
+          "開館時間（利用時間）(optime)",
+          "休館日(holiday)",
+          "利用料(fee)",
+          "アクセス(access)",
+          "利用方法（申込方法）(howto)",
+          "利用上の注意(warning)",
+          "愛称(nickname）",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        "coordinateColumns": [
+          "緯度(lat)",
+          "経度(lng)"
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "attributionMetadata": "出典：京都市オープンデータ「京都市等の施設に関する情報（一覧表）」施設情報一覧（令和８年９月３日現在） https://data.city.kyoto.lg.jp/dataset/00003/ 著作権者 京都市 クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/legalcode.ja MannerPathが喫煙場所カテゴリを抽出・正規化して作成。京都市は本データの利用により生じた結果について責任を負いません。"
+      },
+      "drift": {
+        "status": "notObserved",
+        "changes": []
+      },
+      "refreshTarget": null,
+      "blockers": [],
+      "nextAction": "Run fresh local:pipeline -- kyoto-public-smoking-places, local:quality and verified promotion; READY is not production approval."
+    }
+  ]
+}
