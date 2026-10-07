@@ -128,6 +128,7 @@ xcrun simctl ui "$sim" appearance light
 xcrun simctl ui "$sim" content_size accessibility-extra-extra-extra-large
 run_phase large-text \
   -only-testing:MannerPathUITests/B_OnlineUITests/testNearbyLoadedShowsMapAndFirstResultWithoutScrolling \
+  -only-testing:MannerPathUITests/B_OnlineUITests/testSelectedSummaryIsCompleteAtLargeText \
   -only-testing:MannerPathUITests/B_OnlineUITests/testListRowOpensDetailWithKeySections \
   -only-testing:MannerPathUITests/B_OnlineUITests/testDataAndPrivacyFullPage
 xcrun simctl ui "$sim" content_size large

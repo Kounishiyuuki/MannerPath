@@ -262,6 +262,11 @@ struct ClusteredSpotMap: UIViewRepresentable {
                 onUserMovedMap()
                 show(region, on: mapView, animated: !UIAccessibility.isReduceMotionEnabled)
             case let spot as SpotAnnotation:
+                // Codex P2 (#203): re-tapping the selected pin made MapKit drop its selected appearance (the deselect
+                // above) while the app still had it selected. The pin keeps its selection; only Clear changes it.
+                if spot.pin.id == selectedSpotID, let view = mapView.view(for: spot) as? MKMarkerAnnotationView {
+                    style(view, for: spot)
+                }
                 onSelectSpot(spot.pin.id)
             default:
                 break

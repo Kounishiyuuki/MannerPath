@@ -6,6 +6,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("eligibilityNoticeAccepted") private var eligibilityNoticeAccepted = false
     @State private var model = NearbyComposition.makeModel()
     @State private var reportModel = ReportComposition.makeModel()
@@ -24,14 +25,16 @@ struct ContentView: View {
     @State private var showingNearbySheet = false
     @State private var sheetDetent: PresentationDetent = .medium
     @State private var selectedSpotID: String?
+    @FocusState private var searchFocused: Bool
 
-    private static let collapsedDetent = PresentationDetent.fraction(0.25)
+    private static let summaryAnchor = "nearbySheetSummaryAnchor"
+    private static let destinationListAnchor = "nearbyDestinationListAnchor"
 
     // docs/DESIGN.md §5.1–5.5: the map fills the screen and Nearby lives in a standard, non-dismissable sheet over it.
     // The sheet holds its own NavigationStack, so details and every other sheet are presented from inside it.
     var body: some View {
         GeometryReader { proxy in
-            nearbyMap(bottomInset: proxy.size.height * (sheetDetent == Self.collapsedDetent ? 0.25 : 0.5))
+            nearbyMap(bottomInset: proxy.size.height * 0.5)
         }
         .ignoresSafeArea()
         .sheet(isPresented: $showingNearbySheet) {
@@ -73,27 +76,59 @@ struct ContentView: View {
 
     private var nearbySheet: some View {
         NavigationStack(path: $path) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    sheetSummary
-                    locationSection
-                    if model.destination != nil {
-                        Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("refreshDestination")
+            ScrollViewReader { proxy in
+                List {
+                    // While a destination search runs or has answers, its results lead the sheet, under the field.
+                    if isShowingSearchResults {
+                        searchResultsSection
                     }
-
+                    if model.browsingCoordinate == nil {
+                        Section { sheetSummary.id(Self.summaryAnchor) }
+                    }
+                    // Results first, as in Maps: the medium detent shows the summary and the nearest rows; location,
+                    // tasks, destination and reporting follow.
                     if model.browsingCoordinate != nil {
-                        dataStatus
                         listSection
+                    }
+                    Section {
+                        locationSection
+                    }
+                    if model.browsingCoordinate != nil {
                         nearbyTasksSection
                     }
-
                     destinationSection
-
-                    reportSection
+                    Section {
+                        reportSection
+                    }
                 }
-                .padding()
+                .listStyle(.insetGrouped)
+                .listSectionSpacing(.compact)
+                // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
+                .onChange(of: selectedSpotID) { _, id in
+                    guard id != nil else { return }
+                    withAnimation(reduceMotion ? nil : .default) { proxy.scrollTo(Self.summaryAnchor, anchor: .top) }
+                }
+                .onChange(of: model.destination) { _, destination in
+                    guard destination != nil else { return }
+                    withAnimation(reduceMotion ? nil : .default) { proxy.scrollTo(Self.destinationListAnchor, anchor: .top) }
+                }
+            }
+            // docs/DESIGN.md §5.9: the system search field; MapKit search behind it is unchanged (ADR-0001), and the
+            // query never reaches MannerPath's backend.
+            .searchable(text: $destinationQuery, placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: Text("Search a destination in Apple Maps"))
+            .searchFocused($searchFocused)
+            .onSubmit(of: .search) {
+                sheetDetent = .large
+                model.searchDestination(destinationQuery)
+            }
+            // Searching needs the full sheet: at medium the keyboard covers the results. Focus alone is not reported
+            // reliably for a drawer search field, so showing results also expands the sheet.
+            .onChange(of: searchFocused) { _, focused in
+                if focused { sheetDetent = .large }
+            }
+            .onChange(of: isShowingSearchResults) { _, showing in
+                if showing { sheetDetent = .large }
             }
             .navigationTitle("Nearby")
             .navigationBarTitleDisplayMode(.inline)
@@ -175,7 +210,9 @@ struct ContentView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        .presentationDetents([Self.collapsedDetent, .medium, .large], selection: $sheetDetent)
+        // System detents only (Codex P2 #203): a fixed small fraction clipped the summary at large text sizes. Medium
+        // keeps the map in view and starts with the summary; large holds the full list, search and details.
+        .presentationDetents([.medium, .large], selection: $sheetDetent)
         .presentationDragIndicator(.visible)
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .interactiveDismissDisabled()
@@ -210,7 +247,7 @@ struct ContentView: View {
     private var nearbyTasksSection: some View {
         let waiting = CoverageTasks.nearbyConfirmations(model.results, at: .now)
         if !waiting.isEmpty, case .available = reportModel.availability {
-            VStack(alignment: .leading, spacing: 8) {
+            Section {
                 if nearbyTasksHidden {
                     Button("Show places waiting for confirmation") { nearbyTasksHidden = false }
                         .font(.footnote)
@@ -221,6 +258,7 @@ struct ContentView: View {
                             .accessibilityAddTraits(.isHeader)
                         Spacer()
                         Button("Hide") { nearbyTasksHidden = true }
+                            .buttonStyle(.borderless)
                             .font(.footnote)
                     }
                     Text("If you pass one, you can tell others whether it is still there.")
@@ -408,6 +446,7 @@ struct ContentView: View {
                 result: result,
                 locationAccuracyMeters: model.resultsArea?.deviceLocation?.horizontalAccuracyMeters ?? 0,
                 onShowDetails: { openDetail(result) },
+                onDirections: { AppleMapsHandoff.openWalkingDirections(to: result.spot) },
                 onClear: { selectedSpotID = nil }
             )
         } else if model.destination == nil, let nearest = displayResults.first?.nearby {
@@ -424,13 +463,19 @@ struct ContentView: View {
     }
 
     private var listSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(model.destination == nil ? "Nearby places" : "Places near your destination")
-                .font(.title3.weight(.semibold))
-                .accessibilityAddTraits(.isHeader)
+        Section {
+            // The summary is the section's first row, not its own section, so the medium detent still reaches the
+            // nearest result.
+            sheetSummary
+                .id(Self.summaryAnchor)
+            dataStatus
             if model.destination != nil {
                 Text("Straight-line distances and bearings below are from the selected destination, not your device location.")
                     .font(.footnote)
+                    .id(Self.destinationListAnchor)
+                Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("refreshDestination")
                 switch model.routeState {
                 case .idle: EmptyView()
                 case .loading: Label("Checking walking detours. Saved places remain available below.", systemImage: "figure.walk")
@@ -462,6 +507,8 @@ struct ContentView: View {
                     .accessibilityHint("Opens place details")
                 }
             }
+        } header: {
+            Text(model.destination == nil ? "Nearby places" : "Places near your destination")
         }
     }
 
@@ -501,18 +548,12 @@ struct ContentView: View {
             : model.routeResults
     }
 
-    private var destinationSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Walking destination").font(.title3.weight(.semibold))
-                .accessibilityAddTraits(.isHeader)
-            adaptiveRowLayout {
-                TextField("Search a destination in Apple Maps", text: $destinationQuery)
-                    .textFieldStyle(.roundedBorder)
-                    .submitLabel(.search)
-                    .onSubmit { model.searchDestination(destinationQuery) }
-                Button("Search") { model.searchDestination(destinationQuery) }
-                    .buttonStyle(.bordered)
-            }
+    private var isShowingSearchResults: Bool {
+        model.searchingDestination || model.destinationSearchFailed || !model.destinationMatches.isEmpty
+    }
+
+    private var searchResultsSection: some View {
+        Section {
             if model.searchingDestination { ProgressView("Searching destinations…") }
             if model.destinationSearchFailed {
                 Text("Destination search unavailable. Saved nearby places remain available.")
@@ -521,6 +562,7 @@ struct ContentView: View {
             ForEach(model.destinationMatches) { match in
                 Button {
                     destinationQuery = match.name
+                    searchFocused = false
                     selectDestination(match)
                 } label: {
                     HStack {
@@ -533,20 +575,38 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
+                    // The whole row selects, not only its text: a plain button's Spacer takes no taps.
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("destinationMatch")
             }
-            if let destination = model.destination {
+        } header: {
+            Text("Walking destination")
+        }
+    }
+
+    @ViewBuilder
+    private var destinationSection: some View {
+        if let destination = model.destination {
+            Section {
                 HStack {
                     Label(destination.name, systemImage: "flag.checkered")
                     Spacer()
                     Button("Clear") { selectDestination(nil) }
+                        .buttonStyle(.borderless)
                 }
                 .font(.subheadline)
+            } header: {
+                Text("Walking destination")
+            } footer: {
+                Text("Destination search stays in this screen and is never added to saved smoking places.")
             }
-            Text("Destination search stays in this screen and is never added to saved smoking places.")
-                .font(.footnote).foregroundStyle(.secondary)
+        } else {
+            Section {
+            } footer: {
+                Text("Destination search stays in this screen and is never added to saved smoking places.")
+            }
         }
     }
 
@@ -694,7 +754,7 @@ private struct NearbySpotRow: View {
         }
         .font(.subheadline)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(.vertical, 4)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(SpotPresentation.name(result.spot))
@@ -736,6 +796,7 @@ private struct SelectedSpotSummary: View {
     let result: NearbyResult
     let locationAccuracyMeters: Double
     let onShowDetails: () -> Void
+    let onDirections: () -> Void
     let onClear: () -> Void
 
     var body: some View {
@@ -766,19 +827,34 @@ private struct SelectedSpotSummary: View {
                   systemImage: SpotPresentation.existenceSymbol(result.spot.verification.existenceTier))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            if let note = SpotPresentation.approximateLocationNote(result.spot) {
+            // Location precision is its own line, apart from evidence; the detail view uses the same note.
+            if let note = SpotPresentation.approximateLocationNote(result.spot)
+                ?? SpotPresentation.locationNote(result.spot.verification.locationPrecision) {
                 Label(note, systemImage: "mappin.and.ellipse")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("selectedSpotPrecision")
             }
+            // ADR-0017: 「この場所へ案内」 only for an exact point; approximate and unknown precision say 「この付近へ案内」.
             // Black on MannerPath Yellow: white text on #F5A623 is about 2:1, black is about 10:1.
-            Button(action: onShowDetails) {
-                Text("Show place details")
+            // Text only, no symbol: 「この場所へ案内」 vs 「この付近へ案内」 is the exact/approximate distinction itself, and an
+            // icon beside it truncated the wording at the largest text sizes.
+            Button(action: onDirections) {
+                Text(SpotPresentation.navigationTitle(result.spot))
+                    .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .foregroundStyle(.black)
             }
             .buttonStyle(.borderedProminent)
             .tint(Color("MannerPathYellow"))
+            .accessibilityHint("Opens walking directions in Apple Maps")
+            .accessibilityIdentifier("selectedSpotDirections")
+            Button(action: onShowDetails) {
+                Text("Show place details")
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.bordered)
             .accessibilityIdentifier("selectedSpotDetails")
         }
         .accessibilityElement(children: .contain)
