@@ -12,9 +12,12 @@ import {
   REVIEWED_GEOCODERS, type ReviewedGeocoder, derivedCoordinateEvidenceSha256, derivedPublicationDecision, evaluateDerivedCoordinate,
   planPublisherCoordinateReplacement, precisionOf, recordDerivedGeocode, recordDerivedReview, sharedDerivedCoordinates,
 } from "../src/pipeline/derived-coordinate.ts";
+import { buildPromotionBundle } from "../src/pipeline/promotion.ts";
+import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, importTaito, sequentialSpotIds } from "./support/fixture.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 
 const DATASET = "ab".repeat(32);
 // TEST ONLY: the repository pins no dataset release; these tests pin a stand-in digest to exercise the gate.
@@ -131,6 +134,90 @@ test("geocoder disagreement fails closed; duplicate points across places surface
   assert.deepEqual(sharedDerivedCoordinates([{ key: "a", evaluation: a }, { key: "b", evaluation: a }, { key: "c", evaluation: evaluate(candidate({ source: { publicationStatus: "blocked" } })) }]), [["a", "b"]]);
 });
 
+test("verbatim input must be the publisher address, including whitespace", () => {
+  for (const input of ["東京都千代田区紀尾井町1-4", `${KIOICHO.input} `]) {
+    assert.ok(evaluate(candidate({ geocode: { input } })).rejections.includes("verbatimInputMismatch"));
+  }
+});
+
+test("every evidence change invalidates an existing review", async () => {
+  const original = candidate();
+  const sha = await derivedCoordinateEvidenceSha256(original);
+  const changed = [
+    candidate({ geocode: { geocoderVersion: "2.3.2" } }),
+    candidate({ geocode: { datasetReleaseId: "cd".repeat(32) } }),
+    candidate({ geocode: { input: `${KIOICHO.input} ` } }),
+    candidate({ geocode: { output: `${KIOICHO.output} ` } }),
+    candidate({ geocode: { candidateCount: 2 } }),
+    { ...candidate(), secondOpinions: [{ ...KIOICHO }] },
+    { ...candidate(), secondOpinions: [{ ...KIOICHO, output: `${KIOICHO.output} ` }] },
+    { ...candidate(), secondOpinions: [{ ...KIOICHO, geocoderVersion: "2.3.2" }] },
+    candidate({ geocode: { options: { target: "residential", fuzzy: null } } }),
+    candidate({ record: { officialAddress: `${KIOICHO.input} ` } }),
+    candidate({ source: { currentOperation: "unknown" } }),
+    candidate({ source: { addressReuse: "unknown" } }),
+    candidate({ source: { sourceId: "different-official" } }),
+    candidate({ record: { expectedMunicipality: "中央区" } }),
+  ];
+  for (const input of changed) {
+    const next = await derivedCoordinateEvidenceSha256(input);
+    assert.notEqual(next, sha);
+    assert.ok(derivedPublicationDecision(evaluate(input), next, [review(sha)], APPROVED_POLICY).blockers.includes("reviewStale"));
+  }
+});
+
+test("second-opinion changes invalidate review even when the primary run is unchanged", async () => {
+  const original = { ...candidate(), secondOpinions: [{ ...KIOICHO }] };
+  const sha = await derivedCoordinateEvidenceSha256(original);
+  for (const opinion of [{ ...KIOICHO, output: `${KIOICHO.output} ` }, { ...KIOICHO, geocoderVersion: "2.3.2" }]) {
+    const input = { ...candidate(), secondOpinions: [opinion] };
+    const next = await derivedCoordinateEvidenceSha256(input);
+    assert.notEqual(next, sha);
+    assert.ok(derivedPublicationDecision(evaluate(input), next, [review(sha)], APPROVED_POLICY).blockers.includes("reviewStale"));
+  }
+});
+
+test("approval requires exactly the named boolean checks, in memory and in storage", async () => {
+  const db = new SqliteD1();
+  await importTaito(db, { newSpotId: sequentialSpotIds() });
+  const recordId = (db.raw.prepare("SELECT min(record_id) AS r FROM source_records").get() as { r: number }).r;
+  const input = candidate({ record: { recordId } });
+  const evaluation = evaluate(input);
+  const stored = await recordDerivedGeocode(db, input, evaluation, NOW);
+  const { officialAddress: _omitted, ...missing } = CHECKS;
+  const malformed = [missing, { a: true, b: true, c: true, d: true, e: true, f: true }, { ...CHECKS, extra: true }, { ...CHECKS, precision: 1 }];
+  for (const checks of malformed) {
+    const r = review(stored.evidenceSha256, { checks: checks as DerivedReview["checks"] });
+    assert.ok(derivedPublicationDecision(evaluation, stored.evidenceSha256, [r], APPROVED_POLICY).blockers.includes("reviewIncomplete"));
+    await assert.rejects(recordDerivedReview(db, stored.geocodeId, r), /review check/);
+    assert.throws(() => db.raw.prepare(`INSERT INTO derived_coordinate_reviews
+      (geocode_id, evidence_sha256, decision, reviewer, checks_json, reviewed_at)
+      VALUES (?, ?, 'approve', 'maintainer', ?, ?)`)
+      .run(stored.geocodeId, stored.evidenceSha256, JSON.stringify(checks), NOW), /review check/);
+  }
+});
+
+test("both block and parcel require nonblank site evidence at every approval boundary", async () => {
+  const db = new SqliteD1();
+  await importTaito(db, { newSpotId: sequentialSpotIds() });
+  const recordId = (db.raw.prepare("SELECT min(record_id) AS r FROM source_records").get() as { r: number }).r;
+  for (const level of ["residential_block", "parcel"] as const) {
+    const input = candidate({ record: { recordId, addressColumn: level }, geocode: { matchLevel: level, coordinateLevel: level } });
+    const e = evaluate(input);
+    const stored = await recordDerivedGeocode(db, input, e, NOW);
+    for (const siteEvidence of [null, "", " ", "\t", "\u3000"]) {
+      const r = review(stored.evidenceSha256, { siteEvidence });
+      assert.ok(derivedPublicationDecision(e, stored.evidenceSha256, [r], APPROVED_POLICY).blockers.includes("siteEvidenceMissing"));
+      await assert.rejects(recordDerivedReview(db, stored.geocodeId, r), /site evidence/);
+      assert.throws(() => db.raw.prepare(`INSERT INTO derived_coordinate_reviews
+        (geocode_id, evidence_sha256, decision, reviewer, checks_json, site_evidence, reviewed_at)
+        VALUES (?, ?, 'approve', 'maintainer', ?, ?, ?)`)
+        .run(stored.geocodeId, stored.evidenceSha256, JSON.stringify(CHECKS), siteEvidence, NOW), /site evidence/);
+    }
+    await recordDerivedReview(db, stored.geocodeId, review(stored.evidenceSha256, { siteEvidence: "official site map p.2" }));
+  }
+});
+
 test("deterministic rerun: the same run digests identically, any changed output or version is different evidence", async () => {
   const one = await derivedCoordinateEvidenceSha256(candidate());
   assert.equal(await derivedCoordinateEvidenceSha256(candidate()), one);
@@ -180,11 +267,13 @@ test("no Google/MapKit/OSM geocoding: the module and its registry name none of t
 
 test("migration 0022: evidence and reviews are append-only, bound to digests, and never touch published spots or tiles", async () => {
   const db = new SqliteD1();
-  await importTaito(db, { newSpotId: sequentialSpotIds() });
+  const { releaseId } = await importTaito(db, { newSpotId: sequentialSpotIds() });
   await publishTiles(db, { now: NOW });
   const snapshot = () => db.raw.prepare("SELECT * FROM tile_snapshot_spots ORDER BY spot_id").all();
   const tilesBefore = snapshot();
+  const promotionBefore = await buildPromotionBundle(db);
   const spotsBefore = db.raw.prepare("SELECT * FROM spots ORDER BY spot_id").all();
+  const provenanceBefore = db.raw.prepare("SELECT * FROM spot_field_provenance ORDER BY spot_id, field").all();
   const recordId = (db.raw.prepare("SELECT min(record_id) AS r FROM source_records").get() as { r: number }).r;
   const input = candidate({ record: { recordId } });
   const { geocodeId, evidenceSha256 } = await recordDerivedGeocode(db, input, evaluate(input), NOW);
@@ -195,13 +284,13 @@ test("migration 0022: evidence and reviews are append-only, bound to digests, an
   assert.equal(row.dataset_release_id, DATASET);
   assert.throws(() => db.raw.prepare("UPDATE derived_coordinate_geocodes SET latitude = 1 WHERE geocode_id = ?").run(geocodeId), /immutable/);
   assert.throws(() => db.raw.prepare("DELETE FROM derived_coordinate_geocodes").run(), /immutable/);
-  await assert.rejects(recordDerivedGeocode(db, input, evaluate(input), NOW), /UNIQUE/);
+  await assert.rejects(recordDerivedGeocode(db, input, evaluate(input), NOW), /UNIQUE|immutable/);
   // An unreviewed geocoder has no known data license and is refused before insert.
   const web = candidate({ record: { recordId }, geocode: { geocoderId: "some-web-geocoder" } });
   await assert.rejects(recordDerivedGeocode(db, web, evaluateDerivedCoordinate(web, PINNED), NOW), /not reviewed/);
 
   await assert.rejects(recordDerivedReview(db, geocodeId, review("00".repeat(32))), /different evidence/);
-  await assert.rejects(recordDerivedReview(db, geocodeId, review(evidenceSha256, { checks: { ...CHECKS, regionSanity: false } })), /every review check/);
+  await assert.rejects(recordDerivedReview(db, geocodeId, review(evidenceSha256, { checks: { ...CHECKS, regionSanity: false } })), /review check/);
   await recordDerivedReview(db, geocodeId, review(evidenceSha256));
   await recordDerivedReview(db, geocodeId, review(evidenceSha256, { decision: "reject", reviewedAt: "2026-10-02T00:00:00Z" }));
   assert.throws(() => db.raw.prepare("UPDATE derived_coordinate_reviews SET decision = 'approve'").run(), /append-only/);
@@ -214,11 +303,28 @@ test("migration 0022: evidence and reviews are append-only, bound to digests, an
   const town = await recordDerivedGeocode(db, townInput, evaluate(townInput), NOW);
   await assert.rejects(recordDerivedReview(db, town.geocodeId, review(town.evidenceSha256, { siteEvidence: "x" })), /insufficient-precision/);
 
+  // REPLACE must not bypass immutable evidence even with SQLite recursive triggers disabled.
+  assert.equal((db.raw.prepare("PRAGMA recursive_triggers").get() as { recursive_triggers: number }).recursive_triggers, 0);
+  for (const table of ["derived_coordinate_geocodes", "derived_coordinate_reviews"]) {
+    const before = db.raw.prepare(`SELECT * FROM ${table}`).all();
+    assert.throws(() => db.raw.prepare(`INSERT OR REPLACE INTO ${table} SELECT * FROM ${table} LIMIT 1`).run(), /immutable|append-only/);
+    assert.deepEqual(db.raw.prepare(`SELECT * FROM ${table}`).all(), before);
+  }
+  assert.deepEqual(await resolveFirstRelease(db, TAITO_ADAPTER, releaseId, { now: NOW, newSpotId: sequentialSpotIds() }), { status: "alreadyApplied" });
+  assert.deepEqual(db.raw.prepare("SELECT * FROM spot_field_provenance ORDER BY spot_id, field").all(), provenanceBefore);
+
   // Promotion/provenance preservation: an approved review changed no spot, provenance row or tile.
   const republish = await publishTiles(db, { now: NOW });
   assert.deepEqual(republish.published, []);
   assert.deepEqual(snapshot(), tilesBefore);
   assert.deepEqual(db.raw.prepare("SELECT * FROM spots ORDER BY spot_id").all(), spotsBefore);
+  const promotionAfter = await buildPromotionBundle(db);
+  assert.deepEqual(promotionAfter, promotionBefore, "inert approvals cannot change exported SQL or manifest");
+  const target = migratedSqlite();
+  applyPromotionBundle(target, promotionAfter.sql);
+  for (const table of ["derived_coordinate_geocodes", "derived_coordinate_reviews"]) {
+    assert.equal((target.prepare(`SELECT count(*) AS n FROM ${table}`).get() as { n: number }).n, 0);
+  }
   assert.equal((db.raw.prepare("SELECT count(*) AS n FROM spot_field_provenance WHERE rule LIKE '%derived%' OR rule LIKE '%geocod%'").get() as { n: number }).n, 0);
 });
 
