@@ -588,16 +588,24 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         screenshot("20b-selected-approximate")
     }
 
-    // An exact point (no precision note) says 「この場所へ案内」; any precision note means 「この付近へ案内」.
+    // Summary and detail use the same production helper, so their directions wording always agrees. Which precision
+    // gets which wording is tested on explicit precision fixtures in SpotDetailPrecisionTests (#208 review), not
+    // inferred here from whether a precision note is shown.
     func testOfficialPinSummaryCallToActionFollowsPrecision() throws {
         launch()
         waitForResults()
         try selectPin(valueContaining: "公式確認済み")
         let label = app.buttons["selectedSpotDirections"].label
-        let hasPrecisionNote = app.descendants(matching: .any)["selectedSpotPrecision"].exists
-        XCTAssertEqual(label, hasPrecisionNote ? "この付近へ案内" : "この場所へ案内")
+        XCTAssertTrue(["この場所へ案内", "この付近へ案内"].contains(label), label)
         showSelectedCallToAction()
         screenshot("27b-selected-official")
+        app.buttons["selectedSpotDetails"].tap()
+        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        let detail = app.buttons["open-walking-directions"]
+        scrollTo(detail)
+        XCTAssertEqual(detail.label, label)
+        XCTAssertTrue(app.descendants(matching: .any)["detail-precision"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["detail-evidence"].exists)
     }
 
     func testApproximatePlaceNeverReadsAsExact() {
@@ -648,7 +656,8 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         }
         screenshot("27-detail-unknown-values")
         let directions = app.buttons["open-walking-directions"]
-        scrollTo(directions)
+        // The directions button now leads the detail, above the tobacco rows scrolled to here.
+        scrollTo(directions, upwards: true)
         XCTAssertEqual(directions.label, "この場所へ案内")
         screenshot("28-detail-route-preview")
         directions.tap()
@@ -972,6 +981,11 @@ final class M_MapFirstAccessibilityUITests: MannerPathUITestCase {
 
         app.buttons["selectedSpotDetails"].tap()
         XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        // Spot Detail (Phase 3): the directions button leads, with precision and evidence as separate rows.
+        assertTarget(app.buttons["open-walking-directions"], "detailDirections")
+        XCTAssertTrue(app.descendants(matching: .any)["detail-precision"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["detail-evidence"].exists)
+        screenshot("63-detail")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
         assertFullScreenMap()

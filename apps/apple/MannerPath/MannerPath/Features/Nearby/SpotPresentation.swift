@@ -203,6 +203,31 @@ enum SpotPresentation {
         ApproximateLocation.navigationTitle(precision: spot.verification.locationPrecision?.rawValue)
     }
 
+    /// Same rule as `navigationTitle`: only the publisher's point or a user's on-site pin is the place's own position.
+    static func isExactPoint(_ spot: Spot) -> Bool {
+        ApproximateLocation.isExactPoint(spot.verification.locationPrecision?.rawValue)
+    }
+
+    /// Spot Detail: where the pin comes from, for every precision — including none at all (a spot cached before
+    /// ADR-0012), which reads as unknown. Independent of the existence evidence; never inferred from it.
+    static func precisionDescription(_ spot: Spot) -> String {
+        switch spot.verification.locationPrecision {
+        case .publisherPoint: String(localized: "Location shown by the publisher")
+        case .communityPinned: String(localized: "Location shown by a user")
+        case .areaApproximate: ApproximateLocation.listNote(areaName: spot.verification.locationArea?.name)
+        case .reviewedDerived: String(localized: "Location estimated from the official address")
+        case .unknown, nil: String(localized: "Location precision unknown")
+        }
+    }
+
+    static func precisionSymbol(_ spot: Spot) -> String {
+        switch spot.verification.locationPrecision {
+        case .publisherPoint, .communityPinned: "mappin.circle"
+        case .areaApproximate, .reviewedDerived: "mappin.and.ellipse"
+        case .unknown, nil: "questionmark.circle"
+        }
+    }
+
     static func distance(_ meters: Double) -> String {
         if meters < 1 { return String(localized: "Less than 1 m") }
         if meters < 1_000 { return String(localized: "\(Int(meters.rounded())) m") }

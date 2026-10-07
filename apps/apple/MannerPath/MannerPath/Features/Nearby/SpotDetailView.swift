@@ -10,6 +10,9 @@ struct SpotDetailView: View {
     let reportAvailability: ReportAvailability
     let hasSavedReport: Bool
     var distanceFromDestination = false
+    /// The saved-data state of the area this place was opened from (cache only, refresh failed), or nil. It is about the
+    /// local copy, never about when the place was confirmed.
+    var cacheNotice: String? = nil
     /// ADR-0013: start a structured report of this type about this place.
     let onReport: (ReportType) -> Void
     /// ADR-0013 one-tap "it was here".
@@ -33,13 +36,57 @@ struct SpotDetailView: View {
                     LabeledContent("Located at", value: host)
                 }
                 LabeledContent("Straight-line distance", value: SpotPresentation.distance(result))
+                detailText("Bearing", SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))
+                // Location precision and existence evidence are separate rows (ADR-0012, ADR-0017); neither implies the other.
+                Label(SpotPresentation.precisionDescription(spot), systemImage: SpotPresentation.precisionSymbol(spot))
+                    .accessibilityIdentifier("detail-precision")
                 if spot.verification.isAreaApproximate {
                     // ADR-0017: the place is confirmed inside the area; the pin is only an approximate marker.
-                    Label(ApproximateLocation.detailNote(), systemImage: "mappin.and.ellipse")
+                    Text(ApproximateLocation.detailNote())
                         .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("approximate-location-note")
+                } else if !SpotPresentation.isExactPoint(spot) {
+                    Text("The pin is not the confirmed position of the smoking place. Distance and bearing are to the pin.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                detailText("Bearing", SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))
+                Label(SpotPresentation.confirmationSummary(spot), systemImage: SpotPresentation.existenceSymbol(spot.verification.existenceTier))
+                    .accessibilityIdentifier("detail-evidence")
+                Text(SpotPresentation.confirmation(result))
+                    .foregroundStyle(.secondary)
+                LabeledContent("Access", value: SpotPresentation.access(spot))
+                if let cacheNotice {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: cacheNotice)
+                            Text("This is about saved data, not when the place was last confirmed.")
+                                .font(.caption)
+                        }
+                    } icon: {
+                        Image(systemName: "internaldrive")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("detail-cache-state")
+                }
+                // The primary action. Text only, so 「この場所へ案内」/「この付近へ案内」 never truncates (DESIGN §5.5);
+                // black on MannerPath Yellow for contrast.
+                Button {
+                    AppleMapsHandoff.openWalkingDirections(to: spot)
+                } label: {
+                    Text(SpotPresentation.navigationTitle(spot))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .foregroundStyle(.black)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color("MannerPathYellow"))
+                .accessibilityHint(SpotPresentation.isExactPoint(spot)
+                                   ? String(localized: "Opens walking directions in Apple Maps")
+                                   : String(localized: "Opens walking directions in Apple Maps to the approximate marker"))
+                .accessibilityIdentifier("open-walking-directions")
             } footer: {
                 Text(distanceFromDestination
                      ? "Distance and bearing are estimates from the selected destination, not your device location or a walking route."
@@ -48,19 +95,18 @@ struct SpotDetailView: View {
                      : "Distance and bearing are estimates from your device location, not a walking route.")
             }
 
-            Section {
-                Label(SpotPresentation.confirmationSummary(spot), systemImage: SpotPresentation.existenceSymbol(spot.verification.existenceTier))
-                    .font(.headline)
-                Text(SpotPresentation.confirmation(result))
-                    .foregroundStyle(.secondary)
-                if case .available = reportAvailability {
+            // Evidence and freshness lead the screen above; this section only offers the on-site check, when reports are
+            // available (the Suggest a correction section explains every other report state).
+            if case .available = reportAvailability {
+                Section {
                     Button {
                         onConfirmStillHere()
                     } label: {
                         Label("It was here", systemImage: "checkmark.circle")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    // Secondary to the directions button above: one primary action per screen.
+                    .buttonStyle(.bordered)
                     .disabled(hasSavedReport)
                     .accessibilityHint("Sends a confirmation that this place still exists, for review")
                     Menu {
@@ -73,16 +119,16 @@ struct SpotDetailView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(hasSavedReport)
+                } header: {
+                    Text("On-site check")
+                } footer: {
+                    Text(hasSavedReport
+                         ? "Finish or discard your saved report first."
+                         : "Been here recently? Your check helps others. It is reviewed before anything changes.")
                 }
-            } header: {
-                Text("On-site check")
-            } footer: {
-                Text(hasSavedReport
-                     ? "Finish or discard your saved report first."
-                     : "Been here recently? Your check helps others. It is reviewed before anything changes.")
             }
 
-            Section("Walking directions") {
+            Section {
                 if let previewRoute {
                     if previewRoute.geometry.count > 1 {
                         Map {
@@ -90,9 +136,14 @@ struct SpotDetailView: View {
                                 CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
                             })
                             .stroke(.blue, lineWidth: 5)
-                            Annotation(String(localized: "Place"), coordinate: CLLocationCoordinate2D(
-                                latitude: spot.latitude, longitude: spot.longitude
-                            )) { Image(systemName: "mappin.circle.fill").foregroundStyle(.red) }
+                            // Neutral, whatever the evidence; an approximate or unknown pin is drawn as a marker area,
+                            // never as an exact point.
+                            Annotation(SpotPresentation.isExactPoint(spot) ? String(localized: "Place") : String(localized: "Approximate marker"),
+                                       coordinate: CLLocationCoordinate2D(latitude: spot.latitude, longitude: spot.longitude)) {
+                                Image(systemName: SpotPresentation.isExactPoint(spot) ? "mappin.circle.fill" : "mappin.and.ellipse")
+                                    .font(.title2)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         .frame(height: 220)
                     }
@@ -108,13 +159,16 @@ struct SpotDetailView: View {
                          : "A current device location is needed for a walking preview. The straight-line estimate remains available.")
                         .foregroundStyle(.secondary)
                 }
-                Button {
-                    AppleMapsHandoff.openWalkingDirections(to: spot)
-                } label: {
-                    Label(SpotPresentation.navigationTitle(spot), systemImage: "map")
+            } header: {
+                Text("Walking directions")
+            } footer: {
+                if previewRoute != nil && !SpotPresentation.isExactPoint(spot) {
+                    Text("Walking time and distance are to the approximate marker, not to the exact smoking place.")
                 }
-                .accessibilityHint("Opens walking directions in Apple Maps")
-                .accessibilityIdentifier("open-walking-directions")
+            }
+
+            Section("Location precision") {
+                LabeledContent("Location", value: SpotPresentation.precisionDescription(spot))
             }
 
             Section("Use and access") {
@@ -173,9 +227,6 @@ struct SpotDetailView: View {
                         .font(.footnote).foregroundStyle(.secondary)
                 case .official, .operator:
                     EmptyView()
-                }
-                if let note = SpotPresentation.approximateLocationNote(spot) ?? SpotPresentation.locationNote(spot.verification.locationPrecision) {
-                    LabeledContent("Location", value: note)
                 }
                 LabeledContent("Last verified", value: SpotPresentation.verificationDate(spot.lastVerifiedAt))
                 LabeledContent("Freshness", value: SpotPresentation.confirmation(result))

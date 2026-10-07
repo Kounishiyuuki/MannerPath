@@ -242,26 +242,31 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 
 ### 5.6 Spot Detail — exact
 
-- **Current:** `SpotDetailView` is a `Form`: header, confirmation summary, 「It was here」/「Something is different」,
-  walking directions, use and access, evidence and freshness, suggest a correction. Title 「Place details」.
 - **Stitch target (`地点詳細（公式・正確位置）`):** place name as title, primary 「この場所へ案内」, attributes,
   evidence and freshness, report entry.
-- **Apple-native:** keep `Form`/inset-grouped `List`. Navigation title = place name (inline). No Share or Bookmark
-  in v1 (decided §9.3). One primary `.borderedProminent` CTA. Map preview, if any, is a
-  non-interactive MapKit snapshot or `Map` — not a custom image.
-- **Required change:** mostly copy and hierarchy; align CTA wording; replace the red `mappin.circle.fill` glyph in
-  directions with a neutral or accent glyph.
+- **Implemented (Phase 3, 2026-10-07):** `Form`, inline title 「場所の詳細」 (the name leads the first section and
+  wraps in full). First section, in reading order: name → physical type → straight-line distance and bearing
+  (origin in the footer: device / previous device / destination) → **location precision row** → **evidence row** →
+  freshness → access → saved-data state (when the area shows cache-only / refresh-failed) → the primary directions
+  `Button` (text only, MannerPath Yellow, black text). No Share or Bookmark (§9.3). On-site check buttons are
+  `.bordered` and the section appears only when reports are available; corrections stay below.
+- Exact = `publisherPoint` 「公開元が示した地点」 or `communityPinned` 「利用者が示した地点」 (never called official) →
+  「この場所へ案内」. The walking-preview `Map` marks the endpoint with a neutral `.secondary` glyph, never red.
 
-### 5.7 Spot Detail — approximate
+### 5.7 Spot Detail — approximate and unknown
 
-- **Current:** same view; shows `ApproximateLocation.detailNote()` with `mappin.and.ellipse`; CTA "Navigate to this
-  area".
 - **Stitch target (`地点詳細（公式・概算位置）`):** separate "存在の確認状況" and "位置の精度" sections, area circle
   (「捜索目安エリア (約30m)」), CTA 「この付近へ案内」, unknown fields as 「不明」.
-- **Apple-native:** two distinct `Section`s — evidence and location precision. Approximate area drawn with MapKit
-  (`MKCircle` overlay / `MapCircle`), never as an exact pin. Distances prefixed 「約」.
-- **Required change:** split evidence and precision into separate sections if not already visually separate;
-  confirm the area radius comes from data (do not hard-code 30 m).
+- **Implemented (Phase 3):** the same hierarchy; precision and evidence are separate rows at the top and precision
+  has its own 「位置の精度」 section (never inferred from evidence, nor evidence from precision).
+  - `areaApproximate`: 「位置は○○内の目安です」 + the ADR-0017 note; distance 「約」; CTA 「この付近へ案内」; preview
+    marker is `mappin.and.ellipse` and the footer says walking time/distance are to the approximate marker.
+  - `reviewedDerived` (not published today): 「公式住所から推定した位置」, never treated as `publisherPoint`.
+  - `unknown`, an unrecognised value, or none (legacy cache): 「位置の精度は不明」 + "the pin is not the confirmed
+    position; distance and bearing are to the pin"; CTA 「この付近へ案内」.
+  - No circle: the API has no radius or boundary, so none is drawn and no radius (e.g. 30 m) is invented.
+- Saved-data state in Detail is the Nearby state of the same area only, labelled as being about saved data and not
+  about when the place was confirmed; no sync time is shown because none is stored.
 
 ### 5.8 Filters
 

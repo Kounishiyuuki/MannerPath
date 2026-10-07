@@ -174,6 +174,7 @@ struct ContentView: View {
                         reportAvailability: reportModel.availability,
                         hasSavedReport: reportModel.draft != nil,
                         distanceFromDestination: selection.area.isDestination,
+                        cacheNotice: detailCacheNotice(for: selection.area),
                         onReport: { type in
                             reportModel.start(type: type, spotId: selection.result.spot.id,
                                               subjectName: SpotPresentation.name(selection.result.spot))
@@ -381,6 +382,17 @@ struct ContentView: View {
         path = []
         selectedSnapshot = nil
         model.selectDestination(selected)
+    }
+
+    /// The Nearby data state, for a detail opened from the area that state describes; another area's snapshot gets none.
+    private func detailCacheNotice(for area: NearbyArea) -> String? {
+        guard let current = model.resultsArea, current.coordinate == area.coordinate,
+              current.isDestination == area.isDestination else { return nil }
+        return switch model.dataState {
+        case .cacheOnly: String(localized: "Showing saved nearby data. Live updates are unavailable.")
+        case .refreshFailed: String(localized: "Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
+        default: nil
+        }
     }
 
     private func detailSelection(id: String) -> DetailSelection? {
