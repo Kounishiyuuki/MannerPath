@@ -210,3 +210,15 @@ The promotion exporter supports `npm run local:export -- --bundle v3 --out <file
 reviewed release per source into a fresh database, using migration 0018. v2 remains available.
 Repeated-release validation, cross-source merges and broader field support remain separate work.
 These commands never target a remote database.
+
+## Official-source onboarding (offline advisory)
+
+From `services/api`, `npm run source:onboarding` checks the six pinned reviewed sources and emits
+human-review queues. `--discovery-report <json>` consumes existing discovery results without scanning,
+and `--metadata <json>` accepts explicit resource-bound human review assertions. Nothing approves a
+source, infers coordinates, geocodes, connects to D1 or publishes. READY is local preparation only;
+quality/promotion and latest live operation remain separately unverified.
+
+`npm run source:scaffold -- <source-id> --out <existing-local-parent>` creates an unregistered, blocked
+review skeleton with unknown rights/coordinates and an empty fixture directory. It never overwrites.
+See [states, packet format, drift limits and source comparison](../../docs/research/2026-10-07-nationwide-source-onboarding.md).
