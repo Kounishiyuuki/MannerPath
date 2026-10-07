@@ -19,7 +19,7 @@ import { type Db, sha256Hex } from "../db.ts";
 import { withinJapan } from "../geo/japan.ts";
 import { haversineMeters } from "../geo/distance.ts";
 
-export const DERIVED_COORDINATE_GATE_VERSION = "derived-coordinate-gate.v1";
+export const DERIVED_COORDINATE_GATE_VERSION = "derived-coordinate-gate.v2";
 
 /**
  * ADR-0011's publication policy. `proposed` means derived coordinates may be generated, gated and reviewed
@@ -135,7 +135,7 @@ export type DerivedRejection =
   | "addressReuseNotReviewed" | "inputRuleNotReviewed" | "noGeocodeResult" | "geocoderNotReviewed" | "geocoderVersionNotReviewed"
   | "datasetReleaseNotPinned" | "fuzzyMatching" | "multipleCandidates" | "noExactMatch" | "unmatchedRemainder"
   | "normalizationChangedMeaning" | "precisionTooLow" | "coordinateCoarserThanMatch" | "noCoordinate" | "coordinateInvalid"
-  | "jurisdictionMismatch" | "geocoderDisagreement";
+  | "jurisdictionMismatch" | "geocoderDisagreement" | "verbatimInputMismatch";
 
 /** Only the verbatim publisher value is reviewed input. Any rewrite is a meaning change until a rule is reviewed. */
 export const REVIEWED_INPUT_RULES = ["verbatim"] as const;
@@ -185,6 +185,7 @@ export function evaluateDerivedCoordinate(
       if (!reviewed.versions.includes(run.geocoderVersion)) rejections.push("geocoderVersionNotReviewed");
       if (!reviewed.datasetReleases.includes(run.datasetReleaseId)) rejections.push("datasetReleaseNotPinned");
     }
+    if (record.inputRule === "verbatim" && run.input !== record.officialAddress) rejections.push("verbatimInputMismatch");
     if (run.options.fuzzy !== null) rejections.push("fuzzyMatching");
     if (run.candidateCount !== 1) rejections.push(run.candidateCount > 1 ? "multipleCandidates" : "noExactMatch");
     if (run.others.some((o) => o.trim() !== "")) rejections.push("unmatchedRemainder");
@@ -217,14 +218,21 @@ export function evaluateDerivedCoordinate(
   };
 }
 
-/** The evidence a reviewer approves: the verbatim address, the exact input and the whole geocoder output. */
+/** Bind every gate input and complete run output to the review, including ambiguity and second opinions. */
+function geocodeEvidence(g: GeocodeRun) {
+  return [g.geocoderId, g.geocoderVersion, g.options.target, g.options.fuzzy, g.datasetReleaseId, g.input,
+    g.output, g.others, g.score, g.matchLevel, g.coordinateLevel, g.latitude, g.longitude, g.srid, g.lgCode,
+    g.pref, g.city, g.ward, g.candidateCount];
+}
+
 export function derivedCoordinateEvidenceSha256(input: DerivedCoordinateInput): Promise<string> {
   if (input.geocode === null) throw new Error(`derived coordinate: record ${input.record.recordId} has no geocode run to digest`);
-  const g = input.geocode;
+  const { source: s, record: r } = input;
   return sha256Hex(JSON.stringify([
-    DERIVED_COORDINATE_GATE_VERSION, input.record.recordId, input.record.addressColumn, input.record.officialAddress,
-    input.record.inputRule, g.geocoderId, g.geocoderVersion, g.options.target, g.options.fuzzy, g.datasetReleaseId, g.input,
-    g.output, g.others, g.score, g.matchLevel, g.coordinateLevel, g.latitude, g.longitude, g.srid, g.lgCode, g.pref, g.city, g.ward,
+    DERIVED_COORDINATE_GATE_VERSION,
+    s.sourceId, s.publicationStatus, s.existenceEvidence, s.currentOperation, s.addressReuse,
+    r.recordId, r.addressColumn, r.officialAddress, r.addressSuppliedBy, r.inputRule, r.expectedPrefecture, r.expectedMunicipality,
+    geocodeEvidence(input.geocode), (input.secondOpinions ?? []).map(geocodeEvidence),
   ]));
 }
 
@@ -247,6 +255,8 @@ export interface DerivedReview {
   siteEvidence: string | null;
   reviewedAt: string;
 }
+
+const REVIEW_CHECKS = ["officialAddress", "normalizedAddress", "returnedLocation", "precision", "regionSanity", "currentListing"] as const;
 
 export type PublicationBlocker =
   | "policyNotApproved" | "gateRejected" | "notReviewed" | "reviewRejected" | "reviewStale" | "reviewIncomplete" | "siteEvidenceMissing";
@@ -273,8 +283,8 @@ export function derivedPublicationDecision(
   else if (latest.evidenceSha256 !== evidenceSha256) blockers.push("reviewStale");
   else if (latest.decision !== "approve") blockers.push("reviewRejected");
   else {
-    if (!Object.values(latest.checks).every((v) => v === true) || Object.keys(latest.checks).length !== 6) blockers.push("reviewIncomplete");
-    if (evaluation.precision !== "residentialDetail" && !latest.siteEvidence) blockers.push("siteEvidenceMissing");
+    if (!REVIEW_CHECKS.every((key) => latest.checks[key] === true) || Object.keys(latest.checks).length !== REVIEW_CHECKS.length) blockers.push("reviewIncomplete");
+    if (evaluation.precision !== "residentialDetail" && !latest.siteEvidence?.trim()) blockers.push("siteEvidenceMissing");
   }
   return { publish: blockers.length === 0, blockers };
 }

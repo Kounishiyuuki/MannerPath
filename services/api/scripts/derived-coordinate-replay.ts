@@ -37,7 +37,7 @@ function input(c: Candidate, bestCase: boolean): DerivedCoordinateInput {
       addressReuse: c.license === "established" ? "reviewed" : c.license === "blocked" ? "forbidden" : "unknown",
     },
     record: {
-      recordId: 0, addressColumn: "(simulated)", officialAddress: "(not copied)", addressSuppliedBy: c.addressForm === "none" ? "other" : "publisher",
+      recordId: 0, addressColumn: "(simulated)", officialAddress: bestCase ? "(simulated)" : "(not copied)", addressSuppliedBy: c.addressForm === "none" ? "other" : "publisher",
       inputRule: "verbatim", expectedPrefecture: c.prefecture, expectedMunicipality: c.municipality,
     },
     geocode: level === null ? null : {
