@@ -1,0 +1,1301 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "baseMain": "f56ba19d64177853f0bae0fba9233731da900e6f",
+  "scope": "Bounded live metadata scan; not nationwide completeness or source approval. Full POI response/cache remain local; only one attributed CDLA subset is a test fixture.",
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "maxWorklist": 20,
+  "worklist": [
+    {
+      "kind": "canonical-resource-candidate",
+      "reference": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv"
+    },
+    {
+      "kind": "canonical-resource-candidate",
+      "reference": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv"
+    },
+    {
+      "kind": "canonical-resource-candidate",
+      "reference": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv"
+    },
+    {
+      "kind": "canonical-resource-candidate",
+      "reference": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv"
+    },
+    {
+      "kind": "canonical-resource-candidate",
+      "reference": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json"
+    },
+    {
+      "kind": "canonical-resource-candidate",
+      "reference": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "99e79471c90e3bf6a2eb3a12"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "52067dd9217ecacbc786c88b"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "656d87a96823af664fffe5f7"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "2455da1e4dbefd6c90e352cd"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "6d572476925cc8114fba1996"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "410e96486d7758510af68cf3"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "0d0a4ec6775b1f02b994913f"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "8843d4a5d6c1e68e83685f84"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "e320cbe76951d954347fa7be"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "9fcc1bb7893a97c4cec7efcc"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "a9f58b92df4cf1b9a27d5f7e"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "207edf6614103afdc6e93993"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "8997e1260c845643cad731e5"
+    },
+    {
+      "kind": "discovery-only-lead",
+      "reference": "0f7e0c04235a3ed2db236bad"
+    }
+  ],
+  "canonicalResourceCandidates": [
+    {
+      "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+      "title": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+      "publicationStatus": "blocked",
+      "providerObservations": [
+        {
+          "provider": {
+            "id": "bodik",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://data.bodik.jp",
+              "https://odm.bodik.jp"
+            ],
+            "docs": "https://odcs.bodik.jp/developers/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+          },
+          "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+          "title": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+          "format": "csv",
+          "providerId": "bodik",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "131067_東京都台東区",
+          "datasetId": "e045b85f-6bbd-4b25-a196-f191309c0f33",
+          "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4",
+          "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000255",
+          "publisherPage": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+          "metadataModified": "2025-04-23T09:12:29.704847",
+          "resourceModified": "2024-06-26T15:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131067_東京都台東区",
+            "metadata": "131067_東京都台東区",
+            "attributions": []
+          },
+          "licenseMetadata": "CC-BY-4.0",
+          "attributionMetadata": "131067_東京都台東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "e045b85f-6bbd-4b25-a196-f191309c0f33",
+              "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4",
+              "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000255",
+              "publisherPage": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+              "metadataModified": "2025-04-23T09:12:29.704847",
+              "resourceModified": "2024-06-26T15:00:00",
+              "publisher": "131067_東京都台東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "CC-BY-4.0",
+                "licenseUrl": null,
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "131067_東京都台東区",
+                "metadata": "131067_東京都台東区",
+                "attributions": []
+              }
+            }
+          ]
+        },
+        {
+          "provider": {
+            "id": "ckan",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://catalog.data.metro.tokyo.lg.jp"
+            ],
+            "docs": "https://docs.ckan.org/en/latest/api/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "CKAN software permissions do not license catalog contents. Review each publisher/resource."
+          },
+          "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+          "title": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+          "format": "csv",
+          "providerId": "ckan",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "台東区",
+          "providerRights": {
+            "commercial": "resourceSpecific",
+            "storage": "resourceSpecific",
+            "redistribution": "resourceSpecific"
+          },
+          "datasetId": "e045b85f-6bbd-4b25-a196-f191309c0f33",
+          "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4",
+          "datasetUrl": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131067d0000000255",
+          "publisherPage": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+          "metadataModified": "2025-12-12T08:11:28.955765",
+          "resourceModified": "2024-06-26T15:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "台東区",
+            "metadata": "台東区",
+            "attributions": []
+          },
+          "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+          "attributionMetadata": "台東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "e045b85f-6bbd-4b25-a196-f191309c0f33",
+              "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4",
+              "datasetUrl": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131067d0000000255",
+              "publisherPage": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+              "metadataModified": "2025-12-12T08:11:28.955765",
+              "resourceModified": "2024-06-26T15:00:00",
+              "publisher": "台東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+                "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "台東区",
+                "metadata": "台東区",
+                "attributions": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "title": "公共喫煙所一覧 — 公共喫煙所一覧（駅前）",
+      "publicationStatus": "blocked",
+      "providerObservations": [
+        {
+          "provider": {
+            "id": "bodik",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://data.bodik.jp",
+              "https://odm.bodik.jp"
+            ],
+            "docs": "https://odcs.bodik.jp/developers/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+          },
+          "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+          "title": "公共喫煙所一覧 — 公共喫煙所一覧（駅前）",
+          "format": "csv",
+          "providerId": "bodik",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "131083_東京都江東区",
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159",
+          "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+          "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+          "metadataModified": "2025-03-31T21:01:12.197300",
+          "resourceModified": "2025-03-16T15:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131083_東京都江東区",
+            "metadata": "131083_東京都江東区",
+            "attributions": []
+          },
+          "licenseMetadata": "CC-BY-4.0",
+          "attributionMetadata": "131083_東京都江東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+              "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159",
+              "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+              "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+              "metadataModified": "2025-03-31T21:01:12.197300",
+              "resourceModified": "2025-03-16T15:00:00",
+              "publisher": "131083_東京都江東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "CC-BY-4.0",
+                "licenseUrl": null,
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "131083_東京都江東区",
+                "metadata": "131083_東京都江東区",
+                "attributions": []
+              }
+            }
+          ]
+        },
+        {
+          "provider": {
+            "id": "ckan",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://catalog.data.metro.tokyo.lg.jp"
+            ],
+            "docs": "https://docs.ckan.org/en/latest/api/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "CKAN software permissions do not license catalog contents. Review each publisher/resource."
+          },
+          "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+          "title": "公共喫煙所一覧 — 公共喫煙所一覧（駅前）",
+          "format": "csv",
+          "providerId": "ckan",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "江東区",
+          "providerRights": {
+            "commercial": "resourceSpecific",
+            "storage": "resourceSpecific",
+            "redistribution": "resourceSpecific"
+          },
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159",
+          "datasetUrl": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131083d0000000061",
+          "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+          "metadataModified": "2025-12-12T08:21:17.548628",
+          "resourceModified": "2025-03-16T15:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "江東区",
+            "metadata": "江東区",
+            "attributions": []
+          },
+          "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+          "attributionMetadata": "江東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+              "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159",
+              "datasetUrl": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131083d0000000061",
+              "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+              "metadataModified": "2025-12-12T08:21:17.548628",
+              "resourceModified": "2025-03-16T15:00:00",
+              "publisher": "江東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+                "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "江東区",
+                "metadata": "江東区",
+                "attributions": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+      "title": "公共喫煙所一覧 — 公共喫煙所一覧（公園）",
+      "publicationStatus": "blocked",
+      "providerObservations": [
+        {
+          "provider": {
+            "id": "bodik",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://data.bodik.jp",
+              "https://odm.bodik.jp"
+            ],
+            "docs": "https://odcs.bodik.jp/developers/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+          },
+          "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+          "title": "公共喫煙所一覧 — 公共喫煙所一覧（公園）",
+          "format": "csv",
+          "providerId": "bodik",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "131083_東京都江東区",
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3",
+          "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+          "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+          "metadataModified": "2025-03-31T21:01:12.197300",
+          "resourceModified": "2025-03-16T15:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131083_東京都江東区",
+            "metadata": "131083_東京都江東区",
+            "attributions": []
+          },
+          "licenseMetadata": "CC-BY-4.0",
+          "attributionMetadata": "131083_東京都江東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+              "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3",
+              "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+              "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+              "metadataModified": "2025-03-31T21:01:12.197300",
+              "resourceModified": "2025-03-16T15:00:00",
+              "publisher": "131083_東京都江東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "CC-BY-4.0",
+                "licenseUrl": null,
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "131083_東京都江東区",
+                "metadata": "131083_東京都江東区",
+                "attributions": []
+              }
+            }
+          ]
+        },
+        {
+          "provider": {
+            "id": "ckan",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://catalog.data.metro.tokyo.lg.jp"
+            ],
+            "docs": "https://docs.ckan.org/en/latest/api/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "CKAN software permissions do not license catalog contents. Review each publisher/resource."
+          },
+          "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+          "title": "公共喫煙所一覧 — 公共喫煙所一覧（公園）",
+          "format": "csv",
+          "providerId": "ckan",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "江東区",
+          "providerRights": {
+            "commercial": "resourceSpecific",
+            "storage": "resourceSpecific",
+            "redistribution": "resourceSpecific"
+          },
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3",
+          "datasetUrl": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131083d0000000061",
+          "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+          "metadataModified": "2025-12-12T08:21:17.548628",
+          "resourceModified": "2025-03-16T15:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "江東区",
+            "metadata": "江東区",
+            "attributions": []
+          },
+          "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+          "attributionMetadata": "江東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+              "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3",
+              "datasetUrl": "https://catalog.data.metro.tokyo.lg.jp/dataset/t131083d0000000061",
+              "publisherPage": "https://www.city.koto.lg.jp/380301/machizukuri/sekatsu/undo/45122.html",
+              "metadataModified": "2025-12-12T08:21:17.548628",
+              "resourceModified": "2025-03-16T15:00:00",
+              "publisher": "江東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+                "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "江東区",
+                "metadata": "江東区",
+                "attributions": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv",
+      "title": "指定喫煙場所一覧 — 指定喫煙場所一覧",
+      "publicationStatus": "blocked",
+      "providerObservations": [
+        {
+          "provider": {
+            "id": "bodik",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://data.bodik.jp",
+              "https://odm.bodik.jp"
+            ],
+            "docs": "https://odcs.bodik.jp/developers/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+          },
+          "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv",
+          "title": "指定喫煙場所一覧 — 指定喫煙場所一覧",
+          "format": "csv",
+          "providerId": "bodik",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "131032_東京都港区",
+          "datasetId": "29ded576-f3a0-4bf9-83a3-a51d6954d458",
+          "resourceId": "5b27f9e3-3c7c-48bc-820a-594e417a219a",
+          "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+          "publisherPage": "https://www.city.minato.tokyo.jp/kankyouseisaku/shiteikitsuenbasyo.html",
+          "metadataModified": "2025-03-08T03:22:58.014083",
+          "resourceModified": "2025-03-07T01:56:11.203144",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "cc-by",
+            "licenseName": "Creative Commons Attribution",
+            "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131032_東京都港区",
+            "metadata": "環境リサイクル支援部環境課",
+            "attributions": []
+          },
+          "licenseMetadata": "http://www.opendefinition.org/licenses/cc-by",
+          "attributionMetadata": "環境リサイクル支援部環境課",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "29ded576-f3a0-4bf9-83a3-a51d6954d458",
+              "resourceId": "5b27f9e3-3c7c-48bc-820a-594e417a219a",
+              "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+              "publisherPage": "https://www.city.minato.tokyo.jp/kankyouseisaku/shiteikitsuenbasyo.html",
+              "metadataModified": "2025-03-08T03:22:58.014083",
+              "resourceModified": "2025-03-07T01:56:11.203144",
+              "publisher": "131032_東京都港区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "cc-by",
+                "licenseName": "Creative Commons Attribution",
+                "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "131032_東京都港区",
+                "metadata": "環境リサイクル支援部環境課",
+                "attributions": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json",
+      "title": "指定喫煙場所一覧 — 指定喫煙場所一覧",
+      "publicationStatus": "blocked",
+      "providerObservations": [
+        {
+          "provider": {
+            "id": "bodik",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://data.bodik.jp",
+              "https://odm.bodik.jp"
+            ],
+            "docs": "https://odcs.bodik.jp/developers/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+          },
+          "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json",
+          "title": "指定喫煙場所一覧 — 指定喫煙場所一覧",
+          "format": "geojson",
+          "providerId": "bodik",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "131032_東京都港区",
+          "datasetId": "29ded576-f3a0-4bf9-83a3-a51d6954d458",
+          "resourceId": "6b0b7ea6-c898-4422-8e75-b9722806a9f1",
+          "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+          "publisherPage": "https://www.city.minato.tokyo.jp/kankyouseisaku/shiteikitsuenbasyo.html",
+          "metadataModified": "2025-03-08T03:22:58.014083",
+          "resourceModified": "2025-03-07T01:57:10.074538",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "cc-by",
+            "licenseName": "Creative Commons Attribution",
+            "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131032_東京都港区",
+            "metadata": "環境リサイクル支援部環境課",
+            "attributions": []
+          },
+          "licenseMetadata": "http://www.opendefinition.org/licenses/cc-by",
+          "attributionMetadata": "環境リサイクル支援部環境課",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "29ded576-f3a0-4bf9-83a3-a51d6954d458",
+              "resourceId": "6b0b7ea6-c898-4422-8e75-b9722806a9f1",
+              "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+              "publisherPage": "https://www.city.minato.tokyo.jp/kankyouseisaku/shiteikitsuenbasyo.html",
+              "metadataModified": "2025-03-08T03:22:58.014083",
+              "resourceModified": "2025-03-07T01:57:10.074538",
+              "publisher": "131032_東京都港区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "cc-by",
+                "licenseName": "Creative Commons Attribution",
+                "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "131032_東京都港区",
+                "metadata": "環境リサイクル支援部環境課",
+                "attributions": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+      "title": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+      "publicationStatus": "blocked",
+      "providerObservations": [
+        {
+          "provider": {
+            "id": "bodik",
+            "role": "CANONICAL_CANDIDATE_PROVIDER",
+            "kind": "ckan",
+            "catalogs": [
+              "https://data.bodik.jp",
+              "https://odm.bodik.jp"
+            ],
+            "docs": "https://odcs.bodik.jp/developers/",
+            "terms": {
+              "commercial": "resourceSpecific",
+              "storage": "resourceSpecific",
+              "redistribution": "resourceSpecific",
+              "reviewedOn": "2026-10-08"
+            },
+            "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+          },
+          "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+          "title": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+          "format": "csv",
+          "providerId": "bodik",
+          "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+          "publisher": "131067_東京都台東区",
+          "datasetId": "a6c22ed8-444c-460b-8100-1265a00b1358",
+          "resourceId": "f60b6998-8d0a-4cfb-bd35-c2da4a56d05f",
+          "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000110",
+          "publisherPage": "",
+          "metadataModified": "2024-09-02T03:23:26.387860",
+          "resourceModified": "2023-06-01T06:00:00",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131067_東京都台東区",
+            "metadata": "131067_東京都台東区",
+            "attributions": []
+          },
+          "licenseMetadata": "CC-BY-4.0",
+          "attributionMetadata": "131067_東京都台東区",
+          "matchingRowCount": null,
+          "coordinateAvailability": "unknown",
+          "coordinateColumns": [],
+          "smokingExistence": "unknown",
+          "coordinateAuthority": "unknown",
+          "currentOperation": "unknown",
+          "publicationStatus": "blocked",
+          "blockerCodes": [
+            "licenseUnknown",
+            "currentOperationUnknown",
+            "coordinateAuthorityReviewRequired",
+            "smokingExistenceReviewRequired"
+          ],
+          "truncated": false,
+          "catalogObservations": [
+            {
+              "datasetId": "a6c22ed8-444c-460b-8100-1265a00b1358",
+              "resourceId": "f60b6998-8d0a-4cfb-bd35-c2da4a56d05f",
+              "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000110",
+              "publisherPage": "",
+              "metadataModified": "2024-09-02T03:23:26.387860",
+              "resourceModified": "2023-06-01T06:00:00",
+              "publisher": "131067_東京都台東区",
+              "rights": {
+                "status": "unknown",
+                "licenseId": "CC-BY-4.0",
+                "licenseName": "CC-BY-4.0",
+                "licenseUrl": null,
+                "resourceLicense": null,
+                "licenses": [],
+                "commercialReuse": "unknown",
+                "redistribution": "unknown"
+              },
+              "attribution": {
+                "publisher": "131067_東京都台東区",
+                "metadata": "131067_東京都台東区",
+                "attributions": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "provider": {
+        "id": "bodik",
+        "role": "CANONICAL_CANDIDATE_PROVIDER",
+        "kind": "ckan",
+        "catalogs": [
+          "https://data.bodik.jp",
+          "https://odm.bodik.jp"
+        ],
+        "docs": "https://odcs.bodik.jp/developers/",
+        "terms": {
+          "commercial": "resourceSpecific",
+          "storage": "resourceSpecific",
+          "redistribution": "resourceSpecific",
+          "reviewedOn": "2026-10-08"
+        },
+        "attribution": "Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority."
+      },
+      "fetches": [
+        {
+          "url": "https://data.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "f13a058350444152afa76a37005e05d7e2596d9e5d342c5e47e82001e2396137",
+          "fetchedAt": "2026-10-07T19:14:10.741Z",
+          "cacheHit": true,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "9bfd5a9a397d1640cc0fb3c05910fc69880d7c9c30829b0b324ece1c3a611010",
+          "fetchedAt": "2026-10-07T19:14:11.078Z",
+          "cacheHit": true,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=20",
+          "status": 200,
+          "sha256": "a8c776fd162dfc66de3d8cc996de1ffa10949d5a77e14144efea4d92729a0680",
+          "fetchedAt": "2026-10-07T19:16:38.118Z",
+          "cacheHit": true,
+          "blockerCodes": []
+        }
+      ],
+      "candidateCount": 6,
+      "leadCount": 0,
+      "keywordSignalCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "catalog": null,
+      "endpointInventory": null
+    },
+    {
+      "provider": {
+        "id": "ckan",
+        "role": "CANONICAL_CANDIDATE_PROVIDER",
+        "kind": "ckan",
+        "catalogs": [
+          "https://catalog.data.metro.tokyo.lg.jp"
+        ],
+        "docs": "https://docs.ckan.org/en/latest/api/",
+        "terms": {
+          "commercial": "resourceSpecific",
+          "storage": "resourceSpecific",
+          "redistribution": "resourceSpecific",
+          "reviewedOn": "2026-10-08"
+        },
+        "attribution": "CKAN software permissions do not license catalog contents. Review each publisher/resource."
+      },
+      "fetches": [
+        {
+          "url": "https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "1c698daebfed8b8370085e3c500cc007e90d0172f01d359f7fa667357c597485",
+          "fetchedAt": "2026-10-07T19:14:11.598Z",
+          "cacheHit": true,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://opendata.city.minato.tokyo.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "90c4c48e2c58df9f325c27ed7e9bae4bfd1fe41c8db9c722f9e86621a260640d",
+          "fetchedAt": "2026-10-07T19:22:51.084Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ],
+      "candidateCount": 3,
+      "leadCount": 0,
+      "keywordSignalCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "catalog": null,
+      "endpointInventory": null
+    },
+    {
+      "provider": {
+        "id": "openpoi",
+        "role": "DISCOVERY_ONLY_PROVIDER",
+        "kind": "openpoi",
+        "docs": "https://docs.openpoiapi.com/",
+        "terms": {
+          "commercial": "permitted",
+          "storage": "permittedWithRecordLicenses",
+          "redistribution": "recordSpecific",
+          "reviewedOn": "2026-10-08",
+          "url": "https://docs.openpoiapi.com/legal.html"
+        },
+        "attribution": "OpenPOI API (https://openpoiapi.com/attribution.html); preserve licenses and attributions arrays and upstream notices."
+      },
+      "fetches": [
+        {
+          "url": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+          "status": 200,
+          "sha256": "5d003de62413ab3319571d62a8264771f88d745bc80ff1b92b9845c90a0722d2",
+          "fetchedAt": "2026-10-07T19:14:12.106Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ],
+      "candidateCount": 0,
+      "leadCount": 20,
+      "keywordSignalCount": 19,
+      "truncated": true,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "catalog": null,
+      "endpointInventory": null
+    },
+    {
+      "provider": {
+        "id": "overture",
+        "role": "DISCOVERY_ONLY_PROVIDER",
+        "kind": "overture",
+        "docs": "https://docs.overturemaps.org/getting-data/",
+        "terms": {
+          "commercial": "perSourcePermissive",
+          "storage": "perSourcePermissive",
+          "redistribution": "recordSpecific",
+          "reviewedOn": "2026-10-08",
+          "url": "https://docs.overturemaps.org/attribution/"
+        },
+        "attribution": "Overture Maps Foundation, overturemaps.org; preserve sources[], their license and upstream notices. Places only, not other themes."
+      },
+      "fetches": [
+        {
+          "url": "https://stac.overturemaps.org/catalog.json",
+          "status": 200,
+          "sha256": "5336b76af0b630f05c51c8c8bf3106a2466f7a5110df28081202c7c1775bd7f3",
+          "fetchedAt": "2026-10-07T19:14:12.983Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ],
+      "candidateCount": 0,
+      "leadCount": 0,
+      "keywordSignalCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "boundedPlacesExportRequired"
+      ],
+      "scanScope": "STAC metadata only; no Places rows queried. Use a bounded official Places export with release/resource provenance.",
+      "catalog": {
+        "latest": "2026-09-23.1"
+      },
+      "endpointInventory": null
+    },
+    {
+      "provider": {
+        "id": "bodik-wapi",
+        "role": "DISCOVERY_ONLY_PROVIDER",
+        "kind": "wapi",
+        "docs": "https://www.bodik.jp/project/bodik-api/bodik-api-manual/",
+        "terms": {
+          "commercial": "resourceSpecific",
+          "storage": "resourceSpecific",
+          "redistribution": "resourceSpecific",
+          "reviewedOn": "2026-10-08"
+        },
+        "attribution": "Standard dataset API: host/public-facility presence is not smoking-place evidence. Follow back to original municipal resource."
+      },
+      "fetches": [
+        {
+          "url": "https://wapi.bodik.jp/openapi.json",
+          "status": 200,
+          "sha256": "598ab09cc7a3c9d39e7ac706fc1dde3f9a1a69f5c0442c2dd6ef53008469ef83",
+          "fetchedAt": "2026-10-07T19:14:13.540Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ],
+      "candidateCount": 0,
+      "leadCount": 0,
+      "keywordSignalCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "originalResourceReviewRequired"
+      ],
+      "scanScope": "WAPI schema inventory only; no generic public-facility rows fetched or treated as smoking evidence.",
+      "catalog": null,
+      "endpointInventory": [
+        "/aed/organization",
+        "/aed",
+        "/care_service/organization",
+        "/care_service",
+        "/hospital/organization",
+        "/hospital",
+        "/cultural_property/organization",
+        "/cultural_property",
+        "/tourism/organization",
+        "/tourism",
+        "/event/organization",
+        "/event",
+        "/public_wireless_lan/organization",
+        "/public_wireless_lan",
+        "/public_toilet/organization",
+        "/public_toilet",
+        "/fire_hydrant/organization",
+        "/fire_hydrant",
+        "/evacuation_space/organization",
+        "/evacuation_space",
+        "/population/organization",
+        "/population",
+        "/public_facility/organization",
+        "/public_facility",
+        "/preschool/organization",
+        "/preschool",
+        "/food_business_license/organization",
+        "/food_business_license",
+        "/school_lunch_meta/organization",
+        "/school_lunch_meta",
+        "/school_lunch/organization",
+        "/school_lunch",
+        "/school_districts_meta/organization",
+        "/school_districts_meta",
+        "/school_districts/organization",
+        "/school_districts",
+        "/api/list",
+        "/api/params/{apiname}",
+        "/api/{apiname}",
+        "/config/{apiname}",
+        "/indices/common",
+        "/metrics/common",
+        "/metrics/{apiname}",
+        "/metrics/organ/{organ_code}",
+        "/organization/dict",
+        "/organization",
+        "/resource",
+        "/parse/zip",
+        "/resource/file",
+        "/resource/url",
+        "/trial/config/{apiname}",
+        "/trial/data/{apiname}",
+        "/trial/log/{apiname}",
+        "/download/dict",
+        "/ckanapi/organization_list",
+        "/ckanapi/package_list",
+        "/ckanapi/package_search",
+        "/ckanapi/package_show",
+        "/ckanapi/resource/list",
+        "/ckanapi/resource/dict",
+        "/ckanapi/resource",
+        "/estat/polygon",
+        "/estat/organ",
+        "/estat/organ_code",
+        "/dataset",
+        "/map/{apiname}",
+        "/apiviewer/{apiname}",
+        "/apiviewer",
+        "/apiviewer_post/{apiname}",
+        "/apiviewer_post",
+        "/apisearch/{apiname}",
+        "/apisearch",
+        "/apisearch_post/{apiname}",
+        "/apisearch_post",
+        "/organapi",
+        "/organapi_post",
+        "/population-chart",
+        "/areaviewer",
+        "/fukuoka_area",
+        "/fukuoka_statistics",
+        "/fukuoka_wifi_access",
+        "/configmaker",
+        "/apimaker",
+        "/mapjigsaw_estat",
+        "/"
+      ]
+    }
+  ],
+  "parkInspection": {
+    "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+    "status": 200,
+    "sha256": "9a07c95d2c6d9085c2b4b80f5105b9dffbfc3e9e323a68ec158e56fe3a5b8257",
+    "fetchedAt": "2026-10-07T19:20:50.497Z",
+    "scan": {
+      "rawRowCount": 3,
+      "matchingRowCount": 3,
+      "coordinateAvailability": "all",
+      "coordinateColumns": [
+        "緯度",
+        "経度"
+      ],
+      "blockerCodes": [
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ]
+    }
+  },
+  "deepReviews": [
+    {
+      "candidate": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+      "officialPublisher": "江東区",
+      "smokingExistence": "historical listing; current operation conflicted",
+      "resourceRights": "catalog CC BY 4.0 signal; no new approval",
+      "attribution": "江東区; original resource/source chain retained",
+      "coordinates": "raw CSV latitude/longitude columns present; no fresh authority approval",
+      "currentOperation": "blocked — current official park prohibition; no scoped exception established",
+      "maintainability": "raw CSV reachable; stale catalog entry is not current operation",
+      "decision": "BLOCKED",
+      "references": [
+        "docs/SOURCES.md#江東区-公共喫煙所一覧公園--blocked-candidate",
+        "https://www.city.koto.lg.jp/470601/machizukuri/kasenkoen/sebi/jidouyuenkinen.html"
+      ]
+    },
+    {
+      "candidate": "OpenPOI Midori 長野 2f喫煙所",
+      "officialPublisher": "operator site found; not a municipal dataset",
+      "smokingExistence": "official floor-guide smoking-space legend; exact returned 2F record not independently confirmed",
+      "resourceRights": "OpenPOI record CDLA permits reuse subject to terms; original operator smoking publication reuse remains unknown",
+      "attribution": "OpenPOI API; Overture Maps Foundation; upstream chain unresolved",
+      "coordinates": "third-party POI point, not publisher-provided smoking-site coordinates",
+      "currentOperation": "floor-specific use/current operation unknown",
+      "maintainability": "official HTML/image floor guide, no reviewed machine-readable smoking resource",
+      "decision": "BLOCKED",
+      "references": [
+        "https://www.eki-midori.com/nagano/guide/",
+        "https://www.eki-midori.com/nagano/faq/",
+        "https://docs.openpoiapi.com/legal.html"
+      ]
+    },
+    {
+      "candidate": "OpenPOI JFF 山陽オート センターホール１Ｆ喫煙所横",
+      "officialPublisher": "Ministry food-business dataset chain; not smoking-place publisher evidence",
+      "smokingExistence": "unknown — food-business record name adjacent to smoking room is not a smoking-place listing",
+      "resourceRights": "record declares PDL1.0; precise upstream smoking-publication rights not established",
+      "attribution": "厚生労働省 食品衛生申請等システム（オープンデータ）",
+      "coordinates": "JFF address/geocoder location, not publisher smoking-site coordinates; no geocoding run",
+      "currentOperation": "smoking operation unknown",
+      "maintainability": "no exact smoking-place resource found in returned chain",
+      "decision": "BLOCKED",
+      "references": [
+        "https://docs.openpoiapi.com/#data",
+        "https://docs.openpoiapi.com/"
+      ]
+    }
+  ],
+  "newSourcesImplemented": 0,
+  "spotsAdded": 0,
+  "productionMutation": false
+}

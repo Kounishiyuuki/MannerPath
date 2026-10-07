@@ -1,0 +1,7 @@
+# Synthetic provider response fixtures
+
+These manually authored examples follow the response shapes consumed by the provider discovery layer. They are not live API captures, approved sources, or smoking-place evidence. Example URLs, coordinates and licensing strings test metadata preservation only; they grant no rights. Tests inject transport and perform no network requests. The Overture input is a bounded export envelope, not a STAC response.
+
+`bodik-captured.json` and `openpoi-captured.json` are small, offline subsets of 2026-10-08 live responses, with request URL and original response hash. MannerPath selected/pruned metadata and adjusted counts; no coordinate was changed. They are not approval packets. BODIK captures municipal catalog metadata only, not smoking-place rows. Attribution: 江東区, via [BODIK ODM](https://odm.bodik.jp/ja/dataset/t131083d0000000061); catalog license labels are retained, but original resource rights remain a separate review.
+
+OpenPOI attribution: [OpenPOI API](https://openpoiapi.com/attribution.html), with record `licenses` and `attributions` unchanged. This subset declares CDLA-Permissive-2.0 only; the agreement accompanying this data is included in [CDLA-Permissive-2.0.txt](CDLA-Permissive-2.0.txt), obtained from SPDX and checked against the [CDLA original](https://cdla.dev/permissive-2-0/). The operation/name/coordinate signals remain unreviewed for canonical use. No Foursquare/Apache or JFF record is redistributed in this captured fixture; the synthetic fixtures exercise mixed-license handling.
