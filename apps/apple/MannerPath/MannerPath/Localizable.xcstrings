@@ -1,6 +1,15 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Location shown by the publisher": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "公開元が示した地点" } } } },
+    "Location shown by a user": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "利用者が示した地点" } } } },
+    "Location estimated from the official address": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "公式住所から推定した位置" } } } },
+    "The pin is not the confirmed position of the smoking place. Distance and bearing are to the pin.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "ピンは喫煙場所の確認済みの位置ではありません。距離と方角はピンまでの目安です。" } } } },
+    "This is about saved data, not when the place was last confirmed.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存データの状態です。場所の最終確認日ではありません。" } } } },
+    "Opens walking directions in Apple Maps to the approximate marker": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "Appleマップで目安地点までの徒歩経路を開きます" } } } },
+    "Approximate marker": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "目安地点" } } } },
+    "Walking time and distance are to the approximate marker, not to the exact smoking place.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "徒歩時間と距離は目安地点までのものです。喫煙場所の正確な位置までではありません。" } } } },
+    "Location precision": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置の精度" } } } },
     "Selected place": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "選択中の場所" } } } },
     "Clear selection": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "選択を解除" } } } },
     "Show place details": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "場所の詳細を見る" } } } },
