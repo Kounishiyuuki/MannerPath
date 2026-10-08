@@ -255,12 +255,17 @@ struct ClusteredSpotMap: UIViewRepresentable {
             mapView.deselectAnnotation(annotation, animated: false)
             switch annotation {
             case let cluster as MKClusterAnnotation:
-                let coordinates = cluster.memberAnnotations.map {
-                    SpotCoordinate(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
+                expand(cluster, on: mapView)
+            case let fixed as FixedAnnotation:
+                // The current-location marker always draws on top (required priority), so a cluster or pin right under
+                // it could not be tapped. A tap on the marker goes to what it covers: the cluster expands, the pin is
+                // selected. The system marker itself is unchanged.
+                guard let covered = coveredAnnotation(by: fixed, on: mapView) else { return }
+                if let cluster = covered as? MKClusterAnnotation {
+                    expand(cluster, on: mapView)
+                } else if let spot = covered as? SpotAnnotation {
+                    onSelectSpot(spot.pin.id)
                 }
-                guard let region = SpotMapCluster.expansionRegion(for: coordinates) else { return }
-                onUserMovedMap()
-                show(region, on: mapView, animated: !UIAccessibility.isReduceMotionEnabled)
             case let spot as SpotAnnotation:
                 // Codex P2 (#203): re-tapping the selected pin made MapKit drop its selected appearance (the deselect
                 // above) while the app still had it selected. The pin keeps its selection; only Clear changes it.
@@ -271,6 +276,34 @@ struct ClusteredSpotMap: UIViewRepresentable {
             default:
                 break
             }
+        }
+
+        private func expand(_ cluster: MKClusterAnnotation, on mapView: MKMapView) {
+            let coordinates = cluster.memberAnnotations.map {
+                SpotCoordinate(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
+            }
+            guard let region = SpotMapCluster.expansionRegion(for: coordinates) else { return }
+            onUserMovedMap()
+            show(region, on: mapView, animated: !UIAccessibility.isReduceMotionEnabled)
+        }
+
+        /// What the fixed marker covers, nearest to its point first: a cluster — even one MapKit hid in favour of the
+        /// required-priority marker — before a visible single pin. Members drawn inside a cluster are never chosen.
+        fileprivate func coveredAnnotation(by fixed: FixedAnnotation, on mapView: MKMapView) -> MKAnnotation? {
+            guard let fixedView = mapView.view(for: fixed) else { return nil }
+            func nearest(_ candidates: [MKAnnotation]) -> MKAnnotation? {
+                candidates.compactMap { annotation -> (MKAnnotation, CGFloat)? in
+                    guard let view = mapView.view(for: annotation), view.frame.intersects(fixedView.frame) else { return nil }
+                    return (annotation, hypot(view.center.x - fixedView.center.x, view.center.y - fixedView.center.y))
+                }.min { $0.1 < $1.1 }?.0
+            }
+            let clusters = mapView.annotations.filter { $0 is MKClusterAnnotation }
+            if let cluster = nearest(clusters) { return cluster }
+            let visiblePins = mapView.annotations.filter { annotation in
+                guard annotation is SpotAnnotation, let view = mapView.view(for: annotation) else { return false }
+                return !view.isHidden && view.alpha > 0
+            }
+            return nearest(visiblePins)
         }
 
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {

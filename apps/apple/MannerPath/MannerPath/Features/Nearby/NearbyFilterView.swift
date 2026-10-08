@@ -10,9 +10,12 @@ struct NearbyFilterView: View {
     private let environments: [SpotEnvironment] = [.indoor, .outdoor, .covered, .unknown]
     private let accessTypes: [AccessType] = [.public, .customerOnly, .facilityOnly, .unknown]
 
+    // Standard Form sections, one per question (DESIGN §5.8). Only existing filter fields; an unknown value is never
+    // treated as "not available": unknown support, access, environment and hours stay listed unless a "confirmed"
+    // option asks for confirmation explicitly.
     var body: some View {
-        Section("Filters") {
-            VStack(alignment: .leading, spacing: 12) {
+        Group {
+            Section {
                 // Coverage first (ADR-0012): every usable listing is shown unless the user narrows it here.
                 Picker("Show", selection: quickScope) {
                     Text("All places").tag(QuickScope.all)
@@ -21,9 +24,11 @@ struct NearbyFilterView: View {
                 }
                 .pickerStyle(.segmented)
                 .accessibilityIdentifier("nearby-quick-scope")
+            } footer: {
                 Text("“Confirmed only” hides places reported by a single user that nobody else has confirmed yet.")
-                    .font(.footnote).foregroundStyle(.secondary)
+            }
 
+            Section {
                 Picker("Tobacco type", selection: $filters.tobaccoType) {
                     Text("Any").tag(nil as TobaccoType?)
                     Text("Paper").tag(TobaccoType?.some(.paper))
@@ -31,9 +36,13 @@ struct NearbyFilterView: View {
                 }
                 Toggle("Confirmed tobacco support only", isOn: $filters.requireConfirmedTobaccoSupport)
                     .disabled(filters.tobaccoType == nil)
+            } header: {
+                Text("Tobacco")
+            } footer: {
                 Text("Unknown support remains visible unless confirmation is required. Confirmed unsupported places are excluded.")
-                    .font(.footnote).foregroundStyle(.secondary)
+            }
 
+            Section("Place and access") {
                 Menu {
                     Button("Any physical type") { filters.spotTypes = nil }
                     ForEach(types, id: \.self) { type in
@@ -79,8 +88,17 @@ struct NearbyFilterView: View {
                         }
                     }
                 } label: { Label("Environment: \(selectionSummary(filters.environments?.count))", systemImage: "leaf") }
+            }
 
+            Section {
                 Toggle("Confirmed open now", isOn: $filters.openNowOnly)
+            } header: {
+                Text("Opening hours")
+            } footer: {
+                Text("Off by default. Places with unknown hours are never treated as closed; this option shows only places reported open now.")
+            }
+
+            Section("Evidence and freshness") {
                 Toggle("Official listing evidence", isOn: $filters.officialEvidenceOnly)
                 Toggle("Confirmed places only", isOn: $filters.verifiedEvidenceOnly)
                 Picker("Verified within", selection: $filters.verifiedWithin) {
@@ -89,6 +107,9 @@ struct NearbyFilterView: View {
                     Text("90 days").tag(TimeInterval?.some(90 * 86_400))
                     Text("1 year").tag(TimeInterval?.some(365 * 86_400))
                 }
+            }
+
+            Section("Distance") {
                 Picker("Maximum straight-line distance", selection: $filters.maximumDistanceMeters) {
                     Text("Any").tag(nil as Double?)
                     Text("500 m").tag(Double?.some(500))
@@ -97,8 +118,13 @@ struct NearbyFilterView: View {
                     Text("5 km").tag(Double?.some(5_000))
                 }
             }
-            .font(.subheadline)
-            .padding(.top, 8)
+
+            if filters != NearbyFilters() {
+                Section {
+                    Button("Reset all filters") { filters = NearbyFilters() }
+                        .accessibilityIdentifier("reset-filters")
+                }
+            }
         }
         .onChange(of: filters.tobaccoType) { _, value in
             if value == nil { filters.requireConfirmedTobaccoSupport = false }
