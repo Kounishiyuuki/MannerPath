@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {searchProvider,PROVIDERS,ROLES} from './providers.mjs';
+import {searchProvider,PROVIDERS,ROLES,PROVIDER_MAX_BYTES} from './providers.mjs';
 import {main} from './providers-cli.mjs';
 const fixture=async name=>JSON.parse(await readFile(new URL(`./fixtures/providers/${name}.json`,import.meta.url),'utf8'));
 const transport=data=>({get:async()=>({status:200,bytes:Buffer.from(JSON.stringify(data)),fetchedAt:'2026-10-08T00:00:00Z',sha256:'synthetic',cacheHit:false})});
@@ -101,4 +101,56 @@ test('malformed license arrays cannot silently discard upstream obligations',asy
   const data=await fixture('openpoi');data.results[0][field]=['CDLA-Permissive-2.0',{license:'restricted'}];
   const report=await searchProvider('openpoi',{fetcher:transport(data)});inert(report);assert.deepEqual(report.leads,[]);assert.ok(report.blockerCodes.includes('incompatibleFormat'));
  }
+});
+
+
+test('injected provider transports enforce the byte cap before JSON parsing, including padded valid JSON',async()=>{
+ for(const id of ['ckan','openpoi','overture','bodik-wapi']){
+  const report=await searchProvider(id,{fetcher:{get:async()=>({status:200,bytes:Buffer.alloc(PROVIDER_MAX_BYTES+1,32)})}});
+  inert(report);assert.deepEqual(report.resources,[]);assert.deepEqual(report.leads,[]);assert.ok(report.blockerCodes.includes('payloadTooLarge'));assert.ok(!report.blockerCodes.includes('incompatibleFormat'));
+ }
+ const data=await fixture('ckan');const json=JSON.stringify(data);
+ for(const extra of [0,1]){
+  const bytes=Buffer.concat([Buffer.from(json),Buffer.alloc(PROVIDER_MAX_BYTES+extra-Buffer.byteLength(json),32)]);
+  const report=await searchProvider('ckan',{fetcher:{get:async()=>({status:200,bytes})}});inert(report);
+  assert.equal(report.resources.length,extra===0?1:0);assert.equal(report.blockerCodes.includes('payloadTooLarge'),extra===1);
+ }
+});
+
+test('Overture optional source metadata remains raw and unknown without stopping other records',async()=>{
+ const original=(await fixture('overture')).features[0];
+ const variants=[{dataset:'Publisher'}, {dataset:'Publisher',license:null}, {license:'CC-0'}, {license:'CC-0',dataset:null}, {dataset:'',license:''}, {dataset:17,license:{future:'terms'}}, {dataset:'Publisher',license:'CC-0',futureMetadata:{terms:'unknown'}}];
+ const input=await fixture('overture');input.features=variants.map((source,i)=>({...structuredClone(original),properties:{...structuredClone(original.properties),names:{primary:`喫煙所 ${i}`},sources:[{dataset:'Known upstream',license:'CC-0'},source]}}));input.features.push(structuredClone(original));
+ const before=structuredClone(input);const report=await searchProvider('overture',{input});inert(report);
+ assert.deepEqual(input,before);assert.equal(report.leads.length,variants.length+1);assert.deepEqual(report.blockerCodes,[]);
+ for(const [i,source] of variants.entries()){
+  const lead=report.leads[i];assert.deepEqual(lead.sources,input.features[i].properties.sources);assert.equal(lead.rights.status,'unknown');
+  const missingLicense=typeof source.license!=='string'||!source.license.trim();const missingDataset=typeof source.dataset!=='string'||!source.dataset.trim();
+  assert.equal(lead.blockerCodes.includes('licenseUnknown'),missingLicense);assert.equal(lead.blockerCodes.includes('sourceMetadataMissing'),missingLicense||missingDataset);
+  assert.equal(lead.blockerCodes.includes('sourceMetadataUnknown'),Object.hasOwn(source,'futureMetadata'));
+  assert.ok(lead.licenses.every(x=>typeof x==='string'&&x.trim()));assert.ok(lead.attributions.every(x=>typeof x==='string'&&x.trim()));
+  assert.deepEqual(lead.licenses,missingLicense?['CC-0']:['CC-0',source.license]);
+ }
+ assert.deepEqual(report.leads.at(-1).licenses,['CC-0','CDLA-Permissive-2.0']);assert.equal(report.leads.at(-1).rights.status,'unknown');
+});
+
+test('CLI rejects oversized or truncated local Overture exports and accepts exactly the byte limit',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'provider-byte-tests-'));try{
+  const inputPath=join(dir,'input.json');const output=join(dir,'report.json');const args=['--provider','overture','--input',inputPath,'--out',output,'--cache',join(dir,'cache')];
+  const json=JSON.stringify(await fixture('overture'));
+  await writeFile(inputPath,Buffer.concat([Buffer.from(json),Buffer.alloc(PROVIDER_MAX_BYTES+1-Buffer.byteLength(json),32)]));
+  await assert.rejects(main(args),error=>error.code==='payloadTooLarge');await assert.rejects(readFile(output),{code:'ENOENT'});
+  await writeFile(inputPath,json.slice(0,-1));await assert.rejects(main(args),SyntaxError);await assert.rejects(readFile(output),{code:'ENOENT'});
+  await writeFile(inputPath,Buffer.concat([Buffer.from(json),Buffer.alloc(PROVIDER_MAX_BYTES-Buffer.byteLength(json),32)]));await main(args);
+  const report=JSON.parse(await readFile(output,'utf8'));inert(report);assert.equal(report.leads.length,1);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('direct Overture fixture input obeys the byte cap without truncating source metadata',async()=>{
+ const input=await fixture('overture');input.features[0].properties.sources[0].futureMetadata='';
+ const baseBytes=Buffer.byteLength(JSON.stringify(input));
+ input.features[0].properties.sources[0].futureMetadata='x'.repeat(PROVIDER_MAX_BYTES-baseBytes);
+ const report=await searchProvider('overture',{input});inert(report);assert.equal(report.leads.length,1);assert.ok(report.leads[0].blockerCodes.includes('sourceMetadataUnknown'));
+ input.features[0].properties.sources[0].futureMetadata+='x';
+ await assert.rejects(searchProvider('overture',{input}),error=>error.code==='payloadTooLarge');
 });

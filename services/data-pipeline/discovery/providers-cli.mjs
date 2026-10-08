@@ -1,8 +1,8 @@
-import {mkdir,readFile,writeFile,stat} from 'node:fs/promises';
+import {mkdir,writeFile,stat} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {FetchCache} from './fetch-cache.mjs';
-import {PROVIDERS,searchProvider} from './providers.mjs';
+import {FetchCache,readBoundedFile} from './fetch-cache.mjs';
+import {PROVIDERS,searchProvider,PROVIDER_MAX_BYTES} from './providers.mjs';
 export async function main(args=process.argv.slice(2)){
  const options={};const repeated=[];
  for(let i=0;i<args.length;i++){
@@ -16,8 +16,8 @@ export async function main(args=process.argv.slice(2)){
  const output=resolve(options['--out']);if(output===resolve(options['--input']??'.'))throw Error('Output must differ from input');
  // Fail before network if either report already exists. Never overwrite prior evidence.
  for(const path of [output,output+'.md']){try{await stat(path);throw Error('Output already exists: '+path);}catch(e){if(e.code!=='ENOENT')throw e;}}
- let input;if(options['--input']){const path=resolve(options['--input']);if((await stat(path)).size>2*1024*1024)throw Error('Input exceeds 2 MiB');input=JSON.parse(await readFile(path,'utf8'));if(id!=='overture')throw Error('--input supported only for bounded Overture exports');}
- const fetcher=new FetchCache({directory:resolve(options['--cache']),delayMs:1500,timeoutMs:15000,retries:0,maxBytes:2*1024*1024});
+ let input;if(options['--input']){const path=resolve(options['--input']);input=JSON.parse((await readBoundedFile(path,PROVIDER_MAX_BYTES)).toString());if(id!=='overture')throw Error('--input supported only for bounded Overture exports');}
+ const fetcher=new FetchCache({directory:resolve(options['--cache']),delayMs:1500,timeoutMs:15000,retries:0,maxBytes:PROVIDER_MAX_BYTES});
  const report=await searchProvider(id,{fetcher,catalogs:repeated.length?repeated:undefined,maxCandidates:options['--max-candidates']===undefined?20:Number(options['--max-candidates']),input,maxPages:options['--max-pages']===undefined?1:Number(options['--max-pages']),query:options['--query'],revalidate:options.revalidate===true});
  await mkdir(dirname(output),{recursive:true});await writeFile(output,JSON.stringify(report,null,2)+'\n',{flag:'wx'});
  const safe=v=>JSON.stringify(v,null,2).replaceAll('`','\\u0060');

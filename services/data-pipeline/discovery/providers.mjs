@@ -1,8 +1,9 @@
 // Local discovery only. Provider permissions never grant smoking-place publication rights.
 import {ckanResources} from './connectors.mjs';
-import {sha256} from './fetch-cache.mjs';
+import {sha256,assertByteLimit} from './fetch-cache.mjs';
 import {manualReviewTriage} from './evaluator.mjs';
 
+export const PROVIDER_MAX_BYTES=2*1024*1024;
 export const ROLES = Object.freeze({canonical:'CANONICAL_CANDIDATE_PROVIDER',discovery:'DISCOVERY_ONLY_PROVIDER',coordinate:'COORDINATE_HELPER'});
 export const PROVIDERS = Object.freeze({
  bodik:{id:'bodik',role:ROLES.canonical,kind:'ckan',catalogs:['https://data.bodik.jp','https://odm.bodik.jp'],docs:'https://odcs.bodik.jp/developers/',terms:{commercial:'resourceSpecific',storage:'resourceSpecific',redistribution:'resourceSpecific',reviewedOn:'2026-10-08'},attribution:'Preserve municipal publisher and exact resource terms; BODIK is the catalog, not the smoking-place authority.'},
@@ -32,19 +33,31 @@ function canonicalResource(r,provider){
   smokingExistence:'unknown',coordinateAuthority:'unknown',currentOperation:'unknown',
   publicationStatus:'blocked',blockerCodes:['licenseUnknown','currentOperationUnknown','coordinateAuthorityReviewRequired','smokingExistenceReviewRequired'],truncated:false};
 }
+// Optional SourceItem fields never establish rights. Preserve raw metadata for human review.
+function overtureMetadata(raw) {
+ const sources=Array.isArray(raw)?raw:[];
+ const licenses=sources.map(s=>text(s?.license)).filter(Boolean);
+ const attributions=sources.map(s=>text(s?.dataset)).filter(Boolean);
+ const known=new Set(['property','dataset','license','record_id','update_time','confidence','provider','resource','version','between']);
+ const missing=!Array.isArray(raw)||!sources.length||sources.some(s=>!s||typeof s!=='object'||Array.isArray(s)||!text(s.license)||!text(s.dataset));
+ const unknown=sources.some(s=>s&&typeof s==='object'&&Object.keys(s).some(k=>!known.has(k)));
+ const licenseUnknown=!sources.length||sources.some(s=>!text(s?.license));
+ return {licenses,attributions,blockerCodes:[...(licenseUnknown?['licenseUnknown']:[]),...(missing?['sourceMetadataMissing']:[]),...(unknown?['sourceMetadataUnknown']:[])]};
+}
 /** Never converts a generic host, category, name, score or API coordinate into accepted evidence. */
 export function poiLead(record,provider,index,resourceUrl){
  const p=provider.id==='overture'?record.properties:record;
  if(!p||typeof p!=='object'||Array.isArray(p))throw Error('Invalid POI record');
  const name=provider.id==='overture'?p.names?.primary:p.name;
- const licenses=provider.id==='overture'?strings(p.sources?.map(s=>s.license)):strings(p.licenses);
- const attributions=provider.id==='overture'?strings(p.sources?.map(s=>s.dataset)):strings(p.attributions);
+ const metadata=provider.id==='overture'?overtureMetadata(p.sources):null;
+ const licenses=metadata?.licenses??strings(p.licenses);
+ const attributions=metadata?.attributions??strings(p.attributions);
  const hint=smoking.test(name??'')||smoking.test(p.category??p.taxonomy?.primary??'');
  return {id:sha256(JSON.stringify([provider.id,resourceUrl,index,record])).slice(0,24),providerId:provider.id,providerRole:provider.role,
-  resourceUrl,name:text(name),category:text(p.category??p.taxonomy?.primary),source:text(p.source),sources:p.sources??[],licenses,attributions,
+  rights:{status:'unknown',commercialReuse:'unknown',redistribution:'unknown'},resourceUrl,name:text(name),category:text(p.category??p.taxonomy?.primary),source:text(p.source),sources:p.sources??[],licenses,attributions,
   keywordSignal:hint,smokingExistence:'unknown',coordinateAuthority:'unknown',currentOperation:'unknown',publicationStatus:'blocked',
   coordinateSignal:provider.id==='overture'?record.geometry??null:{lat:p.lat??null,lng:p.lng??null,level:p.level??null},
-  blockerCodes:['discoveryOnlyProvider','sourceChainReviewRequired','smokingExistenceReviewRequired','coordinateAuthorityReviewRequired',...(!licenses.length?['licenseUnknown']:[])]};
+  blockerCodes:['discoveryOnlyProvider','sourceChainReviewRequired','smokingExistenceReviewRequired','coordinateAuthorityReviewRequired',...(metadata?.blockerCodes??(!licenses.length?['licenseUnknown']:[]))]};
 }
 
 /** Transport is injected: CLI supplies existing FetchCache with public-URL validation and host stops. */
@@ -58,7 +71,7 @@ export async function searchProvider(providerId,{fetcher,catalogs,maxCandidates=
  async function getJson(url){
   const r=await fetcher.get(url,{revalidate});result.fetches.push({url,status:r.status,sha256:r.sha256??null,fetchedAt:r.fetchedAt??null,cacheHit:r.cacheHit??false,blockerCodes:r.blockerCodes??[]});
   if(!r.bytes){result.blockerCodes.push(...(r.blockerCodes||['rawUnavailable']));return null;}
-  try{return JSON.parse(r.bytes.toString());}catch{result.blockerCodes.push('incompatibleFormat');return null;}
+  try{assertByteLimit(r.bytes,PROVIDER_MAX_BYTES);return JSON.parse(Buffer.from(r.bytes).toString());}catch(error){result.blockerCodes.push(error.code==='payloadTooLarge'?'payloadTooLarge':'incompatibleFormat');return null;}
  }
  if(provider.kind==='ckan'){
   for(const base of catalogs??provider.catalogs){
@@ -85,6 +98,7 @@ export async function searchProvider(providerId,{fetcher,catalogs,maxCandidates=
    else try{result.leads=data.results.map((r,i)=>poiLead(r,provider,i,u.href));result.truncated=data.count===maxCandidates;}catch{result.leads=[];result.blockerCodes.push('incompatibleFormat');}}
  }else if(provider.kind==='overture'){
   if(input){
+   assertByteLimit(Buffer.from(JSON.stringify(input)),PROVIDER_MAX_BYTES);
    if(input.type!=='FeatureCollection'||!Array.isArray(input.features)||input.features.length>1000||!text(input.release)||!publicReference(input.resourceUrl))throw Error('Bounded Overture export requires FeatureCollection (<=1000), release and resourceUrl');
    // Export provenance is advisory. A locally supplied URL never establishes publisher authority.
    result.input={release:input.release,resourceUrl:input.resourceUrl,authority:'unreviewed'};

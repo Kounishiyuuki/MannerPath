@@ -239,3 +239,20 @@ Overture without input checks STAC release metadata only; it does not query Plac
 Feed canonical reports into `npm run source:onboarding -- --discovery-report /tmp/bodik.json --out /tmp/bodik-review.json`. Provider terms, resource rights and catalog observations remain separate. Imported metadata never supplies human review booleans or source approval. Noncanonical provider roles are blocked even if a caller supplies otherwise complete review metadata. Rights, operation, coordinates and smoking existence remain unknown until independently reviewed.
 
 See [live provider/license review and bounded results](../../docs/research/2026-10-08-open-provider-discovery.md). Tests use synthetic response contracts and small attributed captured subsets, not live APIs. Public API, D1 schema, registry, resolver, tiles, account and Apple code are unchanged.
+
+### Provider boundary hardening (#214)
+
+Provider responses and bounded Overture export files have a 2 MiB byte ceiling
+(inclusive). The shared bounded reader enforces it for network streams, cache hits,
+304 revalidation and redirect destinations; provider parsing also checks injected
+transport bytes and export objects. Oversized bodies are rejected in full with
+`payloadTooLarge`, never truncated into parseable candidates.
+
+Overture SourceItem `license` and `dataset` are optional in the
+[official schema](https://docs.overturemaps.org/schema/reference/common/source_item/).
+Missing, null, blank or unexpected metadata stays in raw `sources` for review;
+valid strings remain available alongside per-record `licenseUnknown`,
+`sourceMetadataMissing` or `sourceMetadataUnknown` blockers. Other records continue
+to be discovered. Every lead keeps unknown rights and blocked publication; no
+missing license is inferred permissive. Provider roles and human onboarding gates
+are unchanged.
