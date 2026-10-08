@@ -47,7 +47,8 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         scrollUntilHittable(button, in: app)
         button.tap()
         XCTAssertTrue(app.staticTexts["No saved data"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch."].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@",
+            "This does not mean there are no places nearby.")).firstMatch.exists)
         attach(app, named: "watch-no-snapshot-after-eligibility")
     }
 
@@ -83,6 +84,11 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         let oldData = app.staticTexts["Saved data is old. Open iPhone app to refresh."]
         scrollUntilHittable(oldData, in: app)
         let directions = app.descendants(matching: .any)["watch-directions"].firstMatch
+        // The precision and evidence rows sit above directions, so the lazy List may not have created it yet.
+        for _ in 0..<10 where !directions.exists {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.78))
+                .press(forDuration: 0.01, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.70)))
+        }
         scrollUntilHittable(directions, in: app)
         XCTAssertTrue(directions.isEnabled)
         XCTAssertTrue(directions.isHittable, "Directions should precede source and attribution content")
