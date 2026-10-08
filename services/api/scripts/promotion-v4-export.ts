@@ -10,6 +10,7 @@ import { reviewedTerms } from "../src/reports/terms.ts";
 import { SqliteD1 } from "../test/support/sqlite-d1.ts";
 import { D1_CAPACITY_POLICY, canonicalManifestDigest, type PromotionV4Manifest } from "./promotion-v4-format.ts";
 
+import { TileMetadataWriter } from "./promotion-v4-metadata.ts";
 import { validateV4Tile } from "./promotion-v4-tiles.ts";
 
 type Row = Record<string, unknown>;
@@ -32,7 +33,7 @@ function insert(table: string, columns: readonly string[], values: unknown[]): s
 }
 
 export async function exportPromotionV4(db: DatabaseSync, outputDir: string, options: {
-  chunkBytes: number; registry?: PromotionRegistry; releaseIds?: readonly number[];
+  chunkBytes: number; tileMetadata?: "segmented"; registry?: PromotionRegistry; releaseIds?: readonly number[];
 }): Promise<PromotionV4Manifest> {
   if (typeof db.prepare("SELECT 1").iterate !== "function") refuse("v4 streaming export requires Node >=24 (node:sqlite iterate)");
   if (!Number.isSafeInteger(options.chunkBytes) || options.chunkBytes < D1_CAPACITY_POLICY.statementBytes || options.chunkBytes >= D1_CAPACITY_POLICY.importBytes) refuse("invalid chunk byte budget");
@@ -114,8 +115,7 @@ export async function exportPromotionV4(db: DatabaseSync, outputDir: string, opt
     mkdirSync(outputDir); outputCreated = true;
     const chunks: PromotionV4Manifest["chunks"] = [];
     let hash = createHash("sha256"), bytes = 0, statements = 0, chunkRows: Record<string, number> = {};
-    const tiles: PromotionV4Manifest["tiles"] = [];
-    let tileMetadataBytes = 0;
+    const tileMetadata = new TileMetadataWriter(outputDir, options.tileMetadata === "segmented");
     function finish(): void {
       if (fd === undefined) return;
       closeSync(fd); fd = undefined;
@@ -148,9 +148,7 @@ export async function exportPromotionV4(db: DatabaseSync, outputDir: string, opt
         const sql = insert(spec.table, spec.columns, spec.columns.map((c) => row[c]));
         if (Buffer.byteLength(sql + "\n") >= D1_CAPACITY_POLICY.statementBytes) refuse(`${spec.table}: statement is ${Buffer.byteLength(sql + "\n")} bytes; tile/value capacity must be fixed before promotion`);
         if (spec.table === "tile_snapshots") {
-          tiles.push(await validateV4Tile(db, row, sources));
-          tileMetadataBytes += Buffer.byteLength(JSON.stringify(tiles[tiles.length - 1]));
-          if (tileMetadataBytes > D1_CAPACITY_POLICY.maxManifestBytes / 2) refuse("tile declarations exceed manifest capacity");
+          tileMetadata.add(await validateV4Tile(db, row, sources));
         }
         write(sql, spec.table);
       }
@@ -159,7 +157,7 @@ export async function exportPromotionV4(db: DatabaseSync, outputDir: string, opt
     const finalizeSql = "INSERT INTO promotion_multi_bootstrap_completions (promotion_bootstrap_id) VALUES (1);\n";
     scratch.exec(finalizeSql);
     writeFileSync(join(outputDir, "finalize.sql"), finalizeSql, { flag: "wx" });
-    const unsigned = { bundleVersion: "promotion-bundle.v4" as const, capacityPolicy: D1_CAPACITY_POLICY.version, chunkTargetBytes: options.chunkBytes, sources: declarations, rows, tiles, chunks, finalize: { file: "finalize.sql", sha256: createHash("sha256").update(finalizeSql).digest("hex"), bytes: Buffer.byteLength(finalizeSql), statements: 1 } };
+    const unsigned = { bundleVersion: "promotion-bundle.v4" as const, capacityPolicy: D1_CAPACITY_POLICY.version, chunkTargetBytes: options.chunkBytes, sources: declarations, rows, ...tileMetadata.finish(), chunks, finalize: { file: "finalize.sql", sha256: createHash("sha256").update(finalizeSql).digest("hex"), bytes: Buffer.byteLength(finalizeSql), statements: 1 } };
     const manifest: PromotionV4Manifest = { ...unsigned, wholeBundleSha256: canonicalManifestDigest(unsigned) };
     const manifestJson = JSON.stringify(manifest, null, 2) + "\n";
     if (Buffer.byteLength(manifestJson) > D1_CAPACITY_POLICY.maxManifestBytes) refuse("manifest exceeds capacity");

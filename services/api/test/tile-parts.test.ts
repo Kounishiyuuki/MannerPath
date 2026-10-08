@@ -252,3 +252,54 @@ test("publication replaces a tile's manifest and parts atomically: a failed batc
   assert.deepEqual(stored.map((p) => p.content_sha256), manifest.parts.map((p) => p.sha256));
   for (const p of stored) assert.equal(await sha256Hex(p.body_json), p.content_sha256);
 });
+
+test("part route accepts canonical 0...127 and rejects ambiguous/out-of-policy indexes", async () => {
+  const db = await taitoDb();
+  const tileId = one(db, "SELECT tile_id FROM tile_snapshots ORDER BY tile_id LIMIT 1").tile_id;
+  for (const index of [0, 9, 99, 100, 127]) {
+    const response = await get(db, `/v1/tiles/${tileId}/parts/${index}`);
+    assert.equal(response.status, index === 0 ? 200 : 404, `valid index ${index}`);
+  }
+  for (const index of ["128", "999", "-1", "+1", "01", "%20", "1%20", "1.0", "1e2"]) {
+    const response = await get(db, `/v1/tiles/${tileId}/parts/${index}`);
+    assert.equal(response.status, 400, index);
+    assert.equal((await response.json()).error, "invalidTilePart", index);
+  }
+  db.raw.close();
+});
+
+for (const count of [101, 113, 128]) test(`all ${count} generated parts are HTTP-readable, hash-pinned and assemble completely`, async () => {
+  const db = new SqliteD1();
+  const tileId = "14/14552/6451";
+  const spots = denseSpots(count);
+  const parts = await splitTileParts(tileId, spots, sourcesById, { ...TILE_PART_POLICY, maxSpots: 1 });
+  assert.equal(parts.length, count);
+  const manifest = JSON.stringify(manifestBody(tileId, 1, NOW, parts));
+  db.raw.prepare("INSERT INTO tile_snapshots (tile_id,z,x,y,revision,schema_version,content_sha256,spot_count,body_json,published_at) VALUES (?,14,14552,6451,1,2,?,?,?,?)")
+    .run(tileId, sha256(manifest), count, manifest, NOW);
+  const insert = db.raw.prepare("INSERT INTO tile_snapshot_parts (tile_id,part_index,content_sha256,spot_count,body_json) VALUES (?,?,?,?,?)");
+  for (const [index, part] of parts.entries()) insert.run(tileId, index, part.sha256, part.spotCount, part.bodyJson);
+  const response = await get(db, `/v1/tiles/${tileId}/manifest`);
+  assert.equal(response.status, 200);
+  const head = await response.text();
+  const parsed = TileManifestV2.parse(JSON.parse(head));
+  const bodies: string[] = [];
+  for (const part of parsed.parts) {
+    const res = await get(db, `/v1/tiles/${tileId}/parts/${part.index}`);
+    assert.equal(res.status, 200, `part ${part.index}`);
+    const body = await res.text();
+    assert.equal(sha256(body), part.sha256);
+    assert.equal(res.headers.get("ETag"), tileEtag(2, part.sha256));
+    bodies.push(body);
+  }
+  assert.deepEqual(assembleTileV1(head, bodies).spots, spots);
+  // The indexes the old two-digit route refused, and one past the last published part.
+  for (const index of [99, 100, count - 1]) assert.equal((await get(db, `/v1/tiles/${tileId}/parts/${index}`)).status, 200, `part ${index}`);
+  if (count < 128) assert.equal((await get(db, `/v1/tiles/${tileId}/parts/${count}`)).status, 404);
+  db.raw.close();
+});
+
+test("a tile needing 129 parts is still refused at the real 128-part policy", async () => {
+  await assert.rejects(splitTileParts("14/1/1", denseSpots(129), sourcesById, { ...TILE_PART_POLICY, maxSpots: 1 }),
+    (e) => e instanceof TileBudgetExceeded && /above tile-parts.v1 maxParts 128/.test(e.message));
+});

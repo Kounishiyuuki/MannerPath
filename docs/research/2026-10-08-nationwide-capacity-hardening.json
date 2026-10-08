@@ -1,0 +1,237 @@
+{
+  "version": "nationwide-capacity-hardening.v1",
+  "date": "2026-10-08",
+  "environment": "Node v24.21.0; synthetic local SQLite and wrangler --local; concurrent shared Mac; no remote or production mutations",
+  "cases": [
+    {
+      "size": "10k",
+      "distribution": "sparse",
+      "spots": 10000,
+      "complete": true,
+      "manifestBytes": 18876,
+      "chunks": 59,
+      "digest": "fa824fd32f9efb423335674e678a6884ce9e9d4a715ed50e9304c9082e8f130a",
+      "readiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      },
+      "maxStatementBytes": 1997,
+      "timingsMs": {
+        "generation": 262281.06,
+        "verify": 17113.69,
+        "statementAudit": 12769.05,
+        "importPlanGeneration": 9734.75,
+        "importPlanVerify": 8156.46,
+        "initialize": 7601.23,
+        "import": 47298.55,
+        "finalize": 13380.01
+      },
+      "tileCount": 9940,
+      "partCount": 9940,
+      "metadataShards": 3,
+      "metadataBytes": 2763326,
+      "maxMetadataShardBytes": 1048340,
+      "initializationSegments": 5,
+      "maxInitializationBytes": 1048531,
+      "artifactBytes": 63737042,
+      "httpTargets": {
+        "multiPartTile": null,
+        "multiPartCount": 1,
+        "singlePartTile": "14/13789/5958",
+        "spotId": "sp_Z0000000000000000000000001",
+        "emptyTile": "14/0/0"
+      },
+      "httpParityIssues": [],
+      "httpReadiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      }
+    },
+    {
+      "size": "50k",
+      "distribution": "sparse",
+      "spots": 50000,
+      "complete": true,
+      "manifestBytes": 82746,
+      "chunks": 291,
+      "digest": "18d389dd3edf0069069430c1340facc573fc0ae8b6e9cc7f6cddc40c486ba431",
+      "readiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      },
+      "maxStatementBytes": 2726,
+      "timingsMs": {
+        "generation": 566435.35,
+        "verify": 32813.24,
+        "statementAudit": 23430.01,
+        "importPlanGeneration": 20351.18,
+        "importPlanVerify": 18813.24,
+        "initialize": 14455.46,
+        "import": 57143.47,
+        "finalize": 25857.19
+      },
+      "tileCount": 48923,
+      "partCount": 48923,
+      "metadataShards": 13,
+      "metadataBytes": 13600620,
+      "maxMetadataShardBytes": 1048340,
+      "initializationSegments": 21,
+      "maxInitializationBytes": 1048531,
+      "artifactBytes": 318333686,
+      "httpTargets": {
+        "multiPartTile": null,
+        "multiPartCount": 1,
+        "singlePartTile": "14/13789/5958",
+        "spotId": "sp_Z0000000000000000000000001",
+        "emptyTile": "14/0/0"
+      },
+      "httpParityIssues": [],
+      "httpReadiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      }
+    },
+    {
+      "size": "100k",
+      "distribution": "sparse",
+      "spots": 100000,
+      "complete": true,
+      "manifestBytes": 162549,
+      "chunks": 580,
+      "digest": "ef97b41abea7d09b809df9c6a9576cc0a7246bbaf807414465d573cdc6e3abbc",
+      "readiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      },
+      "maxStatementBytes": 3455,
+      "timingsMs": {
+        "generation": 362374.16,
+        "verify": 27265.36,
+        "statementAudit": 25549.23,
+        "importPlanGeneration": 30094.09,
+        "importPlanVerify": 30135.36,
+        "initialize": 28815.6,
+        "import": 117226.05,
+        "finalize": 55079.15
+      },
+      "tileCount": 95936,
+      "partCount": 95936,
+      "metadataShards": 26,
+      "metadataBytes": 26670260,
+      "maxMetadataShardBytes": 1048340,
+      "initializationSegments": 40,
+      "maxInitializationBytes": 1048531,
+      "artifactBytes": 634284000,
+      "httpTargets": {
+        "multiPartTile": null,
+        "multiPartCount": 1,
+        "singlePartTile": "14/13789/5958",
+        "spotId": "sp_Z0000000000000000000000001",
+        "emptyTile": "14/0/0"
+      },
+      "httpParityIssues": [],
+      "httpReadiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      }
+    },
+    {
+      "size": "100k",
+      "distribution": "concentrated",
+      "spots": 100000,
+      "complete": true,
+      "manifestBytes": 350233,
+      "chunks": 486,
+      "digest": "8acef9ede76319831e0ec8035d862f0190990c226f12fbeb4ee768c2289d23cc",
+      "readiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      },
+      "maxStatementBytes": 65417,
+      "timingsMs": {
+        "generation": 327694.43,
+        "verify": 23499.09,
+        "statementAudit": 21331.96,
+        "importPlanGeneration": 24004,
+        "importPlanVerify": 23371.16,
+        "initialize": 23187.98,
+        "import": 106802.15,
+        "finalize": 39356.95
+      },
+      "tileCount": 104,
+      "partCount": 1177,
+      "metadataShards": 0,
+      "metadataBytes": 0,
+      "maxMetadataShardBytes": 0,
+      "initializationSegments": 1,
+      "maxInitializationBytes": 369808,
+      "artifactBytes": 506912339,
+      "httpTargets": {
+        "multiPartTile": "14/14357/6504",
+        "multiPartCount": 17,
+        "singlePartTile": "14/14355/6502",
+        "spotId": "sp_Z0000000000000000000000001",
+        "emptyTile": "14/0/0"
+      },
+      "httpParityIssues": [],
+      "httpReadiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      }
+    },
+    {
+      "size": "10k",
+      "distribution": "extreme",
+      "spots": 10000,
+      "complete": true,
+      "manifestBytes": 34326,
+      "chunks": 49,
+      "digest": "8ef522d19149830e09298c6162bfab577a208e96aff7d1df8bf207d017099c5a",
+      "readiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      },
+      "maxStatementBytes": 65417,
+      "timingsMs": {
+        "generation": 32602.48,
+        "verify": 2241.58,
+        "statementAudit": 2111.35,
+        "importPlanGeneration": 2360.7,
+        "importPlanVerify": 2356.65,
+        "initialize": 2866.46,
+        "import": 11067.59,
+        "finalize": 3865.98
+      },
+      "tileCount": 1,
+      "partCount": 113,
+      "metadataShards": 0,
+      "metadataBytes": 0,
+      "maxMetadataShardBytes": 0,
+      "initializationSegments": 1,
+      "maxInitializationBytes": 35025,
+      "artifactBytes": 50526246,
+      "httpTargets": {
+        "multiPartTile": "14/14549/6451",
+        "multiPartCount": 113,
+        "singlePartTile": null,
+        "spotId": "sp_Z0000000000000000000000001",
+        "emptyTile": "14/0/0"
+      },
+      "httpParityIssues": [],
+      "httpReadiness": {
+        "schemaVersion": 1,
+        "completed": true,
+        "state": "completed"
+      }
+    }
+  ]
+}

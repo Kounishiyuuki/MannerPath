@@ -35,6 +35,9 @@ export function tempOutput(path: string): string {
   let ancestor = dest;
   while (!existsSync(ancestor)) { const parent = dirname(ancestor); assert.notEqual(parent, ancestor); ancestor = parent; }
   const canonical = resolve(realpathSync(ancestor), relative(ancestor, dest));
+  const repository = realpathSync(fileURLToPath(new URL('../../../', import.meta.url)));
+  const inRepository = relative(repository, canonical);
+  assert.ok(inRepository !== '' && (inRepository === '..' || inRepository.startsWith(`..${sep}`) || isAbsolute(inRepository)), 'repository paths are not temporary capacity outputs');
   assert.ok(roots.some(root => { const rel = relative(root, canonical); return rel !== '' && rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel); }), 'output must be a child of a real temporary directory (symlinks checked)');
   return dest;
 }
@@ -80,7 +83,8 @@ export function promotionMetadata(d:DatabaseSync) {
     if(firstRefusedTileOrdinal===null&&compactBytes>D1_CAPACITY_POLICY.maxManifestBytes/2)firstRefusedTileOrdinal=tiles;
   }
   return {tiles,compactTileDeclarationBytes:compactBytes,compactBudgetBytes:D1_CAPACITY_POLICY.maxManifestBytes/2,firstRefusedTileOrdinal,
-    basis:'exact exporter declaration encoding summed from published heads, not a second successful export'};
+    legacyInlineBudgetDiagnostic:true,
+    basis:'historical inline exporter declaration encoding; segmented metadata no longer uses this cumulative refusal budget'};
 }
 function candidates(d:DatabaseSync):CandidateRow[] {
   return d.prepare(`SELECT s.*, src.source_id, src.kind source_kind, src.display_name, src.license_name, src.license_url, src.attribution_text, src.publication_status, ${LOCATION_STATE_COLUMNS}
@@ -139,13 +143,15 @@ async function phase(o:Options) {
       // Regrouping at z15 is a measurement only; stored canonical z14 never changes.
       result.zooms=await time('tileMetrics',async()=>{ const out=[];for(const z of [14,15]) out.push(await zoomComparison(spots,sources,z,probes,CAPACITY_NOW));return out; });
       result.refusedTileCount=0;
-      // Actual Worker evidence shows the current route only accepts indexes 0..99.
-      // Diagnose that separate HTTP boundary without changing the production policy.
-      if(o.distribution==='extreme')result.httpAddressabilityBoundary=await time('httpBoundary',()=>boundary(db,100));
+      // The fixed route now covers the complete ADR-0015 part policy.
+      if(o.distribution==='extreme')result.httpAddressabilityBoundary=await time('httpBoundary',()=>boundary(db,TILE_PART_POLICY.maxParts));
     } else if(o.phase==='promotion') {
       result.promotionMetadata=promotionMetadata(db);
       const bundle=join(dir,'bundle');const m=await time('generation',()=>exportPromotionV4(db,bundle,{chunkBytes:o.chunkBytes,registry:CAPACITY_REGISTRY}));
-      result.artifactBytes=m.chunks.reduce((n,c)=>n+c.bytes,m.finalize.bytes)+statSync(join(bundle,'manifest.json')).size;
+      const metadata=m.tileDeclarations?.shards??[];
+      result.metadataShards=metadata.length;result.metadataBytes=metadata.reduce((n,f)=>n+f.bytes,0);result.maxMetadataShardBytes=Math.max(0,...metadata.map(f=>f.bytes));
+      result.tileDeclarationCount=m.tileDeclarations?.tileCount??m.tiles.length;result.partDeclarationCount=m.tileDeclarations?.partCount??m.tiles.reduce((n,t)=>n+t.parts.length,0);
+      result.artifactBytes=m.chunks.reduce((n,c)=>n+c.bytes,m.finalize.bytes)+statSync(join(bundle,'manifest.json')).size+Number(result.metadataBytes);
       result.manifestBytes=statSync(join(bundle,'manifest.json')).size;result.chunks=m.chunks.length;result.digest=m.wholeBundleSha256;
       await time('verify',()=>verifyPromotionV4(bundle,m.wholeBundleSha256));
       let maxStatementBytes=0;
@@ -153,7 +159,9 @@ async function phase(o:Options) {
       result.maxStatementBytes=maxStatementBytes;
       const planDir=join(dir,'import-plan');const plan=await time('importPlanGeneration',()=>prepareV4ImportPlan(bundle,m.wholeBundleSha256,planDir));
       await time('importPlanVerify',()=>verifyV4ImportPlan(planDir,plan.wholePlanSha256,m.wholeBundleSha256));
-      result.importPlanBytes=plan.files.reduce((n,f)=>n+f.bytes,plan.sourceManifestFile.bytes)+statSync(join(planDir,'plan-manifest.json')).size;
+      const initialization=plan.files.filter(f=>/^initialize(?:-\d+)?\.sql$/.test(f.file));
+      result.initializationSegments=initialization.length;result.maxInitializationBytes=Math.max(0,...initialization.map(f=>f.bytes));
+      result.importPlanBytes=plan.files.reduce((n,f)=>n+f.bytes,plan.sourceManifestFile.bytes)+statSync(join(planDir,'plan-manifest.json')).size+Number(result.metadataBytes);
       const target=openDb(join(dir,'target.sqlite'),true);
       try {
         await time('initialize',()=>applyPromotionV4(target,bundle,m.wholeBundleSha256,{stopAfter:0}));
