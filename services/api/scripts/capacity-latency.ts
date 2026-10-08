@@ -19,6 +19,7 @@ import { pathToFileURL } from "node:url";
 import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { DatabaseSync } from "node:sqlite";
+import { assembleTileV1 } from "../src/tiles/parts.ts";
 import { promotionReadiness } from "../src/pipeline/promotion-readiness.ts";
 import { SqliteD1 } from "../test/support/sqlite-d1.ts";
 import { DATA_TILE_ZOOM } from "../src/geo/tile.ts";
@@ -116,19 +117,17 @@ export async function verifyTargets(baseUrl: string, dbPath: string, targets: Re
       assert.equal(response.status, 200);
       assert.deepEqual(await response.json(), JSON.parse(expected.body_json), "Worker manifest does not match supplied SQLite");
       const parts = db.prepare("SELECT part_index, content_sha256, spot_count FROM tile_snapshot_parts WHERE tile_id=? ORDER BY part_index").all(tile) as { part_index: number; content_sha256: string; spot_count: number }[];
+      const partBodies: string[] = [];
       for (const part of parts) {
         const response = await fetch(`${baseUrl}/v1/tiles/${tile}/parts/${part.part_index}`, { redirect: "error" });
         const body = await response.text();
-        if (response.status !== 200) {
-          const problem = JSON.parse(body) as { error?: string };
-          assert.ok(response.status === 400 && part.part_index >= 100 && part.part_index <= 127
-            && problem.error === "invalidTilePart", `unexpected HTTP failure for part ${part.part_index}: ${response.status} ${body}`);
-          parityIssues.push({ tile, partIndex: part.part_index, status: response.status, body });
-          continue;
-        }
+        assert.equal(response.status, 200, `part ${part.part_index} must be HTTP-readable`);
         assert.equal(createHash("sha256").update(body).digest("hex"), part.content_sha256, "Worker part SHA does not match supplied SQLite");
         assert.equal(JSON.parse(body).spots.length, part.spot_count, "Worker part count mismatch");
+        partBodies.push(body);
       }
+      const assembled = assembleTileV1(expected.body_json, partBodies);
+      assert.equal(assembled.spots.length, parts.reduce((count, part) => count + part.spot_count, 0), "complete HTTP tile assembly count");
     }
     const detail = await fetch(`${baseUrl}/v1/spots/${targets.spotId}`, { redirect: "error" });
     assert.equal(detail.status, 200);
@@ -169,9 +168,6 @@ if (targets.multiPartTile || targets.singlePartTile) {
   await run("tileManifest304", `/v1/tiles/${tile}/manifest`, 304, { "If-None-Match": manifest.etag });
   await run("tilePart0_200", `/v1/tiles/${tile}/parts/0`, 200);
   if (targets.multiPartTile) await run("tileRequiresParts409", `/v1/tiles/${tile}`, 409);
-}
-for (const issue of parityIssues.slice(0, 1)) {
-  await run("refusedPart100_400", `/v1/tiles/${issue.tile}/parts/${issue.partIndex}`, issue.status);
 }
 if (targets.spotId) await run("spotDetail200", `/v1/spots/${targets.spotId}`, 200);
 

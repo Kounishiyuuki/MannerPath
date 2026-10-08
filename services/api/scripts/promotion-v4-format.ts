@@ -20,6 +20,14 @@ export interface V4Tile {
   tileId: string; revision: number; spotCount: number; contentSha256: string; schemaVersion: 1 | 2;
   parts: { partIndex: number; spotCount: number; contentSha256: string }[];
 }
+export interface V4TileMetadataShard {
+  ordinal: number; file: string; sha256: string; bytes: number; tileCount: number; partCount: number;
+  firstTileId: string; lastTileId: string;
+}
+export interface V4TileDeclarations {
+  version: "promotion-tile-declarations.v1"; tileCount: number; partCount: number; shards: V4TileMetadataShard[];
+}
+export const TILE_METADATA_MAX_BYTES = 1_048_576;
 export interface PromotionV4Manifest {
   bundleVersion: "promotion-bundle.v4";
   capacityPolicy: string;
@@ -27,6 +35,7 @@ export interface PromotionV4Manifest {
   sources: MultiSourcePromotionSource[];
   rows: Record<string, number>;
   tiles: V4Tile[];
+  tileDeclarations?: V4TileDeclarations;
   chunks: V4Chunk[];
   finalize: V4File;
   wholeBundleSha256: string;

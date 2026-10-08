@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=23.3"
+    "node": ">=24"
   },
   "scripts": {
     "test": "node --experimental-strip-types --experimental-sqlite --no-warnings --test test/*.test.ts && npm run test:discovery",

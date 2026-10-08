@@ -1,6 +1,10 @@
 # Beta operations runbook — staging / production-like backend
 
 For nationwide segmented bootstrap, use [promotion v4](SEGMENTED_PROMOTION_RUNBOOK.md).
+Large tile declaration sets use bounded, manifest-digest-pinned metadata shards and ordered
+initialization SQL segments. Verify the complete artifact and import plan before importing any
+file; complete all initialization before payload, and never cut over an incomplete GREEN.
+Local 50k/100k capacity measurements do not establish remote D1 duration or authorize production changes.
 
 ## Disabled private photo foundation (#147)
 

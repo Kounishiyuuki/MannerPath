@@ -13,6 +13,8 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { iterateV4Tiles } from "./promotion-v4-metadata.ts";
+import { readV4Manifest } from "./promotion-v4-verify.ts";
 import { verifyV4ImportPlan } from "./promotion-v4-import-plan.ts";
 
 export const PLACEHOLDER_IDS = ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"];
@@ -88,13 +90,17 @@ export async function releasePreflight(o: PreflightOptions): Promise<PreflightRe
     }
   }
   // The reviewed promotion: the import plan must verify against both reviewed digests (it opens no database).
-  let files: string[] = [], tile: string | undefined;
+  let files: string[] = [], initialFiles: string[] = [], payloadFiles: string[] = [], tile: string | undefined;
   try {
     const plan = await verifyV4ImportPlan(o.planDir, o.expectedPlanDigest, o.expectedDigest);
     files = plan.files.map((f) => f.file);
-    if (files[0] !== "initialize.sql" || files.at(-1) !== "finalize.sql" || files.length < 3) problems.push("import plan must be initialize.sql, chunk files, finalize.sql");
-    const manifest = JSON.parse(readFileSync(join(o.planDir, "manifest.json"), "utf8")) as { tiles: { tileId: string; spotCount: number }[] };
-    tile = [...manifest.tiles].sort((a, b) => b.spotCount - a.spotCount || (a.tileId < b.tileId ? -1 : 1))[0]?.tileId;
+    const manifest = await readV4Manifest(o.planDir, o.expectedDigest);
+    const initializationCount = files.indexOf(manifest.chunks[0].file);
+    initialFiles = files.slice(0, initializationCount); payloadFiles = files.slice(initializationCount, -1);
+    let maximum = -1;
+    for await (const candidate of iterateV4Tiles(o.planDir, manifest)) {
+      if (candidate.spotCount > maximum || candidate.spotCount === maximum && (!tile || candidate.tileId < tile)) { maximum = candidate.spotCount; tile = candidate.tileId; }
+    }
     if (!tile) problems.push("the promotion publishes no tile");
   } catch (e) {
     problems.push(`import plan does not verify: ${e instanceof Error ? e.message : String(e)}`);
@@ -112,9 +118,9 @@ export async function releasePreflight(o: PreflightOptions): Promise<PreflightRe
     `npx wrangler d1 migrations list DB ${e}            # expect: no pending migrations`,
     `npx wrangler d1 migrations apply REPORTS_DB ${e}`,
     `npx wrangler d1 migrations list REPORTS_DB ${e}    # expect: no pending migrations`,
-    `npx wrangler d1 execute DB ${e} --file ${file(files[0])}`,
+    ...initialFiles.map(f => `npx wrangler d1 execute DB ${e} --file ${file(f)}`),
     `npx wrangler d1 execute DB ${e} --command "SELECT manifest_sha256 FROM promotion_v4_manifests"   # expect: ${o.expectedDigest}`,
-    ...files.slice(1, -1).flatMap((f, i) => [
+    ...payloadFiles.flatMap((f, i) => [
       `npx wrangler d1 execute DB ${e} --command "SELECT min(e.ordinal) AS next_chunk FROM promotion_v4_expected_chunks e LEFT JOIN promotion_v4_applied_chunks a USING (ordinal) WHERE a.ordinal IS NULL"   # expect: ${i + 1}`,
       `npx wrangler d1 execute DB ${e} --file ${file(f)}`,
     ]),

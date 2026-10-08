@@ -1,11 +1,13 @@
 // Prepare authenticated D1 atomic-file imports locally. This module never opens a remote database.
 import { createHash } from "node:crypto";
-import { createReadStream, closeSync, mkdirSync, openSync, rmSync, writeSync, writeFileSync } from "node:fs";
+import { copyFileSync, createReadStream, closeSync, mkdirSync, openSync, rmSync, writeSync, writeFileSync } from "node:fs";
 import { lstat, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { literal } from "../src/pipeline/promotion.ts";
 import { canonicalJson, D1_CAPACITY_POLICY, type PromotionV4Manifest, type V4File } from "./promotion-v4-format.ts";
 import { insertTable, readV4Manifest, sqlStatements, verifyPromotionV4 } from "./promotion-v4-verify.ts";
+
+import { iterateV4Tiles } from "./promotion-v4-metadata.ts";
 
 const controlColumns: Record<string, string[]> = {
   promotion_v4_manifests: ["id", "manifest_sha256", "capacity_policy", "expected_chunks"],
@@ -36,14 +38,14 @@ function controlInsert(table: string, values: unknown[]): string {
   if (Buffer.byteLength(sql + "\n") >= D1_CAPACITY_POLICY.statementBytes) throw Error("import plan control statement exceeds capacity policy");
   return sql;
 }
-function* initialization(source: PromotionV4Manifest): Generator<string> {
+async function* initialization(directory: string, source: PromotionV4Manifest): AsyncGenerator<string> {
   yield controlInsert("promotion_v4_manifests", [1, source.wholeBundleSha256, source.capacityPolicy, source.chunks.length]);
   for (const s of source.sources) {
     yield controlInsert("promotion_v4_expected_sources", [s.sourceId, 1, s.releaseId, s.releaseContentSha256, s.observedOn, s.displayName, s.licenseName, s.licenseUrl, s.attributionText, JSON.stringify(s.reviewDependencies), JSON.stringify(s.rows)]);
     for (const r of s.additiveReleases ?? []) yield controlInsert("promotion_v4_expected_releases", [r.releaseId, s.sourceId, r.releaseContentSha256]);
   }
   for (const c of source.chunks) yield controlInsert("promotion_v4_expected_chunks", [c.ordinal, 1, c.sha256, c.bytes, c.statements, canonicalJson(c.rows)]);
-  for (const t of source.tiles) {
+  for await (const t of iterateV4Tiles(directory, source)) {
     yield controlInsert("promotion_v4_expected_tiles", [t.tileId, 1, t.revision, t.spotCount, t.contentSha256, t.schemaVersion, t.parts.length]);
     for (const p of t.parts) yield controlInsert("promotion_v4_expected_tile_parts", [t.tileId, p.partIndex, p.spotCount, p.contentSha256]);
   }
@@ -71,7 +73,7 @@ export async function prepareV4ImportPlan(bundleDir: string, reviewedDigest: str
     const sourceBytes = Buffer.from(JSON.stringify(source, null, 2) + "\n");
     writeFileSync(join(outputDir, "manifest.json"), sourceBytes, { flag: "wx" });
     const files: V4File[] = [];
-    async function file(name: string, before: Iterable<string>, payload: V4File | undefined, after: Iterable<string>): Promise<void> {
+    async function file(name: string, before: Iterable<string> | AsyncIterable<string>, payload: V4File | undefined, after: Iterable<string>): Promise<void> {
       const fd = openSync(join(outputDir, name), "wx"), hash = createHash("sha256");
       let bytes = 0, statements = 0;
       function write(data: Buffer): void {
@@ -84,7 +86,7 @@ export async function prepareV4ImportPlan(bundleDir: string, reviewedDigest: str
         planStatementTable(sql); write(Buffer.from(sql + "\n")); statements++;
       }
       try {
-        for (const sql of before) statement(sql);
+        for await (const sql of before) statement(sql);
         if (payload) {
           const payloadHash = createHash("sha256"); let payloadBytes = 0;
           // Exact bytes preserve the source digest stored by the matching receipt.
@@ -99,7 +101,24 @@ export async function prepareV4ImportPlan(bundleDir: string, reviewedDigest: str
       } finally { closeSync(fd); }
       files.push({ file: name, sha256: hash.digest("hex"), bytes, statements });
     }
-    await file("initialize.sql", initialization(source), undefined, []);
+    // Copy metadata pins into the import plan; never make a plan depend on mutable external bundle files.
+    for (const shard of source.tileDeclarations?.shards ?? []) copyFileSync(join(bundleDir, shard.file), join(outputDir, shard.file));
+    // Initialization is itself bounded, in deterministic statement order. Old inline plans retain initialize.sql.
+    if (!source.tileDeclarations) await file("initialize.sql", initialization(outputDir, source), undefined, []);
+    else {
+      let pending: string[] = [], bytes = 0, ordinal = 0;
+      async function flush(): Promise<void> {
+        if (!pending.length) return;
+        await file(`initialize-${String(++ordinal).padStart(4, "0")}.sql`, pending, undefined, []);
+        pending = []; bytes = 0;
+      }
+      for await (const sql of initialization(outputDir, source)) {
+        const size = Buffer.byteLength(sql + "\n");
+        if (bytes + size > source.chunkTargetBytes) await flush();
+        pending.push(sql); bytes += size;
+      }
+      await flush();
+    }
     for (const c of source.chunks) await file(c.file,
       c.ordinal === 1 ? [controlInsert("promotion_v4_chunk_sessions", [1, 1, reviewedDigest, c.sha256])] : [], c,
       [...(c.ordinal === 1 ? [DELETE_SESSION] : []), receipt(source, c.ordinal)]);
@@ -122,7 +141,12 @@ export async function verifyV4ImportPlan(directory: string, expectedPlanDigest: 
   const plan = JSON.parse(await readFile(manifestPath, "utf8")) as PromotionV4ImportPlan;
   if (plan.version !== "promotion-import-plan.v1" || plan.capacityPolicy !== D1_CAPACITY_POLICY.version || plan.sourceManifestSha256 !== expectedSourceDigest || plan.wholePlanSha256 !== expectedPlanDigest || importPlanDigest(plan) !== expectedPlanDigest || !Array.isArray(plan.files)) throw Error("import plan manifest/digest/version mismatch");
   const source = await readV4Manifest(directory, expectedSourceDigest);
-  const expectedFiles = ["initialize.sql", ...source.chunks.map(c => c.file), "finalize.sql"];
+  for await (const _tile of iterateV4Tiles(directory, source)) { /* validate all metadata pins */ }
+  const initializationCount = source.tileDeclarations ? plan.files.findIndex(f => f.file === source.chunks[0].file) : 1;
+  if (initializationCount < 1) throw Error("invalid import plan initialization segment count");
+  const initialFiles = source.tileDeclarations ? Array.from({ length: initializationCount }, (_, i) => `initialize-${String(i + 1).padStart(4, "0")}.sql`) : ["initialize.sql"];
+  const expectedFiles = [...initialFiles, ...source.chunks.map(c => c.file), "finalize.sql"];
+  const init = initialization(directory, source);
   if (plan.files.length !== expectedFiles.length || plan.sourceManifestFile.file !== "manifest.json" || !sha.test(plan.sourceManifestFile.sha256) || !Number.isSafeInteger(plan.sourceManifestFile.bytes) || plan.sourceManifestFile.bytes <= 0 || plan.sourceManifestFile.bytes > D1_CAPACITY_POLICY.maxManifestBytes) throw Error("invalid import plan source declaration");
   const sourceHash = createHash("sha256"); let sourceBytes = 0;
   for await (const bytes of createReadStream(join(directory, "manifest.json"), { highWaterMark: 16_384 })) { sourceHash.update(bytes); sourceBytes += (bytes as Buffer).length; }
@@ -132,14 +156,17 @@ export async function verifyV4ImportPlan(directory: string, expectedPlanDigest: 
     const path = join(directory, file.file), stat = await lstat(path);
     if (!stat.isFile() || stat.size !== file.bytes) throw Error("import plan file is missing or has wrong size");
     const hash = createHash("sha256"); let bytes = 0, statements = 0;
-    const payload = index === 0 ? undefined : index === plan.files.length - 1 ? source.finalize : source.chunks[index - 1];
-    const prefixBytes = index === 1 ? Buffer.byteLength(controlInsert("promotion_v4_chunk_sessions", [1, 1, expectedSourceDigest, source.chunks[0].sha256]) + "\n") : 0;
+    const initializing = index < initializationCount;
+    if (initializing && source.tileDeclarations && file.bytes > source.chunkTargetBytes) throw Error("import plan initialization segment exceeds byte budget");
+    const chunkOrdinal = index - initializationCount + 1;
+    const payload = initializing ? undefined : index === plan.files.length - 1 ? source.finalize : source.chunks[chunkOrdinal - 1];
+    const prefixBytes = chunkOrdinal === 1 ? Buffer.byteLength(controlInsert("promotion_v4_chunk_sessions", [1, 1, expectedSourceDigest, source.chunks[0].sha256]) + "\n") : 0;
     const payloadHash = createHash("sha256");
-    const expectedControls = index === 0 ? [] : index === plan.files.length - 1 ? [controlInsert("promotion_v4_completions", [1, expectedSourceDigest])] : [
-      ...(index === 1 ? [controlInsert("promotion_v4_chunk_sessions", [1, 1, expectedSourceDigest, source.chunks[0].sha256]), DELETE_SESSION] : []), receipt(source, index)];
+    const expectedControls = initializing ? [] : index === plan.files.length - 1 ? [controlInsert("promotion_v4_completions", [1, expectedSourceDigest])] : [
+      ...(chunkOrdinal === 1 ? [controlInsert("promotion_v4_chunk_sessions", [1, 1, expectedSourceDigest, source.chunks[0].sha256]), DELETE_SESSION] : []), receipt(source, chunkOrdinal)];
     if (payload && (file.bytes !== payload.bytes + 1 + expectedControls.reduce((n, sql) => n + Buffer.byteLength(sql + "\n"), 0) || file.statements !== payload.statements + expectedControls.length)) throw Error("import plan payload declaration differs from source");
     const controls: string[] = []; // Only fixed wrappers, not payload statements.
-    const init = index === 0 ? initialization(source) : undefined;
+
     for await (const sql of sqlStatements(path, data => {
       hash.update(data);
       if (payload) {
@@ -149,13 +176,13 @@ export async function verifyV4ImportPlan(directory: string, expectedPlanDigest: 
       bytes += data.length;
     })) {
       const table = planStatementTable(sql); statements++;
-      if (init) { if (sql !== init.next().value) throw Error("import plan initialization differs from reviewed source"); }
+      if (initializing) { if (sql !== (await init.next()).value) throw Error("import plan initialization differs from reviewed source"); }
       else if (Object.hasOwn(controlColumns, table) || table === "delete_session") {
         controls.push(sql); if (controls.length > 3) throw Error("import plan has unexpected control statements");
       } else if (index === plan.files.length - 1 && table !== "promotion_multi_bootstrap_completions") throw Error("import plan final file contains unexpected payload");
     }
-    if (init && !init.next().done) throw Error("import plan initialization is incomplete");
-    if (!init) {
+    if (index === initializationCount - 1 && !(await init.next()).done) throw Error("import plan initialization is incomplete");
+    if (!initializing) {
       if (canonicalJson(controls) !== canonicalJson(expectedControls)) throw Error("import plan receipt/session differs from reviewed source");
     }
     if (payload && payloadHash.digest("hex") !== payload.sha256) throw Error("import plan copied payload hash differs from source");

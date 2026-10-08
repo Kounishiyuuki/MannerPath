@@ -27,8 +27,8 @@ Status: **Accepted baseline**
 
 ## Backend
 
-Local segmented promotion v4 tools require Node >=24 for `node:sqlite` row cursors.
-Existing v2/v3 tooling retains Node >=23.3. No production dependency or Worker runtime changes.
+Backend tooling and `make api-validate` require Node >=24: segmented promotion v4 and the capacity benchmark use
+`node:sqlite` row cursors, and the API test suite exercises them. No production dependency or Worker runtime changes.
 
 | Concern | Choice |
 |---|---|

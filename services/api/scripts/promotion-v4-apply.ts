@@ -3,6 +3,7 @@ import { literal } from "../src/pipeline/promotion.ts";
 import { canonicalJson, D1_CAPACITY_POLICY, type PromotionV4Manifest } from "./promotion-v4-format.ts";
 import { readV4Manifest, verifyPromotionV4, verifyV4File } from "./promotion-v4-verify.ts";
 
+import { iterateV4Tiles } from "./promotion-v4-metadata.ts";
 import { validateV4Tile } from "./promotion-v4-tiles.ts";
 
 type Row = Record<string, unknown>;
@@ -10,7 +11,7 @@ function run(db: DatabaseSync, sql: string): void {
   if (Buffer.byteLength(sql) > D1_CAPACITY_POLICY.statementBytes) throw new Error("v4: control statement exceeds capacity policy");
   db.exec(sql);
 }
-function start(db: DatabaseSync, manifest: PromotionV4Manifest): void {
+async function start(db: DatabaseSync, directory: string, manifest: PromotionV4Manifest): Promise<void> {
   const existing = db.prepare("SELECT * FROM promotion_v4_manifests WHERE id=1").get() as Row | undefined;
   if (existing) {
     if (existing.manifest_sha256 !== manifest.wholeBundleSha256) throw new Error("v4: wrong manifest for GREEN");
@@ -24,7 +25,7 @@ function start(db: DatabaseSync, manifest: PromotionV4Manifest): void {
       for (const r of s.additiveReleases ?? []) run(db, `INSERT INTO promotion_v4_expected_releases (release_id,source_id,release_content_sha256) VALUES (${r.releaseId},${literal(s.sourceId)},${literal(r.releaseContentSha256)});`);
     }
     for (const c of manifest.chunks) run(db, `INSERT INTO promotion_v4_expected_chunks (ordinal,manifest_id,sha256,bytes,statements,rows_json) VALUES (${c.ordinal},1,${literal(c.sha256)},${c.bytes},${c.statements},${literal(canonicalJson(c.rows))});`);
-    for (const t of manifest.tiles) {
+    for await (const t of iterateV4Tiles(directory, manifest)) {
       run(db, `INSERT INTO promotion_v4_expected_tiles (tile_id,manifest_id,revision,spot_count,content_sha256,schema_version,part_count) VALUES (${literal(t.tileId)},1,${t.revision},${t.spotCount},${literal(t.contentSha256)},${t.schemaVersion},${t.parts.length});`);
       for (const p of t.parts) run(db, `INSERT INTO promotion_v4_expected_tile_parts (tile_id,part_index,spot_count,content_sha256) VALUES (${literal(t.tileId)},${p.partIndex},${p.spotCount},${literal(p.contentSha256)});`);
     }
@@ -65,7 +66,7 @@ export async function applyV4Chunk(db: DatabaseSync, directory: string, digest: 
   } catch (error) { db.exec("ROLLBACK"); throw error; }
 }
 
-async function verifyFinalState(db: DatabaseSync, manifest: PromotionV4Manifest): Promise<void> {
+async function verifyFinalState(db: DatabaseSync, directory: string, manifest: PromotionV4Manifest): Promise<void> {
   const bootstrap = db.prepare("SELECT expected_rows_json FROM promotion_multi_bootstraps WHERE promotion_bootstrap_id=1").get() as Row | undefined;
   if (!bootstrap || canonicalJson(JSON.parse(String(bootstrap.expected_rows_json))) !== canonicalJson(manifest.rows)) throw new Error("v4: wrong final counts declaration");
   for (const s of manifest.sources) {
@@ -94,7 +95,7 @@ async function verifyFinalState(db: DatabaseSync, manifest: PromotionV4Manifest)
     if (sourceBytes > D1_CAPACITY_POLICY.maxManifestBytes) throw new Error("v4: source metadata exceeds capacity policy");
     sources.push(row);
   }
-  for (const expected of manifest.tiles) {
+  for await (const expected of iterateV4Tiles(directory, manifest)) {
     const tile = db.prepare("SELECT * FROM tile_snapshots WHERE tile_id=?").get(expected.tileId) as Row | undefined;
     if (!tile || tile.content_sha256 !== expected.contentSha256 || tile.revision !== expected.revision || tile.spot_count !== expected.spotCount
       || Buffer.byteLength(String(tile.body_json)) > D1_CAPACITY_POLICY.statementBytes) throw new Error("v4: wrong tile final state");
@@ -112,7 +113,7 @@ export async function finalizePromotionV4(db: DatabaseSync, directory: string, d
   }
   db.exec("BEGIN");
   try {
-    await verifyFinalState(db, manifest);
+    await verifyFinalState(db, directory, manifest);
     await verifyV4File(directory, manifest.finalize, sql => run(db, sql));
     run(db, `INSERT INTO promotion_v4_completions (id,manifest_sha256) VALUES (1,${literal(digest)});`);
     db.exec("COMMIT");
@@ -123,7 +124,7 @@ export async function finalizePromotionV4(db: DatabaseSync, directory: string, d
 export async function applyPromotionV4(db: DatabaseSync, directory: string, digest: string, options: { stopAfter?: number } = {}): Promise<{ status: string; nextChunk: number | null }> {
   if (options.stopAfter !== undefined && (!Number.isSafeInteger(options.stopAfter) || options.stopAfter < 0)) throw new Error("v4: stopAfter must be a nonnegative integer");
   const manifest = await verifyPromotionV4(directory, digest);
-  start(db, manifest);
+  await start(db, directory, manifest);
   for (const chunk of manifest.chunks) {
     if (options.stopAfter !== undefined && chunk.ordinal > options.stopAfter) return { status: "unfinished", nextChunk: nextUnappliedChunk(db, digest) };
     await applyV4Chunk(db, directory, digest, chunk.ordinal);
