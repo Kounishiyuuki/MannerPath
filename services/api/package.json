@@ -32,6 +32,8 @@
     "community:activate": "node --experimental-strip-types --no-warnings scripts/community-activation.ts activate",
     "scale:community": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/scale-community.ts",
     "scale:tiles": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/scale-tiles.ts",
+    "capacity:latency": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-latency.ts",
+    "capacity:matrix": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-matrix.ts",
     "campaign:progress": "node --experimental-strip-types --no-warnings scripts/campaign-progress.ts",
     "promotion:v4:build": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts build",
     "promotion:v4:verify": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts verify",
@@ -42,7 +44,10 @@
     "release:preflight": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/release-preflight.ts",
     "reports:migration": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/reports-migration.ts",
     "source:onboarding": "node --experimental-strip-types --no-warnings scripts/source-onboarding.ts",
-    "source:scaffold": "node --experimental-strip-types --no-warnings scripts/source-onboarding.ts scaffold"
+    "source:scaffold": "node --experimental-strip-types --no-warnings scripts/source-onboarding.ts scaffold",
+    "capacity:worker": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-worker.ts",
+    "capacity:summary": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-summary.ts",
+    "capacity:run": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-run.ts"
   },
   "dependencies": {
     "fast-png": "8.0.0",
