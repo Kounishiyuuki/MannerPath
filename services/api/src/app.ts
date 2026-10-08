@@ -45,7 +45,7 @@ import type { EvidencePhotoStorage } from "./reports/photo-storage.ts";
 import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
 import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag } from "./tiles/dto.ts";
-import { assembleTileV1 } from "./tiles/parts.ts";
+import { assembleTileV1, TILE_PART_POLICY } from "./tiles/parts.ts";
 import { promotionReadiness } from "./pipeline/promotion-readiness.ts";
 
 export interface Env {
@@ -208,7 +208,7 @@ export function createApp(options: AppOptions = {}) {
     const tileId = requestedTileId(c.req.param());
     if (typeof tileId !== "string") return tileId;
     const index = c.req.param("index");
-    if (!/^(0|[1-9][0-9]?)$/.test(index)) return problem(400, "invalidTilePart", "part must be a canonical decimal index");
+    if (!/^(0|[1-9][0-9]{0,2})$/.test(index) || Number(index) >= TILE_PART_POLICY.maxParts) return problem(400, "invalidTilePart", "part must be a canonical decimal index");
     const row = await c.env.DB.prepare(
       "SELECT content_sha256, body_json FROM tile_snapshot_parts WHERE tile_id = ? AND part_index = ?",
     ).bind(tileId, Number(index)).first<{ content_sha256: string; body_json: string }>();

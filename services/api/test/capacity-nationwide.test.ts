@@ -36,6 +36,7 @@ test('temporary outputs reject repository paths, roots and symlinks escaping tem
   try {
     assert.equal(tempOutput(join(dir, 'new', 'nested')), join(dir, 'new', 'nested'));
     assert.throws(() => tempOutput(process.cwd()), /temporary/);
+    assert.throws(() => tempOutput(resolve('capacity-not-created', 'nested-output')), /temporary/);
     assert.throws(() => tempOutput('/private/tmp'), /temporary/);
     symlinkSync(process.cwd(), join(dir, 'escape'));
     assert.throws(() => tempOutput(join(dir, 'escape', 'new')), /temporary/);

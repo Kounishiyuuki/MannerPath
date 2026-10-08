@@ -1,5 +1,7 @@
 # Nationwide capacity validation — 2026-10-08
 
+Follow-up: [capacity hardening and successful local 50k/100k roundtrips](2026-10-08-nationwide-capacity-hardening.md). The measurements below preserve the original pre-hardening results.
+
 現行read APIは100kの集中分布でも成立した。ただし全国対応全体を無条件にREADY NOWとは判定できない。**sparse 50k/100kはpromotionの全tile metadata上限、extreme 10kは113 parts中index 100–112がHTTP400で取得不能、extreme 50k/100kは128 parts/tile上限で拒否された。** API、production schema、Appleコード、productionデータは変更していない。
 
 [Summary JSON](2026-10-08-nationwide-capacity-validation.json)は集約値だけを保持する。DB、SQL、corpus、Wrangler stateは一時ディレクトリに置き、Gitへ含めない。これはsynthetic spatial/capacity evidenceであり、喫煙場所のproduction evidence、実際の全国coverage、remote D1の性能保証ではない。

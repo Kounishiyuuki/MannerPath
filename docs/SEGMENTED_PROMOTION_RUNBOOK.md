@@ -38,8 +38,14 @@ Only applied sanitized community releases travel, subject to the unchanged regis
 
 The writer iterates rows and checks their escaped UTF-8 size before constructing SQL, hashes while writing,
 rotates chunks, and validates an independent disk-backed bootstrap with a bounded SQLite cache. It validates
-one tile at a time. The manifest is written last; failure removes the partial output directory. A metadata
-budget of 16 MiB bounds the manifest; excess metadata fails explicitly. A single declaration with too many
+one tile at a time. The manifest is written last; failure removes the partial output directory. Tile declarations remain inline only while their canonical metadata fits 1 MiB. Larger sets use
+`tileDeclarations` (`promotion-tile-declarations.v1`) and an empty inline `tiles` array. Metadata files
+are individually bounded to 1 MiB; descriptors pin ordinal, exact content-addressed filename, bytes,
+SHA-256, tile/part counts and first/last tile ID. The independently reviewed manifest digest pins all
+descriptors. Verification checks the exact shard set, strict global tile order and aggregate counts.
+Missing, duplicate, reordered, modified, extra or wrongly counted metadata prevents verification and
+finalization. Readers keep at most one bounded shard in memory, rather than a nationwide tile array.
+The existing 16 MiB manifest budget is unchanged; descriptor/source/chunk growth can still hit it. A single declaration with too many
 review dependencies also refuses rather than violating the statement budget.
 
 Verification streams each SQL file, tracking quote state across reads. It checks hashes, byte budgets,
@@ -91,7 +97,11 @@ the operator must make a successful GREEN readiness/smoke check a prerequisite t
 
 **Do not import the raw payload files directly with `wrangler d1 execute --file`.** Prepare a separate,
 reviewable import plan locally. It contains a copied source manifest, `plan-manifest.json`, `initialize.sql`,
-wrapped `chunk-0001.sql` … and `finalize.sql`. The plan pins the independently reviewed source digest and
+wrapped `chunk-0001.sql` … and `finalize.sql`. Plans copy and verify every declared metadata shard.
+Legacy inline v4 plans retain `initialize.sql`; shard plans use ordered `initialize-0001.sql` … files,
+each bounded by the source `chunkTargetBytes`. All initialization segments must complete in plan order
+before any payload chunk is imported. Verification regenerates their exact statements and authenticates
+every file, including metadata and initialization; partial, reordered or modified plans refuse. The plan pins the independently reviewed source digest and
 hashes every transport file. Verification checks exact initialization/wrappers and also hashes the copied
 payload subrange against the original source chunk digest. No remote connection is opened by either command.
 
@@ -108,9 +118,15 @@ alongside the existing gates. Object key order does not affect JSON equality.
 
 A **future maintainer session**, separately authorized for remote execution, may use the verified plan:
 
-1. Address only a fresh GREEN by its database name, migrate it and import `initialize.sql` once.
+1. Address only a fresh GREEN by its database name, migrate it and import all verified initialization files once, in plan order.
+   Inline plans have `initialize.sql`; shard plans have `initialize-0001.sql` … segments.
 2. Check `promotion_v4_manifests.manifest_sha256` equals the reviewed source digest. On resume, refuse a
-   different digest; never re-import initialization over an existing ledger.
+   different digest; never re-import initialization over an existing ledger. For a shard plan, import every verified
+   `initialize-N.sql` in order before payload. There is no separate initialization-fragment receipt
+   ledger: interruption during these SQL files requires discarding/rebuilding the isolated GREEN or
+   explicitly proving the complete declaration set. Do not treat a partial ledger as payload-ready.
+   The local apply executor initializes all declarations atomically. Partial initialization/payload
+   cannot create completion; final exact-set and receipt checks remain mandatory.
 3. Read the next ordinal with the query below. Compare every existing receipt to its expected digest.
    A completed chunk is `alreadyApplied` and is skipped; never replay its SQL blindly. Direct replay fails
    atomically, as verified locally. Import exactly the next wrapped file; failure leaves the previous receipts.

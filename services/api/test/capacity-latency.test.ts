@@ -40,8 +40,15 @@ test("single-part preflight verifies live manifest and rejects a different datab
   const directory = mkdtempSync(join(tmpdir(), "capacity-latency-test-"));
   const path = join(directory, "fixture.sqlite");
   const db = new DatabaseSync(path);
-  const part = JSON.stringify({ spots: [{ id: "sp_Zfixture" }] });
-  const manifest = { tile: "14/1/1", revision: 1, parts: [{ index: 0, spotCount: 1, sha256: createHash("sha256").update(part).digest("hex") }] };
+  const part = JSON.stringify({ schemaVersion: 2, tile: "14/1/1", part: 0, partCount: 1,
+    spots: [{ id: "sp_00000000000000000000000000", name: null, latitude: 35, longitude: 139,
+      spotType: "ashtray", accessType: "unknown", environment: "unknown", supportsPaper: "unknown", supportsHeated: "unknown",
+      openingHours: { status: "none", raw: null, parsed: null, timeZone: "Asia/Tokyo" }, lifecycle: "active",
+      evidenceQuality: "officialListing", evidenceQualityVersion: "evidence-quality.v1", lastVerifiedAt: null,
+      sourceIds: ["fixture"], spotSubtype: null, hostType: "unknown", accessDetail: null,
+      verification: { version: "spot-verification.v1", existence: "official", locationPrecision: "publisherPoint", confirmations: null, lastReviewedMonth: null } }],
+    sources: [{ id: "fixture", displayName: "Fixture", licenseName: null, licenseUrl: null, attributionText: null }] });
+  const manifest = { schemaVersion: 2, tile: "14/1/1", revision: 1, generatedAt: "2026-10-08T00:00:00Z", partPolicy: "tile-parts.v1", spotCount: 1, parts: [{ index: 0, spotCount: 1, sha256: createHash("sha256").update(part).digest("hex") }] };
   db.exec("CREATE TABLE tile_snapshots(tile_id TEXT, body_json TEXT); CREATE TABLE tile_snapshot_parts(tile_id TEXT, part_index INTEGER, content_sha256 TEXT, spot_count INTEGER);");
   db.exec("CREATE TABLE promotion_bootstraps(id); CREATE TABLE promotion_multi_bootstraps(id); CREATE TABLE promotion_bootstrap_completions(id); CREATE TABLE promotion_multi_bootstrap_completions(id);");
   db.prepare("INSERT INTO tile_snapshots VALUES (?, ?)").run(manifest.tile, JSON.stringify(manifest));
@@ -55,22 +62,20 @@ test("single-part preflight verifies live manifest and rejects a different datab
     res.setHeader("Content-Type", "application/json");
     if (refuse && req.url!.endsWith("/parts/100")) { res.statusCode = 400; res.end(JSON.stringify({ error: "invalidTilePart", detail: "part must be a canonical decimal index" })); return; }
     if (req.url === "/v1/readiness") { res.statusCode = 503; res.end(JSON.stringify({ schemaVersion: 1, completed: false, state: "localPipeline" })); return; }
-    res.end(req.url!.endsWith("/manifest") ? JSON.stringify({ ...manifest, revision: wrong ? 2 : 1 }) : req.url!.includes("/parts/") ? part : JSON.stringify({ requestedId: "sp_Zfixture", spot: { id: "sp_Zfixture" } }));
+    res.end(req.url!.endsWith("/manifest") ? JSON.stringify({ ...manifest, revision: wrong ? 2 : 1 }) : req.url!.includes("/parts/") ? part : JSON.stringify({ requestedId: "sp_00000000000000000000000000", spot: { id: "sp_00000000000000000000000000" } }));
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
-  const targets = { multiPartTile: null, multiPartCount: 1, singlePartTile: manifest.tile, spotId: "sp_Zfixture", emptyTile: "14/0/0" };
+  const targets = { multiPartTile: null, multiPartCount: 1, singlePartTile: manifest.tile, spotId: "sp_00000000000000000000000000", emptyTile: "14/0/0" };
   try {
     assert.deepEqual(await verifyTargets(url, path, targets), { expectedReadiness: { schemaVersion: 1, completed: false, state: "localPipeline" }, parityIssues: [] });
     assert.ok(paths.includes("/v1/tiles/14/1/1/parts/0"));
-    assert.ok(paths.includes("/v1/spots/sp_Zfixture"));
+    assert.ok(paths.includes("/v1/spots/sp_00000000000000000000000000"));
     const fixture = new DatabaseSync(path);
     fixture.prepare("INSERT INTO tile_snapshot_parts VALUES (?, 100, ?, 1)").run(manifest.tile, manifest.parts[0].sha256);
     fixture.close();
     refuse = true;
-    const refused = await verifyTargets(url, path, targets);
-    assert.deepEqual(refused.parityIssues, [{ tile: manifest.tile, partIndex: 100, status: 400,
-      body: JSON.stringify({ error: "invalidTilePart", detail: "part must be a canonical decimal index" }) }]);
+    await assert.rejects(verifyTargets(url, path, targets), /part 100 must be HTTP-readable/);
     wrong = true;
     await assert.rejects(verifyTargets(url, path, targets), /does not match supplied SQLite/);
   } finally {
