@@ -1,0 +1,44 @@
+# Advisory network audit, deliberately separate from offline unit tests and deployment.
+name: Production source health
+
+on:
+  schedule:
+    - cron: "20 21 * * *" # 06:20 JST; starts after this workflow lands on main.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-source-health
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: services/api/package-lock.json
+      - run: npm ci --ignore-scripts
+      - name: Check approved official resources
+        run: node --experimental-strip-types --no-warnings scripts/source-health.ts --live > source-health.json
+      - name: Preserve metadata report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-source-health
+          path: services/api/source-health.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Explain review boundary
+        if: always()
+        run: |
+          echo 'Source health is advisory. Review the JSON artifact on any failed run. No source approval, ingestion, spot deletion, D1 operation or deployment occurs. Live rights notices require human review.' >> "$GITHUB_STEP_SUMMARY"

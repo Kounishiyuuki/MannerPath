@@ -48,7 +48,8 @@
     "discovery:providers": "node --experimental-sqlite --no-warnings ../data-pipeline/discovery/providers-cli.mjs",
     "capacity:worker": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-worker.ts",
     "capacity:summary": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-summary.ts",
-    "capacity:run": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-run.ts"
+    "capacity:run": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-run.ts",
+    "source:health": "node --experimental-strip-types --no-warnings scripts/source-health.ts"
   },
   "dependencies": {
     "fast-png": "8.0.0",
