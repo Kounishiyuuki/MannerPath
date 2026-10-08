@@ -246,10 +246,15 @@ its bytes and hash depend only on its content:
 | Part listed by the current manifest | `200` | Part; `ETag: "2-<sha256 of part>"` (the manifest's hash for it) |
 | `If-None-Match` matches | `304` | No body; same `ETag` |
 | Malformed tile ID / wrong zoom | `400` | `invalidTileId` / `unsupportedZoom`, as for the v1 path |
-| Part index not canonical decimal | `400` | `{"error":"invalidTilePart","detail":…}` |
+| Part index not canonical decimal in `0...127` | `400` | `{"error":"invalidTilePart","detail":…}` |
 | No published snapshot | `404` | `tileNotPublished` |
 | Part index not in the current snapshot | `404` | `{"error":"tilePartNotPublished","detail":…}` |
 | Tile stored as schemaVersion 1 (migrated, not yet republished) | `503` | `{"error":"tileRepublishPending","detail":…}`. Use the v1 path |
+
+Part indexes are canonical unsigned decimal integers in `0...127` (maximum 128 parts), matching the
+Apple client's `maximumParts = 128`. `0`, `99`, `100` and `127` are valid indexes;
+`128`, signs, padding (`01`), whitespace, decimals and exponents return `400 invalidTilePart`.
+A valid index absent from the current snapshot returns `404 tilePartNotPublished`.
 
 **Client reading order.** Read a tile at the v1 path. On `409 tileRequiresParts`, read the manifest and then its
 parts, and keep the manifest `ETag`. Revalidate a tile cached with a `"2-…"` ETag at its manifest. This keeps

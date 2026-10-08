@@ -31,7 +31,7 @@ it touches ingest or reconciliation.
 ## Dependencies and build
 
 - Dependency versions are pinned exactly in `package.json`; `package-lock.json` is committed. Do not introduce ranges.
-- Node >= 23.3. Use the existing `npm` scripts rather than inventing new command lines.
+- Node >= 24. Use the existing `npm` scripts rather than inventing new command lines.
 
 ## Database and migrations
 

@@ -109,3 +109,17 @@ Promotion-specific chunking of the bundle is out of scope here.
   longer a tile body.
 - Changing `tile-parts.v1` changes part bytes, which republishes every tile with a new revision. Treat it like a
   schema change: a new policy version, measured.
+
+## Amendment 2026-10-08 — nationwide capacity hardening
+
+The Worker part route accepts canonical indexes 0–127, matching the existing migration, verifier and
+Apple 128-part contract. The earlier two-digit parser rejected valid indexes 100–127; this is a bug fix,
+not a tile policy or public response change. Publication still refuses tiles needing more than 128 parts.
+
+Promotion v4 can carry tile declarations in `promotion-tile-declarations.v1` metadata shards. Each
+file is at most 1 MiB, deterministically ordered, content-addressed and hash-pinned by the reviewed
+manifest digest. Small legacy inline v4 manifests remain supported. Readers iterate declarations
+without reconstructing a nationwide array. Import-plan initialization is also segmented for shard
+artifacts. Existing exact expected-tile/part and chunk-receipt gates remain required before completion.
+No data zoom, public manifest/part/detail response, Apple client or database schema changes.
+See [the promotion runbook](../SEGMENTED_PROMOTION_RUNBOOK.md) for artifact and initialization rules.

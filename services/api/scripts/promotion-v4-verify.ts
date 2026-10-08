@@ -6,6 +6,8 @@ import { z } from "zod";
 import { ADDITIVE_TABLES } from "../src/pipeline/promotion.ts";
 import { canonicalJson, canonicalManifestDigest, D1_CAPACITY_POLICY, type PromotionV4Manifest, type V4File } from "./promotion-v4-format.ts";
 
+import { iterateV4Tiles, tileDeclarationSchema, tileDeclarationsSchema, validateTileMetadataManifest } from "./promotion-v4-metadata.ts";
+
 const SHA = /^[a-f0-9]{64}$/;
 const integer = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
 const positive = integer.min(1);
@@ -22,8 +24,8 @@ const manifestSchema = z.object({
     additiveReleases: z.array(z.object({ releaseId: positive, releaseContentSha256: digestSchema }).strict()).optional(),
   }).strict()).min(1),
   rows: countsSchema,
-  tiles: z.array(z.object({ tileId: z.string().min(1), revision: positive, spotCount: integer, contentSha256: digestSchema, schemaVersion: z.union([z.literal(1), z.literal(2)]),
-    parts: z.array(z.object({ partIndex: integer.max(127), spotCount: positive.max(250), contentSha256: digestSchema }).strict()).max(128) }).strict()),
+  tiles: z.array(tileDeclarationSchema),
+  tileDeclarations: tileDeclarationsSchema.optional(),
   chunks: z.array(fileSchema.extend({ ordinal: positive, rows: countsSchema })).min(1),
   finalize: fileSchema, wholeBundleSha256: digestSchema,
 }).strict();
@@ -88,13 +90,8 @@ export async function readV4Manifest(directory: string, expectedDigest: string):
     || !Array.isArray(manifest.sources) || manifest.sources.length === 0 || !Array.isArray(manifest.tiles)) {
     throw new Error("v4: stale/wrong manifest or capacity policy");
   }
-  if (new Set(manifest.sources.map(s => s.sourceId)).size !== manifest.sources.length
-    || new Set(manifest.tiles.map(t => t.tileId)).size !== manifest.tiles.length) throw new Error("v4: duplicate source or tile declaration");
-  for (const tile of manifest.tiles) {
-    if (tile.schemaVersion === 1 && tile.parts.length !== 0 || tile.schemaVersion === 2 && (tile.parts.some((p, i) => p.partIndex !== i) || tile.parts.reduce((n, p) => n + p.spotCount, 0) !== tile.spotCount)) {
-      throw new Error("v4: incomplete or inconsistent tile parts declaration");
-    }
-  }
+  if (new Set(manifest.sources.map(s => s.sourceId)).size !== manifest.sources.length) throw new Error("v4: duplicate source declaration");
+  validateTileMetadataManifest(manifest);
   for (const counts of [manifest.rows, ...manifest.sources.map(s => s.rows), ...manifest.chunks.map(c => c.rows)]) {
     if (!counts || Object.entries(counts).some(([table, n]) => !columns.has(table) || !Number.isSafeInteger(n) || n < 0)) throw new Error("v4: invalid row counts");
   }
@@ -122,6 +119,7 @@ export async function verifyV4File(directory: string, file: V4File, onStatement?
 }
 export async function verifyPromotionV4(directory: string, expectedDigest: string): Promise<PromotionV4Manifest> {
   const manifest = await readV4Manifest(directory, expectedDigest);
+  for await (const _tile of iterateV4Tiles(directory, manifest)) { /* verify before any mutation */ }
   const totals: Record<string, number> = {}; let order = -1;
   for (const chunk of manifest.chunks) {
     const verified = await verifyV4File(directory, chunk, (_sql, table) => {

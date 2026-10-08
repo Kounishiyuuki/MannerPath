@@ -18,7 +18,7 @@ See `../../docs/API.md`, `../../docs/adr/0006-evidence-and-publication.md` (Issu
 - `src/geo/tile.ts`: Slippy XYZ tile math, checked against `contracts/tiles/slippy-xyz-vectors.v1.json`.
 - `test/`: node:test suites. They run on node:sqlite through a D1-shaped adapter that applies the real migrations.
 
-## Commands (Node >= 23.3)
+## Commands (Node >= 24)
 
 Segmented v4 filesystem tools require **Node >=24**. See
 [SEGMENTED_PROMOTION_RUNBOOK](../../docs/SEGMENTED_PROMOTION_RUNBOOK.md) for
