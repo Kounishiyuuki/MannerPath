@@ -1,6 +1,14 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Approx. location" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "目安" } } } },
+    "Estimated" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "推定" } } } },
+    "Precision unknown" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "精度不明" } } } },
+    "About %@" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "約%@" } } } },
+    "Approximate location" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "位置は目安" } } } },
+    "Estimated from the address" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "住所から推定した位置" } } } },
+    "Location precision unknown" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "位置精度不明" } } } },
+    "No saved data": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータなし" } } } },
     "%@ km away": {
       "localizations": {
         "ja": {

@@ -38,6 +38,17 @@ nonisolated enum ApproximateLocation {
         isExactPoint(precision) ? String(localized: "Navigate to this place") : String(localized: "Navigate to this area")
     }
 
+    /// Short widget note, the same semantics as the iPhone widget's `GlancePrecision`: nothing for an exact point,
+    /// otherwise a note that keeps the pin from reading as exact — unknown, missing and unrecognised values included.
+    static func widgetNote(precision: String?) -> String? {
+        if isExactPoint(precision) { return nil }
+        switch precision {
+        case precisionValue: return String(localized: "Approximate location")
+        case "reviewedDerived": return String(localized: "Estimated location")
+        default: return String(localized: "Location precision unknown")
+        }
+    }
+
     /// 「約○m」 for an approximate pin; an exact distance is returned unchanged.
     static func distance(_ formatted: String, approximate: Bool) -> String {
         approximate ? String(localized: "About \(formatted)") : formatted
