@@ -25,6 +25,10 @@ const resourceSchema = z.object({
   coordinateAvailability: z.enum(["all", "partial", "none", "unknown"]).default("unknown"),
   coordinateColumns: z.array(text).default([]), externalReferenceOnly: z.boolean().default(false),
   blockerCodes: z.array(text).default([]), truncated: z.boolean().default(false),
+  providerId: text.nullable().default(null),
+  providerRole: z.enum(["CANONICAL_CANDIDATE_PROVIDER", "DISCOVERY_ONLY_PROVIDER", "COORDINATE_HELPER"]).nullable().default(null),
+  providerRights: z.object({ commercial: text, storage: text, redistribution: text }).strict().nullable().default(null),
+  catalogObservations: z.array(z.record(z.string(), z.unknown())).default([]),
 }).strict();
 const gateSchema = z.object({
   exactDataset: url.optional(), exactApplicableLicense: z.boolean().optional(),
@@ -72,6 +76,7 @@ export function evaluateCandidate(input: Candidate) {
     triage.coordinates === "available-signal" && c.resource.coordinateColumns.length > 0 &&
     triage.classification !== "EXTERNAL_REFERENCE_ONLY";
   const blockers: string[] = [...triage.blockerCodes];
+  if (c.resource.providerRole && c.resource.providerRole !== "CANONICAL_CANDIDATE_PROVIDER") blockers.push("nonCanonicalProvider");
   if (c.resource.externalReferenceOnly) blockers.push("externalReferenceOnly");
   if (triage.smokingEvidence === "no-point-evidence") blockers.push("noSmokingPointEvidence");
   if (!reviewed || !scoped || r.officialPublisher !== true || !c.resource.publisher) blockers.push("officialPublisherReviewRequired");
@@ -91,6 +96,8 @@ export function evaluateCandidate(input: Candidate) {
     rights: { status: rights ? "RIGHTS_REVIEWED" : "RIGHTS_REVIEW_REQUIRED", licenseName: r.licenseName ?? null,
       licenseUrl: r.licenseUrl ?? null, metadata: c.resource.licenseMetadata, commercialReuse: r.commercialReuse ?? "unknown" },
     attribution: c.resource.attributionMetadata,
+    provider: { id: c.resource.providerId, role: c.resource.providerRole, rights: c.resource.providerRights,
+      catalogObservations: c.resource.catalogObservations },
     coordinates: { status: coordinates ? "COORDINATE_AUTHORITY_REVIEWED" : "COORDINATE_AUTHORITY_REQUIRED",
       kind: coordinates ? "publisherPoint" : r.coordinateKind === "publisherPoint" ? "unknown" : r.coordinateKind,
       requestedKind: r.coordinateKind, columns: c.resource.coordinateColumns },
@@ -112,6 +119,8 @@ export function discoveryCandidates(input: unknown) {
     targets: z.array(z.object({ resourceUrls: z.array(z.string()).default([]),
       blockerCodes: z.array(text).optional(), truncated: z.boolean().optional() }).passthrough()).optional(),
   }).passthrough().parse(input);
+  const provider = z.object({ id: text, role: z.enum(["CANONICAL_CANDIDATE_PROVIDER", "DISCOVERY_ONLY_PROVIDER", "COORDINATE_HELPER"]),
+    terms: z.object({ commercial: text, storage: text, redistribution: text }).passthrough() }).passthrough().optional().parse(report.provider);
   return report.resources.map(resource => {
     const linkedTargets = report.targets?.filter(target => target.resourceUrls.includes(resource.rawUrl)) ?? [];
     const queueItems = report.manualReviewQueue?.filter(item => item.candidate === resource.rawUrl) ?? [];
@@ -121,6 +130,9 @@ export function discoveryCandidates(input: unknown) {
       // A queue reference only. A human chooses the permanent reviewed adapter source ID later.
       sourceId: "discovery-" + createHash("sha256").update(resource.rawUrl).digest("hex").slice(0, 16),
       resource: { rawUrl: resource.rawUrl, publisher: resource.publisher ?? null,
+        providerId: provider?.id ?? resource.providerId ?? null, providerRole: provider?.role ?? resource.providerRole ?? null,
+        providerRights: provider ? { commercial: provider.terms.commercial, storage: provider.terms.storage, redistribution: provider.terms.redistribution } : resource.providerRights ?? null,
+        catalogObservations: resource.catalogObservations ?? [],
         licenseMetadata: resource.licenseMetadata ?? null, attributionMetadata: resource.attributionMetadata ?? null,
         matchingRowCount: resource.matchingRowCount ?? null,
         coordinateAvailability: resource.coordinateAvailability ?? "unknown",
