@@ -1,0 +1,3114 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "baseMain": "3ac1064ef10d9d85ed1da2782aa8cb5dc8b4b0c9",
+  "pr214": {
+    "reviewHead": "f894906b9949b8157727b3cc96faafca22d6656c",
+    "verdict": "MERGE READY",
+    "landingHead": "0eae4962e5c3acd3f0a25c1f3653cfa4325e5e36",
+    "mergeCommit": "3ac1064ef10d9d85ed1da2782aa8cb5dc8b4b0c9",
+    "focusedTests": 23,
+    "reviewHeadApiTests": 883,
+    "reviewHeadDiscoveryTests": 101,
+    "landingApiTests": 895,
+    "landingDiscoveryTests": 101
+  },
+  "scope": "Bounded live provider/catalog exploration. Advisory references, not approved sources or production evidence. No raw body/POI coordinate/identity corpus committed.",
+  "limits": {
+    "rawCandidates": 100,
+    "reviewPackets": 30,
+    "deepReviews": 10,
+    "newSources": 3,
+    "perProviderInvocation": 20,
+    "maxBytes": 2097152,
+    "timeoutMs": 15000,
+    "delayMsPerHost": 1500,
+    "retries": 0,
+    "stopStatuses": [
+      403,
+      429
+    ]
+  },
+  "counts": {
+    "rawCandidates": 50,
+    "excludedBeforePacket": 48,
+    "reviewPackets": 2,
+    "deepReviews": 2,
+    "implementationCandidates": 0,
+    "newSourcesImplemented": 0,
+    "spotsAdded": 0,
+    "metadataScanInvocations": 20
+  },
+  "regionResults": [
+    {
+      "region": "hokkaido-tohoku",
+      "scanIds": [
+        "provider-2",
+        "provider-3",
+        "supplement-2"
+      ],
+      "rawCandidateCount": 0,
+      "deepReviewCount": 0,
+      "implementationCandidates": 0,
+      "coverageClaim": "Bounded queried catalogs only; no nationwide or regional absence/completeness claim."
+    },
+    {
+      "region": "kanto",
+      "scanIds": [
+        "provider-4",
+        "provider-5",
+        "supplement-1"
+      ],
+      "rawCandidateCount": 27,
+      "deepReviewCount": 0,
+      "implementationCandidates": 0,
+      "coverageClaim": "Bounded queried catalogs only; no nationwide or regional absence/completeness claim."
+    },
+    {
+      "region": "chubu",
+      "scanIds": [
+        "provider-6",
+        "supplement-3"
+      ],
+      "rawCandidateCount": 1,
+      "deepReviewCount": 1,
+      "implementationCandidates": 0,
+      "coverageClaim": "Bounded queried catalogs only; no nationwide or regional absence/completeness claim."
+    },
+    {
+      "region": "kinki",
+      "scanIds": [
+        "provider-7"
+      ],
+      "rawCandidateCount": 0,
+      "deepReviewCount": 0,
+      "implementationCandidates": 0,
+      "coverageClaim": "Bounded queried catalogs only; no nationwide or regional absence/completeness claim."
+    },
+    {
+      "region": "chugoku-shikoku",
+      "scanIds": [
+        "provider-8",
+        "supplement-4"
+      ],
+      "rawCandidateCount": 0,
+      "deepReviewCount": 0,
+      "implementationCandidates": 0,
+      "coverageClaim": "Bounded queried catalogs only; no nationwide or regional absence/completeness claim."
+    },
+    {
+      "region": "kyushu-okinawa",
+      "scanIds": [
+        "provider-9",
+        "provider-10",
+        "supplement-5"
+      ],
+      "rawCandidateCount": 1,
+      "deepReviewCount": 1,
+      "implementationCandidates": 0,
+      "coverageClaim": "Bounded queried catalogs only; no nationwide or regional absence/completeness claim."
+    }
+  ],
+  "unassignedRawCandidateCount": 21,
+  "providerResults": [
+    {
+      "provider": "bodik",
+      "scanInvocations": 4,
+      "uniqueRawReferences": 6,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "Provider access/metadata are distinct from resource rights and human approval.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 6
+    },
+    {
+      "provider": "ckan",
+      "scanInvocations": 7,
+      "uniqueRawReferences": 0,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "Provider access/metadata are distinct from resource rights and human approval.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 3
+    },
+    {
+      "provider": "openpoi",
+      "scanInvocations": 1,
+      "uniqueRawReferences": 20,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "Same response SHA-256 as #214; all records remain discovery-only.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 0
+    },
+    {
+      "provider": "overture",
+      "scanInvocations": 1,
+      "uniqueRawReferences": 0,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "STAC only, no live Places export; no cross-provider existence inference.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 0
+    },
+    {
+      "provider": "arcgis",
+      "scanInvocations": 2,
+      "uniqueRawReferences": 22,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "Public index includes third-party routes and surveys; no municipality inferred from hostname/owner.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 0
+    },
+    {
+      "provider": "official-arcgis",
+      "scanInvocations": 1,
+      "uniqueRawReferences": 2,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "Provider access/metadata are distinct from resource rights and human approval.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 0
+    },
+    {
+      "provider": "official-catalog",
+      "scanInvocations": 4,
+      "uniqueRawReferences": 0,
+      "newImplementedSources": 0,
+      "publicationAllowed": false,
+      "limitations": "Provider access/metadata are distinct from resource rights and human approval.",
+      "uniqueRawReferencesCountBasis": "first-observed provider; duplicate cross-provider observations retained in candidates",
+      "reportedResourceObservations": 0
+    }
+  ],
+  "metadataScans": [
+    {
+      "id": "provider-0",
+      "provider": "bodik",
+      "region": "nationwide",
+      "catalogs": [
+        "https://data.bodik.jp",
+        "https://odm.bodik.jp"
+      ],
+      "query": "title:*喫煙*",
+      "maxCandidates": 20,
+      "maxPages": 2,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 6,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://data.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "f13a058350444152afa76a37005e05d7e2596d9e5d342c5e47e82001e2396137",
+          "fetchedAt": "2026-10-08T05:07:48.651Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "9bfd5a9a397d1640cc0fb3c05910fc69880d7c9c30829b0b324ece1c3a611010",
+          "fetchedAt": "2026-10-08T05:07:48.988Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=20",
+          "status": 200,
+          "sha256": "a8c776fd162dfc66de3d8cc996de1ffa10949d5a77e14144efea4d92729a0680",
+          "fetchedAt": "2026-10-08T05:07:50.807Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-1",
+      "provider": "bodik",
+      "region": "nationwide",
+      "catalogs": [
+        "https://data.bodik.jp",
+        "https://odm.bodik.jp"
+      ],
+      "query": "喫煙所 OR 喫煙場所 OR \"smoking area\"",
+      "maxCandidates": 20,
+      "maxPages": 2,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": true,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://data.bodik.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": 200,
+          "sha256": "aed94dc2163c8fe8fe1e88f700dc80d0919e42c0f3a3898364f78b780adc520a",
+          "fetchedAt": "2026-10-08T05:07:50.984Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://data.bodik.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=20",
+          "status": 200,
+          "sha256": "da49fa6229813121f9391eff13fdb5269c01761e5d53df69c4908f20c9dfa006",
+          "fetchedAt": "2026-10-08T05:07:52.562Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": 200,
+          "sha256": "60ade1f0205fc2f64adeea5de38ed3cd132f22ca5f11423e597a5863ded845e1",
+          "fetchedAt": "2026-10-08T05:07:52.657Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-2",
+      "provider": "ckan",
+      "region": "hokkaido-tohoku",
+      "catalogs": [
+        "https://ckan.pf-sapporo.jp"
+      ],
+      "query": "喫煙所 OR 喫煙場所 OR \"smoking area\"",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://ckan.pf-sapporo.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": 200,
+          "sha256": "781560945b3c9f51a22dfe95a3a542fbaf68a888716ddf37ea4feee860e5e77c",
+          "fetchedAt": "2026-10-08T05:07:52.848Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-3",
+      "provider": "ckan",
+      "region": "hokkaido-tohoku",
+      "catalogs": [
+        "https://opendata.pref.akita.lg.jp"
+      ],
+      "query": "title:*喫煙*",
+      "maxCandidates": 4,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "rawUnavailable"
+      ],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://opendata.pref.akita.lg.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 404,
+          "sha256": null,
+          "fetchedAt": null,
+          "cacheHit": false,
+          "blockerCodes": [
+            "rawUnavailable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "provider-4",
+      "provider": "ckan",
+      "region": "kanto",
+      "catalogs": [
+        "https://opendata.pref.saitama.lg.jp"
+      ],
+      "query": "喫煙所 OR 喫煙場所 OR \"smoking area\"",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "incompatibleFormat"
+      ],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://opendata.pref.saitama.lg.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": 200,
+          "sha256": "0792be793a40a7af3c78a979040d873cfa3d7c5bfdd3fe9b419a81f7f5a7890b",
+          "fetchedAt": "2026-10-08T05:07:55.525Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-5",
+      "provider": "ckan",
+      "region": "kanto",
+      "catalogs": [
+        "https://catalog.data.metro.tokyo.lg.jp"
+      ],
+      "query": "title:*喫煙*",
+      "maxCandidates": 8,
+      "maxPages": 2,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 3,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+          "status": 200,
+          "sha256": "1c698daebfed8b8370085e3c500cc007e90d0172f01d359f7fa667357c597485",
+          "fetchedAt": "2026-10-08T05:07:55.846Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-6",
+      "provider": "ckan",
+      "region": "chubu",
+      "catalogs": [
+        "https://gifu-opendata.pref.gifu.lg.jp"
+      ],
+      "query": "喫煙所 OR 喫煙場所 OR \"smoking area\"",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://gifu-opendata.pref.gifu.lg.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": 200,
+          "sha256": "671f4d288e2cddbfe2f84d5f5f4f98ff55b49fea463f6967d36b6e35437ae49f",
+          "fetchedAt": "2026-10-08T05:07:56.084Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-7",
+      "provider": "ckan",
+      "region": "kinki",
+      "catalogs": [
+        "https://catalog.city.kobe.lg.jp",
+        "https://data.city.ikoma.lg.jp/data"
+      ],
+      "query": "喫煙所 OR 喫煙場所 OR \"smoking area\"",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "rawUnavailable"
+      ],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://catalog.city.kobe.lg.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": 200,
+          "sha256": "aecbebc1db7b8d60fbb7654d192b1e814e1d56d738aa12de8da197fafc0627ea",
+          "fetchedAt": "2026-10-08T05:07:57.422Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        },
+        {
+          "url": "https://data.city.ikoma.lg.jp/data/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": null,
+          "sha256": null,
+          "fetchedAt": null,
+          "cacheHit": false,
+          "blockerCodes": [
+            "rawUnavailable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "provider-8",
+      "provider": "bodik",
+      "region": "chugoku-shikoku",
+      "catalogs": [
+        "https://odm.bodik.jp"
+      ],
+      "query": "喫煙 AND (岡山 OR 広島 OR 香川 OR 愛媛 OR 徳島 OR 鳥取 OR 島根 OR 高知 OR 山口)",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99+AND+%28%E5%B2%A1%E5%B1%B1+OR+%E5%BA%83%E5%B3%B6+OR+%E9%A6%99%E5%B7%9D+OR+%E6%84%9B%E5%AA%9B+OR+%E5%BE%B3%E5%B3%B6+OR+%E9%B3%A5%E5%8F%96+OR+%E5%B3%B6%E6%A0%B9+OR+%E9%AB%98%E7%9F%A5+OR+%E5%B1%B1%E5%8F%A3%29&rows=20&start=0",
+          "status": 200,
+          "sha256": "60ade1f0205fc2f64adeea5de38ed3cd132f22ca5f11423e597a5863ded845e1",
+          "fetchedAt": "2026-10-08T05:08:01.653Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-9",
+      "provider": "bodik",
+      "region": "kyushu-okinawa",
+      "catalogs": [
+        "https://odm.bodik.jp"
+      ],
+      "query": "喫煙 AND (福岡 OR 熊本 OR 大分 OR 長崎 OR 佐賀 OR 宮崎 OR 鹿児島 OR 沖縄)",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://odm.bodik.jp/api/3/action/package_search?q=%E5%96%AB%E7%85%99+AND+%28%E7%A6%8F%E5%B2%A1+OR+%E7%86%8A%E6%9C%AC+OR+%E5%A4%A7%E5%88%86+OR+%E9%95%B7%E5%B4%8E+OR+%E4%BD%90%E8%B3%80+OR+%E5%AE%AE%E5%B4%8E+OR+%E9%B9%BF%E5%85%90%E5%B3%B6+OR+%E6%B2%96%E7%B8%84%29&rows=20&start=0",
+          "status": 200,
+          "sha256": "60ade1f0205fc2f64adeea5de38ed3cd132f22ca5f11423e597a5863ded845e1",
+          "fetchedAt": "2026-10-08T05:08:03.205Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-10",
+      "provider": "ckan",
+      "region": "kyushu-okinawa",
+      "catalogs": [
+        "https://ckan.open-governmentdata.org"
+      ],
+      "query": "喫煙所 OR 喫煙場所 OR \"smoking area\"",
+      "maxCandidates": 8,
+      "maxPages": 1,
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "accessBlocked"
+      ],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://ckan.open-governmentdata.org/api/3/action/package_search?q=%E5%96%AB%E7%85%99%E6%89%80+OR+%E5%96%AB%E7%85%99%E5%A0%B4%E6%89%80+OR+%22smoking+area%22&rows=20&start=0",
+          "status": null,
+          "sha256": null,
+          "fetchedAt": null,
+          "cacheHit": false,
+          "blockerCodes": [
+            "accessBlocked"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "provider-11",
+      "provider": "openpoi",
+      "region": "nationwide",
+      "catalogs": null,
+      "query": null,
+      "maxCandidates": 20,
+      "maxPages": 1,
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 20,
+      "truncated": true,
+      "blockerCodes": [],
+      "scanScope": "Bounded advisory scan; not nationwide completeness.",
+      "fetches": [
+        {
+          "url": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+          "status": 200,
+          "sha256": "5d003de62413ab3319571d62a8264771f88d745bc80ff1b92b9845c90a0722d2",
+          "fetchedAt": "2026-10-08T05:08:03.647Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "provider-12",
+      "provider": "overture",
+      "region": "nationwide",
+      "catalogs": null,
+      "query": null,
+      "maxCandidates": 20,
+      "maxPages": 1,
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "resourceCount": 0,
+      "leadCount": 0,
+      "truncated": false,
+      "blockerCodes": [
+        "boundedPlacesExportRequired"
+      ],
+      "scanScope": "STAC metadata only; no Places rows queried. Use a bounded official Places export with release/resource provenance.",
+      "fetches": [
+        {
+          "url": "https://stac.overturemaps.org/catalog.json",
+          "status": 200,
+          "sha256": "5336b76af0b630f05c51c8c8bf3106a2466f7a5110df28081202c7c1775bd7f3",
+          "fetchedAt": "2026-10-08T05:08:04.121Z",
+          "cacheHit": false,
+          "blockerCodes": []
+        }
+      ]
+    },
+    {
+      "id": "supplement-0",
+      "provider": "arcgis",
+      "region": "nationwide",
+      "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=title%3A%E5%96%AB%E7%85%99%E6%89%80%20AND%20type%3A%22Feature%20Service%22&num=20&start=1",
+      "resultCount": 20,
+      "fetches": [
+        {
+          "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=title%3A%E5%96%AB%E7%85%99%E6%89%80%20AND%20type%3A%22Feature%20Service%22&num=20&start=1",
+          "status": 200,
+          "sha256": "ac099600137e1e7516b99e84e32e6b4f20e9a2f62856d5f2716f35eb71790d6d",
+          "fetchedAt": "2026-10-08T09:12:52.804Z",
+          "blockerCodes": []
+        }
+      ],
+      "scanScope": "Public ArcGIS search; publisher authority unverified."
+    },
+    {
+      "id": "supplement-1",
+      "provider": "official-arcgis",
+      "region": "kanto",
+      "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=orgid%3AUtdeFTavkHfI94t2%20AND%20%E5%96%AB%E7%85%99&num=20&start=1",
+      "resultCount": 2,
+      "fetches": [
+        {
+          "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=orgid%3AUtdeFTavkHfI94t2%20AND%20%E5%96%AB%E7%85%99&num=20&start=1",
+          "status": 200,
+          "sha256": "1815efb9230d6d241636702aecea15c22e27f8be9b708649cfa3b85c039d8746",
+          "fetchedAt": "2026-10-08T09:12:54.545Z",
+          "blockerCodes": []
+        }
+      ],
+      "scanScope": "Previously catalog-linked org inventory; each dataset still needs authority/rights review."
+    },
+    {
+      "id": "supplement-2",
+      "provider": "official-catalog",
+      "region": "hokkaido-tohoku",
+      "url": "https://www.harp.lg.jp/opendata/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99",
+      "resultCount": 0,
+      "fetches": [
+        {
+          "url": "https://www.harp.lg.jp/opendata/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99",
+          "status": 200,
+          "sha256": "c806b37f1c71c63f45ff23085622ff328efb720c368c5d926965748a85d70782",
+          "fetchedAt": "2026-10-08T09:12:55.238Z",
+          "blockerCodes": []
+        }
+      ],
+      "scanScope": "One bounded catalog page; no site crawl."
+    },
+    {
+      "id": "supplement-3",
+      "provider": "official-catalog",
+      "region": "chubu",
+      "url": "https://opendata.pref.shizuoka.jp/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99",
+      "resultCount": 1,
+      "fetches": [
+        {
+          "url": "https://opendata.pref.shizuoka.jp/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99",
+          "status": 200,
+          "sha256": "5b6dbfcbdb9c987e41929fab5ad86b7187d409bc5980012b2e0226e9f68d891a",
+          "fetchedAt": "2026-10-08T09:12:57.189Z",
+          "blockerCodes": []
+        }
+      ],
+      "scanScope": "One bounded catalog page; no site crawl."
+    },
+    {
+      "id": "supplement-4",
+      "provider": "official-catalog",
+      "region": "chugoku-shikoku",
+      "url": "https://www.okayama-opendata.jp/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99",
+      "resultCount": 0,
+      "fetches": [
+        {
+          "url": "https://www.okayama-opendata.jp/dataset/search/?s%5Bkeyword%5D=%E5%96%AB%E7%85%99",
+          "status": 404,
+          "sha256": null,
+          "fetchedAt": null,
+          "blockerCodes": [
+            "rawUnavailable"
+          ]
+        }
+      ],
+      "scanScope": "One bounded catalog page; no site crawl."
+    },
+    {
+      "id": "supplement-5",
+      "provider": "official-catalog",
+      "region": "kyushu-okinawa",
+      "url": "https://odcs.bodik.jp/470007/",
+      "resultCount": 0,
+      "fetches": [
+        {
+          "url": "https://odcs.bodik.jp/470007/",
+          "status": 200,
+          "sha256": "2ccc904c18a1286b1cf42c8c7a4d71beb0189b1df21c5bbcfd7fad40a228d2b5",
+          "fetchedAt": "2026-10-08T09:13:01.460Z",
+          "blockerCodes": []
+        }
+      ],
+      "scanScope": "One bounded catalog page; no site crawl."
+    },
+    {
+      "id": "arcgis-diversify",
+      "provider": "arcgis",
+      "region": "nationwide",
+      "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=title%3A%E5%96%AB%E7%85%99%E6%89%80+AND+type%3A%22Feature+Service%22+AND+NOT+owner%3Ayasunaga.takashi&num=20&start=1",
+      "resultCount": 3,
+      "total": 3,
+      "truncated": false,
+      "fetches": [
+        {
+          "url": "https://www.arcgis.com/sharing/rest/search?f=json&q=title%3A%E5%96%AB%E7%85%99%E6%89%80+AND+type%3A%22Feature+Service%22+AND+NOT+owner%3Ayasunaga.takashi&num=20&start=1",
+          "status": 200,
+          "sha256": "5a6166697abb992e2d15c31f29238ba44926b65194f6ba6b1242632e6a438333",
+          "fetchedAt": "2026-10-08T09:15:03.635Z",
+          "blockerCodes": []
+        }
+      ],
+      "scanScope": "One additional page excluding dominant route owner; no pagination."
+    }
+  ],
+  "candidates": [
+    {
+      "reference": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+      "provider": "bodik",
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "region": "kanto",
+      "publisher": "131067_東京都台東区",
+      "dataset": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+      "resourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+      "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000255",
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "licenseId": "CC-BY-4.0",
+          "licenseName": "CC-BY-4.0",
+          "licenseUrl": null,
+          "resourceLicense": null,
+          "licenses": [],
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [],
+        "attributions": [],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_EXISTING_SOURCE_OR_HISTORICAL_RESOURCE",
+      "blockerCodes": [
+        "existingSourceScope",
+        "notANewSource",
+        "rawUnavailable"
+      ],
+      "nextAction": "Use the existing source release-review workflow if publisher supplies a changed current release; no repinning in this batch.",
+      "identityCheck": {
+        "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+        "status": 404,
+        "sha256": null,
+        "byteLength": null,
+        "fetchedAt": null,
+        "blockerCodes": [
+          "rawUnavailable"
+        ],
+        "prior": [],
+        "samePriorRaw": false
+      },
+      "catalogObservations": [
+        {
+          "provider": "bodik",
+          "scan": 0,
+          "publisher": "131067_東京都台東区",
+          "datasetId": "e045b85f-6bbd-4b25-a196-f191309c0f33",
+          "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131067_東京都台東区",
+            "metadata": "131067_東京都台東区",
+            "attributions": []
+          }
+        },
+        {
+          "provider": "ckan",
+          "scan": 5,
+          "publisher": "台東区",
+          "datasetId": "e045b85f-6bbd-4b25-a196-f191309c0f33",
+          "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "台東区",
+            "metadata": "台東区",
+            "attributions": []
+          }
+        }
+      ],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "provider": "bodik",
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "region": "kanto",
+      "publisher": "131083_東京都江東区",
+      "dataset": "公共喫煙所一覧 — 公共喫煙所一覧（駅前）",
+      "resourceUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "licenseId": "CC-BY-4.0",
+          "licenseName": "CC-BY-4.0",
+          "licenseUrl": null,
+          "resourceLicense": null,
+          "licenses": [],
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [],
+        "attributions": [],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_EXISTING_SOURCE_OR_HISTORICAL_RESOURCE",
+      "blockerCodes": [
+        "existingSourceScope",
+        "notANewSource"
+      ],
+      "nextAction": "Use the existing source release-review workflow if publisher supplies a changed current release; no repinning in this batch.",
+      "identityCheck": {
+        "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+        "status": 200,
+        "sha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d",
+        "byteLength": 314,
+        "fetchedAt": "2026-10-08T09:19:29.700Z",
+        "blockerCodes": [],
+        "prior": [],
+        "samePriorRaw": false
+      },
+      "catalogObservations": [
+        {
+          "provider": "bodik",
+          "scan": 0,
+          "publisher": "131083_東京都江東区",
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131083_東京都江東区",
+            "metadata": "131083_東京都江東区",
+            "attributions": []
+          }
+        },
+        {
+          "provider": "ckan",
+          "scan": 5,
+          "publisher": "江東区",
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "江東区",
+            "metadata": "江東区",
+            "attributions": []
+          }
+        }
+      ],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+      "provider": "bodik",
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "region": "kanto",
+      "publisher": "131083_東京都江東区",
+      "dataset": "公共喫煙所一覧 — 公共喫煙所一覧（公園）",
+      "resourceUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+      "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "licenseId": "CC-BY-4.0",
+          "licenseName": "CC-BY-4.0",
+          "licenseUrl": null,
+          "resourceLicense": null,
+          "licenses": [],
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [],
+        "attributions": [],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_BLOCKED_RESOURCE",
+      "blockerCodes": [
+        "existingOperationConflict"
+      ],
+      "nextAction": "Retain prior block until publisher resolves current-operation conflict.",
+      "identityCheck": {
+        "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+        "status": 200,
+        "sha256": "9a07c95d2c6d9085c2b4b80f5105b9dffbfc3e9e323a68ec158e56fe3a5b8257",
+        "byteLength": 223,
+        "fetchedAt": "2026-10-08T09:19:31.398Z",
+        "blockerCodes": [],
+        "prior": [
+          {
+            "file": "2026-10-08-open-provider-run.json",
+            "sha256": "9a07c95d2c6d9085c2b4b80f5105b9dffbfc3e9e323a68ec158e56fe3a5b8257"
+          }
+        ],
+        "samePriorRaw": true
+      },
+      "catalogObservations": [
+        {
+          "provider": "bodik",
+          "scan": 0,
+          "publisher": "131083_東京都江東区",
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131083_東京都江東区",
+            "metadata": "131083_東京都江東区",
+            "attributions": []
+          }
+        },
+        {
+          "provider": "ckan",
+          "scan": 5,
+          "publisher": "江東区",
+          "datasetId": "c5d52986-777a-42df-8c86-1e67f6d90732",
+          "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "クリエイティブ・コモンズ 表示（CC BY）",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "江東区",
+            "metadata": "江東区",
+            "attributions": []
+          }
+        }
+      ],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv",
+      "provider": "bodik",
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "region": "kanto",
+      "publisher": "131032_東京都港区",
+      "dataset": "指定喫煙場所一覧 — 指定喫煙場所一覧",
+      "resourceUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv",
+      "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "licenseId": "cc-by",
+          "licenseName": "Creative Commons Attribution",
+          "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+          "resourceLicense": null,
+          "licenses": [],
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [],
+        "attributions": [],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_EXISTING_SOURCE_OR_HISTORICAL_RESOURCE",
+      "blockerCodes": [
+        "existingSourceScope",
+        "notANewSource",
+        "accessBlocked"
+      ],
+      "nextAction": "Use the existing source release-review workflow if publisher supplies a changed current release; no repinning in this batch.",
+      "identityCheck": {
+        "url": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv",
+        "status": 403,
+        "sha256": null,
+        "byteLength": null,
+        "fetchedAt": null,
+        "blockerCodes": [
+          "accessBlocked"
+        ],
+        "prior": [],
+        "samePriorRaw": false
+      },
+      "catalogObservations": [
+        {
+          "provider": "bodik",
+          "scan": 0,
+          "publisher": "131032_東京都港区",
+          "datasetId": "29ded576-f3a0-4bf9-83a3-a51d6954d458",
+          "resourceId": "5b27f9e3-3c7c-48bc-820a-594e417a219a",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "cc-by",
+            "licenseName": "Creative Commons Attribution",
+            "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131032_東京都港区",
+            "metadata": "環境リサイクル支援部環境課",
+            "attributions": []
+          }
+        }
+      ],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json",
+      "provider": "bodik",
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "region": "kanto",
+      "publisher": "131032_東京都港区",
+      "dataset": "指定喫煙場所一覧 — 指定喫煙場所一覧",
+      "resourceUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json",
+      "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "licenseId": "cc-by",
+          "licenseName": "Creative Commons Attribution",
+          "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+          "resourceLicense": null,
+          "licenses": [],
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [],
+        "attributions": [],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_EXISTING_SOURCE_OR_HISTORICAL_RESOURCE",
+      "blockerCodes": [
+        "existingSourceScope",
+        "notANewSource",
+        "accessBlocked"
+      ],
+      "nextAction": "Use the existing source release-review workflow if publisher supplies a changed current release; no repinning in this batch.",
+      "identityCheck": {
+        "url": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json",
+        "status": 403,
+        "sha256": null,
+        "byteLength": null,
+        "fetchedAt": null,
+        "blockerCodes": [
+          "accessBlocked"
+        ],
+        "prior": [],
+        "samePriorRaw": false
+      },
+      "catalogObservations": [
+        {
+          "provider": "bodik",
+          "scan": 0,
+          "publisher": "131032_東京都港区",
+          "datasetId": "29ded576-f3a0-4bf9-83a3-a51d6954d458",
+          "resourceId": "6b0b7ea6-c898-4422-8e75-b9722806a9f1",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "cc-by",
+            "licenseName": "Creative Commons Attribution",
+            "licenseUrl": "http://www.opendefinition.org/licenses/cc-by",
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131032_東京都港区",
+            "metadata": "環境リサイクル支援部環境課",
+            "attributions": []
+          }
+        }
+      ],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+      "provider": "bodik",
+      "providerRole": "CANONICAL_CANDIDATE_PROVIDER",
+      "region": "kanto",
+      "publisher": "131067_東京都台東区",
+      "dataset": "公衆喫煙所（区設置分） — 公衆喫煙所（区設置分）",
+      "resourceUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+      "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000110",
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "licenseId": "CC-BY-4.0",
+          "licenseName": "CC-BY-4.0",
+          "licenseUrl": null,
+          "resourceLicense": null,
+          "licenses": [],
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [],
+        "attributions": [],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_EXISTING_SOURCE_OR_HISTORICAL_RESOURCE",
+      "blockerCodes": [
+        "existingSourceScope",
+        "notANewSource",
+        "rawUnavailable"
+      ],
+      "nextAction": "Use the existing source release-review workflow if publisher supplies a changed current release; no repinning in this batch.",
+      "identityCheck": {
+        "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+        "status": 404,
+        "sha256": null,
+        "byteLength": null,
+        "fetchedAt": null,
+        "blockerCodes": [
+          "rawUnavailable"
+        ],
+        "prior": [],
+        "samePriorRaw": false
+      },
+      "catalogObservations": [
+        {
+          "provider": "bodik",
+          "scan": 0,
+          "publisher": "131067_東京都台東区",
+          "datasetId": "a6c22ed8-444c-460b-8100-1265a00b1358",
+          "resourceId": "f60b6998-8d0a-4cfb-bd35-c2da4a56d05f",
+          "rights": {
+            "status": "unknown",
+            "licenseId": "CC-BY-4.0",
+            "licenseName": "CC-BY-4.0",
+            "licenseUrl": null,
+            "resourceLicense": null,
+            "licenses": [],
+            "commercialReuse": "unknown",
+            "redistribution": "unknown"
+          },
+          "attribution": {
+            "publisher": "131067_東京都台東区",
+            "metadata": "131067_東京都台東区",
+            "attributions": []
+          }
+        }
+      ],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:99e79471c90e3bf6a2eb3a12",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 99e79471c90e3bf6a2eb3a12",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:52067dd9217ecacbc786c88b",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 52067dd9217ecacbc786c88b",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:656d87a96823af664fffe5f7",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 656d87a96823af664fffe5f7",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:2455da1e4dbefd6c90e352cd",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 2455da1e4dbefd6c90e352cd",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "公共データ利用規約（第1.0版, PDL1.0）"
+        ],
+        "attributions": [
+          "厚生労働省 食品衛生申請等システム（オープンデータ）"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:6d572476925cc8114fba1996",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 6d572476925cc8114fba1996",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0",
+          "公共データ利用規約（第1.0版, PDL1.0）"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org",
+          "厚生労働省 食品衛生申請等システム（オープンデータ）"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:410e96486d7758510af68cf3",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 410e96486d7758510af68cf3",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:0d0a4ec6775b1f02b994913f",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 0d0a4ec6775b1f02b994913f",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:8843d4a5d6c1e68e83685f84",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 8843d4a5d6c1e68e83685f84",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "公共データ利用規約（第1.0版, PDL1.0）"
+        ],
+        "attributions": [
+          "厚生労働省 食品衛生申請等システム（オープンデータ）"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:e320cbe76951d954347fa7be",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead e320cbe76951d954347fa7be",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:9fcc1bb7893a97c4cec7efcc",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 9fcc1bb7893a97c4cec7efcc",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:a9f58b92df4cf1b9a27d5f7e",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead a9f58b92df4cf1b9a27d5f7e",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:207edf6614103afdc6e93993",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 207edf6614103afdc6e93993",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:8997e1260c845643cad731e5",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 8997e1260c845643cad731e5",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:0f7e0c04235a3ed2db236bad",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 0f7e0c04235a3ed2db236bad",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:3bfc4366d08e59552312d841",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 3bfc4366d08e59552312d841",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:5a6528a6eb6f003352402ba3",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 5a6528a6eb6f003352402ba3",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:416441b1ef2b2ee63641f522",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 416441b1ef2b2ee63641f522",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:39a0a40a4133509ff07abaf3",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 39a0a40a4133509ff07abaf3",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:937de7ecca7c7657badf3b11",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 937de7ecca7c7657badf3b11",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CC BY 4.0"
+        ],
+        "attributions": [
+          "京都市食品営業許可施設一覧（令和3年3月末時点）"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "openpoi:9257604a74febb2b448d0b09",
+      "provider": "openpoi",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unreviewed upstream authority",
+      "dataset": "opaque POI lead 9257604a74febb2b448d0b09",
+      "resourceUrl": "https://api.openpoiapi.com/v1/search?q=%E5%96%AB%E7%85%99%E6%89%80&limit=20",
+      "datasetUrl": null,
+      "license": {
+        "status": "unknown",
+        "metadata": {
+          "status": "unknown",
+          "commercialReuse": "unknown",
+          "redistribution": "unknown"
+        },
+        "licenses": [
+          "CDLA-Permissive-2.0",
+          "公共データ利用規約（第1.0版, PDL1.0）"
+        ],
+        "attributions": [
+          "Overture Maps Foundation, overturemaps.org",
+          "厚生労働省 食品衛生申請等システム（オープンデータ）"
+        ],
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unknown",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_UNCHANGED_DISCOVERY_ONLY",
+      "blockerCodes": [
+        "discoveryOnlyProvider",
+        "officialResourceRequired"
+      ],
+      "nextAction": "Find independently reusable official smoking-place resource; do not repeat unchanged provider lead review.",
+      "identityCheck": null,
+      "catalogObservations": [],
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:386a427b94044228baa18d58865348c7",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅南口喫煙所前人口別ルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅南口喫煙所前人口別ルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=386a427b94044228baa18d58865348c7",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:ac7710aea5f649d498584f8a4e9c2403",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "最短_上熊谷駅_喫煙所前",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/最短_上熊谷駅_喫煙所前/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=ac7710aea5f649d498584f8a4e9c2403",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:de71900118a44feeb6df97ae06bd7eac",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口喫煙所前_人口ルート統合v2",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口喫煙所前_人口ルート統合v2/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=de71900118a44feeb6df97ae06bd7eac",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:d01384b91d9d4917a345baa5a5c25a06",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "最短_南口_喫煙所前",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/最短_南口_喫煙所前/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=d01384b91d9d4917a345baa5a5c25a06",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:66be5c72e0ea45d7a8316414e5226d37",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口喫煙所前_暑密_曇りルート統合v2",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口喫煙所前_暑密_曇りルート統合v2/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=66be5c72e0ea45d7a8316414e5226d37",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:e48a4bd8f0504f32a9840466dd54fe26",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "上熊谷駅喫煙所前_暑密_曇りルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/上熊谷駅喫煙所前_暑密_曇りルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=e48a4bd8f0504f32a9840466dd54fe26",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:6778411aad8946778f852f37ff129eaf",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "上熊谷駅喫煙所前_暑密晴れルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/上熊谷駅喫煙所前_暑密晴れルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=6778411aad8946778f852f37ff129eaf",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:e3bf49328a75465b91b16e0bf75ab114",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅南口喫煙所前_暑密_曇りルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅南口喫煙所前_暑密_曇りルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=e3bf49328a75465b91b16e0bf75ab114",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:89007071c5654f8cbf624e8482cb269c",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "北口_喫煙所最短",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/北口_喫煙所最短/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=89007071c5654f8cbf624e8482cb269c",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:98a1c7bf28934734ba84a09b9c92c246",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口喫煙所前_暑密_晴れルート統合v2",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口喫煙所前_暑密_晴れルート統合v2/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=98a1c7bf28934734ba84a09b9c92c246",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:5bf79f2b8d7d4b53a7e66c82485a1e5e",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "上熊谷駅喫煙所前人口別ルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/上熊谷駅喫煙所前人口別ルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=5bf79f2b8d7d4b53a7e66c82485a1e5e",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:218f07d5851a4fe399991657505a24f5",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅南口喫煙所前_暑密晴れルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅南口喫煙所前_暑密晴れルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=218f07d5851a4fe399991657505a24f5",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:f542df71b1c24c45a5619e85ba5e8850",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口喫煙所前人口別ルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口喫煙所前人口別ルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=f542df71b1c24c45a5619e85ba5e8850",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:c4e4438d23e8471995a7d3ccc3259036",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "最短_北口_喫煙所前",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/最短_北口_喫煙所前/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=c4e4438d23e8471995a7d3ccc3259036",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:45f9be5519d14061b55bce212e765569",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口喫煙所前_暑密晴れルート統合v2",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口喫煙所前_暑密晴れルート統合v2/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=45f9be5519d14061b55bce212e765569",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:46b52c9693f84067a605ecb25a526e09",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口喫煙所前_暑密_曇りルート統合",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口喫煙所前_暑密_曇りルート統合/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=46b52c9693f84067a605ecb25a526e09",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:cfaaf790b91e4d81a37f40d37c08a556",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "上熊谷駅ー喫煙所前",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/上熊谷駅ー喫煙所前/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=cfaaf790b91e4d81a37f40d37c08a556",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:8650cadcbbd4473e8eb896571fbdff6d",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅南口ー喫煙所前",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅南口ー喫煙所前/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=8650cadcbbd4473e8eb896571fbdff6d",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:f5db79c736394bb9a737233dcddff6c2",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "熊谷駅北口ー喫煙所前",
+      "resourceUrl": "https://services5.arcgis.com/levBgljKsE1AVKdK/arcgis/rest/services/熊谷駅北口ー喫煙所前/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=f5db79c736394bb9a737233dcddff6c2",
+      "license": {
+        "status": "unknown",
+        "metadata": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_ROUTE_KEYWORD_ONLY",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:23534bd4681b4cbab53abd995d62397c",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kyushu-okinawa",
+      "publisher": "unverified; municipality/operator chain required",
+      "dataset": "kitsuensho",
+      "resourceUrl": "https://services2.arcgis.com/erY1A5Xa80fBe1ys/arcgis/rest/services/kitsuensho/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=23534bd4681b4cbab53abd995d62397c",
+      "license": {
+        "status": "unknown",
+        "metadata": null,
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "DEEP_REVIEW_BLOCKED",
+      "blockerCodes": [
+        "publisherAuthorityUnknown",
+        "exactLicenseUnknown",
+        "coordinateAuthorityUnknown",
+        "currentOperationUnknown"
+      ],
+      "nextAction": "Obtain original official smoking-site resource, exact reusable terms and current operation evidence.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:c4550fb966f34335abbc28207f638980",
+      "provider": "official-arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "Shibuya catalog context; resource review not completed",
+      "dataset": "分煙対策 指導と過料処分の活動実績",
+      "resourceUrl": "https://services3.arcgis.com/UtdeFTavkHfI94t2/arcgis/rest/services/131130_分煙対策_指導と過料処分の活動実績/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=c4550fb966f34335abbc28207f638980",
+      "license": {
+        "status": "unknown",
+        "metadata": "<p>CC BY</p>",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_NON_PLACE_SURVEY_OR_STATISTICS",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:e31923c52f77402ca75fadfac9c40be5",
+      "provider": "official-arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "kanto",
+      "publisher": "Shibuya catalog context; resource review not completed",
+      "dataset": "R4渋谷区健康づくり区民意識調査集計表",
+      "resourceUrl": "https://services3.arcgis.com/UtdeFTavkHfI94t2/arcgis/rest/services/131130_kenkouzukuri_kuminishikichousa/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=e31923c52f77402ca75fadfac9c40be5",
+      "license": {
+        "status": "unknown",
+        "metadata": "<p>CC BY</p>",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_NON_PLACE_SURVEY_OR_STATISTICS",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:1b2ed65c2bcf4d538bc501e0bde1a17a",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "unassigned",
+      "publisher": "unverified ArcGIS contributor",
+      "dataset": "学内喫煙所設置へのアンケート_form",
+      "resourceUrl": "https://services1.arcgis.com/vtIFKqGmW1wohBxY/arcgis/rest/services/survey123_25e150e8e6b74d9683c562c163df9536_form/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=1b2ed65c2bcf4d538bc501e0bde1a17a",
+      "license": {
+        "status": "unknown",
+        "metadata": null,
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "EXCLUDED_NON_PLACE_SURVEY_OR_STATISTICS",
+      "blockerCodes": [
+        "noSmokingPlaceAuthority",
+        "keywordIsNotExistenceEvidence"
+      ],
+      "nextAction": "Exclude from canonical ingestion; route destinations/survey titles do not prove smoking permission.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:665ad32d7bcb4157aa9c34522d467f51",
+      "provider": "arcgis",
+      "providerRole": "DISCOVERY_ONLY_PROVIDER",
+      "region": "chubu",
+      "publisher": "unverified; municipality/operator chain required",
+      "dataset": "のんほいマップ 売店・休憩所・喫煙所（csv）",
+      "resourceUrl": "https://services.arcgis.com/sWN6tuO4aaMSCOhe/arcgis/rest/services/のんほいマップ_売店・休憩所・喫煙所（csv）/FeatureServer",
+      "datasetUrl": "https://www.arcgis.com/home/item.html?id=665ad32d7bcb4157aa9c34522d467f51",
+      "license": {
+        "status": "unknown",
+        "metadata": null,
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unreviewed",
+        "providerPermissionIsResourcePermission": false
+      },
+      "coordinates": {
+        "availability": "unreviewed",
+        "authority": "unreviewed",
+        "valuesStored": false
+      },
+      "classification": "DEEP_REVIEW_BLOCKED",
+      "blockerCodes": [
+        "publisherAuthorityUnknown",
+        "exactLicenseUnknown",
+        "coordinateAuthorityUnknown",
+        "currentOperationUnknown"
+      ],
+      "nextAction": "Obtain original official smoking-site resource, exact reusable terms and current operation evidence.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    }
+  ],
+  "deepReviews": [
+    {
+      "reference": "arcgis:23534bd4681b4cbab53abd995d62397c",
+      "reviewedBy": "Codex (AI-assisted primary-source inspection; no source approval)",
+      "reviewedOn": "2026-10-08",
+      "classification": "BLOCKED",
+      "officialPublisher": {
+        "status": "unknown",
+        "finding": "Account name is not proof of Kitakyushu municipal authority; item is a collaborative survey app."
+      },
+      "smokingExistence": {
+        "status": "thirdPartySurveySchemaOnly",
+        "sampleRows": 20,
+        "smokingNameMatches": null,
+        "completeSample": false,
+        "acceptedEvidence": false
+      },
+      "exactResourceUrl": "https://services2.arcgis.com/erY1A5Xa80fBe1ys/arcgis/rest/services/kitsuensho/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=20",
+      "license": {
+        "status": "unknown",
+        "licenseInfo": "",
+        "serviceCopyright": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unknown",
+        "ordinaryPageLicenseExpanded": false
+      },
+      "coordinates": {
+        "geometryType": "esriGeometryPoint",
+        "declaredCRS": {
+          "wkid": 102100,
+          "latestWkid": 3857
+        },
+        "attributeColumns": [],
+        "publisherAuthority": "unknown",
+        "coordinateSemantics": "unreviewed third-party points; no approved smoking-site coordinate authority",
+        "geocodingPerformed": false,
+        "coordinateValuesStored": false
+      },
+      "currentOperation": {
+        "status": "unknown",
+        "finding": "Survey attributes include 2014-era dates; 2015 item modification is not current-operation evidence."
+      },
+      "updateCadence": "unknown",
+      "maintainability": "No reviewed original publisher export/update contract",
+      "evidence": [
+        {
+          "url": "https://www.arcgis.com/sharing/rest/content/items/23534bd4681b4cbab53abd995d62397c?f=json",
+          "status": 200,
+          "sha256": "0813e4d35489d9bd4d3e331aca0e75a49bad031da0671ece513242b1ce46e14f",
+          "byteLength": 1346,
+          "fetchedAt": "2026-10-08T09:16:01.840Z",
+          "blockerCodes": []
+        },
+        {
+          "url": "https://services2.arcgis.com/erY1A5Xa80fBe1ys/arcgis/rest/services/kitsuensho/FeatureServer?f=json",
+          "status": 200,
+          "sha256": "675721a52ac48ba42dca05e8a7b01001bf145946ebd9e89ae559702df7c793e2",
+          "byteLength": 3178,
+          "fetchedAt": "2026-10-08T09:16:02.679Z",
+          "blockerCodes": []
+        },
+        {
+          "url": "https://services2.arcgis.com/erY1A5Xa80fBe1ys/arcgis/rest/services/kitsuensho/FeatureServer/0?f=json",
+          "status": 200,
+          "sha256": "81c167c3f25e2350434d6544b1be433c4798c01aa03f6b4fd48ba28c2ab23578",
+          "byteLength": 14574,
+          "fetchedAt": "2026-10-08T09:16:04.411Z",
+          "blockerCodes": []
+        },
+        {
+          "url": "https://services2.arcgis.com/erY1A5Xa80fBe1ys/arcgis/rest/services/kitsuensho/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=20",
+          "status": 200,
+          "sha256": "4552d99ca650a5de1c9b2c5b2a5555fb33ea8c0dd7432d5d16260f6c5eb47b12",
+          "byteLength": 6867,
+          "fetchedAt": "2026-10-08T09:16:06.206Z",
+          "blockerCodes": []
+        }
+      ],
+      "officialFollowupReferences": [
+        {
+          "url": "https://www.city.kitakyushu.lg.jp/category/90001095.html",
+          "finding": "Official walking-smoking guidance; no link authorizing the discovered survey service established."
+        }
+      ],
+      "blockerCodes": [
+        "publisherAuthorityUnknown",
+        "exactLicenseUnknown",
+        "coordinateAuthorityUnknown",
+        "currentOperationUnknown",
+        "updateCadenceUnknown"
+      ],
+      "nextAction": "Seek an original publisher-supplied smoking-point resource with scoped reusable rights/current operation; do not import these third-party values.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    },
+    {
+      "reference": "arcgis:665ad32d7bcb4157aa9c34522d467f51",
+      "reviewedBy": "Codex (AI-assisted primary-source inspection; no source approval)",
+      "reviewedOn": "2026-10-08",
+      "classification": "BLOCKED",
+      "officialPublisher": {
+        "status": "unknown",
+        "finding": "Hosted by a university account; Toyohashi/operator provenance not established."
+      },
+      "smokingExistence": {
+        "status": "thirdPartyExplicitNames",
+        "sampleRows": 18,
+        "smokingNameMatches": 2,
+        "completeSample": true,
+        "acceptedEvidence": false
+      },
+      "exactResourceUrl": "https://services.arcgis.com/sWN6tuO4aaMSCOhe/arcgis/rest/services/のんほいマップ_売店・休憩所・喫煙所（csv）/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=20",
+      "license": {
+        "status": "unknown",
+        "licenseInfo": null,
+        "serviceCopyright": "",
+        "commercialUse": "unknown",
+        "redistribution": "unknown",
+        "derivation": "unknown",
+        "attribution": "unknown",
+        "ordinaryPageLicenseExpanded": false
+      },
+      "coordinates": {
+        "geometryType": "esriGeometryPoint",
+        "declaredCRS": {
+          "wkid": 102100,
+          "latestWkid": 3857
+        },
+        "attributeColumns": [
+          "緯度",
+          "経度"
+        ],
+        "publisherAuthority": "unknown",
+        "coordinateSemantics": "unreviewed third-party points; no approved smoking-site coordinate authority",
+        "geocodingPerformed": false,
+        "coordinateValuesStored": false
+      },
+      "currentOperation": {
+        "status": "unknown",
+        "finding": "Layer names a 2019-01-12 inventory. 2026 upload/modified metadata and an operating park do not verify these two smoking points."
+      },
+      "updateCadence": "unknown",
+      "maintainability": "No reviewed original publisher export/update contract",
+      "evidence": [
+        {
+          "url": "https://www.arcgis.com/sharing/rest/content/items/665ad32d7bcb4157aa9c34522d467f51?f=json",
+          "status": 200,
+          "sha256": "20e65f04236c481bd90890f0d8db7431d40da88dfc3bd66cc60621b250ce07d2",
+          "byteLength": 1324,
+          "fetchedAt": "2026-10-08T09:16:06.525Z",
+          "blockerCodes": []
+        },
+        {
+          "url": "https://services.arcgis.com/sWN6tuO4aaMSCOhe/arcgis/rest/services/のんほいマップ_売店・休憩所・喫煙所（csv）/FeatureServer?f=json",
+          "status": 200,
+          "sha256": "c9ecc50b5d386e71873b93a838b971f2abd6db16474f175878da12a2ec33e655",
+          "byteLength": 3115,
+          "fetchedAt": "2026-10-08T09:16:07.230Z",
+          "blockerCodes": []
+        },
+        {
+          "url": "https://services.arcgis.com/sWN6tuO4aaMSCOhe/arcgis/rest/services/のんほいマップ_売店・休憩所・喫煙所（csv）/FeatureServer/0?f=json",
+          "status": 200,
+          "sha256": "3caf3e5dcf30bd212cbe992ddebbbec3ee488c4dac16efc68c0c74169d3fd90a",
+          "byteLength": 10940,
+          "fetchedAt": "2026-10-08T09:16:08.952Z",
+          "blockerCodes": []
+        },
+        {
+          "url": "https://services.arcgis.com/sWN6tuO4aaMSCOhe/arcgis/rest/services/のんほいマップ_売店・休憩所・喫煙所（csv）/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=20",
+          "status": 200,
+          "sha256": "77c5af64d9bcaf88bfb3259444d434764fd0cc43f73a96498a28419fa73cd60f",
+          "byteLength": 6214,
+          "fetchedAt": "2026-10-08T09:16:10.813Z",
+          "blockerCodes": []
+        }
+      ],
+      "officialFollowupReferences": [
+        {
+          "url": "https://www.city.toyohashi.lg.jp/12037.htm",
+          "finding": "Official host facility reference; does not license the hosted service."
+        },
+        {
+          "url": "https://www.nonhoi.jp/information/",
+          "finding": "Current host operation and all-rights-reserved footer; no license extension or smoking-hours inference."
+        },
+        {
+          "url": "https://www.nonhoi.jp/gps/",
+          "finding": "Image-based park map page; no coordinate extraction."
+        }
+      ],
+      "blockerCodes": [
+        "publisherAuthorityUnknown",
+        "exactLicenseUnknown",
+        "coordinateAuthorityUnknown",
+        "currentOperationUnknown",
+        "updateCadenceUnknown"
+      ],
+      "nextAction": "Seek an original publisher-supplied smoking-point resource with scoped reusable rights/current operation; do not import these third-party values.",
+      "publicationStatus": "blocked",
+      "productionApproval": false
+    }
+  ],
+  "rightsReferences": [
+    {
+      "url": "https://docs.openpoiapi.com/legal.html",
+      "finding": "API commercial access does not waive source-specific record obligations."
+    },
+    {
+      "url": "https://docs.overturemaps.org/attribution/",
+      "finding": "Preserve per-source licenses/notices; Places permissiveness is not smoking evidence."
+    },
+    {
+      "url": "https://cdla.dev/permissive-2-0/",
+      "finding": "Retain agreement when sharing Data; no new CDLA fixture/data redistribution added."
+    },
+    {
+      "url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "finding": "Preserve applicable license/notices and source obligations; no blanket substitution for CC/CDLA."
+    }
+  ],
+  "rightsPolicy": {
+    "CC_BY": "Exact applicability, publisher attribution and change/license information require resource review.",
+    "CC_BY_SA": "Retain share-alike obligations; architecture/legal review before adoption.",
+    "CC0": "Do not infer smoking existence, coordinate authority or other rights from CC0.",
+    "ODbL": "Existing ADR-0010 canonical-publication block remains.",
+    "CDLA": "Retain exact agreement/source chain independently; never assume missing source license permissive.",
+    "Apache": "Retain applicable upstream license, notices and attribution obligations; distinguish from CDLA/CC."
+  },
+  "safety": {
+    "approvalAutomated": false,
+    "productionApproval": false,
+    "productionMutation": false,
+    "remoteD1": false,
+    "geocoding": false,
+    "userLocationOrQueriesSent": false,
+    "credentialsUsed": false,
+    "rawCorpusCommitted": false,
+    "apiSchemaAppleRegistryChanged": false
+  },
+  "nextAction": "Only resume implementation for an independently reviewed official resource satisfying every gate; provider outage/zero results do not alter approval.",
+  "onboarding": {
+    "approvalAutomated": false,
+    "productionApproval": false,
+    "existingBaselineStates": {
+      "taito-public-smoking-areas": "LOCAL_PIPELINE_READY",
+      "osaka-designated-smoking-areas": "LOCAL_PIPELINE_READY",
+      "koto-station-smoking-areas": "LOCAL_PIPELINE_READY",
+      "musashino-public-smoking-areas": "LOCAL_PIPELINE_READY",
+      "minato-designated-smoking-areas": "LOCAL_PIPELINE_READY",
+      "kyoto-public-smoking-places": "LOCAL_PIPELINE_READY"
+    },
+    "newReviewPackets": [
+      {
+        "sourceId": "discovery-e863dc0ff138bed5",
+        "state": "BLOCKED",
+        "publicationStatus": "blocked",
+        "productionApproval": false,
+        "resourceUrl": "https://services2.arcgis.com/erY1A5Xa80fBe1ys/arcgis/rest/services/kitsuensho/FeatureServer",
+        "blockers": [
+          "publisherAuthorityUnknown",
+          "exactLicenseUnknown",
+          "coordinateAuthorityUnknown",
+          "currentOperationUnknown",
+          "nonCanonicalProvider",
+          "externalReferenceOnly",
+          "officialPublisherReviewRequired",
+          "smokingExistenceReviewRequired",
+          "rightsReviewRequired",
+          "coordinateAuthorityReviewRequired",
+          "operationReviewRequired",
+          "truncatedDiscovery"
+        ],
+        "nextAction": "Resolve listed human review gates; do not implement or publish from signals."
+      },
+      {
+        "sourceId": "discovery-c352c872e1fabca8",
+        "state": "BLOCKED",
+        "publicationStatus": "blocked",
+        "productionApproval": false,
+        "resourceUrl": "https://services.arcgis.com/sWN6tuO4aaMSCOhe/arcgis/rest/services/のんほいマップ_売店・休憩所・喫煙所（csv）/FeatureServer",
+        "blockers": [
+          "publisherAuthorityUnknown",
+          "exactLicenseUnknown",
+          "coordinateAuthorityUnknown",
+          "currentOperationUnknown",
+          "nonCanonicalProvider",
+          "externalReferenceOnly",
+          "officialPublisherReviewRequired",
+          "smokingExistenceReviewRequired",
+          "rightsReviewRequired",
+          "coordinateAuthorityReviewRequired",
+          "operationReviewRequired"
+        ],
+        "nextAction": "Resolve listed human review gates; do not implement or publish from signals."
+      }
+    ]
+  }
+}
