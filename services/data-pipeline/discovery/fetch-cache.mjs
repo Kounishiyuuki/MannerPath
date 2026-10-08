@@ -1,9 +1,29 @@
+import {createReadStream} from 'node:fs';
 import {mkdir, readFile, writeFile,rename} from 'node:fs/promises';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+// One byte boundary for network streams, cached bodies, files and injected transport bytes.
+export function assertByteLimit(bytes,maxBytes) {
+ if(!Number.isSafeInteger(maxBytes)||maxBytes<1)throw Error('Invalid byte limit');
+ if(!(bytes instanceof Uint8Array))throw Error('Expected byte payload');
+ if(bytes.byteLength>maxBytes){const error=Error('Payload exceeds configured byte limit');error.code='payloadTooLarge';throw error;}
+ return bytes;
+}
+async function readBoundedBytes(stream,maxBytes) {
+ const chunks=[];let size=0;
+ for await(const chunk of stream){assertByteLimit(chunk,maxBytes);size+=chunk.byteLength;
+  if(size>maxBytes){const error=Error('Payload exceeds configured byte limit');error.code='payloadTooLarge';throw error;}
+  chunks.push(chunk);
+ }
+ return Buffer.concat(chunks);
+}
+export async function readBoundedFile(path,maxBytes) {
+ const stream=createReadStream(path,{highWaterMark:Math.min(maxBytes+1,64*1024)});
+ try{return await readBoundedBytes(stream,maxBytes);}finally{stream.destroy();}
+}
 export async function validatePublicUrl(url){
  const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol)||parsed.username||parsed.password)throw Error('Only unauthenticated public HTTP(S) URLs allowed');
  const host=parsed.hostname.replace(/^\[|\]$/g,'');if(host==='localhost'||host.endsWith('.localhost'))throw Error('Private destination forbidden');
@@ -23,7 +43,7 @@ export class FetchCache {
   async fetchOne(url,host,revalidate) {
     await mkdir(this.directory,{recursive:true}); this.stopInitialization??=(async()=>{try{const stored=JSON.parse(await readFile(join(this.directory,'stopped-hosts.json'),'utf8'));if(!stored||typeof stored!=='object'||Array.isArray(stored)||Object.values(stored).some(status=>status!==403&&status!==429))throw Error('Invalid persisted host-stop state');for(const [h,status] of Object.entries(stored))this.stopped.set(h,status);}catch(error){if(error.code!=='ENOENT')throw error;}})();await this.stopInitialization; const key=sha256(url); let entry;
     try {entry=JSON.parse(await readFile(join(this.directory,key+'.json'),'utf8'));} catch {}
-    if(entry?.sha256&&!revalidate) {try {const bytes=await readFile(join(this.directory,entry.sha256+'.bin')); if(sha256(bytes)===entry.sha256)return {...entry,bytes,cacheHit:true};}catch{}}
+    if(entry?.sha256&&!revalidate) {try {const bytes=await readBoundedFile(join(this.directory,entry.sha256+'.bin'),this.maxBytes); if(sha256(bytes)===entry.sha256)return {...entry,bytes,cacheHit:true};}catch(error){if(error.code==='payloadTooLarge')return this.recordFailure(url,{url,status:entry.status,blockerCodes:['payloadTooLarge'],error:error.message,maxBytes:this.maxBytes});}}
     if(this.stopped.has(host)) return this.recordFailure(url,{url,status:this.stopped.get(host),blockerCodes:[this.stopped.get(host)===429?'rateLimited':'accessBlocked'],hostStopped:true});
     try{await this.validateUrl(url);}catch(error){return {url,status:null,blockerCodes:['accessBlocked'],error:error.message};}
     for(let attempt=0;attempt<=this.retries;attempt++) {
@@ -35,12 +55,12 @@ export class FetchCache {
         const response=await this.fetchImpl(url,{headers,signal:controller.signal,redirect:'manual'}); this.last.set(host,this.now());
         if([301,302,303,307,308].includes(response.status)) return this.recordFailure(url,{url,status:response.status,redirectUrl:response.headers.get('location'),blockerCodes:['rawUnavailable']});
         if(response.status===403||response.status===429) {this.stopped.set(host,response.status); this.stopWrite=this.stopWrite.then(async()=>{const path=join(this.directory,'stopped-hosts.json');await writeFile(path+'.tmp',JSON.stringify(Object.fromEntries(this.stopped)));await rename(path+'.tmp',path);});await this.stopWrite; return this.recordFailure(url,{url,status:response.status,blockerCodes:[response.status===429?'rateLimited':'accessBlocked']});}
-        if(response.status===304&&entry?.sha256) {const bytes=await readFile(join(this.directory,entry.sha256+'.bin'));if(sha256(bytes)!==entry.sha256)throw Error('Cache hash mismatch'); return {...entry,bytes,cacheHit:true,revalidated:true};}
+        if(response.status===304&&entry?.sha256) {const bytes=await readBoundedFile(join(this.directory,entry.sha256+'.bin'),this.maxBytes);if(sha256(bytes)!==entry.sha256)throw Error('Cache hash mismatch'); return {...entry,bytes,cacheHit:true,revalidated:true};}
         if(!response.ok) {if(response.status>=500&&attempt<this.retries)continue;return this.recordFailure(url,{url,status:response.status,blockerCodes:['rawUnavailable']});}
-        const chunks=[];let size=0; for await(const chunk of response.body||[]) {size+=chunk.length;if(size>this.maxBytes){controller.abort();return this.recordFailure(url,{url,status:response.status,blockerCodes:['payloadTooLarge'],error:'Payload exceeds configured byte limit',maxBytes:this.maxBytes,etag:response.headers.get('etag'),lastModified:response.headers.get('last-modified'),contentLength:response.headers.get('content-length')});}chunks.push(chunk);}
-        const bytes=Buffer.concat(chunks);const result={url,status:response.status,sha256:sha256(bytes),etag:response.headers.get('etag'),lastModified:response.headers.get('last-modified'),contentType:response.headers.get('content-type'),fetchedAt:new Date(this.now()).toISOString()};
+        let bytes;try{bytes=await readBoundedBytes(response.body||[],this.maxBytes);}catch(error){if(error.code!=='payloadTooLarge')throw error;controller.abort();return this.recordFailure(url,{url,status:response.status,blockerCodes:['payloadTooLarge'],error:error.message,maxBytes:this.maxBytes,etag:response.headers.get('etag'),lastModified:response.headers.get('last-modified'),contentLength:response.headers.get('content-length')});}
+        const result={url,status:response.status,sha256:sha256(bytes),etag:response.headers.get('etag'),lastModified:response.headers.get('last-modified'),contentType:response.headers.get('content-type'),fetchedAt:new Date(this.now()).toISOString()};
         await writeFile(join(this.directory,result.sha256+'.bin'),bytes);await writeFile(join(this.directory,key+'.json'),JSON.stringify(result,null,2)+'\n');return {...result,bytes,cacheHit:false};
-      } catch(error) {this.last.set(host,this.now());if(attempt===this.retries)return this.recordFailure(url,{url,status:null,blockerCodes:['rawUnavailable'],error:error.message});} finally {clearTimeout(timer);}
+      } catch(error) {if(error.code==='payloadTooLarge')return this.recordFailure(url,{url,status:entry?.status??null,blockerCodes:['payloadTooLarge'],error:error.message,maxBytes:this.maxBytes});this.last.set(host,this.now());if(attempt===this.retries)return this.recordFailure(url,{url,status:null,blockerCodes:['rawUnavailable'],error:error.message});} finally {clearTimeout(timer);}
     }
   }
 }

@@ -235,3 +235,30 @@ test("actual discovery report target blockers and truncation survive onboarding 
   assert.ok(packet.blockers.includes("truncatedDiscovery"));
   assert.equal(packet.productionApproval, false);
 });
+
+test("provider metadata survives onboarding without provider permission becoming resource rights", () => {
+  const [candidate] = discoveryCandidates({
+    provider: { id: "bodik", role: "CANONICAL_CANDIDATE_PROVIDER", terms: { commercial: "resourceSpecific", storage: "resourceSpecific", redistribution: "resourceSpecific" } },
+    resources: [{ rawUrl: resourceUrl, publisher: "Example City", licenseMetadata: "CC BY 4.0", catalogObservations: [{ rights: { licenseUrl: "https://example.test/terms" } }] }],
+  });
+  const packet = evaluateCandidate(candidate);
+  assert.equal(packet.provider.id, "bodik");
+  assert.equal(packet.provider.rights?.commercial, "resourceSpecific");
+  assert.deepEqual(packet.provider.catalogObservations, [{ rights: { licenseUrl: "https://example.test/terms" } }]);
+  assert.equal(packet.rights.status, "RIGHTS_REVIEW_REQUIRED");
+  assert.equal(packet.coordinates.kind, "unknown");
+  assert.equal(packet.state, "BLOCKED");
+  assert.equal(packet.productionApproval, false);
+});
+
+test("discovery-only and coordinate-helper context cannot pass even a filled human metadata packet", () => {
+  for (const role of ["DISCOVERY_ONLY_PROVIDER", "COORDINATE_HELPER"] as const) {
+    const candidate = complete();
+    candidate.resource.providerRole = role;
+    const packet = evaluateCandidate(candidate);
+    assert.equal(packet.state, "BLOCKED");
+    assert.ok(packet.blockers.includes("nonCanonicalProvider"));
+    assert.equal(packet.publicationStatus, "blocked");
+  }
+  assert.deepEqual(discoveryCandidates({ provider: { id: "openpoi", role: "DISCOVERY_ONLY_PROVIDER", terms: { commercial: "permitted", storage: "permittedWithRecordLicenses", redistribution: "recordSpecific" } }, resources: [], leads: [{ name: "Example 喫煙所" }] }), []);
+});
