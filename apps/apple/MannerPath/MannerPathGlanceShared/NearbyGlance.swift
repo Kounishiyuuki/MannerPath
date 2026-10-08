@@ -16,6 +16,22 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
     // ADR-0012 existence tier raw value of the nearest place. Optional so a glance written by an older build decodes;
     // absent or unrecognised reads as unknown, never as confirmed.
     var existence: String? = nil
+    // ADR-0012 location precision raw value of the nearest place. Optional so a version 1 glance written before it
+    // existed still decodes; no version bump because older readers ignore the extra key.
+    var locationPrecision: String? = nil
+
+    /// How far the widget may trust the pin. Only the publisher's or a user's own point is exact; never inferred from
+    /// the evidence tier. Without the raw value (an older glance) only the old approximate flag is honoured and
+    /// everything else is unknown, never exact.
+    var precision: GlancePrecision {
+        switch locationPrecision {
+        case "publisherPoint", "communityPinned": .exact
+        case "areaApproximate": .approximate
+        case "reviewedDerived": .derived
+        case nil: locationIsApproximate == true ? .approximate : .unknown
+        default: .unknown
+        }
+    }
 
     /// ADR-0012 label for the widget, worded as in the app. Never above the evidence.
     var existenceLabel: String {
@@ -67,6 +83,7 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
     }
 }
 
+nonisolated enum GlancePrecision: Equatable { case exact, approximate, derived, unknown }
 nonisolated enum GlanceState: Equatable { case fresh, stale, empty, unavailable }
 nonisolated enum GlanceError: Error { case invalid }
 

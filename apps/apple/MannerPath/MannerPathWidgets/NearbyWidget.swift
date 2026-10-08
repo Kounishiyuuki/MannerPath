@@ -49,18 +49,18 @@ struct NearbyWidgetView: View {
                     if let name = glance.name {
                         Text(name).font(compact ? .caption : .headline).lineLimit(compact ? 1 : 2)
                     } else { Text("Nearby place").font(compact ? .caption : .headline) }
-                    if let distance = glance.distanceMeters, glance.locationIsApproximate == true {
-                        // ADR-0017: the pin is an area anchor; say so instead of an exact-looking distance.
-                        if distance < 1_000 {
-                            Text("About \(Int(distance.rounded())) m away · approximate location")
+                    if let distance = glance.distanceMeters {
+                        // ADR-0012/0017: only an exact point gets an exact-looking distance; every other pin says
+                        // 「約」 and why, in every family.
+                        if glance.precision == .exact {
+                            Text(distanceText(distance))
+                        } else if compact {
+                            // One line on the Lock Screen, so the note is the short form and must never be cut off.
+                            Text(verbatim: "\(String(localized: "About \(distanceText(distance))")) · \(shortPrecisionNote(glance.precision))")
+                                .lineLimit(1).minimumScaleFactor(0.7)
                         } else {
-                            Text("About \((distance / 1_000).formatted(.number.precision(.fractionLength(1)))) km away · approximate location")
-                        }
-                    } else if let distance = glance.distanceMeters {
-                        if distance < 1_000 {
-                            Text("\(Int(distance.rounded())) m away")
-                        } else {
-                            Text("\((distance / 1_000).formatted(.number.precision(.fractionLength(1)))) km away")
+                            Text("About \(distanceText(distance))")
+                            Text(precisionNote(glance.precision)).font(.caption2).lineLimit(2)
                         }
                     }
                     Text(glance.existenceLabel).font(.caption2).lineLimit(1)
@@ -92,6 +92,27 @@ struct NearbyWidgetView: View {
         .accessibilityElement(children: .combine)
         .containerBackground(.fill.tertiary, for: .widget)
         .widgetURL(state == .fresh ? entry.glance?.deepLink : URL(string: "mannerpath://nearby"))
+    }
+
+    private func distanceText(_ meters: Double) -> String {
+        meters < 1_000 ? String(localized: "\(Int(meters.rounded())) m away") :
+            String(localized: "\((meters / 1_000).formatted(.number.precision(.fractionLength(1)))) km away")
+    }
+
+    private func precisionNote(_ precision: GlancePrecision) -> String {
+        switch precision {
+        case .approximate: String(localized: "Approximate location")
+        case .derived: String(localized: "Estimated from the address")
+        case .exact, .unknown: String(localized: "Location precision unknown")
+        }
+    }
+
+    private func shortPrecisionNote(_ precision: GlancePrecision) -> String {
+        switch precision {
+        case .approximate: String(localized: "Approx. location")
+        case .derived: String(localized: "Estimated")
+        case .exact, .unknown: String(localized: "Precision unknown")
+        }
     }
 
     private func verification(_ date: Date?, now: Date) -> String {
