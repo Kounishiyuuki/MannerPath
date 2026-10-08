@@ -1,6 +1,17 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Approximate location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置は目安" } } } },
+    "Estimated location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "推定位置" } } } },
+    "No saved data": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータなし" } } } },
+    "Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "このWatchにはまだデータが保存されていません。近くに場所がないという意味ではありません。iPhoneでMannerPathを開くと、近くの場所がこちらに保存されます。" } } } },
+    "The saved data has no places for this area. This does not mean there are none.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータにこのエリアの場所はありません。存在しないという意味ではありません。" } } } },
+    "Not updated from iPhone for over an hour. Showing saved data.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "iPhoneから1時間以上更新できていません。保存済みデータを表示しています。" } } } },
+    "Location shown by the publisher": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "公開元が示した地点" } } } },
+    "Location shown by a user": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "利用者が示した地点" } } } },
+    "Location estimated from the official address": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "公式住所から推定した位置" } } } },
+    "Location precision unknown": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置精度不明" } } } },
+    "The pin is not a confirmed position. Distance and bearing are to the pin.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "ピンは確認済みの位置ではありません。距離と方角はピンまでの値です。" } } } },
     "MannerPath processing": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "MannerPathによる加工" } } } },
     "MannerPath extracts and normalizes smoking-place data from the original sources. Some access conditions and opening hours may be treated conservatively; unknown conditions are not confirmation.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "MannerPathは元データから喫煙場所の情報を抽出・正規化しています。一部の利用条件や営業時間等を保守的に扱う場合があります。不明な条件は、利用可能であることの確認を意味しません。" } } } },
     "Open license information": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "ライセンス情報を開く" } } } },

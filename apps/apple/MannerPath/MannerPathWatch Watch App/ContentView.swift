@@ -22,8 +22,9 @@ struct ContentView: View {
                     }
                 }
                 if eligibilityNoticeAccepted && model.snapshot == nil {
-                    ContentUnavailableView("No saved places", systemImage: "iphone.and.arrow.forward",
-                                           description: Text("Open MannerPath on iPhone once to send nearby data to this Watch."))
+                    // No snapshot means nothing was synced yet — not that no smoking place exists nearby.
+                    ContentUnavailableView("No saved data", systemImage: "iphone.and.arrow.forward",
+                                           description: Text("Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch."))
                 } else if eligibilityNoticeAccepted {
                     Section(model.snapshotIsOld ? "Saved places · old data" : "Saved nearby places") {
                         ForEach(model.results, id: \.spot.id) { result in
@@ -37,9 +38,9 @@ struct ContentView: View {
                                          ? "\(distance(result)) · current location"
                                          : "Distance needs location")
                                         .font(.caption)
-                                    if result.spot.isAreaApproximate {
-                                        Text(ApproximateLocation.listNote(areaName: result.spot.locationAreaName))
-                                            .font(.caption2).foregroundStyle(.secondary)
+                                    if let note = WatchPrecision.listNote(result.spot.locationPrecision,
+                                                                          areaName: result.spot.locationAreaName) {
+                                        Text(note).font(.caption2).foregroundStyle(.secondary)
                                     }
                                     Text(freshness(result))
                                         .font(.caption2).foregroundStyle(.secondary)
@@ -53,10 +54,20 @@ struct ContentView: View {
                             .accessibilityHint("Opens place details")
                             .accessibilityIdentifier("watch-spot-\(result.spot.id)")
                         }
-                        if model.results.isEmpty {
+                        if model.snapshot?.spots.isEmpty == true {
+                            Text("The saved data has no places for this area. This does not mean there are none.")
+                                .font(.footnote)
+                        } else if model.results.isEmpty {
                             Text("No saved places match these filters.")
                             Button("Clear Watch filters") { model.clearFilters() }
                                 .accessibilityIdentifier("watch-clear-empty-filters")
+                        }
+                        // Old data is said in text, not colour: the Watch cannot tell offline from an unsynced iPhone.
+                        if model.snapshotIsOld {
+                            Label("Not updated from iPhone for over an hour. Showing saved data.",
+                                  systemImage: "clock.arrow.circlepath")
+                                .font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("watch-old-data-note")
                         }
                     }
                     if model.locationAuthorizationUndetermined {
@@ -170,11 +181,18 @@ struct ContentView: View {
                 } else {
                     Text("Distance and bearing need Watch location")
                 }
-                Text("\(freshness(result)) · \(evidence(result.spot))")
+                // Precision and evidence are separate rows; neither is inferred from the other.
+                Label(WatchPrecision.label(result.spot.locationPrecision, areaName: result.spot.locationAreaName),
+                      systemImage: WatchPrecision.symbol(result.spot.locationPrecision))
+                    .accessibilityIdentifier("watch-precision")
                 if result.spot.isAreaApproximate {
-                    Text(ApproximateLocation.listNote(areaName: result.spot.locationAreaName)).font(.footnote)
                     Text(ApproximateLocation.detailNote()).font(.footnote).foregroundStyle(.secondary)
+                } else if let note = WatchPrecision.uncertainNote(result.spot.locationPrecision) {
+                    Text(note).font(.footnote).foregroundStyle(.secondary)
                 }
+                Label(evidence(result.spot), systemImage: evidenceSymbol(result.spot))
+                    .accessibilityIdentifier("watch-evidence")
+                Text(freshness(result)).font(.footnote)
                 if model.snapshotIsOld {
                     Text("Saved data is old. Open iPhone app to refresh.")
                         .font(.footnote).foregroundStyle(.secondary)
@@ -273,6 +291,14 @@ struct ContentView: View {
     }
     private func accessLabel(_ spot: WatchSpot) -> String {
         spot.accessDetail == "ticketedUsersOnly" ? String(localized: "Ticket holders only") : access(spot.accessType)
+    }
+    // A seal only for confirmed evidence, so an unconfirmed or unknown row never looks confirmed.
+    private func evidenceSymbol(_ spot: WatchSpot) -> String {
+        switch spot.existenceTier {
+        case "official", "operator", "communityVerified": "checkmark.seal"
+        case "communityReported": "person.crop.circle.badge.questionmark"
+        default: "questionmark.circle"
+        }
     }
     private func evidence(_ spot: WatchSpot) -> String {
         switch spot.existenceTier {

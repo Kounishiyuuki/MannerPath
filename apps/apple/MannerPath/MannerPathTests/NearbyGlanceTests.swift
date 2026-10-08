@@ -41,6 +41,34 @@ struct NearbyGlanceTests {
         #expect(throws: Error.self) { try NearbyGlanceCodec.encode(bad) }
     }
 
+    // ADR-0012/0017: only the publisher's or a user's own point is exact; everything else is never exact-looking.
+    @Test func locationPrecisionMapsConservativelyAndOlderGlanceStillDecodes() throws {
+        func glance(_ precision: String?, approximate: Bool? = nil, existence: String? = nil) -> NearbyGlance {
+            NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: "s",
+                         name: "P", distanceMeters: 240, lastVerifiedAt: nil, locationIsApproximate: approximate,
+                         existence: existence, locationPrecision: precision)
+        }
+        let cases: [(String?, GlancePrecision)] = [("publisherPoint", .exact), ("communityPinned", .exact),
+            ("areaApproximate", .approximate), ("reviewedDerived", .derived), ("unknown", .unknown),
+            (nil, .unknown), ("someFuturePrecision", .unknown)]
+        for (raw, expected) in cases {
+            let decoded = try NearbyGlanceCodec.decode(NearbyGlanceCodec.encode(glance(raw)))
+            #expect(decoded.locationPrecision == raw)
+            #expect(decoded.precision == expected, "\(raw ?? "nil")")
+        }
+        // Evidence never implies precision: an official place with unknown precision stays unknown.
+        #expect(glance("unknown", existence: "official").precision == .unknown)
+        #expect(glance(nil, existence: "official").precision == .unknown)
+        // The raw value wins over the legacy flag; without it, only the legacy approximate flag is honoured.
+        #expect(glance(nil, approximate: true).precision == .approximate)
+        #expect(glance(nil, approximate: false).precision == .unknown)
+        // A version 1 glance written before the field existed decodes, and is not exact.
+        let older = try NearbyGlanceCodec.decode(Data(#"{"version":1,"computedAt":1800000000,"locationObservedAt":1800000000,"locationIsLastKnown":false,"spotID":"s","name":"P","distanceMeters":240,"locationIsApproximate":false,"existence":"official"}"#.utf8))
+        #expect(older.locationPrecision == nil && older.precision == .unknown)
+        let olderApproximate = try NearbyGlanceCodec.decode(Data(#"{"version":1,"computedAt":1800000000,"locationObservedAt":1800000000,"locationIsLastKnown":false,"spotID":"s","name":"P","distanceMeters":240,"locationIsApproximate":true}"#.utf8))
+        #expect(olderApproximate.precision == .approximate)
+    }
+
     @Test func existenceTierRoundTripsAndOlderGlanceReadsUnknown() throws {
         let tiered = NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: "spot1", name: "Place",
                                   distanceMeters: 120, lastVerifiedAt: nil, existence: "communityReported")
