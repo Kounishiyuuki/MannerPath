@@ -25,6 +25,20 @@ Each case ran fresh local ingest, resolution, publication, tile generation, prom
 
 Largest metadata shard was 1,048,340 bytes; largest initialization file was 1,048,531 bytes, both below 1,048,576. Sparse 50k and 100k now finalize past the old cumulative 8 MiB blocker (historical declaration sizes approximately 13.6 MB and 26.6 MB). Small concentrated/dense bundles exercise the unchanged inline representation. Artifact accounting in the JSON was recomputed from completed bundle files, including metadata shards.
 
+### Secondary resource measurement
+
+A separate local run over the same corpora is stored under `secondaryResourceMeasurement` in the JSON. Its bundle digests equal the primary cases', so it measured identical promotion artifacts; its timings are a different run and do not replace the primary timings above. It ran on the same shared Mac with concurrent jobs and is diagnostic only, not remote D1 or production performance.
+
+| Synthetic corpus | Ingest peak RSS | Publish peak RSS | Promotion peak RSS | Promotion wall time |
+| --- | ---: | ---: | ---: | ---: |
+| Sparse nationwide 10k | 2.49 GB | 0.88 GB | 369 MB | 105 s |
+| Sparse nationwide 50k | 5.91 GB | 3.62 GB | 436 MB | 299 s |
+| Sparse nationwide 100k | 5.81 GB | 3.95 GB | 366 MB | 766 s |
+| Concentrated 100k | 6.24 GB | 3.35 GB | 396 MB | 635 s |
+| Single tile 10k | 2.68 GB | 0.49 GB | 378 MB | 52 s |
+
+The 50k/100k corpora peaked at about 5.8–6.2 GB during ingest and 3.4–3.9 GB during publication; the 10k corpora stayed below 2.7 GB and 0.9 GB. Promotion peaked at about 366–436 MB in every case. Promotion wall time ranged from about 52 to 766 seconds by case. Sparse 100k bundle generation took about 421 s in this run versus about 362 s in the primary run; per-step times are in the JSON. GB/MB are decimal (10^9/10^6 bytes).
+
 ## Safety and remaining bounds
 
 Synthetic data is temporary and never changes the reviewed production source registry or coverage. A validation failure exposed that a repository worktree located inside the temporary directory could itself be accepted as benchmark output. The helper now explicitly rejects physical repository paths and descendants, including nonexistent children and symlink aliases; safe external temporary outputs remain allowed.

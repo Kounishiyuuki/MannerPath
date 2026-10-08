@@ -233,5 +233,191 @@
         "state": "completed"
       }
     }
-  ]
+  ],
+  "secondaryResourceMeasurement": {
+    "description": "Separate local run over the same synthetic corpora; every bundleSha256 equals the primary case digest, so this is a second measurement of identical promotion artifacts. Records peak RSS, promotion wall time and this run's own step timings. Primary-run timings above are not replaced.",
+    "sourceSummaryVersion": "capacity-hardening-summary.v1",
+    "runtime": "v24.21.0",
+    "date": "2026-10-08",
+    "syntheticOnly": true,
+    "localOnly": true,
+    "environment": "Shared Mac with concurrent jobs; diagnostic only, not remote D1 or production performance",
+    "cases": [
+      {
+        "size": "10k",
+        "distribution": "sparse",
+        "digestMatchesPrimaryCase": true,
+        "cell": "10k-sparse",
+        "corpusSha256": "d6765f7023e5c0796e9b22c403be0413d3b0c370a9435f63951981602c13a342",
+        "tileCount": 9940,
+        "partCount": 9940,
+        "artifactBytes": 63737042,
+        "manifestBytes": 18876,
+        "metadataShards": 3,
+        "metadataBytes": 2763326,
+        "maxMetadataShardBytes": 1048340,
+        "initializationSegments": 5,
+        "chunks": 59,
+        "bundleSha256": "fa824fd32f9efb423335674e678a6884ce9e9d4a715ed50e9304c9082e8f130a",
+        "complete": true,
+        "promotionWallMs": 104543,
+        "peakRssBytes": {
+          "ingest": 2485682176,
+          "publish": 884408320,
+          "tiles": 366346240,
+          "promotion": 368623616
+        },
+        "promotionStepsMs": {
+          "generation": 35931,
+          "verify": 5861,
+          "importPlanGeneration": 5902,
+          "importPlanVerify": 6609,
+          "initialize": 6014,
+          "import": 24070,
+          "finalize": 14326
+        }
+      },
+      {
+        "size": "50k",
+        "distribution": "sparse",
+        "digestMatchesPrimaryCase": true,
+        "cell": "50k-sparse",
+        "corpusSha256": "971611693bc812a73d0319a92d5b70979e8d6141ca3c64d507db5e206606fed3",
+        "tileCount": 48923,
+        "partCount": 48923,
+        "artifactBytes": 318333686,
+        "manifestBytes": 82746,
+        "metadataShards": 13,
+        "metadataBytes": 13600620,
+        "maxMetadataShardBytes": 1048340,
+        "initializationSegments": 21,
+        "chunks": 291,
+        "bundleSha256": "18d389dd3edf0069069430c1340facc573fc0ae8b6e9cc7f6cddc40c486ba431",
+        "complete": true,
+        "promotionWallMs": 299013,
+        "peakRssBytes": {
+          "ingest": 5912379392,
+          "publish": 3615735808,
+          "tiles": 667009024,
+          "promotion": 435519488
+        },
+        "promotionStepsMs": {
+          "generation": 158951,
+          "verify": 12299,
+          "importPlanGeneration": 13185,
+          "importPlanVerify": 13596,
+          "initialize": 13048,
+          "import": 52430,
+          "finalize": 23928
+        }
+      },
+      {
+        "size": "100k",
+        "distribution": "sparse",
+        "digestMatchesPrimaryCase": true,
+        "cell": "100k-sparse",
+        "corpusSha256": "70ea60633f994a260e2c603317e7a89aab68f1257c6f1a1c6d824792f893d986",
+        "tileCount": 95936,
+        "partCount": 95936,
+        "artifactBytes": 634284000,
+        "manifestBytes": 162549,
+        "metadataShards": 26,
+        "metadataBytes": 26670260,
+        "maxMetadataShardBytes": 1048340,
+        "initializationSegments": 40,
+        "chunks": 580,
+        "bundleSha256": "ef97b41abea7d09b809df9c6a9576cc0a7246bbaf807414465d573cdc6e3abbc",
+        "complete": true,
+        "promotionWallMs": 765709,
+        "peakRssBytes": {
+          "ingest": 5811830784,
+          "publish": 3947610112,
+          "tiles": 1040269312,
+          "promotion": 366231552
+        },
+        "promotionStepsMs": {
+          "generation": 420729,
+          "verify": 74239,
+          "importPlanGeneration": 26864,
+          "importPlanVerify": 27382,
+          "initialize": 27464,
+          "import": 113478,
+          "finalize": 50296
+        }
+      },
+      {
+        "size": "100k",
+        "distribution": "concentrated",
+        "digestMatchesPrimaryCase": true,
+        "cell": "100k-concentrated",
+        "corpusSha256": "84095c6811f5470b7ed10d484e5889cf3704f3d7a3b530bccdfc76a51f31e2d9",
+        "tileCount": 104,
+        "partCount": 1177,
+        "artifactBytes": 506912339,
+        "manifestBytes": 350233,
+        "metadataShards": 0,
+        "metadataBytes": 0,
+        "maxMetadataShardBytes": 0,
+        "initializationSegments": 1,
+        "chunks": 486,
+        "bundleSha256": "8acef9ede76319831e0ec8035d862f0190990c226f12fbeb4ee768c2289d23cc",
+        "complete": true,
+        "promotionWallMs": 635448,
+        "peakRssBytes": {
+          "ingest": 6238224384,
+          "publish": 3352772608,
+          "tiles": 903806976,
+          "promotion": 395902976
+        },
+        "promotionStepsMs": {
+          "generation": 291759,
+          "verify": 20767,
+          "importPlanGeneration": 26898,
+          "importPlanVerify": 34369,
+          "initialize": 55655,
+          "import": 137066,
+          "finalize": 47587
+        }
+      },
+      {
+        "size": "10k",
+        "distribution": "extreme",
+        "digestMatchesPrimaryCase": true,
+        "cell": "10k-extreme",
+        "corpusSha256": "a0ef904db8d47f9b1a4ad5db221fc8b8946163ea00931bd68a1f203867bf35fe",
+        "tileCount": 1,
+        "partCount": 113,
+        "maxPartsPerTile": 113,
+        "artifactBytes": 50526246,
+        "manifestBytes": 34326,
+        "metadataShards": 0,
+        "metadataBytes": 0,
+        "maxMetadataShardBytes": 0,
+        "initializationSegments": 1,
+        "chunks": 49,
+        "bundleSha256": "8ef522d19149830e09298c6162bfab577a208e96aff7d1df8bf207d017099c5a",
+        "complete": true,
+        "promotionWallMs": 52302,
+        "peakRssBytes": {
+          "ingest": 2682945536,
+          "publish": 486572032,
+          "tiles": 374980608,
+          "promotion": 377913344
+        },
+        "httpAddressabilityBoundary": {
+          "allFit": true,
+          "count": 10000
+        },
+        "promotionStepsMs": {
+          "generation": 28996,
+          "verify": 2093,
+          "importPlanGeneration": 2141,
+          "importPlanVerify": 2117,
+          "initialize": 2064,
+          "import": 9331,
+          "finalize": 3523
+        }
+      }
+    ]
+  }
 }
