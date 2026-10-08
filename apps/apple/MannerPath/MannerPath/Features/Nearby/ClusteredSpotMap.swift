@@ -76,6 +76,39 @@ nonisolated enum SpotMapCluster {
     }
 }
 
+/// What a tap on the current-location marker forwards to. The marker draws on top (required priority), so MapKit may
+/// hide a cluster or pin under it. The target is chosen by what each annotation is and where it projects on screen,
+/// never by whether MapKit is drawing its view: a collision-hidden cluster or pin is still a target.
+nonisolated enum LocationMarkerForwarding {
+    enum Role: Equatable { case cluster, spot, other }
+
+    struct Candidate<ID: Equatable>: Equatable {
+        let id: ID
+        let role: Role
+        /// The annotation's coordinate projected into the map view.
+        let point: CGPoint
+        /// A spot drawn as part of a cluster is reached through that cluster, never on its own.
+        let isClusterMember: Bool
+    }
+
+    /// Two markers whose points are this close share the same place on screen (a marker is about 30 pt wide).
+    static let overlapDistance: CGFloat = 30
+
+    /// The nearest overlapping cluster, else the nearest overlapping single spot; nil when nothing overlaps.
+    /// Anything off screen, the destination, the marker itself and any other annotation is never chosen.
+    static func target<ID>(marker: CGPoint, bounds: CGRect, candidates: [Candidate<ID>]) -> Candidate<ID>? {
+        func nearest(_ role: Role) -> Candidate<ID>? {
+            candidates
+                .filter { $0.role == role && !$0.isClusterMember && bounds.contains($0.point) }
+                .map { ($0, hypot($0.point.x - marker.x, $0.point.y - marker.y)) }
+                .filter { $0.1 <= overlapDistance }
+                .min { $0.1 < $1.1 }?.0
+        }
+        guard bounds.contains(marker) else { return nil }
+        return nearest(.cluster) ?? nearest(.spot)
+    }
+}
+
 private nonisolated final class SpotAnnotation: MKPointAnnotation {
     let pin: SpotMapPin
     init(_ pin: SpotMapPin) {
@@ -160,6 +193,7 @@ struct ClusteredSpotMap: UIViewRepresentable {
 
         coordinator.setFixed(.user, user, on: map)
         coordinator.setFixed(.destination, destination, on: map)
+        coordinator.updateLocationMarkerAccessibility(on: map)
 
         if regionRequest != coordinator.appliedRegionRequest, let region {
             coordinator.appliedRegionRequest = regionRequest
@@ -245,6 +279,8 @@ struct ClusteredSpotMap: UIViewRepresentable {
                 view.glyphImage = UIImage(systemName: fixed.kind == .user ? "location.fill" : "flag.checkered")
                 view.isAccessibilityElement = true
                 view.accessibilityLabel = fixed.title
+                view.accessibilityHint = nil
+                view.accessibilityTraits = .none
                 return view
             default:
                 return nil
@@ -256,15 +292,14 @@ struct ClusteredSpotMap: UIViewRepresentable {
             switch annotation {
             case let cluster as MKClusterAnnotation:
                 expand(cluster, on: mapView)
-            case let fixed as FixedAnnotation:
+            case let fixed as FixedAnnotation where fixed.kind == .user:
                 // The current-location marker always draws on top (required priority), so a cluster or pin right under
-                // it could not be tapped. A tap on the marker goes to what it covers: the cluster expands, the pin is
-                // selected. The system marker itself is unchanged.
-                guard let covered = coveredAnnotation(by: fixed, on: mapView) else { return }
-                if let cluster = covered as? MKClusterAnnotation {
-                    expand(cluster, on: mapView)
-                } else if let spot = covered as? SpotAnnotation {
-                    onSelectSpot(spot.pin.id)
+                // it could not be tapped. A tap on it goes to what it covers: the cluster expands, the pin is selected.
+                // The destination marker forwards nothing.
+                switch coveredAnnotation(on: mapView) {
+                case let cluster as MKClusterAnnotation: expand(cluster, on: mapView)
+                case let spot as SpotAnnotation: onSelectSpot(spot.pin.id)
+                default: break
                 }
             case let spot as SpotAnnotation:
                 // Codex P2 (#203): re-tapping the selected pin made MapKit drop its selected appearance (the deselect
@@ -287,23 +322,48 @@ struct ClusteredSpotMap: UIViewRepresentable {
             show(region, on: mapView, animated: !UIAccessibility.isReduceMotionEnabled)
         }
 
-        /// What the fixed marker covers, nearest to its point first: a cluster — even one MapKit hid in favour of the
-        /// required-priority marker — before a visible single pin. Members drawn inside a cluster are never chosen.
-        fileprivate func coveredAnnotation(by fixed: FixedAnnotation, on mapView: MKMapView) -> MKAnnotation? {
-            guard let fixedView = mapView.view(for: fixed) else { return nil }
-            func nearest(_ candidates: [MKAnnotation]) -> MKAnnotation? {
-                candidates.compactMap { annotation -> (MKAnnotation, CGFloat)? in
-                    guard let view = mapView.view(for: annotation), view.frame.intersects(fixedView.frame) else { return nil }
-                    return (annotation, hypot(view.center.x - fixedView.center.x, view.center.y - fixedView.center.y))
-                }.min { $0.1 < $1.1 }?.0
+        /// What the current-location marker covers (see `LocationMarkerForwarding`), from annotation types and their
+        /// projected coordinates only.
+        fileprivate func coveredAnnotation(on mapView: MKMapView) -> MKAnnotation? {
+            guard let user = fixed[.user]?.0 else { return nil }
+            let annotations = mapView.annotations
+            let members = Set(annotations.compactMap { $0 as? MKClusterAnnotation }
+                .flatMap(\.memberAnnotations).map { ObjectIdentifier($0) })
+            let candidates = annotations.enumerated().map { index, annotation in
+                LocationMarkerForwarding.Candidate(
+                    id: index,
+                    role: annotation is MKClusterAnnotation ? .cluster : annotation is SpotAnnotation ? .spot : .other,
+                    point: mapView.convert(annotation.coordinate, toPointTo: mapView),
+                    isClusterMember: members.contains(ObjectIdentifier(annotation)))
             }
-            let clusters = mapView.annotations.filter { $0 is MKClusterAnnotation }
-            if let cluster = nearest(clusters) { return cluster }
-            let visiblePins = mapView.annotations.filter { annotation in
-                guard annotation is SpotAnnotation, let view = mapView.view(for: annotation) else { return false }
-                return !view.isHidden && view.alpha > 0
+            let marker = mapView.convert(user.coordinate, toPointTo: mapView)
+            guard let target = LocationMarkerForwarding.target(marker: marker, bounds: mapView.bounds,
+                                                               candidates: candidates) else { return nil }
+            return annotations[target.id]
+        }
+
+        /// VoiceOver: the marker offers the forwarding only while something is under it, and says so.
+        func updateLocationMarkerAccessibility(on mapView: MKMapView) {
+            guard let user = fixed[.user]?.0, let view = mapView.view(for: user) else { return }
+            switch coveredAnnotation(on: mapView) {
+            case is MKClusterAnnotation:
+                view.accessibilityTraits = .button
+                view.accessibilityHint = String(localized: "Zooms in to the places under this marker")
+            case is SpotAnnotation:
+                view.accessibilityTraits = .button
+                view.accessibilityHint = String(localized: "Shows the place under this marker")
+            default:
+                view.accessibilityTraits = .none
+                view.accessibilityHint = nil
             }
-            return nearest(visiblePins)
+        }
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            updateLocationMarkerAccessibility(on: mapView)
+        }
+
+        func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
+            updateLocationMarkerAccessibility(on: mapView)
         }
 
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {

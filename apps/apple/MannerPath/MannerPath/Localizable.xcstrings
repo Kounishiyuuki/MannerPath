@@ -115,6 +115,26 @@
         }
       }
     },
+    "Zooms in to the places under this marker": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この位置に重なっている場所を拡大して表示します"
+          }
+        }
+      }
+    },
+    "Shows the place under this marker": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この位置に重なっている場所を表示します"
+          }
+        }
+      }
+    },
     "About %lld min": {
       "localizations": {
         "ja": {

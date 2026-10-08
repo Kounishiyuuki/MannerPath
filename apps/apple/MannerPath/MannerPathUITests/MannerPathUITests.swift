@@ -123,9 +123,10 @@ class MannerPathUITestCase: XCTestCase {
                       file: file, line: line)
     }
 
-    /// The current-location marker; its label says whether the location is current or the last one used.
+    /// The current-location marker; its label says whether the location is current or the last one used. It is a
+    /// button only while a place lies under it (it then forwards a tap), so match any element type.
     var locationMarker: XCUIElement {
-        app.otherElements.matching(NSPredicate(
+        app.descendants(matching: .any).matching(NSPredicate(
             format: "(label == '現在地' OR label == '距離の計算に使用した前回の現在地') AND identifier != 'VKPointFeature'")).firstMatch
     }
 
@@ -653,14 +654,16 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         sleep(2)
         let me = locationMarker
         XCTAssertTrue(me.waitForExistence(timeout: 10), "No current-location marker")
-        // Only a cluster or pin drawn under the marker exercises the forwarding; clustering depends on the camera.
+        // The Taito fixture at the fixed simulator location puts a cluster under the marker. Which annotation is chosen
+        // (hidden or not, never the destination) is covered by locationMarkerForwardsOnlyToWhatItCovers; this checks the
+        // real map end to end. A missing overlap is a broken precondition, so it fails rather than skips.
         let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'")).allElementsBoundByIndex
         let pins = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'")).allElementsBoundByIndex
         let covered = (clusters + pins).filter { $0.exists && $0.frame.intersects(me.frame) }
-        guard let target = covered.first else {
-            throw XCTSkip("No cluster or pin under the location marker at this camera position")
-        }
+        let target = try XCTUnwrap(covered.first, "Fixture precondition: no cluster or pin under the location marker")
         let isCluster = target.label.hasSuffix("件の場所")
+        // VoiceOver: with a place under it the marker is offered as a button (its hint says what activating does).
+        XCTAssertEqual(me.elementType, .button, "The marker forwards a tap but is not offered as a button")
         let before = Set(pins.filter(\.isHittable).map(\.label))
         me.tap()
         sleep(2)
