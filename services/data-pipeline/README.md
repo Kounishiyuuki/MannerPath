@@ -222,3 +222,37 @@ quality/promotion and latest live operation remain separately unverified.
 `npm run source:scaffold -- <source-id> --out <existing-local-parent>` creates an unregistered, blocked
 review skeleton with unknown rights/coordinates and an empty fixture directory. It never overwrites.
 See [states, packet format, drift limits and source comparison](../../docs/research/2026-10-07-nationwide-source-onboarding.md).
+
+## Open-provider discovery (local advisory)
+
+From `services/api`, use `npm run discovery:providers -- --provider bodik --cache /tmp/provider-cache --out /tmp/bodik.json`.
+Providers: `bodik` (BODIK ODCS/ODM CKAN), `ckan` (Tokyo catalog by default; repeat `--catalog <public CKAN URL>` for up to three portals), `openpoi`, `overture`, and `bodik-wapi`.
+Every command requires explicit local cache/report paths and refuses to overwrite JSON or its `<out>.md` review packet. `--revalidate` explicitly checks cached responses again; otherwise hash-verified cached evidence is reused with its original fetch date.
+
+CKAN defaults to one page of 20 datasets; `--max-pages 1..3` permits bounded pagination. `--max-candidates 1..20` caps extracted candidates per invocation. For multi-provider investigations, keep the final human worklist at 20 entries and deep review at five; do not treat each provider's cap as an unlimited aggregate budget.
+HTTP reuses `FetchCache`: per-host serial requests, 1.5-second minimum spacing, 15-second timeout, no retries, 2 MiB response ceiling, public-URL/redirect validation and persistent 403/429 host stops. This is maintainer tooling, not a client search API; no device location or browsing query is sent.
+
+`CANONICAL_CANDIDATE_PROVIDER` means that an exact municipal resource can be tracked, not that it is publishable. `DISCOVERY_ONLY_PROVIDER` POIs stay in `leads[]`, never the canonical `resources[]` or onboarding queue. `COORDINATE_HELPER` is a distinct role; no geocoder is registered or called. Host existence, keyword/category/confidence and an API coordinate never establish smoking permission or publisher coordinate authority.
+
+Overture without input checks STAC release metadata only; it does not query Places rows. For a separately obtained bounded official Places export, pass `--input <json>`: FeatureCollection with at most 1,000 features/2 MiB plus explicit `release` and `resourceUrl`; only explicit JP-address/name smoking signals are retained as unreviewed leads. No bulk downloader or new dependency is installed. WAPI checks OpenAPI endpoint inventory only; no invented smoking endpoint or generic public-facility import.
+
+Feed canonical reports into `npm run source:onboarding -- --discovery-report /tmp/bodik.json --out /tmp/bodik-review.json`. Provider terms, resource rights and catalog observations remain separate. Imported metadata never supplies human review booleans or source approval. Noncanonical provider roles are blocked even if a caller supplies otherwise complete review metadata. Rights, operation, coordinates and smoking existence remain unknown until independently reviewed.
+
+See [live provider/license review and bounded results](../../docs/research/2026-10-08-open-provider-discovery.md). Tests use synthetic response contracts and small attributed captured subsets, not live APIs. Public API, D1 schema, registry, resolver, tiles, account and Apple code are unchanged.
+
+### Provider boundary hardening (#214)
+
+Provider responses and bounded Overture export files have a 2 MiB byte ceiling
+(inclusive). The shared bounded reader enforces it for network streams, cache hits,
+304 revalidation and redirect destinations; provider parsing also checks injected
+transport bytes and export objects. Oversized bodies are rejected in full with
+`payloadTooLarge`, never truncated into parseable candidates.
+
+Overture SourceItem `license` and `dataset` are optional in the
+[official schema](https://docs.overturemaps.org/schema/reference/common/source_item/).
+Missing, null, blank or unexpected metadata stays in raw `sources` for review;
+valid strings remain available alongside per-record `licenseUnknown`,
+`sourceMetadataMissing` or `sourceMetadataUnknown` blockers. Other records continue
+to be discovered. Every lead keeps unknown rights and blocked publication; no
+missing license is inferred permissive. Provider roles and human onboarding gates
+are unchanged.
