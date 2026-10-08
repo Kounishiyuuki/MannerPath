@@ -1,6 +1,7 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "No saved data": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータなし" } } } },
     "%@ km away": {
       "localizations": {
         "ja": {

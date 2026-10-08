@@ -77,17 +77,19 @@ struct NearbyWidgetView: View {
                     Text("Nearby data is old · Open app to refresh")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
+            // Neither state says no smoking place exists: one is an empty saved result, the other has no saved data.
             case .empty:
                 Text("No saved nearby places").font(compact ? .caption : .headline)
                 if compact { Text("Open app").font(.caption2).foregroundStyle(.secondary) }
                 else { Text("Open app to check nearby").font(.caption2).foregroundStyle(.secondary) }
             case .unavailable:
-                Text("Nearby data unavailable").font(compact ? .caption : .headline)
+                Text("No saved data").font(compact ? .caption : .headline)
                 if compact { Text("Open app").font(.caption2).foregroundStyle(.secondary) }
                 else { Text("Open app to check nearby").font(.caption2).foregroundStyle(.secondary) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
         .containerBackground(.fill.tertiary, for: .widget)
         .widgetURL(state == .fresh ? entry.glance?.deepLink : URL(string: "mannerpath://nearby"))
     }

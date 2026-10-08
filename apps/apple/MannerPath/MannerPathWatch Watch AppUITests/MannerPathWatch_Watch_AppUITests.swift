@@ -46,8 +46,8 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         let button = app.buttons["watch-eligibility-continue"]
         scrollUntilHittable(button, in: app)
         button.tap()
-        XCTAssertTrue(app.staticTexts["No saved places"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Open MannerPath on iPhone once to send nearby data to this Watch."].exists)
+        XCTAssertTrue(app.staticTexts["No saved data"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch."].exists)
         attach(app, named: "watch-no-snapshot-after-eligibility")
     }
 

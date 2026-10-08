@@ -41,16 +41,17 @@ struct WatchNearbyWidget: Widget {
                 VStack(alignment: .leading) {
                     switch WatchWidgetState.evaluate(entry.snapshot, at: entry.date) {
                     case .unavailable:
-                        Text("No saved places").font(.headline)
+                        Text("No saved data").font(.headline)
                         Text("Open iPhone app to sync")
                     case .stale:
                         if let spot = entry.snapshot?.spots.first {
                             if let name = spot.name { Text(name).font(.headline).lineLimit(1) }
                             else { Text("Saved place").font(.headline) }
+                            if spot.isAreaApproximate { Text("Approximate location").font(.caption2) }
                         }
                         Text("Old data from iPhone")
                     case .empty:
-                        Text("No saved places").font(.headline)
+                        Text("No saved nearby places").font(.headline)
                         Text("Open iPhone app to check nearby")
                     case .saved:
                         if let spot = entry.snapshot?.spots.first {
@@ -63,6 +64,7 @@ struct WatchNearbyWidget: Widget {
                         }
                     }
                 }
+                .accessibilityElement(children: .combine)
             }
             .buttonStyle(.plain)
             .containerBackground(.fill.tertiary, for: .widget)

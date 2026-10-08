@@ -425,6 +425,29 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(ApproximateLocation.distance("240 m", approximate: false) == "240 m")
     }
 
+    // DESIGN §5.6–5.7: the Watch uses iPhone's precision words; only an exact point is unlabelled in the list.
+    @Test func precisionLabelsMatchPhoneAndOnlyExactPointsAreUnlabelled() {
+        #expect(WatchPrecision.label("publisherPoint", areaName: nil) == String(localized: "Location shown by the publisher"))
+        #expect(WatchPrecision.label("communityPinned", areaName: nil) == String(localized: "Location shown by a user"))
+        #expect(WatchPrecision.label("reviewedDerived", areaName: nil)
+                == String(localized: "Location estimated from the official address"))
+        #expect(WatchPrecision.label("areaApproximate", areaName: "上野恩賜公園")
+                == ApproximateLocation.listNote(areaName: "上野恩賜公園"))
+        for precision in ["publisherPoint", "communityPinned"] {
+            #expect(WatchPrecision.listNote(precision, areaName: nil) == nil)
+            #expect(WatchPrecision.uncertainNote(precision) == nil)
+        }
+        #expect(WatchPrecision.uncertainNote("areaApproximate") == nil, "ADR-0017 pins keep their own detail note")
+        for precision in ["reviewedDerived", "unknown", "someFuturePrecision", nil] as [String?] {
+            #expect(WatchPrecision.listNote(precision, areaName: nil) != nil, "\(precision ?? "nil") is never silent")
+            #expect(WatchPrecision.uncertainNote(precision) != nil)
+        }
+        for precision in ["unknown", "someFuturePrecision", nil] as [String?] {
+            #expect(WatchPrecision.label(precision, areaName: nil) == String(localized: "Location precision unknown"))
+            #expect(WatchPrecision.symbol(precision) == "questionmark.circle")
+        }
+    }
+
     @Test func snapshotFromAnOlderPhoneHasNoPrecisionAndIsNotApproximate() throws {
         let legacy = #"{"id":"a","name":"a","latitude":0,"longitude":0,"spotType":"ashtray","accessType":"public","supportsPaper":"yes","supportsHeated":"unknown","lifecycle":"active","evidenceQuality":"officialListing","evidenceQualityVersion":"evidence-quality.v1","sourceIDs":["source"]}"#
         let spot = try JSONDecoder().decode(WatchSpot.self, from: Data(legacy.utf8))
