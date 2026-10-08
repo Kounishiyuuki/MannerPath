@@ -47,7 +47,9 @@ struct WatchNearbyWidget: Widget {
                         if let spot = entry.snapshot?.spots.first {
                             if let name = spot.name { Text(name).font(.headline).lineLimit(1) }
                             else { Text("Saved place").font(.headline) }
-                            if spot.isAreaApproximate { Text("Approximate location").font(.caption2) }
+                            if let note = ApproximateLocation.widgetNote(precision: spot.locationPrecision) {
+                                Text(note).font(.caption2).lineLimit(1)
+                            }
                         }
                         Text("Old data from iPhone")
                     case .empty:
@@ -59,8 +61,10 @@ struct WatchNearbyWidget: Widget {
                             else { Text("Saved place").font(.headline) }
                             Text("From iPhone").font(.caption2)
                             Text(verification(spot.lastVerifiedAt, at: entry.date)).font(.caption2)
-                            // ADR-0017: never let an area-anchor pin read as the place's own point.
-                            if spot.isAreaApproximate { Text("Approximate location").font(.caption2) }
+                            // ADR-0012/0017: only the place's own point goes unlabelled; nothing else may read as exact.
+                            if let note = ApproximateLocation.widgetNote(precision: spot.locationPrecision) {
+                                Text(note).font(.caption2).lineLimit(1)
+                            }
                         }
                     }
                 }

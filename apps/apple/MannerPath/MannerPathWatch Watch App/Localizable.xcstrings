@@ -1,6 +1,8 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Approximate location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置は目安" } } } },
+    "Estimated location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "推定位置" } } } },
     "No saved data": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータなし" } } } },
     "Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "このWatchにはまだデータが保存されていません。近くに場所がないという意味ではありません。iPhoneでMannerPathを開くと、近くの場所がこちらに保存されます。" } } } },
     "The saved data has no places for this area. This does not mean there are none.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータにこのエリアの場所はありません。存在しないという意味ではありません。" } } } },

@@ -425,6 +425,18 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(ApproximateLocation.distance("240 m", approximate: false) == "240 m")
     }
 
+    // The Watch widget mirrors the iPhone widget's GlancePrecision: only an exact point goes without a note.
+    @Test func widgetNoteLabelsEveryPinThatIsNotTheExactPoint() {
+        #expect(ApproximateLocation.widgetNote(precision: "publisherPoint") == nil)
+        #expect(ApproximateLocation.widgetNote(precision: "communityPinned") == nil)
+        #expect(ApproximateLocation.widgetNote(precision: "areaApproximate") == String(localized: "Approximate location"))
+        #expect(ApproximateLocation.widgetNote(precision: "reviewedDerived") == String(localized: "Estimated location"))
+        for precision in ["unknown", "someFuturePrecision", nil] as [String?] {
+            #expect(ApproximateLocation.widgetNote(precision: precision) == String(localized: "Location precision unknown"),
+                    "\(precision ?? "nil") is never presented as exact")
+        }
+    }
+
     // DESIGN §5.6–5.7: the Watch uses iPhone's precision words; only an exact point is unlabelled in the list.
     @Test func precisionLabelsMatchPhoneAndOnlyExactPointsAreUnlabelled() {
         #expect(WatchPrecision.label("publisherPoint", areaName: nil) == String(localized: "Location shown by the publisher"))
