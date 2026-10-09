@@ -72,7 +72,7 @@ platform or provider logs are not proved absent by a source-level guard.
 
 | Item | Why not a read-only source blocker / follow-up |
 | --- | --- |
-| npm audit: 4 high package nodes (wrangler → miniflare → sharp/undici) | Dev-only tooling, not Worker production dependencies. Full audit exits 1; omit-dev audit has 0 vulnerabilities. No upstream fix reported by audit. Keep local dev unexposed to hostile SVG/WebSocket/remote workloads and reassess pinned tooling before use/upgrade |
+| npm audit: 4 high package nodes (wrangler → miniflare → sharp/undici) | Dev-only tooling, not Worker production dependencies. Full audit exits 1; omit-dev audit has 0 vulnerabilities. The 2026-10-09 audit reports `fixAvailable=false` for all four nodes; this describes this audit result, not a claim about every upstream release. Keep local dev unexposed to hostile SVG/WebSocket/remote workloads and reassess pinned tooling before use/upgrade |
 | Report rate counters best-effort under concurrency | Intake unavailable in v1; require edge limits and review atomic budgets before activation |
 | App Attest source entitlement development | Dormant v1 capability, already documented. Inspect production environment on final signed TestFlight/archive before enabling writes |
 | Apple URL parser permits HTTP in Debug/Release | Committed production HTTPS, ATS and archive/config guards prevent current unsafe shipping configuration. Tighten parser in a focused future change; no current HTTP fallback observed |
@@ -105,17 +105,16 @@ PATH=/opt/homebrew/opt/node@24/bin:$PATH make api-validate
 make apple-validate
 make contract
 PATH=/opt/homebrew/opt/node@24/bin:$PATH make security-validate
-python3 scripts/security-secret-scan.py --history
+# History scan is included in make security-validate.
 python3 scripts/security-secret-scan.py --artifact <archive>/Products/Applications/MannerPath.app
 python3 scripts/check-apple-beta-artifact.py <archive> --unsigned-build
 cd services/api && npm audit && npm audit --omit=dev
 git diff --check origin/main...HEAD
 ```
 
-Scans are heuristic: known key formats, PEM private keys and high-entropy credential assignments,
+Scans are heuristic: known provider prefixes, JWT-looking values, PEM private keys, Authorization Bearer and credential assignments (including hex values),
 not a guarantee against all possible secret encodings. Review generic keyword occurrences by
-meaning. New opaque credential formats require extending detection. The artifact scanner examines
-raw binary/resource bytes, generated plist origins and ATS; public URLs and bundle IDs are allowed.
+meaning. New opaque credential formats require extending detection. The secret artifact scanner examines raw binary/resource bytes (including printable Mach-O strings) and recursively decoded XML/binary plists. Public URLs and metadata are allowed. `check-apple-beta-artifact.py` owns Apple release correctness, nested key/loopback guards, origins, transport, signing and embedding; its existing all-target/all-configuration build-setting guard reuses the secret detector for literal values.
 
 ## Validation record
 
@@ -136,3 +135,9 @@ Scanner/Apple guard tests: 5 PASS; focused API/deploy tests: 15 PASS.
 Full npm audit: exit 1, 4 high dev-tool nodes; `npm audit --omit=dev`: PASS, 0 vulnerabilities.
 `make contract` and working-tree `git diff --check`: PASS. Signed-build and remote evidence stay open.
 Post-commit `git diff --check origin/main...HEAD` is required before push.
+
+## Final hardening validation (2026-10-09)
+
+Latest main `9cca5178fb3ca3ecdb8ae8cf038b40631e022282` was integrated by a normal merge; no rebase, force push or history rewrite. The gate now scans `rev-list --objects --all` and fails closed if no reachable blobs exist. Release requires reachable blobs > 0 and suspects = 0. Diagnostics include only path, commit and type. Regression fixtures prove detection of deleted credentials and credentials reachable only through another ref.
+
+Fresh dependency audit: production vulnerabilities **0**; dev tooling **4 high** (`wrangler`, `miniflare`, `sharp`, `undici`). Full audit exits 1; omit-dev audit exits 0. No production dependency change was made. Cloudflare vars/config/error/logging boundaries remain guarded; invocation logs remain disabled in every committed environment. Live account settings, final signing, physical-device and privacy evidence remain outside this source gate.

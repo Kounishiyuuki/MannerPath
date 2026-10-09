@@ -244,6 +244,15 @@ class PreflightTests(unittest.TestCase):
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 preflight.check_build_settings(self.project(settings))
 
+    def test_secret_literals_in_innocent_build_settings_are_redacted(self):
+        release = {"MANNERPATH_API_BASE_URL": preflight.PRODUCTION_API, "MANNERPATH_PUBLIC_SITE_URL": preflight.PUBLIC_SITE}
+        value = "ghp_" + "a" * 36
+        for configuration in ("Debug", "Release", "Custom"):
+            with self.subTest(configuration=configuration), self.assertRaises(ValueError) as failure:
+                preflight.check_build_settings(self.project([("Release", release), (configuration, {"OTHER_SETTING": ["$(inherited)", value]})]))
+            self.assertNotIn(value, str(failure.exception))
+            self.assertIn("secret-looking literal", str(failure.exception))
+
     def test_always_location_fails_in_every_bundle_and_extension(self):
         for key in preflight.LOCATION_ALWAYS:
             for path in self.paths:

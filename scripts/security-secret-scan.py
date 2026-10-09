@@ -16,22 +16,93 @@ PATTERNS = {
     "private-key": rb"-----BEGIN (?:RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----",
     "aws-access-key": rb"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b",
     "github-token": rb"\b(?:gh[pousr]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9_]{60,255})\b",
-    "provider-api-key": rb"\b(?:AIza[A-Za-z0-9_-]{35}|sk_live_[A-Za-z0-9]{20,})\b",
+    "provider-api-key": rb"\b(?:AIza[A-Za-z0-9_-]{35}|sk_(?:live|test)_[A-Za-z0-9]{20,}|sk-(?:proj|ant)-[A-Za-z0-9_-]{20,}|xox[bp]-[A-Za-z0-9-]{20,})\b",
+    "jwt": rb"\beyJ[A-Za-z0-9_-]{5,}\.eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{8,}\b",
 }
+# Quoted JSON/JS keys, YAML/env/shell/Swift assignments, and header literals.
 ASSIGNMENT = re.compile(
-    rb"\b([A-Za-z_][A-Za-z0-9_]{0,127})[\"']?\s*[:=]\s*[\"']?([A-Za-z0-9+/=_-]{16,})"
+    rb"(?<![A-Za-z0-9_-])([A-Za-z_][A-Za-z0-9_-]{0,127})[\"']?(?:[ \t]*:[ \t]*(?:String|NSString|string)[ \t]*)?[ \t]*[:=][ \t]*[\"']?([A-Za-z0-9+/=_-]{16,})(?=[\"'\s,;\x00]|$)"
 )
-SECRET_NAME = re.compile(rb"(?i)secret|pepper|password|credential|api_?key|access_?key|token|authorization|bearer|private_?key")
+QUOTED_ASSIGNMENT = re.compile(
+    rb"(?<![A-Za-z0-9_-])([A-Za-z_][A-Za-z0-9_-]{0,127})[\"']?(?:[ \t]*:[ \t]*(?:String|NSString|string)[ \t]*)?[ \t]*[:=][ \t]*([\"'])([^\r\n\x00]{1,4096}?)\2"
+)
+YAML_BLOCK = re.compile(
+    rb"(?m)^[ \t]*([A-Za-z_][A-Za-z0-9_-]{0,127}):[ \t]*[|>][+-]?[ \t]*\r?\n[ \t]+([^\r\n]{1,4096})"
+)
+LINE_ASSIGNMENT = re.compile(
+    rb"(?m)^[ \t]*(?:export[ \t]+)?([A-Za-z_][A-Za-z0-9_-]{0,127})[ \t]*[:=][ \t]*([^\s\"'(){};]{16,})[ \t]*(?:[#].*)?$"
+)
+SECRET_NAME = re.compile(rb"(?i)secret|pepper|password|credential|api[_-]?key|access[_-]?key|token|authorization|bearer|private[_-]?key")
+PUBLIC_NAME = re.compile(rb"(?i)^(?:MANNERPATH_API_BASE_URL|MANNERPATH_PUBLIC_SITE_URL|database_id|bundle_?id|CFBundleIdentifier|sha256|etag|uuid|app_?id|application-identifier)$")
+BEARER = re.compile(rb"(?i)authorization[\"']?\s*[:=]\s*[\"']?Bearer\s+([A-Za-z0-9._~+/-]+=*)")
 
 
-def secret_types(data):
+def secretish_name(key):
+    raw = key.encode() if isinstance(key, str) else key
+    return bool(SECRET_NAME.search(raw) and not PUBLIC_NAME.fullmatch(raw))
+
+
+def credential_value(value):
+    if len(value) < 16:
+        return False
+    # Explicit examples and variable references are not embedded credentials.
+    if value in (b"test-pepper-value-not-a-real-secret", b"change-me-before-production", b"replace-with-your-secret") or value.startswith((b"$", b"<")):
+        return False
+    if re.fullmatch(rb"[0-9a-fA-F]{16,}", value):
+        return True
+    entropy = -sum((value.count(c) / len(value)) * math.log2(value.count(c) / len(value)) for c in set(value))
+    return entropy >= 3.5
+
+
+def structured_secret_types(value):
+    """Walk decoded plists/JSON without flattening away credential key context."""
+    found = set()
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if isinstance(child, (str, bytes)) and secretish_name(str(key)):
+                raw = child.encode() if isinstance(child, str) else child
+                if credential_value(raw):
+                    found.add("credential-assignment")
+                if str(key).lower() == "authorization" and re.fullmatch(rb"(?i)Bearer[ \t]+[A-Za-z0-9._~+/-]{6,}=*", raw):
+                    found.add("authorization-bearer")
+            found.update(structured_secret_types(child))
+    elif isinstance(value, (list, tuple)):
+        for child in value:
+            found.update(structured_secret_types(child))
+    elif isinstance(value, (str, bytes)):
+        found.update(secret_types(value.encode() if isinstance(value, str) else value, structured=False))
+    return sorted(found)
+
+
+def secret_types(data, structured=True):
     found = {kind for kind, pattern in PATTERNS.items() if re.search(pattern, data)}
     for key, value in ASSIGNMENT.findall(data):
-        if not SECRET_NAME.search(key):
-            continue
-        entropy = -sum((value.count(c) / len(value)) * math.log2(value.count(c) / len(value)) for c in set(value))
-        if entropy >= 3.8:
+        if secretish_name(key) and not re.fullmatch(rb"[A-Za-z_]+", value) and credential_value(value):
             found.add("credential-assignment")
+    for key, _, value in QUOTED_ASSIGNMENT.findall(data):
+        if secretish_name(key) and not re.search(rb"[\"'][ \t]*\+[ \t]*b?[\"']", value) and credential_value(value):
+            found.add("credential-assignment")
+    for key, value in LINE_ASSIGNMENT.findall(data):
+        if secretish_name(key) and credential_value(value):
+            found.add("credential-assignment")
+    for key, value in YAML_BLOCK.findall(data):
+        if secretish_name(key) and credential_value(value.strip()):
+            found.add("credential-assignment")
+    if any(len(value) >= 6 and value.lower() not in (b"placeholder", b"example", b"your-token", b"token") and not value.startswith(b"$") for value in BEARER.findall(data)):
+        found.add("authorization-bearer")
+    if structured:
+        # Binary and XML plists contain non-adjacent keys and values.
+        if data.startswith(b"bplist") or b"<plist" in data[:512]:
+            try:
+                found.update(structured_secret_types(plistlib.loads(data)))
+            except (ValueError, plistlib.InvalidFileException, OverflowError):
+                pass
+        elif data.lstrip().startswith((b"{", b"[")):
+            import json
+            try:
+                found.update(structured_secret_types(json.loads(data)))
+            except (ValueError, UnicodeDecodeError):
+                pass
     return sorted(found)
 
 
@@ -93,6 +164,10 @@ def scan_repository(history=False):
                 failures += 1
         proc.stdin.close()
         proc.wait()
+        proc.stdout.close()
+    if history and blobs == 0:
+        print("Secret history scan: no reachable blobs; BLOCK")
+        failures += 1
     print(f"Secret scan: tracked_files={len(list(filter(None, paths)))} reachable_blobs={blobs} suspects={failures}")
     return failures
 
@@ -113,20 +188,6 @@ def scan_artifact(root):
         for kind in secret_types(data):
             report(path.relative_to(root), "ARTIFACT", kind)
             failures += 1
-        # Only actual URL literals; SDK symbol names containing 'localhost' are not credentials.
-        if re.search(rb"https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?=[:/\x00\s]|$)", data):
-            report(path.relative_to(root), "ARTIFACT", "debug-origin")
-            failures += 1
-        if path.name == "Info.plist":
-            info = plistlib.loads(data)
-            if info.get("NSAppTransportSecurity"):
-                report(path.relative_to(root), "ARTIFACT", "ATS-exception-review-required")
-                failures += 1
-            for key in ("MannerPathAPIBaseURL", "MannerPathPublicSiteURL"):
-                if key in info:
-                    if not safe_origin(info[key]):
-                        report(path.relative_to(root), "ARTIFACT", "unsafe-public-origin")
-                        failures += 1
     print(f"Release artifact scan: files={len(files)} suspects={failures}")
     return failures
 
