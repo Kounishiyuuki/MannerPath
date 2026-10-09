@@ -1,0 +1,391 @@
+{
+  "checkedAt": "2026-10-09T05:13:12Z",
+  "modelVersion": "source-health.v1",
+  "results": [
+    {
+      "availability": "available",
+      "contentType": "text/csv",
+      "downloadSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+      "downloadedBytes": 7266,
+      "error": null,
+      "finalUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "freshness": {
+        "baselineObservedOn": "2026-08-18",
+        "currentOperationConfirmed": false,
+        "publisherLastModified": "Fri, 11 Sep 2026 07:48:17 GMT"
+      },
+      "httpStatus": 200,
+      "mode": "live",
+      "probe": {
+        "content": "same",
+        "error": null,
+        "header": [
+          "#",
+          "市区町村コード",
+          "自治体名称",
+          "名称",
+          "名称カナ",
+          "設置位置",
+          "方書",
+          "利用開始時間",
+          "利用終了時間",
+          "緯度",
+          "経度",
+          "特記事項"
+        ],
+        "observationCount": 34,
+        "parser": "pass",
+        "rowCount": 34,
+        "schema": "same",
+        "sha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74"
+      },
+      "redirects": 0,
+      "requestedUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "rights": {
+        "fingerprints": [
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "536a8644f4197bdef376b5ea4e3260eb16e5c019f06418b04dc59a088f655a1a",
+            "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html"
+          }
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "note": "Transport and payload equality do not establish continued rights; review current publisher terms independently.",
+        "status": "unknown"
+      },
+      "sourceId": "taito-public-smoking-areas",
+      "status": "healthy"
+    },
+    {
+      "availability": "temporarilyUnavailable",
+      "contentType": null,
+      "downloadSha256": null,
+      "downloadedBytes": 0,
+      "error": "TypeError: fetch failed; cause: ERR_SSL_DH_KEY_TOO_SMALL",
+      "finalUrl": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+      "freshness": {
+        "baselineObservedOn": null,
+        "currentOperationConfirmed": false,
+        "publisherLastModified": null
+      },
+      "httpStatus": null,
+      "mode": "live",
+      "probe": null,
+      "redirects": 0,
+      "requestedUrl": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+      "rights": {
+        "fingerprints": [
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "162130a6d67c64caa1b0a53d62a1b3892b13945d06c523b300e0fc4eddbecdba",
+            "url": "https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html"
+          }
+        ],
+        "licenseName": "CC BY 2.1 JP",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.1/jp/",
+        "note": "Transport and payload equality do not establish continued rights; review current publisher terms independently.",
+        "status": "unknown"
+      },
+      "sourceId": "osaka-designated-smoking-areas",
+      "status": "temporarilyUnavailable"
+    },
+    {
+      "availability": "available",
+      "contentType": "text/csv",
+      "downloadSha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d",
+      "downloadedBytes": 314,
+      "error": null,
+      "finalUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "freshness": {
+        "baselineObservedOn": null,
+        "currentOperationConfirmed": false,
+        "publisherLastModified": "Thu, 15 Jan 2026 02:59:37 GMT"
+      },
+      "httpStatus": 200,
+      "mode": "live",
+      "probe": {
+        "content": "same",
+        "error": null,
+        "header": [
+          "緯度",
+          "経度",
+          "喫煙所名",
+          "場所"
+        ],
+        "observationCount": 3,
+        "parser": "pass",
+        "rowCount": 3,
+        "schema": "same",
+        "sha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d"
+      },
+      "redirects": 0,
+      "requestedUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "rights": {
+        "fingerprints": [
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "3c9e93073ac97d673b5d13ab765a40042eea5f43cb25704bc14610bf88e5a0a8",
+            "url": "https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_show?id=t131083d0000000061"
+          },
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "74e591bc0092beaed0921015d3b2b0b9bf90c70e67508b036155f6e5400cd67a",
+            "url": "https://portal.data.metro.tokyo.lg.jp/terms/"
+          }
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "note": "Transport and payload equality do not establish continued rights; review current publisher terms independently.",
+        "status": "unknown"
+      },
+      "sourceId": "koto-station-smoking-areas",
+      "status": "healthy"
+    },
+    {
+      "availability": "available",
+      "contentType": "application/force-download",
+      "downloadSha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc",
+      "downloadedBytes": 843922,
+      "error": null,
+      "finalUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "freshness": {
+        "baselineObservedOn": "2026-09-03",
+        "currentOperationConfirmed": false,
+        "publisherLastModified": null
+      },
+      "httpStatus": 200,
+      "mode": "live",
+      "probe": {
+        "content": "same",
+        "error": null,
+        "header": [
+          "所管局",
+          "所管課",
+          "ID番号（id)",
+          "公共施設の名称(name)",
+          "よみがな（kana）",
+          "緯度(lat)",
+          "経度(lng)",
+          "カテゴリ(cate_id)",
+          "行政区コード(dist_id)",
+          "施設のご案内（利用目的・実施内容等）(note)",
+          "郵便番号(zip)",
+          "所在地(address)",
+          "施設写真（外観等）１(pic)",
+          "運営主体(subject)",
+          "電話番号(tel)",
+          "ＦＡＸ番号(fax)",
+          "ＨＰリンク(url)",
+          "主な設備(aim)",
+          "開館時間（利用時間）(optime)",
+          "休館日(holiday)",
+          "利用料(fee)",
+          "アクセス(access)",
+          "利用方法（申込方法）(howto)",
+          "利用上の注意(warning)",
+          "愛称(nickname）",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        "observationCount": 17,
+        "parser": "pass",
+        "rowCount": 1777,
+        "schema": "same",
+        "sha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc"
+      },
+      "redirects": 0,
+      "requestedUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "rights": {
+        "fingerprints": [
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "8a57077bc743bf085c9f354fa0e24efe5f1a2121a6d5e3270cf0be92b66d6bc2",
+            "url": "https://data.city.kyoto.lg.jp/resource/?id=21432"
+          },
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "82232ee35a47b64d18ff2a4622c1708c09f36f0ff5259952fe44cbceed8af388",
+            "url": "https://data.city.kyoto.lg.jp/dataset/00003/"
+          },
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "432bd334f9c64f123ba29ab9fc0f7c2907936ece1908e97accd00071c82b5448",
+            "url": "https://data.city.kyoto.lg.jp/contents.php?category=0"
+          }
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+        "note": "Transport and payload equality do not establish continued rights; review current publisher terms independently.",
+        "status": "unknown"
+      },
+      "sourceId": "kyoto-public-smoking-places",
+      "status": "healthy"
+    },
+    {
+      "availability": "available",
+      "contentType": "application/zip",
+      "downloadSha256": "3cc620efb082a2b6ee1f30b757dd35d26691924d427dc0c4812d654e009b3f5c",
+      "downloadedBytes": 13232,
+      "error": null,
+      "finalUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "freshness": {
+        "baselineObservedOn": null,
+        "currentOperationConfirmed": false,
+        "publisherLastModified": "Tue, 18 Apr 2023 04:43:38 GMT"
+      },
+      "httpStatus": 200,
+      "mode": "live",
+      "probe": {
+        "content": "same",
+        "error": null,
+        "header": [
+          "Placemark XML"
+        ],
+        "observationCount": 3,
+        "parser": "pass",
+        "rowCount": 25,
+        "schema": "same",
+        "sha256": "fc6986b986ec315691299a12583f14a8fd942e34075fd1e9e44837dc72c57a7c"
+      },
+      "redirects": 0,
+      "requestedUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "rights": {
+        "fingerprints": [
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "a55e70e0faa3daf14805a61192deaea21d699e483cf51fc2b5a01905529c064c",
+            "url": "https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html"
+          }
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "note": "Transport and payload equality do not establish continued rights; review current publisher terms independently.",
+        "status": "unknown"
+      },
+      "sourceId": "musashino-public-smoking-areas",
+      "status": "healthy"
+    },
+    {
+      "availability": "available",
+      "contentType": "text/csv",
+      "downloadSha256": "d11ad6a5c2c72bba114d58bc7cce9f84f54338c75ee37cdd275b7680c6314220",
+      "downloadedBytes": 96869,
+      "error": null,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "freshness": {
+        "baselineObservedOn": null,
+        "currentOperationConfirmed": false,
+        "publisherLastModified": "Thu, 16 Jul 2026 05:32:22 GMT"
+      },
+      "httpStatus": 200,
+      "mode": "live",
+      "probe": {
+        "content": "same",
+        "error": null,
+        "header": [
+          "最終更新日",
+          "ページタイトル",
+          "分類",
+          "第1分類",
+          "第2分類",
+          "ファイルパス",
+          "地区",
+          "紹介文",
+          "所在地",
+          "連絡先",
+          "開館時間",
+          "休業日",
+          "施設の概要",
+          "受付時間",
+          "電車",
+          "バス",
+          "駐車場",
+          "駐輪場",
+          "画像1",
+          "画像キャプション1",
+          "画像2",
+          "画像キャプション2",
+          "画像3",
+          "画像キャプション3",
+          "画像4",
+          "画像キャプション4",
+          "画像5",
+          "画像キャプション5",
+          "緯度",
+          "経度",
+          ""
+        ],
+        "observationCount": 114,
+        "parser": "pass",
+        "rowCount": 169,
+        "schema": "same",
+        "sha256": "d11ad6a5c2c72bba114d58bc7cce9f84f54338c75ee37cdd275b7680c6314220"
+      },
+      "redirects": 0,
+      "requestedUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "rights": {
+        "fingerprints": [
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "aca774b92eab91e28ae91d6a328240cff11613ef78a8fd70972883833c4c4ebf",
+            "url": "https://opendata.city.minato.tokyo.jp/api/3/action/package_show?id=c02688a0-2e85-4637-aa36-edb37b3d010b"
+          },
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "2dd8fe69e26d2f7111fe927c8623492b1845f6a787f28b64840853b60b59e296",
+            "url": "https://opendata.city.minato.tokyo.jp/about"
+          },
+          {
+            "error": null,
+            "httpStatus": 200,
+            "sha256": "999a8669b3fb7c650a3b943e68a0c730434b43a5170805b165e53d10891571e6",
+            "url": "https://opendata.city.minato.tokyo.jp/pages/exhibit"
+          }
+        ],
+        "licenseName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "note": "Transport and payload equality do not establish continued rights; review current publisher terms independently.",
+        "status": "unknown"
+      },
+      "sourceId": "minato-designated-smoking-areas",
+      "status": "healthy"
+    }
+  ]
+}

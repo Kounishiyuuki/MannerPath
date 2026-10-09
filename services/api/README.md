@@ -131,3 +131,44 @@ deployed environment accepts no reports until a maintainer configures it (`docs/
 Deployment settings this repository deliberately does not contain: `REPORT_SUBMITTER_PEPPER`
 (hashed abuse key pepper), `REPORT_APP_ATTEST_APP_ID` (its App ID prefix is usually the Team ID),
 `REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS` and the edge rate-limit rule. No Apple key or pepper value is committed.
+
+## Production source health monitoring
+
+`npm run source:health:monitor` checks all six committed fixtures without network or
+database access. `npm run source:health:monitor -- --live` explicitly enables bounded
+public HTTPS requests: a 15-second deadline per request, three same-origin redirects,
+and 8 MiB response/archive expansion limits. Kyoto uses its reviewed POST download
+form; Musashino inspects the reviewed ZIP/KMZ member in memory. The existing
+`source:health` command remains available for the original source audit.
+
+The monitor's deterministic `source-health.v1` JSON separates availability, content
+SHA-256, header schema, production parser/observation probes, publisher Last-Modified,
+and rights. Successful retrieval does not prove current operation. A 403/404 alone
+never proves removal or rights loss. `healthy` describes transport and payload probes;
+consult independent rights and freshness fields before reuse.
+
+The daily read-only workflow compares live results with the committed reviewed report:
+
+```sh
+npm run --silent source:health:monitor -- --live --baseline=../../docs/research/2026-10-09-production-source-health-monitor.json --fail-on-review > current-health.json
+```
+
+Publisher catalog/resource/terms page hashes detect possible rights drift. A changed
+page produces `rightsReviewRequired`; whole-page hashes may also detect unrelated
+page edits. Matching bytes attest continuity, not legal approval. Missing or blocked
+terms remain `unknown`. `--fail-on-review` exits 1 for source warnings and unknown or
+review-required live rights, allowing the workflow to alert without changing source
+approval, publication, canonical data, D1 or deployment. The workflow preserves its
+JSON artifact even when the check fails.
+
+Keep the previous reviewed report until a human has examined changes; automatic
+baseline replacement would erase drift evidence. To establish a new review artifact:
+
+```sh
+npm run --silent source:health:monitor -- --live --checked-at=2026-10-09T00:00:00Z > candidate-health.json
+```
+
+`--checked-at=YYYY-MM-DDTHH:mm:ssZ` records an explicit audit time; omitted time is null
+so identical offline inputs produce identical JSON. Use the actual audit time when
+creating a report. `--source=source-id` filters sources and is repeatable. Local
+baseline JSON files are capped at 1 MiB. Use `npm run --silent` when redirecting JSON.

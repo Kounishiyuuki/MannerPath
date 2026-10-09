@@ -1,0 +1,290 @@
+{
+  "schemaVersion": "production-source-health-research.v1",
+  "auditDate": "2026-10-09",
+  "transport": {
+    "method": "bounded official HTTP GET; documented Kyoto POST download",
+    "timeoutSeconds": 15,
+    "redirectLimit": 3,
+    "responseByteLimit": 2097152,
+    "retries": 0,
+    "userAgent": "MannerPath-source-health/1.0",
+    "rawBodiesCommitted": false
+  },
+  "requests": [
+    {
+      "key": "taitoDataset",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html",
+      "status": 200,
+      "finalUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html",
+      "contentType": "text/html",
+      "lastModified": "Fri, 11 Sep 2026 09:01:22 GMT",
+      "bytes": 37656,
+      "sha256": "536a8644f4197bdef376b5ea4e3260eb16e5c019f06418b04dc59a088f655a1a"
+    },
+    {
+      "key": "taitoRaw",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "status": 200,
+      "finalUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "contentType": "text/csv",
+      "lastModified": "Fri, 11 Sep 2026 07:48:17 GMT",
+      "bytes": 7266,
+      "sha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74"
+    },
+    {
+      "key": "osakaRaw",
+      "url": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+      "status": 200,
+      "finalUrl": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+      "contentType": "text/comma-separated-values",
+      "lastModified": "Thu, 08 Oct 2026 14:06:09 GMT",
+      "bytes": 245184,
+      "sha256": "682674a162cdcd2632ebef906bd5ba00cc0879f5588c8a626cfc722aaa95104a"
+    },
+    {
+      "key": "osakaDataset",
+      "url": "https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html",
+      "status": 200,
+      "finalUrl": "https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html",
+      "contentType": "text/html",
+      "lastModified": "Thu, 08 Oct 2026 15:08:24 GMT",
+      "bytes": 45102,
+      "sha256": "162130a6d67c64caa1b0a53d62a1b3892b13945d06c523b300e0fc4eddbecdba"
+    },
+    {
+      "key": "kotoRaw",
+      "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "status": 200,
+      "finalUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "contentType": "text/csv",
+      "lastModified": "Thu, 15 Jan 2026 02:59:37 GMT",
+      "bytes": 314,
+      "sha256": "e36e81d58348db6607a374f18a77ae54801eb55b810fba2849cf49c14318126d"
+    },
+    {
+      "key": "kotoApi",
+      "url": "https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_show?id=t131083d0000000061",
+      "status": 200,
+      "finalUrl": "https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_show?id=t131083d0000000061",
+      "contentType": "application/json;charset=utf-8",
+      "lastModified": null,
+      "bytes": 3504,
+      "sha256": "3c9e93073ac97d673b5d13ab765a40042eea5f43cb25704bc14610bf88e5a0a8"
+    },
+    {
+      "key": "musashinoRaw",
+      "url": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "status": 200,
+      "finalUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "contentType": "application/zip",
+      "lastModified": "Tue, 18 Apr 2023 04:43:38 GMT",
+      "bytes": 13232,
+      "sha256": "3cc620efb082a2b6ee1f30b757dd35d26691924d427dc0c4812d654e009b3f5c"
+    },
+    {
+      "key": "musashinoDataset",
+      "url": "https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html",
+      "status": 200,
+      "finalUrl": "https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html",
+      "contentType": "text/html",
+      "lastModified": "Fri, 09 Oct 2026 03:15:36 GMT",
+      "bytes": 49823,
+      "sha256": "a55e70e0faa3daf14805a61192deaea21d699e483cf51fc2b5a01905529c064c"
+    },
+    {
+      "key": "kyotoDataset",
+      "url": "https://data.city.kyoto.lg.jp/dataset/00003/",
+      "status": 200,
+      "finalUrl": "https://data.city.kyoto.lg.jp/dataset/00003/",
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": null,
+      "bytes": 49120,
+      "sha256": "4b19c7960721089f0b006c464cd627d5a4e571c03d4db9af25a5bad29e2d94c1"
+    },
+    {
+      "key": "kyotoResource",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "status": 200,
+      "finalUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": null,
+      "bytes": 7452,
+      "sha256": "19315baa561653c9047ee809ab65343741dd4f6c49d596dbf3a60fc561384d57"
+    },
+    {
+      "key": "minatoRaw",
+      "url": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "status": 200,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "contentType": "text/csv",
+      "lastModified": "Thu, 16 Jul 2026 05:32:22 GMT",
+      "bytes": 96869,
+      "sha256": "d11ad6a5c2c72bba114d58bc7cce9f84f54338c75ee37cdd275b7680c6314220"
+    },
+    {
+      "key": "minatoApi",
+      "url": "https://opendata.city.minato.tokyo.jp/api/3/action/package_show?id=minatokushisetsujoho_fukugo",
+      "status": 200,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/api/3/action/package_show?id=minatokushisetsujoho_fukugo",
+      "contentType": "application/json;charset=utf-8",
+      "lastModified": null,
+      "bytes": 5197,
+      "sha256": "aca774b92eab91e28ae91d6a328240cff11613ef78a8fd70972883833c4c4ebf"
+    },
+    {
+      "key": "taitoLegacy2023",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+      "status": 404,
+      "finalUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+      "contentType": "text/html",
+      "bytes": 1058,
+      "sha256": "dbf12b751fabebc14987ee60fccc5b1675e7df10cb5a41f180ebe0874db8f056"
+    },
+    {
+      "key": "taitoLegacy2024",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+      "status": 404,
+      "finalUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+      "contentType": "text/html",
+      "bytes": 1058,
+      "sha256": "dbf12b751fabebc14987ee60fccc5b1675e7df10cb5a41f180ebe0874db8f056"
+    },
+    {
+      "key": "minatoTerms",
+      "url": "https://opendata.city.minato.tokyo.jp/about",
+      "status": 200,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/about",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 17715,
+      "sha256": "15a28da63427056beb8c519dc46eb9dd9bc61dd2b7c6cbfc0acfc3e7d42469f6"
+    },
+    {
+      "key": "minatoExceptions",
+      "url": "https://opendata.city.minato.tokyo.jp/pages/exhibit",
+      "status": 200,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/pages/exhibit",
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 12717,
+      "sha256": "fb3269d4af5d255d0e53baaa24d65c1964966ff2d83560357dff44c4b5cb6669"
+    },
+    {
+      "key": "tokyoTerms",
+      "url": "https://portal.data.metro.tokyo.lg.jp/terms/",
+      "status": 200,
+      "finalUrl": "https://portal.data.metro.tokyo.lg.jp/terms/",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 44403,
+      "sha256": "74e591bc0092beaed0921015d3b2b0b9bf90c70e67508b036155f6e5400cd67a"
+    },
+    {
+      "key": "kyotoTerms",
+      "url": "https://data.city.kyoto.lg.jp/contents.php?category=0",
+      "status": 200,
+      "finalUrl": "https://data.city.kyoto.lg.jp/contents.php?category=0",
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 12063,
+      "sha256": "432bd334f9c64f123ba29ab9fc0f7c2907936ece1908e97accd00071c82b5448"
+    },
+    {
+      "key": "kyotoRaw",
+      "url": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "method": "POST",
+      "status": 200,
+      "finalUrl": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+      "contentType": "application/force-download",
+      "bytes": 843922,
+      "sha256": "bd37bbcbc413751f8ae5e3e5c88b397a452f953aad1b330c326cbaba137715cc"
+    }
+  ],
+  "notes": [
+    "HTTP access evidence is environment-dependent. Minato earlier 403 did not recur; original reviewed CSV returned 200 with exact pinned bytes.",
+    "Taito 2023 and 2024 URLs returned 404; current official landing page links the already-reviewed 20260818 release. Successor is a distinct dated release, not an equivalent legacy file.",
+    "Osaka changed full export from524 to529 rows; unchanged15-column header and identical344 selected smoking rows. New full bytes are not an approved release.",
+    "Minato generic CSV reader sees171 post-header records; adapter verifies publisher trailer and retains169 raw facility records."
+  ],
+  "productionAdapterProbes": [
+    {
+      "source": "Taito",
+      "rawRows": 34,
+      "selectedRows": 34,
+      "parser": "passed",
+      "observationProbe": "passed"
+    },
+    {
+      "source": "Osaka",
+      "rawRows": 529,
+      "selectedRows": 344,
+      "parser": "passed",
+      "observationProbe": "passed"
+    },
+    {
+      "source": "Koto",
+      "rawRows": 3,
+      "selectedRows": 3,
+      "parser": "passed",
+      "observationProbe": "passed"
+    },
+    {
+      "source": "Kyoto",
+      "rawRows": 1777,
+      "selectedRows": 17,
+      "parser": "passed",
+      "observationProbe": "passed"
+    },
+    {
+      "source": "Minato",
+      "rawRows": 169,
+      "selectedRows": 114,
+      "parser": "passed",
+      "observationProbe": "passed"
+    },
+    {
+      "source": "Musashino",
+      "rawRows": 25,
+      "selectedRows": 3,
+      "parser": "passed",
+      "observationProbe": "passed"
+    }
+  ],
+  "manualRightsDriftReview": {
+    "date": "2026-10-09",
+    "comparison": "retained initial bounded response bodies vs four separately fetched current official pages",
+    "method": "manual full HTML diff; equality check after removing only explicitly observed dynamic counters/session meta",
+    "baselineAutomaticallyChanged": false,
+    "productionApprovalChanged": false,
+    "pages": [
+      {
+        "page": "kyotoResource",
+        "earlierSha256": "19315baa561653c9047ee809ab65343741dd4f6c49d596dbf3a60fc561384d57",
+        "currentSha256": "e9fdd8b32d96d4f59d8a04ee8531bf98238cc391204f19ab3e92a28eab4f22ce",
+        "reviewedDifference": "access/download counters only",
+        "afterRemovingExplicitDynamicFieldsEqual": true,
+        "normalizedSha256": "0dbf132c343350ff1ee8a94a5a3f6d7c2b75ae305ea4ea8fdd94f0ca9855ef0a"
+      },
+      {
+        "page": "kyotoDataset",
+        "earlierSha256": "4b19c7960721089f0b006c464cd627d5a4e571c03d4db9af25a5bad29e2d94c1",
+        "currentSha256": "c887844343a42097b734b8455618df30c1b63c718b32ae48e69451fda5f8ec17",
+        "reviewedDifference": "access/download counters only",
+        "afterRemovingExplicitDynamicFieldsEqual": true,
+        "normalizedSha256": "39f4ee8cd198d0ab3ee5b0e7501b23137dd03a10c36b4509b6bfdff3a878a501"
+      },
+      {
+        "page": "minatoTerms",
+        "earlierSha256": "15a28da63427056beb8c519dc46eb9dd9bc61dd2b7c6cbfc0acfc3e7d42469f6",
+        "currentSha256": "269d61180e9d0ae1cccd48873574e7e93e7fc8f999ff47c6b4739252c667cc56",
+        "reviewedDifference": "request-session meta value only",
+        "afterRemovingExplicitDynamicFieldsEqual": true,
+        "normalizedSha256": "0cf0525bdb3520ea699ec1069329715b0d0f27c6ae449f28b3cb93683e71a4c8"
+      },
+      {
+        "page": "minatoExceptions",
+        "earlierSha256": "fb3269d4af5d255d0e53baaa24d65c1964966ff2d83560357dff44c4b5cb6669",
+        "currentSha256": "a8e8da59f1617c237a63221ecd5d5cbd4f6c2b184e966d31ad7034d54445bc70",
+        "reviewedDifference": "request-session meta value only",
+        "afterRemovingExplicitDynamicFieldsEqual": true,
+        "normalizedSha256": "a7b28f66d975c71dcb7a66a31a76351502741b2a6940e6eb8cd57913515ef988"
+      }
+    ]
+  }
+}

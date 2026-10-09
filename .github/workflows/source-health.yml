@@ -29,7 +29,7 @@ jobs:
           cache-dependency-path: services/api/package-lock.json
       - run: npm ci --ignore-scripts
       - name: Check approved official resources
-        run: node --experimental-strip-types --no-warnings scripts/source-health.ts --live > source-health.json
+        run: npm run --silent source:health:monitor -- --live --baseline=../../docs/research/2026-10-09-production-source-health-monitor.json --fail-on-review > source-health.json
       - name: Preserve metadata report
         if: always()
         uses: actions/upload-artifact@v4

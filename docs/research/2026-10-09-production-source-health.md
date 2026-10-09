@@ -1,5 +1,7 @@
 # Production source health — 2026-10-09
 
+Follow-up: [the monitoring extension and additional live evidence](2026-10-09-production-source-health-monitoring.md) adds recurring publisher rights fingerprints, the requested nine-status model, offline CLI checks and a reviewed-baseline alert mode. The initial audit and JSON below remain intact. The existing daily read-only workflow now invokes `source:health:monitor`; `source:health` retains its original compatibility behavior. No production URL, corpus or publication metadata was changed.
+
 Base: `origin/main`, `d13e6b9f10f47b44abf86e430b74610e46060ca1` (after #218/#219).
 Scope: the six approved municipal adapters. Blocked community/OSM and generic POIs are excluded.
 Main advanced during the task to `a37fdcfa5358814c5485efcc7f334dd8cfb5aa4e` (Apple UI #216);

@@ -1,0 +1,17 @@
+import { readFile, stat } from 'node:fs/promises';
+import { auditSource, deterministicJson, HEALTH_SOURCES, type PreviousHealth } from './source-health-lib.ts';
+const args = process.argv.slice(2);
+if (args.some(a => !['--live', '--fail-on-review'].includes(a) && !a.startsWith('--source=') && !a.startsWith('--baseline=') && !a.startsWith('--checked-at='))) throw new Error('usage: npm run source:health:monitor -- [--live] [--source=source-id] [--baseline=report.json] [--checked-at=UTC-time] [--fail-on-review]');
+const ids = args.filter(a => a.startsWith('--source=')).map(a => a.slice(9));
+if (ids.some(id => !HEALTH_SOURCES.some(source => source.sourceId === id))) throw new Error('unknown source id');
+const checkedAt = args.find(a => a.startsWith('--checked-at='))?.slice(13) ?? null;
+if (checkedAt && (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(checkedAt) || !Number.isFinite(Date.parse(checkedAt)))) throw new Error('invalid checked-at UTC timestamp');
+const baselinePath = args.find(a => a.startsWith('--baseline='))?.slice(11);
+if (baselinePath && (await stat(baselinePath)).size > 1024 * 1024) throw new Error('health baseline exceeds byte limit');
+const baseline: { modelVersion: string; results: PreviousHealth[] } | null = baselinePath ? JSON.parse(await readFile(baselinePath, 'utf8')) : null;
+if (baseline && (baseline.modelVersion !== 'source-health.v1' || !Array.isArray(baseline.results) || baseline.results.length > 6 || baseline.results.some(result => !result || typeof result.sourceId !== 'string' || !HEALTH_SOURCES.some(source => source.sourceId === result.sourceId) || (result.downloadSha256 != null && !/^[0-9a-f]{64}$/.test(result.downloadSha256)) || (result.rights?.fingerprints != null && (!Array.isArray(result.rights.fingerprints) || result.rights.fingerprints.length > 8 || result.rights.fingerprints.some(page => !page || typeof page.url !== 'string' || (page.sha256 != null && !/^[0-9a-f]{64}$/.test(page.sha256)))))))) throw new Error('invalid health baseline');
+const sources = HEALTH_SOURCES.filter(source => !ids.length || ids.includes(source.sourceId));
+const results = [];
+for (const source of sources) results.push(await auditSource(source, { live: args.includes('--live'), previous: baseline?.results.find(result => result.sourceId === source.sourceId) }));
+process.stdout.write(deterministicJson({ modelVersion: 'source-health.v1', checkedAt, results }));
+if (args.includes('--fail-on-review') && results.some(result => result.status !== 'healthy' || (args.includes('--live') && ['unknown', 'reviewRequired'].includes(result.rights.status)))) process.exitCode = 1;
