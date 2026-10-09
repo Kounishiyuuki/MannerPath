@@ -1,6 +1,10 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Estimated location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "推定位置" } } } },
+    "Location precision unknown": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置精度不明" } } } },
+    "No saved data": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータなし" } } } },
+    "No saved nearby places": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みの近くの場所はありません" } } } },
     "From iPhone": {
       "localizations": {
         "ja": {
