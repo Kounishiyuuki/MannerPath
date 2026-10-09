@@ -72,7 +72,7 @@ platform or provider logs are not proved absent by a source-level guard.
 
 | Item | Why not a read-only source blocker / follow-up |
 | --- | --- |
-| npm audit: 4 high package nodes (wrangler → miniflare → sharp/undici) | Production runtime dependencies: 0 vulnerabilities (`npm audit --omit=dev`). Dev tooling: 4 high; full audit exits 1. Wrangler remains pinned to 4.135.0. For all four affected packages, `npm audit --json` reports remediation via Wrangler 4.149.0 with `isSemVerMajor: false`. The upgrade is intentionally deferred to a follow-up PR to keep toolchain behavior changes separate from security gate finalization; re-audit and run full validation after upgrading. Keep dev tooling unexposed to hostile SVG/WebSocket/remote workloads pending remediation |
+| npm audit dev-tooling follow-up — **resolved 2026-10-10** | Previously 4 high dev-tooling nodes (wrangler → miniflare → sharp/undici) with Wrangler 4.135.0. Wrangler upgraded to 4.149.0 with `@cloudflare/workers-types` 5.20261006.1 (the minimum satisfying Wrangler's peer range); both remain exact pins and no other direct dependency changed. Fresh Node 24 audit after the upgrade: `npm audit --json` 0 vulnerabilities (all severities), `npm audit --omit=dev` 0. This covers only advisories known to the npm registry at audit time; re-audit before each release |
 | Heuristic scanner limitations | Accepted P2: separate Swift Authorization header/value literals, separate binary literals, arbitrary random secrets without prefix/context can evade detection; `tokenCount`-style contexts can cause fail-safe false positives. The scan is not complete proof of secret absence; human classification and final artifact review remain required |
 | Report rate counters best-effort under concurrency | Intake unavailable in v1; require edge limits and review atomic budgets before activation |
 | App Attest source entitlement development | Dormant v1 capability, already documented. Inspect production environment on final signed TestFlight/archive before enabling writes |
@@ -172,3 +172,20 @@ the initial sandbox cache-write failure was resolved by granting local Xcode cac
 binding change, deployment or production D1 operation is included. The heuristic scanner limitation
 remains accepted P2; dev-tool remediation and the existing signed/device/provider/privacy evidence
 follow-ups remain open. PR #222 stays Draft.
+
+## Dev tooling dependency follow-up (2026-10-10)
+
+Closes the npm audit follow-up deferred by PR #222. In `services/api`, Wrangler moved 4.135.0 → 4.149.0
+and `@cloudflare/workers-types` 5.20260919.1 → 5.20261006.1 (Wrangler 4.149.0 declares
+`peerOptional ^5.20261006.1`; installing Wrangler alone fails with ERESOLVE). Lockfile changes are
+limited to the Wrangler subtree (`miniflare`, `workerd`, `sharp`/`@img/*`, `undici`, `esbuild`,
+`@cloudflare/unenv-preset`); production dependencies are unchanged.
+
+Audit (Node 24.21.0): before — production 0, full 4 high; after — production 0, full 0.
+
+Validation on the upgraded tree: `make api-validate` PASS (typecheck, 970 API + 101 discovery tests);
+`make security-validate` PASS (`reachable_blobs=2241 suspects=0`, 15 API/deploy guards);
+`make apple-validate` PASS; `make apple-beta-preflight` PASS (`Release artifact scan: files=36 suspects=0`);
+`make contract` and `git diff --check` PASS. No deploy, secret binding, Worker config or production D1
+operation is part of this change; deployed-Worker behavior under the new Wrangler is not exercised here.
+The remaining accepted P2 items above stay open.
