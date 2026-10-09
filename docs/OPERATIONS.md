@@ -523,6 +523,79 @@ local pipeline with the publisher's `observed_on`, review, and promote a bundle.
 candidate's findings (`findings_json`) must be resolved first. A `failed` check changes nothing; the
 previous release and tiles stay as they were. To stop checks, set `crons` back to `[]` and deploy.
 
+## Production source health monitor (read-only, GitHub Actions)
+
+`.github/workflows/source-health.yml` runs `services/api/scripts/source-health.ts --live` daily (06:20 JST)
+and on `workflow_dispatch`. The same run checks each data resource and its scoped rights notice(s). It has
+`contents: read` only, no secrets, pinned official actions, and never touches D1, R2, the registry,
+baselines, publication or deployment. `--offline` replays the reviewed fixtures through the same checker
+without any network. Details and the signal model:
+[source health Phase 2](research/2026-10-09-source-health-phase2.md) and
+[unified monitoring](research/2026-10-09-source-health-unified.md).
+
+Run colour: **red = at least one BLOCKING signal**: parser/schema incompatible, `rightsChanged`,
+`rightsScopeMissing`, rights metadata missing, cross-origin relocation, 404/410, unexpected 401/403,
+`rateLimited` (429), unexpected MIME, **any** transport failure (timeout, DNS, refused, TLS, …), any
+non-200 final HTTP status (3xx left after redirect handling, 304, 418, 5xx, …), an unavailable rights
+page, unclassified. **Green may still carry ADVISORY rows**: content changed with healthy parser/schema,
+same-origin move, `humanReviewDue`, `rightsReviewDue`, and `known:<signal>` while an explicit known
+advisory is active. Read the step summary on every run, not only red ones.
+
+Triage rules — each is an operational reminder, never a publication decision:
+
+- Content change ≠ bad source. Unavailable ≠ removed. TLS failure ≠ rights failure.
+  Review due ≠ publication revoked.
+- `contentChanged`: (1) human review of the publisher page and rights notice, (2) run the adapter parser
+  on the new bytes locally, (3) semantic diff of selected rows/observations against the reviewed fixture,
+  (4) only then a reviewed PR replaces the fixture, `PROVENANCE.md`/`fetch.json` and adapter hash —
+  this is the only way the baseline (`hash`, `rowCount`, selected rows, header) moves. Never update a
+  baseline automatically or merely to clear an alert.
+- `humanReviewDue`: re-check rights/edition/operation evidence, then advance `reviewDueAt` (and the
+  observed dates) in `services/data-pipeline/source-health/review-metadata.json` in a reviewed PR.
+- A known advisory (`signal`, `reason`, `recordedAt`, `expiresAt`) downgrades exactly one availability
+  signal (`transport:*`, `http:5xx`, `rateLimited`, `unexpectedAccessBlocked`, or the same with a
+  `rightsPage:` prefix) until `expiresAt` (exclusive, at most 92 days after `recordedAt`). After expiry the
+  run turns red again (`knownAdvisoryExpired`). It can never cover rights, schema, parser, MIME or
+  relocation signals, never lowers TLS security, disables certificate checks or bypasses access controls.
+- `rights[].reviewedFingerprint` is a reviewed monitoring baseline for drift detection (made 2026-10-09
+  from the recorded rights evidence and scope text). It is not a license grant, legal approval or
+  publication approval.
+- `rightsChanged` / `rightsScopeMissing`: read the scoped notice on the publisher page. Only after that
+  human review may a reviewed PR set `rights[].reviewedFingerprint` (copy `fingerprint` from the JSON
+  artifact) and `reviewedAt`, or re-point the scope contract. The tool never writes a baseline.
+
+### Osaka known advisory: manual read-only check (until 2026-11-09)
+
+While Osaka `transport:timeout` is active, the GitHub-hosted runner cannot fetch the mapnavi data host
+(`www.mapnavi.city.osaka.lg.jp`); the rights page on `www.city.osaka.lg.jp` still answers HTTP 200 there.
+The root cause is not confirmed (likely runner/egress reachability to that host). So that the advisory never
+hides a real publisher outage, an operator runs this from a local machine at least weekly and before any
+Osaka release review:
+
+```sh
+cd services/api
+PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run source:health -- --live \
+  --source=osaka-designated-smoking-areas > osaka-health.json   # summary on stderr
+```
+
+Read-only: it touches no D1 (production or otherwise), R2, registry, fixture or baseline. Check in the JSON
+(`results[0]`) and the rights row:
+
+| Check | Field | Expected |
+| --- | --- | --- |
+| data reachable | `httpStatus`, `transport` | `200` via `node-https-ecdhe-aead`; any transport failure locally is a real outage |
+| content SHA | `sha256` | record it; compare with the previous manual check |
+| raw rows | `rowCount` | last observed 529 |
+| selected rows | `observedRowCount` | last observed 344 |
+| schema | `schemaCompatible` | `true` |
+| parser | `parserCompatible` | `true` |
+| rights | `rights[].outcome`, `httpStatus` | `unchanged`, `200` |
+
+529 / 344 are observations, not an approved baseline: the status stays `contentChanged` until a human
+release review (triage rules above). Never update the fixture, baseline or `reviewedFingerprint` to make this
+check pass, and never extend the advisory without a new reviewed PR. If the local check fails too, treat it as
+a publisher outage, not as the runner issue.
+
 ## Cache and CDN semantics
 
 No CDN configuration is introduced. The behaviour is the one the responses already describe.

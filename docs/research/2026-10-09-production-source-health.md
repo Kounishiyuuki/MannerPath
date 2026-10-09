@@ -132,7 +132,9 @@ node --experimental-strip-types --no-warnings services/api/scripts/source-health
 ```
 
 Exit 0: every requested source healthy. Exit 1: advisory anomaly (JSON still emitted). Exit 2: CLI/configuration error.
-The current Osaka TLS issue intentionally causes exit 1. Never reset a baseline automatically to clear an alert.
+The current Osaka TLS issue intentionally causes exit 1.
+*Superseded by [Phase 2](2026-10-09-source-health-phase2.md): exit 1 now means a blocking signal only; Osaka is
+checked live with an ECDHE/AEAD-only transport.* Never reset a baseline automatically to clear an alert.
 
 `.github/workflows/source-health.yml` runs this explicit live command daily at 06:20 JST (GitHub scheduling may delay
 execution) and via workflow_dispatch. It runs separately from offline tests, has contents-read permission only,

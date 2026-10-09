@@ -1,0 +1,225 @@
+{
+  "description": "Operational human-review reminders for production source health. Not a registry, rights grant, legal deadline or publication control. Dates are JST calendar days; null sourceObservedAt means the publisher states no observation date. Each rights entry is a scoped notice contract; reviewedFingerprint is changed only by a human after reading the scoped notice. knownAdvisories downgrade one availability signal until expiresAt (exclusive, at most 92 days after recordedAt).",
+  "sources": [
+    {
+      "sourceId": "koto-station-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Tokyo catalog package API (CC-BY-4.0, station resource URL unchanged) re-read 2026-10-09; catalog HTML still 403 (not bypassed). Ward delegation page 200. Resource-specific HTML notice remains unverified.",
+      "sourceObservedAt": null,
+      "editionLabel": "Catalog resource last_modified 2025-03-16",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Publication continues on the 2026-09-29 package-API review; re-read package API and attempt catalog HTML at review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_show?id=t131083d0000000061",
+          "scope": {
+            "kind": "jsonFields",
+            "fields": [
+              "result.license_id",
+              "result.license_title",
+              "result.license_url"
+            ],
+            "requiredMarkers": [
+              "CC-BY-4.0"
+            ]
+          },
+          "reviewedFingerprint": "80560e331ab189234fe21c3eba5b39b218f6f3a16090ff84a22c816b5c2b468e",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2027-01-09"
+        }
+      ]
+    },
+    {
+      "sourceId": "kyoto-public-smoking-places",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Dataset 00003 and resource 21432 CC BY 4.0 / 京都市 (production source health audit).",
+      "sourceObservedAt": "2026-09-03",
+      "editionLabel": "令和8年9月3日現在",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Check for a newer dated release at review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://data.city.kyoto.lg.jp/resource/?id=21432",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "データリソースID",
+                "end": "作成日時"
+              }
+            ],
+            "requiredMarkers": [
+              "21432",
+              "著作権者 京都市",
+              "CC-BY 4.0"
+            ]
+          },
+          "reviewedFingerprint": "2c81f3c1d1b84f515be1b40ae65d57b9ade73ebc6a3d0e6a82cf630ce545b5e5",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2027-01-09"
+        }
+      ]
+    },
+    {
+      "sourceId": "minato-designated-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Same-host terms and exception annex 200 (production source health audit).",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Observation date not stated by publisher.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://opendata.city.minato.tokyo.jp/about",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "本サイトの利用について",
+                "end": "About 港区オープンデータカタログ"
+              }
+            ],
+            "requiredMarkers": [
+              "CC BY",
+              "商用利用も可能です"
+            ]
+          },
+          "reviewedFingerprint": "0debec93de7ff72f9d95f215a83223f31683063b070c1b519cf82285d1f07b4d",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2027-01-09"
+        },
+        {
+          "url": "https://opendata.city.minato.tokyo.jp/pages/exhibit",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "別のルールを適用するコンテンツ",
+                "end": "About 港区オープンデータカタログ"
+              }
+            ],
+            "requiredMarkers": [
+              "GTFS"
+            ]
+          },
+          "reviewedFingerprint": "534d3ac4670458a5f9b33af3b003a8528eb7372ecabcf1c17322b3446e5831ea",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2027-01-09"
+        }
+      ]
+    },
+    {
+      "sourceId": "musashino-public-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Exact item page 4(2) still carries CC BY 4.0 notice; re-read 2026-10-09.",
+      "sourceObservedAt": null,
+      "editionLabel": "令和4年版(2022年版) 地域生活環境指標",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2026-12-09",
+      "reviewerNote": "Old edition; no newer edition listed on 2026-10-09. Current-operation page (updated 2026-09-30) still lists the three sites. Shorter interval because of edition age.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "4(2)トイレおよび路上禁煙エリア・公衆喫煙所 令和4年版地域生活環境指標",
+                "end": "4(2)トイレおよび路上禁煙エリア・公衆喫煙所 （zip"
+              },
+              {
+                "start": "データのご利用に際して 本セクションで公開しているデータは",
+                "end": "より良いウェブサイトにするために"
+              }
+            ],
+            "requiredMarkers": [
+              "[link:https://creativecommons.org/licenses/by/4.0/deed.ja]",
+              "クリエイティブ・コモンズ 表示 4.0 国際"
+            ]
+          },
+          "reviewedFingerprint": "15d481989c00e9d7994b9389cd40e8e1663e408ff4ab7e676078ae81eb6d9a32",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2026-12-09"
+        }
+      ]
+    },
+    {
+      "sourceId": "osaka-designated-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Item 14 license image links CC BY 2.1 JP (production source health audit).",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Changed release (529 raw rows) awaits separate release review; monitor uses the ECDHE/AEAD-only transport.",
+      "knownAdvisories": [
+        {
+          "signal": "transport:timeout",
+          "reason": "GitHub-hosted ubuntu runner to the mapnavi data host (www.mapnavi.city.osaka.lg.jp) times out (20 s, workflow run 37889290515, 2026-10-09); the Osaka rights host (www.city.osaka.lg.jp) remains reachable with HTTP 200 from the same runner. A local Node 24 run completes over ECDHE+AEAD (TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384, certificate authorized). Root cause is not yet confirmed; likely runner/cloud-egress reachability to the mapnavi host. Temporary; investigate before expiry. Never lowers TLS security.",
+          "recordedAt": "2026-10-09",
+          "expiresAt": "2026-11-09"
+        }
+      ],
+      "rights": [
+        {
+          "url": "https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "オープンデータの提供について",
+                "end": "地図情報サイト「マップナビおおさか」掲載情報 地図情報サイト「マップナビおおさか」掲載情報"
+              }
+            ],
+            "requiredMarkers": [
+              "[link:http://creativecommons.org/licenses/by/2.1/jp/]",
+              "[img:CC-BY]"
+            ]
+          },
+          "reviewedFingerprint": "927a29fd36a8df6d5e59c681a16a04ea09d9806ec1bdc7375b0c3dfb5e4abb3f",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2027-01-09"
+        }
+      ]
+    },
+    {
+      "sourceId": "taito-public-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Exact landing page explicitly CC BY 4.0 (production source health audit).",
+      "sourceObservedAt": "2026-08-18",
+      "editionLabel": "令和8年8月18日時点",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Check for a newer dated release at review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "ライセンスの取扱い",
+                "end": "お問い合わせ"
+              }
+            ],
+            "requiredMarkers": [
+              "[link:https://creativecommons.org/licenses/by/4.0/legalcode.ja]",
+              "クリエイティブ・コモンズ 表示 4.0 国際"
+            ]
+          },
+          "reviewedFingerprint": "3413ca160edb7fabfe7af01c9130a54fff74c6a7f57d92ef2add01d5be44a085",
+          "reviewedAt": "2026-10-09",
+          "reviewDueAt": "2027-01-09"
+        }
+      ]
+    }
+  ]
+}
