@@ -79,14 +79,37 @@ test("DB and REPORTS_DB are separate databases with separate migration streams i
   for (const id of reportIds) assert.equal(dataIds.includes(id), false, "a REPORTS_DB id is never any environment's DB id");
 });
 
+function assertCommittedVars(name: string, vars: Record<string, unknown>): void {
+  // Never attach env values to an assertion: node:test would print a newly committed secret.
+  assert.equal(JSON.stringify(Object.keys(vars).sort()) === '["REPORT_ATTESTATION"]', true, `${name}: committed vars allowlist`);
+  assert.equal(vars.REPORT_ATTESTATION === (name === "<top level>" ? "disabled" : "required"), true, `${name}: committed attestation policy`);
+}
+
 test("no environment commits a secret, and every var is non-secret", () => {
   const secretish = /pepper|secret|token|password|credential|api[_-]?key|private/i;
   for (const [name, env] of environments) {
+    // An innocently named var could also hold a credential: additions need deliberate review.
+    assertCommittedVars(name, env.vars ?? {});
     for (const key of Object.keys(env.vars ?? {})) {
       assert.equal(secretish.test(key), false, `${name}: ${key} belongs in \`wrangler secret put\`, not vars`);
     }
   }
   assert.equal(existsSync(new URL("../.dev.vars", import.meta.url)), false, ".dev.vars must never be committed");
+});
+
+test("committed vars failures never attach credential values to test diagnostics", () => {
+  const sentinel = "synthetic-credential-diagnostic-sentinel";
+  for (const vars of [
+    { REPORT_ATTESTATION: "required", INNOCENT_NAME: sentinel },
+    { REPORT_ATTESTATION: "required", API_KEY: sentinel },
+    { REPORT_ATTESTATION: sentinel },
+  ]) {
+    assert.throws(() => assertCommittedVars("production", vars), (error: any) => {
+      assert.equal(String(error).includes(sentinel), false);
+      assert.equal(JSON.stringify(error).includes(sentinel), false);
+      return true;
+    });
+  }
 });
 
 test("remote-like environments require App Attest, and fail closed until a maintainer configures it (Issue #37)", () => {
@@ -104,12 +127,12 @@ test("remote-like environments require App Attest, and fail closed until a maint
     assert.equal("REPORT_APP_ATTEST_APP_ID" in vars, false, `${name}: the App ID carries the App ID prefix (usually the Team ID) and is set per deployment, not committed`);
     assert.equal("REPORT_APP_ATTEST_ENVIRONMENT" in vars, false, `${name}: the App Attest environment is set per deployment`);
     assert.equal("REPORT_APP_ATTEST_BUNDLE_VERSIONS" in vars, false, `${name}: accepted build versions are set per deployment`);
-    assert.equal(attestationConfig(vars).kind, expected[name], `${name}: REPORT_ATTESTATION=${vars.REPORT_ATTESTATION}`);
+    assert.equal(attestationConfig(vars).kind, expected[name], `${name}: attestation policy`);
     // The advertised availability follows from the same derivation the Worker uses.
     assert.equal(configBody(vars).reports.available, expected[name] === "disabled", `${name}: /v1/config reports.available`);
   }
-  assert.equal((config.env.staging.vars ?? {}).REPORT_ATTESTATION, "required");
-  assert.equal((config.env.production.vars ?? {}).REPORT_ATTESTATION, "required");
+  assert.equal((config.env.staging.vars ?? {}).REPORT_ATTESTATION === "required", true);
+  assert.equal((config.env.production.vars ?? {}).REPORT_ATTESTATION === "required", true);
 
   // Once a maintainer supplies the three deployment values, the same committed vars enforce App Attest.
   const configured = {

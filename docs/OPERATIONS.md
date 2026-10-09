@@ -637,10 +637,10 @@ What remains:
   no URL, IP or identifier in these aggregate counters. This is the intended dashboard/alert basis;
   account-level products and additional retained records still need verification.
 - **Explicit log lines**, if code ever writes one. Logs stay enabled for that reason, under the
-  rules below. No application-authored request logger exists, but the pinned Hono default error
-  handler calls `console.error(err)` for unhandled exceptions. Scheduled source checks also log
-  run/source/status/outcome. Logs enabled therefore does not mean no diagnostics are retained;
-  inspect actual error fields and retention before privacy signoff.
+  rules below. The HTTP app replaces Hono's default exception logger with a fixed, unlogged 503
+  response (`test/release-security.test.ts`). Scheduled source checks still log bounded
+  run/source/status/outcome. Platform failures, historical diagnostics and provider retention
+  remain separate evidence to inspect before privacy signoff.
 - **Deploy and rollback history**, which is about the Worker, not about users.
 
 Invariants for anything added later:

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Inspect an iPhone .app or .xcarchive before the physical beta matrix."""
 import argparse
+import importlib.util
 import ipaddress
 import json
 import pathlib
@@ -9,6 +10,11 @@ import re
 import subprocess
 import sys
 from urllib.parse import urlparse
+
+# Shared value detector; release correctness remains owned by this checker.
+_spec = importlib.util.spec_from_file_location("release_secret_scan", pathlib.Path(__file__).with_name("security-secret-scan.py"))
+_secret_scan = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_secret_scan)
 
 GROUP = "group.com.kounishiyuuki.MannerPath"
 PRODUCTION_API = "https://mannerpath-api-production.happywestyuki.workers.dev"
@@ -269,7 +275,9 @@ def check_build_settings(project=PROJECT):
         if item.get("isa") != "XCBuildConfiguration":
             continue
         settings = item.get("buildSettings", {})
-        for name in settings:
+        for name, value in settings.items():
+            if _secret_scan.secret_types(json.dumps(value).encode()):
+                fail(f"build settings ({item.get('name')}): {name!r} contains a secret-looking literal; keep secrets out of the app project")
             if secretish(name):
                 fail(f"build settings ({item.get('name')}): {name!r} looks like a secret; keep secrets out of the app project")
         if item.get("name") == "Release":

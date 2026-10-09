@@ -39,7 +39,10 @@ first TestFlight build, T5).
 `make apple-beta-preflight` → `scripts/apple-beta-preflight.sh` (no argument): unsigned
 **Release archive** for `generic/platform=iOS` from the committed settings (overrides refused), then
 `scripts/check-apple-beta-artifact.py --unsigned-build`. With a signed `.xcarchive`/`.app` argument it
-reads signed entitlements and embedded profiles instead. Fail-closed checks:
+reads signed entitlements and embedded profiles instead. Both modes then require
+`security-secret-scan.py --artifact` on that same app (including embedded bundles); suspects or scanner
+execution errors fail the whole preflight. The output must show artifact files > 0 and suspects = 0.
+Fail-closed correctness checks:
 
 | Check | Unsigned | Signed |
 | --- | --- | --- |

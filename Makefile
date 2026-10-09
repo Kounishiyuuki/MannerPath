@@ -1,4 +1,4 @@
-.PHONY: contract apple-validate apple-beta-preflight api-validate validate
+.PHONY: contract apple-validate apple-beta-preflight api-validate security-validate validate
 
 contract:
 	./scripts/check-doc-contract.sh
@@ -12,4 +12,9 @@ apple-beta-preflight:
 api-validate:
 	./scripts/validate-api.sh
 
-validate: contract api-validate apple-validate
+security-validate:
+	python3 scripts/test-security-guardrails.py
+	python3 scripts/security-secret-scan.py --history
+	cd services/api && node --experimental-strip-types --experimental-sqlite --no-warnings --test test/release-security.test.ts test/deploy-config.test.ts
+
+validate: contract api-validate apple-validate security-validate

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import importlib.util
 import json
+import os
 import pathlib
 import plistlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -244,6 +246,15 @@ class PreflightTests(unittest.TestCase):
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 preflight.check_build_settings(self.project(settings))
 
+    def test_secret_literals_in_innocent_build_settings_are_redacted(self):
+        release = {"MANNERPATH_API_BASE_URL": preflight.PRODUCTION_API, "MANNERPATH_PUBLIC_SITE_URL": preflight.PUBLIC_SITE}
+        value = "ghp_" + "a" * 36
+        for configuration in ("Debug", "Release", "Custom"):
+            with self.subTest(configuration=configuration), self.assertRaises(ValueError) as failure:
+                preflight.check_build_settings(self.project([("Release", release), (configuration, {"OTHER_SETTING": ["$(inherited)", value]})]))
+            self.assertNotIn(value, str(failure.exception))
+            self.assertIn("secret-looking literal", str(failure.exception))
+
     def test_always_location_fails_in_every_bundle_and_extension(self):
         for key in preflight.LOCATION_ALWAYS:
             for path in self.paths:
@@ -470,6 +481,118 @@ class PreflightTests(unittest.TestCase):
                 preflight.check_provisioning(bundle, preflight.IDS["iPhone app"], signed)
         self.assertNotIn("PRIVATE_TEAM", str(failure.exception))
         self.assertNotIn("WRONG_TEAM", str(failure.exception))
+
+
+class PreflightOrchestrationTests(unittest.TestCase):
+    """Run the real wrapper with isolated checker/scanner/build stand-ins."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="preflight integration ")
+        self.addCleanup(self.temp.cleanup)
+        self.root = pathlib.Path(self.temp.name)
+        scripts = self.root / "scripts"
+        scripts.mkdir()
+        self.wrapper = scripts / "apple-beta-preflight.sh"
+        shutil.copyfile(SCRIPT.with_name("apple-beta-preflight.sh"), self.wrapper)
+        self.log = self.root / "calls.jsonl"
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        self.write_stub(self.bin / "xcodebuild", """
+args = sys.argv[1:]
+artifact = args[args.index('-archivePath') + 1]
+(pathlib.Path(artifact) / 'Products/Applications/MannerPath.app').mkdir(parents=True)
+record('build', args)
+""")
+        self.write_stub(scripts / "check-apple-beta-artifact.py", """
+record('checker', sys.argv[1:])
+assert pathlib.Path(sys.argv[1]).is_dir()
+""")
+        self.scanner = scripts / "security-secret-scan.py"
+        self.write_stub(self.scanner, """
+record('scanner', sys.argv[1:])
+assert len(sys.argv) == 3 and sys.argv[1] == '--artifact'
+assert pathlib.Path(sys.argv[2]).is_dir()
+sys.exit(int(os.environ.get('SCANNER_EXIT', '0')))
+""")
+        self.signed = self.root / "signed Release artifact.xcarchive"
+        (self.signed / "Products/Applications/MannerPath.app").mkdir(parents=True)
+        self.signed_app = self.root / "signed Release app.app"
+        self.signed_app.mkdir()
+
+    def write_stub(self, path, body):
+        path.write_text(f"#!{sys.executable}\n" + """
+import json, os, pathlib, sys
+
+def record(kind, args):
+    with open(os.environ['PREFLIGHT_CALL_LOG'], 'a') as log:
+        log.write(json.dumps([kind, args]) + '\\n')
+""" + body)
+        path.chmod(0o755)
+
+    def run_wrapper(self, signed=False, scanner_exit=0):
+        env = {**os.environ, "PATH": str(self.bin) + os.pathsep + os.environ["PATH"],
+               "PREFLIGHT_CALL_LOG": str(self.log), "SCANNER_EXIT": str(scanner_exit)}
+        env.pop("MANNERPATH_API_BASE_URL", None)
+        env.pop("MANNERPATH_PUBLIC_SITE_URL", None)
+        return subprocess.run(["bash", str(self.wrapper), *([str(self.signed_app if signed == "app" else self.signed)] if signed else [])],
+                              env=env, capture_output=True, text=True)
+
+    def calls(self):
+        return [json.loads(line) for line in self.log.read_text().splitlines()]
+
+    def assert_scanned_correct_artifact(self, signed):
+        calls = self.calls()
+        self.assertEqual([kind for kind, _ in calls],
+                         ['checker', 'scanner'] if signed else ['build', 'checker', 'scanner'])
+        checker_args = calls[-2][1]
+        scanner_args = calls[-1][1]
+        if signed:
+            expected = str(self.signed_app if signed == "app" else self.signed)
+            self.assertEqual(checker_args, [expected])
+        else:
+            build_args = calls[0][1]
+            self.assertEqual(build_args[0], 'archive')
+            self.assertEqual(build_args[build_args.index('-configuration') + 1], 'Release')
+            expected = build_args[build_args.index('-archivePath') + 1]
+            self.assertEqual(pathlib.Path(expected).name, 'MannerPath.xcarchive')
+            self.assertEqual(checker_args, [expected, '--unsigned-build', '--wrapper-release-archive'])
+        scanned_app = expected if signed == 'app' else str(pathlib.Path(expected) / 'Products/Applications/MannerPath.app')
+        self.assertEqual(scanner_args, ['--artifact', scanned_app])
+
+    def test_scanner_success_is_required_for_both_artifact_modes(self):
+        for signed in (False, True, "app"):
+            with self.subTest(signed=signed):
+                self.log.unlink(missing_ok=True)
+                result = self.run_wrapper(signed=signed)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assert_scanned_correct_artifact(signed)
+
+    def test_scanner_suspect_and_execution_error_fail_both_modes(self):
+        for signed in (False, True, "app"):
+            for scanner_exit in (1, 7):
+                with self.subTest(signed=signed, scanner_exit=scanner_exit):
+                    self.log.unlink(missing_ok=True)
+                    result = self.run_wrapper(signed=signed, scanner_exit=scanner_exit)
+                    self.assertEqual(result.returncode, scanner_exit, result.stderr)
+                    self.assert_scanned_correct_artifact(signed)
+
+
+    def test_real_scanner_rejects_invalid_artifact_even_if_checker_passes(self):
+        shutil.copyfile(SCRIPT.with_name("security-secret-scan.py"), self.scanner)
+        result = self.run_wrapper(signed="app")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("invalid app root", result.stdout)
+        self.assertEqual(self.calls(), [["checker", [str(self.signed_app)]]])
+
+    def test_missing_scanner_fails_both_modes(self):
+        self.scanner.unlink()
+        for signed in (False, True, "app"):
+            with self.subTest(signed=signed):
+                self.log.unlink(missing_ok=True)
+                result = self.run_wrapper(signed=signed)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('security-secret-scan.py', result.stderr)
+                self.assertEqual(self.calls()[-1][0], 'checker')
 
 
 if __name__ == "__main__":
