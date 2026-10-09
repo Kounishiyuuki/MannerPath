@@ -6,6 +6,7 @@ import { pathToFileURL, URL } from "node:url";
 import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth, type HealthTarget } from "../src/source-health/check.ts";
 import { buildReport, jstDate, renderSummary, validateReviews, type SourceReview } from "../src/source-health/evaluate.ts";
+import { checkRights, notChecked, withRights } from "../src/source-health/rights.ts";
 import { ecdheAeadFetch } from "./source-health-transport.ts";
 import { TAITO_ORIGINAL_DATA_URL } from "../src/pipeline/taito.ts";
 import { OSAKA_DATA_URL } from "../src/pipeline/osaka-adapter.ts";
@@ -85,22 +86,44 @@ const transports: Record<string, { name: string; fetch: (url: string, init?: Req
 export function sourceReviews(): SourceReview[] {
   return JSON.parse(readFileSync(new URL("../../data-pipeline/source-health/review-metadata.json", import.meta.url), "utf8")).sources;
 }
-export async function main(args = process.argv.slice(2), now = new Date()) {
-  if (args.some(arg => arg !== "--live" && !arg.startsWith("--source=")) || !args.includes("--live")) throw new Error("Usage: npm run source:health -- --live [--source=source-id]");
+// Offline replay: serves the reviewed fixtures (Musashino: the reviewed outer archive) through the same
+// checker and evaluator. No network; rights pages are reported as notChecked.
+function offlineFetch(targets: HealthTarget[]): (url: string) => Promise<Response> {
+  return async url => {
+    const target = targets.find(t => t.url === url);
+    if (!target) throw new Error("offline mode refuses network access");
+    const resource = resources[target.adapter.registry.sourceId];
+    const file = target.baselineResourceSha256 ? "toilet.zip" : resource.filename;
+    const bytes = readFileSync(new URL(`${target.adapter.registry.sourceId}/${file}`, root));
+    return new Response(bytes, { status: 200, headers: { "content-type": target.mimeTypes[0] } });
+  };
+}
+const STDIO = { out: (text: string) => void process.stdout.write(text), err: (text: string) => void process.stderr.write(text) };
+export async function main(args: string[] = process.argv.slice(2), now = new Date(), io = STDIO) {
+  const mode = args.filter(arg => arg === "--live" || arg === "--offline");
+  if (args.some(arg => arg !== "--live" && arg !== "--offline" && !arg.startsWith("--source=")) || mode.length !== 1)
+    throw new Error("Usage: npm run source:health -- (--live | --offline) [--source=source-id]");
+  const live = mode[0] === "--live";
   const ids = args.filter(arg => arg.startsWith("--source=")).map(arg => arg.slice(9));
   const targets = productionHealthTargets();
   if (ids.some(id => !targets.some(t => t.adapter.registry.sourceId === id))) throw new Error("Unknown reviewed source id");
   const reviews = sourceReviews();
   validateReviews(reviews, targets.map(t => t.adapter.registry.sourceId));
-  // Sequential and exhaustive: every source is checked and reported even when another fails.
+  // Sequential and exhaustive: every source (data and rights pages) is checked and reported even when
+  // another fails; the exit code is decided only afterwards.
   const results = [];
   for (const target of targets.filter(t => !ids.length || ids.includes(t.adapter.registry.sourceId))) {
-    const transport = transports[target.adapter.registry.sourceId] ?? { name: "node-fetch", fetch };
-    results.push({ ...await checkSourceHealth(target, { fetch: transport.fetch }), transport: transport.name });
+    const sourceId = target.adapter.registry.sourceId;
+    const transport = live ? transports[sourceId] ?? { name: "node-fetch", fetch } : { name: "offline-fixture", fetch: offlineFetch(targets) };
+    const health = await checkSourceHealth(target, { fetch: transport.fetch });
+    const contracts = reviews.find(review => review.sourceId === sourceId)!.rights;
+    const rights = [];
+    for (const contract of contracts) rights.push(live ? await checkRights(contract, { fetch: transport.fetch }) : notChecked(contract));
+    results.push({ ...withRights(health, rights), transport: transport.name });
   }
   const report = buildReport(results, reviews, jstDate(now));
-  process.stdout.write(JSON.stringify(report, null, 2) + "\n");
-  process.stderr.write(renderSummary(report));
+  io.out(JSON.stringify(report, null, 2) + "\n");
+  io.err(renderSummary(report));
   process.exitCode = report.exitCode;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch(error => { process.stderr.write(String(error) + "\n"); process.exitCode = 2; });

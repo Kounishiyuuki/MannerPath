@@ -32,7 +32,7 @@ publisher TLS configuration limitation, not a certificate or rights problem.
 | **Chosen: per-source Node `https` with an ECDHE+AEAD-only cipher list** | Strict subset of the default: DHE is never offered. Certificate and hostname verification (`rejectUnauthorized: true`), the security level, TLS ≥1.2, the redirect policy, the size limit and the timeout are unchanged |
 
 This keeps a small pluggable seam (`transports` in `scripts/source-health.ts`). Only Osaka uses it.
-`ERR_SSL_DH_KEY_TOO_SMALL` remains registered as a known advisory with a review date in case the transport is bypassed.
+The `ERR_SSL_DH_KEY_TOO_SMALL` known advisory was removed by the [unified monitoring](2026-10-09-source-health-unified.md) change: if it reappears the transport was bypassed, which must block.
 Any other TLS code (certificate, hostname, protocol) is **blocking**.
 Prohibited and absent: `rejectUnauthorized=false`, `NODE_TLS_REJECT_UNAUTHORIZED`, a lowered `SECLEVEL`, insecure curl.
 
@@ -48,6 +48,9 @@ The new `signals` object keeps independent facts: `moved`, `crossOriginRelocatio
 The JSON report is version 2: `{version, evaluatedOn, exitCode, summary{blocking,advisory,ok}, results[]}`.
 Each result also carries `transport` and `review`. A Markdown table of signals goes to stderr and to the
 GitHub step summary.
+
+> Superseded: the [unified monitoring](2026-10-09-source-health-unified.md) exit policy makes timeout, network
+> and 5xx failures blocking unless an explicit, expiring known advisory covers them.
 
 | Blocking (exit 1) | Advisory (exit 0) |
 | --- | --- |

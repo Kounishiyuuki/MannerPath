@@ -1,15 +1,17 @@
 // Advisory only: no database, retained bodies, registry writes, or publication.
 import { sha256Hex } from "../db.ts";
 import { observeSourceRecord, type SourceAdapter } from "../pipeline/source-adapter.ts";
+import type { RightsObservation } from "./rights.ts";
 export type HealthStatus = "healthy" | "moved" | "unavailable" | "accessBlocked" | "schemaChanged" | "contentChanged" | "rightsReviewRequired" | "unknown";
 // Transport failure classes are symbolic; they never carry publisher bodies or arbitrary error text.
 export type TransportFailure = "tls" | "timeout" | "network" | "sizeLimit" | "redirect" | "unknown";
 // Independent observations: a primary status alone loses e.g. "moved AND contentChanged".
 export interface HealthSignals {
   moved: boolean; crossOriginRelocation: boolean; accessBlocked: boolean; resourceMissing: boolean; serverError: boolean;
+  rateLimited: boolean; unexpectedHttpStatus: boolean;
   transportFailure: TransportFailure | null; transportCode: string | null; mimeUnexpected: boolean;
   contentChanged: boolean; packagingChanged: boolean; schemaCompatible: boolean | null; parserCompatible: boolean | null;
-  rightsReviewRequired: boolean;
+  rightsReviewRequired: boolean; rightsChanged: boolean; rightsScopeMissing: boolean;
 }
 export interface HealthResult {
   sourceId: string; status: HealthStatus; httpStatus: number | null; finalUrl: string;
@@ -17,7 +19,7 @@ export interface HealthResult {
   bytes?: number; sha256?: string; payloadSha256?: string; rowCount?: number; observedRowCount?: number;
   header?: string[]; coordinateColumns?: string[]; schemaCompatible: boolean | null;
   parserCompatible: boolean | null; redirects: { url: string; status: number; location: string }[]; notes: string[];
-  signals: HealthSignals;
+  signals: HealthSignals; rights?: RightsObservation[];
 }
 export interface HealthTarget {
   adapter: SourceAdapter; url: string; baselineSha256: string; baselineResourceSha256?: string; baselineHeader: string[];
@@ -30,8 +32,8 @@ export async function checkSourceHealth(target: HealthTarget, options: HealthOpt
   const result: HealthResult = { sourceId: target.adapter.registry.sourceId, status: "unknown", httpStatus: null,
     finalUrl: target.url, contentType: null, schemaCompatible: null, parserCompatible: null, redirects: [], notes: [],
     signals: { moved: false, crossOriginRelocation: false, accessBlocked: false, resourceMissing: false, serverError: false,
-      transportFailure: null, transportCode: null, mimeUnexpected: false, contentChanged: false, packagingChanged: false,
-      schemaCompatible: null, parserCompatible: null, rightsReviewRequired: false } };
+      rateLimited: false, unexpectedHttpStatus: false, transportFailure: null, transportCode: null, mimeUnexpected: false, contentChanged: false, packagingChanged: false,
+      schemaCompatible: null, parserCompatible: null, rightsReviewRequired: false, rightsChanged: false, rightsScopeMissing: false } };
   const signals = result.signals;
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout>;
@@ -66,11 +68,15 @@ export async function checkSourceHealth(target: HealthTarget, options: HealthOpt
       if (response.status === 303 || ((response.status === 301 || response.status === 302) && request.method === "POST")) request = {};
       url = next.href;
     }
-    if (!response.ok) {
+    // Only 200 is a success. Redirects are resolved above, so any other status left here (a raw 3xx, 304
+    // without a conditional-request contract, other 2xx, 4xx, 5xx) is explicitly classified, never healthy.
+    if (response.status !== 200) {
       void response.body?.cancel().catch(() => {});
       result.status = response.status === 403 || response.status === 401 ? "accessBlocked" : "unavailable";
       signals.accessBlocked = result.status === "accessBlocked"; signals.resourceMissing = response.status === 404 || response.status === 410;
-      signals.serverError = response.status >= 500; signals.moved = result.redirects.length > 0;
+      signals.serverError = response.status >= 500 && response.status <= 599; signals.rateLimited = response.status === 429;
+      signals.unexpectedHttpStatus = !signals.accessBlocked && !signals.resourceMissing && !signals.serverError && !signals.rateLimited;
+      signals.moved = result.redirects.length > 0;
       result.notes.push(`HTTP ${response.status}; does not establish removal or rights expiry`); return result;
     }
     const mime = result.contentType?.split(";")[0].trim().toLowerCase();
@@ -128,7 +134,7 @@ export async function checkSourceHealth(target: HealthTarget, options: HealthOpt
   } finally { clearTimeout(timer!); controller.abort(); if (reader) void reader.cancel().catch(() => {}); }
 }
 
-function transportFailure(message: string, code: string | null): TransportFailure {
+export function transportFailure(message: string, code: string | null): TransportFailure {
   if (message === "timeout" || code === "ETIMEDOUT" || code === "UND_ERR_CONNECT_TIMEOUT" || code === "UND_ERR_HEADERS_TIMEOUT") return "timeout";
   if (message.startsWith("response size limit") || message.startsWith("expanded payload size")) return "sizeLimit";
   if (message.startsWith("redirect")) return "redirect";

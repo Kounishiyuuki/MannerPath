@@ -526,15 +526,20 @@ previous release and tiles stay as they were. To stop checks, set `crons` back t
 ## Production source health monitor (read-only, GitHub Actions)
 
 `.github/workflows/source-health.yml` runs `services/api/scripts/source-health.ts --live` daily (06:20 JST)
-and on `workflow_dispatch`. It has `contents: read` only, no secrets, pinned official actions, and never
-touches D1, R2, the registry, baselines, publication or deployment. Details and the signal model:
-[source health Phase 2](research/2026-10-09-source-health-phase2.md).
+and on `workflow_dispatch`. The same run checks each data resource and its scoped rights notice(s). It has
+`contents: read` only, no secrets, pinned official actions, and never touches D1, R2, the registry,
+baselines, publication or deployment. `--offline` replays the reviewed fixtures through the same checker
+without any network. Details and the signal model:
+[source health Phase 2](research/2026-10-09-source-health-phase2.md) and
+[unified monitoring](research/2026-10-09-source-health-unified.md).
 
-Run colour: **red = at least one BLOCKING signal** (parser/schema incompatible, rights regression or
-cross-origin relocation, 404/410, unexpected 401/403, unexpected MIME, non-transient transport failure,
-unclassified). **Green may still carry ADVISORY rows** (content changed with healthy parser/schema,
-same-origin move, known TLS limitation, known access restriction, transient network/5xx,
-`humanReviewDue`). Read the step summary on every run, not only red ones.
+Run colour: **red = at least one BLOCKING signal**: parser/schema incompatible, `rightsChanged`,
+`rightsScopeMissing`, rights metadata missing, cross-origin relocation, 404/410, unexpected 401/403,
+`rateLimited` (429), unexpected MIME, **any** transport failure (timeout, DNS, refused, TLS, …), any
+non-200 final HTTP status (3xx left after redirect handling, 304, 418, 5xx, …), an unavailable rights
+page, unclassified. **Green may still carry ADVISORY rows**: content changed with healthy parser/schema,
+same-origin move, `humanReviewDue`, `rightsReviewDue`, and `known:<signal>` while an explicit known
+advisory is active. Read the step summary on every run, not only red ones.
 
 Triage rules — each is an operational reminder, never a publication decision:
 
@@ -547,8 +552,14 @@ Triage rules — each is an operational reminder, never a publication decision:
   baseline automatically or merely to clear an alert.
 - `humanReviewDue`: re-check rights/edition/operation evidence, then advance `reviewDueAt` (and the
   observed dates) in `services/data-pipeline/source-health/review-metadata.json` in a reviewed PR.
-- A new known advisory (expected 403, publisher TLS limitation) is added to that file with a
-  `reviewDueAt`; it never lowers TLS security, disables certificate checks or bypasses access controls.
+- A known advisory (`signal`, `reason`, `recordedAt`, `expiresAt`) downgrades exactly one availability
+  signal (`transport:*`, `http:5xx`, `rateLimited`, `unexpectedAccessBlocked`, or the same with a
+  `rightsPage:` prefix) until `expiresAt` (exclusive, at most 92 days after `recordedAt`). After expiry the
+  run turns red again (`knownAdvisoryExpired`). It can never cover rights, schema, parser, MIME or
+  relocation signals, never lowers TLS security, disables certificate checks or bypasses access controls.
+- `rightsChanged` / `rightsScopeMissing`: read the scoped notice on the publisher page. Only after that
+  human review may a reviewed PR set `rights[].reviewedFingerprint` (copy `fingerprint` from the JSON
+  artifact) and `reviewedAt`, or re-point the scope contract. The tool never writes a baseline.
 
 ## Cache and CDN semantics
 

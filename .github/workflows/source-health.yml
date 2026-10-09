@@ -29,7 +29,8 @@ jobs:
         with:
           node-version: "24"
       - run: npm ci --ignore-scripts
-      # Exit 1 only for blocking signals; advisory-only findings stay green and appear in the summary.
+      # One exhaustive run checks every data resource and its scoped rights notice, then exits 1 for any
+      # blocking signal (including unknown outages and rights drift); advisory-only findings stay green.
       - name: Check approved official resources
         run: |
           set +e
@@ -50,4 +51,4 @@ jobs:
       - name: Explain review boundary
         if: always()
         run: |
-          echo 'Source health is advisory. A red run means a blocking signal; review the JSON artifact. No source approval, ingestion, spot deletion, D1 operation or deployment occurs. Live rights notices require human review.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Source health is advisory. A red run means a blocking signal; review the JSON artifact. No source approval, ingestion, spot deletion, D1 operation, rights baseline update or deployment occurs. Rights changes require human review before a reviewed PR updates the fingerprint.' >> "$GITHUB_STEP_SUMMARY"

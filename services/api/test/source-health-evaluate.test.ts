@@ -13,7 +13,7 @@ const response = (body: BodyInit | null = fixture, status = 200, headers = {}) =
 const TODAY = "2026-10-09";
 const review = (overrides: Partial<SourceReview> = {}): SourceReview => ({ sourceId: target.adapter.registry.sourceId, rightsReviewedAt: "2026-10-09",
   rightsEvidence: "test", sourceObservedAt: "2026-08-18", editionLabel: null, editionObservedAt: "2026-10-09", reviewDueAt: "2027-01-09",
-  reviewerNote: "test", knownAdvisories: [], ...overrides });
+  reviewerNote: "test", knownAdvisories: [], rights: [], ...overrides });
 const tlsFailure = (code: string) => async () => { throw new Error("fetch failed", { cause: { code, message: "private detail" } }); };
 const check = (fetch: () => Promise<Response>, overrides = {}) => checkSourceHealth({ ...target, ...overrides }, { fetch });
 
@@ -22,26 +22,26 @@ test("transport TLS failure is classified symbolically and blocks when not a kno
   assert.equal(result.signals.transportFailure, "tls"); assert.equal(result.signals.transportCode, "ERR_SSL_DH_KEY_TOO_SMALL");
   assert.equal(result.signals.rightsReviewRequired, false, "TLS failure is not a rights failure");
   const evaluated = evaluateResult(result, review(), TODAY);
-  assert.equal(evaluated.severity, "blocking"); assert.deepEqual(evaluated.blocking, ["transport:tls"]);
+  assert.equal(evaluated.severity, "blocking"); assert.deepEqual(evaluated.blocking, ["transport:tls(ERR_SSL_DH_KEY_TOO_SMALL)"]);
   const certificate = await check(tlsFailure("CERT_HAS_EXPIRED"));
   assert.equal(certificate.signals.transportFailure, "tls");
 });
-test("known TLS limitation is advisory and only for its exact code", async () => {
-  const known = review({ knownAdvisories: [{ kind: "transport", code: "ERR_SSL_DH_KEY_TOO_SMALL", note: "publisher DHE", reviewDueAt: "2027-01-09" }] });
+test("known TLS limitation is advisory only for its exact code and only until it expires", async () => {
+  const known = review({ knownAdvisories: [{ signal: "transport:tls(ERR_SSL_DH_KEY_TOO_SMALL)", reason: "publisher DHE", recordedAt: "2026-10-09", expiresAt: "2026-11-09" }] });
   const evaluated = evaluateResult(await check(tlsFailure("ERR_SSL_DH_KEY_TOO_SMALL")), known, TODAY);
-  assert.equal(evaluated.severity, "advisory"); assert.deepEqual(evaluated.advisory, ["knownTransportLimitation"]);
+  assert.equal(evaluated.severity, "advisory"); assert.deepEqual(evaluated.advisory, ["known:transport:tls(ERR_SSL_DH_KEY_TOO_SMALL)"]);
   assert.equal(evaluateResult(await check(tlsFailure("ERR_TLS_CERT_ALTNAME_INVALID")), known, TODAY).severity, "blocking");
-  const expired = evaluateResult(await check(tlsFailure("ERR_SSL_DH_KEY_TOO_SMALL")), known, "2027-01-09");
-  assert.equal(expired.severity, "advisory"); assert.ok(expired.advisory.includes("humanReviewDue"));
+  const expired = evaluateResult(await check(tlsFailure("ERR_SSL_DH_KEY_TOO_SMALL")), known, "2026-11-09");
+  assert.equal(expired.severity, "blocking"); assert.deepEqual(expired.blocking, ["transport:tls(ERR_SSL_DH_KEY_TOO_SMALL)", "knownAdvisoryExpired"]);
 });
-test("unknown transport failure is never swallowed; transient network failure is advisory", async () => {
+test("unknown transport, timeout and network failures are blocking without a known advisory", async () => {
   const unknown = await check(async () => { throw new Error("boom"); });
   assert.equal(unknown.signals.transportFailure, "unknown");
   assert.deepEqual(evaluateResult(unknown, review(), TODAY).blocking, ["transport:unknown"]);
   const reset = evaluateResult(await check(tlsFailure("ECONNRESET")), review(), TODAY);
-  assert.equal(reset.severity, "advisory"); assert.deepEqual(reset.advisory, ["transient:network"]);
+  assert.equal(reset.severity, "blocking"); assert.deepEqual(reset.blocking, ["transport:network(ECONNRESET)"]);
   const timeout = evaluateResult(await checkSourceHealth(target, { timeoutMs: 5, fetch: () => new Promise(() => {}) }), review(), TODAY);
-  assert.deepEqual(timeout.advisory, ["transient:timeout"]);
+  assert.deepEqual(timeout.blocking, ["transport:timeout"]);
   const oversized = evaluateResult(await checkSourceHealth(target, { maxBytes: 5, fetch: async () => response() }), review(), TODAY);
   assert.deepEqual(oversized.blocking, ["transport:sizeLimit"]);
 });
@@ -69,9 +69,9 @@ test("rights regression, removal-equivalent 404, unexpected 403 and MIME are blo
   assert.deepEqual(evaluateResult(await check(async () => response(null, 403)), review(), TODAY).blocking, ["unexpectedAccessBlocked"]);
   assert.deepEqual(evaluateResult(await check(async () => response(null, 405)), review(), TODAY).blocking, ["http:405"]);
   assert.deepEqual(evaluateResult(await check(async () => response("<html>", 200, { "content-type": "text/html" })), review(), TODAY).blocking, ["unexpectedMime"]);
-  const known403 = review({ knownAdvisories: [{ kind: "accessBlocked", note: "catalog policy", reviewDueAt: "2027-01-09" }] });
+  const known403 = review({ knownAdvisories: [{ signal: "unexpectedAccessBlocked", reason: "catalog policy", recordedAt: "2026-10-09", expiresAt: "2026-12-09" }] });
   assert.equal(evaluateResult(await check(async () => response(null, 403)), known403, TODAY).severity, "advisory");
-  assert.deepEqual(evaluateResult(await check(async () => response(null, 503)), review(), TODAY).advisory, ["serverError"]);
+  assert.deepEqual(evaluateResult(await check(async () => response(null, 503)), review(), TODAY).blocking, ["http:503"]);
 });
 test("humanReviewDue boundary is inclusive on the due JST day", async () => {
   const healthy = await check(async () => response());
@@ -85,10 +85,12 @@ test("humanReviewDue boundary is inclusive on the due JST day", async () => {
   assert.equal(unknownObservation.severity, "ok", "unknown observation date is surfaced but not noisy"); assert.deepEqual(unknownObservation.advisory, ["observationDateUnknown"]);
 });
 test("all-source aggregation: advisory-only exits 0, any blocker exits 1, every source reported", async () => {
-  const reviews = sourceReviews();
+  const reviews = sourceReviews().map(item => ({ ...item, knownAdvisories: [] }));
   validateReviews(reviews, targets.map(t => t.adapter.registry.sourceId));
-  const results: HealthResult[] = [];
-  for (const item of targets) results.push(await checkSourceHealth(item, { fetch: async () => response(null, 503) }));
+  // A same-origin move is advisory; clone one healthy moved result per source.
+  let calls = 0;
+  const moved = await check(async () => ++calls === 1 ? response("", 301, { location: "/moved.csv" }) : response());
+  const results: HealthResult[] = targets.map(item => ({ ...moved, sourceId: item.adapter.registry.sourceId }));
   const advisoryOnly = buildReport(results, reviews, TODAY);
   assert.equal(advisoryOnly.exitCode, 0); assert.equal(advisoryOnly.results.length, 6); assert.equal(advisoryOnly.summary.advisory.length, 6);
   results[0] = await checkSourceHealth(targets[0], { fetch: async () => response("changed,header\n1,2") });
