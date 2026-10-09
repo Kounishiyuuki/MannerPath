@@ -21,6 +21,12 @@ struct ReportFormView: View {
             Form {
                 Section {
                     Text("This is a proposal for review. Submitting it does not immediately change the listing.")
+                    // Said first, not only beside the hidden submit button: nothing here can be submitted right now.
+                    if let unavailableNotice {
+                        Label(unavailableNotice, systemImage: "info.circle")
+                            .font(.footnote)
+                            .accessibilityIdentifier("report-unavailable-notice")
+                    }
                 }
 
                 if let draft = model.draft {
@@ -208,6 +214,14 @@ struct ReportFormView: View {
 
     private var isSubmitting: Bool { model.isBusy }
 
+    private var unavailableNotice: String? {
+        switch model.availability {
+        case .available: nil
+        case .attestationUnsupported: String(localized: "Secure reporting isn't supported on this device. Your draft remains saved.")
+        default: String(localized: "Submission is unavailable until reporting availability can be confirmed. Your draft remains saved.")
+        }
+    }
+
     private var acceptsFindings: Bool {
         if case .available(let limits) = model.availability { return limits.acceptsExistingSpotFindings }
         return false
@@ -250,7 +264,10 @@ struct ReportFormView: View {
                 Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
                 LabeledContent("Report reference", value: receipt.reportId)
                     .textSelection(.enabled)
-                if let cleanupError = model.cleanupError { Text(cleanupError).foregroundStyle(.red) }
+                if let cleanupError = model.cleanupError {
+                    Label(cleanupError, systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("report-cleanup-error")
+                }
             }
         case .rejected(let message):
             Text("\(message) You can correct it and submit again.")
@@ -319,10 +336,14 @@ private struct ReportPinPicker: View {
                         .padding(.horizontal)
                     MapReader { proxy in
                         Map(position: $position) {
+                            // The provisional pin being proposed: a standard MapKit marker in MannerPath Yellow (the one
+                            // selected-state use of the brand colour here), never red. Its position is the user's tap;
+                            // nothing about exactness is inferred from it.
                             if let candidate {
-                                Annotation(String(localized: "Proposed pin"), coordinate: CLLocationCoordinate2D(
-                                    latitude: candidate.latitude, longitude: candidate.longitude
-                                )) { Image(systemName: "mappin.circle.fill").font(.largeTitle).foregroundStyle(.red) }
+                                Marker(String(localized: "Proposed pin"), systemImage: "mappin",
+                                       coordinate: CLLocationCoordinate2D(latitude: candidate.latitude,
+                                                                          longitude: candidate.longitude))
+                                    .tint(Color("MannerPathYellow"))
                             }
                         }
                         .onTapGesture { point in
@@ -365,7 +386,10 @@ private struct ReportPinPicker: View {
                 .padding(.bottom)
             }
             .navigationTitle("Choose proposed pin")
-            .toolbar { Button("Close") { dismiss() } }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
+            }
             .onAppear {
                 let latitude = initial?.latitude ?? center?.latitude ?? 35.68
                 let longitude = initial?.longitude ?? center?.longitude ?? 139.76
@@ -440,6 +464,14 @@ private struct NewSpotClaimSection: View {
                 Text("Commercial building").tag(String?.some("commercialBuilding"))
                 Text("Public facility").tag(String?.some("municipality"))
                 Text("Other").tag(String?.some("other"))
+            }
+            // A shop or facility is where the place is, not evidence that smoking is allowed there.
+            if claim.spotType == "unknown", claim.hostType != nil {
+                Label("A shop or facility alone is not a smoking place. Choose the kind of smoking place you saw, or keep “Not sure”.",
+                      systemImage: "info.circle")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("host-not-evidence-note")
             }
             Picker("Indoor or outdoor", selection: $claim.environment) {
                 Text("Not stated").tag(String?.none)

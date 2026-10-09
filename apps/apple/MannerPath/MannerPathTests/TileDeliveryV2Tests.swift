@@ -272,6 +272,44 @@ struct TileDeliveryV2Tests {
         #expect(Set(all.map(SpotMapCluster.glyph)).count == all.count)
     }
 
+    // #217 review: a tap on the current-location marker reaches what it covers, chosen by role and screen position only.
+    // The candidates carry no visibility, so a collision-hidden cluster or pin is a target like any other.
+    @Test func locationMarkerForwardsOnlyToWhatItCovers() {
+        typealias C = LocationMarkerForwarding.Candidate<String>
+        let bounds = CGRect(x: 0, y: 0, width: 400, height: 800)
+        let marker = CGPoint(x: 200, y: 400)
+        func target(_ candidates: [C], marker: CGPoint = marker) -> String? {
+            LocationMarkerForwarding.target(marker: marker, bounds: bounds, candidates: candidates)?.id
+        }
+        let hiddenCluster = C(id: "cluster", role: .cluster, point: CGPoint(x: 204, y: 402), isClusterMember: false)
+        let hiddenSpot = C(id: "spot", role: .spot, point: CGPoint(x: 198, y: 397), isClusterMember: false)
+        let member = C(id: "member", role: .spot, point: CGPoint(x: 200, y: 400), isClusterMember: true)
+        let farSpot = C(id: "far", role: .spot, point: CGPoint(x: 260, y: 400), isClusterMember: false)
+        let destination = C(id: "destination", role: .other, point: CGPoint(x: 200, y: 400), isClusterMember: false)
+        let provisional = C(id: "provisional", role: .other, point: CGPoint(x: 201, y: 401), isClusterMember: false)
+
+        // A: a cluster under the marker wins, even over a nearer single pin.
+        #expect(target([hiddenSpot, hiddenCluster, member]) == "cluster")
+        // B: a single pin under the marker; a cluster's own member is never chosen on its own.
+        #expect(target([hiddenSpot, member, farSpot]) == "spot")
+        #expect(target([member]) == nil)
+        // C: nothing under the marker selects nothing.
+        #expect(target([]) == nil)
+        // D: an unrelated pin nearby but not under the marker is not chosen.
+        #expect(target([farSpot]) == nil)
+        #expect(target([farSpot, hiddenSpot]) == "spot")
+        // E, F: the destination, a provisional pin or any other annotation is never a target.
+        #expect(target([destination, provisional]) == nil)
+        // Off screen: neither a candidate off screen nor a marker off screen forwards.
+        let offscreen = C(id: "off", role: .cluster, point: CGPoint(x: -5, y: 400), isClusterMember: false)
+        #expect(target([offscreen], marker: CGPoint(x: 10, y: 400)) == nil)
+        #expect(target([hiddenSpot], marker: CGPoint(x: 200, y: 900)) == nil)
+        // The overlap edge is inclusive and nearest wins among several.
+        let edge = C(id: "edge", role: .spot, point: CGPoint(x: 230, y: 400), isClusterMember: false)
+        #expect(target([edge]) == "edge")
+        #expect(target([edge, hiddenSpot]) == "spot")
+    }
+
     @Test func mapRectCoversTheRegion() {
         let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 35.71, longitude: 139.77),
                                         span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.03))

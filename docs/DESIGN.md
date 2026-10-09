@@ -242,6 +242,9 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 
 ### 5.6 Spot Detail — exact
 
+- **Phase 4:** the navigation title is the place's name (inline, standard API; truncates in the bar, shown in full
+  as the first row).
+
 - **Stitch target (`地点詳細（公式・正確位置）`):** place name as title, primary 「この場所へ案内」, attributes,
   evidence and freshness, report entry.
 - **Implemented (Phase 3, 2026-10-07):** `Form`, inline title 「場所の詳細」 (the name leads the first section and
@@ -278,6 +281,11 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
   conflict with Done semantics. A "confirmed only" filter must follow ADR-0012. Do not add 「24時間利用可能」 unless
   it is filterable without inferring `openNow`.
 - **Required change:** small — optional Reset, grouping/labels. No new filter dimensions without a product change.
+- **Implemented (Phase 4, 2026-10-08):** one standard `Form` section per question — Show (segmented), Tobacco,
+  Place and access, Opening hours, Evidence and freshness, Distance — opened at the large detent; a plain
+  「すべての絞り込みを解除」 row appears only when a filter is set. Existing filter fields only (no precision filter
+  exists in the domain); unknown support / access / environment / hours stay listed unless a "confirmed" option
+  is chosen. System tint only, no chips, no yellow.
 
 ### 5.9 Destination search
 
@@ -318,6 +326,9 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 - **Apple-native:** full-height map in the report `NavigationStack`, centre pin overlay using an SF Symbol in the
   accent, confirm in the toolbar (`confirmationAction`). Duplicate candidates as a `List` section (ADR-0013).
 - **Required change:** accent pin instead of red; keep steppers as an accessibility alternative to map dragging.
+- **Implemented (Phase 4):** the provisional pin is a standard MapKit `Marker` 「提案するピン」 tinted MannerPath Yellow
+  (the selected provisional pin is its one use here); no red. Nothing about exact/approximate is inferred from it.
+  Close is a `cancellationAction`. Duplicate warning and the publication gate are unchanged.
 
 ### 5.13 Add Place — details
 
@@ -326,6 +337,9 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
   「報告を受け付けました」 without rewards.
 - **Apple-native:** current `Form` approach is correct. Completion: plain confirmation, no points/badges/animation.
 - **Required change:** hierarchy/copy only.
+- **Implemented (Phase 4):** choosing a shop/facility while the kind of smoking place is 「わからない」 shows a note
+  that a shop alone is not a smoking place. When reporting cannot submit, the form opens with that notice (draft
+  stays editable and discardable; nothing looks submittable). The cleanup error is a symbol + text, not red.
 
 ### 5.14 Report Terms
 

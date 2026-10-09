@@ -25,6 +25,9 @@ struct ContentView: View {
     @State private var showingNearbySheet = false
     @State private var sheetDetent: PresentationDetent = .medium
     @State private var selectedSpotID: String?
+    /// Bumped on every pin selection, including a re-tap of the selected pin, so the sheet scrolls back to the summary
+    /// even when the selection itself does not change (#208 review).
+    @State private var summaryScrollRequest = 0
     @FocusState private var searchFocused: Bool
 
     private static let summaryAnchor = "nearbySheetSummaryAnchor"
@@ -104,8 +107,8 @@ struct ContentView: View {
                 .listStyle(.insetGrouped)
                 .listSectionSpacing(.compact)
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
-                .onChange(of: selectedSpotID) { _, id in
-                    guard id != nil else { return }
+                .onChange(of: summaryScrollRequest) { _, _ in
+                    guard selectedSpotID != nil else { return }
                     withAnimation(reduceMotion ? nil : .default) { proxy.scrollTo(Self.summaryAnchor, anchor: .top) }
                 }
                 .onChange(of: model.destination) { _, destination in
@@ -209,7 +212,8 @@ struct ContentView: View {
                         }
                     }
             }
-            .presentationDetents([.medium, .large])
+            // The filters are a full Form of sections; open it at full height so every section is reachable.
+            .presentationDetents([.large])
         }
         // System detents only (Codex P2 #203): a fixed small fraction clipped the summary at large text sizes. Medium
         // keeps the map in view and starts with the summary; large holds the full list, search and details.
@@ -436,6 +440,7 @@ struct ContentView: View {
             onSelectSpot: { id in
                 guard model.results.contains(where: { $0.spot.id == id }) else { return }
                 selectedSpotID = id
+                summaryScrollRequest += 1
                 path = []
                 sheetDetent = .medium
             }
