@@ -523,6 +523,33 @@ local pipeline with the publisher's `observed_on`, review, and promote a bundle.
 candidate's findings (`findings_json`) must be resolved first. A `failed` check changes nothing; the
 previous release and tiles stay as they were. To stop checks, set `crons` back to `[]` and deploy.
 
+## Production source health monitor (read-only, GitHub Actions)
+
+`.github/workflows/source-health.yml` runs `services/api/scripts/source-health.ts --live` daily (06:20 JST)
+and on `workflow_dispatch`. It has `contents: read` only, no secrets, pinned official actions, and never
+touches D1, R2, the registry, baselines, publication or deployment. Details and the signal model:
+[source health Phase 2](research/2026-10-09-source-health-phase2.md).
+
+Run colour: **red = at least one BLOCKING signal** (parser/schema incompatible, rights regression or
+cross-origin relocation, 404/410, unexpected 401/403, unexpected MIME, non-transient transport failure,
+unclassified). **Green may still carry ADVISORY rows** (content changed with healthy parser/schema,
+same-origin move, known TLS limitation, known access restriction, transient network/5xx,
+`humanReviewDue`). Read the step summary on every run, not only red ones.
+
+Triage rules — each is an operational reminder, never a publication decision:
+
+- Content change ≠ bad source. Unavailable ≠ removed. TLS failure ≠ rights failure.
+  Review due ≠ publication revoked.
+- `contentChanged`: (1) human review of the publisher page and rights notice, (2) run the adapter parser
+  on the new bytes locally, (3) semantic diff of selected rows/observations against the reviewed fixture,
+  (4) only then a reviewed PR replaces the fixture, `PROVENANCE.md`/`fetch.json` and adapter hash —
+  this is the only way the baseline (`hash`, `rowCount`, selected rows, header) moves. Never update a
+  baseline automatically or merely to clear an alert.
+- `humanReviewDue`: re-check rights/edition/operation evidence, then advance `reviewDueAt` (and the
+  observed dates) in `services/data-pipeline/source-health/review-metadata.json` in a reviewed PR.
+- A new known advisory (expected 403, publisher TLS limitation) is added to that file with a
+  `reviewDueAt`; it never lowers TLS security, disables certificate checks or bypasses access controls.
+
 ## Cache and CDN semantics
 
 No CDN configuration is introduced. The behaviour is the one the responses already describe.

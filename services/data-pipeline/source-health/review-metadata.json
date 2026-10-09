@@ -1,0 +1,78 @@
+{
+  "description": "Operational human-review reminders for production source health. Not a registry, rights grant, legal deadline or publication control. Dates are JST calendar days; null sourceObservedAt means the publisher states no observation date.",
+  "sources": [
+    {
+      "sourceId": "koto-station-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Tokyo catalog package API (CC-BY-4.0, station resource URL unchanged) re-read 2026-10-09; catalog HTML still 403 (not bypassed). Ward delegation page 200. Resource-specific HTML notice remains unverified.",
+      "sourceObservedAt": null,
+      "editionLabel": "Catalog resource last_modified 2025-03-16",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Publication continues on the 2026-09-29 package-API review; re-read package API and attempt catalog HTML at review.",
+      "knownAdvisories": []
+    },
+    {
+      "sourceId": "kyoto-public-smoking-places",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Dataset 00003 and resource 21432 CC BY 4.0 / 京都市 (production source health audit).",
+      "sourceObservedAt": "2026-09-03",
+      "editionLabel": "令和8年9月3日現在",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Check for a newer dated release at review.",
+      "knownAdvisories": []
+    },
+    {
+      "sourceId": "minato-designated-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Same-host terms and exception annex 200 (production source health audit).",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Observation date not stated by publisher.",
+      "knownAdvisories": []
+    },
+    {
+      "sourceId": "musashino-public-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Exact item page 4(2) still carries CC BY 4.0 notice; re-read 2026-10-09.",
+      "sourceObservedAt": null,
+      "editionLabel": "令和4年版(2022年版) 地域生活環境指標",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2026-12-09",
+      "reviewerNote": "Old edition; no newer edition listed on 2026-10-09. Current-operation page (updated 2026-09-30) still lists the three sites. Shorter interval because of edition age.",
+      "knownAdvisories": []
+    },
+    {
+      "sourceId": "osaka-designated-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Item 14 license image links CC BY 2.1 JP (production source health audit).",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Changed release (529 raw rows) awaits separate release review; monitor uses the ECDHE/AEAD-only transport.",
+      "knownAdvisories": [
+        {
+          "kind": "transport",
+          "code": "ERR_SSL_DH_KEY_TOO_SMALL",
+          "note": "Publisher prefers 1024-bit DHE. Expected only if the ECDHE/AEAD-only transport is bypassed; security level is never lowered.",
+          "reviewDueAt": "2027-01-09"
+        }
+      ]
+    },
+    {
+      "sourceId": "taito-public-smoking-areas",
+      "rightsReviewedAt": "2026-10-09",
+      "rightsEvidence": "Exact landing page explicitly CC BY 4.0 (production source health audit).",
+      "sourceObservedAt": "2026-08-18",
+      "editionLabel": "令和8年8月18日時点",
+      "editionObservedAt": "2026-10-09",
+      "reviewDueAt": "2027-01-09",
+      "reviewerNote": "Check for a newer dated release at review.",
+      "knownAdvisories": []
+    }
+  ]
+}

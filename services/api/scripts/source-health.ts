@@ -5,6 +5,8 @@ import { inflateRawSync, crc32 } from "node:zlib";
 import { pathToFileURL, URL } from "node:url";
 import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth, type HealthTarget } from "../src/source-health/check.ts";
+import { buildReport, jstDate, renderSummary, validateReviews, type SourceReview } from "../src/source-health/evaluate.ts";
+import { ecdheAeadFetch } from "./source-health-transport.ts";
 import { TAITO_ORIGINAL_DATA_URL } from "../src/pipeline/taito.ts";
 import { OSAKA_DATA_URL } from "../src/pipeline/osaka-adapter.ts";
 import { KOTO_DATA_URL } from "../src/pipeline/koto-adapter.ts";
@@ -76,14 +78,29 @@ export function productionHealthTargets(): HealthTarget[] {
     return target;
   }).sort((a, b) => a.adapter.registry.sourceId.localeCompare(b.adapter.registry.sourceId));
 }
-export async function main(args = process.argv.slice(2)) {
+// Osaka's server prefers 1024-bit DHE; see source-health-transport.ts. Others keep Node's default fetch.
+const transports: Record<string, { name: string; fetch: (url: string, init?: RequestInit) => Promise<Response> }> = {
+  "osaka-designated-smoking-areas": { name: "node-https-ecdhe-aead", fetch: ecdheAeadFetch },
+};
+export function sourceReviews(): SourceReview[] {
+  return JSON.parse(readFileSync(new URL("../../data-pipeline/source-health/review-metadata.json", import.meta.url), "utf8")).sources;
+}
+export async function main(args = process.argv.slice(2), now = new Date()) {
   if (args.some(arg => arg !== "--live" && !arg.startsWith("--source=")) || !args.includes("--live")) throw new Error("Usage: npm run source:health -- --live [--source=source-id]");
   const ids = args.filter(arg => arg.startsWith("--source=")).map(arg => arg.slice(9));
   const targets = productionHealthTargets();
   if (ids.some(id => !targets.some(t => t.adapter.registry.sourceId === id))) throw new Error("Unknown reviewed source id");
+  const reviews = sourceReviews();
+  validateReviews(reviews, targets.map(t => t.adapter.registry.sourceId));
+  // Sequential and exhaustive: every source is checked and reported even when another fails.
   const results = [];
-  for (const target of targets.filter(t => !ids.length || ids.includes(t.adapter.registry.sourceId))) results.push(await checkSourceHealth(target, { fetch }));
-  process.stdout.write(JSON.stringify({ version: 1, results }, null, 2) + "\n");
-  if (results.some(result => result.status !== "healthy")) process.exitCode = 1;
+  for (const target of targets.filter(t => !ids.length || ids.includes(t.adapter.registry.sourceId))) {
+    const transport = transports[target.adapter.registry.sourceId] ?? { name: "node-fetch", fetch };
+    results.push({ ...await checkSourceHealth(target, { fetch: transport.fetch }), transport: transport.name });
+  }
+  const report = buildReport(results, reviews, jstDate(now));
+  process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+  process.stderr.write(renderSummary(report));
+  process.exitCode = report.exitCode;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch(error => { process.stderr.write(String(error) + "\n"); process.exitCode = 2; });
