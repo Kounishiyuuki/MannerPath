@@ -111,7 +111,7 @@ are AMBIGUOUS, see runbook). 中央区: send one mail to 生活衛生事業係 w
 | 1 | Official publisher | 川崎市 市民文化局 市民生活部 地域安全推進課 |
 | 2 | Exact resource | 「指定喫煙場所一覧」 table (名称・場所) in `https://www.city.kawasaki.jp/kurashi/category/262-2-4-0-0-0-0-0-0-0.html` (コンテンツ番号 40003) |
 | 4 | Current terms | Site policy `…/main/site_policy/0000000027.html`: no unauthorized reproduction/diversion; reuse by prior contact 「内容を改変しないことが条件」. OD rules (verified above) cover only the OD list |
-| 5 | Known blocker | Rights: the standard route forbids modification, which normalization/DB/tile output necessarily is. Location: address text only |
+| 5 | Known blocker | Rights clarification pending: site policy requires 「内容を改変しないこと」; whether planned normalization, DB storage, coordinate attachment and API/tile conversion fall within that condition is unconfirmed and must be explicitly checked with the city. This is not a finding that those operations are prohibited. Location: address text only |
 | 6 | Coordinate situation | No published coordinates; addresses and relative descriptions. Any point would be MannerPath-derived (ADR-0011 Proposed) or `areaApproximate` (ADR-0017) |
 | 7 | Expected scale | 12 places across 6 station areas (Kanagawa: new coverage) |
 | 9 | Attribution (proposed) | 「出典：川崎市『指定喫煙場所一覧』（市民文化局地域安全推進課）を加工して作成。位置座標は当方が住所等から推定したもので、川崎市が作成したものではありません。」 |
@@ -147,10 +147,10 @@ Q6 再配信：加工後のデータを当方のAPI・地図タイル形式で�
 Q7 無料アプリでの利用：無料アプリ（広告：<広告>）での利用を許可いただけるか。
 Q8 将来の有料化等：将来、有料機能や広告を導入した場合も同じ条件で継続利用できるか。できない場合は改めて申請すべきか。
 Q9 出典表示：出典表示の要否と文言（下記案の可否）、表示場所（アプリ内クレジット画面・地点詳細画面）。
-Q10 更新への追従：掲載内容が更新・削除された場合、どの程度の期間内に反映すべきか。廃止地点の履歴を非公開で保持してよいか。
+Q10 変更後の旧データの扱い：元データの更新・訂正・削除、許諾の撤回・ライセンス変更、地点の移転、公開終了が起きた場合、どの程度の期間内に反映すべきか。それ以前に取得・加工・保存した旧データを保持してよいか。一般利用としての保持が認められない場合でも、履歴・監査目的に限定した非公開の保持は可能か。旧データの公開配信を停止すべき場合や削除義務がある場合は、その対象範囲・期限（DB、端末・CDNキャッシュ、API・タイル、履歴・監査用記録）をご教示ください。
 Q11 第三者の権利：掲載内容に第三者の権利が含まれるか。写真・図は利用せず、文字情報のみ利用する場合に支障はないか。
-Q12 ライセンス形式：個別のご許可ではなく、CC BY 4.0 等のオープンデータとして扱える予定があるか。
-Q13 許可の範囲・期間：今後の更新分にも及ぶか、期限や撤回条件はあるか。ご回答の要旨（担当者の個人情報を除く）を当方の開発記録に残してよいか。
+Q12 許諾・ライセンスの形式と期間：今回の利用を認めていただける場合、個別許諾か、適用されるライセンスがあるか。対象資料・版、許諾の開始日・有効期間・期限・更新手続をご教示ください。個別許諾ではなく、CC BY 4.0 等のオープンデータとして公開する予定があるかもお伺いします。
+Q13 更新・撤回・条件変更：許諾は今後のデータ更新分にも及ぶか。撤回や利用条件変更の条件、通知方法、適用開始時期、再確認・再申請が必要となる場合をご教示ください。変更後の旧データの扱いはQ10についてもご回答ください。ご回答の要旨（担当者の個人情報を除く）を当方の開発記録に残してよいか。
 
 【ご回答の形式のお願い】
 ・Q番号ごとに「可／不可／条件付き（条件）」の形でメールにてご回答いただけますと幸いです。
@@ -234,8 +234,9 @@ https://www.city.kawasaki.jp/kurashi/category/262-2-4-0-0-0-0-0-0-0.html （コ�
 
 【現在の理解】
 貴市ホームページの著作権の案内では、転載は事前連絡のうえ「内容を改変しないこと」が条件と
-されています。アプリでは表記の正規化や地図上の位置の付与が必要となり、これが改変に当たる
-可能性があるため、事前にご相談させてください。また、本資料は川崎市オープンデータ一覧の
+されています。当方が予定する表記の正規化、DB保存、位置座標の付与、API・地図タイル形式への
+変換が、この「改変」に該当するかは未確認のため、各操作の扱いと利用可否を明示的に確認させて
+ください。また、本資料は川崎市オープンデータ一覧の
 対象ではないと理解していますが、誤りがあればご指摘ください。
 
 詳細な確認事項を下に記載しました。ご検討いただけますと幸いです。
@@ -302,20 +303,44 @@ restrictive applicable class, and for 川崎/広島 record Q14/Q15 alongside the
 (e.g. `APPROVED_WITH_ATTRIBUTION, Q15=denied`). Phone-only answers stay AMBIGUOUS until
 confirmed in writing. Nothing below is done until a written answer exists.
 
+Record each applicable answer individually, including Q1–Q13, the publisher-specific
+C/H questions and 川崎/広島 Q14–Q16. The common question numbers have the same meaning
+for all three publishers: Q11 = third-party rights, Q12 = permission/license form and
+duration, Q13 = future updates, revocation and condition changes; Q10 governs old data
+after those events. Keep the reply privately and retain its reviewed scope/conditions
+in the research note and subsequent registry entry, without personal details.
+
+**APPROVED is a scoped classification, not unconditional or perpetual permission, and
+does not establish that third-party rights are absent.** Every positive publication
+class below requires individually recorded answers and satisfaction of the applicable
+publication conditions: Q11 exclusions/clearances; Q12 covered resource/version, term,
+expiry and renewal; Q13 future-update coverage, revocation/change triggers, notice and
+effective dates; and Q10 retention, private historical/audit use, public-distribution
+stop and deletion duties (including deadlines and affected storage/delivery surfaces).
+Preserve and enforce these conditions even for APPROVED, APPROVED_WITH_ATTRIBUTION and
+NONCOMMERCIAL_ONLY. Unresolved rights, unclear required conditions or an expired grant
+keep publication on hold; follow up as AMBIGUOUS where clarification is needed. An
+unknown future open-data plan alone does not invalidate an otherwise clear current
+grant. Recheck coverage before adopting a new release or changing use; do not assume
+future releases are covered. Apply required stop/deletion actions on expiry, revocation
+or condition changes, retaining private audit records only to the extent permitted.
+
 | Class | Trigger | Registry (`DATA_POLICY.md`) | Fixture | Adapter | #141 (derived coords) | API / tile redistribution | App attribution | Publication |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| APPROVED | Q1–Q8, Q10 可; no credit demand | Add entry: exact resource, permission date/basis, scope | Minimal synthetic or permitted sample | Implement + tests + provenance | 川崎/広島: only if Q15 可 **and** ADR-0011 accepted; else `areaApproximate` (ADR-0017) or hold. 中央区: n/a (publisher points) after C2 | Allowed | Credit screen lists source anyway (provenance rule) | Allowed through existing gates; 中央区 per-row current-operation reconciliation first |
+| APPROVED | Q1–Q8, Q10 cover planned uses within reviewed conditions; Q11–Q13 reviewed as above; no credit demand | Add entry: exact resource, permission date/basis, scope and individually recorded conditions | Minimal synthetic or permitted sample | Implement + tests + provenance | 川崎/広島: only if Q15 可 **and** ADR-0011 accepted; else `areaApproximate` (ADR-0017) or hold. 中央区: n/a (publisher points) after C2 | Allowed within recorded scope/term | Credit screen lists source anyway (provenance rule) | Only while recorded conditions and existing gates are satisfied; 中央区 per-row current-operation reconciliation first |
 | APPROVED_WITH_ATTRIBUTION | As above + required wording | Entry records exact credit text | As APPROVED | As APPROVED; credit carried in provenance | As APPROVED; credit must state derived coordinate is ours | Allowed; credit in API/tile metadata | Required wording in credits + spot detail | Allowed once credit renders |
 | APPROVED_NO_REDISTRIBUTION | Display/DB 可, Q6 不可 | Entry flagged display-only; do not activate | None until design exists | Blocked — current architecture serves tiles (= redistribution); needs new design/ADR | No change | Blocked | n/a | Blocked |
-| NONCOMMERCIAL_ONLY | Q8 不可 | Entry with noncommercial flag | As APPROVED | As APPROVED, removable by flag | As APPROVED | App clients only; no external bulk API | As granted | Allowed while app is free/no-ads; must be withdrawn before any paid/ads launch |
-| MODIFICATION_PROHIBITED | Q3/Q4 不可 (e.g. 川崎 「改変しないこと」) | Record as blocked | None | Blocked (normalization/coordinate join = modification) | Blocked for this source | Blocked | n/a | Blocked |
+| NONCOMMERCIAL_ONLY | Current noncommercial uses explicitly permitted; Q8 limits commercial use; all other applicable conditions reviewed as above. A requirement to reapply alone is not a noncommercial license | Entry with noncommercial flag and individually recorded conditions | As APPROVED | As APPROVED, removable by flag | As APPROVED | App clients only within granted scope/term; no external bulk API | As granted | Only while free/no-ads and all recorded conditions/gates are satisfied; stop before paid/ads unless separately permitted |
+| MODIFICATION_PROHIBITED | Written answer explicitly denies required Q3/Q4 operations; the generic 「改変しないこと」 condition alone leaves their scope unconfirmed (AMBIGUOUS) | Record denied operations and scope as blocked | None | Blocked because required operations were explicitly denied, not because every storage/format change is necessarily modification | Blocked for this source | Blocked | n/a | Blocked |
 | DENIED | Refused | Record as denied; do not re-ask same resource | None | Blocked | Blocked | Blocked | n/a | Blocked |
 | AMBIGUOUS | Partial/unclear, or phone only | No entry | None | Blocked | Blocked | Blocked | n/a | Blocked; one follow-up mail listing unanswered Q numbers |
 | NO_RESPONSE | No reply | No entry | None | Blocked | Blocked | Blocked | n/a | Blocked; one reminder at 30 days, record as stalled at 60 |
 
 Special case: if 中央区 adds the smoking layer to the OD catalog under CC BY 4.0, treat as
-APPROVED_WITH_ATTRIBUTION using the PDF's modified-use credit template, effective once
-the catalog listing is observed.
+APPROVED_WITH_ATTRIBUTION using the PDF's modified-use credit template only after the
+exact resource scope, applicable terms/exclusions and publication conditions above
+have been reviewed. A new listing does not automatically license the separate inventory
+HTML or every future release.
 
 Implementation after a positive answer (separate tasks, not done here): research note
 with class/conditions/credit → registry entry → importer + fixture + tests → 中央区
