@@ -36,9 +36,16 @@ exactly one availability signal, `transport:(tls|timeout|network)`, `http:5xx`, 
 while `today < expiresAt`, and `expiresAt` must be at most 92 days after `recordedAt`. Validation rejects any
 attempt to cover rights, schema, parser, MIME, relocation, `transport:unknown` or a 3xx/304.
 
-The only active entries are for Osaka: `transport:timeout` and `rightsPage:transport:timeout`, recorded
-2026-10-09 and expiring 2026-11-09. They come from GitHub run 37889290515, where the `ubuntu-latest` runner
-timed out against the publisher while a local Node 24 run succeeded. The TLS `ERR_SSL_DH_KEY_TOO_SMALL`
+The only active entry is Osaka `transport:timeout`, recorded 2026-10-09 and expiring 2026-11-09. In GitHub
+run 37889290515 the GitHub-hosted `ubuntu-latest` runner timed out (20 s) only against the mapnavi data host
+`www.mapnavi.city.osaka.lg.jp`; from the same runner the rights page on `www.city.osaka.lg.jp` returned
+HTTP 200. A local Node 24 run reaches mapnavi over ECDHE+AEAD (DNS ~5 ms, TCP ~28 ms, TLS ~83 ms, headers
+~123 ms, 245 KB complete ~391 ms; TLSv1.2 `ECDHE-RSA-AES256-GCM-SHA384`, certificate authorized). The root
+cause is not confirmed. The likely explanation is network-path / egress reachability from GitHub-hosted
+runners to the mapnavi host; this is not evidence that the publisher rejects GitHub runners as a whole.
+A `rightsPage:transport:timeout` advisory was recorded earlier and removed: the rights host is reachable, so
+that entry had no basis and could have hidden a real rights-page outage. While the advisory is active, Osaka
+data is checked by the manual read-only procedure in `docs/OPERATIONS.md`. The TLS `ERR_SSL_DH_KEY_TOO_SMALL`
 entry was removed: the ECDHE+AEAD transport makes it unreachable, so seeing it means the transport was
 bypassed, and that must block.
 
@@ -79,6 +86,11 @@ While designing the Musashino scope, the first anchor `データのご利用に�
 is also a substring of `対象データのご利用に際しては`. The anchor was lengthened rather than relaxed.
 
 ## Rights baselines and human review
+
+The 7 `reviewedFingerprint` values are a **reviewed monitoring baseline**: drift-detection reference points
+made on 2026-10-09 by checking the scoped text against the rights evidence already recorded. They are not a
+license grant, a legal approval or a publication approval, and do not replace the rights review in
+`docs/DATA_POLICY.md`.
 
 There is no separate rights baseline file: each `sources[].rights[]` in `review-metadata.json` holds
 `{url, scope, reviewedFingerprint, reviewedAt, reviewDueAt}`. The 2026-10-09 fingerprints were computed by

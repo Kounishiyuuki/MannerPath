@@ -557,9 +557,44 @@ Triage rules — each is an operational reminder, never a publication decision:
   `rightsPage:` prefix) until `expiresAt` (exclusive, at most 92 days after `recordedAt`). After expiry the
   run turns red again (`knownAdvisoryExpired`). It can never cover rights, schema, parser, MIME or
   relocation signals, never lowers TLS security, disables certificate checks or bypasses access controls.
+- `rights[].reviewedFingerprint` is a reviewed monitoring baseline for drift detection (made 2026-10-09
+  from the recorded rights evidence and scope text). It is not a license grant, legal approval or
+  publication approval.
 - `rightsChanged` / `rightsScopeMissing`: read the scoped notice on the publisher page. Only after that
   human review may a reviewed PR set `rights[].reviewedFingerprint` (copy `fingerprint` from the JSON
   artifact) and `reviewedAt`, or re-point the scope contract. The tool never writes a baseline.
+
+### Osaka known advisory: manual read-only check (until 2026-11-09)
+
+While Osaka `transport:timeout` is active, the GitHub-hosted runner cannot fetch the mapnavi data host
+(`www.mapnavi.city.osaka.lg.jp`); the rights page on `www.city.osaka.lg.jp` still answers HTTP 200 there.
+The root cause is not confirmed (likely runner/egress reachability to that host). So that the advisory never
+hides a real publisher outage, an operator runs this from a local machine at least weekly and before any
+Osaka release review:
+
+```sh
+cd services/api
+PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run source:health -- --live \
+  --source=osaka-designated-smoking-areas > osaka-health.json   # summary on stderr
+```
+
+Read-only: it touches no D1 (production or otherwise), R2, registry, fixture or baseline. Check in the JSON
+(`results[0]`) and the rights row:
+
+| Check | Field | Expected |
+| --- | --- | --- |
+| data reachable | `httpStatus`, `transport` | `200` via `node-https-ecdhe-aead`; any transport failure locally is a real outage |
+| content SHA | `sha256` | record it; compare with the previous manual check |
+| raw rows | `rowCount` | last observed 529 |
+| selected rows | `observedRowCount` | last observed 344 |
+| schema | `schemaCompatible` | `true` |
+| parser | `parserCompatible` | `true` |
+| rights | `rights[].outcome`, `httpStatus` | `unchanged`, `200` |
+
+529 / 344 are observations, not an approved baseline: the status stays `contentChanged` until a human
+release review (triage rules above). Never update the fixture, baseline or `reviewedFingerprint` to make this
+check pass, and never extend the advisory without a new reviewed PR. If the local check fails too, treat it as
+a publisher outage, not as the runner issue.
 
 ## Cache and CDN semantics
 

@@ -162,13 +162,7 @@
       "knownAdvisories": [
         {
           "signal": "transport:timeout",
-          "reason": "GitHub ubuntu-latest runner timed out reaching the publisher over the ECDHE/AEAD transport (workflow run 37889290515, 2026-10-09); a local Node 24 run succeeds. Temporary; investigate before expiry. Never lowers TLS security.",
-          "recordedAt": "2026-10-09",
-          "expiresAt": "2026-11-09"
-        },
-        {
-          "signal": "rightsPage:transport:timeout",
-          "reason": "GitHub ubuntu-latest runner timed out reaching the publisher over the ECDHE/AEAD transport (workflow run 37889290515, 2026-10-09); a local Node 24 run succeeds. Temporary; investigate before expiry. Never lowers TLS security.",
+          "reason": "GitHub-hosted ubuntu runner to the mapnavi data host (www.mapnavi.city.osaka.lg.jp) times out (20 s, workflow run 37889290515, 2026-10-09); the Osaka rights host (www.city.osaka.lg.jp) remains reachable with HTTP 200 from the same runner. A local Node 24 run completes over ECDHE+AEAD (TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384, certificate authorized). Root cause is not yet confirmed; likely runner/cloud-egress reachability to the mapnavi host. Temporary; investigate before expiry. Never lowers TLS security.",
           "recordedAt": "2026-10-09",
           "expiresAt": "2026-11-09"
         }
