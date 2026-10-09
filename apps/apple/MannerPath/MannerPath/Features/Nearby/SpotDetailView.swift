@@ -261,7 +261,10 @@ struct SpotDetailView: View {
                 }
             }
         }
-        .navigationTitle("Place details")
+        .accessibilityIdentifier("spot-detail")
+        // The place's name, inline (standard API): a long name truncates in the bar but is shown in full, wrapped,
+        // as the first row below.
+        .navigationTitle(SpotPresentation.name(spot))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: previewKey) { await loadPreview() }
         .onDisappear { previewRouter.cancel() }
