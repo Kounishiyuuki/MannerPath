@@ -132,6 +132,46 @@ def check_icon(bundle, info, label):
     print(f"{label}: AppIcon metadata, Assets.car and 1024x1024 rendition verified")
 
 
+LOOPBACK = re.compile(r"(?i)\b(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])\b|\bhttp://")
+SECRET_KEY = re.compile(r"(?i)(secret|token|password|passwd|private[_-]?key|api[_-]?key|pepper)")
+# Present only in #if DEBUG UI-test hooks (WatchNearbyModel / MannerPathWatchApp); a Release binary must not carry them.
+DEBUG_MARKERS = (b"--mannerpath-watch-ui-test", b"MANNERPATH_WATCH_UI_TEST")
+
+
+def plist_strings(value, key=""):
+    if isinstance(value, dict):
+        for child_key, child in value.items():
+            yield from plist_strings(child, child_key)
+    elif isinstance(value, list):
+        for child in value:
+            yield from plist_strings(child, key)
+    elif isinstance(value, str):
+        yield key, value
+
+
+def check_release_hygiene(bundle, info, label):
+    for key in info:
+        if SECRET_KEY.search(key):
+            fail(f"{label}: Info.plist key {key!r} looks like a secret; secrets never ship in the bundle")
+    for key, value in plist_strings(info):
+        # The API origin has its own stricter check (and message) in inspect().
+        if key != "MannerPathAPIBaseURL" and LOOPBACK.search(value):
+            fail(f"{label}: Info.plist {key!r} has a loopback or plain-HTTP URL; Release must use production HTTPS only")
+    executable = info.get("CFBundleExecutable")
+    if not executable or not (bundle / executable).is_file():
+        fail(f"{label}: CFBundleExecutable missing from the bundle")
+    # Debug builds move the code into <executable>.debug.dylib and add __preview.dylib (Xcode previews).
+    debug_dylibs = [path.name for path in bundle.glob("*.dylib")
+                    if path.name.endswith(".debug.dylib") or path.name == "__preview.dylib"]
+    if debug_dylibs:
+        fail(f"{label}: Debug/preview dylib {debug_dylibs[0]!r} in bundle; build with -configuration Release")
+    for binary in [bundle / executable, *bundle.glob("*.dylib")]:
+        data = binary.read_bytes()
+        for marker in DEBUG_MARKERS:
+            if marker in data:
+                fail(f"{label}: {binary.name} contains Debug-only UI-test hook {marker.decode()!r}; build with -configuration Release")
+
+
 def inspect(path, unsigned):
     if path.suffix == ".xcarchive":
         app = one(path / "Products/Applications", "MannerPath.app", "iPhone app")
@@ -171,9 +211,17 @@ def inspect(path, unsigned):
             environment = ent.get("com.apple.developer.devicecheck.appattest-environment")
             if environment not in ("development", "production"):
                 fail(f"iPhone app: App Attest environment {environment!r}; expected development or production")
+        check_release_hygiene(bundle, info, label)
         print(f"{label}: {actual} | App Group: {GROUP}")
     if infos["iPhone app"].get("UIDeviceFamily") != [1]:
         fail("iPhone app: UIDeviceFamily must be [1] (iPhone-only)")
+    if infos["Watch app"].get("WKCompanionAppBundleIdentifier") != IDS["iPhone app"]:
+        fail("Watch app: WKCompanionAppBundleIdentifier must name the iPhone app")
+    for label in ("iPhone app", "Watch app"):
+        if not infos[label].get("NSLocationWhenInUseUsageDescription"):
+            fail(f"{label}: NSLocationWhenInUseUsageDescription missing")
+        if any(key.startswith("NSLocationAlways") for key in infos[label]):
+            fail(f"{label}: Always location authorization is not allowed (apps/apple/AGENTS.md)")
     for label in ("iPhone app", "Watch app"):
         check_icon(bundles[label], infos[label], label)
     for label, info in infos.items():
@@ -203,7 +251,8 @@ def inspect(path, unsigned):
     print(f"MannerPathPublicSiteURL: {PUBLIC_SITE}")
     print(f"CFBundleVersion for App Attest server: {version}")
     print(f"App Attest declared entitlement: {environment} ({'source file only' if unsigned else 'signed artifact'}; TestFlight uses production)")
-    print("Embedding: iPhone widget, Watch app, Watch widget present")
+    print("Embedding: iPhone widget, Watch app, Watch widget present; Watch companion is the iPhone app")
+    print("Hygiene: no loopback/plain-HTTP Info.plist URL, no secret-looking key, no Debug UI-test hook")
     print("Evidence: UNSIGNED BUILD + source entitlements; no signing/device proof" if unsigned else
           "Evidence: signed artifact entitlements and bundle structure; physical-device behavior still unverified")
 

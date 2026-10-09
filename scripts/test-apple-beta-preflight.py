@@ -29,12 +29,16 @@ class PreflightTests(unittest.TestCase):
         for (label, identifier), path in zip(preflight.IDS.items(), self.paths):
             path.mkdir(parents=True)
             info = {"CFBundleIdentifier": identifier, "CFBundleVersion": "42",
-                    "CFBundleShortVersionString": "1.0"}
+                    "CFBundleShortVersionString": "1.0", "CFBundleExecutable": "Binary"}
+            (path / "Binary").write_bytes(b"release binary")
             if label == "iPhone app":
                 info["MannerPathAPIBaseURL"] = preflight.PRODUCTION_API
                 info["MannerPathPublicSiteURL"] = preflight.PUBLIC_SITE
                 info["UIDeviceFamily"] = [1]
+            if label == "Watch app":
+                info["WKCompanionAppBundleIdentifier"] = preflight.IDS["iPhone app"]
             if label in ("iPhone app", "Watch app"):
+                info["NSLocationWhenInUseUsageDescription"] = "fixture"
                 info["CFBundleIcons"] = {"CFBundlePrimaryIcon": {"CFBundleIconName": "AppIcon"}}
                 (path / "Assets.car").write_bytes(b"fixture")
             (path / "PrivacyInfo.xcprivacy").write_bytes(plistlib.dumps({}))
@@ -122,6 +126,64 @@ class PreflightTests(unittest.TestCase):
         info["CFBundleVersion"] = "43"
         info_path.write_bytes(plistlib.dumps(info))
         with self.assertRaisesRegex(ValueError, "CFBundleVersion does not match"):
+            self.check()
+
+    def edit_info(self, path, **changes):
+        info_path = path / "Info.plist"
+        info = plistlib.loads(info_path.read_bytes())
+        info.update(changes)
+        info_path.write_bytes(plistlib.dumps(info))
+
+    def test_watch_companion_mismatch_fails(self):
+        self.edit_info(self.paths[2], WKCompanionAppBundleIdentifier="com.example.other")
+        with self.assertRaisesRegex(ValueError, "WKCompanionAppBundleIdentifier"):
+            self.check()
+
+    def test_location_usage_rules(self):
+        for path, changes, message in (
+                (self.paths[2], {"NSLocationWhenInUseUsageDescription": ""}, "NSLocationWhenInUseUsageDescription missing"),
+                (self.app, {"NSLocationAlwaysAndWhenInUseUsageDescription": "x"}, "Always location")):
+            with self.subTest(message=message):
+                original = (path / "Info.plist").read_bytes()
+                self.edit_info(path, **changes)
+                with self.assertRaisesRegex(ValueError, message):
+                    self.check()
+                (path / "Info.plist").write_bytes(original)
+
+    def test_loopback_or_plain_http_plist_value_fails_in_any_bundle(self):
+        for value in ("http://127.0.0.1:8787", "https://localhost/x", "http://example.invalid"):
+            for path in (self.paths[1], self.paths[3]):
+                with self.subTest(value=value, path=path.name):
+                    original = (path / "Info.plist").read_bytes()
+                    self.edit_info(path, NSExtensionNote={"url": [value]})
+                    with self.assertRaisesRegex(ValueError, "loopback or plain-HTTP"):
+                        self.check()
+                    (path / "Info.plist").write_bytes(original)
+
+    def test_secret_looking_key_fails_without_echoing_value(self):
+        self.edit_info(self.app, MannerPathAPIToken="private-value")
+        with self.assertRaises(ValueError) as failure:
+            self.check()
+        self.assertIn("looks like a secret", str(failure.exception))
+        self.assertNotIn("private-value", str(failure.exception))
+
+    def test_debug_ui_test_hook_in_executable_fails(self):
+        (self.paths[2] / "Binary").write_bytes(b"x--mannerpath-watch-ui-test\0")
+        with self.assertRaisesRegex(ValueError, "Debug-only UI-test hook"):
+            self.check()
+
+    def test_debug_dylib_fails(self):
+        for name in ("Binary.debug.dylib", "__preview.dylib"):
+            with self.subTest(name=name):
+                dylib = self.paths[2] / name
+                dylib.write_bytes(b"debug")
+                with self.assertRaisesRegex(ValueError, "Debug/preview dylib"):
+                    self.check()
+                dylib.unlink()
+
+    def test_missing_executable_fails(self):
+        (self.paths[1] / "Binary").unlink()
+        with self.assertRaisesRegex(ValueError, "CFBundleExecutable missing"):
             self.check()
 
     def test_valid_unsigned_bundle_is_labeled(self):
