@@ -22,4 +22,4 @@ trap 'rm -rf "$work"' EXIT
 xcodebuild archive -quiet -project apps/apple/MannerPath/MannerPath.xcodeproj \
   -scheme MannerPath -configuration Release -destination 'generic/platform=iOS' \
   -archivePath "$work/MannerPath.xcarchive" -derivedDataPath "$work/dd" CODE_SIGNING_ALLOWED=NO
-python3 scripts/check-apple-beta-artifact.py "$work/MannerPath.xcarchive" --unsigned-build
+python3 scripts/check-apple-beta-artifact.py "$work/MannerPath.xcarchive" --unsigned-build --wrapper-release-archive

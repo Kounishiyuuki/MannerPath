@@ -113,9 +113,12 @@ The checker also requires the exact production API and public-site URLs, iPhone-
 `UIDeviceFamily [1]`, all four expected bundle identifiers with matching version/build,
 and privacy manifests in both app hosts. Widget manifests are not newly required.
 Run `python3 scripts/test-apple-beta-preflight.py` for focused failure fixtures.
-Since 2026-10-09 it also checks the Watch companion ID, loopback/plain-HTTP and secret-looking Info.plist
-values, Debug-only UI-test hooks and location usage keys, and `make apple-beta-preflight` archives the
-committed Release settings; the device/TestFlight run sheet is
+Since 2026-10-09 it also checks the Watch companion ID; every Info.plist at any depth (nested dict/array keys
+and URLs parsed as URLs/IP addresses: HTTPS DNS hosts only, no loopback/IP literal, no secret-looking key,
+canonical `MannerPathAPIBaseURL` wherever present); secret-looking build-setting names in every project
+configuration; Debug-only UI-test hooks and Debug/preview dylibs; and Always/widget location keys in every
+embedded bundle. `make apple-beta-preflight` archives the committed Release settings; an artifact supplied by
+path is only shown to lack Debug traces, not proven to be a Release build; the device/TestFlight run sheet is
 [`beta-e2e/device-release-matrix.md`](beta-e2e/device-release-matrix.md).
 `--unsigned-build` checks these artifact gates using source entitlements but does not
 bypass signed-mode signature/profile checks or provide TestFlight/device evidence.

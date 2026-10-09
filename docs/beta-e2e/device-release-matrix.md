@@ -32,7 +32,7 @@ first TestFlight build, T5).
 | `SWIFT_ACTIVE_COMPILATION_CONDITIONS` | `DEBUG` | none |
 | Watch UI-test hooks (`--mannerpath-watch-ui-test`, `MANNERPATH_WATCH_UI_TEST_*`) | compiled in (`#if DEBUG`) | compiled out; the preflight fails if the strings are in a binary |
 | Entitlements | same files | same files |
-| localhost / `http://` | none in app sources/plists (UI-test scripts pass `http://127.0.0.1:8787` only to Debug test builds) | rejected by the preflight in every bundle's Info.plist |
+| localhost / `http://` | none in app sources/plists (UI-test scripts pass `http://127.0.0.1:8787` only to Debug test builds) | rejected by the preflight in every embedded Info.plist, nested values included |
 
 ## 2. Automated release gate (repo side, no account needed)
 
@@ -46,21 +46,30 @@ reads signed entitlements and embedded profiles instead. Fail-closed checks:
 | Four bundles embedded (iPhone widget, Watch app, Watch widget) with exact bundle IDs | ✓ | ✓ |
 | Watch `WKCompanionAppBundleIdentifier` = iPhone app | ✓ | ✓ |
 | Version / build present and identical in all four | ✓ | ✓ |
-| `MannerPathAPIBaseURL` = production HTTPS origin; `MannerPathPublicSiteURL` = Pages origin | ✓ | ✓ |
-| No loopback / plain-HTTP URL in any Info.plist; no secret-looking Info.plist key | ✓ | ✓ |
-| No Debug UI-test hook strings in any executable or dylib; no `*.debug.dylib` / `__preview.dylib` (Debug build) | ✓ | ✓ |
-| `NSLocationWhenInUseUsageDescription` on iPhone and Watch; no `NSLocationAlways*` | ✓ | ✓ |
+| `MannerPathAPIBaseURL` = production HTTPS origin; `MannerPathPublicSiteURL` = Pages origin (iPhone required; any bundle that carries either key must use the same canonical value) | ✓ | ✓ |
+| Every Info.plist at any depth (iPhone, Watch, both widgets, any other extension/framework), nested dict/array values: URLs parsed — HTTPS only; no `localhost`/`*.localhost`; no IP-literal host (127.0.0.0/8, `::1`, IPv4-mapped loopback, private, link-local, numeric forms); no secret-looking key (`apiKey`, `APIToken`, `client_secret`, `Authorization`, `Bearer`, `pepper`, … case/separator-insensitive; public origins and bundle IDs exempt) | ✓ | ✓ |
+| Project build settings, every target and configuration: no secret-looking setting name; Release has no `DEBUG` condition; exactly one Release target sets the canonical origins | ✓ | ✓ |
+| No Debug UI-test hook strings in any bundle executable or dylib; no `*.debug.dylib` / `__preview.dylib` anywhere in the artifact | ✓ | ✓ |
+| `NSLocationWhenInUseUsageDescription` on iPhone and Watch; no `NSLocationAlways*` in any bundle; widgets/other extensions carry no `NSLocation*` / `NSWidgetWantsLocation` | ✓ | ✓ |
 | `UIDeviceFamily [1]`; AppIcon in `CFBundleIcons`, `Assets.car`, 1024 px rendition (iPhone, Watch) | ✓ | ✓ |
 | `PrivacyInfo.xcprivacy` in both app hosts | ✓ | ✓ |
 | App Group `[group.com.kounishiyuuki.MannerPath]` in all four | source files | signed code signature + embedded profile |
 | App Attest entitlement on iPhone app | source file | signed, and equal to profile |
 | Code signature valid, `DTPlatformName` device, profile team/app ID match | — | ✓ |
 
+Release-configuration evidence and its limit: with no argument the wrapper itself archives
+`-configuration Release` (a fixture test pins this contract and the override refusal), and the output says so.
+For an artifact supplied by path the checker sees only structure — no Debug/preview dylib, no Debug-only hook
+strings, the Release-only origins present — and prints `Release configuration: NOT PROVEN`; Xcode records no
+build configuration in the bundle, so that is absence of Debug traces, not proof of a Release build. The
+maintainer's own Organizer/`xcodebuild archive` record is the evidence for a signed archive. URL checks
+cover Info.plist values; strings compiled into executables are not URL-parsed.
+
 Failure fixtures: `python3 scripts/test-apple-beta-preflight.py`. Other repo gates: `make apple-validate`
 (iOS + Watch tests, Watch build, Release built-plist origin check), `make contract`.
 
 Not automated (and why): `ITSAppUsesNonExemptEncryption` is absent by design until the export-compliance
-decision (`APP_STORE_SUBMISSION.md` §4); localisation completeness is covered by the Japanese UI tests.
+decision (`APP_STORE_SUBMISSION.md` §4; answered in App Store Connect per build, T5); localisation completeness is covered by the Japanese UI tests.
 
 ## 3. Report gate (read-only v1)
 
@@ -101,7 +110,7 @@ iPhone paired with the Watch, standing inside published coverage unless the row 
 | P16a | Dark and light appearance | Nearby, detail, Data & Privacy | Legible, no invisible text | screenshot | P2 | |
 | P24 | Loaded, detail open | Background ≥10 min; return | Detail still open, location refresh, no crash | — | P1 | |
 | R1 | Production (reports off) | Open detail and About | "Reports are currently unavailable."; no report/App Attest request while browsing | — | P0 | |
-| AI1 | First run on the paid team | Launch app | No crash on missing entitlements (proves profile matches) | — | P0 | |
+| AI1 | First run on the paid team | Launch app | No crash at launch. Smoke only: it is **not** provisioning evidence — that is the T3 signed preflight output plus G2/S1–S2 and WG2/S3–S4 | — | P0 | |
 
 ### Apple Watch
 
@@ -147,7 +156,7 @@ to sync" after a successful load therefore means a provisioning failure (S2/S4),
 | T2 | Register 4 App IDs, App Group on all four, App Attest on iPhone app (Xcode automatic signing or one deliberate `-allowProvisioningUpdates` archive) | entitlements READY | **MAINTAINER ACTION** |
 | T3 | Signed Release archive → `./scripts/apple-beta-preflight.sh <archive>.xcarchive`; save output (no profiles/certificates) | script READY | MAINTAINER ACTION (needs T1–T2) |
 | T4 | Raise `CURRENT_PROJECT_VERSION` per upload; all four equal (preflight enforces) | 1.0 (1) | repo PR |
-| T5 | Upload via Organizer; export compliance answers (`APP_STORE_SUBMISSION.md` §4) | `ITSAppUsesNonExemptEncryption` absent | **MAINTAINER ACTION** · TESTFLIGHT ONLY |
+| T5 | Upload via Organizer; answer export compliance for the build in App Store Connect (`APP_STORE_SUBMISSION.md` §4). Required **before the build can go to any tester** (it stays "Missing Compliance" until answered), so it is P0, not a post-TestFlight item | `ITSAppUsesNonExemptEncryption` absent | **MAINTAINER ACTION** · SIGNED BUILD (in App Store Connect) |
 | T6 | Privacy manifests, usage descriptions | both hosts carry `PrivacyInfo.xcprivacy`; When-In-Use string on iPhone and Watch (preflight) | AUTOMATED |
 | T7 | Support/privacy URLs | Release Pages origin (preflight); live links #179 | AUTOMATED |
 | T8 | Icon | 1024 px rendition both hosts (preflight); physical appearance → device | AUTOMATED + PHYSICAL |
@@ -168,12 +177,20 @@ to sync" after a successful load therefore means a provisioning failure (S2/S4),
 
 ## 7. Release blocker classification (2026-10-09)
 
+Severity (when it blocks) and class (who/what can produce the evidence) are separate axes. Every §4 row keeps
+its own severity; this section only groups them.
+
+| Severity | Items |
+| --- | --- |
+| P0 — before the build goes to any tester | T1–T3 signed archive + signed preflight; T5 upload **and export-compliance answer**; §4 P0 rows: P1, P4, P10, P14, P8/P9b, R1, AI1, W1, W2, W3, W5, W5b, G2/S1–S2, G3/G3b, WG2/S3–S4 |
+| P1 — before App Store submission (may follow the first TestFlight) | every §4 P1 row (iPhone, Watch, widgets, A1/A1W VoiceOver, P17/W9/W10 large text), T10 external testers, §6 privacy report and SDK/entitlement inventory, physical icon appearance, final export-compliance/territory re-check for the submitted build |
+| P2 — recorded, not blocking | P16a, G10, `nearby-spots.json` fixture in bundle (`APPLE_DISTRIBUTION_READINESS.md` §3) |
+
 | Class | Items |
 | --- | --- |
-| AUTOMATED PASS | unsigned Release archive + artifact checks (§2), Debug/Release origin check, iOS/Watch tests, live `reports.available:false` |
-| P0 (before any tester build) | T1–T3 signed archive with provisioned App Group and App Attest; AI1, G2/S1–S2, WG2/S3–S4 on device |
-| P1 (before App Store submission; may follow first TestFlight) | remaining iPhone/Watch/widget P1 rows, VoiceOver, large text, privacy report (§6), export compliance, physical icon appearance |
-| P2 | dark/light polish, widget reload timing note, `nearby-spots.json` fixture in bundle (`APPLE_DISTRIBUTION_READINESS.md` §3) |
+| AUTOMATED (repo, no account) | §2 unsigned Release archive + artifact/build-setting checks and fixtures, Debug/Release origin check, iOS/Watch tests, T6–T9 repo side; live `reports.available:false` (read-only GET) |
+| PHYSICAL DEVICE ONLY | every §4 row |
 | MAINTAINER ACTION | T1, T2, T3, T5, T10; App Store Connect record, legal/privacy signoff (`RELEASE_CHECKLIST.md`) |
-| PHYSICAL DEVICE ONLY | §4 every row |
-| TESTFLIGHT ONLY | T5, T10, App Attest production environment confirmation, privacy report of the distributed build |
+| SIGNED BUILD (no TestFlight needed) | T3 signed preflight (signature, profiles, App Group, App Attest entitlement), §6 items 2–3 on the signed archive, AI1 |
+| TESTFLIGHT ONLY | T10 tester distribution, App Attest production environment of the distributed build, §6 items 1 and 4 for the distributed build |
+| APP STORE BEFORE SUBMISSION | all P1 above closed, final export-compliance/territory decision for the submitted build, screenshots/Review Notes and legal signoff (`APP_STORE_SUBMISSION.md`) |
