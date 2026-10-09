@@ -17,6 +17,9 @@ preflight = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(preflight)
 
 
+ORIGIN_FAILURE = "HTTPS API origin|Release must use production HTTPS only|canonical production Release origin"
+
+
 class PreflightTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -29,12 +32,16 @@ class PreflightTests(unittest.TestCase):
         for (label, identifier), path in zip(preflight.IDS.items(), self.paths):
             path.mkdir(parents=True)
             info = {"CFBundleIdentifier": identifier, "CFBundleVersion": "42",
-                    "CFBundleShortVersionString": "1.0"}
+                    "CFBundleShortVersionString": "1.0", "CFBundleExecutable": "Binary"}
+            (path / "Binary").write_bytes(b"release binary")
             if label == "iPhone app":
                 info["MannerPathAPIBaseURL"] = preflight.PRODUCTION_API
                 info["MannerPathPublicSiteURL"] = preflight.PUBLIC_SITE
                 info["UIDeviceFamily"] = [1]
+            if label == "Watch app":
+                info["WKCompanionAppBundleIdentifier"] = preflight.IDS["iPhone app"]
             if label in ("iPhone app", "Watch app"):
+                info["NSLocationWhenInUseUsageDescription"] = "fixture"
                 info["CFBundleIcons"] = {"CFBundlePrimaryIcon": {"CFBundleIconName": "AppIcon"}}
                 (path / "Assets.car").write_bytes(b"fixture")
             (path / "PrivacyInfo.xcprivacy").write_bytes(plistlib.dumps({}))
@@ -124,6 +131,188 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "CFBundleVersion does not match"):
             self.check()
 
+    def edit_info(self, path, **changes):
+        info_path = path / "Info.plist"
+        info = plistlib.loads(info_path.read_bytes())
+        info.update(changes)
+        info_path.write_bytes(plistlib.dumps(info))
+
+    def test_watch_companion_mismatch_fails(self):
+        self.edit_info(self.paths[2], WKCompanionAppBundleIdentifier="com.example.other")
+        with self.assertRaisesRegex(ValueError, "WKCompanionAppBundleIdentifier"):
+            self.check()
+
+    def test_location_usage_rules(self):
+        for path, changes, message in (
+                (self.paths[2], {"NSLocationWhenInUseUsageDescription": ""}, "NSLocationWhenInUseUsageDescription missing"),
+                (self.app, {"NSLocationAlwaysAndWhenInUseUsageDescription": "x"}, "Always location")):
+            with self.subTest(message=message):
+                original = (path / "Info.plist").read_bytes()
+                self.edit_info(path, **changes)
+                with self.assertRaisesRegex(ValueError, message):
+                    self.check()
+                (path / "Info.plist").write_bytes(original)
+
+    def assert_info_fails(self, path, message, **changes):
+        original = (path / "Info.plist").read_bytes()
+        self.edit_info(path, **changes)
+        try:
+            with self.assertRaisesRegex(ValueError, message):
+                self.check()
+        finally:
+            (path / "Info.plist").write_bytes(original)
+
+    def add_extension(self, **info):
+        extension = self.app / "PlugIns/Extra.appex"
+        extension.mkdir()
+        (extension / "Binary").write_bytes(b"release binary")
+        (extension / "Info.plist").write_bytes(plistlib.dumps({"CFBundleExecutable": "Binary", **info}))
+        self.addCleanup(shutil.rmtree, extension)
+        return extension
+
+    def test_canonical_production_https_origin_passes(self):
+        self.edit_info(self.paths[1], MannerPathAPIBaseURL=preflight.PRODUCTION_API)
+        self.assertIn("UNSIGNED BUILD", self.check())
+
+    def test_unsafe_url_fails_in_every_bundle_nested(self):
+        cases = (("http://127.0.0.1:8787", "not HTTPS"), ("https://127.0.0.2/x", "loopback"),
+                 ("https://[::1]/x", "loopback"), ("https://[::ffff:127.0.0.1]/x", "loopback"),
+                 ("https://localhost/x", "localhost"), ("https://api.localhost/x", "localhost"),
+                 ("https://2130706433/x", "numeric IP host"), ("https://169.254.1.1/x", "IP literal"),
+                 ("https://10.0.0.1/x", "IP literal"), ("https://[fe80::1]/x", "IP literal"),
+                 ("http://example.invalid", "not HTTPS"))
+        for value, message in cases:
+            for path in self.paths:
+                with self.subTest(value=value, path=path.name):
+                    self.assert_info_fails(path, f"{path.name}: Info.plist 'Config.urls\\[0\\]' .*{message}",
+                                           Config={"urls": [value]})
+                    self.assert_info_fails(path, f"Info.plist 'Note' .*{message}", Note=f"see {value} for details")
+
+    def test_api_origin_key_in_widgets_must_be_canonical(self):
+        for path in (self.paths[1], self.paths[3]):
+            for value, message in (("http://127.0.0.1:8787", "not HTTPS"), ("https://127.0.0.2/x", "loopback"),
+                                   ("https://[::1]/x", "loopback"),
+                                   ("https://example.invalid", "canonical production Release origin")):
+                with self.subTest(path=path.name, value=value):
+                    self.assert_info_fails(path, message, MannerPathAPIBaseURL=value)
+
+    def test_unsafe_url_in_any_extension_fails(self):
+        self.add_extension(CFBundleIdentifier="x", Endpoint="https://127.0.0.1/x")
+        with self.assertRaisesRegex(ValueError, "Extra.appex: Info.plist 'Endpoint' is loopback"):
+            self.check()
+
+    def test_nested_secret_key_fails_without_echoing_value(self):
+        for changes in ({"Config": {"APIToken": "private-value"}}, {"Config": {"Headers": [{"Authorization": "private-value"}]}},
+                        {"client_secret": "private-value"}, {"Nested": {"private-key": "private-value"}},
+                        {"x": {"Bearer": "private-value"}}, {"REPORT_PEPPER": "private-value"}, {"apiKey": "private-value"}):
+            for path in (self.app, self.paths[3]):
+                with self.subTest(changes=changes, path=path.name):
+                    original = (path / "Info.plist").read_bytes()
+                    self.edit_info(path, **changes)
+                    try:
+                        with self.assertRaises(ValueError) as failure:
+                            self.check()
+                    finally:
+                        (path / "Info.plist").write_bytes(original)
+                    self.assertIn("looks like a secret", str(failure.exception))
+                    self.assertNotIn("private-value", str(failure.exception))
+
+    def test_public_names_are_not_secrets(self):
+        for name in ("MannerPathAPIBaseURL", "MannerPathPublicSiteURL", "CFBundleIdentifier",
+                     "INFOPLIST_KEY_NSLocationWhenInUseUsageDescription", "NSLocationWhenInUseUsageDescription"):
+            self.assertFalse(preflight.secretish(name), name)
+        for name in ("API_KEY", "apiKey", "ClientSecret", "AUTH_TOKEN", "Authorization", "PrivateKey", "db-password"):
+            self.assertTrue(preflight.secretish(name), name)
+
+    def project(self, settings):
+        project = pathlib.Path(self.temp.name) / "project.json"
+        project.write_text(json.dumps({"objects": {
+            f"C{index}": {"isa": "XCBuildConfiguration", "name": name, "buildSettings": values}
+            for index, (name, values) in enumerate(settings)}}))
+        return project
+
+    def test_build_settings_all_configurations(self):
+        release = {"MANNERPATH_API_BASE_URL": preflight.PRODUCTION_API, "MANNERPATH_PUBLIC_SITE_URL": preflight.PUBLIC_SITE}
+        preflight.check_build_settings(self.project([("Release", release), ("Debug", {})]))
+        preflight.check_build_settings()  # the committed project
+        for settings, message in (([("Release", release), ("Debug", {"API_KEY": "x"})], "Debug.*looks like a secret"),
+                                  ([("Release", {**release, "WidgetClientSecret": "x"})], "looks like a secret"),
+                                  ([("Release", {**release, "MANNERPATH_API_BASE_URL": "http://127.0.0.1:8787"})], "canonical"),
+                                  ([("Release", {**release, "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG"})], "DEBUG"),
+                                  ([("Release", {**release, "SWIFT_ACTIVE_COMPILATION_CONDITIONS": ["$(inherited)", "DEBUG"]})], "DEBUG"),
+                                  ([("Release", release), ("Release", release)], "exactly one")):
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                preflight.check_build_settings(self.project(settings))
+
+    def test_always_location_fails_in_every_bundle_and_extension(self):
+        for key in preflight.LOCATION_ALWAYS:
+            for path in self.paths:
+                with self.subTest(key=key, path=path.name):
+                    self.assert_info_fails(path, "Always location", **{key: "x"})
+        self.add_extension(CFBundleIdentifier="x", NSLocationAlwaysAndWhenInUseUsageDescription="x")
+        with self.assertRaisesRegex(ValueError, "Extra.appex.*Always location"):
+            self.check()
+
+    def test_widgets_carry_no_location_permission(self):
+        for path in (self.paths[1], self.paths[3]):
+            for key in ("NSLocationWhenInUseUsageDescription", "NSWidgetWantsLocation"):
+                with self.subTest(path=path.name, key=key):
+                    self.assert_info_fails(path, "location permission key", **{key: "x"})
+
+    def test_nested_debug_dylib_anywhere_fails(self):
+        nested = self.app / "Frameworks/Inner.framework"
+        nested.mkdir(parents=True)
+        for name in ("Inner.debug.dylib", "__preview.dylib"):
+            with self.subTest(name=name):
+                (nested / name).write_bytes(b"debug")
+                with self.assertRaisesRegex(ValueError, "Debug/preview dylib"):
+                    self.check()
+                (nested / name).unlink()
+
+    def test_release_evidence_is_not_overclaimed(self):
+        self.assertIn("Release configuration: NOT PROVEN", self.check())
+        with patch.object(preflight.subprocess, "run", return_value=self.asset_result()), redirect_stdout(StringIO()) as output:
+            preflight.inspect(self.app, True, wrapper_release=True)
+        self.assertIn("archived by apple-beta-preflight.sh with -configuration Release", output.getvalue())
+
+    def test_wrapper_contract_archives_release_and_refuses_overrides(self):
+        wrapper = SCRIPT.with_name("apple-beta-preflight.sh")
+        source = wrapper.read_text()
+        for fragment in ("xcodebuild archive", "-configuration Release", "-destination 'generic/platform=iOS'",
+                         "--unsigned-build --wrapper-release-archive"):
+            self.assertIn(fragment, source)
+        self.assertNotRegex(source, r"-configuration (?!Release)")
+        for env, args in (({"MANNERPATH_API_BASE_URL": "http://127.0.0.1:8787"}, []), ({}, ["a", "b"])):
+            result = subprocess.run(["bash", str(wrapper), *args], capture_output=True, text=True,
+                                    env={"PATH": "/usr/bin:/bin", **env})
+            self.assertEqual(result.returncode, 2, result.stderr)
+
+    def test_secret_looking_key_fails_without_echoing_value(self):
+        self.edit_info(self.app, MannerPathAPIToken="private-value")
+        with self.assertRaises(ValueError) as failure:
+            self.check()
+        self.assertIn("looks like a secret", str(failure.exception))
+        self.assertNotIn("private-value", str(failure.exception))
+
+    def test_debug_ui_test_hook_in_executable_fails(self):
+        (self.paths[2] / "Binary").write_bytes(b"x--mannerpath-watch-ui-test\0")
+        with self.assertRaisesRegex(ValueError, "Debug-only UI-test hook"):
+            self.check()
+
+    def test_debug_dylib_fails(self):
+        for name in ("Binary.debug.dylib", "__preview.dylib"):
+            with self.subTest(name=name):
+                dylib = self.paths[2] / name
+                dylib.write_bytes(b"debug")
+                with self.assertRaisesRegex(ValueError, "Debug/preview dylib"):
+                    self.check()
+                dylib.unlink()
+
+    def test_missing_executable_fails(self):
+        (self.paths[1] / "Binary").unlink()
+        with self.assertRaisesRegex(ValueError, "CFBundleExecutable missing"):
+            self.check()
+
     def test_valid_unsigned_bundle_is_labeled(self):
         self.assertIn("UNSIGNED BUILD", self.check())
         self.assertIn("CFBundleVersion for App Attest server: 42", self.check())
@@ -156,7 +345,7 @@ class PreflightTests(unittest.TestCase):
         info = plistlib.loads(path.read_bytes())
         info["MannerPathAPIBaseURL"] = "http://example.invalid"
         path.write_bytes(plistlib.dumps(info))
-        with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
+        with self.assertRaisesRegex(ValueError, ORIGIN_FAILURE):
             self.check()
 
     def test_empty_origin_fails(self):
@@ -164,7 +353,7 @@ class PreflightTests(unittest.TestCase):
         info = plistlib.loads(path.read_bytes())
         info["MannerPathAPIBaseURL"] = ""
         path.write_bytes(plistlib.dumps(info))
-        with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
+        with self.assertRaisesRegex(ValueError, ORIGIN_FAILURE):
             self.check()
 
     def test_malformed_https_authority_fails(self):
@@ -176,7 +365,7 @@ class PreflightTests(unittest.TestCase):
             info = plistlib.loads(path.read_bytes())
             info["MannerPathAPIBaseURL"] = origin
             path.write_bytes(plistlib.dumps(info))
-            with self.assertRaisesRegex(ValueError, "HTTPS API origin"):
+            with self.assertRaisesRegex(ValueError, ORIGIN_FAILURE):
                 self.check()
 
     def test_invalid_origin_does_not_echo_credentials(self):
