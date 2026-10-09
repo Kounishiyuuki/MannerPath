@@ -21,24 +21,34 @@ jobs:
       run:
         working-directory: services/api
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # Official GitHub actions pinned to immutable commits; comments name the expected release.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # actions/checkout v4.4.0 (major v4)
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # actions/setup-node v4.4.0 (major v4)
         with:
           node-version: "24"
-          cache: npm
-          cache-dependency-path: services/api/package-lock.json
       - run: npm ci --ignore-scripts
+      # One exhaustive run checks every data resource and its scoped rights notice, then exits 1 for any
+      # blocking signal (including unknown outages and rights drift); advisory-only findings stay green.
       - name: Check approved official resources
-        run: node --experimental-strip-types --no-warnings scripts/source-health.ts --live > source-health.json
+        run: |
+          set +e
+          node --experimental-strip-types --no-warnings scripts/source-health.ts --live > source-health.json 2> source-health-summary.md
+          code=$?
+          cat source-health-summary.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$code"
       - name: Preserve metadata report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # actions/upload-artifact v4.6.2 (major v4)
         with:
           name: production-source-health
-          path: services/api/source-health.json
+          path: |
+            services/api/source-health.json
+            services/api/source-health-summary.md
           retention-days: 30
           if-no-files-found: warn
       - name: Explain review boundary
         if: always()
         run: |
-          echo 'Source health is advisory. Review the JSON artifact on any failed run. No source approval, ingestion, spot deletion, D1 operation or deployment occurs. Live rights notices require human review.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Source health is advisory. A red run means a blocking signal; review the JSON artifact. No source approval, ingestion, spot deletion, D1 operation, rights baseline update or deployment occurs. Rights changes require human review before a reviewed PR updates the fingerprint.' >> "$GITHUB_STEP_SUMMARY"
