@@ -1,6 +1,12 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Tobacco": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "たばこ" } } } },
+    "Place and access": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "場所と利用条件" } } } },
+    "Distance": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "距離" } } } },
+    "Reset all filters": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "すべての絞り込みを解除" } } } },
+    "Off by default. Places with unknown hours are never treated as closed; this option shows only places reported open now.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "初期設定はオフです。営業時間が不明な場所を閉まっているとは扱いません。オンにすると、現在営業中と報告されている場所だけを表示します。" } } } },
+    "A shop or facility alone is not a smoking place. Choose the kind of smoking place you saw, or keep “Not sure”.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "店舗や施設があるだけでは喫煙場所ではありません。見た喫煙場所の種類を選ぶか、「わからない」のままにしてください。" } } } },
     "Location shown by the publisher": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "公開元が示した地点" } } } },
     "Location shown by a user": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "利用者が示した地点" } } } },
     "Location estimated from the official address": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "公式住所から推定した位置" } } } },
@@ -105,6 +111,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "拡大して個別に表示します"
+          }
+        }
+      }
+    },
+    "Zooms in to the places under this marker": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この位置に重なっている場所を拡大して表示します"
+          }
+        }
+      }
+    },
+    "Shows the place under this marker": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この位置に重なっている場所を表示します"
           }
         }
       }

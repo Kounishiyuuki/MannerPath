@@ -116,6 +116,20 @@ class MannerPathUITestCase: XCTestCase {
         scrollTo(app.buttons["selectedSpotDirections"], file: file, line: line)
     }
 
+    /// Spot Detail is open. Its title is the place's name (Phase 4), so wait for its leading directions button.
+    func waitForDetail(file: StaticString = #filePath, line: UInt = #line) {
+        // The Form itself, not a row: rows are created lazily and may be scrolled away or below the fold at AX5.
+        XCTAssertTrue(app.descendants(matching: .any)["spot-detail"].waitForExistence(timeout: 10), "Spot Detail did not open",
+                      file: file, line: line)
+    }
+
+    /// The current-location marker; its label says whether the location is current or the last one used. It is a
+    /// button only while a place lies under it (it then forwards a tap), so match any element type.
+    var locationMarker: XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(
+            format: "(label == '現在地' OR label == '距離の計算に使用した前回の現在地') AND identifier != 'VKPointFeature'")).firstMatch
+    }
+
     var nearbyMap: XCUIElement { app.descendants(matching: .any)["nearbyMap"] }
 
     /// The system search field (`.searchable`) of the Nearby sheet.
@@ -222,8 +236,12 @@ final class B_OnlineUITests: MannerPathUITestCase {
         waitForResults()
         let first = resultRows.firstMatch
         scrollTo(first)
+        let name = first.label
         first.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
+        // Phase 4: the navigation title is the place's name, not a generic 「場所の詳細」.
+        XCTAssertTrue(app.navigationBars[name].exists, "Detail title is not the place name \(name)")
+        XCTAssertFalse(app.navigationBars["場所の詳細"].exists)
         XCTAssertTrue(row("場所の種類").exists)
         XCTAssertTrue(row("直線距離").exists)
         screenshot("03-detail-top")
@@ -248,7 +266,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         // A pin selects first (docs/DESIGN.md §5.5): a summary in the sheet, details one explicit step further.
         try selectPin()
         let summary = app.descendants(matching: .any)["selectedSpotSummary"]
-        XCTAssertFalse(app.navigationBars["場所の詳細"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["spot-detail"].exists)
         XCTAssertTrue(text("選択中の場所").exists)
         // The directions call to action is the detail view's own, by location precision (ADR-0017).
         let directions = app.buttons["selectedSpotDirections"]
@@ -257,7 +275,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         let ctaLabel = directions.label
         screenshot("15-selected-spot")
         app.buttons["selectedSpotDetails"].tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         let detailDirections = app.buttons["open-walking-directions"]
         scrollTo(detailDirections)
         XCTAssertEqual(detailDirections.label, ctaLabel, "Summary and detail disagree on exact/approximate")
@@ -284,6 +302,26 @@ final class B_OnlineUITests: MannerPathUITestCase {
         sleep(1)
         XCTAssertTrue(summary.exists)
         screenshot("18-reselected")
+
+        // #208 review: scroll the summary away, return the sheet to medium, re-tap the same pin: the summary comes back
+        // into view while the selection stays.
+        let window = app.windows.firstMatch.frame
+        let title = app.navigationBars["近くの場所"]
+        for _ in 0..<3 { app.collectionViews.firstMatch.swipeUp() }
+        if title.frame.minY < window.height * 0.3 {
+            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
+            sleep(1)
+        }
+        let directions = app.buttons["selectedSpotDirections"]
+        XCTAssertFalse(directions.exists && directions.isHittable, "Summary was not scrolled away")
+        XCTAssertTrue(selected.isHittable)
+        selected.tap()
+        XCTAssertTrue(directions.waitForExistence(timeout: 5))
+        sleep(1)
+        XCTAssertTrue(directions.isHittable, "Re-tapping the selected pin did not bring the summary back")
+        XCTAssertTrue(String(describing: selected.value ?? "").hasPrefix("選択中"))
+        screenshot("18b-reselected-rescrolled")
     }
 
     // The standard sheet moves between the system medium and large detents over the map; the map never goes away,
@@ -426,7 +464,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         launch()
         waitForResults()
         resultRows.firstMatch.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         let report = app.buttons["この場所の情報を報告"]
         scrollTo(report)
         report.tap()
@@ -446,7 +484,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         screenshot("09-report-draft")
 
         app.buttons["閉じる"].tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         let resume = app.buttons["保存済みの報告を再開"]
         scrollTo(resume)
         resume.tap()
@@ -455,7 +493,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         // Submit stays available but is never tapped here; checked with the keyboard down so the row can be reached.
         scrollTo(app.buttons["審査用に送信"])
         app.buttons["下書きを破棄"].tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         scrollTo(app.buttons["この場所の情報を報告"])
     }
 
@@ -564,18 +602,18 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
     func openRow(_ element: XCUIElement) {
         scrollTo(element)
         element.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
     }
 
     // ADR-0017 on the map: an area-anchor pin's summary says 「この付近へ案内」 and shows its precision line.
     func testApproximatePinSummaryNeverReadsAsExact() throws {
         launch()
         waitForResults()
-        // This fixture's area anchor clusters right under the current-location marker, which always draws on top
-        // (required priority), so the cluster cannot be tapped at the default zoom. Zoom in beside the marker first,
-        // as a person would.
+        // This fixture's area anchor clusters beside the current-location marker. This test is about the summary's
+        // wording, so reach the pin by zooming in beside the marker; testTappingLocationMarkerExpandsTheClusterBeneathIt
+        // covers the marker-tap forwarding itself.
         try selectPin(valueContaining: "位置は上野恩賜公園内の目安です") {
-            let me = self.app.otherElements.matching(NSPredicate(format: "label == '現在地'")).firstMatch
+            let me = self.locationMarker
             guard me.exists else { return }
             for _ in 0..<2 {
                 me.coordinate(withNormalizedOffset: CGVector(dx: -1.5, dy: -0.5)).doubleTap()
@@ -600,12 +638,45 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         showSelectedCallToAction()
         screenshot("27b-selected-official")
         app.buttons["selectedSpotDetails"].tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         let detail = app.buttons["open-walking-directions"]
         scrollTo(detail)
         XCTAssertEqual(detail.label, label)
         XCTAssertTrue(app.descendants(matching: .any)["detail-precision"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["detail-evidence"].exists)
+    }
+
+    // Phase 4: a cluster right under the current-location marker is reachable by tapping the marker; the marker stays.
+    func testTappingLocationMarkerExpandsTheClusterBeneathIt() throws {
+        launch()
+        waitForResults()
+        app.buttons["現在地に戻す"].tap()
+        sleep(2)
+        let me = locationMarker
+        XCTAssertTrue(me.waitForExistence(timeout: 10), "No current-location marker")
+        // The Taito fixture at the fixed simulator location puts a cluster under the marker. Which annotation is chosen
+        // (hidden or not, never the destination) is covered by locationMarkerForwardsOnlyToWhatItCovers; this checks the
+        // real map end to end. A missing overlap is a broken precondition, so it fails rather than skips.
+        let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'")).allElementsBoundByIndex
+        let pins = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'")).allElementsBoundByIndex
+        let covered = (clusters + pins).filter { $0.exists && $0.frame.intersects(me.frame) }
+        let target = try XCTUnwrap(covered.first, "Fixture precondition: no cluster or pin under the location marker")
+        let isCluster = target.label.hasSuffix("件の場所")
+        // VoiceOver: with a place under it the marker is offered as a button (its hint says what activating does).
+        XCTAssertEqual(me.elementType, .button, "The marker forwards a tap but is not offered as a button")
+        let before = Set(pins.filter(\.isHittable).map(\.label))
+        me.tap()
+        sleep(2)
+        XCTAssertTrue(me.exists, "The current-location marker must stay on the map")
+        if isCluster {
+            let after = Set(app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'")).allElementsBoundByIndex
+                .filter(\.isHittable).map(\.label))
+            XCTAssertNotEqual(after, before, "Tapping the marker did not expand the cluster beneath it")
+        } else {
+            XCTAssertTrue(app.descendants(matching: .any)["selectedSpotSummary"].waitForExistence(timeout: 5),
+                          "Tapping the marker did not select the pin beneath it")
+        }
+        screenshot("35-location-marker-cluster")
     }
 
     func testApproximatePlaceNeverReadsAsExact() {
@@ -615,7 +686,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         scrollTo(approximate)
         screenshot("20-list-approximate-row")
         approximate.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         XCTAssertTrue(app.descendants(matching: .any)["approximate-location-note"].exists)
         XCTAssertTrue(textContaining("約").exists, "Approximate distance is prefixed with 約")
         screenshot("21-detail-approximate-top")
@@ -635,7 +706,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         XCTAssertFalse(community.value.debugDescription.contains("公式"))
         screenshot("24-list-community-row")
         community.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         screenshot("25-detail-community-top")
         let note = textContaining("1人の利用者の報告をMannerPathが審査したもの")
         scrollTo(note)
@@ -687,6 +758,8 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         app.buttons["地図でピンを選ぶ"].tap()
         XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForExistence(timeout: 10))
         app.buttons["地図の中心を使用"].tap()
+        // The provisional pin is a standard MapKit marker (MannerPath Yellow), labelled for VoiceOver.
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label == '提案するピン'")).firstMatch.waitForExistence(timeout: 5))
         let confirm = app.buttons["提案するピンを確定"]
         scrollTo(confirm)
         screenshot("31-add-place-pin")
@@ -787,7 +860,7 @@ final class I_ProductionAPIUITests: MannerPathUITestCase {
         let first = resultRows.firstMatch
         scrollTo(first)
         first.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         XCTAssertTrue(row("直線距離").exists)
         screenshot("71-production-detail")
         let unavailable = text("現在、報告機能を利用できません。")
@@ -830,7 +903,7 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         let first = resultRows.firstMatch
         scrollTo(first)
         first.tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         XCTAssertTrue(text("距離と方角は選択した目的地を基準にした目安です。端末の現在地からの距離や徒歩ルートではありません。").exists)
         XCTAssertTrue(text("徒歩ルートを利用できません。上の直線距離と方角は引き続き確認できます。").exists ||
                       text("徒歩ルートの確認には現在地が必要です。直線距離の目安は引き続き確認できます。").exists)
@@ -980,7 +1053,7 @@ final class M_MapFirstAccessibilityUITests: MannerPathUITestCase {
         screenshot("61-selected")
 
         app.buttons["selectedSpotDetails"].tap()
-        XCTAssertTrue(app.navigationBars["場所の詳細"].waitForExistence(timeout: 10))
+        waitForDetail()
         // Spot Detail (Phase 3): the directions button leads, with precision and evidence as separate rows.
         assertTarget(app.buttons["open-walking-directions"], "detailDirections")
         XCTAssertTrue(app.descendants(matching: .any)["detail-precision"].exists)
