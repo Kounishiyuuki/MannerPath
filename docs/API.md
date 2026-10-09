@@ -41,6 +41,19 @@ See ADR-0016 for storage deletion fencing and production prerequisites.
 
 The API intentionally exposes spot data, not user location history.
 
+## Request security bounds
+
+The complete request URL (including query) and `If-None-Match` each have a 4096-byte UTF-8
+limit. Larger input returns `413 requestTooLarge` before database access. Query parameters do
+not alter public reads. Unsupported methods return `404 notFound`; HEAD uses GET semantics
+without a response body. No CORS headers or shared client API credential are required.
+
+Report/App Attest JSON bodies are read incrementally and cancelled above their documented byte
+limit, independent of Content-Length. Non-identity Content-Encoding returns
+`415 unsupportedContentEncoding`; the Worker never decompresses these bodies. Inactive writes
+still return 503 before reading a body. Unexpected handler failures return a fixed JSON
+`503 serviceUnavailable` with `Cache-Control: no-store`, without logging or echoing the exception.
+
 ## Schema version
 
 Every response body carries an explicit `schemaVersion` (DTO schema version). `/v1` clients must check it; a change in meaning requires a new schema version or `/v2`.

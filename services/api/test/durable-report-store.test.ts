@@ -127,7 +127,8 @@ test("DATA_DB unavailable: reads fail as reads; report intake does not depend on
   const app = createApp();
   const env = { DB: failing(), REPORTS_DB: reports } as any;
   const tile = await app.request("/v1/tiles/14/14552/6451", {}, env);
-  assert.equal(tile.status, 500, "a canonical read cannot be served without the canonical database");
+  assert.equal(tile.status, 503, "a canonical read cannot be served without the canonical database");
+  assert.equal((await tile.json() as any).error, "serviceUnavailable");
   const res = await app.request("/v1/reports", { method: "POST", body: JSON.stringify({ schemaVersion: 1, type: "exists", spotId: "sp_01V64NN31G72E5KJJ5W22W1A1J", installId: INSTALL }) }, env);
   assert.equal(res.status, 201, "a report names its spot opaquely, so intake never reads the canonical database");
   assert.equal(count(reports, "reports"), 1);

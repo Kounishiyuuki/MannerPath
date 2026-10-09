@@ -226,11 +226,13 @@ Sources: [wrangler.jsonc](../services/api/wrangler.jsonc), [app.ts](../services/
 [config DTO](../services/api/src/config/dto.ts), [scheduled checks](../services/api/src/refresh/scheduled.ts),
 [artifact store](../services/api/src/refresh/artifact-store.ts).
 
-**Exception logs are possible now.** The pinned Hono 4.13.8 default error handler calls `console.error(err)`;
-`createApp` installs no replacement error handler. Unexpected database/schema/runtime failures can therefore
-produce diagnostics despite `invocation_logs:false`. This is not evidence that personal data was logged:
-actual payloads, contextual fields, occurrence, sampling and retention are UNKNOWN. Do not say “no request-path
-logs” or “nothing is retained”. Inspect sanitized diagnostic field names and representative errors before signoff.
+**Exception boundary update (2026-10-09, repository only).** Release hardening installs a replacement
+`createApp` error handler: unexpected HTTP handler failures return a fixed, unlogged JSON 503.
+Regression tests inject sensitive exception text and assert no response echo or console output.
+The earlier audited deployment used Hono's default `console.error(err)`; this branch does not deploy
+the fix or erase historical diagnostics. Actual historical payloads, platform-level failures, contextual
+fields, occurrence and retention remain UNKNOWN. Do not say “nothing is retained”. Maintainer signoff
+still requires deployment-version and provider-field/retention evidence.
 
 Cloudflare distinguishes invocation events from console logs. Its current Workers Logs documentation lists
 3-day Free / 7-day Paid retention (maximum 7 days). Those are product defaults, **not confirmed account retention**;

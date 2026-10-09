@@ -74,6 +74,9 @@ const TileParams = z.object({ z: z.string(), x: z.string(), y: z.string() });
 
 // Revalidate on every use: the ETag makes that a cheap 304 while guaranteeing a republished tile is seen.
 const CACHE_CONTROL = "public, no-cache";
+/** Bounds downstream request handling and conditional-header work before any database access. */
+export const REQUEST_URL_MAX_BYTES = 4096;
+const CONDITIONAL_HEADER_MAX_BYTES = 4096;
 
 function problem(
   status: 400 | 403 | 404 | 409 | 413 | 415 | 422 | 429 | 503,
@@ -106,12 +109,32 @@ const rejected = (r: Rejected) => problem(403, "attestationRejected", r.detail, 
 
 /** Reads a body of at most `max` bytes as JSON, or answers the 413/400 that ends the request. */
 async function readJson(req: Request, max: number, tooLarge: string): Promise<{ ok: true; json: unknown } | { ok: false; response: Response }> {
-  const raw = await req.text();
-  if (new TextEncoder().encode(raw).length > max) {
-    return { ok: false, response: problem(413, tooLarge, `request body must be at most ${max} bytes`) };
+  // Do not inflate compressed input or trust Content-Length (chunked requests have none).
+  if (![null, "identity"].includes(req.headers.get("Content-Encoding"))) {
+    return { ok: false, response: problem(415, "unsupportedContentEncoding", "compressed request bodies are not accepted") };
   }
+  const reader = req.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  if (reader) {
+    try {
+      while (true) {
+        const next = await reader.read();
+        if (next.done) break;
+        length += next.value.byteLength;
+        if (length > max) {
+          await reader.cancel();
+          return { ok: false, response: problem(413, tooLarge, `request body must be at most ${max} bytes`) };
+        }
+        chunks.push(next.value);
+      }
+    } finally { reader.releaseLock(); }
+  }
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   try {
-    return { ok: true, json: JSON.parse(raw) };
+    return { ok: true, json: JSON.parse(new TextDecoder().decode(bytes)) };
   } catch {
     return { ok: false, response: problem(400, "invalidJson", "request body must be a JSON object") };
   }
@@ -133,6 +156,16 @@ export function createApp(options: AppOptions = {}) {
   const trustAnchor = options.appAttestTrustAnchor ?? APPLE_APP_ATTEST_ROOT_DER;
   const clock = options.now ?? (() => new Date());
   const app = new Hono<{ Bindings: Env }>();
+  // Hono's default handler logs the exception. D1/decoder errors can contain location or
+  // credentials; neither persist them nor return their details to the caller.
+  app.onError(() => problem(503, "serviceUnavailable", "the service is temporarily unavailable"));
+  app.use("*", async (c, next) => {
+    if (new TextEncoder().encode(c.req.url).length > REQUEST_URL_MAX_BYTES
+      || new TextEncoder().encode(c.req.header("If-None-Match") ?? "").length > CONDITIONAL_HEADER_MAX_BYTES) {
+      return problem(413, "requestTooLarge", "request URL or conditional header exceeds its byte limit");
+    }
+    await next();
+  });
 
   // GET /v1/config: the non-secret compatibility contract (docs/API.md). Every value is read from the
   // canonical constant the serving code uses, so it cannot drift from behaviour. It exposes no secret

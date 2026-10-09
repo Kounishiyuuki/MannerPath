@@ -8,6 +8,11 @@ Release policy: `PRODUCT_REQUIREMENTS.md` §10 and `NATIONWIDE_DATA_STRATEGY.md`
 honest empty/coverage states and evidence integrity; coverage targets are measured continuously and are not release
 blockers.
 
+Mandatory security gate: [SECURITY_RELEASE_GATE.md](SECURITY_RELEASE_GATE.md). Require **P0 = 0,
+P1 = 0**, passing automated guardrails and a scan of the final distribution archive. Local unsigned
+evidence does not close signed-build or provider logging/privacy signoff. This branch's hardening
+must reach the deployed release through a separately authorized maintainer operation.
+
 ## 1. Readiness (audited 2026-10-03 against `main` f534778; production preflight re-checked against aab8305; release candidate re-verified against d511f1a on 2026-10-04)
 
 ### Submission blocker reconciliation (2026-10-06)
