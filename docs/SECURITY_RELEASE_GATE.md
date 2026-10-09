@@ -122,7 +122,7 @@ Branch findings after fixes: **P0 0 / P1 0 / accepted P2 4** (listed above).
 **RELEASE BLOCKED: YES** pending final signed/provider/privacy evidence and verification that the
 deployed release contains this hardening; the existing deployment is not changed by this PR.
 
-Node 24 `make api-validate`: PASS (typecheck, 919 API tests + 101 discovery tests).
+Initial Node 24 `make api-validate`: PASS (typecheck, 919 API tests + 101 discovery tests).
 `make apple-validate`: PASS (iOS tests, watchOS unit tests/build, generated Debug/Release origins).
 The first sandbox run failed with `Could not resolve package dependencies: You don’t have
 permission to save the file “repositories” in the folder “SourcePackages”.`; the same command
@@ -141,3 +141,5 @@ Post-commit `git diff --check origin/main...HEAD` is required before push.
 Latest main `9cca5178fb3ca3ecdb8ae8cf038b40631e022282` was integrated by a normal merge; no rebase, force push or history rewrite. The gate now scans `rev-list --objects --all` and fails closed if no reachable blobs exist. Release requires reachable blobs > 0 and suspects = 0. Diagnostics include only path, commit and type. Regression fixtures prove detection of deleted credentials and credentials reachable only through another ref.
 
 Fresh dependency audit: production vulnerabilities **0**; dev tooling **4 high** (`wrangler`, `miniflare`, `sharp`, `undici`). Full audit exits 1; omit-dev audit exits 0. No production dependency change was made. Cloudflare vars/config/error/logging boundaries remain guarded; invocation logs remain disabled in every committed environment. Live account settings, final signing, physical-device and privacy evidence remain outside this source gate.
+
+Final verification after main integration: Node 24 `make api-validate` PASS (942 API + 101 discovery tests); `make security-validate` PASS (13 scanner tests, 2225 reachable blobs, 0 suspects, 15 API/deploy guards); `make apple-beta-preflight` PASS; saved unsigned Release archive PASS, secret scan 36 files / 0 suspects; Apple preflight regression suite 42 PASS; `make contract` and `git diff --check origin/main...HEAD` PASS. Final review: P0 0 / P1 0 / new P2 0, with the four accepted P2 follow-ups above retained. Latest main was advanced again to `c417f9a6e73d5086a76fd85f3d3721fcadda4dcd` during validation and integrated by another normal merge (documentation only). History blob counts increase with subsequent documentation commits.
