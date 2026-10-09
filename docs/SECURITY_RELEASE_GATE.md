@@ -72,7 +72,8 @@ platform or provider logs are not proved absent by a source-level guard.
 
 | Item | Why not a read-only source blocker / follow-up |
 | --- | --- |
-| npm audit: 4 high package nodes (wrangler → miniflare → sharp/undici) | Dev-only tooling, not Worker production dependencies. Full audit exits 1; omit-dev audit has 0 vulnerabilities. The 2026-10-09 audit reports `fixAvailable=false` for all four nodes; this describes this audit result, not a claim about every upstream release. Keep local dev unexposed to hostile SVG/WebSocket/remote workloads and reassess pinned tooling before use/upgrade |
+| npm audit: 4 high package nodes (wrangler → miniflare → sharp/undici) | Production runtime dependencies: 0 vulnerabilities (`npm audit --omit=dev`). Dev tooling: 4 high; full audit exits 1. Wrangler stays pinned to 4.135.0 in this PR to keep toolchain behavior changes separate from security gate finalization. Follow-up: upgrade Wrangler to >=4.149.0, align its workers-types peer dependency, then re-audit and run full validation. Independent review reported a fix at 4.149.0; the 2026-10-10 local audit of the current lockfile still reports no automated fix. A temporary upgrade probe could not resolve the current workers-types pin against 4.149.0's peer requirement, so remediation has not been independently validated here. This does not establish that no upstream fix exists; the target version alone is not proof of remediation. Keep dev tooling unexposed to hostile SVG/WebSocket/remote workloads pending verification |
+| Heuristic scanner limitations | Accepted P2: separate Swift Authorization header/value literals, separate binary literals, arbitrary random secrets without prefix/context can evade detection; `tokenCount`-style contexts can cause fail-safe false positives. The scan is not complete proof of secret absence; human classification and final artifact review remain required |
 | Report rate counters best-effort under concurrency | Intake unavailable in v1; require edge limits and review atomic budgets before activation |
 | App Attest source entitlement development | Dormant v1 capability, already documented. Inspect production environment on final signed TestFlight/archive before enabling writes |
 | Apple URL parser permits HTTP in Debug/Release | Committed production HTTPS, ATS and archive/config guards prevent current unsafe shipping configuration. Tighten parser in a focused future change; no current HTTP fallback observed |
@@ -106,8 +107,9 @@ make apple-validate
 make contract
 PATH=/opt/homebrew/opt/node@24/bin:$PATH make security-validate
 # History scan is included in make security-validate.
-python3 scripts/security-secret-scan.py --artifact <archive>/Products/Applications/MannerPath.app
-python3 scripts/check-apple-beta-artifact.py <archive> --unsigned-build
+make apple-beta-preflight
+# Signed artifact: correctness checks and secret scan are both mandatory.
+./scripts/apple-beta-preflight.sh <signed-archive>.xcarchive
 cd services/api && npm audit && npm audit --omit=dev
 git diff --check origin/main...HEAD
 ```
@@ -116,9 +118,17 @@ Scans are heuristic: known provider prefixes, JWT-looking values, PEM private ke
 not a guarantee against all possible secret encodings. Review generic keyword occurrences by
 meaning. New opaque credential formats require extending detection. The secret artifact scanner examines raw binary/resource bytes (including printable Mach-O strings) and recursively decoded XML/binary plists. Public URLs and metadata are allowed. `check-apple-beta-artifact.py` owns Apple release correctness, nested key/loopback guards, origins, transport, signing and embedding; its existing all-target/all-configuration build-setting guard reuses the secret detector for literal values.
 
+`apple-beta-preflight.sh` owns orchestration: after the Apple correctness checker succeeds it always
+runs `security-secret-scan.py --artifact` on the same Release app, including all embedded bundles.
+For an archive this is `Products/Applications/MannerPath.app`; signed `.app` inputs are scanned directly.
+Suspects, invalid artifact paths, missing scanner or scanner execution errors fail the entire preflight.
+Successful output must include `Release artifact scan: files=N suspects=0` with N > 0. The wrapper
+integration tests require scanner invocation and verify its path for unsigned archives, signed archives
+and signed apps; no scanner implementation is copied into the Apple checker.
+
 ## Validation record
 
-Branch findings after fixes: **P0 0 / P1 0 / accepted P2 4** (listed above).
+Branch findings after fixes: **P0 0 / P1 0 / accepted P2 5** (listed above, including scanner limitations).
 **RELEASE BLOCKED: YES** pending final signed/provider/privacy evidence and verification that the
 deployed release contains this hardening; the existing deployment is not changed by this PR.
 
@@ -145,3 +155,20 @@ Fresh dependency audit: production vulnerabilities **0**; dev tooling **4 high**
 Final verification after main integration: Node 24 `make api-validate` PASS (942 API + 101 discovery tests); `make security-validate` PASS (13 scanner tests, 2225 reachable blobs, 0 suspects, 15 API/deploy guards); `make apple-beta-preflight` PASS; saved unsigned Release archive PASS, secret scan 36 files / 0 suspects; Apple preflight regression suite 42 PASS; `make contract` and `git diff --check origin/main...HEAD` PASS. Final review: P0 0 / P1 0 / new P2 0, with the four accepted P2 follow-ups above retained. Latest main was advanced again to `c417f9a6e73d5086a76fd85f3d3721fcadda4dcd` during validation and integrated by another normal merge (documentation only). History blob counts increase with subsequent documentation commits.
 
 Final `make apple-validate`: PASS (iOS tests, watchOS unit tests/build, generated Debug/Release public origins). Simulator output was delayed; both test actions succeeded without intervention.
+
+## Artifact gate finalization (2026-10-10, PR #222)
+
+The manual artifact secret scan is now mandatory inside `make apple-beta-preflight`, after Apple
+correctness checks and on the same Release app. The signed-artifact wrapper path also enforces it.
+The wrapper regression suite passes 46 tests, including scanner success, suspects, execution error,
+missing scanner, invalid artifact and argument-path checks. The unsigned Release preflight passes with
+`Release artifact scan: files=36 suspects=0` emitted by the wrapper itself.
+
+Node 24 `make api-validate`: PASS (942 API + 101 discovery tests). `make security-validate`: PASS
+(13 scanner tests, nonzero reachable history blobs with 0 suspects, 15 API/deploy guards).
+`make apple-validate`: PASS (iOS tests, watchOS unit tests/build, generated Debug/Release origins);
+the initial sandbox cache-write failure was resolved by granting local Xcode cache/simulator access.
+`make contract` and diff checks: PASS. No dependency upgrade, scanner algorithm change, secret
+binding change, deployment or production D1 operation is included. The heuristic scanner limitation
+remains accepted P2; dev-tool remediation and the existing signed/device/provider/privacy evidence
+follow-ups remain open. PR #222 stays Draft.
