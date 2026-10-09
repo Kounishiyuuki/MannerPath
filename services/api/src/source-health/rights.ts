@@ -6,8 +6,9 @@
 import { sha256Hex } from "../db.ts";
 import { transportFailure, type HealthOptions, type HealthResult } from "./check.ts";
 
-// `start` must occur exactly once in the normalized text; `end` is the first occurrence after it and is
-// excluded, so legal text appended inside the section is still captured.
+// `start` must occur exactly once in the normalized text and `end` exactly once after it (excluded). A second
+// `end` is ambiguous, never resolved to the first: otherwise text appended after it (e.g. a revocation) would
+// silently fall outside the fingerprint.
 export interface RightsRange { start: string; end: string }
 export type RightsScope =
   | { kind: "htmlText"; ranges: RightsRange[]; requiredMarkers: string[] }
@@ -49,6 +50,7 @@ export function extractRightsScope(body: string, scope: RightsScope): ScopeResul
       if (normalized.indexOf(range.start, start + 1) >= 0) return { ok: false, outcome: "scopeAmbiguous" };
       const end = normalized.indexOf(range.end, start + range.start.length);
       if (end < 0) return { ok: false, outcome: "scopeMissing" };
+      if (normalized.indexOf(range.end, end + 1) >= 0) return { ok: false, outcome: "scopeAmbiguous" };
       parts.push(normalized.slice(start, end).trim());
     }
     text = parts.join("\n");
@@ -76,6 +78,7 @@ export async function checkRights(contract: RightsContract, options: HealthOptio
     reviewedFingerprint: contract.reviewedFingerprint, reviewedAt: contract.reviewedAt, reviewDueAt: contract.reviewDueAt };
   const maxBytes = options.maxBytes ?? 2_000_000, controller = new AbortController();
   let timer: ReturnType<typeof setTimeout>;
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   const deadline = new Promise<never>((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error("timeout")); }, options.timeoutMs ?? 20_000); });
   try {
     if (new URL(contract.url).protocol !== "https:") throw new Error("HTTPS resource required");
@@ -87,9 +90,19 @@ export async function checkRights(contract: RightsContract, options: HealthOptio
     }
     const mime = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
     if (!mime || !(MIME[contract.scope.kind] as readonly string[]).includes(mime)) { void response.body?.cancel().catch(() => {}); observation.reason = "unexpectedMime"; return observation; }
-    if (Number(response.headers.get("content-length")) > maxBytes) { void response.body?.cancel().catch(() => {}); observation.reason = "transport:sizeLimit"; return observation; }
-    const bytes = new Uint8Array(await Promise.race([response.arrayBuffer(), deadline]));
-    if (bytes.byteLength > maxBytes) { observation.reason = "transport:sizeLimit"; return observation; }
+    const declared = Number(response.headers.get("content-length"));
+    if (Number.isFinite(declared) && declared > maxBytes) { void response.body?.cancel().catch(() => {}); observation.reason = "transport:sizeLimit"; return observation; }
+    // Content-Length is only an early hint; the stream itself is bounded and cancelled the moment it overruns.
+    const chunks: Uint8Array[] = []; let size = 0;
+    reader = response.body?.getReader();
+    if (reader) for (;;) {
+      const chunk = await Promise.race([reader.read(), deadline]); if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > maxBytes) { chunks.length = 0; void reader.cancel().catch(() => {}); observation.reason = "transport:sizeLimit"; return observation; }
+      chunks.push(chunk.value);
+    }
+    const bytes = new Uint8Array(size); let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
     const scoped = extractRightsScope(new TextDecoder("utf-8").decode(bytes), contract.scope);
     if (!scoped.ok) { observation.outcome = scoped.outcome; observation.reason = scoped.outcome; return observation; }
     observation.fingerprint = await rightsFingerprint(scoped.text);
@@ -100,7 +113,7 @@ export async function checkRights(contract: RightsContract, options: HealthOptio
     const code = cause && typeof cause === "object" && "code" in cause && typeof cause.code === "string" && /^[A-Z][A-Z0-9_]{0,79}$/.test(cause.code) ? cause.code : null;
     observation.reason = `transport:${transportFailure(error instanceof Error ? error.message : "", code)}${code ? `(${code})` : ""}`;
     return observation;
-  } finally { clearTimeout(timer!); controller.abort(); }
+  } finally { clearTimeout(timer!); controller.abort(); if (reader) void reader.cancel().catch(() => {}); }
 }
 
 export function notChecked(contract: RightsContract): RightsObservation {

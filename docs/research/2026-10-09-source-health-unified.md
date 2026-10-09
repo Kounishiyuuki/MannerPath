@@ -68,14 +68,20 @@ declares an explicit scope contract, and only that range is hashed (SHA-256):
 | Kyoto | resource 21432 | `データリソースID` → `作成日時` (resource ID, copyright holder, registrant, license link). Counters are outside |
 | Musashino | item page | item 4(2) heading → its zip link, plus the section-wide `データのご利用に際して…` notice |
 | Minato | `/about` terms; `/pages/exhibit` annex | `本サイトの利用について` → footer; `別のルールを適用するコンテンツ` → footer |
-| Osaka | page 250227 (via the ECDHE transport) | `オープンデータの提供について` → `地図情報サイト「マップナビおおさか」掲載情報` |
+| Osaka | page 250227 (default fetch) | `オープンデータの提供について` → `地図情報サイト「マップナビおおさか」掲載情報 地図情報サイト「マップナビおおさか」掲載情報` (the page repeats this heading back to back; the doubled form is the unique end anchor) |
 
-Each range's `start` must occur exactly once. `end` is the first match after it and is excluded, so a clause
-appended inside the section is still captured. Every contract also lists `requiredMarkers` (e.g. the CC
-link or `CC-BY 4.0`). The outcomes:
+Each range's `start` must occur exactly once, and `end` exactly once after it (excluded), so a clause
+appended inside the section is still captured. A second `end` is never resolved to the first: text after
+it (e.g. an appended revocation) would otherwise fall outside the hash unnoticed. Every contract also lists
+`requiredMarkers` (e.g. the CC link or `CC-BY 4.0`). The outcomes (none produces a fingerprint):
 
 - `start` absent, `end` absent, or a JSON field missing → `scopeMissing`.
-- duplicate `start` → `scopeAmbiguous`.
+- duplicate `start` or duplicate `end` after it → `scopeAmbiguous` (reported as `rightsScopeMissing`).
+
+Rights bodies are read as a bounded stream (default 2 MB): a declared `Content-Length` above the limit is
+refused before reading, and the stream is cancelled the moment it exceeds the limit whatever the header says.
+The ECDHE+AEAD transport is used only for the Osaka data request to `www.mapnavi.city.osaka.lg.jp`; rights
+pages (including Osaka's on `www.city.osaka.lg.jp`) and all other sources use Node's default fetch.
 - marker absent → `markerMissing`.
 
 All three report `rightsScopeMissing` and blocking, and no fingerprint is produced. A different

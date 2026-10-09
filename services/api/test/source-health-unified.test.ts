@@ -6,7 +6,7 @@ import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth, type HealthResult } from "../src/source-health/check.ts";
 import { buildReport, evaluateResult, validateReviews, type SourceReview } from "../src/source-health/evaluate.ts";
 import { checkRights, extractRightsScope, rightsFingerprint, withRights, type RightsContract } from "../src/source-health/rights.ts";
-import { main, productionHealthTargets, sourceReviews } from "../scripts/source-health.ts";
+import { liveTransport, main, productionHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -115,6 +115,65 @@ test("Minato: CSRF/session meta and timestamps alone are unchanged; one meaningf
   const doubled = minatoPage("x").replace("<footer>", "<h2>本サイトの利用について</h2><footer>");
   assert.equal((await checkRights(contract, { fetch: html(doubled) })).outcome, "scopeAmbiguous");
   assert.equal((await checkRights(contract, { fetch: html(minatoPage("x").replace("About 港区", "港区")) })).outcome, "scopeMissing");
+});
+test("htmlText scope: start and end must each occur exactly once; missing/ambiguous never fingerprint and block", async () => {
+  const base = { url: "https://example.lg.jp/rights.html", reviewedAt: TODAY, reviewDueAt: "2099-01-01",
+    scope: { kind: "htmlText" as const, ranges: [{ start: "START", end: "END" }], requiredMarkers: ["approved"] } };
+  const reviewed = extractRightsScope("<p>START approved END</p>", base.scope);
+  assert.ok(reviewed.ok);
+  const contract: RightsContract = { ...base, reviewedFingerprint: await rightsFingerprint(reviewed.text) };
+  assert.equal((await checkRights(contract, { fetch: html("<p>START approved END</p>") })).outcome, "unchanged");
+  for (const [page, outcome] of [["START approved", "scopeMissing"], ["START approved END revoked END", "scopeAmbiguous"],
+    ["START approved END approved END", "scopeAmbiguous"], ["START START approved END", "scopeAmbiguous"]] as const) {
+    const observed = await checkRights(contract, { fetch: html(`<p>${page}</p>`) });
+    assert.equal(observed.outcome, outcome, page); assert.equal(observed.fingerprint, null, `${page}: no fingerprint`);
+    const verdict = evaluateResult(withRights(await checkSourceHealth(taito, { fetch: async () => csv() }), [observed]), plain({ rights: [contract] }), TODAY);
+    assert.equal(verdict.signals.rightsScopeMissing, true, page); assert.deepEqual(verdict.blocking, ["rightsScopeMissing"], page);
+  }
+});
+test("production htmlText contracts use start/end anchors that are distinct", () => {
+  for (const review of reviews) for (const contract of review.rights) if (contract.scope.kind === "htmlText")
+    for (const range of contract.scope.ranges) assert.ok(range.start && range.end && !range.start.includes(range.end), contract.url);
+});
+test("rights body is stream-bounded: Content-Length is a hint, the stream itself is cut and cancelled", async () => {
+  const max = 64, base: RightsContract = { url: "https://example.lg.jp/r.html", reviewedAt: TODAY, reviewDueAt: "2099-01-01", reviewedFingerprint: "x",
+    scope: { kind: "htmlText", ranges: [{ start: "S", end: "E" }], requiredMarkers: [] } };
+  const streamed = (total: number, headers: Record<string, string> = {}) => {
+    const state = { pulled: 0, cancelled: false };
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) { if (state.pulled >= total) return controller.close(); const n = Math.min(16, total - state.pulled); state.pulled += n; controller.enqueue(new Uint8Array(n).fill(0x61)); },
+      cancel() { state.cancelled = true; },
+    }, { highWaterMark: 0 });
+    return { state, fetch: async () => new Response(body, { headers: { "content-type": "text/html", ...headers } }) };
+  };
+  const declared = streamed(1_000, { "content-length": String(max + 1) });
+  assert.equal((await checkRights(base, { fetch: declared.fetch, maxBytes: max })).reason, "transport:sizeLimit");
+  assert.equal(declared.state.pulled, 0, "declared oversize is rejected before any body read"); assert.ok(declared.state.cancelled);
+  for (const headers of [{}, { "content-length": "10" }]) {
+    const overrun = streamed(10_000, headers);
+    const observed = await checkRights(base, { fetch: overrun.fetch, maxBytes: max });
+    assert.equal(observed.reason, "transport:sizeLimit"); assert.equal(observed.fingerprint, null);
+    assert.ok(overrun.state.pulled <= max + 16, `stopped mid-stream (${overrun.state.pulled})`); assert.ok(overrun.state.cancelled, "reader cancelled");
+  }
+  const exact = streamed(max);
+  assert.notEqual((await checkRights(base, { fetch: exact.fetch, maxBytes: max })).reason, "transport:sizeLimit");
+  const plusOne = streamed(max + 1);
+  assert.equal((await checkRights(base, { fetch: plusOne.fetch, maxBytes: max })).reason, "transport:sizeLimit"); assert.ok(plusOne.state.cancelled);
+  assert.doesNotMatch(readFileSync(new URL("../src/source-health/rights.ts", import.meta.url), "utf8"), /\.(arrayBuffer|text|json|blob)\(\)/);
+});
+test("ECDHE/AEAD transport is scoped to the Osaka mapnavi data host only", () => {
+  const osaka = "osaka-designated-smoking-areas";
+  assert.equal(liveTransport(osaka, "data", byId(osaka).url).name, "node-https-ecdhe-aead");
+  assert.equal(new URL(byId(osaka).url).hostname, "www.mapnavi.city.osaka.lg.jp");
+  for (const contract of reviewOf(osaka).rights) assert.equal(liveTransport(osaka, "rights", contract.url).name, "node-fetch", contract.url);
+  assert.equal(liveTransport(osaka, "rights", "https://www.mapnavi.city.osaka.lg.jp/x").name, "node-fetch");
+  assert.equal(liveTransport(osaka, "data", "https://www.city.osaka.lg.jp/x.csv").name, "node-fetch");
+  for (const target of targets.filter(t => t.adapter.registry.sourceId !== osaka)) {
+    const id = target.adapter.registry.sourceId;
+    assert.equal(liveTransport(id, "data", target.url).name, "node-fetch", id);
+    assert.equal(liveTransport(id, "data", byId(osaka).url).name, "node-fetch", id);
+    for (const contract of reviewOf(id).rights) assert.equal(liveTransport(id, "rights", contract.url).name, "node-fetch", contract.url);
+  }
 });
 test("Koto JSON license fields: field change is rightsChanged, missing field is scopeMissing", async () => {
   const body = (license: Record<string, unknown>) => JSON.stringify({ success: true, result: { metadata_modified: String(Math.random()), ...license } });

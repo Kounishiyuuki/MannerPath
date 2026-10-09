@@ -79,10 +79,15 @@ export function productionHealthTargets(): HealthTarget[] {
     return target;
   }).sort((a, b) => a.adapter.registry.sourceId.localeCompare(b.adapter.registry.sourceId));
 }
-// Osaka's server prefers 1024-bit DHE; see source-health-transport.ts. Others keep Node's default fetch.
-const transports: Record<string, { name: string; fetch: (url: string, init?: RequestInit) => Promise<Response> }> = {
-  "osaka-designated-smoking-areas": { name: "node-https-ecdhe-aead", fetch: ecdheAeadFetch },
-};
+// Only Osaka's mapnavi data host prefers 1024-bit DHE (see source-health-transport.ts). The narrower transport
+// is scoped to exactly that source, request kind and hostname; rights pages and every other source keep
+// Node's default fetch.
+type Transport = { name: string; fetch: (url: string, init?: RequestInit) => Promise<Response> };
+const DEFAULT_TRANSPORT: Transport = { name: "node-fetch", fetch: (url, init) => fetch(url, init) };
+export function liveTransport(sourceId: string, kind: "data" | "rights", url: string): Transport {
+  return sourceId === "osaka-designated-smoking-areas" && kind === "data" && new URL(url).hostname === "www.mapnavi.city.osaka.lg.jp"
+    ? { name: "node-https-ecdhe-aead", fetch: ecdheAeadFetch } : DEFAULT_TRANSPORT;
+}
 export function sourceReviews(): SourceReview[] {
   return JSON.parse(readFileSync(new URL("../../data-pipeline/source-health/review-metadata.json", import.meta.url), "utf8")).sources;
 }
@@ -114,11 +119,11 @@ export async function main(args: string[] = process.argv.slice(2), now = new Dat
   const results = [];
   for (const target of targets.filter(t => !ids.length || ids.includes(t.adapter.registry.sourceId))) {
     const sourceId = target.adapter.registry.sourceId;
-    const transport = live ? transports[sourceId] ?? { name: "node-fetch", fetch } : { name: "offline-fixture", fetch: offlineFetch(targets) };
+    const transport = live ? liveTransport(sourceId, "data", target.url) : { name: "offline-fixture", fetch: offlineFetch(targets) };
     const health = await checkSourceHealth(target, { fetch: transport.fetch });
     const contracts = reviews.find(review => review.sourceId === sourceId)!.rights;
     const rights = [];
-    for (const contract of contracts) rights.push(live ? await checkRights(contract, { fetch: transport.fetch }) : notChecked(contract));
+    for (const contract of contracts) rights.push(live ? await checkRights(contract, { fetch: liveTransport(sourceId, "rights", contract.url).fetch }) : notChecked(contract));
     results.push({ ...withRights(health, rights), transport: transport.name });
   }
   const report = buildReport(results, reviews, jstDate(now));
