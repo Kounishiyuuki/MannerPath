@@ -170,7 +170,7 @@ Node 24 `make api-validate`: PASS (942 API + 101 discovery tests). `make securit
 the initial sandbox cache-write failure was resolved by granting local Xcode cache/simulator access.
 `make contract` and diff checks: PASS. No dependency upgrade, scanner algorithm change, secret
 binding change, deployment or production D1 operation is included. The heuristic scanner limitation
-remains accepted P2; dev-tool remediation and the existing signed/device/provider/privacy evidence
+remains accepted P2; dev-tool remediation (resolved 2026-10-10; see the follow-up validation below) and the existing signed/device/provider/privacy evidence
 follow-ups remain open. PR #222 stays Draft.
 
 ## Dev tooling dependency follow-up (2026-10-10)
