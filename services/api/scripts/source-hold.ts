@@ -1,7 +1,7 @@
 // The maintainer's source-evidence hold (ADR-0018 §5, migration 0033). Always the LOCAL canonical DB; canonical data
 // reaches staging/production only through promotion (docs/OPERATIONS.md). Source health never runs this.
 //
-//   npm run source:health -- --live --source=<id> > report.json
+//   npm run --silent source:health -- --live --source=<id> > report.json   # --silent: stdout is the JSON only
 //   npm run source:hold -- hold --source=<id> --report=report.json --by=<maintainer>
 //   npm run source:hold -- clear --source=<id> --by=<maintainer> --basis=factsReReviewed|healthFalsePositive
 //
