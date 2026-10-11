@@ -56,6 +56,8 @@ nonisolated struct WatchSpot: Codable, Sendable, Equatable {
     // snapshot from an older iPhone build decodes; absent is never read as approximate or as exact-confirmed.
     var locationPrecision: String? = nil
     var locationAreaName: String? = nil
+    // ADR-0018: the area's scope ("facility" | "namedZone"). Optional so an older iPhone's snapshot decodes.
+    var locationAreaScope: String? = nil
 
     var isAreaApproximate: Bool { ApproximateLocation.isApproximate(locationPrecision) }
 

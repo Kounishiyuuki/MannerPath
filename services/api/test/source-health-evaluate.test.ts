@@ -92,11 +92,11 @@ test("all-source aggregation: advisory-only exits 0, any blocker exits 1, every 
   const moved = await check(async () => ++calls === 1 ? response("", 301, { location: "/moved.csv" }) : response());
   const results: HealthResult[] = targets.map(item => ({ ...moved, sourceId: item.adapter.registry.sourceId }));
   const advisoryOnly = buildReport(results, reviews, TODAY);
-  assert.equal(advisoryOnly.exitCode, 0); assert.equal(advisoryOnly.results.length, 6); assert.equal(advisoryOnly.summary.advisory.length, 6);
+  assert.equal(advisoryOnly.exitCode, 0); assert.equal(advisoryOnly.results.length, 7); assert.equal(advisoryOnly.summary.advisory.length, 7);
   results[0] = await checkSourceHealth(targets[0], { fetch: async () => response("changed,header\n1,2") });
   const blocked = buildReport(results, reviews, TODAY);
   assert.equal(blocked.exitCode, 1); assert.deepEqual(blocked.summary.blocking, [targets[0].adapter.registry.sourceId]);
-  assert.equal(blocked.results.length, 6, "a blocker does not stop later sources");
+  assert.equal(blocked.results.length, 7, "a blocker does not stop later sources");
   assert.match(renderSummary(blocked), /BLOCKING/);
 });
 test("review metadata must cover every source with valid dates", () => {

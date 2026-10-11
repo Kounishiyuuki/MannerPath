@@ -106,6 +106,50 @@ struct ApproximateLocationTests {
         #expect(byID["exact"]?.locationAreaName == nil)
     }
 
+    // ADR-0018: `locationArea.scope` refines the wording of an approximate pin only; it never makes a pin exact.
+    @Test func facilityScopeDecodesAndOnlyChangesApproximateWording() throws {
+        let spots = try mapped([
+            wire(1, verification: axes("areaApproximate", area: ["name": "小松空港 旅客ターミナル", "kind": "airport", "scope": "facility"])),
+            wire(2, verification: axes("areaApproximate", area: ["name": "西口広場", "kind": "station", "scope": "namedZone"])),
+            // A scope this build does not know is dropped: the generic approximate wording stays.
+            wire(3, verification: axes("areaApproximate", area: ["name": "公園", "kind": "park", "scope": "floor"]))
+        ])
+        #expect(spots[0].verification.locationArea == LocationArea(name: "小松空港 旅客ターミナル", kind: "airport", scope: "facility"))
+        #expect(spots[1].verification.locationArea?.scope == "namedZone")
+        #expect(spots[2].verification.locationArea?.scope == nil)
+        #expect(SpotPresentation.navigationTitle(spots[0]) == String(localized: "Navigate into this facility"))
+        #expect(SpotPresentation.navigationTitle(spots[1]) == String(localized: "Navigate to this area"))
+        #expect(SpotPresentation.navigationTitle(spots[2]) == String(localized: "Navigate to this area"))
+        #expect(ApproximateLocation.detailNote(scope: "facility") != ApproximateLocation.detailNote())
+        #expect(ApproximateLocation.detailNote(scope: "namedZone") == ApproximateLocation.detailNote())
+        // Scope never upgrades or downgrades exactness, and never applies to a non-approximate pin.
+        #expect(ApproximateLocation.navigationTitle(precision: "publisherPoint", scope: "facility") == String(localized: "Navigate to this place"))
+        #expect(ApproximateLocation.navigationTitle(precision: "reviewedDerived", scope: "facility") == String(localized: "Navigate to this area"))
+        #expect(ApproximateLocation.navigationTitle(precision: nil, scope: "facility") == String(localized: "Navigate to this area"))
+        #expect(ApproximateLocation.widgetNote(precision: "areaApproximate", scope: "facility") == String(localized: "Somewhere inside this facility"))
+        #expect(ApproximateLocation.widgetNote(precision: "publisherPoint", scope: "facility") == nil)
+        // An area cached before ADR-0018 has no scope and decodes unchanged.
+        let cached = try JSONDecoder().decode(LocationArea.self, from: Data(#"{"name":"上野恩賜公園","kind":"park"}"#.utf8))
+        #expect(cached == LocationArea(name: "上野恩賜公園", kind: "park") && cached.scope == nil)
+    }
+
+    @Test func watchSnapshotAndGlanceCarryFacilityScope() throws {
+        let facility = spot("facility", precision: .areaApproximate, area: LocationArea(name: "小松空港 旅客ターミナル", kind: "airport", scope: "facility"))
+        let exact = spot("exact", precision: .publisherPoint, area: nil, meters: 50)
+        let snapshot = WatchSnapshotBuilder.build(spots: [facility, exact], sources: [], near: origin, at: now)
+        let byID = Dictionary(uniqueKeysWithValues: snapshot.spots.map { ($0.id, $0) })
+        #expect(byID["facility"]?.locationAreaScope == "facility")
+        #expect(byID["exact"]?.locationAreaScope == nil)
+        let glance = NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: "facility",
+                                  name: "x", distanceMeters: 100, lastVerifiedAt: nil, locationPrecision: "areaApproximate",
+                                  locationAreaScope: "facility")
+        #expect(glance.isFacilityScope)
+        let older = try JSONDecoder().decode(NearbyGlance.self, from: JSONEncoder().encode(
+            NearbyGlance(version: 1, computedAt: now, locationObservedAt: now, locationIsLastKnown: false, spotID: nil, name: nil,
+                         distanceMeters: nil, lastVerifiedAt: nil, locationPrecision: "areaApproximate")))
+        #expect(!older.isFacilityScope)
+    }
+
     // MARK: - fixtures
 
     private func spot(_ id: String, precision: LocationPrecision?, area: LocationArea?, meters: Double = 100) -> Spot {

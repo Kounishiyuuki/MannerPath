@@ -78,6 +78,8 @@ nonisolated struct TileVerificationV1: Decodable, Sendable {
 nonisolated struct TileLocationAreaV1: Decodable, Sendable {
     let name: String
     let kind: String
+    // ADR-0018: "namedZone" | "facility", absent on an ADR-0017 v1 anchor.
+    let scope: String?
 }
 
 nonisolated struct TileOpeningHoursV1: Decodable, Sendable {

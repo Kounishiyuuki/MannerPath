@@ -1,15 +1,15 @@
 {
   "version": "community-seed-coverage.v1",
-  "measuredAt": "2026-10-01T00:00:00Z",
-  "corpusRevision": "pinned-reviewed-fixtures:sha256:3f3f0c2e7dd11d84e9fea1f3b8e5cf92114a8e034e42099432dad65ee1f7e845",
+  "measuredAt": "2026-10-12T00:00:00Z",
+  "corpusRevision": "pinned-reviewed-fixtures:sha256:dc9c33f919e0f7a0097ad8c711a80dce633469f6cb233f52a695c14ded0b51b1",
   "provenance": "pinnedReviewedFixtures",
   "radiusMeters": 1000,
   "national": {
-    "official": 513,
+    "official": 514,
     "communityVerified": 0,
     "visitedConfirmed": 0,
     "communityReported": 0,
-    "allVisible": 513
+    "allVisible": 514
   },
   "unassigned": 0,
   "prefectures": [
@@ -176,11 +176,11 @@
     {
       "code": "17",
       "counts": {
-        "official": 0,
+        "official": 1,
         "communityVerified": 0,
         "visitedConfirmed": 0,
         "communityReported": 0,
-        "allVisible": 0
+        "allVisible": 1
       }
     },
     {

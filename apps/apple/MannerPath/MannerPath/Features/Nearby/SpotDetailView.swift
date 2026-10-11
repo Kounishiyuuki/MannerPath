@@ -42,7 +42,7 @@ struct SpotDetailView: View {
                     .accessibilityIdentifier("detail-precision")
                 if spot.verification.isAreaApproximate {
                     // ADR-0017: the place is confirmed inside the area; the pin is only an approximate marker.
-                    Text(ApproximateLocation.detailNote())
+                    Text(ApproximateLocation.detailNote(scope: spot.verification.locationArea?.scope))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("approximate-location-note")

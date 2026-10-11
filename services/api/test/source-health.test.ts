@@ -7,8 +7,8 @@ const targets = productionHealthTargets();
 const target = targets.find(t => t.adapter.registry.sourceId === "taito-public-smoking-areas")!;
 const fixture = readFileSync(new URL("../../data-pipeline/fixtures/taito-public-smoking-areas/20260818_koshukitsuenjo.csv", import.meta.url));
 const response = (body: BodyInit = fixture, status = 200, headers = {}) => new Response(body, { status, headers: { "content-type": "text/csv", ...headers } });
-test("six production targets and reviewed Kyoto retrieval", () => {
-  assert.equal(targets.length, 6); for (const item of targets) { assert.equal(new URL(item.url).protocol, "https:"); assert.ok(item.baselineHeader.length); } assert.equal(targets.find(t => t.adapter.registry.sourceId.startsWith("kyoto"))!.request!.method, "POST");
+test("seven production targets and reviewed Kyoto retrieval", () => {
+  assert.equal(targets.length, 7); for (const item of targets) { assert.equal(new URL(item.url).protocol, "https:"); assert.ok(item.baselineHeader.length); } assert.equal(targets.find(t => t.adapter.registry.sourceId.startsWith("kyoto"))!.request!.method, "POST");
 });
 test("200 exact release is healthy with coordinate and parser probes", async () => {
   const result = await checkSourceHealth(target, { fetch: async () => response() });
@@ -56,15 +56,16 @@ test("redirect loop is bounded",async()=>{
   assert.equal(result.status,"unavailable"); assert.equal(calls,2);
 });
 test("untrusted archives reject without filesystem writes",()=>{ assert.throws(()=>archiveMember(new Uint8Array([1,2,3]),"doc.kml")); });
-test("all six reviewed fixture payloads pass independent parser/observation probes", async () => {
+test("all seven reviewed fixture payloads pass independent parser/observation probes", async () => {
   const filenames: Record<string,string> = {
     "taito-public-smoking-areas":"20260818_koshukitsuenjo.csv", "osaka-designated-smoking-areas":"opendata_1012.csv",
     "koto-station-smoking-areas":"131083_237_public_smoking_area_station.csv", "musashino-public-smoking-areas":"doc.kml",
     "minato-designated-smoking-areas":"minatokushisetsujoho_fukugo.csv", "kyoto-public-smoking-places":"20260903_shisetsu.csv",
+    "komatsu-airport-smoking-places":"komatsu-airport-page-facts.csv",
   };
   for (const item of targets) {
     const fixture = readFileSync(new URL(`../../data-pipeline/fixtures/${item.adapter.registry.sourceId}/${filenames[item.adapter.registry.sourceId]}`,import.meta.url));
-    const result = await checkSourceHealth({...item,prepare:undefined,baselineResourceSha256:undefined,mimeTypes:["text/csv"]},{fetch:async()=>response(fixture)});
+    const result = await checkSourceHealth({...item,prepare:undefined,pageFact:undefined,baselineResourceSha256:undefined,mimeTypes:["text/csv"]},{fetch:async()=>response(fixture)});
     assert.equal(result.status,"healthy",item.adapter.registry.sourceId); assert.ok(result.observedRowCount! > 0);
   }
 });

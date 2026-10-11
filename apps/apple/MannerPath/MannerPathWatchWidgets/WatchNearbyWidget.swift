@@ -47,7 +47,7 @@ struct WatchNearbyWidget: Widget {
                         if let spot = entry.snapshot?.spots.first {
                             if let name = spot.name { Text(name).font(.headline).lineLimit(1) }
                             else { Text("Saved place").font(.headline) }
-                            if let note = ApproximateLocation.widgetNote(precision: spot.locationPrecision) {
+                            if let note = ApproximateLocation.widgetNote(precision: spot.locationPrecision, scope: spot.locationAreaScope) {
                                 Text(note).font(.caption2).lineLimit(1)
                             }
                         }
@@ -61,7 +61,7 @@ struct WatchNearbyWidget: Widget {
                             else { Text("Saved place").font(.headline) }
                             // ADR-0012/0017: only the place's own point goes unlabelled; nothing else may read as exact.
                             // Three lines fit the rectangular slot, so the precision note takes the source line's place.
-                            if let note = ApproximateLocation.widgetNote(precision: spot.locationPrecision) {
+                            if let note = ApproximateLocation.widgetNote(precision: spot.locationPrecision, scope: spot.locationAreaScope) {
                                 Text(note).font(.caption2).lineLimit(1)
                             } else {
                                 Text("From iPhone").font(.caption2)

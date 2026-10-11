@@ -200,7 +200,8 @@ enum SpotPresentation {
     /// 「この場所へ案内」 only for an exact point; 「この付近へ案内」 for an area anchor and for anything not known to be exact
     /// (ADR-0017, same rule as the Watch).
     static func navigationTitle(_ spot: Spot) -> String {
-        ApproximateLocation.navigationTitle(precision: spot.verification.locationPrecision?.rawValue)
+        ApproximateLocation.navigationTitle(precision: spot.verification.locationPrecision?.rawValue,
+                                            scope: spot.verification.locationArea?.scope)
     }
 
     /// Same rule as `navigationTitle`: only the publisher's point or a user's on-site pin is the place's own position.

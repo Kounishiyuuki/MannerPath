@@ -31,10 +31,10 @@ const allSources = async (fetch: () => Promise<Response>) => {
 
 // ---- Availability: unknown failures block; only explicit expiring advisories downgrade.
 
-test("all six sources 503, connection refused or DNS failure exit 1", async () => {
+test("all seven sources 503, connection refused or DNS failure exit 1", async () => {
   for (const fetch of [async () => csv(503), failing("ECONNREFUSED"), failing("ENOTFOUND")]) {
     const report = buildReport(await allSources(fetch), reviews, TODAY);
-    assert.equal(report.exitCode, 1); assert.equal(report.summary.blocking.length, 6, "Osaka's timeout advisory covers no other failure");
+    assert.equal(report.exitCode, 1); assert.equal(report.summary.blocking.length, 7, "Osaka's timeout advisory covers no other failure");
   }
 });
 test("unknown ENOTFOUND / ECONNREFUSED are blocking", async () => {
@@ -239,9 +239,11 @@ test("offline monitor replays reviewed fixtures with no network and never writes
   const metadata = new URL("../../data-pipeline/source-health/review-metadata.json", import.meta.url);
   const before = readFileSync(metadata);
   const first = await runOffline(), second = await runOffline();
-  assert.equal(first.exitCode, 0); assert.equal(first.report.results.length, 6);
+  assert.equal(first.exitCode, 0); assert.equal(first.report.results.length, 7);
   for (const item of first.report.results) {
     assert.equal(item.status, "healthy", item.sourceId);
+    // ADR-0018: offline, a page-fact source's page is not fetched; that is said, not passed off as checked.
+    assert.equal(item.advisory.includes("pageFactNotChecked"), item.sourceId === "komatsu-airport-smoking-places", item.sourceId);
     assert.ok(item.rights.every((r: { outcome: string }) => r.outcome === "notChecked")); assert.ok(item.advisory.includes("rightsNotChecked"));
   }
   assert.deepEqual(second.report, first.report, "deterministic");
@@ -263,7 +265,7 @@ test("health and rights checks leave registry, canonical spots, promotion and ti
     tiles: v1TileRows(db),
   });
   const before = snapshot();
-  assert.equal(before.sources.length, 6); assert.equal(before.spots.length, 515); assert.equal(before.published.length, 513); assert.equal(before.tiles.length, 81);
+  assert.equal(before.sources.length, 7); assert.equal(before.spots.length, 516); assert.equal(before.published.length, 514); assert.equal(before.tiles.length, 82);
   await runOffline();
   await buildReport(await allSources(async () => csv(503)), reviews, TODAY);
   assert.deepEqual(snapshot(), before);

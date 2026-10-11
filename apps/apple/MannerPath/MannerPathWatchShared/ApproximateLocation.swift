@@ -5,6 +5,14 @@ import Foundation
 // VoiceOver, Watch, widget) says so in the same words. Shared by iPhone and Watch; pure strings in, strings out.
 nonisolated enum ApproximateLocation {
     static let precisionValue = "areaApproximate"
+    /// ADR-0018 `locationArea.scope`: the pin is the host facility's representative point, not a named zone inside it.
+    static let facilityScope = "facility"
+
+    /// The scope values this build knows; anything else (or none) keeps the generic approximate wording.
+    static func knownScope(_ raw: String?) -> String? { raw == facilityScope || raw == "namedZone" ? raw : nil }
+
+    /// Facility wording applies only to an approximate pin whose scope is exactly `facility`.
+    static func isFacility(precision: String?, scope: String?) -> Bool { isApproximate(precision) && scope == facilityScope }
 
     static func isApproximate(_ precision: String?) -> Bool { precision == precisionValue }
 
@@ -28,20 +36,28 @@ nonisolated enum ApproximateLocation {
         return String(localized: "Location is approximate, within this area")
     }
 
-    /// Detail: the place is confirmed inside the area; its exact position is not.
-    static func detailNote() -> String {
-        String(localized: "The smoking place is confirmed to be inside this facility or park. Its exact position is not confirmed, so the pin is approximate.")
+    /// Detail: the place is confirmed inside the area; its exact position is not. For a facility-scope pin (ADR-0018)
+    /// the pin marks the facility and its position inside the facility is unknown.
+    static func detailNote(scope: String? = nil) -> String {
+        if scope == facilityScope {
+            return String(localized: "The smoking place is confirmed to be inside this facility. Its position inside the facility is not confirmed; the pin marks the facility.")
+        }
+        return String(localized: "The smoking place is confirmed to be inside this facility or park. Its exact position is not confirmed, so the pin is approximate.")
     }
 
-    /// Navigation call to action from the wire precision: 「この場所へ案内」 only for an exact point, otherwise 「この付近へ案内」.
-    static func navigationTitle(precision: String?) -> String {
-        isExactPoint(precision) ? String(localized: "Navigate to this place") : String(localized: "Navigate to this area")
+    /// Navigation call to action from the wire precision: 「この場所へ案内」 only for an exact point, 「この施設内へ案内」 for a
+    /// facility-scope anchor (ADR-0018), otherwise 「この付近へ案内」.
+    static func navigationTitle(precision: String?, scope: String? = nil) -> String {
+        if isExactPoint(precision) { return String(localized: "Navigate to this place") }
+        if isFacility(precision: precision, scope: scope) { return String(localized: "Navigate into this facility") }
+        return String(localized: "Navigate to this area")
     }
 
     /// Short widget note, the same semantics as the iPhone widget's `GlancePrecision`: nothing for an exact point,
     /// otherwise a note that keeps the pin from reading as exact — unknown, missing and unrecognised values included.
-    static func widgetNote(precision: String?) -> String? {
+    static func widgetNote(precision: String?, scope: String? = nil) -> String? {
         if isExactPoint(precision) { return nil }
+        if isFacility(precision: precision, scope: scope) { return String(localized: "Somewhere inside this facility") }
         switch precision {
         case precisionValue: return String(localized: "Approximate location")
         case "reviewedDerived": return String(localized: "Estimated location")

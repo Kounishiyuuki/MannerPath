@@ -3,7 +3,11 @@
 ## Source priority
 
 1. Municipal / government open data and official public facility lists whose original reuse terms have been reviewed.
-2. Other official facility/operator information with compatible, reviewed usage terms.
+2. Other official facility/operator information with compatible, reviewed usage terms — or, under ADR-0018 (D-R), a
+   first-party official page used as **factReference** evidence: only normalized facts (name, existence, area wording,
+   access, URL, checked date, provenance, an independently sourced approximate anchor) are stored; no text, image,
+   floor map, screenshot or logo. Terms that prohibit using the information, acquiring data or building a database
+   fail closed. Downloadable datasets still need resource-level rights review. Not a legal clearance.
 3. OpenStreetMap **only if a dedicated ODbL architecture/legal ADR explicitly approves production publication**.
 4. Reviewed user-verification/community evidence under the publication workflow — visible at two labelled stages,
    `communityReported` and `communityVerified` (ADR-0012), once the community rights gate (Issue #124) is granted.
@@ -104,7 +108,7 @@ Confidence is never one opaque score. ADR-0012 publishes separate axes, each a n
 | Axis | Values | Computed |
 | --- | --- | --- |
 | Existence evidence | `official`, `operator`, `communityVerified`, `communityReported` | server (`verification.existence`) |
-| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `areaApproximate` (ADR-0017, with `locationArea`), `unknown` | server (`verification.locationPrecision`) |
+| Location precision | `publisherPoint`, `reviewedDerived`, `communityPinned`, `areaApproximate` (ADR-0017, with `locationArea`; ADR-0018 `scope`), `unknown` | server (`verification.locationPrecision`) |
 | Freshness | `fresh` ≤ 365 d, `aging` ≤ 730 d, `stale`, `unknown` (`freshness.v1`) | client, from `lastVerifiedAt` or `lastReviewedMonth` |
 | Access | `accessType` + `accessDetail` | server |
 | Spot type | `spotType` + `spotSubtype`, and `hostType` | server |

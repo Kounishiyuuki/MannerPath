@@ -188,7 +188,7 @@ const TABLES: readonly TableSpec[] = [
   },
   {
     table: "area_location_anchors",
-    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_header_json", "origin_mapping_version", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at"],
+    columns: ["anchor_id", "area_name", "area_kind", "latitude", "longitude", "origin_kind", "origin_source_id", "origin_release_id", "origin_release_content_sha256", "origin_record_id", "origin_record_values_json", "origin_header_json", "origin_mapping_version", "origin_reference", "reuse_basis", "policy_version", "reviewed_by", "reviewed_on", "evidence_sha256", "recorded_at", "area_scope", "anchor_basis", "anchor_reference"],
     sql: `SELECT * FROM area_location_anchors WHERE origin_source_id = (${RELEASE_SOURCE})
           AND anchor_id IN (SELECT anchor_id FROM spot_location_anchors WHERE spot_id IN (${PUBLISHED_SPOTS})) ORDER BY anchor_id`,
   },
@@ -559,7 +559,7 @@ export async function validateSnapshots(rows: Map<string, Row[]>): Promise<void>
       location_source_id: p === undefined ? null : recordSource.get(Number(p.record_id)) ?? null,
       lb_anchor_id: b?.anchor_id ?? null, lb_release_sha256: b?.record_release_content_sha256 ?? null,
       la_anchor_id: a?.anchor_id ?? null, la_source_id: a?.origin_source_id ?? null, la_latitude: a?.latitude ?? null,
-      la_longitude: a?.longitude ?? null, la_area_name: a?.area_name ?? null, la_area_kind: a?.area_kind ?? null,
+      la_longitude: a?.longitude ?? null, la_area_name: a?.area_name ?? null, la_area_kind: a?.area_kind ?? null, la_area_scope: a?.area_scope ?? null,
       la_release_sha256: a?.origin_release_content_sha256 ?? null,
       lu_anchor_id: u?.anchor_id ?? null, lu_precision: u?.target_precision ?? null,
       lau_precision: l?.precision ?? null, lau_anchor_id: l?.anchor_id ?? null, lau_source_id: l?.evidence_source_id ?? null,

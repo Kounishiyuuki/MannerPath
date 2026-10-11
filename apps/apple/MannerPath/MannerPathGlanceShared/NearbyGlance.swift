@@ -19,6 +19,11 @@ nonisolated struct NearbyGlance: Codable, Equatable, Sendable {
     // ADR-0012 location precision raw value of the nearest place. Optional so a version 1 glance written before it
     // existed still decodes; no version bump because older readers ignore the extra key.
     var locationPrecision: String? = nil
+    // ADR-0018 `locationArea.scope` of the nearest place ("facility" | "namedZone"). Optional, same compatibility rule.
+    var locationAreaScope: String? = nil
+
+    /// The pin marks the whole host facility (ADR-0018), so the note says the place is somewhere inside it.
+    var isFacilityScope: Bool { precision == .approximate && locationAreaScope == "facility" }
 
     /// How far the widget may trust the pin. Only the publisher's or a user's own point is exact; never inferred from
     /// the evidence tier. Without the raw value (an older glance) only the old approximate flag is honoured and

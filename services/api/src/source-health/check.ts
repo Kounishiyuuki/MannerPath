@@ -1,7 +1,7 @@
 // Advisory only: no database, retained bodies, registry writes, or publication.
 import { sha256Hex } from "../db.ts";
 import { observeSourceRecord, type SourceAdapter } from "../pipeline/source-adapter.ts";
-import type { RightsObservation } from "./rights.ts";
+import { extractRightsScope, rightsFingerprint, type RightsObservation, type RightsScope } from "./rights.ts";
 export type HealthStatus = "healthy" | "moved" | "unavailable" | "accessBlocked" | "schemaChanged" | "contentChanged" | "rightsReviewRequired" | "unknown";
 // Transport failure classes are symbolic; they never carry publisher bodies or arbitrary error text.
 export type TransportFailure = "tls" | "timeout" | "network" | "sizeLimit" | "redirect" | "unknown";
@@ -20,11 +20,19 @@ export interface HealthResult {
   header?: string[]; coordinateColumns?: string[]; schemaCompatible: boolean | null;
   parserCompatible: boolean | null; redirects: { url: string; status: number; location: string }[]; notes: string[];
   signals: HealthSignals; rights?: RightsObservation[];
+  /** ADR-0018: an offline replay cannot see a page-fact source's page; only its reviewed fact sheet was probed. */
+  pageFactNotChecked?: true;
 }
 export interface HealthTarget {
   adapter: SourceAdapter; url: string; baselineSha256: string; baselineResourceSha256?: string; baselineHeader: string[];
   mimeTypes: readonly string[]; request?: RequestInit;
   prepare?: (bytes: Uint8Array) => Uint8Array;
+  /**
+   * ADR-0018 §5 (D-C): a page-fact source. The fetched page is not a release file and is never parsed into one; only the
+   * scoped fact text is fingerprinted against the reviewed fingerprint (whole-page hashes are volatile). A change, a
+   * missing scope or a missing marker means the normalized facts need human re-review; it never edits data.
+   */
+  pageFact?: { scope: RightsScope; reviewedFingerprint: string };
 }
 export interface HealthOptions { fetch: (url: string, init?: RequestInit) => Promise<Response>; timeoutMs?: number; maxBytes?: number; maxRedirects?: number }
 export async function checkSourceHealth(target: HealthTarget, options: HealthOptions): Promise<HealthResult> {
@@ -41,7 +49,9 @@ export async function checkSourceHealth(target: HealthTarget, options: HealthOpt
   const bounded = <T>(promise: Promise<T>) => Promise.race([promise, deadline]);
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   try {
-    if (target.adapter.registry.publicationStatus !== "approved" || !target.adapter.registry.licenseUrl || !target.adapter.registry.licenseName || !target.adapter.registry.attributionText) {
+    const registry = target.adapter.registry;
+    const licensed = registry.rightsBasis?.kind === "factReference" || (!!registry.licenseUrl && !!registry.licenseName);
+    if (registry.publicationStatus !== "approved" || !licensed || !registry.attributionText) {
       result.status = "rightsReviewRequired"; signals.rightsReviewRequired = true; result.notes.push("Reviewed source rights metadata missing; no request made"); return result;
     }
     if (new URL(target.url).protocol !== "https:") throw new Error("HTTPS resource required");
@@ -93,6 +103,18 @@ export async function checkSourceHealth(target: HealthTarget, options: HealthOpt
     const bytes = new Uint8Array(size); let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
     result.bytes = size; result.sha256 = await sha256Hex(bytes);
+    if (target.pageFact) {
+      const scoped = extractRightsScope(new TextDecoder().decode(bytes), target.pageFact.scope);
+      const changed = !scoped.ok || await rightsFingerprint(scoped.text) !== target.pageFact.reviewedFingerprint;
+      // The scope extractor is this source's parser: a located, unchanged scope is compatible; a changed one is the
+      // ordinary contentChanged advisory (human re-review); a missing scope is schemaChanged (blocking).
+      Object.assign(signals, { moved: result.redirects.length > 0, contentChanged: changed, schemaCompatible: scoped.ok, parserCompatible: scoped.ok });
+      result.schemaCompatible = scoped.ok; result.parserCompatible = scoped.ok;
+      result.status = !scoped.ok ? "schemaChanged" : result.redirects.length ? "moved" : changed ? "contentChanged" : "healthy";
+      if (!scoped.ok) result.notes.push(`Page fact scope ${scoped.outcome}; the listed facts may be gone: re-review before relying on them`);
+      else if (changed) result.notes.push("Page fact text differs from the reviewed fingerprint; re-review the normalized facts");
+      return result;
+    }
     try {
       const payload = target.prepare ? target.prepare(bytes) : bytes;
       if (payload.byteLength > maxBytes) throw new Error("expanded payload size limit exceeded");

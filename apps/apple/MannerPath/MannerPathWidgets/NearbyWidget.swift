@@ -56,11 +56,11 @@ struct NearbyWidgetView: View {
                             Text(distanceText(distance))
                         } else if compact {
                             // One line on the Lock Screen, so the note is the short form and must never be cut off.
-                            Text(verbatim: "\(String(localized: "About \(distanceText(distance))")) · \(shortPrecisionNote(glance.precision))")
+                            Text(verbatim: "\(String(localized: "About \(distanceText(distance))")) · \(shortPrecisionNote(glance))")
                                 .lineLimit(1).minimumScaleFactor(0.7)
                         } else {
                             Text("About \(distanceText(distance))")
-                            Text(precisionNote(glance.precision)).font(.caption2).lineLimit(2)
+                            Text(precisionNote(glance)).font(.caption2).lineLimit(2)
                         }
                     }
                     Text(glance.existenceLabel).font(.caption2).lineLimit(1)
@@ -99,16 +99,18 @@ struct NearbyWidgetView: View {
             String(localized: "\((meters / 1_000).formatted(.number.precision(.fractionLength(1)))) km away")
     }
 
-    private func precisionNote(_ precision: GlancePrecision) -> String {
-        switch precision {
+    private func precisionNote(_ glance: NearbyGlance) -> String {
+        if glance.isFacilityScope { return String(localized: "Somewhere inside this facility") }
+        return switch glance.precision {
         case .approximate: String(localized: "Approximate location")
         case .derived: String(localized: "Estimated from the address")
         case .exact, .unknown: String(localized: "Location precision unknown")
         }
     }
 
-    private func shortPrecisionNote(_ precision: GlancePrecision) -> String {
-        switch precision {
+    private func shortPrecisionNote(_ glance: NearbyGlance) -> String {
+        if glance.isFacilityScope { return String(localized: "Inside facility") }
+        return switch glance.precision {
         case .approximate: String(localized: "Approx. location")
         case .derived: String(localized: "Estimated")
         case .exact, .unknown: String(localized: "Precision unknown")

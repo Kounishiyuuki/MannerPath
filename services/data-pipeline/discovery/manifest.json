@@ -6729,6 +6729,42 @@
       ]
     },
     {
+      "id": "operator-komatsu-airport",
+      "name": "小松空港",
+      "prefecture": "石川県",
+      "publisher": "小松空港協議会",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.komatsuairport.jp/",
+        "https://www.komatsuairport.jp/faq/q85.html"
+      ],
+      "homepageUrl": "https://www.komatsuairport.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/komatsu-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "komatsu-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.komatsuairport.jp/faq/q85.html"
+          ],
+          "sha256": "d6ea235279d6a83e3b605c67f98b4d7b593c8ca80703d367ddb8444604a168a3",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-11T00:00:00Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "komatsu-airport-smoking-places"
+      ]
+    },
+    {
       "id": "operator-tokyo-big-sight",
       "name": "東京ビッグサイト",
       "prefecture": "東京都",

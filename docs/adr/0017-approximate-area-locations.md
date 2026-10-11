@@ -2,6 +2,8 @@
 
 Status: **Accepted — maintainer decision 2026-10-02.** Implemented: see "Implementation" below (migration 0030).
 
+Amended by ADR-0018 (Accepted 2026-10-11): anchor policy v2 (cross-publication reviewed anchors), `locationArea.scope`.
+
 Amends ADR-0012 (location precision vocabulary). Relates to ADR-0006 (publication gate), ADR-0009 (relocation),
 ADR-0010 (OSM) and ADR-0011 (derived coordinates, still Proposed).
 

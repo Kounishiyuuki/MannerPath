@@ -38,6 +38,14 @@ export type AreaKind = "park" | "station" | "facility" | "airport" | "commercial
 export type AnchorOriginKind = "publisherAreaPoint" | "publisherFacilityPoint";
 /** Policy v1: the anchor is stated by the same reviewed publication (release) as the existence evidence. */
 export type AnchorReuseBasis = "sameReviewedPublication";
+/** ADR-0018: what the anchor point represents. Absent on a policy v1 anchor. */
+export type AreaScope = "namedZone" | "facility";
+/**
+ * ADR-0018 §2: where the point in a reviewed page-fact sheet came from. It is still read out of that sheet's record
+ * (same publication), but the sheet names its upstream: a reviewed reference dataset point or an official-address
+ * geocode. Never a map vendor or OSM, and never the smoking place's own point.
+ */
+export type AnchorBasis = "referenceDatasetPoint" | "officialAddressGeocode";
 
 export interface ReviewedAreaAnchor {
   anchorId: string;
@@ -56,6 +64,9 @@ export interface ReviewedAreaAnchor {
   policyVersion: typeof AREA_ANCHOR_POLICY_VERSION;
   reviewedBy: string;
   reviewedOn: string;
+  /** ADR-0018. Required together with `anchorBasis`; a v1 anchor has neither. */
+  areaScope?: AreaScope;
+  anchorBasis?: { basis: AnchorBasis; reference: string };
 }
 
 const FORBIDDEN_ORIGIN = /google|goo\.gl|maps\.apple|openstreetmap|overpass|nominatim|screenshot/i;
@@ -66,7 +77,10 @@ export function validateAreaAnchor(a: ReviewedAreaAnchor): string[] {
   if (!/^aa_[a-z0-9]+$/.test(a.anchorId) || a.anchorId.length > 64) problems.push("anchorIdInvalid");
   if (a.areaName.trim() === "" || a.areaName.length > 80) problems.push("areaNameInvalid");
   if (a.originKind !== "publisherAreaPoint" && a.originKind !== "publisherFacilityPoint") problems.push("originKindNotReviewed");
-  if (FORBIDDEN_ORIGIN.test(a.originReference)) problems.push("forbiddenOrigin");
+  if (FORBIDDEN_ORIGIN.test(a.originReference) || FORBIDDEN_ORIGIN.test(a.anchorBasis?.reference ?? "")) problems.push("forbiddenOrigin");
+  if (a.anchorBasis !== undefined && a.areaScope === undefined) problems.push("scopeMissing");
+  if ((a.areaScope === "facility" && a.originKind !== "publisherFacilityPoint")
+    || (a.areaScope === "namedZone" && a.originKind !== "publisherAreaPoint")) problems.push("scopeDoesNotMatchOrigin");
   if (a.reuseBasis !== "sameReviewedPublication") problems.push("reuseBasisNotReviewed");
   if (a.policyVersion !== AREA_ANCHOR_POLICY_VERSION) problems.push("policyVersionNotReviewed");
   if (a.reviewedBy.trim() === "" || !/^\d{4}-\d{2}-\d{2}$/.test(a.reviewedOn)) problems.push("reviewMissing");
@@ -92,12 +106,15 @@ export async function recordAreaAnchor(db: Db, adapter: SourceAdapter, a: Review
     .first<{ record_id: number; release_id: number; raw_values_json: string; header_json: string }>();
   if (!record) throw new Error(`area anchor ${a.anchorId}: row ${a.originUpstreamRowRef} of release ${a.originReleaseContentSha256} is not in this database`);
   const stated = adapter.areaPoint(JSON.parse(record.raw_values_json));
-  if (!stated || stated.areaName !== a.areaName || stated.latitude !== a.latitude || stated.longitude !== a.longitude) {
+  if (!stated || stated.areaName !== a.areaName || stated.latitude !== a.latitude || stated.longitude !== a.longitude
+    || stated.scope !== a.areaScope || stated.basis?.basis !== a.anchorBasis?.basis || stated.basis?.reference !== a.anchorBasis?.reference) {
     throw new Error(`area anchor ${a.anchorId}: the publication's row does not state this area point`);
   }
+  // v1 anchors keep their exact digest input; ADR-0018 fields are appended only when present.
+  const v2 = a.areaScope === undefined ? [] : [a.areaScope, a.anchorBasis?.basis ?? null, a.anchorBasis?.reference ?? null];
   const digest = await sha256Hex(JSON.stringify([
     a.anchorId, a.areaName, a.areaKind, a.latitude, a.longitude, a.originKind, a.originSourceId, a.originReleaseContentSha256,
-    record.raw_values_json, adapter.mappingVersion, a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn,
+    record.raw_values_json, adapter.mappingVersion, a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn, ...v2,
   ]));
   const existing = await db.prepare("SELECT evidence_sha256 FROM area_location_anchors WHERE anchor_id = ?")
     .bind(a.anchorId).first<{ evidence_sha256: string }>();
@@ -111,11 +128,23 @@ export async function recordAreaAnchor(db: Db, adapter: SourceAdapter, a: Review
   await db.prepare(
     `INSERT INTO area_location_anchors (anchor_id, area_name, area_kind, latitude, longitude, origin_kind, origin_source_id,
        origin_release_id, origin_release_content_sha256, origin_record_id, origin_record_values_json, origin_header_json,
-       origin_mapping_version, origin_reference, reuse_basis, policy_version, reviewed_by, reviewed_on, evidence_sha256, recorded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       origin_mapping_version, origin_reference, reuse_basis, policy_version, reviewed_by, reviewed_on, evidence_sha256, recorded_at,
+       area_scope, anchor_basis, anchor_reference)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).bind(a.anchorId, a.areaName, a.areaKind, a.latitude, a.longitude, a.originKind, a.originSourceId, record.release_id,
     a.originReleaseContentSha256, record.record_id, record.raw_values_json, record.header_json, adapter.mappingVersion,
-    a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn, digest, now).run();
+    a.originReference, a.reuseBasis, a.policyVersion, a.reviewedBy, a.reviewedOn, digest, now,
+    a.areaScope ?? null, a.anchorBasis?.basis ?? null, a.anchorBasis?.reference ?? null).run();
+}
+
+/**
+ * ADR-0018: records every reviewed anchor the adapter declares for this release, after ingest and before resolve. A
+ * no-op for an adapter without anchors; each anchor is still checked against the publication by `recordAreaAnchor`.
+ */
+export async function recordReviewedAnchors(db: Db, adapter: SourceAdapter, releaseContentSha256: string, now: string): Promise<number> {
+  const anchors = adapter.reviewedAnchors?.(releaseContentSha256) ?? [];
+  for (const anchor of anchors) await recordAreaAnchor(db, adapter, anchor, now);
+  return anchors.length;
 }
 
 /**

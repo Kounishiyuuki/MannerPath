@@ -14,6 +14,7 @@ import { KOTO_DATA_URL } from "../src/pipeline/koto-adapter.ts";
 import { MUSASHINO_DATA_URL } from "../src/pipeline/musashino-adapter.ts";
 import { MINATO_DATA_URL } from "../src/pipeline/minato-adapter.ts";
 import { KYOTO_DATA_URL } from "../src/pipeline/kyoto-adapter.ts";
+import { KOMATSU_AIRPORT_PAGE_URL } from "../src/pipeline/komatsu-airport-adapter.ts";
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -22,6 +23,14 @@ const resources: Record<string, { filename: string; url: string }> = {
   "musashino-public-smoking-areas": { filename: "doc.kml", url: MUSASHINO_DATA_URL },
   "minato-designated-smoking-areas": { filename: "minatokushisetsujoho_fukugo.csv", url: MINATO_DATA_URL },
   "kyoto-public-smoking-places": { filename: "20260903_shisetsu.csv", url: KYOTO_DATA_URL },
+  "komatsu-airport-smoking-places": { filename: "komatsu-airport-page-facts.csv", url: KOMATSU_AIRPORT_PAGE_URL },
+};
+// ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
+const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
+  "komatsu-airport-smoking-places": {
+    scope: { kind: "htmlText", ranges: [{ start: "[img:] 喫煙場所はどこですか。", end: "関連リンク" }], requiredMarkers: ["喫煙場所", "国際線２F出発ロビー", "バス乗り場付近"] },
+    reviewedFingerprint: "e5fc9afb22df6e75a9d3b721c20b34d268443d073bc3d7df4f3223bb5b1f91c6",
+  },
 };
 // Read ZIP central directory rather than trusting local headers/data descriptors. No files are written.
 export function archiveMember(bytes: Uint8Array, suffix: string): Uint8Array {
@@ -72,6 +81,8 @@ export function productionHealthTargets(): HealthTarget[] {
       target.mimeTypes = ["application/zip", "application/x-zip-compressed", "application/octet-stream"];
       target.prepare = bytes => archiveMember(archiveMember(bytes, ".kmz"), "doc.kml");
     }
+    const pageFact = PAGE_FACTS[adapter.registry.sourceId];
+    if (pageFact) { target.pageFact = pageFact; target.mimeTypes = ["text/html"]; }
     if (adapter.registry.sourceId === "kyoto-public-smoking-places") {
       target.mimeTypes = [...target.mimeTypes, "application/force-download"];
       target.request = { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -104,6 +115,15 @@ function offlineFetch(targets: HealthTarget[]): (url: string) => Promise<Respons
     return new Response(bytes, { status: 200, headers: { "content-type": target.mimeTypes[0] } });
   };
 }
+// Offline, a page-fact source's page is not available (its HTML is never committed): probe only the reviewed fact sheet
+// through the adapter and say so; the page itself is checked only live.
+async function offlinePageFact(target: HealthTarget) {
+  const probe: HealthTarget = { ...target, pageFact: undefined, mimeTypes: ["text/csv"] };
+  const health = await checkSourceHealth(probe, { fetch: offlineFetch([probe]) });
+  health.pageFactNotChecked = true;
+  health.notes.push("Offline: the official page was not fetched; only the reviewed fact sheet was probed");
+  return health;
+}
 const STDIO = { out: (text: string) => void process.stdout.write(text), err: (text: string) => void process.stderr.write(text) };
 export async function main(args: string[] = process.argv.slice(2), now = new Date(), io = STDIO) {
   const mode = args.filter(arg => arg === "--live" || arg === "--offline");
@@ -121,7 +141,7 @@ export async function main(args: string[] = process.argv.slice(2), now = new Dat
   for (const target of targets.filter(t => !ids.length || ids.includes(t.adapter.registry.sourceId))) {
     const sourceId = target.adapter.registry.sourceId;
     const transport = live ? liveTransport(sourceId, "data", target.url) : { name: "offline-fixture", fetch: offlineFetch(targets) };
-    const health = await checkSourceHealth(target, { fetch: transport.fetch });
+    const health = !live && target.pageFact ? await offlinePageFact(target) : await checkSourceHealth(target, { fetch: transport.fetch });
     const contracts = reviews.find(review => review.sourceId === sourceId)!.rights;
     const rights = [];
     for (const contract of contracts) rights.push(live ? await checkRights(contract, { fetch: liveTransport(sourceId, "rights", contract.url).fetch }) : notChecked(contract));

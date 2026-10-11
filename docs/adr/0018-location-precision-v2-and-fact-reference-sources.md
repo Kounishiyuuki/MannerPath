@@ -1,11 +1,11 @@
 # ADR-0018 — Location precision v2: facility scope, cross-publication anchors and fact-reference sources
 
-Status: **Proposed** (2026-10-11). Not implemented. Three maintainer decisions (D-A, D-R, D-C below) are required
-before any code, schema, source or publication change. Until then ADR-0006, ADR-0011, ADR-0017 and
-`docs/DATA_POLICY.md` apply unchanged.
+Status: **Accepted — maintainer decisions D-A, D-R and D-C approved 2026-10-11.** Implemented (migration 0032) —
+see "Implementation" below. Not deployed: no production D1, Cloudflare or publication change was made.
 
-Amends (if accepted): ADR-0017 (anchor policy v1 → v2, area scope), DATA_POLICY §Source priority 2 (operator usage
-terms). Does not change ADR-0011's status.
+Amends: ADR-0017 (anchor policy v1 → v2, area scope), DATA_POLICY §Source priority 2 (operator usage terms).
+Does not change ADR-0011's status: its publication lane stays Proposed; D-A allows an official-address geocode only as
+an **approximate anchor**, never as `reviewedDerived` or exact.
 
 This ADR is an engineering decision, not legal advice.
 
@@ -55,16 +55,18 @@ Existence and anchor stay separate. Allowed anchor sources, in order:
 3. **A reviewed government reference dataset point for the host** — e.g. 国土数値情報 airport reference points,
    station data. Each dataset's licence is reviewed and registered as an *anchor source* in `docs/SOURCES.md`;
    its attribution travels with the anchor. An anchor source can never create existence.
-4. ADR-0011 geocode of the official facility address — **only if** D-A additionally approves "approximate anchor
-   only" use of a reviewed derived point; otherwise excluded. Never `publisherPoint`, never `reviewedDerived` on the
-   spot (the spot stays `areaApproximate`).
+4. The facility's own official address, and 5. a geocode of that address (D-A approved both) — as an
+   **approximate anchor only**. Never `publisherPoint`, never `reviewedDerived` on the spot (it stays `areaApproximate`);
+   the geocoder is an anchor-making tool, never existence evidence. No geocoder is wired yet: the schema accepts
+   `anchor_basis = officialAddressGeocode`, and the first such source must pin its geocoder/version in its provenance.
 
 Still forbidden: Google/Apple/MapKit POI coordinates, OSM (ADR-0010), positions read off floor maps or screenshots,
 manual pins, a facility point used as `namedZone`, and a zone point used as exact.
 
 **Same-anchor rule.** Several smoking places the publisher distinguishes but that resolve to **one** anchor are
-published as **one** spot whose detail lists the normalized zones and their access conditions; separate spots need
-separate anchors. No stacked pins at a facility centre.
+published as **one** spot; separate spots need separate anchors. No stacked pins at a facility centre. The zones are
+kept in the reviewed fact record (evidence); the published name summarises them (e.g. 「ターミナル内外4か所・一部は保安
+検査後」). A per-zone list on the wire is a later, separate change.
 
 ### 3. Rights — `rightsStatus` per source
 
@@ -101,25 +103,43 @@ source-health window; an undated page is "listed as of `checkedAt`", shown with 
 indoor-ban or contradicting statements by the same publisher withdraw the claim (DATA_POLICY §Contradicting
 official publications). `openNow` stays unknown when smoking-place hours are unknown.
 
-## Maintainer decisions required
+## Maintainer decisions (approved 2026-10-11)
 
-- **D-A (anchor):** approve anchor policy v2 items 2–3, and say whether item 4 (address geocode as approximate-only
-  anchor) is in or out.
-- **D-R (rights):** approve or reject the `factReference` publication class. Rejecting keeps today's rule; the
-  Ishikawa delta then stays 0 without licences.
-- **D-C (current operation):** approve "listed as of checkedAt + live re-observation" as current-operation evidence
-  for pages without dates.
+- **D-A (anchor): APPROVED** — sources 1–5 of §2, with the conditions there (never exact; `facility` vs `namedZone`
+  scope by what the point represents; provenance stored; Google/MapKit/OSM never existence; geocoder never evidence).
+- **D-R (rights): APPROVED** — first-party official pages (municipal, railway, airport, commercial and other facility
+  operators) as `factReference`; normalized facts only; no long verbatim text, floor maps, screenshots, logos or
+  expressive descriptions; explicit prohibition of information use, data acquisition or database incorporation fails
+  closed; downloadable datasets keep resource-level rights review. An internal policy, not a legal clearance.
+- **D-C (current operation): APPROVED** — an undated first-party page counts when, at `checkedAt`, the publisher's
+  current page lists the place with no closure/abolition/relocation/ban contradiction. Not treated as site-verified;
+  `checkedAt`/`lastVerifiedAt` kept; contradictions fail closed; a page change or loss triggers re-review.
 
-## Implementation plan (after decisions; one PR each)
+## Implementation (2026-10-11)
 
-1. Docs: accept this ADR; amend ADR-0017, DATA_POLICY, SPECIFICATION, SOURCES (anchor sources, rightsStatus).
-2. Schema: migration for `rightsStatus`, anchor-source registry and `reviewedPageFact` observations; extend the
-   append-only guards and `location-state.ts`; promotion v2–v4 carry the new rows. Tests per ADR-0017's round-trip list.
-3. Anchor-source adapter for the first reviewed government dataset (airports first); quality check
-   `facility-anchor-never-exact`.
-4. Wire: optional `locationArea.scope` (DTO zod, contract fixture, schema version check); Apple shared
-   `ApproximateLocation` wording for `facility` on iPhone, Watch, widgets, VoiceOver; tests.
-5. Ishikawa onboarding of whatever passes (see re-evaluation), with promotion reproduction locally.
+Reuses ADR-0017's authority model unchanged; no new precision value, table or publication path.
+
+- **reviewedPageFact = a reviewed fact sheet release.** A factReference source's release is MannerPath's normalized
+  CSV for one page (fixture + `PROVENANCE.md`; the page HTML is never committed). Ingest, observations, provenance,
+  resolve, publication and promotion are the ordinary ones. `observedOn` is the page's `checkedAt` (D-C), so
+  `lastVerifiedAt` shows the check date; the PROVENANCE file says it is not a site visit.
+- **Anchors (migration 0032).** `area_location_anchors` gains nullable `area_scope`, `anchor_basis`
+  (`referenceDatasetPoint` | `officialAddressGeocode`) and `anchor_reference`. Triggers require them together, match
+  scope to `origin_kind` (facility ↔ `publisherFacilityPoint`, zone ↔ `publisherAreaPoint`), read each value out of the
+  cited record's own cells (columns `area_scope`, `anchor_basis`, `anchor_reference`), and refuse map-vendor/OSM/
+  screenshot references. The point itself is still read through the reviewed area-point mapping (0030). Existing
+  anchors keep NULL and the v1 digest input. `policy_version`/`reuse_basis` keep their 0030 values (`v1`,
+  `sameReviewedPublication`: the fact sheet is the publication); `anchor_basis` names the true upstream.
+- **Rights.** `ReviewedSource.rightsBasis` (`factReference`, page/terms URLs, the terms reading, reviewer/date,
+  `prohibitsInformationUse: false` as a literal type). `assertRightsBasis` fails at module load for a licence on a
+  factReference source, missing attribution, a non first-party kind or an incomplete record. The quality check,
+  onboarding inspection and source health accept factReference instead of a licence; nothing else changes.
+- **Current operation (D-C).** Source health fetches the page and fingerprints only a scoped fact range (the rights
+  scope mechanism): unchanged → healthy; changed → `contentChanged` advisory (re-review); scope missing → blocking.
+  Offline replay says `pageFactNotChecked`. Health never edits data.
+- **Wire.** `locationArea.scope` optional (zod, docs/API.md); absent for v1 anchors, so their bytes are unchanged.
+- **First source.** `komatsu-airport-smoking-places`: one facility-level spot (4 zones, one 国土数値情報 C28
+  TerminalBuilding anchor), `existence = operator`, hours/tobacco support/room type unknown.
 
 ## Consequences
 

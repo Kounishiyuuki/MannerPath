@@ -1,7 +1,7 @@
 {
   "generator": "community-seed-campaign.v1",
-  "measuredAt": "2026-10-01T00:00:00Z",
-  "corpusRevision": "pinned-reviewed-fixtures:sha256:3f3f0c2e7dd11d84e9fea1f3b8e5cf92114a8e034e42099432dad65ee1f7e845",
+  "measuredAt": "2026-10-12T00:00:00Z",
+  "corpusRevision": "pinned-reviewed-fixtures:sha256:dc9c33f919e0f7a0097ad8c711a80dce633469f6cb233f52a695c14ded0b51b1",
   "provenance": "pinnedReviewedFixtures",
   "meaning": "Collection areas only, never smoking spots; counts overlap across nearby areas and must not be summed.",
   "priorityPolicy": "<3 visible: P0 national/metropolitan/large-transfer/Shinkansen hubs; P1 capital stations/downtown, airports or explicit official leads; otherwise P2. >=3 visible: P3. >=5 visible and >=3 official/verified: sufficientlyCovered. Missing metrics: P2 unknown. Blocked/retired: P3.",
@@ -29,11 +29,11 @@
     "unknownCoverageAreas": 0
   },
   "national": {
-    "official": 513,
+    "official": 514,
     "communityVerified": 0,
     "visitedConfirmed": 0,
     "communityReported": 0,
-    "allVisible": 513,
+    "allVisible": 514,
     "unassigned": 0
   },
   "prefectures": [
@@ -248,11 +248,11 @@
     {
       "code": "17",
       "name": "石川県",
-      "official": 0,
+      "official": 1,
       "communityVerified": 0,
       "visitedConfirmed": 0,
       "communityReported": 0,
-      "allVisible": 0,
+      "allVisible": 1,
       "seeds": 4,
       "activeSeeds": 4,
       "P0Seeds": 1,

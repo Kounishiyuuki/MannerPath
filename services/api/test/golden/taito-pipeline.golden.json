@@ -3599,7 +3599,7 @@
       {
         "id": "published-sources-carry-license-and-attribution",
         "status": "pass",
-        "detail": "every published source has a license name, a license URL and attribution text"
+        "detail": "every published source has attribution text and a license name/URL or a reviewed factReference rights record"
       },
       {
         "id": "published-tiles-carry-attribution",

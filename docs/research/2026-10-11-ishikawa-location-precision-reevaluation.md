@@ -23,9 +23,16 @@ dataset licence passes review.
 
 ## Result
 
-- **Kanazawa publishable now: 0.** Ishikawa publishable now: 0. Implemented spots/sources: 0.
-- Expected delta if D-A, D-R and D-C are approved and an airport anchor dataset passes licence review: **+1 spot**
-  (小松空港ターミナル, facility scope, 小松市 — new municipality). The four zones are not four spots (same-anchor
-  rule). 金沢市 itself stays 0 until the city source's rights and current operation are resolved.
+Superseded on the same day by ADR-0018's acceptance (D-A, D-R, D-C approved 2026-10-11):
+
+| Target | Decision after ADR-0018 |
+|---|---|
+| 小松空港 | **Implemented**: `komatsu-airport-smoking-places`, one facility-scope `areaApproximate` spot (4 zones, one 国土数値情報 C28 TerminalBuilding anchor). Rights re-checked: 著作権について reserves expression only, 免責事項 has no information-use/database clause → factReference |
+| 金沢駅 西口 / 東口 | Not onboarded. Only a neighbouring operator (金沢百番街) refers to them; their manager's own page was not found, and 金沢市's publication stays rights/current-operation blocked. A referral is not the manager's first-party statement |
+| 金沢百番街 / あんと (館内) | Not onboarded: the operator's FAQ and service page contradict each other → fail closed (DATA_POLICY §Contradicting official publications) |
+| 金沢フォーラス | Not onboarded: 利用規約 第7条 prohibits using the site's information beyond private use → fail closed under D-R |
+| 香林坊・片町・小松駅・野々市・白山 | Not onboarded: no first-party existence evidence (片町きらら site unreachable) |
+
+- **Kanazawa publishable: 0.** Ishikawa published delta: **+1 spot** (小松市, new prefecture coverage: 石川県).
 - The binding constraint for Kanazawa is not precision: the station-exit places are managed by a party whose own
   publication is rights-blocked, and in-building claims are absent or contradictory.

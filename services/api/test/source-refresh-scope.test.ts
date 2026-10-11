@@ -8,6 +8,7 @@ import { MINATO_ADAPTER, MINATO_SOURCE_ID } from "../src/pipeline/minato-adapter
 import { KOTO_ADAPTER, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
 import { SENDAI_ADAPTER, SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
 import { KYOTO_ADAPTER, KYOTO_SOURCE_ID } from "../src/pipeline/kyoto-adapter.ts";
+import { KOMATSU_AIRPORT_ADAPTER, KOMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/komatsu-airport-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_DATA_URL, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { checkSource } from "../src/refresh/check.ts";
@@ -32,7 +33,7 @@ function memoryStore() {
 }
 const fetchOsaka = async () => new Response(OSAKA_BYTES);
 
-test("scheduled registry checks Taito but skips six sources without refresh targets or fetches", async () => {
+test("scheduled registry checks Taito but skips seven sources without refresh targets or fetches", async () => {
   const db = new SqliteD1();
   await importTaito(db);
   await ensureReviewedSource(db, OSAKA_SOURCE_ID, NOW);
@@ -41,17 +42,20 @@ test("scheduled registry checks Taito but skips six sources without refresh targ
   await ensureReviewedSource(db, MINATO_SOURCE_ID, NOW);
   await ensureReviewedSource(db, KYOTO_SOURCE_ID, NOW);
   await ensureReviewedSource(db, SENDAI_SOURCE_ID, NOW);
+  await ensureReviewedSource(db, KOMATSU_AIRPORT_SOURCE_ID, NOW);
   assert.equal(OSAKA_ADAPTER.refreshTarget, undefined);
   assert.equal(KOTO_ADAPTER.refreshTarget, undefined);
   assert.equal(MUSASHINO_ADAPTER.refreshTarget, undefined);
   assert.equal(MINATO_ADAPTER.refreshTarget, undefined);
   assert.equal(KYOTO_ADAPTER.refreshTarget, undefined);
   assert.equal(SENDAI_ADAPTER.refreshTarget, undefined);
+  // A page-fact source has no release file to refresh; its page is re-checked by source health (ADR-0018 D-C).
+  assert.equal(KOMATSU_AIRPORT_ADAPTER.refreshTarget, undefined);
   let fetches = 0;
   const results = await runSourceChecks({ db, store: memoryStore().store, now,
     fetch: async () => { fetches++; return new Response(TAITO_BYTES); },
   }, "scope-scheduled", "scheduled");
-  assert.equal(results.length, 7);
+  assert.equal(results.length, 8);
   assert.equal(results[0].result.status === "recorded" && results[0].result.outcome, "unchanged");
   assert.deepEqual(results[1], { sourceId: OSAKA_SOURCE_ID,
     result: { status: "skipped", reason: `${OSAKA_SOURCE_ID} has no refresh target` },
@@ -70,6 +74,9 @@ test("scheduled registry checks Taito but skips six sources without refresh targ
   });
   assert.deepEqual(results[6], { sourceId: SENDAI_SOURCE_ID,
     result: { status: "skipped", reason: `${SENDAI_SOURCE_ID} has no refresh target` },
+  });
+  assert.deepEqual(results[7], { sourceId: KOMATSU_AIRPORT_SOURCE_ID,
+    result: { status: "skipped", reason: `${KOMATSU_AIRPORT_SOURCE_ID} has no refresh target` },
   });
   assert.equal(fetches, 1);
   assert.equal(count(db, "source_checks"), 1);

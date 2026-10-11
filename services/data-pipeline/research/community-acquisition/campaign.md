@@ -1,6 +1,6 @@
 # Nationwide Community Seed Campaign
 
-Measured: 2026-10-01T00:00:00Z; corpus: pinned-reviewed-fixtures:sha256:3f3f0c2e7dd11d84e9fea1f3b8e5cf92114a8e034e42099432dad65ee1f7e845
+Measured: 2026-10-12T00:00:00Z; corpus: pinned-reviewed-fixtures:sha256:dc9c33f919e0f7a0097ad8c711a80dce633469f6cb233f52a695c14ded0b51b1
 
 Collection areas only, never smoking spots; counts overlap across nearby areas and must not be summed.
 
@@ -32,7 +32,7 @@ visitedConfirmed is a subset of communityVerified; geographic counts use ADR-001
 | 神奈川県 | 0 | 0 | 0 | 0 | 0 | 8 | 7 | 8 |
 | 新潟県 | 0 | 0 | 0 | 0 | 0 | 5 | 2 | 5 |
 | 富山県 | 0 | 0 | 0 | 0 | 0 | 4 | 1 | 4 |
-| 石川県 | 0 | 0 | 0 | 0 | 0 | 4 | 1 | 4 |
+| 石川県 | 1 | 0 | 0 | 0 | 1 | 4 | 1 | 4 |
 | 福井県 | 0 | 0 | 0 | 0 | 0 | 3 | 1 | 3 |
 | 山梨県 | 0 | 0 | 0 | 0 | 0 | 3 | 0 | 3 |
 | 長野県 | 0 | 0 | 0 | 0 | 0 | 6 | 2 | 6 |

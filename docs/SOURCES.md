@@ -223,6 +223,28 @@ Raw evidence and detailed mapping: `services/data-pipeline/fixtures/kyoto-public
 | Reviewed by / date | Claude Code, AI-assisted primary-source review, 2026-09-30; local DB only |
 | Publication status | approved only for the pinned first release; `crossReleaseValidated=false`, `completeness=partial` |
 
+### 小松空港 喫煙場所（公式サイト） — ADR-0018 factReference page-fact source
+
+Reviewed 2026-10-11 under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet, anchor and rights reading:
+`services/data-pipeline/fixtures/komatsu-airport-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `komatsu-airport-smoking-places` |
+| Name / publisher | 小松空港ホームページ「よくあるお問い合わせ：喫煙場所はどこですか。」 / 小松空港協議会 (official airport site) |
+| Kind | operator |
+| Official source URL | https://www.komatsuairport.jp/faq/q85.html |
+| Rights basis | **factReference** (ADR-0018 §3). No licence. 著作権について reserves the works' expression (無断で複製・転用不可, 著作権法上認められた場合を除き); no clause prohibits information use, data acquisition or databases. Only normalized facts are stored; no text, image, floor map, screenshot or logo. Engineering classification, not legal clearance |
+| Redistribution to clients | Normalized facts and an independently sourced anchor only |
+| Required attribution text | `出典：小松空港ホームページ「喫煙場所はどこですか。」 …（2026-10-11確認）。位置の目安：国土数値情報（空港データ）（国土交通省）…のターミナルビル位置。MannerPathが事実のみを正規化して作成し、ピンは施設の代表点で喫煙場所そのものの位置ではありません。…` (full text in the adapter) |
+| Geographic scope / completeness | The four smoking places the page lists at 小松空港 (小松市). Partial |
+| Location | `areaApproximate`, `locationArea.scope = facility`: 国土数値情報 C28 (令和3年度, 商用可, 出典・加工表示) TerminalBuilding `cf04_00071`. The four zones share this one anchor, so they are **one** spot |
+| Observation date | The page states none. `observedOn = 2026-10-11` is the day the publisher's current page was checked (D-C); not a site visit |
+| Current operation | Listed on the current page; source health re-checks the scoped fact text and the copyright notice (review-metadata.json) |
+| Reviewed release | Fact sheet SHA-256 `d6ea235279d6a83e3b605c67f98b4d7b593c8ca80703d367ddb8444604a168a3`; 1 record → 1 published spot |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-11; local DB only |
+| Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial` |
+
 ### 江東区 公共喫煙所一覧（公園） — blocked candidate
 
 Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv
