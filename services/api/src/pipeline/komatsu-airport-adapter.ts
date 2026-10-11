@@ -9,7 +9,7 @@ import type { SourceAdapter, SourceObservation } from "./source-adapter.ts";
 
 export const KOMATSU_AIRPORT_SOURCE_ID = "komatsu-airport-smoking-places";
 export const KOMATSU_AIRPORT_PAGE_URL = "https://www.komatsuairport.jp/faq/q85.html";
-export const KOMATSU_AIRPORT_FIXTURE_SHA256 = "d6ea235279d6a83e3b605c67f98b4d7b593c8ca80703d367ddb8444604a168a3";
+export const KOMATSU_AIRPORT_FIXTURE_SHA256 = "55968506e9e271a197f70a7d8a6ec6e32ddd998840da24c1a31debf6c7463f3f";
 // ADR-0018 §5 (D-C): the page states no date. observedOn is the day the publisher's CURRENT page was checked to list
 // the places (checked_at), which is what lastVerifiedAt then shows; it is not a site visit and not a publisher date claim.
 export const KOMATSU_AIRPORT_FIXTURE_RELEASE: ReleaseMetadata = {
@@ -58,7 +58,7 @@ function anchorFor(releaseContentSha256: string): ReviewedAreaAnchor {
 // The reviewed row, kept here so the anchor registry entry is derived from exactly the pinned fact sheet.
 const KOMATSU_FACT_VALUES: readonly string[] = [
   "komatsu-airport-terminal", "小松空港 喫煙場所（ターミナル内外4か所・一部は保安検査後）", "小松空港 旅客ターミナル", "airport", "facility",
-  "国際線2F出発ロビー|国内線搭乗待合室（ANAラウンジ横）|国際線搭乗待合室|屋外（バス乗り場付近）", "unknown", "public", "unknown", "airport",
+  "国際線2F出発ロビー|国内線搭乗待合室（ANAラウンジ横）|国際線搭乗待合室|屋外（バス乗り場付近）", "unknown", "unknown", "unknown", "airport",
   KOMATSU_AIRPORT_PAGE_URL, "2026-10-11", "36.401889", "136.413528", "referenceDatasetPoint",
   "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00071 小松飛行場 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
 ];
@@ -79,11 +79,13 @@ function observe(values: readonly string[]): SourceObservation {
       { field: "existence", columns: factColumns, rule: "komatsu-airport.pageFact.v1" },
       { field: "lifecycle", columns: ["page_url", "checked_at"], rule: "komatsu-airport.listedOnCurrentPage.v1" },
       { field: "name", columns: ["place_name"], rule: "komatsu-airport.normalizedName.v1" },
-      { field: "accessType", columns: ["access_type", "zones"], rule: "komatsu-airport.publicZonesListed.v1" },
+      // Two of the four zones are after security (passengers only), so the one facility spot is neither public nor
+      // facilityOnly as a whole: unknown, with 「一部は保安検査後」 kept in the name. No per-zone access model (ADR-0018).
+      { field: "accessType", columns: ["access_type", "zones"], rule: "komatsu-airport.mixedZoneAccess.v1" },
       { field: "hostType", columns: ["host_type"], rule: "komatsu-airport.airportHost.v1" },
     ],
     classification: {
-      spotType: "unknown", spotSubtype: null, accessType: "public", accessDetail: null, hostType: "airport", environment: "unknown",
+      spotType: "unknown", spotSubtype: null, accessType: "unknown", accessDetail: null, hostType: "airport", environment: "unknown",
     },
   };
   const anchor = anchorFor(KOMATSU_AIRPORT_FIXTURE_SHA256);

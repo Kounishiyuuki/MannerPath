@@ -66,9 +66,12 @@ test("four official zones on one facility anchor publish as ONE facility-level a
   assert.equal(s.evidenceQuality, "operatorListing");
   assert.equal(s.lastVerifiedAt, "2026-10-11", "checkedAt of the publisher's current page (D-C), not a site visit");
   // Unknown stays unknown: no hours (facility hours never transferred), no tobacco support, mixed zones not typed.
+  // Access is unknown: two of the four zones are after security, so the facility spot is not `public` as a whole.
   assert.deepEqual(s.openingHours, { status: "none", raw: null, parsed: null, timeZone: "Asia/Tokyo" });
-  assert.deepEqual([s.supportsPaper, s.supportsHeated, s.spotType, s.environment, s.accessType, s.hostType],
-    ["unknown", "unknown", "unknown", "unknown", "public", "airport"]);
+  assert.deepEqual([s.supportsPaper, s.supportsHeated, s.spotType, s.environment, s.accessType, s.accessDetail, s.hostType],
+    ["unknown", "unknown", "unknown", "unknown", "unknown", null, "airport"]);
+  assert.match(s.name, /一部は保安検査後/, "the mixed access stays visible in the name");
+  assert.notEqual(s.verification.locationPrecision, "publisherPoint", "a facility anchor is never exact");
   assert.deepEqual(s.sourceIds, [KOMATSU_AIRPORT_SOURCE_ID]);
   // Spot detail and the quality report read the same location state.
   const detail = await (await app.request(`/v1/spots/${s.id}`, {}, { DB: db })).json() as { spot: TileSpotV1 };

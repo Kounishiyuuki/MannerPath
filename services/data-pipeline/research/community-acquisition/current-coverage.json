@@ -1,7 +1,7 @@
 {
   "version": "community-seed-coverage.v1",
   "measuredAt": "2026-10-12T00:00:00Z",
-  "corpusRevision": "pinned-reviewed-fixtures:sha256:dc9c33f919e0f7a0097ad8c711a80dce633469f6cb233f52a695c14ded0b51b1",
+  "corpusRevision": "pinned-reviewed-fixtures:sha256:5ddb27a46a18393afb43d926600dd6c2e337fce924ab169dc296b599f25307c6",
   "provenance": "pinnedReviewedFixtures",
   "radiusMeters": 1000,
   "national": {

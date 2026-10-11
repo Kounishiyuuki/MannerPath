@@ -239,9 +239,11 @@ Reviewed 2026-10-11 under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet, ancho
 | Required attribution text | `出典：小松空港ホームページ「喫煙場所はどこですか。」 …（2026-10-11確認）。位置の目安：国土数値情報（空港データ）（国土交通省）…のターミナルビル位置。MannerPathが事実のみを正規化して作成し、ピンは施設の代表点で喫煙場所そのものの位置ではありません。…` (full text in the adapter) |
 | Geographic scope / completeness | The four smoking places the page lists at 小松空港 (小松市). Partial |
 | Location | `areaApproximate`, `locationArea.scope = facility`: 国土数値情報 C28 (令和3年度, 商用可, 出典・加工表示) TerminalBuilding `cf04_00071`. The four zones share this one anchor, so they are **one** spot |
+| Access | `accessType = unknown`: two of the four zones are after security (搭乗者のみ), so neither `public` nor `facilityOnly` holds for the one spot; the name keeps 「一部は保安検査後」. No per-zone access model |
+| Current operation evidence hold | A missing fact range or page (live source health) lets a maintainer hold the spot with `npm run source:hold` (migration 0033); a changed page is re-reviewed, not held |
 | Observation date | The page states none. `observedOn = 2026-10-11` is the day the publisher's current page was checked (D-C); not a site visit |
 | Current operation | Listed on the current page; source health re-checks the scoped fact text and the copyright notice (review-metadata.json) |
-| Reviewed release | Fact sheet SHA-256 `d6ea235279d6a83e3b605c67f98b4d7b593c8ca80703d367ddb8444604a168a3`; 1 record → 1 published spot |
+| Reviewed release | Fact sheet SHA-256 `55968506e9e271a197f70a7d8a6ec6e32ddd998840da24c1a31debf6c7463f3f`; 1 record → 1 published spot |
 | Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-11; local DB only |
 | Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial` |
 

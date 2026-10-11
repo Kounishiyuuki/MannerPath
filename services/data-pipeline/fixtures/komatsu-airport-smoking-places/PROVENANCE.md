@@ -16,8 +16,9 @@ screenshot or logo is reproduced; the page HTML is not committed.
 | Fact fingerprint | Scoped text 「[img:] 喫煙場所はどこですか。」…「関連リンク」, SHA-256 `e5fc9afb22df6e75a9d3b721c20b34d268443d073bc3d7df4f3223bb5b1f91c6` (source health re-checks it) |
 
 Not stated by the page, therefore unknown: hours, paper/heated support, indoor/outdoor per zone, room type.
-Access: two zones are after security (搭乗者のみ); the other two are in public areas, so the one spot is `public` and
-its name says 「一部は保安検査後」.
+Access: two zones are after security (搭乗者のみ); the other two are in public areas. The one facility spot is
+therefore `access_type = unknown` (neither `public` nor `facilityOnly` holds for all four), and its name keeps
+「一部は保安検査後」. A per-zone access model is not part of ADR-0018.
 
 ## Rights reading (engineering classification, not legal advice)
 

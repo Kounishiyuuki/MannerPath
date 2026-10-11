@@ -1,6 +1,6 @@
 # Nationwide Community Seed Campaign
 
-Measured: 2026-10-12T00:00:00Z; corpus: pinned-reviewed-fixtures:sha256:dc9c33f919e0f7a0097ad8c711a80dce633469f6cb233f52a695c14ded0b51b1
+Measured: 2026-10-12T00:00:00Z; corpus: pinned-reviewed-fixtures:sha256:5ddb27a46a18393afb43d926600dd6c2e337fce924ab169dc296b599f25307c6
 
 Collection areas only, never smoking spots; counts overlap across nearby areas and must not be summed.
 
