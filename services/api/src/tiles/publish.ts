@@ -136,6 +136,8 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND s.spot_id NOT IN (SELECT spot_id FROM community_publication_holds WHERE lifted_at IS NULL)
        AND s.spot_id NOT IN (SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL)
+       -- A reviewed source-evidence hold (0033, ADR-0018 §5): the first-party page no longer shows the fact.
+       AND s.spot_id NOT IN (SELECT spot_id FROM spot_evidence_holds WHERE cleared_at IS NULL)
        -- A survivor held by an unresolved cross-source merge conflict (0019) is not a candidate.
        AND s.spot_id NOT IN (SELECT spot_id FROM cross_source_publication_blocks)
        AND rel.status = 'applied'

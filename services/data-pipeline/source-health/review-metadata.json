@@ -229,7 +229,7 @@
       "editionLabel": "FAQ q85 (no date stated); fact fingerprint e5fc9afb…",
       "editionObservedAt": "2026-10-11",
       "reviewDueAt": "2027-01-11",
-      "reviewerNote": "Page-fact source (ADR-0018 D-C): re-check the scoped FAQ text; any change or missing scope requires re-review of the normalized facts before relying on them.",
+      "reviewerNote": "Page-fact source (ADR-0018 D-C): re-check the scoped FAQ text; any change or missing scope requires re-review of the normalized facts before relying on them. A missing scope or page lets the maintainer hold the spot (npm run source:hold, migration 0033); a change alone is never held.",
       "knownAdvisories": [],
       "rights": [
         {

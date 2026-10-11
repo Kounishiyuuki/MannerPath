@@ -18,8 +18,8 @@ test("0030 applies to a populated pre-0030 database; existing spots stay unancho
   const spots = (before.prepare("SELECT count(*) n FROM spots").get() as { n: number }).n;
   assert.ok(spots > 0);
   applyMigration(before, readFileSync(new URL("../migrations/0030_area_approximate_locations.sql", import.meta.url), "utf8"));
-  // The later migrations follow, as on a real deploy; 0032 (ADR-0018) is additive and leaves every new column NULL.
-  for (const m of ["0031_derived_coordinate_evidence_guards.sql", "0032_location_precision_v2.sql"]) {
+  // The later migrations follow, as on a real deploy; 0032 (ADR-0018) is additive and leaves every new column NULL; 0033 adds the empty evidence-hold table.
+  for (const m of ["0031_derived_coordinate_evidence_guards.sql", "0032_location_precision_v2.sql", "0033_spot_evidence_holds.sql"]) {
     applyMigration(before, readFileSync(new URL(`../migrations/${m}`, import.meta.url), "utf8"));
   }
   for (const t of ["area_location_anchors", "spot_location_anchors", "area_precision_upgrades", "spot_location_authorities", "area_anchor_relocation_deltas"]) {

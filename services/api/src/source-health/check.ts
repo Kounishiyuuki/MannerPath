@@ -22,6 +22,8 @@ export interface HealthResult {
   signals: HealthSignals; rights?: RightsObservation[];
   /** ADR-0018: an offline replay cannot see a page-fact source's page; only its reviewed fact sheet was probed. */
   pageFactNotChecked?: true;
+  /** ADR-0018 §5: the page answered but the reviewed fact range is gone; the only page-fact signal a hold may cite. */
+  pageFactScopeMissing?: true;
 }
 export interface HealthTarget {
   adapter: SourceAdapter; url: string; baselineSha256: string; baselineResourceSha256?: string; baselineHeader: string[];
@@ -111,6 +113,7 @@ export async function checkSourceHealth(target: HealthTarget, options: HealthOpt
       Object.assign(signals, { moved: result.redirects.length > 0, contentChanged: changed, schemaCompatible: scoped.ok, parserCompatible: scoped.ok });
       result.schemaCompatible = scoped.ok; result.parserCompatible = scoped.ok;
       result.status = !scoped.ok ? "schemaChanged" : result.redirects.length ? "moved" : changed ? "contentChanged" : "healthy";
+      if (!scoped.ok) result.pageFactScopeMissing = true;
       if (!scoped.ok) result.notes.push(`Page fact scope ${scoped.outcome}; the listed facts may be gone: re-review before relying on them`);
       else if (changed) result.notes.push("Page fact text differs from the reviewed fingerprint; re-review the normalized facts");
       return result;
