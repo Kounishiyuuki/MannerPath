@@ -1349,6 +1349,19 @@
       "archiveMember": "KML/トイレおよび路上禁煙エリア・公衆喫煙所.kmz",
       "lastModified": "Tue, 18 Apr 2023 04:43:38 GMT",
       "fetchedAt": "2026-09-29T16:10:07Z"
+    },
+    {
+      "targetId": "operator-komatsu-airport",
+      "reference": "services/data-pipeline/fixtures/komatsu-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "komatsu-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.komatsuairport.jp/faq/q85.html"
+      ],
+      "sha256": "55968506e9e271a197f70a7d8a6ec6e32ddd998840da24c1a31debf6c7463f3f",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-11T00:00:00Z"
     }
   ],
   "researchReferences": [

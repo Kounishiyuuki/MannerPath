@@ -6746,6 +6746,26 @@
       "rawResources": [],
       "priorResearch": [
         {
+          "reference": "docs/research/2026-10-11-ishikawa-location-precision-reevaluation.md",
+          "status": "metadataScanned",
+          "blockerCodes": [
+            "coordinatesMissing",
+            "licenseUnknown"
+          ],
+          "rawUrls": [],
+          "evidence": "| 小松空港 ターミナル (4 zones: 国際線2F出発ロビー, 国内線搭乗待合室 ANAラウンジ横, 国際線搭乗待合室, 屋外バス乗り場付近) | Yes — [FAQ q85](https://www.komatsuairport.jp/faq/q85.html) | `factReference` (copyright page: 無断で複製・転用不可; information use not prohibited) | facility (4 zones share one terminal anchor) | None (needs §2 item 3: government airport reference point) | Blocked | **1 spot**, `areaApproximate`/`facility`, detail lists 4 zones; airside zones marked 搭乗者のみ; hours unknown |"
+        },
+        {
+          "reference": "docs/research/2026-10-11-ishikawa-location-precision-reevaluation.md",
+          "status": "metadataScanned",
+          "blockerCodes": [
+            "coordinatesMissing",
+            "licenseUnknown"
+          ],
+          "rawUrls": [],
+          "evidence": "| 小松空港 | **Implemented**: `komatsu-airport-smoking-places`, one facility-scope `areaApproximate` spot (4 zones, one 国土数値情報 C28 TerminalBuilding anchor). Rights re-checked: 著作権について reserves expression only, 免責事項 has no information-use/database clause → factReference |"
+        },
+        {
           "reference": "services/data-pipeline/fixtures/komatsu-airport-smoking-places/PROVENANCE.md",
           "status": "implemented",
           "sourceId": "komatsu-airport-smoking-places",
@@ -6753,7 +6773,7 @@
           "rawUrls": [
             "https://www.komatsuairport.jp/faq/q85.html"
           ],
-          "sha256": "d6ea235279d6a83e3b605c67f98b4d7b593c8ca80703d367ddb8444604a168a3",
+          "sha256": "55968506e9e271a197f70a7d8a6ec6e32ddd998840da24c1a31debf6c7463f3f",
           "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
           "fetchedAt": "2026-10-11T00:00:00Z"
         }
