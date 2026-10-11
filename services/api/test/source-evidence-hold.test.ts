@@ -111,7 +111,7 @@ test("a hold unpublishes the spot fail closed, keeps it out of every republish, 
   assert.throws(() => db.raw.prepare("UPDATE spot_evidence_holds SET reason = reason, health_signal = 'resourceMissing'").run(), /one reviewed clear/);
   assert.throws(() => db.raw.prepare(`INSERT INTO spot_evidence_holds (source_id, spot_id, reason, health_signal, health_report_sha256,
     health_evaluated_on, executor_version, held_by, held_at) VALUES (?, ?, 'sourceEvidenceMissing', 'resourceMissing', ?, '2026-10-12',
-    'source-evidence-hold.v1', 'maintainer', ?)`).run(KOMATSU_AIRPORT_SOURCE_ID, spotId, SHA, NOW), /UNIQUE/);
+    'source-evidence-hold.v1', 'maintainer', ?)`).run(KOMATSU_AIRPORT_SOURCE_ID, spotId, SHA, NOW), /append-only/);
 
   assert.deepEqual(await clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER }), [spotId]);
   await assert.rejects(clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER }), /no active hold/);
@@ -174,4 +174,55 @@ test("a held row in a target database refuses every promotion bootstrap", () => 
     const sql = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?").get(guard) as { sql: string }).sql;
     assert.match(sql, /EXISTS \(SELECT 1 FROM spot_evidence_holds\)/, guard);
   }
+});
+
+// Append-only is a DB invariant, not a CLI habit: SQLite's REPLACE conflict resolution deletes the conflicting row
+// without firing DELETE triggers (recursive_triggers is off), so every REPLACE path must be refused before the insert.
+test("spot_evidence_holds is append-only in the database itself, including every INSERT OR REPLACE path", async () => {
+  const db = await komatsu();
+  const [spotId] = published(db);
+  const snapshot = () => JSON.stringify(holds(db));
+  const columns = "hold_id, source_id, spot_id, reason, health_signal, health_report_sha256, health_evaluated_on, executor_version, held_by, held_at";
+  const values = (holdId: number | null, digest: string) =>
+    [holdId, KOMATSU_AIRPORT_SOURCE_ID, spotId, "sourceEvidenceMissing", "resourceMissing", digest, "2026-10-12", "source-evidence-hold.v1", "maintainer", NOW];
+  const insert = (verb: string, holdId: number | null, digest: string) =>
+    db.raw.prepare(`${verb} INTO spot_evidence_holds (${columns}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(...values(holdId, digest));
+
+  // A. A normal hold.
+  await holdSourceEvidence(db, KOMATSU_AIRPORT_ADAPTER.registry, await report(SCOPE_GONE), { reportSha256: SHA, heldBy: "maintainer", now: LATER });
+  const [held] = holds(db);
+  const active = snapshot();
+  // D. The same hold_id again; E. INSERT OR REPLACE on the same hold_id (would rewrite the digest).
+  assert.throws(() => insert("INSERT", Number(held.hold_id), "b".repeat(64)), /append-only/);
+  assert.throws(() => insert("INSERT OR REPLACE", Number(held.hold_id), "b".repeat(64)), /append-only/);
+  assert.throws(() => insert("REPLACE", Number(held.hold_id), "b".repeat(64)), /append-only/);
+  // F. A new id that collides with the active hold of the spot (would delete the active row).
+  assert.throws(() => insert("INSERT OR REPLACE", null, "c".repeat(64)), /append-only/);
+  assert.throws(() => insert("INSERT OR REPLACE", 999, "c".repeat(64)), /append-only/);
+  // G. DELETE; H. rewriting any evidence field, alone or together with a clear.
+  assert.throws(() => db.raw.prepare("DELETE FROM spot_evidence_holds").run(), /never deleted/);
+  for (const change of ["health_report_sha256 = 'd'", "source_id = 'taito-public-smoking-areas'", "spot_id = 'sp_x'", "health_signal = 'pageFactScopeMissing'",
+    "held_by = 'x'", "hold_id = 77", "cleared_at = '2026-10-13T00:00:00Z', cleared_by = 'm', clear_basis = 'factsReReviewed', health_report_sha256 = 'd'"]) {
+    assert.throws(() => db.raw.prepare(`UPDATE spot_evidence_holds SET ${change}`).run(), /one reviewed clear|CHECK|FOREIGN/, change);
+    assert.throws(() => db.raw.prepare(`UPDATE OR REPLACE spot_evidence_holds SET ${change}`).run(), /one reviewed clear|CHECK|FOREIGN/, change);
+  }
+  // J. Every failed operation left the row exactly as it was.
+  assert.equal(snapshot(), active);
+
+  // B/I. The clear fields, one way, once.
+  await clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER });
+  const cleared = snapshot();
+  // C. A cleared hold is never re-cleared, un-cleared or replaced.
+  for (const change of ["cleared_by = 'other'", "clear_basis = 'healthFalsePositive'", "cleared_at = NULL, cleared_by = NULL, clear_basis = NULL", "cleared_at = '2027-01-01T00:00:00Z'"]) {
+    assert.throws(() => db.raw.prepare(`UPDATE spot_evidence_holds SET ${change}`).run(), /one reviewed clear|CHECK/, change);
+  }
+  assert.throws(() => insert("INSERT OR REPLACE", Number(held.hold_id), "b".repeat(64)), /append-only/);
+  assert.equal(snapshot(), cleared);
+  // A later hold of the same spot is a new row next to the cleared one, never a replacement of it.
+  await publishTiles(db, { now: NOW });
+  await holdSourceEvidence(db, KOMATSU_AIRPORT_ADAPTER.registry, await report("gone", 404), { reportSha256: "e".repeat(64), heldBy: "maintainer", now: LATER });
+  const rows = holds(db);
+  assert.equal(rows.length, 2);
+  assert.equal(JSON.stringify(rows[0]), JSON.stringify(JSON.parse(cleared)[0]));
+  assert.ok(Number(rows[1].hold_id) > Number(rows[0].hold_id));
 });

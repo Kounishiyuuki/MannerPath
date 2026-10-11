@@ -32,6 +32,17 @@ CREATE TABLE spot_evidence_holds (
 
 CREATE UNIQUE INDEX spot_evidence_holds_one_active ON spot_evidence_holds (spot_id) WHERE cleared_at IS NULL;
 
+-- REPLACE conflict resolution (INSERT OR REPLACE, REPLACE) deletes the conflicting row without firing a DELETE trigger,
+-- so the no-delete trigger below cannot see it. A BEFORE INSERT trigger runs before conflict resolution: refusing any
+-- insert whose hold_id already exists, or whose spot already has an active hold, leaves REPLACE nothing to delete.
+CREATE TRIGGER spot_evidence_holds_append_only
+BEFORE INSERT ON spot_evidence_holds
+WHEN EXISTS (SELECT 1 FROM spot_evidence_holds h WHERE h.hold_id = NEW.hold_id)
+  OR EXISTS (SELECT 1 FROM spot_evidence_holds h WHERE h.spot_id = NEW.spot_id AND h.cleared_at IS NULL)
+BEGIN
+  SELECT RAISE(ABORT, 'spot_evidence_holds: append-only; a hold id is never reused and an active hold is never replaced');
+END;
+
 -- A hold cites the source the spot's existence evidence actually comes from, and the spot is unpublished already
 -- (ADR-0006 decision 11: unpublish first; the hold step deletes the tile membership earlier in its batch).
 CREATE TRIGGER spot_evidence_holds_premise
