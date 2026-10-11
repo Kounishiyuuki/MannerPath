@@ -101,6 +101,18 @@ field provenance so that neither is misrepresented as the other: a dated attesta
 observed and the exact source release it was reviewed against, and a field attenuation row on the
 canonical record (ADR-0006). The source's provenance row keeps describing what the source stated.
 
+### When a factReference page loses the fact (ADR-0018 §5)
+
+A factReference spot exists only as long as its page lists it. Source health re-checks the page's reviewed fact range
+but stays advisory and never edits data. When a **live** report shows the range gone (`pageFactScopeMissing`) or the
+page gone (`resourceMissing`, HTTP 404/410), a maintainer holds every spot of that source with
+`npm run source:hold -- hold --source=<id> --report=<file> --by=<name>`: an append-only `spot_evidence_holds` row
+(migration 0033) citing the report's SHA-256 and date, which unpublishes the spot and keeps it out of every republish.
+A changed page (`contentChanged`), a transient outage (5xx, timeout) or an offline replay is never a hold reason; it is
+re-reviewed instead, so a flaky site cannot unpublish spots in bulk. The hold is cleared only by an explicit review
+(`clear --basis=factsReReviewed|healthFalsePositive`); the row and its clear stay as history. Holds stay in the origin
+database and never travel in a promotion bundle; a held spot is simply not published.
+
 ## Confidence
 
 Confidence is never one opaque score. ADR-0012 publishes separate axes, each a named fact:

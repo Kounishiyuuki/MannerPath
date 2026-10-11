@@ -117,7 +117,8 @@ official publications). `openNow` stays unknown when smoking-place hours are unk
 
 ## Implementation (2026-10-11)
 
-Reuses ADR-0017's authority model unchanged; no new precision value, table or publication path.
+Reuses ADR-0017's authority model unchanged; no new precision value or publication path. One new table, the evidence
+hold below (migration 0033).
 
 - **reviewedPageFact = a reviewed fact sheet release.** A factReference source's release is MannerPath's normalized
   CSV for one page (fixture + `PROVENANCE.md`; the page HTML is never committed). Ingest, observations, provenance,
@@ -137,9 +138,24 @@ Reuses ADR-0017's authority model unchanged; no new precision value, table or pu
 - **Current operation (D-C).** Source health fetches the page and fingerprints only a scoped fact range (the rights
   scope mechanism): unchanged → healthy; changed → `contentChanged` advisory (re-review); scope missing → blocking.
   Offline replay says `pageFactNotChecked`. Health never edits data.
+- **Evidence hold (migration 0033, maintainer decision 2026-10-12).** A live report showing the fact range gone
+  (`pageFactScopeMissing`) or the page gone (`resourceMissing`) lets a maintainer run `npm run source:hold -- hold`,
+  which records an append-only `spot_evidence_holds` row per spot (reason `sourceEvidenceMissing`, report SHA-256 and
+  date, who/when) and unpublishes it; `publishTiles` excludes active holds and a `tile_snapshot_spots` trigger refuses
+  them. `contentChanged`, 5xx/timeouts and offline reports are refused as hold reasons (no automatic or bulk
+  unpublication). Only an explicit `clear` (`factsReReviewed` | `healthFalsePositive`) ends a hold; rows are never
+  deleted. Not chosen: widening `spots.publication_hold` (a 0004 CHECK, which would need a table rebuild).
 - **Wire.** `locationArea.scope` optional (zod, docs/API.md); absent for v1 anchors, so their bytes are unchanged.
 - **First source.** `komatsu-airport-smoking-places`: one facility-level spot (4 zones, one 国土数値情報 C28
-  TerminalBuilding anchor), `existence = operator`, hours/tobacco support/room type unknown.
+  TerminalBuilding anchor), `existence = operator`, hours/tobacco support/room type unknown. `accessType = unknown`
+  (maintainer decision 2026-10-12): two zones are after security, so neither `public` nor `facilityOnly` is true of
+  the facility spot as a whole; the name keeps 「一部は保安検査後」.
+
+## Future work (not decided)
+
+- Mixed or per-zone access (e.g. some zones after security). Today such a facility spot is `accessType = unknown` and
+  the name carries the qualifier; a `mixed`/conditional access value or a per-zone list on the wire would be a
+  separate ADR covering the tile contract, DB and clients.
 
 ## Consequences
 
