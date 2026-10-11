@@ -8,7 +8,7 @@ import { buildReport, evaluateResult, validateReviews, type SourceReview } from 
 import { checkRights, extractRightsScope, rightsFingerprint, withRights, type RightsContract } from "../src/source-health/rights.ts";
 import { liveTransport, main, productionHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
+import { importProductionBaselineSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 import { v1TileRows } from "./support/tiles.ts";
 
@@ -253,7 +253,7 @@ test("offline monitor replays reviewed fixtures with no network and never writes
 test("health and rights checks leave registry, canonical spots, promotion and tile bodies unchanged", async t => {
   const db = new SqliteD1();
   t.after(() => db.raw.close());
-  await importAllReviewedSources(db, "2026-10-09T00:00:00Z");
+  await importProductionBaselineSources(db, "2026-10-09T00:00:00Z");
   await publishTiles(db, { now: "2026-10-09T00:00:00Z" });
   const snapshot = () => ({
     registry: JSON.stringify(SOURCE_ADAPTERS.map(adapter => adapter.registry)),
@@ -267,4 +267,12 @@ test("health and rights checks leave registry, canonical spots, promotion and ti
   await runOffline();
   await buildReport(await allSources(async () => csv(503)), reviews, TODAY);
   assert.deepEqual(snapshot(), before);
+});
+
+
+test("repository Sendai onboarding does not expand the six-source production health inventory", () => {
+  const ids = productionHealthTargets().map(target => target.adapter.registry.sourceId).sort();
+  assert.deepEqual(ids, ["taito-public-smoking-areas", "osaka-designated-smoking-areas", "koto-station-smoking-areas",
+    "musashino-public-smoking-areas", "minato-designated-smoking-areas", "kyoto-public-smoking-places"].sort());
+  assert.equal(ids.includes("sendai-kaigan-park-smoking-areas"), false);
 });

@@ -12,7 +12,7 @@ import { SEED_AREAS } from "../src/coverage/seed-areas.ts";
 import { seedAreaMetrics, communityAcquisitionMetrics } from "../src/coverage/metrics.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
+import { importProductionBaselineSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 import { v1TileRows } from "./support/tiles.ts";
 
@@ -150,7 +150,7 @@ test("invalid or duplicated aggregate inputs cannot silently distort coverage", 
 test("per-area metrics separate community tiers and count visited confirmations as a verified subset", async () => {
   const db = new SqliteD1();
   try {
-    await importAllReviewedSources(db, coverage.measuredAt);
+    await importProductionBaselineSources(db, coverage.measuredAt);
     await publishTiles(db, { now: coverage.measuredAt });
     const tile = TileBodyV1.parse(JSON.parse(v1TileRows(db)[0].body_json));
     const seed = SEED_AREAS.find((a) => a.id === station.seedAreaId)!;
@@ -169,7 +169,7 @@ test("per-area metrics separate community tiers and count visited confirmations 
 test("campaign generation and the real task endpoint never mutate canonical records or published tiles", async () => {
   const db = new SqliteD1();
   try {
-    await importAllReviewedSources(db, coverage.measuredAt);
+    await importProductionBaselineSources(db, coverage.measuredAt);
     await publishTiles(db, { now: coverage.measuredAt });
     const dump = () => ["spots", "sources", "tile_snapshots", "tile_snapshot_spots"].map((table) =>
       JSON.stringify(db.raw.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()));

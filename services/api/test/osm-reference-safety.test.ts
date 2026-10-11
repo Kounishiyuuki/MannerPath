@@ -15,7 +15,7 @@ import {generateCrossSourceCandidates} from "../src/pipeline/cross-source.ts";
 import {app} from "../src/app.ts";
 import { v1TileRows } from "./support/tiles.ts";
 const root = fileURLToPath(new URL("../../../", import.meta.url));
-const now = "2026-10-01T00:00:00Z";
+const now = "2026-10-11T12:00:00Z";
 const queryRows = (db: SqliteD1, table: string) => db.raw.prepare(`SELECT * FROM ${table} ORDER BY 1`).all();
 function trackedPublicationFiles() {
  const files = spawnSync("git", ["ls-files", "services/data-pipeline/fixtures", "services/api/src/pipeline", "docs/SOURCES.md"], {cwd: root, encoding: "utf8"});

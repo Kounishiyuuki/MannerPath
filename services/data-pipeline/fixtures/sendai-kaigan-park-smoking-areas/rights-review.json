@@ -1,0 +1,24 @@
+{
+  "reviewedBy": "Codex",
+  "reviewedOn": "2026-10-11",
+  "catalogUrl": "https://www.city.sendai.jp/opendata/index.php",
+  "catalogSearch": {
+    "method": "POST",
+    "keyword": "公共施設一覧",
+    "searchtype": "AND",
+    "cmd_submit": "検索"
+  },
+  "catalogResponseSha256": "c4768cd5710efc2f00e3525625b54fa7c236e2984455a9da5054df5104e3da4a",
+  "datasetTitle": "公共施設一覧",
+  "exactResourceUrl": "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv",
+  "licenseLabel": "クリエイティブ・コモンズ表示4.0国際ライセンス",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+  "publisherTermsUrl": "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/opendata.html",
+  "datasetBaseline": "2026-04-01",
+  "catalogPublicationDate": "2026-05-13",
+  "redistributionReviewed": true,
+  "commercialUseReviewed": true,
+  "derivationReviewed": true,
+  "shareAlike": false,
+  "scope": "CSV facts only; no linked pages, image assets or external-site terms inherited."
+}

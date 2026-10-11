@@ -1,0 +1,12 @@
+{
+  "reviewedBy": "Codex",
+  "reviewedOn": "2026-10-11",
+  "referenceUrl": "https://bouken-asobiba-net.com/bouhiro/",
+  "linkedFromPublisherRow": "000000001388",
+  "httpStatus": 200,
+  "responseSha256": "2da6772cb74ef5c5195bb83fc2f0f85a74381161bee220e259b106c6f8ec5e5a",
+  "currentOperatorNoticeDate": "2026-10-08",
+  "explicitSmokingAreaMention": true,
+  "closureOrProhibitionFoundInInspectedHomeBody": false,
+  "scope": "Current operator homepage and smoking-area map annotation corroborate municipal CSV amenity. Not an on-site inspection or a separate licensed source of canonical values. Operator hours and individual smoking-point count/positions are not imported."
+}

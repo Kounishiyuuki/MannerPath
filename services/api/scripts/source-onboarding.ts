@@ -12,6 +12,7 @@ import { OSAKA_FIXTURE_RELEASE } from "../src/pipeline/osaka-adapter.ts";
 import { KOTO_FIXTURE_RELEASE } from "../src/pipeline/koto-adapter.ts";
 import { MUSASHINO_FIXTURE_RELEASE } from "../src/pipeline/musashino-adapter.ts";
 import { MINATO_FIXTURE_RELEASE } from "../src/pipeline/minato-adapter.ts";
+import { SENDAI_FIXTURE_RELEASE } from "../src/pipeline/sendai-adapter.ts";
 import { KYOTO_FIXTURE_RELEASE } from "../src/pipeline/kyoto-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -52,6 +53,7 @@ export type Candidate = z.input<typeof candidateSchema>;
 
 // Pins of already reviewed releases, not a new approval registry or a latest-live-release claim.
 const pins = [
+  ["sendai-kaigan-park-smoking-areas", "041009_public_facility.csv", SENDAI_FIXTURE_RELEASE, "sendai-source.test.ts"],
   ["taito-public-smoking-areas", "20260818_koshukitsuenjo.csv", TAITO_FIXTURE_RELEASE, "taito-reconciliation.test.ts"],
   ["osaka-designated-smoking-areas", "opendata_1012.csv", OSAKA_FIXTURE_RELEASE, "osaka-source.test.ts"],
   ["koto-station-smoking-areas", "131083_237_public_smoking_area_station.csv", KOTO_FIXTURE_RELEASE, "koto-source.test.ts"],
@@ -71,6 +73,8 @@ export function evaluateCandidate(input: Candidate) {
   const scoped = gate.exactDataset === c.resource.rawUrl && c.resource.rawUrl !== null;
   const rights = reviewed && scoped && triage.rights === "explicit-review-signal" &&
     r.commercialReuse === true && !!r.licenseName && !!r.licenseUrl;
+  // Approximate authority requires a concrete reviewed adapter and immutable anchor; inspectReviewedSources
+  // diagnoses that implementation. Candidate metadata alone cannot grant area-anchor authority.
   const coordinates = reviewed && scoped && r.coordinateAuthorityReviewed === true &&
     r.coordinateKind === "publisherPoint" && gate.publisherCoordinates === true &&
     triage.coordinates === "available-signal" && c.resource.coordinateColumns.length > 0 &&
@@ -165,6 +169,7 @@ export function inspectReviewedSources(repositoryRoot = root) {
     if (!registry.licenseName || !registry.licenseUrl || !registry.attributionText) blockers.push("rightsMetadataMissing");
     let header: string[] = [], columns: string[] = [], rawRows: number | null = null, observedRows: number | null = null;
     let digest: string | null = null;
+    let coordinateKind: "publisherPoint" | "areaApproximate" | "unknown" = "unknown";
     if (fixtureFile && checks.fixture && pin) {
       try {
         const bytes = new Uint8Array(readFileSync(fixtureFile));
@@ -173,6 +178,10 @@ export function inspectReviewedSources(repositoryRoot = root) {
         const observations = parsed.rows.filter(row => !adapter.includesRecord || adapter.includesRecord(row))
           .map(row => observeSourceRecord(adapter, row));
         observedRows = observations.length;
+        if (observations.length > 0) {
+          coordinateKind = observations.every(o => !!o.locationAnchorId) ? "areaApproximate" :
+            observations.every(o => !o.locationAnchorId) ? "publisherPoint" : "unknown";
+        }
         columns = [...new Set(observations.flatMap(o => o.provenance.filter(p => p.field === "location").flatMap(p => p.columns)))];
         adapter.assertResolvable({ ...pin[2], contentSha256: digest }, observations);
       } catch (error) { blockers.push(`fixtureValidationFailed: ${error instanceof Error ? error.message : String(error)}`); }
@@ -184,7 +193,7 @@ export function inspectReviewedSources(repositoryRoot = root) {
       smokingEvidence: { status: "existing-repository-review", reference: "docs/SOURCES.md" },
       rights: { status: "RIGHTS_REVIEWED", licenseName: registry.licenseName, licenseUrl: registry.licenseUrl,
         metadata: "Existing reviewed registry, not newly inferred permission", commercialReuse: "see docs/SOURCES.md" },
-      attribution: registry.attributionText, coordinates: { status: "COORDINATE_AUTHORITY_REVIEWED", kind: "publisherPoint", columns },
+      attribution: registry.attributionText, coordinates: { status: "COORDINATE_AUTHORITY_REVIEWED", kind: coordinateKind, columns },
       operation: "pinned-release review only; latest live operation unknown",
       adapter: true, ...checks,
       pinnedRelease: pin ? { ...pin[2], contentSha256: digest, file: pin[1], rawRows, observedRows } : null,

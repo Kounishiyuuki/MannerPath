@@ -36,7 +36,7 @@ import { triageCategory, triageQueue, triageSummary } from "../src/reports/triag
 import { TileBodyV1, type TileSpotV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
-import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
+import { importProductionBaselineSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 import { proposeAbsence, proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
 import { v1TileRows } from "./support/tiles.ts";
@@ -75,7 +75,7 @@ async function acceptAndQueue(db: SqliteD1, ...ids: string[]) {
 }
 async function world() {
   const db = new SqliteD1();
-  await importAllReviewedSources(db, isoSeconds(RECEIVED));
+  await importProductionBaselineSources(db, isoSeconds(RECEIVED));
   await publishTiles(db, { now: isoSeconds(RECEIVED) });
   return db;
 }

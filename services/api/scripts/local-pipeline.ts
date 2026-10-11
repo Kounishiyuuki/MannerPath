@@ -14,6 +14,8 @@ import { MINATO_ADAPTER, MINATO_FIXTURE_RELEASE, MINATO_SOURCE_ID } from "../src
 import { KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
 import { KYOTO_ADAPTER, KYOTO_FIXTURE_RELEASE, KYOTO_SOURCE_ID } from "../src/pipeline/kyoto-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
+import { SENDAI_ADAPTER, SENDAI_AREA_ANCHOR, SENDAI_FIXTURE_RELEASE, SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
+import { recordAreaAnchor } from "../src/pipeline/area-anchor.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
@@ -25,10 +27,13 @@ import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_SOURCE_ID } fro
 //   npm run local:pipeline -- osaka-designated-smoking-areas
 //   npm run local:pipeline -- koto-station-smoking-areas
 const sourceId = process.argv[2] ?? TAITO_SOURCE_ID;
-if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID].includes(sourceId)) {
+if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID].includes(sourceId)) {
   throw new Error(`local:pipeline: unreviewed source ${sourceId}`);
 }
-const selected = sourceId === KYOTO_SOURCE_ID ? {
+const selected = sourceId === SENDAI_SOURCE_ID ? {
+  adapter: SENDAI_ADAPTER, release: SENDAI_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/sendai-kaigan-park-smoking-areas/041009_public_facility.csv",
+} : sourceId === KYOTO_SOURCE_ID ? {
   adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/kyoto-public-smoking-places/20260903_shisetsu.csv",
 } : sourceId === MUSASHINO_SOURCE_ID ? {
@@ -56,6 +61,7 @@ try {
   console.log("registry", await ensureReviewedSource(db, sourceId, now));
   const ingest = await ingestRelease(db, selected.adapter, new Uint8Array(readFileSync(FIXTURE)), selected.release);
   console.log("ingest", ingest);
+  if (sourceId === SENDAI_SOURCE_ID) await recordAreaAnchor(db, selected.adapter, SENDAI_AREA_ANCHOR, now);
   console.log("resolve", await resolveFirstRelease(db, selected.adapter, ingest.releaseId, { now }).then((r) =>
     r.status === "resolved" ? { status: r.status, spots: r.spotIds.length } : r));
   console.log("publish", JSON.stringify(await publishTiles(db, { now }), null, 2));

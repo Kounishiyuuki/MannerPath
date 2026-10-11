@@ -1,0 +1,10 @@
+{
+  "sourceUrl": "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv",
+  "fetchedAt": "2026-10-10T16:37:01Z",
+  "httpStatus": 200,
+  "httpLastModified": "Wed, 13 May 2026 06:00:09 GMT",
+  "byteLength": 1177923,
+  "contentSha256": "c6bf5395eed995773e3b74b6d3ba6ea3868940f45a6293b8d37330f2bdd72c8b",
+  "observedOn": null,
+  "note": "fetchedAt is the response Date, not a smoking-place observation. Normal certificate-verified HTTPS; unmodified publisher bytes."
+}

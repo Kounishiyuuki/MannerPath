@@ -434,6 +434,9 @@
     },
     {
       "id": "city-sendai",
+      "reviewedSourceIds": [
+        "sendai-kaigan-park-smoking-areas"
+      ],
       "name": "仙台市",
       "prefecture": "宮城県",
       "publisher": "仙台市",

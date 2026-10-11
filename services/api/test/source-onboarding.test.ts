@@ -83,9 +83,9 @@ test("review fields are strict booleans; unknown, spoofed approval and unscoped 
   assert.equal(unknown.productionApproval, false);
 });
 
-test("all six reviewed sources have actual fixture, test, registry and discovery evidence", () => {
+test("all reviewed sources have actual fixture, test, registry and discovery evidence", () => {
   const results = inspectReviewedSources();
-  assert.equal(results.length, 6);
+  assert.equal(results.length, SOURCE_ADAPTERS.length);
   for (const result of results) {
     assert.equal(result.state, "LOCAL_PIPELINE_READY", result.sourceId + JSON.stringify(result.blockers));
     assert.deepEqual(result.blockers, []);
@@ -96,6 +96,18 @@ test("all six reviewed sources have actual fixture, test, registry and discovery
     assert.equal(result.latestLiveRelease, "unknown");
     assert.ok(result.pinnedRelease!.observedRows! > 0);
     assert.ok(result.coordinates.columns.length > 0);
+  }
+});
+
+test("Sendai onboarding diagnoses the park anchor as approximate and never as a smoking point", () => {
+  const result = inspectReviewedSources().find(r => r.sourceId === "sendai-kaigan-park-smoking-areas")!;
+  assert.equal(result.state, "LOCAL_PIPELINE_READY", JSON.stringify(result.blockers));
+  assert.equal(result.coordinates.kind, "areaApproximate");
+  assert.equal(result.pinnedRelease!.rawRows, 2844);
+  assert.equal(result.pinnedRelease!.observedRows, 1);
+  assert.equal(result.productionApproval, false);
+  for (const other of inspectReviewedSources().filter(r => r.sourceId !== result.sourceId)) {
+    assert.equal(other.coordinates.kind, "publisherPoint", other.sourceId);
   }
 });
 
