@@ -81,6 +81,9 @@ nonisolated enum LocationPrecision: String, Codable, Hashable, Sendable {
 nonisolated struct LocationArea: Codable, Hashable, Sendable {
     let name: String
     let kind: String
+    // ADR-0018: what the pin represents — "facility" or "namedZone". Optional so an area cached before it decodes;
+    // absent keeps the generic approximate wording.
+    var scope: String? = nil
 }
 
 nonisolated struct SpotSource: Codable, Hashable, Sendable {

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
+import { KOMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/komatsu-airport-adapter.ts";
 import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth } from "../src/source-health/check.ts";
 import { productionHealthTargets } from "../scripts/source-health.ts";
@@ -31,9 +32,11 @@ test("source health failures and changed payloads leave the approved corpus and 
   assert.ok(beforeTiles.length > 0, "exercise actual published manifests and assembled tile bodies");
   const targets = productionHealthTargets();
   assert.deepEqual(targets.map(target => target.adapter.registry.sourceId).sort(),
-    SOURCE_ADAPTERS.filter(adapter => adapter.registry.sourceId !== SENDAI_SOURCE_ID).map(adapter => adapter.registry.sourceId).sort());
+    SOURCE_ADAPTERS.filter(adapter => adapter.registry.sourceId !== SENDAI_SOURCE_ID && adapter.registry.sourceId !== KOMATSU_AIRPORT_SOURCE_ID)
+      .map(adapter => adapter.registry.sourceId).sort());
   assert.equal(targets.length, 6, "production health keeps the six deployed sources");
   assert.equal(targets.some(target => target.adapter.registry.sourceId === SENDAI_SOURCE_ID), false, "repository-reviewed Sendai is not production-monitored");
+  assert.equal(targets.some(target => target.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID), false, "repository-reviewed Komatsu is not production-monitored");
   assert.equal(db.raw.prepare("SELECT count(*) n FROM sources WHERE source_id = ?").get(SENDAI_SOURCE_ID)?.n, 1, "the unchanged corpus comparison includes Sendai");
 
   for (const target of targets) {

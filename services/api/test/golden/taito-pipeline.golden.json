@@ -3599,7 +3599,7 @@
       {
         "id": "published-sources-carry-license-and-attribution",
         "status": "pass",
-        "detail": "every published source has a license name, a license URL and attribution text"
+        "detail": "every published source has attribution text and a license name/URL or a reviewed factReference rights record"
       },
       {
         "id": "published-tiles-carry-attribution",
@@ -5120,6 +5120,7 @@
         "updated_at": "2026-09-21T03:00:00Z"
       }
     ],
+    "spot_evidence_holds": [],
     "spot_field_attenuations": [
       {
         "spot_id": "sp_00000000000000000000000010",

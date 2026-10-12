@@ -90,6 +90,9 @@ moves (ADR-0017 §Implementation). v1 upgrades to `publisherPoint` from the same
 `reviewedDerived` point (ADR-0011 Proposed) and a point outside the area fail closed until decided separately. The
 navigation label 「この場所へ案内」 is used only for a known exact point (`publisherPoint`, `communityPinned`);
 everything else — area anchors, derived, unknown, unrecognised or missing precision — reads 「この付近へ案内」.
+ADR-0018 adds `locationArea.scope`: `facility` (the pin is the host facility's representative point; the detail says
+「施設内の詳しい位置は確認できていません」 and navigation reads 「この施設内へ案内」) or `namedZone` (「この付近へ案内」). Several
+places the publisher distinguishes but that share one anchor are one spot, never stacked pins.
 
 ## 5. Evidence invariants
 

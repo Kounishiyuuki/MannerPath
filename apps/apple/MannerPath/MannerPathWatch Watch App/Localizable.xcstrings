@@ -1,6 +1,8 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Navigate into this facility": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この施設内へ案内" } } } },
+    "The smoking place is confirmed to be inside this facility. Its position inside the facility is not confirmed; the pin marks the facility.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "喫煙場所はこの施設内にあることが確認されています。施設内の詳しい位置は確認できていません。ピンは施設の位置を示します。" } } } },
     "Approximate location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置は目安" } } } },
     "Estimated location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "推定位置" } } } },
     "No saved data": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "保存済みデータなし" } } } },

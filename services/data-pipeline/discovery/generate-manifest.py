@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Rebuild the nationwide target inventory and bounded historical research seed.
 No network, approval decisions or canonical-data writes occur here.
+
+Partial reproduction: the target inventory and the reviewed (implemented) sources are reproduced exactly, but later
+lanes edit manifest.json directly (deepReview, highValueReview, later research rows; 88 targets differ as of
+2026-10-12). Do not write this script's output over manifest.json; generate into a scratch directory and copy only the
+targets you changed, checking that the reviewed entries match.
 """
 import hashlib,json,re
 from pathlib import Path
@@ -35,7 +40,9 @@ for w in wards:
  add('ward-'+slug,name+'区','東京都','municipality','https://'+host+'/', ['tokyoWard']+(['prefecturalCapital'] if slug=='shinjuku' else []))
 operators=[('jr-hokkaido','JR北海道','北海道','railway','www.jrhokkaido.co.jp'),('jr-east','JR東日本',None,'railway','www.jreast.co.jp'),('jr-central','JR東海',None,'railway','jr-central.co.jp'),('jr-west','JR西日本',None,'railway','www.westjr.co.jp'),('jr-shikoku','JR四国',None,'railway','www.jr-shikoku.co.jp'),('jr-kyushu','JR九州',None,'railway','www.jrkyushu.co.jp'),('tobu','東武鉄道',None,'railway','www.tobu.co.jp'),('seibu','西武鉄道',None,'railway','www.seiburailway.jp'),('keisei','京成電鉄',None,'railway','www.keisei.co.jp'),('keio','京王電鉄',None,'railway','www.keio.co.jp'),('odakyu','小田急電鉄',None,'railway','www.odakyu.jp'),('tokyu','東急電鉄',None,'railway','www.tokyu.co.jp'),('keikyu','京急電鉄',None,'railway','www.keikyu.co.jp'),('sotetsu','相模鉄道','神奈川県','railway','www.sotetsu.co.jp'),('meitetsu','名古屋鉄道',None,'railway','www.meitetsu.co.jp'),('kintetsu','近畿日本鉄道',None,'railway','www.kintetsu.co.jp'),('nankai','南海電鉄',None,'railway','www.nankai.co.jp'),('keihan','京阪電気鉄道',None,'railway','www.keihan.co.jp'),('hankyu','阪急電鉄',None,'railway','www.hankyu.co.jp'),('hanshin','阪神電気鉄道',None,'railway','www.hanshin.co.jp'),('nishitetsu','西日本鉄道','福岡県','railway','www.nishitetsu.jp'),('tokyo-metro','東京メトロ','東京都','subway','www.tokyometro.jp'),('toei','東京都交通局','東京都','subway','www.kotsu.metro.tokyo.jp'),('sapporo-subway','札幌市交通局','北海道','subway','www.city.sapporo.jp/st'),('sendai-subway','仙台市交通局','宮城県','subway','www.kotsu.city.sendai.jp'),('yokohama-subway','横浜市交通局','神奈川県','subway','www.city.yokohama.lg.jp/kotsu'),('nagoya-subway','名古屋市交通局','愛知県','subway','www.kotsu.city.nagoya.jp'),('kyoto-subway','京都市交通局','京都府','subway','www.city.kyoto.lg.jp/kotsu'),('osaka-metro','大阪メトロ','大阪府','subway','www.osakametro.co.jp'),('kobe-subway','神戸市交通局','兵庫県','subway','www.city.kobe.lg.jp/a80062'),('fukuoka-subway','福岡市交通局','福岡県','subway','subway.city.fukuoka.lg.jp'),('haneda','日本空港ビルデング（羽田空港）','東京都','airportTerminal','tokyo-haneda.com'),('narita','成田国際空港株式会社','千葉県','airport','www.narita-airport.jp'),('kansai-airports','関西エアポート',None,'airport','www.kansai-airports.co.jp'),('centrair','中部国際空港株式会社','愛知県','airport','www.centrair.jp'),('hokkaido-airports','北海道エアポート','北海道','airport','www.hokkaido-airports.com'),('sendai-airport','仙台国際空港株式会社','宮城県','airport','www.sendai-airport.co.jp'),('fukuoka-airport','福岡国際空港株式会社','福岡県','airport','www.fukuoka-airport.jp'),('naha-airport','那覇空港ビルディング','沖縄県','airportTerminal','www.naha-airport.co.jp'),('jr-east-building','JR東日本ビルディング',None,'stationFacility','www.jebl.co.jp'),('jr-central-building','JR東海ビルディング',None,'stationFacility','www.jrtb.co.jp'),('jr-west-station-city','大阪ステーションシティ','大阪府','stationFacility','osakastationcity.com'),('atre','アトレ',None,'stationFacility','www.atre.co.jp'),('lumine','ルミネ',None,'stationFacility','www.lumine.ne.jp')]
 for id,name,pref,lane,host in operators:add('operator-'+id,name,pref,'operator','https://'+host+'/',[lane])
-for id,name,pref,host in [('niigata-airport','新潟空港','新潟県','www.niigata-airport.gr.jp'),('shizuoka-airport','富士山静岡空港','静岡県','www.mtfuji-shizuokaairport.jp'),('aomori-airport','青森空港','青森県','www.aomori-airport.co.jp'),('tokyo-big-sight','東京ビッグサイト','東京都','www.bigsight.jp'),('makuhari-messe','幕張メッセ','千葉県','www.m-messe.co.jp'),('pacifico-yokohama','パシフィコ横浜','神奈川県','www.pacifico.co.jp')]:add('operator-'+id,name,pref,'operator','https://'+host+'/', ['airport' if 'airport' in id else 'facilityOperator'])
+for id,name,pref,host in [('niigata-airport','新潟空港','新潟県','www.niigata-airport.gr.jp'),('shizuoka-airport','富士山静岡空港','静岡県','www.mtfuji-shizuokaairport.jp'),('aomori-airport','青森空港','青森県','www.aomori-airport.co.jp'),('komatsu-airport','小松空港','石川県','www.komatsuairport.jp'),('tokyo-big-sight','東京ビッグサイト','東京都','www.bigsight.jp'),('makuhari-messe','幕張メッセ','千葉県','www.m-messe.co.jp'),('pacifico-yokohama','パシフィコ横浜','神奈川県','www.pacifico.co.jp')]:add('operator-'+id,name,pref,'operator','https://'+host+'/', ['airport' if 'airport' in id else 'facilityOperator'])
+# ADR-0018 page-fact source: the official airport site is published by 小松空港協議会; the reviewed page is the FAQ.
+komatsu=next(t for t in targets if t['id']=='operator-komatsu-airport');komatsu['publisher']='小松空港協議会';komatsu['urls'].append('https://www.komatsuairport.jp/faq/q85.html')
 add('national-mlit-indoor','国土交通省 屋内地理空間情報',None,'national','https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2')
 add('city-musashino','武蔵野市','東京都','municipality','https://www.city.musashino.lg.jp/')
 # Publisher-delegated portals established in prior research; no approval inferred.
@@ -105,7 +112,7 @@ for t in targets:
  if any('bodik.jp' in c['url'] for c in t['catalogs']):
   t['priorResearch'].append({'reference':'Issue #118','status':'blocked','blockerCodes':['accessBlocked'],'rawUrls':[]})
 # Approved registry fixtures are historical implemented evidence, never automatic approval.
-reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designated-smoking-areas','ward-koto':'koto-station-smoking-areas','city-musashino':'musashino-public-smoking-areas','ward-minato':'minato-designated-smoking-areas','city-kyoto':'kyoto-public-smoking-places'}
+reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designated-smoking-areas','ward-koto':'koto-station-smoking-areas','city-musashino':'musashino-public-smoking-areas','ward-minato':'minato-designated-smoking-areas','city-kyoto':'kyoto-public-smoking-places','city-sendai':'sendai-kaigan-park-smoking-areas','operator-komatsu-airport':'komatsu-airport-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:
@@ -113,8 +120,13 @@ for t in targets:
   folder=ROOT/'services/data-pipeline/fixtures'/source
   fetch_path=folder/'fetch.json'
   metadata=json.loads(fetch_path.read_text()) if fetch_path.exists() else {}
-  adapter_path=ROOT/'services/api/src/pipeline'/('taito.ts' if source.startswith('taito-') else 'osaka-adapter.ts')
-  if metadata:
+  adapter_path=ROOT/'services/api/src/pipeline'/('taito.ts' if source.startswith('taito-') else 'komatsu-airport-adapter.ts' if source.startswith('komatsu-') else 'osaka-adapter.ts')
+  if source.startswith('komatsu-'):
+   # The release is MannerPath's reviewed fact sheet for one HTML page (ADR-0018 §4), not a publisher file: the hash
+   # is the sheet's, the URL the page's, and nothing is a raw resource.
+   code=adapter_path.read_text();url=re.search(r'PAGE_URL = "(https://[^"]+)"',code).group(1);sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='reviewedPageFactSheetBytesNotPageHtml'
+   metadata={'fetchedAt':re.search(r'fetchedAt: "([^"]+)"',code).group(1)}
+  elif metadata:
    url=metadata['sourceUrl'];sha=metadata.get('archiveSha256',metadata.get('contentSha256'));scope='rawArchiveBytes' if metadata.get('archiveSha256') else 'rawResponseBytes'
   else:
    code=adapter_path.read_text();url=re.search(r'https://[^"\s]+\.csv',code).group();sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='rawResponseBytes'
@@ -125,7 +137,7 @@ for t in targets:
   if metadata.get('httpLastModified'):entry['lastModified']=metadata['httpLastModified']
   if metadata.get('fetchedAt'):entry['fetchedAt']=metadata['fetchedAt']
   t['priorResearch'].append(entry);reviewed_resources.append({'targetId':t['id'],**entry})
-  if not any(r['url']==url for r in t['rawResources']):t['rawResources'].append({'url':url,'title':source,'sha256':sha,'reviewedHashScope':entry['reviewedHashScope']})
+  if scope!='reviewedPageFactSheetBytesNotPageHtml' and not any(r['url']==url for r in t['rawResources']):t['rawResources'].append({'url':url,'title':source,'sha256':sha,'reviewedHashScope':entry['reviewedHashScope']})
  elif t['priorResearch']:
   t['seedStatus']='blocked';t['blockerCodes']=sorted({c for p in t['priorResearch'] for c in p['blockerCodes']})
 # Other survey references required by the batch are explicitly retained.
@@ -133,7 +145,7 @@ manifest={'version':1,'generatedBy':'generate-manifest.py','scope':'local-only d
 seed={'version':1,'note':'Imported prior raw inspections only; hashes do not replace raw bytes or grant reuse rights. URL skip applies to inspected unchanged releases only.','resources':seeds,'reviewedResources':reviewed_resources,'researchReferences':manifest['researchReferences']}
 # Jurisdiction boundaries prevent 津市 inheriting 大津市/草津市 or 港 inheriting 港区.
 assert not any('大津市' in p.get('evidence','') or '草津市' in p.get('evidence','') for t in targets if t['id']=='city-tsu' for p in t['priorResearch'])
-assert len(reviewed_resources)==6
+assert len(reviewed_resources)==8
 assert all(r['rawUrls'] and len(r['sha256'])==64 for r in reviewed_resources)
 assert len({t['id'] for t in targets})==len(targets)
 assert sum('prefecturalCapital' in t['roles'] for t in targets)==47

@@ -10,9 +10,11 @@ import { KOTO_FIXTURE_RELEASE, KOTO_SOURCE_ID } from "../../src/pipeline/koto-ad
 import { KYOTO_FIXTURE_RELEASE, KYOTO_SOURCE_ID } from "../../src/pipeline/kyoto-adapter.ts";
 import { MINATO_FIXTURE_RELEASE, MINATO_SOURCE_ID } from "../../src/pipeline/minato-adapter.ts";
 import { MUSASHINO_FIXTURE_RELEASE, MUSASHINO_SOURCE_ID } from "../../src/pipeline/musashino-adapter.ts";
+import { KOMATSU_AIRPORT_FIXTURE_RELEASE, KOMATSU_AIRPORT_SOURCE_ID } from "../../src/pipeline/komatsu-airport-adapter.ts";
+import { sha256Hex } from "../../src/db.ts";
 import { OSAKA_FIXTURE_RELEASE, OSAKA_SOURCE_ID } from "../../src/pipeline/osaka-adapter.ts";
 import { SENDAI_AREA_ANCHOR, SENDAI_FIXTURE_RELEASE, SENDAI_SOURCE_ID } from "../../src/pipeline/sendai-adapter.ts";
-import { recordAreaAnchor } from "../../src/pipeline/area-anchor.ts";
+import { recordAreaAnchor, recordReviewedAnchors } from "../../src/pipeline/area-anchor.ts";
 import { ensureReviewedSource } from "../../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../../src/pipeline/resolve.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../../src/pipeline/taito.ts";
@@ -26,6 +28,7 @@ export const REVIEWED_FIXTURES: Readonly<Record<string, { release: ReleaseMetada
   [MUSASHINO_SOURCE_ID]: { release: MUSASHINO_FIXTURE_RELEASE, file: "musashino-public-smoking-areas/doc.kml" },
   [MINATO_SOURCE_ID]: { release: MINATO_FIXTURE_RELEASE, file: "minato-designated-smoking-areas/minatokushisetsujoho_fukugo.csv" },
   [KYOTO_SOURCE_ID]: { release: KYOTO_FIXTURE_RELEASE, file: "kyoto-public-smoking-places/20260903_shisetsu.csv" },
+  [KOMATSU_AIRPORT_SOURCE_ID]: { release: KOMATSU_AIRPORT_FIXTURE_RELEASE, file: "komatsu-airport-smoking-places/komatsu-airport-page-facts.csv" },
 };
 
 export function reviewedFixtureBytes(file: string): Uint8Array {
@@ -58,8 +61,11 @@ async function importReviewedSources(db: Db, now: string, adapters: readonly Sou
     const fixture = REVIEWED_FIXTURES[adapter.registry.sourceId];
     if (!fixture) throw new Error(`reviewed-fixtures: no pinned fixture for ${adapter.registry.sourceId}`);
     await ensureReviewedSource(db, adapter.registry.sourceId, now);
-    const { releaseId } = await ingestRelease(db, adapter, reviewedFixtureBytes(fixture.file), fixture.release);
+    const bytes = reviewedFixtureBytes(fixture.file);
+    const { releaseId } = await ingestRelease(db, adapter, bytes, fixture.release);
+    // Sendai's ADR-0017 anchor is a named reviewed constant; ADR-0018 adapters declare theirs per release.
     if (adapter.registry.sourceId === SENDAI_SOURCE_ID) await recordAreaAnchor(db, adapter, SENDAI_AREA_ANCHOR, now);
+    await recordReviewedAnchors(db, adapter, await sha256Hex(bytes), now);
     const result = await resolveFirstRelease(db, adapter, releaseId, { now, newSpotId: sequentialSpotIds(String(i)) });
     if (result.status !== "resolved") throw new Error(`reviewed-fixtures: ${adapter.registry.sourceId} did not resolve`);
   }

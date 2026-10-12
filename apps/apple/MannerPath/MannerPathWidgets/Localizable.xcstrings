@@ -1,6 +1,8 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Somewhere inside this facility": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "施設内（詳しい位置は未確認）" } } } },
+    "Inside facility": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "施設内・目安" } } } },
     "Approx. location" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "目安" } } } },
     "Estimated" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "推定" } } } },
     "Precision unknown" : { "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "精度不明" } } } },

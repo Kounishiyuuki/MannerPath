@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { checkSourceHealth, type HealthResult } from "../src/source-health/check.ts";
 import { buildReport, evaluateResult, jstDate, renderSummary, validateReviews, type SourceReview } from "../src/source-health/evaluate.ts";
-import { productionHealthTargets, sourceReviews } from "../scripts/source-health.ts";
+import { productionHealthTargets, repositoryReviewedHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { ECDHE_AEAD_CIPHERS, ecdheAeadFetch } from "../scripts/source-health-transport.ts";
 
 const targets = productionHealthTargets();
@@ -86,7 +86,8 @@ test("humanReviewDue boundary is inclusive on the due JST day", async () => {
 });
 test("all-source aggregation: advisory-only exits 0, any blocker exits 1, every source reported", async () => {
   const reviews = sourceReviews().map(item => ({ ...item, knownAdvisories: [] }));
-  validateReviews(reviews, targets.map(t => t.adapter.registry.sourceId));
+  // Review metadata covers every health-configured source, deployed or repository-reviewed (Komatsu).
+  validateReviews(reviews, repositoryReviewedHealthTargets().map(t => t.adapter.registry.sourceId));
   // A same-origin move is advisory; clone one healthy moved result per source.
   let calls = 0;
   const moved = await check(async () => ++calls === 1 ? response("", 301, { location: "/moved.csv" }) : response());
@@ -100,7 +101,7 @@ test("all-source aggregation: advisory-only exits 0, any blocker exits 1, every 
   assert.match(renderSummary(blocked), /BLOCKING/);
 });
 test("review metadata must cover every source with valid dates", () => {
-  const ids = targets.map(t => t.adapter.registry.sourceId);
+  const ids = repositoryReviewedHealthTargets().map(t => t.adapter.registry.sourceId);
   assert.throws(() => validateReviews(sourceReviews().slice(1), ids));
   assert.throws(() => validateReviews(sourceReviews().map((r, i) => i ? r : { ...r, reviewDueAt: "2027-13-40" }), ids));
 });

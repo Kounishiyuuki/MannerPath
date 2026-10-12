@@ -6,6 +6,7 @@
 // with the source that needs them, reviewed against ADR-0008, not speculatively.
 
 import type { Db } from "../db.ts";
+import type { ReviewedAreaAnchor } from "./area-anchor.ts";
 import type { ReviewedSource } from "./registry.ts";
 
 export type TriState = "yes" | "no" | "unknown";
@@ -131,7 +132,17 @@ export interface SourceAdapter {
    * this same publication), or null. Only `recordAreaAnchor` reads it, to check a reviewed anchor against the
    * publication instead of trusting a typed coordinate. Absent: this source supplies no anchors.
    */
-  areaPoint?(values: readonly string[]): { areaName: string; latitude: number; longitude: number } | null;
+  areaPoint?(values: readonly string[]): {
+    areaName: string; latitude: number; longitude: number;
+    /** ADR-0018: stated only by a reviewed page-fact sheet, from its `area_scope` / `anchor_basis` / `anchor_reference` columns. */
+    scope?: "namedZone" | "facility";
+    basis?: { basis: "referenceDatasetPoint" | "officialAddressGeocode"; reference: string };
+  } | null;
+  /**
+   * ADR-0018: the reviewed anchors this source's pinned release needs, recorded after ingest and before resolve by the
+   * local pipeline and the reviewed-fixture import. Absent: the source has no anchors.
+   */
+  reviewedAnchors?(releaseContentSha256: string): readonly ReviewedAreaAnchor[];
   /**
    * ADR-0017 (0030 area_point_mappings): the reviewed header columns `areaPoint` reads, registered once per mapping
    * version and immutable; the database reads every anchor's point through them (an anchor never names its own columns).

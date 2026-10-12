@@ -574,7 +574,7 @@ Osaka release review:
 
 ```sh
 cd services/api
-PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run source:health -- --live \
+PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run --silent source:health -- --live \
   --source=osaka-designated-smoking-areas > osaka-health.json   # summary on stderr
 ```
 

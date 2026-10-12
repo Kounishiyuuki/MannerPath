@@ -6,7 +6,7 @@ import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {fileURLToPath} from "node:url";
 import {createHash} from "node:crypto";
-import {importAllReviewedSources} from "./support/reviewed-fixtures.ts";
+import {REVIEWED_FIXTURES, importAllReviewedSources} from "./support/reviewed-fixtures.ts";
 import {SqliteD1, migratedSqlite, applyPromotionBundle} from "./support/sqlite-d1.ts";
 import {publishTiles} from "../src/tiles/publish.ts";
 import {buildMultiSourcePromotionBundle, verifyPromotionBundle} from "../src/pipeline/promotion.ts";
@@ -15,7 +15,12 @@ import {generateCrossSourceCandidates} from "../src/pipeline/cross-source.ts";
 import {app} from "../src/app.ts";
 import { v1TileRows } from "./support/tiles.ts";
 const root = fileURLToPath(new URL("../../../", import.meta.url));
-const now = "2026-10-11T12:00:00Z";
+// The newest instant any pinned fixture states (its observation day or fetch time), derived rather than hand-set: the
+// freshness check refuses future dates, and a new fixture moves this clock with it instead of breaking the test.
+const now = Object.values(REVIEWED_FIXTURES)
+  .flatMap(({release}) => [release.fetchedAt, release.observedOn === null ? null : `${release.observedOn}T00:00:00Z`])
+  .filter((t): t is string => t !== null)
+  .reduce((a, b) => (a > b ? a : b));
 const queryRows = (db: SqliteD1, table: string) => db.raw.prepare(`SELECT * FROM ${table} ORDER BY 1`).all();
 function trackedPublicationFiles() {
  const files = spawnSync("git", ["ls-files", "services/data-pipeline/fixtures", "services/api/src/pipeline", "docs/SOURCES.md"], {cwd: root, encoding: "utf8"});

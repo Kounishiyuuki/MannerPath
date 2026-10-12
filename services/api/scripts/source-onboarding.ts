@@ -14,6 +14,7 @@ import { MUSASHINO_FIXTURE_RELEASE } from "../src/pipeline/musashino-adapter.ts"
 import { MINATO_FIXTURE_RELEASE } from "../src/pipeline/minato-adapter.ts";
 import { SENDAI_FIXTURE_RELEASE } from "../src/pipeline/sendai-adapter.ts";
 import { KYOTO_FIXTURE_RELEASE } from "../src/pipeline/kyoto-adapter.ts";
+import { KOMATSU_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/komatsu-airport-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const sourceIdSchema = z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).max(100);
@@ -60,6 +61,7 @@ const pins = [
   ["musashino-public-smoking-areas", "doc.kml", MUSASHINO_FIXTURE_RELEASE, "musashino-source.test.ts"],
   ["minato-designated-smoking-areas", "minatokushisetsujoho_fukugo.csv", MINATO_FIXTURE_RELEASE, "minato-source.test.ts"],
   ["kyoto-public-smoking-places", "20260903_shisetsu.csv", KYOTO_FIXTURE_RELEASE, "kyoto-source.test.ts"],
+  ["komatsu-airport-smoking-places", "komatsu-airport-page-facts.csv", KOMATSU_AIRPORT_FIXTURE_RELEASE, "komatsu-airport-source.test.ts"],
 ] as const;
 export const ONBOARDING_STATES = ["DISCOVERED", "RIGHTS_REVIEW_REQUIRED", "RIGHTS_REVIEWED",
   "COORDINATE_AUTHORITY_REQUIRED", "COORDINATE_AUTHORITY_REVIEWED", "ADAPTER_REQUIRED",
@@ -166,7 +168,9 @@ export function inspectReviewedSources(repositoryRoot = root) {
     const blockers: string[] = [];
     for (const [key, present] of Object.entries(checks)) if (!present) blockers.push(`${key}Missing`);
     const registry = adapter.registry;
-    if (!registry.licenseName || !registry.licenseUrl || !registry.attributionText) blockers.push("rightsMetadataMissing");
+    // ADR-0018: a factReference source has no licence by design; its reviewed rights record stands in for one.
+    const factReference = registry.rightsBasis?.kind === "factReference";
+    if (!registry.attributionText || (!factReference && (!registry.licenseName || !registry.licenseUrl))) blockers.push("rightsMetadataMissing");
     let header: string[] = [], columns: string[] = [], rawRows: number | null = null, observedRows: number | null = null;
     let digest: string | null = null;
     let coordinateKind: "publisherPoint" | "areaApproximate" | "unknown" = "unknown";
@@ -191,7 +195,7 @@ export function inspectReviewedSources(repositoryRoot = root) {
       approvalAutomated: false, productionApproval: false, publicationStatus: registry.publicationStatus,
       publisher: registry.displayName, resourceUrl: pin?.[2].sourceUrl ?? null,
       smokingEvidence: { status: "existing-repository-review", reference: "docs/SOURCES.md" },
-      rights: { status: "RIGHTS_REVIEWED", licenseName: registry.licenseName, licenseUrl: registry.licenseUrl,
+      rights: { status: "RIGHTS_REVIEWED", basis: factReference ? "factReference" : "openLicence", licenseName: registry.licenseName, licenseUrl: registry.licenseUrl,
         metadata: "Existing reviewed registry, not newly inferred permission", commercialReuse: "see docs/SOURCES.md" },
       attribution: registry.attributionText, coordinates: { status: "COORDINATE_AUTHORITY_REVIEWED", kind: coordinateKind, columns },
       operation: "pinned-release review only; latest live operation unknown",

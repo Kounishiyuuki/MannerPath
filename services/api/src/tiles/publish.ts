@@ -6,7 +6,7 @@
 // community spot needs evidence consented under a granted terms version (else excluded as `rightsNotGranted`), and
 // a spot under an active community publication hold (0021) or absence hold (0024) is not a candidate at all.
 
-import { type Db, sha256Hex } from "../db.ts";
+import { type Db, type DbStatement, sha256Hex } from "../db.ts";
 import { SPOT_VERIFICATION_VERSION, type SpotVerificationV1, TILE_SCHEMA_VERSION, type TileSourceV1, type TileSpotV1 } from "./dto.ts";
 import { LOCATION_STATE_COLUMNS, LOCATION_STATE_JOINS, type LocationStateRow, locationState } from "./location-state.ts";
 import { manifestBody, splitTileParts } from "./parts.ts";
@@ -117,7 +117,32 @@ export function sourceDto(r: CandidateRow): TileSourceV1 {
 
 const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
+/**
+ * Evidence-hold changes that a caller writes in the same batch as the tiles (ADR-0018 §5). The plan is computed
+ * from the database as if they were already written, so the hold/clear and the tile rebuild commit or fail as one.
+ */
+export interface PendingEvidenceHolds {
+  /** Spots whose hold rows the caller inserts in the same batch: never candidates. */
+  holding?: ReadonlySet<string>;
+  /** The source whose active holds the caller clears in the same batch: its spots are candidates again. */
+  clearingSourceId?: string;
+}
+
+/** Every tile write of a publish, not yet written. `statements` is empty when no tile changed. */
+export interface TilePublicationPlan {
+  report: PublishReport;
+  statements: DbStatement[];
+}
+
 export async function publishTiles(db: Db, opts: { now: string }): Promise<PublishReport> {
+  const plan = await planTilePublication(db, opts);
+  if (plan.statements.length > 0) await db.batch(plan.statements);
+  return plan.report;
+}
+
+/** Reads only; the caller runs `statements` in one db.batch, D1's only multi-statement transaction. */
+export async function planTilePublication(db: Db, opts: { now: string; pending?: PendingEvidenceHolds }): Promise<TilePublicationPlan> {
+  const holding = opts.pending?.holding ?? new Set<string>();
   const { results: candidates } = await db.prepare(
     `SELECT s.spot_id, s.name, s.latitude, s.longitude, s.tile_id, s.tile_z, s.tile_x, s.tile_y, s.spot_type,
             s.access_type, s.environment, s.supports_paper, s.supports_heated, s.opening_hours_raw,
@@ -136,16 +161,20 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
      WHERE s.lifecycle = 'active' AND s.merged_into IS NULL AND s.publication_hold IS NULL
        AND s.spot_id NOT IN (SELECT spot_id FROM community_publication_holds WHERE lifted_at IS NULL)
        AND s.spot_id NOT IN (SELECT spot_id FROM community_absence_holds WHERE lifted_at IS NULL)
+       -- A reviewed source-evidence hold (0033, ADR-0018 §5): the first-party page no longer shows the fact.
+       -- source_id is NOT NULL, so with no source being cleared (NULL bind) every active hold applies.
+       AND s.spot_id NOT IN (SELECT spot_id FROM spot_evidence_holds WHERE cleared_at IS NULL AND source_id IS NOT ?)
        -- A survivor held by an unresolved cross-source merge conflict (0019) is not a candidate.
        AND s.spot_id NOT IN (SELECT spot_id FROM cross_source_publication_blocks)
        AND rel.status = 'applied'
        AND NOT EXISTS (SELECT 1 FROM pending_relocation_applications x WHERE x.spot_id = s.spot_id)
      ORDER BY s.spot_id`,
-  ).all<CandidateRow>();
+  ).bind(opts.pending?.clearingSourceId ?? null).all<CandidateRow>();
 
   const excluded = new Map<string, { sourceId: string; publicationStatus: string; spotCount: number }>();
   const tiles = new Map<string, { z: number; x: number; y: number; rows: CandidateRow[] }>();
   for (const row of candidates) {
+    if (holding.has(row.spot_id)) continue;
     const status = row.publication_status !== "approved" ? row.publication_status
       : row.community_rights_granted === 0 ? "rightsNotGranted"
       : locationState(row).kind === "invalid" ? "locationProvenanceInvalid" : null;
@@ -211,6 +240,5 @@ export async function publishTiles(db: Db, opts: { now: string }): Promise<Publi
     report.published.push({ tileId, revision, spotCount: spots.length, contentSha256 });
   }
   // Clears first, so a spot that moved between two republished tiles can be re-inserted.
-  if (upserts.length > 0) await db.batch([...clears, ...upserts, ...inserts]);
-  return report;
+  return { report, statements: upserts.length > 0 ? [...clears, ...upserts, ...inserts] : [] };
 }

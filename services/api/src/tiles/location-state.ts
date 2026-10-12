@@ -33,6 +33,7 @@ export interface LocationStateRow {
   la_longitude?: number | null;
   la_area_name?: string | null;
   la_area_kind?: string | null;
+  la_area_scope?: string | null;
   la_release_sha256?: string | null;
   lu_anchor_id?: string | null;
   lu_precision?: string | null;
@@ -50,9 +51,11 @@ export interface LocationStateRow {
 }
 
 export type AreaKind = "park" | "station" | "facility" | "airport" | "commercialBuilding" | "other";
+/** ADR-0018: what the anchor represents; absent on a policy v1 anchor. */
+export type AreaScope = "namedZone" | "facility";
 export type LocationState =
   | { kind: "unanchored" }
-  | { kind: "areaApproximate"; area: { name: string; kind: AreaKind } }
+  | { kind: "areaApproximate"; area: { name: string; kind: AreaKind; scope?: AreaScope } }
   | { kind: "upgraded"; precision: "publisherPoint" }
   | { kind: "invalid"; reason: string };
 
@@ -62,7 +65,7 @@ export const LOCATION_STATE_COLUMNS = `lp.rule AS location_rule, lp.record_id AS
    WHERE lrec.record_id = lp.record_id) AS location_source_id,
   lb.anchor_id AS lb_anchor_id, lb.record_release_content_sha256 AS lb_release_sha256,
   la.anchor_id AS la_anchor_id, la.origin_source_id AS la_source_id, la.latitude AS la_latitude, la.longitude AS la_longitude,
-  la.area_name AS la_area_name, la.area_kind AS la_area_kind, la.origin_release_content_sha256 AS la_release_sha256,
+  la.area_name AS la_area_name, la.area_kind AS la_area_kind, la.area_scope AS la_area_scope, la.origin_release_content_sha256 AS la_release_sha256,
   lu.anchor_id AS lu_anchor_id, lu.target_precision AS lu_precision,
   lau.precision AS lau_precision, lau.anchor_id AS lau_anchor_id, lau.evidence_source_id AS lau_source_id,
   lau.evidence_record_id AS lau_record_id, lau.location_rule AS lau_rule, lau.location_columns_json AS lau_columns_json,
@@ -128,7 +131,10 @@ export function locationState(r: LocationStateRow): LocationState {
     if (rule !== `${AREA_ANCHOR_RULE_PREFIX}${r.lb_anchor_id}`) return invalid("activeBindingWithoutItsAnchorRule");
     if (r.latitude !== r.la_latitude || r.longitude !== r.la_longitude) return invalid("coordinateIsNotTheAnchor");
     if (!r.la_area_name || !AREA_KINDS.has(r.la_area_kind ?? "")) return invalid("anchorAreaInvalid");
-    return { kind: "areaApproximate", area: { name: r.la_area_name, kind: r.la_area_kind as AreaKind } };
+    const scope = r.la_area_scope ?? null;
+    if (scope !== null && scope !== "namedZone" && scope !== "facility") return invalid("anchorScopeInvalid");
+    const area = { name: r.la_area_name, kind: r.la_area_kind as AreaKind };
+    return { kind: "areaApproximate", area: scope === null ? area : { ...area, scope } };
   }
   if (r.lau_precision !== "publisherPoint" || anchorRule) return invalid("authorityPrecisionNotSupported");
   // The first exact authority is a reviewed upgrade, kept as history: an exact chain without one is not explained.

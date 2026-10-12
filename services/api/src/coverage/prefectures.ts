@@ -28,6 +28,7 @@ export const SOURCE_PREFECTURES: Readonly<Record<string, PrefectureCode>> = {
   "musashino-public-smoking-areas": "13",
   "osaka-designated-smoking-areas": "27",
   "kyoto-public-smoking-places": "26",
+  "komatsu-airport-smoking-places": "17",
 };
 
 /** Community sources have no jurisdiction; their spots are assigned through seed areas or not at all. */

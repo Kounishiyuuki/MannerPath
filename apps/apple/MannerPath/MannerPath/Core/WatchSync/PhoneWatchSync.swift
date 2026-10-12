@@ -31,7 +31,8 @@ enum WatchSnapshotBuilder {
                     existence: spot.verification.existenceTier.rawValue,
                     accessDetail: spot.accessDetail?.rawValue,
                     locationPrecision: spot.verification.locationPrecision?.rawValue,
-                    locationAreaName: spot.verification.isAreaApproximate ? spot.verification.locationArea?.name : nil
+                    locationAreaName: spot.verification.isAreaApproximate ? spot.verification.locationArea?.name : nil,
+                    locationAreaScope: spot.verification.isAreaApproximate ? spot.verification.locationArea?.scope : nil
                 )
             },
             sources: allSources.filter { referenced.contains($0.id) }.sorted {

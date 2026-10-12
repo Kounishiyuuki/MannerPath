@@ -21,6 +21,42 @@ export interface ReviewedSource {
   attributionText: string | null;
   /** The reviewed publication decision. 'approved' is source-specific and never a default. */
   publicationStatus: "approved" | "blocked";
+  /**
+   * ADR-0018 §3 (D-R). Absent: an open licence reviewed in docs/SOURCES.md (licenseName/licenseUrl set). `factReference`:
+   * a first-party official page used only as evidence of normalized facts; nothing expressive is stored or shown, and the
+   * terms were read and found not to prohibit using the information itself. An engineering classification, not a legal
+   * clearance. A source whose terms prohibit information use, acquisition or database incorporation is never listed.
+   */
+  rightsBasis?: FactReferenceReview;
+}
+
+export interface FactReferenceReview {
+  kind: "factReference";
+  /** The official page(s) whose facts are referenced. */
+  pageUrls: readonly string[];
+  /** The terms/copyright pages read for the review, with the clause relied on (short, quoted for the record). */
+  termsUrls: readonly string[];
+  termsReading: string;
+  /** Literal false: a source that prohibits information use cannot be typed into the registry at all. */
+  prohibitsInformationUse: false;
+  reviewedBy: string;
+  reviewedOn: string;
+}
+
+/** Fails loudly at module load if a reviewed entry's rights metadata is inconsistent with its basis. */
+export function assertRightsBasis(s: ReviewedSource): void {
+  const fail = (why: string) => { throw new Error(`registry: ${s.sourceId} rights metadata invalid: ${why}`); };
+  if (s.rightsBasis === undefined) {
+    if (s.publicationStatus === "approved" && s.kind !== "userReport" && (!s.licenseName || !s.licenseUrl)) fail("an approved open-licence source needs licenseName and licenseUrl");
+    return;
+  }
+  const r = s.rightsBasis;
+  if (r.kind !== "factReference" || r.prohibitsInformationUse !== false) fail("unknown rights basis");
+  if (s.kind !== "municipal" && s.kind !== "operator") fail("factReference is for first-party official or operator pages only");
+  if (s.licenseName !== null || s.licenseUrl !== null) fail("a factReference source has no licence; do not imply one");
+  if (!s.attributionText || !s.attributionText.includes("出典")) fail("a factReference source needs an attribution naming the page");
+  if (r.pageUrls.length === 0 || r.termsUrls.length === 0 || [...r.pageUrls, ...r.termsUrls].some((u) => !u.startsWith("https://"))) fail("page and terms URLs must be HTTPS");
+  if (r.termsReading.trim() === "" || r.reviewedBy.trim() === "" || !/^\d{4}-\d{2}-\d{2}$/.test(r.reviewedOn)) fail("review record incomplete");
 }
 
 /**
@@ -32,6 +68,7 @@ export interface ReviewedSource {
  * The community `userReport` source is reviewed here too, though it is not a fetched adapter (Issue #123).
  */
 export const REVIEWED_SOURCES: readonly ReviewedSource[] = [...SOURCE_ADAPTERS.map((a) => a.registry), COMMUNITY_REGISTRY];
+for (const s of REVIEWED_SOURCES) assertRightsBasis(s);
 
 const bySourceId = new Map(REVIEWED_SOURCES.map((s) => [s.sourceId, s]));
 

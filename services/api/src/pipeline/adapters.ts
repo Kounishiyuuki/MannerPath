@@ -10,7 +10,7 @@ import { KYOTO_ADAPTER } from "./kyoto-adapter.ts";
 import { OSAKA_ADAPTER } from "./osaka-adapter.ts";
 import { TAITO_ADAPTER } from "./taito-adapter.ts";
 import { MUSASHINO_ADAPTER } from "./musashino-adapter.ts";
-
 import { SENDAI_ADAPTER } from "./sendai-adapter.ts";
+import { KOMATSU_AIRPORT_ADAPTER } from "./komatsu-airport-adapter.ts";
 
-export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER, SENDAI_ADAPTER];
+export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER, SENDAI_ADAPTER, KOMATSU_AIRPORT_ADAPTER];

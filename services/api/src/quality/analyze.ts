@@ -207,12 +207,15 @@ export async function analyzeCorpus(db: Db, opts: AnalyzeOptions) {
     drifted.length === 0 ? "every published source row equals its REVIEWED_SOURCES entry (license, URL, attribution, status)"
       : `row differs from the reviewed entry: ${drifted.join(", ")}; run npm run local:registry`);
 
+  // ADR-0018 (D-R): a factReference source has no licence by design; its reviewed rights record stands in for one, and
+  // it still needs attribution. Every other published source needs a licence name and URL.
   const missingLicense = publishedSourceIds.filter((id) => {
     const row = bySourceId.get(id);
-    return !row?.license_name || !row?.license_url || !row?.attribution_text;
+    const factReference = reviewed.get(id)?.rightsBasis?.kind === "factReference";
+    return !row?.attribution_text || (!factReference && (!row?.license_name || !row?.license_url));
   });
   check("published-sources-carry-license-and-attribution", missingLicense.length === 0,
-    missingLicense.length === 0 ? "every published source has a license name, a license URL and attribution text"
+    missingLicense.length === 0 ? "every published source has attribution text and a license name/URL or a reviewed factReference rights record"
       : `missing license name, URL or attribution: ${missingLicense.join(", ")}`);
 
   const tilesMissingAttribution = tileSizes.filter((t) => {

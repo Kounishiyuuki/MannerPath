@@ -46,7 +46,13 @@ export const SpotVerificationV1 = z.object({
   lastReviewedMonth: z.string().regex(/^[0-9]{4}-(0[1-9]|1[0-2])$/).nullable(),
   // ADR-0017: the area/host an areaApproximate pin represents, as publicly named by the anchor's publisher. Present
   // exactly when locationPrecision is areaApproximate, so every other spot's bytes are unchanged.
-  locationArea: z.object({ name: z.string().min(1).max(80), kind: z.enum(["park", "station", "facility", "airport", "commercialBuilding", "other"]) }).strict().optional(),
+  // ADR-0018 adds the optional `scope`: what the pin represents — a named zone or the whole host facility. Absent on an
+  // ADR-0017 v1 anchor, so those spots' bytes are unchanged; a client that ignores it keeps 「この付近へ案内」.
+  locationArea: z.object({
+    name: z.string().min(1).max(80),
+    kind: z.enum(["park", "station", "facility", "airport", "commercialBuilding", "other"]),
+    scope: z.enum(["namedZone", "facility"]).optional(),
+  }).strict().optional(),
 }).strict().refine((v) => (v.locationPrecision === "areaApproximate") === (v.locationArea !== undefined),
   "locationArea is present exactly when locationPrecision is areaApproximate");
 

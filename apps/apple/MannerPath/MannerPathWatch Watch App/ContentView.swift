@@ -186,7 +186,7 @@ struct ContentView: View {
                       systemImage: WatchPrecision.symbol(result.spot.locationPrecision))
                     .accessibilityIdentifier("watch-precision")
                 if result.spot.isAreaApproximate {
-                    Text(ApproximateLocation.detailNote()).font(.footnote).foregroundStyle(.secondary)
+                    Text(ApproximateLocation.detailNote(scope: result.spot.locationAreaScope)).font(.footnote).foregroundStyle(.secondary)
                 } else if let note = WatchPrecision.uncertainNote(result.spot.locationPrecision) {
                     Text(note).font(.footnote).foregroundStyle(.secondary)
                 }
@@ -198,7 +198,7 @@ struct ContentView: View {
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 if #available(watchOS 11.4, *), let url = WatchNavigation.walkingURL(for: result.spot) {
-                    Link(ApproximateLocation.navigationTitle(precision: result.spot.locationPrecision), destination: url)
+                    Link(ApproximateLocation.navigationTitle(precision: result.spot.locationPrecision, scope: result.spot.locationAreaScope), destination: url)
                         .accessibilityIdentifier("watch-directions")
                 }
                 Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))

@@ -13,7 +13,9 @@ enum PhoneGlancePublisher {
                                   lastVerifiedAt: nearest?.spot.lastVerifiedAt,
                                   locationIsApproximate: nearest.map { $0.spot.verification.isAreaApproximate },
                                   existence: nearest?.spot.verification.existenceTier.rawValue,
-                                  locationPrecision: nearest?.spot.verification.locationPrecision?.rawValue)
+                                  locationPrecision: nearest?.spot.verification.locationPrecision?.rawValue,
+                                  locationAreaScope: nearest?.spot.verification.isAreaApproximate == true
+                                      ? nearest?.spot.verification.locationArea?.scope : nil)
         guard let directory = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: NearbyGlanceFile.group),
               (try? NearbyGlanceFile.write(glance, to: directory)) != nil else { return }
         WidgetCenter.shared.reloadTimelines(ofKind: "NearbyGlance")

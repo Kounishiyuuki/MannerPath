@@ -87,7 +87,7 @@ nonisolated enum TileSpotMapper {
                     locationArea: verification.flatMap { v -> LocationArea? in
                         guard v.locationPrecision == ApproximateLocation.precisionValue, let area = v.locationArea,
                               let name = ApproximateLocation.displayableAreaName(area.name) else { return nil }
-                        return LocationArea(name: name, kind: area.kind)
+                        return LocationArea(name: name, kind: area.kind, scope: ApproximateLocation.knownScope(area.scope))
                     }
                 ),
                 lastVerifiedAt: observationDate,

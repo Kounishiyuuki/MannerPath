@@ -220,6 +220,38 @@
           "reviewDueAt": "2027-01-09"
         }
       ]
+    },
+    {
+      "sourceId": "komatsu-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-11",
+      "rightsEvidence": "ADR-0018 factReference. 著作権について (copyright.html) reserves the works' expression (無断で複製・転用不可, 著作権法上認められた場合を除き); 免責事項 has no clause on information use, data acquisition or databases. Facts only; no text/images stored.",
+      "sourceObservedAt": null,
+      "editionLabel": "FAQ q85 (no date stated); fact fingerprint e5fc9afb…",
+      "editionObservedAt": "2026-10-11",
+      "reviewDueAt": "2027-01-11",
+      "reviewerNote": "Page-fact source (ADR-0018 D-C): re-check the scoped FAQ text; any change or missing scope requires re-review of the normalized facts before relying on them. A missing scope or page lets the maintainer hold the spot (npm run source:hold, migration 0033); a change alone is never held.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.komatsuairport.jp/cmn/copyright.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "「小松空港ホームページ」に掲載されている個々の情報",
+                "end": "また、小松空港キャラクター"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権法上認められた場合を除き",
+              "複製・転用"
+            ]
+          },
+          "reviewedFingerprint": "3f2d56eb9236edb9d80be188c11faba2e0de3f96216613a9b08c95b8dff4430d",
+          "reviewedAt": "2026-10-11",
+          "reviewDueAt": "2027-01-11"
+        }
+      ]
     }
   ]
 }

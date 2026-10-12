@@ -8,29 +8,33 @@
 //   npm run local:pipeline
 import { readFileSync } from "node:fs";
 import { getPlatformProxy } from "wrangler";
-import { type Db, isoSeconds } from "../src/db.ts";
+import { type Db, isoSeconds, sha256Hex } from "../src/db.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { MINATO_ADAPTER, MINATO_FIXTURE_RELEASE, MINATO_SOURCE_ID } from "../src/pipeline/minato-adapter.ts";
 import { KOTO_ADAPTER, KOTO_FIXTURE_RELEASE, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
 import { KYOTO_ADAPTER, KYOTO_FIXTURE_RELEASE, KYOTO_SOURCE_ID } from "../src/pipeline/kyoto-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { SENDAI_ADAPTER, SENDAI_AREA_ANCHOR, SENDAI_FIXTURE_RELEASE, SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
-import { recordAreaAnchor } from "../src/pipeline/area-anchor.ts";
+import { recordAreaAnchor, recordReviewedAnchors } from "../src/pipeline/area-anchor.ts";
 import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_SOURCE_ID } from "../src/pipeline/musashino-adapter.ts";
+import { KOMATSU_AIRPORT_ADAPTER, KOMATSU_AIRPORT_FIXTURE_RELEASE, KOMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/komatsu-airport-adapter.ts";
 
 // Preserve the original no-argument command. Import other reviewed sources into the same local DB:
 //   npm run local:pipeline -- osaka-designated-smoking-areas
 //   npm run local:pipeline -- koto-station-smoking-areas
 const sourceId = process.argv[2] ?? TAITO_SOURCE_ID;
-if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID].includes(sourceId)) {
+if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID, KOMATSU_AIRPORT_SOURCE_ID].includes(sourceId)) {
   throw new Error(`local:pipeline: unreviewed source ${sourceId}`);
 }
-const selected = sourceId === SENDAI_SOURCE_ID ? {
+const selected = sourceId === KOMATSU_AIRPORT_SOURCE_ID ? {
+  adapter: KOMATSU_AIRPORT_ADAPTER, release: KOMATSU_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/komatsu-airport-smoking-places/komatsu-airport-page-facts.csv",
+} : sourceId === SENDAI_SOURCE_ID ? {
   adapter: SENDAI_ADAPTER, release: SENDAI_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/sendai-kaigan-park-smoking-areas/041009_public_facility.csv",
 } : sourceId === KYOTO_SOURCE_ID ? {
@@ -59,9 +63,12 @@ try {
   const db = proxy.env.DB;
   const now = isoSeconds(new Date());
   console.log("registry", await ensureReviewedSource(db, sourceId, now));
-  const ingest = await ingestRelease(db, selected.adapter, new Uint8Array(readFileSync(FIXTURE)), selected.release);
+  const bytes = new Uint8Array(readFileSync(FIXTURE));
+  const ingest = await ingestRelease(db, selected.adapter, bytes, selected.release);
   console.log("ingest", ingest);
+  // Sendai's ADR-0017 anchor is a named reviewed constant; ADR-0018 adapters declare theirs per release.
   if (sourceId === SENDAI_SOURCE_ID) await recordAreaAnchor(db, selected.adapter, SENDAI_AREA_ANCHOR, now);
+  console.log("anchors", await recordReviewedAnchors(db, selected.adapter, await sha256Hex(bytes), now));
   console.log("resolve", await resolveFirstRelease(db, selected.adapter, ingest.releaseId, { now }).then((r) =>
     r.status === "resolved" ? { status: r.status, spots: r.spotIds.length } : r));
   console.log("publish", JSON.stringify(await publishTiles(db, { now }), null, 2));

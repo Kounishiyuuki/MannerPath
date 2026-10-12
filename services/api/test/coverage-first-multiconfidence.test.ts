@@ -138,7 +138,10 @@ const SMOKING_CAFE: Claim = { spotType: "smokingPermittedVenue", hostType: "rest
 // 1, 20, 30 — official spots stay exactly official
 test("official spots remain official: officialListing, evidence-backed precision, no confirmation count, review month from the release", async () => {
   const db = await world();
-  const spots = v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+  const all = v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+  // The ADR-0018 page-fact operator source is asserted in its own test (komatsu-airport-source.test.ts).
+  const spots = all.filter((s) => !s.sourceIds.includes("komatsu-airport-smoking-places"));
+  assert.equal(all.length - spots.length, 1);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
@@ -511,7 +514,8 @@ test("quality counts tiers separately and never fails because a lower tier exist
   simulateRightsGranted(db);
   await publishTiles(db, { now: isoSeconds(APPLY) });
   const granted = await analyzeCorpus(db, { now: isoSeconds(APPLY) });
-  assert.deepEqual(granted.nationwide.coverage, { official, operator: 0, communityVerified: 1, communityReported: 1, allVisible: official + 2 });
+  // The one operator spot is the ADR-0018 Komatsu airport page-fact source.
+  assert.deepEqual(granted.nationwide.coverage, { official, operator: 1, communityVerified: 1, communityReported: 1, allVisible: official + 3 });
   assert.equal(granted.nationwide.confidence.locationPrecision.communityPinned, 2);
   assert.equal(granted.nationwide.confidence.existence.official, official);
   // The simulated approval edits the community source row by hand, so the registry-drift checks rightly flag that

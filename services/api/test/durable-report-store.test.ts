@@ -350,13 +350,13 @@ test("blue/green: reports, moderation, App Attest keys and rate-limit identity s
   const pki = await testPki(clock.now);
   const REPORTS = reportsD1();
 
-  // The local canonical test pipeline: seven repository-reviewed official sources, published. Its bundle bootstraps BLUE, which goes live.
+  // The local canonical test pipeline: every repository-reviewed official/operator source, published. Its bundle bootstraps BLUE, which goes live.
   const local = new SqliteD1();
   await importAllReviewedSources(local, isoSeconds(RECEIVED));
   await publishTiles(local, { now: isoSeconds(RECEIVED) });
   const official = [...new Set(all(local, `SELECT rel.source_id FROM tile_snapshot_spots t JOIN spot_field_provenance p ON p.spot_id = t.spot_id AND p.field = 'existence'
     JOIN source_records r ON r.record_id = p.record_id JOIN source_releases rel ON rel.release_id = r.release_id`).map((r) => r.source_id))].sort();
-  assert.equal(official.length, 7, "all repository-reviewed official sources publish in the local test");
+  assert.equal(official.length, SOURCE_ADAPTERS.length, "every repository-reviewed official/operator source publishes in the local test");
   assert.deepEqual(official, SOURCE_ADAPTERS.map((a) => a.registry.sourceId).sort());
   const blueBundle = await buildMultiSourcePromotionBundle(local);
   const BLUE = new SqliteD1(migratedSqlite());

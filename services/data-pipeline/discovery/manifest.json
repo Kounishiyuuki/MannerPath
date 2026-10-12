@@ -614,15 +614,23 @@
           "matchingRowCount": 0,
           "categoryInventory": {},
           "fetchedAt": "2026-09-30"
+        },
+        {
+          "reference": "services/data-pipeline/fixtures/sendai-kaigan-park-smoking-areas/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "sendai-kaigan-park-smoking-areas",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv"
+          ],
+          "sha256": "c6bf5395eed995773e3b74b6d3ba6ea3868940f45a6293b8d37330f2bdd72c8b",
+          "reviewedHashScope": "rawResponseBytes",
+          "lastModified": "Wed, 13 May 2026 06:00:09 GMT",
+          "fetchedAt": "2026-10-10T16:37:01Z"
         }
       ],
-      "seedStatus": "blocked",
-      "blockerCodes": [
-        "coordinatesMissing",
-        "hostPointOnly",
-        "licenseUnknown",
-        "noSmokingEvidence"
-      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
       "deepReview": {
         "status": "blocked",
         "deepReviewed": true,
@@ -6726,6 +6734,62 @@
       "blockerCodes": [
         "coordinatesMissing",
         "licenseUnknown"
+      ]
+    },
+    {
+      "id": "operator-komatsu-airport",
+      "name": "小松空港",
+      "prefecture": "石川県",
+      "publisher": "小松空港協議会",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.komatsuairport.jp/",
+        "https://www.komatsuairport.jp/faq/q85.html"
+      ],
+      "homepageUrl": "https://www.komatsuairport.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "docs/research/2026-10-11-ishikawa-location-precision-reevaluation.md",
+          "status": "metadataScanned",
+          "blockerCodes": [
+            "coordinatesMissing",
+            "licenseUnknown"
+          ],
+          "rawUrls": [],
+          "evidence": "| 小松空港 ターミナル (4 zones: 国際線2F出発ロビー, 国内線搭乗待合室 ANAラウンジ横, 国際線搭乗待合室, 屋外バス乗り場付近) | Yes — [FAQ q85](https://www.komatsuairport.jp/faq/q85.html) | `factReference` (copyright page: 無断で複製・転用不可; information use not prohibited) | facility (4 zones share one terminal anchor) | None (needs §2 item 3: government airport reference point) | Blocked | **1 spot**, `areaApproximate`/`facility`, detail lists 4 zones; airside zones marked 搭乗者のみ; hours unknown |"
+        },
+        {
+          "reference": "docs/research/2026-10-11-ishikawa-location-precision-reevaluation.md",
+          "status": "metadataScanned",
+          "blockerCodes": [
+            "coordinatesMissing",
+            "licenseUnknown"
+          ],
+          "rawUrls": [],
+          "evidence": "| 小松空港 | **Implemented**: `komatsu-airport-smoking-places`, one facility-scope `areaApproximate` spot (4 zones, one 国土数値情報 C28 TerminalBuilding anchor). Rights re-checked: 著作権について reserves expression only, 免責事項 has no information-use/database clause → factReference |"
+        },
+        {
+          "reference": "services/data-pipeline/fixtures/komatsu-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "komatsu-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.komatsuairport.jp/faq/q85.html"
+          ],
+          "sha256": "55968506e9e271a197f70a7d8a6ec6e32ddd998840da24c1a31debf6c7463f3f",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-11T00:00:00Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "komatsu-airport-smoking-places"
       ]
     },
     {

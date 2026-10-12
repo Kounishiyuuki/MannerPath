@@ -185,8 +185,11 @@ exactly as before; it shows a community spot through its existing "unrecognised 
     area/host and the pin is a reviewed anchor of that area, **never the place's own point**. A client that does not
     recognise a value must not present the pin as exact.
   - `locationArea` (ADR-0017): `{ "name": string (1–80), "kind": "park" | "station" | "facility" | "airport" |
-    "commercialBuilding" | "other" }`, present **exactly when** `locationPrecision` is `areaApproximate` and absent
-    otherwise, so every other spot's bytes are unchanged. The name is the anchor publisher's public name for the area.
+    "commercialBuilding" | "other", "scope"?: "namedZone" | "facility" }`, present **exactly when** `locationPrecision`
+    is `areaApproximate` and absent otherwise, so every other spot's bytes are unchanged. The name is the anchor
+    publisher's public name for the area. `scope` (ADR-0018, additive, optional) says what the pin represents: a named
+    zone (「この付近へ案内」) or the whole host facility (「この施設内へ案内」, 施設内の詳しい位置は未確認). It is absent on
+    ADR-0017 v1 anchors; a client that ignores it or sees an unknown value keeps the generic approximate wording.
   - `confirmations`: independent community submitters behind the evidence (≥ 1), or `null` for official/operator.
   - `lastReviewedMonth`: `YYYY-MM` — an official release's observation month, or the month a reviewer applied
     community evidence. Month precision on purpose (ADR-0007): a single report's review day is close to its

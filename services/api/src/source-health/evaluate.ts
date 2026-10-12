@@ -84,6 +84,7 @@ export function evaluateResult(result: HealthResult, review: SourceReview, today
   }
   if (s.moved && !s.crossOriginRelocation) advisory.push("moved");
   if (s.contentChanged && s.parserCompatible && s.schemaCompatible) advisory.push(s.packagingChanged ? "packagingChanged" : "contentChanged");
+  if (result.pageFactNotChecked) advisory.push("pageFactNotChecked");
   if (review.rights.some(item => today >= item.reviewDueAt)) advisory.push("rightsReviewDue");
   const reviewDue = review.reviewDueAt;
   const humanReviewDue = today >= reviewDue;
