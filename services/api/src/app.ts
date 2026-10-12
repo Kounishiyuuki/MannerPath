@@ -47,6 +47,8 @@ import { readPublishedSpot } from "./spots/detail.ts";
 import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag } from "./tiles/dto.ts";
 import { assembleTileV1, TILE_PART_POLICY } from "./tiles/parts.ts";
 import { promotionReadiness } from "./pipeline/promotion-readiness.ts";
+import { READ_CACHE_CONTROL } from "./edge-cache.ts";
+import { challengeBudget } from "./attest/challenge-budget.ts";
 
 export interface Env {
   /** The canonical DATA_DB (tiles, spots, provenance, publication). Swapped by blue/green cutover. */
@@ -68,15 +70,23 @@ export interface Env {
   REPORT_APP_ATTEST_BUNDLE_VERSIONS?: string;
   /** Pepper for the hashed report submitter key. No value is committed (ADR-0007 §5). */
   REPORT_SUBMITTER_PEPPER?: string;
+  /**
+   * Optional Workers Rate Limiting binding for challenge issuance, keyed by an HMAC of the client address under
+   * RATE_LIMIT_KEY_PEPPER (src/attest/challenge-budget.ts). Configured with the pepper or not at all.
+   */
+  CHALLENGE_RATE_LIMITER?: RateLimit;
+  /** Secret pepper for rate-limit keys only; never REPORT_SUBMITTER_PEPPER's value. No value is committed. */
+  RATE_LIMIT_KEY_PEPPER?: string;
 }
 
 const TileParams = z.object({ z: z.string(), x: z.string(), y: z.string() });
 
-// Revalidate on every use: the ETag makes that a cheap 304 while guaranteeing a republished tile is seen.
+// Config, spot detail and coverage revalidate on every use: config must not keep a stale `reports.available`, and a
+// spot that leaves publication (e.g. an evidence hold) must leave its detail at once. Tiles use READ_CACHE_CONTROL.
 const CACHE_CONTROL = "public, no-cache";
 /** Bounds downstream request handling and conditional-header work before any database access. */
 export const REQUEST_URL_MAX_BYTES = 4096;
-const CONDITIONAL_HEADER_MAX_BYTES = 4096;
+export const CONDITIONAL_HEADER_MAX_BYTES = 4096;
 
 function problem(
   status: 400 | 403 | 404 | 409 | 413 | 415 | 422 | 429 | 503,
@@ -159,12 +169,16 @@ export function createApp(options: AppOptions = {}) {
   // Hono's default handler logs the exception. D1/decoder errors can contain location or
   // credentials; neither persist them nor return their details to the caller.
   app.onError(() => problem(503, "serviceUnavailable", "the service is temporarily unavailable"));
+  // Every body is JSON or empty; nosniff stops a browser from reinterpreting one. Set after the handler, so errors,
+  // 304s and the 413 below carry it too.
   app.use("*", async (c, next) => {
     if (new TextEncoder().encode(c.req.url).length > REQUEST_URL_MAX_BYTES
       || new TextEncoder().encode(c.req.header("If-None-Match") ?? "").length > CONDITIONAL_HEADER_MAX_BYTES) {
-      return problem(413, "requestTooLarge", "request URL or conditional header exceeds its byte limit");
+      c.res = problem(413, "requestTooLarge", "request URL or conditional header exceeds its byte limit");
+    } else {
+      await next();
     }
-    await next();
+    c.res.headers.set("X-Content-Type-Options", "nosniff");
   });
 
   // GET /v1/config: the non-secret compatibility contract (docs/API.md). Every value is read from the
@@ -202,7 +216,7 @@ export function createApp(options: AppOptions = {}) {
     "SELECT schema_version, content_sha256, body_json FROM tile_snapshots WHERE tile_id = ?",
   ).bind(tileId).first<SnapshotRow>();
   function tileResponse(req: Request, body: string, etag: string): Response {
-    const headers = { ETag: etag, "Cache-Control": CACHE_CONTROL };
+    const headers = { ETag: etag, "Cache-Control": READ_CACHE_CONTROL };
     if (ifNoneMatchMatches(req.headers.get("If-None-Match") ?? undefined, etag)) return new Response(null, { status: 304, headers });
     return new Response(body, { status: 200, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
   }
@@ -290,6 +304,12 @@ export function createApp(options: AppOptions = {}) {
   async function challenges(req: Request, env: Env, reports: Db): Promise<Response> {
     const attestation = attestationConfig(env);
     if (attestation.kind !== "appAttest") return attestationUnavailable(attestation);
+    // The per-client Worker bucket runs before the body is read and before D1; the deployment-wide ceiling below
+    // (issueChallenge) stays the backstop whether or not the bucket is configured.
+    const budget = await challengeBudget(env, req);
+    if (budget === "misconfigured") return problem(503, "challengeBudgetMisconfigured", "challenge rate limiting is misconfigured on this deployment");
+    if (budget === "limited") return problem(429, "challengeRateLimited", "too many challenge requests", { "Retry-After": "60" });
+    if (budget === "unavailable") return problem(503, "serviceUnavailable", "the service is temporarily unavailable");
     const body = await readJson(req, 256, "requestTooLarge");
     if (!body.ok) return body.response;
     const parsed = ChallengeRequestV1.safeParse(body.json);

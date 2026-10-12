@@ -204,7 +204,7 @@ Responses:
 
 | Case | Status | Body / headers |
 |---|---|---|
-| Published tile | `200` | Snapshot body; `ETag: "1-<sha256 of body>"`; `Cache-Control: public, no-cache` |
+| Published tile | `200` | Snapshot body; `ETag: "1-<sha256 of body>"`; `Cache-Control: public, max-age=60, stale-while-revalidate=300` |
 | `If-None-Match` matches (weak comparison; list or `*`) | `304` | No body; same `ETag` |
 | Malformed ID (padding, sign, non-decimal, x/y out of range) | `400` | `{"error":"invalidTileId","detail":…}` |
 | `z` ≠ `DATA_TILE_ZOOM` (14) | `400` | `{"error":"unsupportedZoom","detail":…}` |
@@ -258,8 +258,8 @@ its bytes and hash depend only on its content:
 
 | Case | Status | Body / headers |
 |---|---|---|
-| Manifest of a published tile | `200` | Manifest; `ETag: "2-<sha256 of manifest>"`; `Cache-Control: public, no-cache` |
-| Part listed by the current manifest | `200` | Part; `ETag: "2-<sha256 of part>"` (the manifest's hash for it) |
+| Manifest of a published tile | `200` | Manifest; `ETag: "2-<sha256 of manifest>"`; `Cache-Control: public, max-age=60, stale-while-revalidate=300` |
+| Part listed by the current manifest | `200` | Part; `ETag: "2-<sha256 of part>"` (the manifest's hash for it); `Cache-Control: public, max-age=60, stale-while-revalidate=300` |
 | `If-None-Match` matches | `304` | No body; same `ETag` |
 | Malformed tile ID / wrong zoom | `400` | `invalidTileId` / `unsupportedZoom`, as for the v1 path |
 | Part index not canonical decimal in `0...127` | `400` | `{"error":"invalidTilePart","detail":…}` |
@@ -553,6 +553,9 @@ Response (`201`, `Cache-Control: no-store`):
 | Schema violation | `400` | `invalidChallengeRequest` |
 | `report` for an unregistered key | `403` | `attestationRejected`, `reason: keyNotRegistered` |
 | Too many outstanding challenges (1000 registration challenges per deployment, 3 report challenges per key) | `429` | `challengeLimited`; `Retry-After: 300` |
+| Per-client bucket exhausted (only where `CHALLENGE_RATE_LIMITER` and `RATE_LIMIT_KEY_PEPPER` are configured) | `429` | `challengeRateLimited`; `Retry-After: 60` |
+| Only one of those two configured, a pepper under 32 UTF-8 bytes after trimming, or the report pepper reused (compared trimmed) | `503` | `challengeBudgetMisconfigured` |
+| Configured limiter failed (its `limit()` threw or is unavailable) | `503` | `serviceUnavailable`; issuance fails closed, reads unaffected |
 
 ### POST `/app-attest/keys`
 

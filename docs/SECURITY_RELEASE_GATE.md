@@ -45,7 +45,7 @@ A shared extractable client API key is not an authentication boundary for public
 
 Read surface: canonical decimal tile/part parsing, bounded part policy, opaque spot ID validation;
 malformed tile 400, absent/unpublished spot/tile 404, parts-required 409, readiness unavailable
-503. Unsupported methods 404; HEAD has no body. JSON content types, public/no-cache ETags with
+503. Unsupported methods 404; HEAD has no body. JSON content types, `nosniff`, ETags (tiles `max-age=60, stale-while-revalidate=300`, other reads public/no-cache) with
 weak/list/star comparisons, no-store errors/readiness, no credentialed CORS. No request-derived
 SQL identifiers or SQL interpolation found; input uses bind parameters. Dynamic offline pipeline
 SQL uses controlled schema/placeholder/literal generation, not public request SQL.

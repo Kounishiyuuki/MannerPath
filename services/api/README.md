@@ -130,4 +130,5 @@ deployed environment accepts no reports until a maintainer configures it (`docs/
 
 Deployment settings this repository deliberately does not contain: `REPORT_SUBMITTER_PEPPER`
 (hashed abuse key pepper), `REPORT_APP_ATTEST_APP_ID` (its App ID prefix is usually the Team ID),
-`REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS` and the edge rate-limit rule. No Apple key or pepper value is committed.
+`REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS`, the optional `RATE_LIMIT_KEY_PEPPER` secret and `CHALLENGE_RATE_LIMITER`
+binding (challenge bucket, docs/OPERATIONS.md), and the edge rate-limit rule. No Apple key or pepper value is committed.

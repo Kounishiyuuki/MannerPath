@@ -161,7 +161,7 @@ test("GET /v1/tiles serves the single-part tile's v1 body byte-for-byte with a s
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("Content-Type"), "application/json; charset=utf-8");
   assert.equal(res.headers.get("ETag"), tileEtag(1, sha256(t.body_json)));
-  assert.equal(res.headers.get("Cache-Control"), "public, no-cache");
+  assert.equal(res.headers.get("Cache-Control"), "public, max-age=60, stale-while-revalidate=300");
   const text = await res.text();
   assert.equal(text, t.body_json);
   TileBodyV1.parse(JSON.parse(text));
