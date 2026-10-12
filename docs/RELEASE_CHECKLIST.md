@@ -124,8 +124,10 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 
 ### Rollback order
 
-1. Bad Worker code: prefer redeploying the known-good commit (keeps current secrets). `npx wrangler rollback --env
-   production` leaves D1 data untouched but deploys the older version **with its secret state**; stop at a
+1. Bad Worker code: prefer redeploying the known-good commit (keeping current secrets is an assumption until the
+   staging forward-deploy test passes; verify after it). `npx wrangler rollback --env
+   production` (by hand, interactive TTY only; never CI, scripts or agents) leaves D1 data untouched but deploys the
+   older version **with its secret state**; stop at a
    secret-change confirmation, re-apply secrets after it, and verify `/v1/config` `reports.available`
    (`SECRETS_AND_ROTATION.md` §Worker rollback and secrets). Then remote smoke.
 2. Bad data after a later blue/green release: restore the previous `DB` `database_id` (reviewed PR) →

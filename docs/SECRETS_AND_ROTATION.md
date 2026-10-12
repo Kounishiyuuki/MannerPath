@@ -86,30 +86,52 @@ statement is about resources, not secret values.)
    `/v1/config` `reports.available`, and that `POST /v1/app-attest/challenges`, `/v1/app-attest/keys` and
    `/v1/reports` answer `503 attestationUnavailable` while intake is meant to be off.
 3. **Prefer a forward recovery.** If a code rollback is needed: abort a secret-changing rollback, and instead deploy
-   the known-good commit as a **new** deployment (`git checkout <good>` → `npx wrangler deploy --env <env>`), which
-   keeps the current secret state. If a rollback is unavoidable, immediately re-apply every required `secret put` /
-   `secret delete` after it, then run the rule-2 checks before declaring recovery.
-4. **Do not skip the confirmation.** `wrangler rollback --message` skips Wrangler's interactive rollback prompts
-   ([commands](https://developers.cloudflare.com/workers/wrangler/commands/workers/)). Do not pass `--message`
-   (or `force`) during an incident until the staging procedure below has shown how the secret-change confirmation
-   behaves with it.
-5. **Audit rotation and rollback separately.** The incident log records, without values: the rollback target
+   the known-good commit as a **new** deployment (`git checkout <good>` → `npx wrangler deploy --env <env>`). That
+   this keeps the current secret state is an **operational assumption until the staging forward-deploy test below
+   has passed**: the pinned Wrangler 4.149 deploy path sends `keepSecrets: true` ("Inherit unchanged secrets from
+   the previous Worker Version"), but no deployment from this repository has confirmed it. After a forward
+   redeploy, run the rule-2 checks anyway. If a rollback is unavoidable, immediately re-apply every required
+   `secret put` / `secret delete` after it, then run the rule-2 checks before declaring recovery.
+4. **Run `wrangler rollback` only by hand, from an interactive TTY.** Never from CI, GitHub Actions, a pipe, a
+   script, an unattended agent, or any shell whose stdin is not an interactive terminal. In the pinned Wrangler
+   4.149, a rollback across a changed secret is refused by the API and Wrangler then asks
+   "The following secrets have changed … Please confirm you wish to continue"; in a non-interactive or CI context
+   every confirmation returns its fallback value, which is **yes**, so the rollback is re-sent with `force` and the
+   older secret state is restored without anyone seeing the warning. Before a rollback, check that stdin is an
+   interactive terminal (e.g. `[ -t 0 ] && echo interactive`) and that `CI` is not set.
+5. **No `--message`, no `force`, during an incident.** In Wrangler 4.149 `--message` only pre-fills the rollback
+   **message** prompt; it does not skip the secret-change confirmation, and nothing here relies on it doing so.
+   The ban is a conservative rule: an incident rollback is typed by a person, answers every prompt itself, and
+   never uses an option or API flag (`force=true`) that could bypass a prompt.
+6. **Audit rotation and rollback separately.** The incident log records, without values: the rollback target
    version ID; whether a secret-change warning appeared; whether it was accepted; which secret **names** were
    re-applied afterwards; and the verification results (rule 2). Never record a secret value.
 
-**Staging verification (maintainer; staging only, never production; not yet performed).**
+**Staging verification (maintainer; staging only, never production; not yet performed).** Every rollback step
+runs by hand in an interactive TTY; never from CI, a script or an agent, and never non-interactively.
+
+*Rollback drill*
 1. In staging, `secret put` a throwaway name (e.g. `ROLLBACK_PROBE`) with value A; note the version ID (V1).
 2. `secret put ROLLBACK_PROBE` with value B; note the new version ID (V2).
-3. `npx wrangler rollback <V1> --env staging` **without** `--message`; record whether a secret-change confirmation
-   appears and its wording (no values).
+3. `npx wrangler rollback <V1> --env staging` in an interactive TTY, without `--message`; record whether the
+   secret-change confirmation appears and which secret **names** it lists (no values).
 4. Accept it in staging only; then determine which value is active without printing it (e.g. a temporary
-   staging-only build that returns `sha256(ROLLBACK_PROBE)` prefixes for A/B comparison, or compare the
-   version's secret names/metadata in the dashboard).
-5. Repeat step 3 with `--message "probe"` and record whether the confirmation is still shown.
-6. `secret delete ROLLBACK_PROBE`, redeploy the current commit, and confirm `wrangler secret list` matches the
-   inventory.
-7. Record as evidence only: date, version IDs, "confirmation shown: yes/no", "active value after rollback: A/B",
-   "`--message` skipped confirmation: yes/no". Update this section with the result.
+   staging-only build that returns a `sha256(ROLLBACK_PROBE)` prefix for A/B comparison).
+5. Clean up (see below).
+
+*Forward deploy test*
+1. In staging, `secret put ROLLBACK_PROBE` with value A, then with value B (rotation); note the version IDs.
+2. `git checkout <known-good commit>` and run a plain `npx wrangler deploy --env staging`.
+3. Determine without printing values whether A or B is active (same method as above). Expected: B.
+4. Record the new version and deployment IDs.
+5. Clean up (see below).
+
+*Clean up and record*
+- `secret delete ROLLBACK_PROBE`, redeploy the current commit, and confirm `wrangler secret list` matches the
+  inventory; remove any temporary probe build.
+- Record as evidence only: date, version/deployment IDs, "secret-change confirmation shown: yes/no",
+  "active value after rollback: A/B", "active value after forward deploy: A/B". Update rule 3 (drop "assumption"
+  only if forward deploy kept B) and this section with the result.
 
 ### REPORT_SUBMITTER_PEPPER
 

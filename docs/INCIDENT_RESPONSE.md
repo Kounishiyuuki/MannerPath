@@ -20,7 +20,7 @@ When unsure, use the higher severity.
 
 | Switch | Command (maintainer) | Effect | Source |
 |---|---|---|---|
-| Worker code rollback | `npx wrangler rollback --env <env>` (no `--message` during an incident) | Deploys an older version, **including its secret state**: it can restore a leaked or deleted secret. D1 data untouched. Stop at any secret-change confirmation; prefer redeploying known-good code (forward recovery) | `SECRETS_AND_ROTATION.md` §Worker rollback and secrets |
+| Worker code rollback | `npx wrangler rollback --env <env>`, by hand in an interactive TTY only (never CI, scripts, pipes or agents); no `--message` / `force` during an incident | Deploys an older version, **including its secret state**: it can restore a leaked or deleted secret. D1 data untouched. Stop at any secret-change confirmation; prefer redeploying known-good code (forward recovery) | `SECRETS_AND_ROTATION.md` §Worker rollback and secrets |
 | Stop report intake | `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>` | `required` without the App ID returns 503 `attestationUnavailable`; `/v1/config` `available:false`. **Never** set `REPORT_ATTESTATION=disabled` | `OPERATIONS.md` §7 Rollback / disable, §Community rollback |
 | Reports fail closed by default | Remote `REPORT_ATTESTATION=required` with App Attest values unset, or `REPORT_SUBMITTER_PEPPER` missing or under 32 UTF-8 bytes | Intake is off in staging and production today. Any incomplete attestation configuration answers 503 | `wrangler.jsonc`, `reports/attestation.ts` |
 | Canonical publication rollback | Revert `DB` `database_id` to the kept blue database (reviewed PR, deploy) | Official data exactly as before cutover; REPORTS_DB untouched | `RELEASE_CHECKLIST.md` §Rollback order |
@@ -67,7 +67,7 @@ When unsure, use the higher severity.
 | S1 data | Stop intake if REPORTS_DB is involved. Make R2 private if it is public. For an altered publication, revert `DB` to blue |
 | S2 flood (writes) | Stop intake (`secret delete REPORT_APP_ATTEST_APP_ID`). Add or tighten a WAF rule if available (C4). The challenge limiter helps only if already activated |
 | S2 scraping (reads) | WAF or rate rule if available. Tile reads are already edge-cached (ADR-0019; custom domain only). Reads stay unauthenticated (product rule): do not add client keys |
-| S3 bad deploy | Redeploy the known-good commit (keeps current secrets). `wrangler rollback` only if no secret changed since the target version; otherwise follow "Rollback and secrets" below. For bad data, revert the `DB` binding |
+| S3 bad deploy | Redeploy the known-good commit (forward recovery; keeping current secrets is an assumption until the staging forward-deploy test passes, so verify secret state after it). `wrangler rollback` only if no secret changed since the target version; otherwise follow "Rollback and secrets" below. For bad data, revert the `DB` binding |
 | S3 provider | Nothing to switch off. Source health is advisory. If a source's facts are in doubt, use `source:hold` |
 
 ### Rollback and secrets (decide before rotating or rolling back)
@@ -79,8 +79,9 @@ a fixed "rotate, then roll back" sequence. Order them by what the incident needs
 1. **Contain** (stop intake, revoke the credential at its source, tighten edge rules).
 2. **Decide the code recovery path** *before* touching secrets: forward redeploy of known-good code (default), or a
    rollback, and to which version.
-3. **Recover code** by that path. If Wrangler asks to confirm a secret change, stop and re-plan; never accept one that
-   could reinstate a leaked value.
+3. **Recover code** by that path. A rollback runs only by hand in an interactive TTY (never CI, scripts, pipes or
+   agents: non-interactive Wrangler answers its confirmations "yes"). If Wrangler asks to confirm a secret change,
+   stop and re-plan; never accept one that could reinstate a leaked value.
 4. **Rotate / revoke / re-apply** secrets on the version now deployed: every rotation, and every kill-switch
    deletion (`REPORT_APP_ATTEST_APP_ID`), again after any rollback.
 5. **Verify** security state (phase 5), then continue recovery.

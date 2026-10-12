@@ -51,15 +51,19 @@ test("release preflight: committed placeholders block; real ids print the launch
   assert.equal(run[0], `npx wrangler r2 bucket info ${committed.env.production.r2_buckets[0].bucket_name}            # expect: the provisioned bucket exists; stop if this check fails`);
   assert.ok(ok.launch.join("\n").includes(p.expectedDigest), "the reviewed digest is checked against the target");
   assert.ok(ok.rollback.some((l) => /wrangler rollback --env production/.test(l)));
-  // A Worker rollback can restore older secrets: the guidance prefers forward recovery, warns before the fallback
-  // rollback, and lists the post-rollback security checks (docs/SECRETS_AND_ROTATION.md).
+  // A Worker rollback can restore older secrets: the guidance prefers forward recovery (an assumption until the staging
+  // test passes), requires an interactive TTY, warns before the fallback rollback, and lists the post-rollback checks
+  // (docs/SECRETS_AND_ROTATION.md).
   const lineAt = (re: RegExp) => ok.rollback.findIndex((l) => re.test(l));
   const rollbackAt = lineAt(/^npx wrangler rollback --env production$/);
-  assert.ok(lineAt(/forward recovery/) >= 0 && lineAt(/forward recovery/) < rollbackAt, "forward recovery comes first");
-  assert.ok(lineAt(/^npx wrangler deploy --env production$/) < rollbackAt);
+  const guidanceOrder = [/forward recovery/, /operational assumption/, /interactive TTY/, /Never run rollback from CI, automation, pipes, or unattended agents/,
+    /may restore secret values from the target version/].map(lineAt);
+  assert.ok(guidanceOrder.every((i) => i >= 0) && guidanceOrder.every((i, k) => k === 0 || i >= guidanceOrder[k - 1]) && guidanceOrder.at(-1)! < rollbackAt, `order: ${guidanceOrder} < ${rollbackAt}`);
+  assert.ok(lineAt(/^npx wrangler deploy --env production$/) < lineAt(/interactive TTY/), "forward redeploy precedes the rollback fallback");
   const warning = ok.rollback.slice(0, rollbackAt).join("\n");
-  for (const re of [/may restore secret values from the target version/, /secret rotation/, /App Attest intake kill switch/,
-    /Never approve a secret-change confirmation/, /no --message, no force/, /prefer the forward recovery/]) assert.match(warning, re);
+  for (const re of [/secret rotation/, /App Attest intake kill switch/, /Never approve a secret-change confirmation/, /no --message and no force/])
+    assert.match(warning, re);
+  assert.doesNotMatch(ok.rollback.join("\n"), /--message skips|skips (the |its )?confirmation|keeps the current secret state\./i, "no stale claims");
   const after = ok.rollback.slice(rollbackAt + 1).join("\n");
   for (const re of [/re-apply every required wrangler secret put \/ secret delete/, /wrangler secret list --env production/,
     /\/v1\/config/, /reports\.available/, /\/v1\/app-attest\/challenges/, /\/v1\/app-attest\/keys/, /\/v1\/reports/,

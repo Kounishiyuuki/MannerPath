@@ -488,8 +488,9 @@ Notes:
   It is also safe only while the previous database has the schema the running Worker reads: if the release added a
   canonical migration the Worker depends on, roll the Worker back too (`npx wrangler rollback`, which can also restore
   older secrets: see "Bad code" below) or migrate the previous database first.
-- **Bad code:** prefer redeploying the previous commit (`npx wrangler deploy --env staging`), which keeps the current
-  secrets. `npx wrangler rollback --env staging` deploys an older version **with its secret state**, so it can
+- **Bad code:** prefer redeploying the previous commit (`npx wrangler deploy --env staging`); that it keeps the
+  current secrets is an assumption until the staging forward-deploy test passes, so verify secret state after it.
+  Run any `wrangler rollback` by hand in an interactive TTY only, never from CI, scripts, pipes or agents. `npx wrangler rollback --env staging` deploys an older version **with its secret state**, so it can
   restore a rotated or deleted secret (e.g. re-open intake); stop at any secret-change confirmation and re-apply
   secrets afterwards ([SECRETS_AND_ROTATION.md](SECRETS_AND_ROTATION.md) §Worker rollback and secrets).
 - **Stop accepting reports:** remove `REPORT_APP_ATTEST_APP_ID` (or the bundle-version list) from the environment
