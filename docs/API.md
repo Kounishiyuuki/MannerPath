@@ -554,7 +554,8 @@ Response (`201`, `Cache-Control: no-store`):
 | `report` for an unregistered key | `403` | `attestationRejected`, `reason: keyNotRegistered` |
 | Too many outstanding challenges (1000 registration challenges per deployment, 3 report challenges per key) | `429` | `challengeLimited`; `Retry-After: 300` |
 | Per-client bucket exhausted (only where `CHALLENGE_RATE_LIMITER` and `RATE_LIMIT_KEY_PEPPER` are configured) | `429` | `challengeRateLimited`; `Retry-After: 60` |
-| Only one of those two configured, a pepper under 32 characters, or the report pepper reused | `503` | `challengeBudgetMisconfigured` |
+| Only one of those two configured, a pepper under 32 UTF-8 bytes after trimming, or the report pepper reused (compared trimmed) | `503` | `challengeBudgetMisconfigured` |
+| Configured limiter failed (its `limit()` threw or is unavailable) | `503` | `serviceUnavailable`; issuance fails closed, reads unaffected |
 
 ### POST `/app-attest/keys`
 

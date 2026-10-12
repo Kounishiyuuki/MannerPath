@@ -309,6 +309,7 @@ export function createApp(options: AppOptions = {}) {
     const budget = await challengeBudget(env, req);
     if (budget === "misconfigured") return problem(503, "challengeBudgetMisconfigured", "challenge rate limiting is misconfigured on this deployment");
     if (budget === "limited") return problem(429, "challengeRateLimited", "too many challenge requests", { "Retry-After": "60" });
+    if (budget === "unavailable") return problem(503, "serviceUnavailable", "the service is temporarily unavailable");
     const body = await readJson(req, 256, "requestTooLarge");
     if (!body.ok) return body.response;
     const parsed = ChallengeRequestV1.safeParse(body.json);

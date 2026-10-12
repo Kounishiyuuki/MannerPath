@@ -7,8 +7,9 @@
 // RATE_LIMIT_KEY_PEPPER, so neither the address nor a reversible form of it reaches D1, a log or a response, and the
 // Rate Limiting service sees only the keyed digest.
 
+import { normalizedPepper } from "../secrets/pepper.ts";
+
 const KEY_CONTEXT = "mannerpath.app-attest-challenge.v1\n";
-const PEPPER_MIN_LENGTH = 32;
 
 export interface ChallengeBudgetEnv {
   CHALLENGE_RATE_LIMITER?: RateLimit;
@@ -16,7 +17,7 @@ export interface ChallengeBudgetEnv {
   REPORT_SUBMITTER_PEPPER?: string;
 }
 
-export type ChallengeBudget = "notConfigured" | "allowed" | "limited" | "misconfigured";
+export type ChallengeBudget = "notConfigured" | "allowed" | "limited" | "misconfigured" | "unavailable";
 
 export async function rateLimitKey(pepper: string, clientAddress: string): Promise<string> {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(pepper), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
@@ -26,20 +27,21 @@ export async function rateLimitKey(pepper: string, clientAddress: string): Promi
 
 export async function challengeBudget(env: ChallengeBudgetEnv, request: Request): Promise<ChallengeBudget> {
   const limiter = env.CHALLENGE_RATE_LIMITER;
-  const pepper = env.RATE_LIMIT_KEY_PEPPER;
-  if (limiter === undefined && pepper === undefined) return "notConfigured";
-  // Half a configuration, a short pepper or a reused report pepper fails closed, like REPORT_ATTESTATION: a typo
-  // must never silently drop the layer, and one leaked pepper must not unlock both hashes.
-  if (limiter === undefined || pepper === undefined || pepper.length < PEPPER_MIN_LENGTH || pepper === env.REPORT_SUBMITTER_PEPPER) {
-    return "misconfigured";
-  }
+  if (limiter === undefined && env.RATE_LIMIT_KEY_PEPPER === undefined) return "notConfigured";
+  // Half a configuration, a pepper under 32 UTF-8 bytes after trimming, or the report pepper reused (compared after
+  // the same normalization) fails closed, like REPORT_ATTESTATION: a typo must never silently drop the layer, and
+  // one leaked pepper must not unlock both hashes.
+  const pepper = normalizedPepper(env.RATE_LIMIT_KEY_PEPPER);
+  const submitter = env.REPORT_SUBMITTER_PEPPER?.trim();
+  if (limiter === undefined || pepper === null || pepper === submitter) return "misconfigured";
   // Cloudflare sets CF-Connecting-IP on every request it routes to the Worker. Without it (not via Cloudflare) all
   // such callers share one bucket rather than going unlimited.
   const key = await rateLimitKey(pepper, request.headers.get("CF-Connecting-IP") ?? "no-client-address");
   try {
     return (await limiter.limit({ key })).success ? "allowed" : "limited";
   } catch {
-    // A Rate Limiting outage must not take issuance down; the deployment-wide ceiling still bounds D1 writes.
-    return "allowed";
+    // A configured limiter that fails is a broken security control: issuance (the entry to report writes, never a
+    // read) stops rather than continuing unchecked. Nothing about the caller, key or binding is surfaced.
+    return "unavailable";
   }
 }

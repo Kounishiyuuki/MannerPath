@@ -2,6 +2,7 @@
 // optional per-client challenge budget (src/attest/challenge-budget.ts). docs/OPERATIONS.md "Cache and CDN semantics".
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { CONDITIONAL_HEADER_MAX_BYTES, REQUEST_URL_MAX_BYTES, app, ifNoneMatchMatches } from "../src/app.ts";
 import { challengeBudget, rateLimitKey } from "../src/attest/challenge-budget.ts";
 import { type EdgeCache, READ_CACHE_CONTROL, edgeCacheKey, serveWithEdgeCache, storable } from "../src/edge-cache.ts";
@@ -12,8 +13,13 @@ import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 const REVALIDATE = "public, no-cache";
 const LIMITS = { urlMaxBytes: REQUEST_URL_MAX_BYTES, conditionalHeaderMaxBytes: CONDITIONAL_HEADER_MAX_BYTES, ifNoneMatchMatches };
 const ORIGIN = "https://api.example.invalid";
-const ATTEST_ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41" };
-const PEPPER = "test-pepper-value-not-a-real-secret";
+// Low-entropy fixtures, never secret-looking literals: 32 ASCII bytes each, and distinct from each other.
+const SUBMITTER_PEPPER = "s".repeat(32);
+const PEPPER = "r".repeat(32);
+const ATTEST_ENV = {
+  REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production",
+  REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41", REPORT_SUBMITTER_PEPPER: SUBMITTER_PEPPER,
+};
 
 async function published() {
   const db = new SqliteD1();
@@ -178,17 +184,32 @@ test("the challenge bucket is off without configuration, fails closed when half-
   const keys: string[] = [];
   const limiter = (success: boolean) => ({ limit: async ({ key }: { key: string }) => { keys.push(key); return { success }; } });
   assert.equal(await challengeBudget({}, req("192.0.2.1")), "notConfigured");
-  assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true) }, req("192.0.2.1")), "misconfigured");
-  assert.equal(await challengeBudget({ RATE_LIMIT_KEY_PEPPER: PEPPER }, req("192.0.2.1")), "misconfigured");
-  assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true), RATE_LIMIT_KEY_PEPPER: "short" }, req("192.0.2.1")), "misconfigured");
-  assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true), RATE_LIMIT_KEY_PEPPER: PEPPER, REPORT_SUBMITTER_PEPPER: PEPPER }, req("192.0.2.1")),
-    "misconfigured", "the report pepper is never reused");
+  assert.equal(await challengeBudget({ REPORT_SUBMITTER_PEPPER: SUBMITTER_PEPPER }, req("192.0.2.1")), "notConfigured");
+  assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true) }, req("192.0.2.1")), "misconfigured", "binding only");
+  assert.equal(await challengeBudget({ RATE_LIMIT_KEY_PEPPER: PEPPER }, req("192.0.2.1")), "misconfigured", "pepper only");
+  // The floor is 32 UTF-8 bytes after trimming, never characters.
+  const budget = (pepper: string, submitter = SUBMITTER_PEPPER) =>
+    challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true), RATE_LIMIT_KEY_PEPPER: pepper, REPORT_SUBMITTER_PEPPER: submitter }, req("192.0.2.1"));
+  for (const [name, pepper] of [["32 spaces", " ".repeat(32)], ["31 ASCII bytes", "r".repeat(31)], ["31 bytes padded with whitespace", `  ${"r".repeat(31)}\t\n`],
+    ["10 x あ = 30 bytes", "あ".repeat(10)], ["the submitter pepper", SUBMITTER_PEPPER], ["the submitter pepper plus trailing whitespace", `${SUBMITTER_PEPPER}  `],
+    ["the submitter pepper with leading whitespace", ` \t${SUBMITTER_PEPPER}`]]) {
+    assert.equal(await budget(pepper), "misconfigured", name);
+  }
+  assert.equal(await budget(PEPPER, ` ${PEPPER}\n`), "misconfigured", "a padded submitter pepper is the same secret");
   assert.deepEqual(keys, [], "no misconfiguration ever reaches the limiter");
+  for (const [name, pepper] of [["32 ASCII bytes", PEPPER], ["11 x あ = 33 bytes", "あ".repeat(11)], ["a distinct 40-byte pepper", "q".repeat(40)]]) {
+    assert.equal(await budget(pepper), "allowed", name);
+  }
+  // The normalized value keys the HMAC: surrounding whitespace never forms a different bucket.
+  assert.equal(keys.at(-3), await rateLimitKey(PEPPER, "192.0.2.1"));
+  await budget(`  ${PEPPER}\n`);
+  assert.equal(keys.at(-1), keys.at(-4), "a padded pepper keys the same bucket as the trimmed one");
+  keys.length = 0;
 
   assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true), RATE_LIMIT_KEY_PEPPER: PEPPER }, req("192.0.2.1")), "allowed");
   assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(false), RATE_LIMIT_KEY_PEPPER: PEPPER }, req("192.0.2.1")), "limited");
   assert.equal(await challengeBudget({ CHALLENGE_RATE_LIMITER: { limit: async () => { throw new Error("down"); } }, RATE_LIMIT_KEY_PEPPER: PEPPER }, req("192.0.2.1")),
-    "allowed", "a Rate Limiting outage leaves the global ceiling as the backstop");
+    "unavailable", "a configured limiter that fails is a broken control: fail closed");
   await challengeBudget({ CHALLENGE_RATE_LIMITER: limiter(true), RATE_LIMIT_KEY_PEPPER: PEPPER }, req());
   assert.equal(keys[0], keys[1], "one address, one bucket");
   assert.equal(keys[0], await rateLimitKey(PEPPER, "192.0.2.1"));
@@ -221,6 +242,7 @@ test("POST /v1/app-attest/challenges applies the bucket before the body and befo
   assert.equal(count(half.reports), 0);
   const allowed = post({ CHALLENGE_RATE_LIMITER: { limit: async () => ({ success: true }) }, RATE_LIMIT_KEY_PEPPER: PEPPER });
   assert.equal((await allowed.res).status, 201);
+  assert.equal(count(allowed.reports), 1);
   // Neither the address nor its HMAC is stored anywhere in the report store.
   const dump = JSON.stringify(allowed.reports.raw.prepare("SELECT * FROM app_attest_challenges").all());
   assert.equal(dump.includes("198.51.100.7"), false);
@@ -240,4 +262,47 @@ test("tile, manifest and part answers are byte-identical with and without a quer
         [plain.status, plain.headers.get("ETag"), plain.headers.get("Cache-Control"), body], `${path}${query}`);
     }
   }
+});
+
+test("a configured limiter that throws fails the challenge closed: 503, no D1 access, no row, nothing about the caller", async () => {
+  const reports = reportsD1();
+  let dbCalls = 0;
+  const counted = { prepare: (sql: string) => { dbCalls++; return reports.prepare(sql); }, batch: (st: never[]) => { dbCalls++; return reports.batch(st); } };
+  const res = await app.request(`${ORIGIN}/v1/app-attest/challenges`, {
+    method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.9" },
+    body: JSON.stringify({ schemaVersion: 1, purpose: "registration" }),
+  }, { DB: new SqliteD1(), REPORTS_DB: counted, ...ATTEST_ENV, CHALLENGE_RATE_LIMITER: { limit: async () => { throw new Error("rate limiting unavailable"); } }, RATE_LIMIT_KEY_PEPPER: PEPPER } as any);
+  assert.deepEqual([res.status, res.headers.get("Cache-Control"), res.headers.get("X-Content-Type-Options")], [503, "no-store", "nosniff"]);
+  const text = await res.text();
+  assert.equal(JSON.parse(text).error, "serviceUnavailable");
+  assert.equal(dbCalls, 0, "refused before any report-store access");
+  assert.equal((reports.raw.prepare("SELECT count(*) AS n FROM app_attest_challenges").get() as { n: number }).n, 0);
+  const headers = JSON.stringify([...res.headers]);
+  for (const secret of ["203.0.113.9", await rateLimitKey(PEPPER, "203.0.113.9"), PEPPER, "RATE_LIMIT_KEY_PEPPER", "CHALLENGE_RATE_LIMITER", "rate limiting unavailable"]) {
+    assert.equal(text.includes(secret) || headers.includes(secret), false, secret);
+  }
+});
+
+// ADR-0019 §3, static half: the edge key drops the query, so no code that forms a cached tile, manifest or part answer
+// may read it. The scope is exactly the tile route block of app.ts and the helpers it calls; edge-cache.ts may build a
+// URL only to take origin and path. Introducing query semantics means amending the key, this guard, and ADR-0019.
+test("no cached tile route or helper reads the query string", () => {
+  const source = (path: string) => readFileSync(new URL(`../src/${path}`, import.meta.url), "utf8");
+  const app = source("app.ts");
+  const start = app.indexOf("// Tiles (ADR-0005, ADR-0015).");
+  const end = app.indexOf('app.get("/v1/spots/:id"');
+  assert.ok(start > 0 && end > start, "the tile route block markers moved: update this guard's scope deliberately");
+  const tileRoutes = app.slice(start, end);
+  for (const route of ['"/v1/tiles/:z/:x/:y"', '"/v1/tiles/:z/:x/:y/manifest"', '"/v1/tiles/:z/:x/:y/parts/:index"']) {
+    assert.ok(tileRoutes.includes(route), `${route} is outside the guarded block`);
+  }
+  const QUERY_READS = [/\.query\s*\(/, /\.queries\s*\(/, /searchParams/, /\.search\b/, /new\s+URL\s*\(/, /\bURLSearchParams\b/, /c\.req\.url\b/, /\.req\.raw\.url\b/];
+  const scopes: [string, string][] = [
+    ["app.ts tile routes", tileRoutes], ["geo/tile.ts", source("geo/tile.ts")], ["tiles/parts.ts", source("tiles/parts.ts")], ["tiles/dto.ts", source("tiles/dto.ts")],
+  ];
+  for (const [name, text] of scopes) for (const pattern of QUERY_READS) assert.doesNotMatch(text, pattern, `${name}: ${pattern}`);
+  // The cache wrapper builds its key from origin + pathname only.
+  const edge = source("edge-cache.ts");
+  for (const pattern of [/searchParams/, /\.search\b/, /\.query\s*\(/, /URLSearchParams/, /url\.href/]) assert.doesNotMatch(edge, pattern, `edge-cache.ts: ${pattern}`);
+  assert.match(edge, /new Request\(`\$\{url\.origin\}\$\{url\.pathname\}`\)/, "edge-cache.ts: the key is origin + pathname");
 });

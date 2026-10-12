@@ -53,8 +53,11 @@ None of these is edge-cached. Every response carries `X-Content-Type-Options: no
 
 The tile, manifest and part handlers read only the path parameters (`c.req.param()`) and `If-None-Match`; no tile
 handler reads the query. Dropping the query from the key therefore cannot change a body, and `?anything` cannot
-create a new key (cache busting). A test (`test/read-edge-hardening.test.ts`) asserts that the app's own answer
-for each tile endpoint is byte-identical, with the same `ETag`, with and without a query. If a query parameter ever
+create a new key (cache busting). Two tests (`test/read-edge-hardening.test.ts`) pin this: the app's own answer for
+each tile endpoint is byte-identical, with the same `ETag`, with and without a query; and a static guard fails if the
+tile route block of `app.ts` or the helpers it calls (`geo/tile.ts`, `tiles/parts.ts`, `tiles/dto.ts`) read the
+query in any form (`query()`, `queries()`, `searchParams`, `URL`, `search`), or if `edge-cache.ts` keys on more than
+origin + path. If a query parameter ever
 gains meaning on a tile endpoint, that test fails, and this ADR must be amended to put the parameter in the key.
 
 ### 4. The public read API stays unauthenticated
@@ -100,4 +103,7 @@ holds:
 - The successful App Attest key-registration budget (layer 3 in `docs/OPERATIONS.md` "Read API and challenge abuse
   budget") is not implemented; it is left to a later security lane.
 - Enabling the optional challenge bucket (`CHALLENGE_RATE_LIMITER` + `RATE_LIMIT_KEY_PEPPER`) and any edge rule are
-  account and deployment actions, not part of this decision.
+  account and deployment actions, not part of this decision. Its failure semantics are fixed here so enabling it is
+  safe: a pepper is measured in UTF-8 bytes after trimming (32 minimum, like `REPORT_SUBMITTER_PEPPER`) and must
+  differ from the report pepper after the same trimming; a configured limiter that fails makes challenge issuance
+  fail closed (`503`), never fail open. That is a write entry point; reads never depend on the limiter.

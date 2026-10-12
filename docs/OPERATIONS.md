@@ -637,8 +637,12 @@ Abuse is bounded in layers, each optional on its own, none storing a raw network
    Limiting binding `CHALLENGE_RATE_LIMITER` (Wrangler `ratelimits`, `simple` limit per 10 or 60 s) keyed by
    HMAC-SHA-256(`RATE_LIMIT_KEY_PEPPER`, context + `CF-Connecting-IP`). The address is used only as HMAC input
    inside the request; neither it nor the digest is written to D1, R2, logs or a response. Runs before the body is
-   read and before D1. Both settings or neither: with only one, a pepper under 32 characters, or a pepper equal to
-   `REPORT_SUBMITTER_PEPPER`, issuance fails closed (`503 challengeBudgetMisconfigured`). Neither is committed.
+   read and before D1. Both settings or neither: with only one, a pepper under 32 UTF-8 bytes after trimming
+   surrounding whitespace, or a pepper equal to `REPORT_SUBMITTER_PEPPER` (both trimmed), issuance fails closed
+   (`503 challengeBudgetMisconfigured`). The trimmed value keys the HMAC. **A configured limiter that fails** (its
+   `limit()` throws or is unavailable) **fails closed too** (`503 serviceUnavailable`, before any D1 access):
+   challenge issuance is the entry to report writes, not a read, so it never continues with its control broken.
+   Reads are unaffected. Neither the binding nor the pepper is committed.
 3. **Successful key registration budget**: design only; a future per-deployment cap on new App Attest keys.
 4. **Global emergency ceiling** (unchanged): at most 1000 outstanding registration challenges per deployment and
    3 report challenges per key, enforced in the single D1 statement that issues one.
@@ -649,7 +653,7 @@ budget; a read Worker bucket is not added.
 To enable layer 2 (maintainer, per environment, after a reviewed PR adds the binding to `wrangler.jsonc`):
 
 ```sh
-npx wrangler secret put RATE_LIMIT_KEY_PEPPER --env staging   # 32+ random bytes; never REPORT_SUBMITTER_PEPPER's value
+npx wrangler secret put RATE_LIMIT_KEY_PEPPER --env staging   # 32+ random UTF-8 bytes after trimming; never REPORT_SUBMITTER_PEPPER's value
 ```
 
 `RATE_LIMIT_KEY_PEPPER` is a Cloudflare Secret only: never a `vars` entry, a client (iPhone, Watch, Widget)
