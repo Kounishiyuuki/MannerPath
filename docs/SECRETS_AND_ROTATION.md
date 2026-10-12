@@ -5,7 +5,7 @@ shared with an agent, or this document.** An agent never runs `wrangler secret p
 token operation; every step below is a maintainer action. Related documents:
 - [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)
 - [SECURITY_RELEASE_GATE.md](SECURITY_RELEASE_GATE.md)
-- [ADR-0019 (draft)](adr/0019-external-provider-proxy-and-secret-boundary.md)
+- [ADR-0020 (draft)](adr/0020-external-provider-proxy-and-secret-boundary.md)
 
 ## Secret boundary
 
@@ -36,7 +36,7 @@ App / Watch / Widget → MannerPath Cloudflare Worker → external provider.
 | `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | Secret binding (comma list) | Same as above | `attestationConfig` | Fails closed |
 | `REPORT_ATTESTATION` | **Committed var**, not a secret | `disabled` local, `required` remote | `attestationConfig` | Unknown value fails closed |
 | `RATE_LIMIT_KEY_PEPPER` | Secret | **Planned, not implemented.** No code reads it (`git grep` finds none). The Lane 1 network budget (B2) will key a Workers Rate Limiting bucket on an HMAC of the network prefix | — | Lane 1 must fail closed to "no B2 bucket", never to an unkeyed prefix |
-| `<PROVIDER>_API_KEY` (per provider) | Secret | **Future.** No provider chosen. Governed by ADR-0019 | — | ADR-0019: missing returns a constant 503 and no unauthenticated upstream call |
+| `<PROVIDER>_API_KEY` (per provider) | Secret | **Future.** No provider chosen. Governed by ADR-0020 | — | ADR-0020: missing returns a constant 503 and no unauthenticated upstream call |
 | Cloudflare API token | Account credential (maintainer terminal / OAuth) | Used by manual `wrangler` deploys only. **No CI deploy exists** | `wrangler` CLI | — |
 | GitHub deployment credential | None stored. `pages.yml` uses the job's OIDC `id-token` for GitHub Pages; `source-health.yml` reads no `secrets.*` | — | — | — |
 

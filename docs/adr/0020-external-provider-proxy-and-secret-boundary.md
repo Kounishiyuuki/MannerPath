@@ -1,4 +1,4 @@
-# ADR-0019 — External provider proxy and secret boundary
+# ADR-0020 — External provider proxy and secret boundary
 
 Status: **Proposed (draft, 2026-10-12).** Not accepted. Nothing is implemented, and no provider is chosen.
 
