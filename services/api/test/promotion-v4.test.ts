@@ -182,7 +182,7 @@ test("v4 parser respects escaped quotes, Unicode, semicolons and stream boundari
   await assert.rejects(async () => { for await (const _ of sqlStatements(path)) { /* consume stream */ } }, /capacity policy/);
 });
 
-test("v4 bootstraps the existing six-source 513-spot corpus and deterministically re-exports", async t => {
+test("v4 bootstraps all seven reviewed sources including the Sendai area anchor and deterministically re-exports", async t => {
   const root = await mkdtemp(join(tmpdir(), "promotion-v4-six-source-"));
   const source = new SqliteD1(), target = migratedSqlite();
   t.after(async () => { source.raw.close(); target.close(); await rm(root, { recursive: true, force: true }); });
@@ -190,10 +190,12 @@ test("v4 bootstraps the existing six-source 513-spot corpus and deterministicall
   await publishTiles(source, { now: NOW });
   const directory = join(root, "bundle");
   const manifest = await exportPromotionV4(source.raw, directory, { chunkBytes: 90_000 });
-  assert.equal(manifest.sources.length, 6);
-  assert.equal(manifest.rows.tile_snapshot_spots, 513);
+  assert.equal(manifest.sources.length, 7);
+  assert.equal(manifest.rows.tile_snapshot_spots, 514);
+  assert.equal(manifest.rows.area_location_anchors, 1);
+  assert.equal(manifest.rows.area_point_mappings, 1);
   assert.equal((await applyPromotionV4(target, directory, manifest.wholeBundleSha256)).status, "completed");
-  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 513);
+  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 514);
   const reexport = await exportPromotionV4(target, join(root, "reexport"), { chunkBytes: 90_000 });
   assert.deepEqual(reexport, manifest);
 });

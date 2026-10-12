@@ -296,3 +296,29 @@ prohibits all smoking, including portable-ashtray use, with no exception for the
 of the four points fall inside the publisher's own zone polygons. An ashtray's existence does not
 establish smoking permission. Publication status: **blocked**, with no adapter, ingest or canonical
 values, until the publisher states what the ashtrays are for.
+
+### 仙台市 海岸公園（井土地区）内の喫煙所 — repository onboarding, not production rollout
+
+Fixture/provenance: `services/data-pipeline/fixtures/sendai-kaigan-park-smoking-areas/`. Review scope is one explicitly evidenced park-level approximate result, not the entire public-facility dataset or individual exact smoking points.
+
+| Field | Value |
+| --- | --- |
+| Source ID | `sendai-kaigan-park-smoking-areas` |
+| Name / Kind | 仙台市 海岸公園（井土地区）内の喫煙所 / municipal |
+| Dataset URL | https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/opendata_example.html ; exact-resource license result at https://www.city.sendai.jp/opendata/index.php (search 公共施設一覧) |
+| Original release URL | https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv |
+| License name | クリエイティブ・コモンズ表示4.0国際ライセンス (CC BY 4.0), exact-resource official catalog label |
+| Original terms / License URL | https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/opendata.html ; https://creativecommons.org/licenses/by/4.0/legalcode.ja |
+| Required attribution text | `出典：仙台市オープンデータ「公共施設一覧」 https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが喫煙所の記載を抽出・正規化して作成。ピンは海岸公園（井土地区）の目安であり、喫煙所の正確な位置ではありません。` |
+| Redistribution to clients allowed | yes, CC BY 4.0 §2(a)(1), subject to attribution and notice retention under §3; source disclaimers retained in provenance |
+| Modification/derivation allowed | yes, CC BY 4.0 §2(a)(1); extraction/normalization and approximate treatment disclosed; no endorsement implied |
+| Share-alike obligations | none under CC BY 4.0 |
+| Observation date available | none established for smoking amenity; `observedOn=null`, `lastVerifiedAt=null`. April 1, 2026 dataset baseline and May 13 publication are separate metadata |
+| Existence / current-operation review | exact row `000000001388` explicitly states smoking amenity. Its linked designated-operator homepage https://bouken-asobiba-net.com/bouhiro/ currently identifies smoking areas and carries an October 8, 2026 notice; no closure/prohibition found in inspected homepage body. No onsite verification claimed; operator values are not imported |
+| Coordinate authority | same-row park representative `名称` / `緯度` / `経度`, reviewed under ADR-0017; release-digest/row-bound anchor checked against immutable evidence before resolve; always `areaApproximate`, never `publisherPoint` |
+| Unsupported values | smoking hours, open-now, tobacco type, environment and access remain unknown. Park hours and operator facility hours are not smoking hours |
+| Completeness / refresh | partial, one park-level result; pinned first release only, no automatic refresh or approved cross-release matching |
+| Reviewed by / date | Codex, 2026-10-11, primary publisher terms, CC legal code, exact-resource catalog, current operator and same-row anchor review; repository onboarding explicitly authorized by maintainer in this task |
+| Publication status | approved in this repository onboarding scope. **Production rollout not performed or authorized by this entry**; existing six-source production corpus remains unchanged |
+
+The operator diagram's two smoking places do not create two invented records. Full original CSV bytes stay immutable evidence, with only the reviewed row contributing one approximate observation. Linked images, operator pages, station-east smoking areas and unrelated facility rows inherit no permission or source approval from this entry.

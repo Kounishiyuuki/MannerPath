@@ -1,0 +1,2 @@
+# Preserve the licensed publisher release BOM and CRLF without normalization.
+041009_public_facility.csv -text -diff

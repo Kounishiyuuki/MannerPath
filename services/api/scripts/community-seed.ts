@@ -32,7 +32,7 @@ let coverage: CampaignCoverage;
 if (fixtures) {
   if (options.coverage || options.stations) throw new Error("--fixtures cannot be mixed with supplied coverage/station metrics");
   const { SqliteD1 } = await import("../test/support/sqlite-d1.ts");
-  const { importAllReviewedSources, REVIEWED_FIXTURES, reviewedFixtureBytes } = await import("../test/support/reviewed-fixtures.ts");
+  const { importProductionBaselineSources, PRODUCTION_BASELINE_SOURCE_IDS, REVIEWED_FIXTURES, reviewedFixtureBytes } = await import("../test/support/reviewed-fixtures.ts");
   const { publishTiles } = await import("../src/tiles/publish.ts");
   const { communityAcquisitionMetrics } = await import("../src/coverage/metrics.ts");
   const { readPublishedTiles } = await import("../src/tiles/parts.ts");
@@ -40,13 +40,14 @@ if (fixtures) {
   if (Number.isNaN(Date.parse(measuredAt))) throw new Error("invalid --now");
   const db = new SqliteD1();
   try {
-    await importAllReviewedSources(db, measuredAt);
+    // Reproduce the historical six-source coverage artifact; onboarding does not update that baseline.
+    await importProductionBaselineSources(db, measuredAt);
     await publishTiles(db, { now: measuredAt });
     const tiles = await readPublishedTiles(db);
     const spots = [...new Map(tiles.flatMap((t) => t.spots).map((s) => [s.id, s])).values()];
     const metrics = await communityAcquisitionMetrics(db, spots, { now: measuredAt });
     const hash = createHash("sha256");
-    for (const [id, fixture] of Object.entries(REVIEWED_FIXTURES).sort(([a], [b]) => a < b ? -1 : 1)) { hash.update(id); hash.update(reviewedFixtureBytes(fixture.file)); }
+    for (const id of [...PRODUCTION_BASELINE_SOURCE_IDS].sort()) { const fixture = REVIEWED_FIXTURES[id]; hash.update(id); hash.update(reviewedFixtureBytes(fixture.file)); }
     coverage = {
       version: "community-seed-coverage.v1", measuredAt, corpusRevision: `pinned-reviewed-fixtures:sha256:${hash.digest("hex")}`,
       provenance: "pinnedReviewedFixtures",

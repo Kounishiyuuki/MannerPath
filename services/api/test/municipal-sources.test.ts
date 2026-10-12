@@ -12,6 +12,8 @@ import { KYOTO_ADAPTER, KYOTO_FIXTURE_RELEASE, KYOTO_FIXTURE_SHA256 } from "../s
 import { MINATO_ADAPTER, MINATO_FIXTURE_RELEASE, MINATO_FIXTURE_SHA256 } from "../src/pipeline/minato-adapter.ts";
 import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_FIXTURE_SHA256 } from "../src/pipeline/musashino-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_FIXTURE_RELEASE, OSAKA_FIXTURE_SHA256 } from "../src/pipeline/osaka-adapter.ts";
+import { SENDAI_ADAPTER, SENDAI_AREA_ANCHOR, SENDAI_FIXTURE_RELEASE, SENDAI_FIXTURE_SHA256 } from "../src/pipeline/sendai-adapter.ts";
+import { recordAreaAnchor } from "../src/pipeline/area-anchor.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { observeSourceRecord, type SourceAdapter } from "../src/pipeline/source-adapter.ts";
@@ -45,6 +47,8 @@ const SOURCES: readonly Row[] = [
     sha256: MINATO_FIXTURE_SHA256, rawRows: 169, selected: 114, spots: 114, published: 114, refresh: false, coordinateIndexes: [28, 29] },
   { adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE, fixture: "kyoto-public-smoking-places/20260903_shisetsu.csv",
     sha256: KYOTO_FIXTURE_SHA256, rawRows: 1777, selected: 17, spots: 17, published: 17, refresh: false, coordinateIndexes: [5, 6] },
+  { adapter: SENDAI_ADAPTER, release: SENDAI_FIXTURE_RELEASE, fixture: "sendai-kaigan-park-smoking-areas/041009_public_facility.csv",
+    sha256: SENDAI_FIXTURE_SHA256, rawRows: 2844, selected: 1, spots: 1, published: 1, refresh: false },
 ];
 const n = (db: SqliteD1, sql: string, ...p: unknown[]) => (db.raw.prepare(sql).get(...p) as { n: number }).n;
 
@@ -63,6 +67,12 @@ for (const s of SOURCES) {
     const inScope = rows.filter((r) => s.adapter.includesRecord?.(r) ?? true);
     assert.equal(inScope.length, s.selected);
     for (const r of rows) if (!inScope.includes(r)) assert.throws(() => s.adapter.observe(r));
+    // Sendai binds a reviewed park anchor, rather than freely interpreting any numeric cells as a smoking point.
+    // Its dedicated tests verify anchor/release immutability and approximate authority.
+    if (s.adapter === SENDAI_ADAPTER) {
+      assert.equal(s.adapter.observe(inScope[0]).locationAnchorId, SENDAI_AREA_ANCHOR.anchorId);
+      return;
+    }
     const location = s.adapter.observe(inScope[0]).provenance.find((p) => p.field === "location")!;
     // Syntax and global range are checked at the shared observation boundary.
     for (const column of location.columns) {
@@ -100,6 +110,7 @@ for (const s of SOURCES) {
     assert.equal(s.adapter.refreshTarget !== undefined, s.refresh);
     await ensureReviewedSource(db, id, NOW);
     const { releaseId } = await ingestRelease(db, s.adapter, fixture(s.fixture), s.release);
+    if (s.adapter === SENDAI_ADAPTER) await recordAreaAnchor(db, s.adapter, SENDAI_AREA_ANCHOR, NOW);
     const result = await resolveFirstRelease(db, s.adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds("9") });
     assert.equal(result.status, "resolved");
     assert.equal(n(db, "SELECT count(*) n FROM source_records"), s.rawRows);

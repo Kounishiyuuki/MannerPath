@@ -11,4 +11,6 @@ import { OSAKA_ADAPTER } from "./osaka-adapter.ts";
 import { TAITO_ADAPTER } from "./taito-adapter.ts";
 import { MUSASHINO_ADAPTER } from "./musashino-adapter.ts";
 
-export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER];
+import { SENDAI_ADAPTER } from "./sendai-adapter.ts";
+
+export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER, SENDAI_ADAPTER];

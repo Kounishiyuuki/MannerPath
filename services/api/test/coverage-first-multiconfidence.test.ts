@@ -33,6 +33,7 @@ import { TileBodyV1, type TileSpotV1 } from "../src/tiles/dto.ts";
 import { type CandidateRow, publishTiles, verificationDto } from "../src/tiles/publish.ts";
 import { TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
+import { SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
 import { proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
@@ -135,18 +136,23 @@ const SMOKING_CAFE: Claim = { spotType: "smokingPermittedVenue", hostType: "rest
 
 // =============================================================================================================
 // 1, 20, 30 — official spots stay exactly official
-test("official spots remain official: officialListing, publisherPoint, no confirmation count, review month from the release", async () => {
+test("official spots remain official: officialListing, evidence-backed precision, no confirmation count, review month from the release", async () => {
   const db = await world();
   const spots = v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
-    assert.equal(s.evidenceQualityVersion, "evidence-quality.v1", "the six reviewed sources keep their v1 value");
+    assert.equal(s.evidenceQualityVersion, "evidence-quality.v1", "every reviewed official source keeps its v1 value");
     assert.deepEqual(s.verification, {
-      version: "spot-verification.v1", existence: "official", locationPrecision: "publisherPoint", confirmations: null,
+      version: "spot-verification.v1", existence: "official", locationPrecision: s.sourceIds.includes(SENDAI_SOURCE_ID) ? "areaApproximate" : "publisherPoint", confirmations: null,
       lastReviewedMonth: s.lastVerifiedAt?.slice(0, 7) ?? null,
+      ...(s.sourceIds.includes(SENDAI_SOURCE_ID) ? { locationArea: { name: "海岸公園（井土地区）", kind: "park" } } : {}),
     });
-    assert.deepEqual([s.spotSubtype, s.hostType, s.accessDetail], [null, "unknown", null], "no official source states them, so nothing is inferred");
+    assert.deepEqual([s.spotSubtype, s.hostType, s.accessDetail], [null, s.sourceIds.includes(SENDAI_SOURCE_ID) ? "municipality" : "unknown", null], "only explicitly stated host types are retained");
+    if (s.sourceIds.includes(SENDAI_SOURCE_ID)) {
+      assert.deepEqual(s.verification.locationArea, { name: "海岸公園（井土地区）", kind: "park" }, "the park pin remains an area anchor");
+      assert.deepEqual(s.openingHours, { status: "none", raw: null, parsed: null, timeZone: "Asia/Tokyo" }, "park hours are not smoking hours");
+    }
   }
 });
 

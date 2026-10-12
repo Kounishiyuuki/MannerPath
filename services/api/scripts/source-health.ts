@@ -58,9 +58,10 @@ export function archiveMember(bytes: Uint8Array, suffix: string): Uint8Array {
   return matches[0];
 }
 export function productionHealthTargets(): HealthTarget[] {
-  return SOURCE_ADAPTERS.map(adapter => {
-    const resource = resources[adapter.registry.sourceId];
-    if (!resource) throw new Error("Reviewed source needs explicit health inventory");
+  // Production monitoring has an explicit inventory; repository onboarding alone never expands it.
+  return Object.entries(resources).map(([sourceId, resource]) => {
+    const adapter = SOURCE_ADAPTERS.find(candidate => candidate.registry.sourceId === sourceId);
+    if (!adapter) throw new Error(`Production health inventory needs reviewed adapter: ${sourceId}`);
     const directory = new URL(`${adapter.registry.sourceId}/`, root);
     const fixture = new Uint8Array(readFileSync(new URL(resource.filename, directory)));
     const target: HealthTarget = { adapter, url: resource.url,
