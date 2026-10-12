@@ -45,7 +45,7 @@ iPhone/Watch slots; unsigned archive inclusion verified 2026-10-06 ([distributio
 | Tile publication | READY | 513 published spots from 6 approved sources locally; every quality check passes |
 | `/v1/config` | READY | tile 1..2, spotDetail 1..1, report range; `reports.available: false` until App Attest is configured |
 | Schema / version compatibility | READY | `minimumSupportedSchemaVersions` ≤ `schemaVersions`; pre-ADR-0015 clients keep z14 v1 tiles |
-| Rollback | READY | `DB` `database_id` revert (blue kept), `wrangler rollback` for code, report intake stop by removing `REPORT_APP_ATTEST_APP_ID` |
+| Rollback | READY | `DB` `database_id` revert (blue kept), known-good redeploy or `wrangler rollback` for code (a rollback can restore older secrets: re-apply and verify), report intake stop by removing `REPORT_APP_ATTEST_APP_ID` |
 | Smoke test | READY | `scripts/smoke.ts`: 8/8 locally against the 6-source corpus (config, tile 200/304/404, detail, attribution, report gate) |
 | Production preflight | READY | `npm run release:preflight` (local, read-only): committed env safety, real/distinct/unshared ids, import plan against both reviewed digests, then the ordered launch and rollback commands (`test/release-preflight.test.ts`) |
 | Read-only v1, reports off | READY | `wrangler dev --env production` with no secrets: `/v1/reports`, `/v1/app-attest/*` `503 attestationUnavailable`; photos `503 photoEvidenceDisabled`; writes to read routes `404`; reads `200` |
@@ -124,11 +124,14 @@ Later data updates are blue/green (`OPERATIONS.md` step 6); keep the previous da
 
 ### Rollback order
 
-1. Bad Worker code: `npx wrangler rollback --env production` (data untouched), then remote smoke.
+1. Bad Worker code: prefer redeploying the known-good commit (keeps current secrets). `npx wrangler rollback --env
+   production` leaves D1 data untouched but deploys the older version **with its secret state**; stop at a
+   secret-change confirmation, re-apply secrets after it, and verify `/v1/config` `reports.available`
+   (`SECRETS_AND_ROTATION.md` §Worker rollback and secrets). Then remote smoke.
 2. Bad data after a later blue/green release: restore the previous `DB` `database_id` (reviewed PR) →
    `npx wrangler deploy --env production` → remote smoke. **This is safe only while the previous database has the
    schema the running Worker reads.** If the release also added a canonical migration the Worker depends on, roll the
-   Worker back to the version that served that database as well (`wrangler rollback`), or apply the new migration to
+   Worker back to the version that served that database as well (`wrangler rollback`, with the secret caveat in step 1), or apply the new migration to
    it first; never serve a database older than the code's schema.
 3. First launch (no previous database): `npx wrangler delete --env production` takes the API down; the databases are
    kept; the app falls back to its cached tiles.

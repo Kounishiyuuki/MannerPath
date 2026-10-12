@@ -20,7 +20,7 @@ When unsure, use the higher severity.
 
 | Switch | Command (maintainer) | Effect | Source |
 |---|---|---|---|
-| Worker code rollback | `npx wrangler rollback --env <env>` | Previous Worker version. Data and secrets untouched (secrets are not versioned with code) | `RELEASE_CHECKLIST.md` §Rollback order |
+| Worker code rollback | `npx wrangler rollback --env <env>` (no `--message` during an incident) | Deploys an older version, **including its secret state**: it can restore a leaked or deleted secret. D1 data untouched. Stop at any secret-change confirmation; prefer redeploying known-good code (forward recovery) | `SECRETS_AND_ROTATION.md` §Worker rollback and secrets |
 | Stop report intake | `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>` | `required` without the App ID returns 503 `attestationUnavailable`; `/v1/config` `available:false`. **Never** set `REPORT_ATTESTATION=disabled` | `OPERATIONS.md` §7 Rollback / disable, §Community rollback |
 | Reports fail closed by default | Remote `REPORT_ATTESTATION=required` with App Attest values unset, or `REPORT_SUBMITTER_PEPPER` missing or under 32 UTF-8 bytes | Intake is off in staging and production today. Any incomplete attestation configuration answers 503 | `wrangler.jsonc`, `reports/attestation.ts` |
 | Canonical publication rollback | Revert `DB` `database_id` to the kept blue database (reviewed PR, deploy) | Official data exactly as before cutover; REPORTS_DB untouched | `RELEASE_CHECKLIST.md` §Rollback order |
@@ -67,8 +67,26 @@ When unsure, use the higher severity.
 | S1 data | Stop intake if REPORTS_DB is involved. Make R2 private if it is public. For an altered publication, revert `DB` to blue |
 | S2 flood (writes) | Stop intake (`secret delete REPORT_APP_ATTEST_APP_ID`). Add or tighten a WAF rule if available (C4). The challenge limiter helps only if already activated |
 | S2 scraping (reads) | WAF or rate rule if available. Tile reads are already edge-cached (ADR-0019; custom domain only). Reads stay unauthenticated (product rule): do not add client keys |
-| S3 bad deploy | `wrangler rollback`. For bad data, revert the `DB` binding |
+| S3 bad deploy | Redeploy the known-good commit (keeps current secrets). `wrangler rollback` only if no secret changed since the target version; otherwise follow "Rollback and secrets" below. For bad data, revert the `DB` binding |
 | S3 provider | Nothing to switch off. Source health is advisory. If a source's facts are in doubt, use `source:hold` |
+
+### Rollback and secrets (decide before rotating or rolling back)
+
+A Worker rollback deploys an older version **with that version's secret state**
+([SECRETS_AND_ROTATION.md](SECRETS_AND_ROTATION.md) §Worker rollback and secrets). The phases below are therefore not
+a fixed "rotate, then roll back" sequence. Order them by what the incident needs:
+
+1. **Contain** (stop intake, revoke the credential at its source, tighten edge rules).
+2. **Decide the code recovery path** *before* touching secrets: forward redeploy of known-good code (default), or a
+   rollback, and to which version.
+3. **Recover code** by that path. If Wrangler asks to confirm a secret change, stop and re-plan; never accept one that
+   could reinstate a leaked value.
+4. **Rotate / revoke / re-apply** secrets on the version now deployed: every rotation, and every kill-switch
+   deletion (`REPORT_APP_ATTEST_APP_ID`), again after any rollback.
+5. **Verify** security state (phase 5), then continue recovery.
+
+If a leaked secret must be rotated at once (S1), rotate in step 1, and then a later rollback must not cross that
+rotation without step 4.
 
 ### 3. Rotate / Revoke
 
@@ -82,6 +100,8 @@ Follow [SECRETS_AND_ROTATION.md](SECRETS_AND_ROTATION.md) for the exact credenti
 
 - Redeploy the fixed code, re-put the rotated secrets, and resume intake by re-putting `REPORT_APP_ATTEST_APP_ID`
   only after the cause is fixed.
+- After any `wrangler rollback`, re-apply the current secret state (puts and deletes) before resuming anything:
+  "rolled back" never means "secrets are safe".
 - Restore a canonical DB only through the documented blue/green path. REPORTS_DB is never rolled back (ADR-0014);
   recover it with `services/api/REPORTS_MIGRATION_RECOVERY.md`.
 
@@ -91,7 +111,9 @@ Follow [SECRETS_AND_ROTATION.md](SECRETS_AND_ROTATION.md) for the exact credenti
 - `/v1/config` shows the intended `reports.available`.
 - `/v1/readiness` returns 200.
 - `make security-validate` passes on the fix commit.
-- `wrangler secret list` shows the expected names.
+- `wrangler secret list` shows the expected names (and, after a rollback, the kill-switch deletions still hold).
+- While intake is meant to be off: `/v1/config` `reports.available` is `false`, and `POST /v1/app-attest/challenges`,
+  `/v1/app-attest/keys` and `/v1/reports` answer `503 attestationUnavailable`.
 - The audit log shows no further unexpected use.
 
 ### 6. Postmortem (within 7 days)
@@ -103,6 +125,8 @@ Template:
 - root cause;
 - contained by which switch;
 - what was rotated;
+- rollbacks, recorded separately from rotation (no values): target version ID, secret-change warning shown (yes/no),
+  accepted (yes/no), secret names re-applied afterwards, verification results;
 - user impact;
 - data exposure (yes/no/unknown, with evidence);
 - whether a user or App Store notice is needed;
@@ -119,7 +143,8 @@ document makes no legal determination.
 ## Drills
 
 - Rehearse in **staging** at least before App Store submission and before enabling report intake:
-  - `wrangler rollback`;
+  - `wrangler rollback`, including the secret-version procedure in `SECRETS_AND_ROTATION.md` §Worker rollback and
+    secrets;
   - a `DB` binding revert;
   - the intake stop / resume.
 - Record the date and the result in `RELEASE_CHECKLIST.md`. No drill has been recorded yet.

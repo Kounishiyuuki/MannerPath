@@ -486,10 +486,12 @@ Notes:
 
   This works only while the previous database still exists, which is why step 6 keeps it.
   It is also safe only while the previous database has the schema the running Worker reads: if the release added a
-  canonical migration the Worker depends on, roll the Worker back too (`npx wrangler rollback`) or migrate the previous
-  database first.
-- **Bad code:** `npx wrangler rollback --env staging` (previous deployment), or redeploy the
-  previous commit.
+  canonical migration the Worker depends on, roll the Worker back too (`npx wrangler rollback`, which can also restore
+  older secrets: see "Bad code" below) or migrate the previous database first.
+- **Bad code:** prefer redeploying the previous commit (`npx wrangler deploy --env staging`), which keeps the current
+  secrets. `npx wrangler rollback --env staging` deploys an older version **with its secret state**, so it can
+  restore a rotated or deleted secret (e.g. re-open intake); stop at any secret-change confirmation and re-apply
+  secrets afterwards ([SECRETS_AND_ROTATION.md](SECRETS_AND_ROTATION.md) §Worker rollback and secrets).
 - **Stop accepting reports:** remove `REPORT_APP_ATTEST_APP_ID` (or the bundle-version list) from the environment
   (`npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>`): `required` without it fails
   closed and `/v1/config` reports `available: false`. There is no separate kill-switch var, and one

@@ -57,8 +57,59 @@ General rules:
 - Generate values locally with a CSPRNG (e.g. `openssl rand -base64 48`) and paste them straight into the
   interactive `wrangler secret put` prompt. Never put them in shell history, files or chat.
 - Record only the date, environment, name and reason in the maintainer's private log, never the value.
-- A secret put creates a new Worker version. `npx wrangler rollback` returns the code, but secrets are not versioned
-  with it: **rolling back code does not restore an old secret value.**
+- `wrangler secret put` and `wrangler secret delete` each create **and deploy** a new Worker version. A rollback
+  deploys an older version, and **may bring back that version's secret state** (see "Worker rollback and secrets").
+  Rotation and rollback are therefore never independent: rotate, then never roll back across the rotation without
+  re-applying it.
+
+## Worker rollback and secrets
+
+**Model.** Secrets are Worker bindings, and each Worker version carries its own set: `secret put` / `secret delete`
+create a new version, and a bulk secret upload preserves "secrets not included in the file … from the previous
+version" ([Secrets](https://developers.cloudflare.com/workers/configuration/secrets/)). Cloudflare blocks a
+deployment such as "rolling back to an older version when a secret has changed" unless it is forced
+(`force=true` on the
+[deployments API](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/deployments/methods/create/));
+Wrangler surfaces this as an extra confirmation. Plan every rollback on the assumption that it **can restore the
+older version's secret values or absence** — including a leaked secret, a deleted `REPORT_APP_ATTEST_APP_ID`, or a
+missing `RATE_LIMIT_KEY_PEPPER`. Never treat "rolled back" as "secrets are safe". (Resources such as D1 databases
+are not changed by a rollback,
+[Rollbacks](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/rollbacks/); that
+statement is about resources, not secret values.)
+
+**Rules.**
+1. **After rotating a leaked secret**, do not approve a rollback to a version that predates the rotation. If
+   Wrangler or the dashboard asks to confirm a secret change, **stop**: answer no, and find out which secrets differ.
+   During an incident, never accept a confirmation that could reinstate a leaked value.
+2. **After the intake kill switch** (`secret delete REPORT_APP_ATTEST_APP_ID`), a rollback to an older version can
+   bring the App ID back and re-open report intake. After any rollback, re-check: `wrangler secret list` (names),
+   `/v1/config` `reports.available`, and that `POST /v1/app-attest/challenges`, `/v1/app-attest/keys` and
+   `/v1/reports` answer `503 attestationUnavailable` while intake is meant to be off.
+3. **Prefer a forward recovery.** If a code rollback is needed: abort a secret-changing rollback, and instead deploy
+   the known-good commit as a **new** deployment (`git checkout <good>` → `npx wrangler deploy --env <env>`), which
+   keeps the current secret state. If a rollback is unavoidable, immediately re-apply every required `secret put` /
+   `secret delete` after it, then run the rule-2 checks before declaring recovery.
+4. **Do not skip the confirmation.** `wrangler rollback --message` skips Wrangler's interactive rollback prompts
+   ([commands](https://developers.cloudflare.com/workers/wrangler/commands/workers/)). Do not pass `--message`
+   (or `force`) during an incident until the staging procedure below has shown how the secret-change confirmation
+   behaves with it.
+5. **Audit rotation and rollback separately.** The incident log records, without values: the rollback target
+   version ID; whether a secret-change warning appeared; whether it was accepted; which secret **names** were
+   re-applied afterwards; and the verification results (rule 2). Never record a secret value.
+
+**Staging verification (maintainer; staging only, never production; not yet performed).**
+1. In staging, `secret put` a throwaway name (e.g. `ROLLBACK_PROBE`) with value A; note the version ID (V1).
+2. `secret put ROLLBACK_PROBE` with value B; note the new version ID (V2).
+3. `npx wrangler rollback <V1> --env staging` **without** `--message`; record whether a secret-change confirmation
+   appears and its wording (no values).
+4. Accept it in staging only; then determine which value is active without printing it (e.g. a temporary
+   staging-only build that returns `sha256(ROLLBACK_PROBE)` prefixes for A/B comparison, or compare the
+   version's secret names/metadata in the dashboard).
+5. Repeat step 3 with `--message "probe"` and record whether the confirmation is still shown.
+6. `secret delete ROLLBACK_PROBE`, redeploy the current commit, and confirm `wrangler secret list` matches the
+   inventory.
+7. Record as evidence only: date, version IDs, "confirmation shown: yes/no", "active value after rollback: A/B",
+   "`--message` skipped confirmation: yes/no". Update this section with the result.
 
 ### REPORT_SUBMITTER_PEPPER
 
@@ -71,7 +122,8 @@ General rules:
   - This is a one-window abuse gap of at most 1 h / 24 h. Rotate while intake is stopped (delete
     `REPORT_APP_ATTEST_APP_ID`, see Emergency revoke) when abuse is active.
 - **Rollback:** only by re-putting the old value, which requires having kept it. **Default: do not keep it.**
-  Treat rotation as one-way and accept the reset.
+  Treat rotation as one-way and accept the reset. A Worker rollback to a version before the rotation may restore
+  the old pepper; see "Worker rollback and secrets" and re-apply the current value.
 - **Emergency revoke** (suspected leak): stop intake first (`secret delete REPORT_APP_ATTEST_APP_ID`), rotate the
   pepper, run retention (`reports:moderate -- --remote … retain`), then resume. A leaked pepper lets an attacker
   test guesses of the hashed key IDs. It does not expose report content.
@@ -86,7 +138,8 @@ General rules:
 - **Impact:** all buckets reset at once. Their counters live in the Rate Limiting service, keyed by the HMAC, and are
   never persisted by MannerPath. That is a short window where only the edge rule and the deployment-wide challenge
   ceiling apply.
-- **Rollback:** not needed. It holds no persisted state.
+- **Rollback:** not needed for its state (none is persisted). A Worker rollback can still restore an older pepper,
+  or a version without it (half configuration, so issuance fails closed); re-apply after any rollback.
 - **Emergency revoke:** rotate immediately. While rotating, tighten the WAF rate rule (account) to cover the gap.
 - **Deactivate:** remove the binding (reviewed PR) **and** `secret delete RATE_LIMIT_KEY_PEPPER`. Removing only one
   leaves a half configuration, which fails challenge issuance closed.
@@ -100,7 +153,8 @@ These identify the app; they are not confidential keys. Changing them is a confi
 - `_ENVIRONMENT`: `development` → `production` only at TestFlight or App Store cutover. Keys registered under the
   other aaguid stop verifying, so clients re-register.
 - `_APP_ID`: changes only with a Team or bundle change. All registered keys become invalid.
-- **Rollback:** put the previous value. These values are not secret, so the maintainer can keep them.
+- **Rollback:** put the previous value. These values are not secret, so the maintainer can keep them. A Worker
+  rollback can also restore older values, or re-add a deleted App ID (re-opening intake); verify after any rollback.
 - **Emergency revoke / stop intake:** `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>`. `required`
   without it fails closed, and `/v1/config` `available:false`. **Never** switch `REPORT_ATTESTATION` to `disabled`.
 - Revoking a single App Attest key is **not implemented** (later lane).
