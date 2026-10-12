@@ -226,3 +226,18 @@ test("POST /v1/app-attest/challenges applies the bucket before the body and befo
   assert.equal(dump.includes("198.51.100.7"), false);
   assert.equal(dump.includes(await rateLimitKey(PEPPER, "198.51.100.7")), false);
 });
+
+// ADR-0019 §3: the edge key drops the query because no tile handler reads it. If a query parameter ever changes a
+// tile, manifest or part answer, this fails, and the key (and ADR-0019) must be amended first.
+test("tile, manifest and part answers are byte-identical with and without a query string", async () => {
+  const { db, tileId } = await published();
+  for (const path of [`/v1/tiles/${tileId}`, `/v1/tiles/${tileId}/manifest`, `/v1/tiles/${tileId}/parts/0`, "/v1/tiles/14/0/0"]) {
+    const plain = await get(db, path);
+    const body = await plain.text();
+    for (const query of ["?schemaVersion=1", "?schemaVersion=2&part=1", "?z=15&x=0&y=0", "?If-None-Match=x", "?"]) {
+      const res = await get(db, `${path}${query}`);
+      assert.deepEqual([res.status, res.headers.get("ETag"), res.headers.get("Cache-Control"), await res.text()],
+        [plain.status, plain.headers.get("ETag"), plain.headers.get("Cache-Control"), body], `${path}${query}`);
+    }
+  }
+});

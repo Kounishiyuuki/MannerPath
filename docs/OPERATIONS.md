@@ -598,6 +598,8 @@ a publisher outage, not as the runner issue.
 
 ## Cache and CDN semantics
 
+Decision and rollback conditions: [ADR-0019](adr/0019-read-api-edge-cache-bounded-staleness.md).
+
 No CDN dashboard rule is introduced; the Worker sets the policy on each response and caches tiles itself.
 
 - **Tiles, manifests and parts** (`GET /v1/tiles/{z}/{x}/{y}`, `…/manifest`, `…/parts/{index}`) send

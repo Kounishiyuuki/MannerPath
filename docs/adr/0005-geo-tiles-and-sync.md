@@ -2,6 +2,9 @@
 
 Status: Accepted (`DATA_TILE_ZOOM = 14` set by the 2026-09 launch-region benchmark)
 
+Amended by ADR-0019 (Accepted 2026-10-12): tile responses use bounded freshness (`max-age=60`,
+`stale-while-revalidate=300`) and an edge cache instead of revalidating on every use.
+
 ## Decision
 
 ### Partitioning
