@@ -1,8 +1,10 @@
 # ADR-0020 — External provider proxy and secret boundary
 
-Status: **Proposed (draft, 2026-10-12).** Not accepted. Nothing is implemented, and no provider is chosen.
+Status: **Proposed (draft, 2026-10-12; re-checked against main `36b62ba` on 2026-10-13).** Not accepted. No provider
+is chosen and no proxy route is implemented.
 
-Relates to ADR-0003 (backend), ADR-0007 (report privacy, App Attest) and ADR-0014 (report store), and to
+Relates to ADR-0003 (backend), ADR-0007 (report privacy, App Attest), ADR-0014 (report store) and ADR-0019 (read
+cache and the challenge budget pattern), and to
 `docs/SECURITY_RELEASE_GATE.md` ("Future providers needing a secret must use iPhone → MannerPath Worker → external
 provider").
 
@@ -36,7 +38,10 @@ is extractable, and an extractable key is not an authentication boundary.
 6. **Auth and budgets.**
    - An operation that spends quota or money requires App Attest (an assertion per request, or a short-lived
      Worker-issued session derived from one) and per-key and per-network budgets.
-   - Budgets use the Lane 1 design, with the `RATE_LIMIT_KEY_PEPPER` HMAC and no stored IP.
+   - Budgets follow the pattern now implemented for App Attest challenges (`attest/challenge-budget.ts`,
+     ADR-0019): a Workers Rate Limiting binding keyed by an HMAC under `RATE_LIMIT_KEY_PEPPER` (trimmed, at least
+     32 UTF-8 bytes, distinct from `REPORT_SUBMITTER_PEPPER`), no stored IP or key, and a configured limiter that
+     fails closes the route (503). That limiter is implemented but not activated in any environment.
    - Public, free, non-personal operations may be unauthenticated but stay edge-limited.
    - A missing secret or attestation config fails closed.
 7. **Privacy.**

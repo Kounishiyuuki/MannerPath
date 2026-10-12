@@ -16,23 +16,29 @@ Secret names and rotation: [SECRETS_AND_ROTATION.md](SECRETS_AND_ROTATION.md). R
 
 When unsure, use the higher severity.
 
-## Kill switches that exist today (verified in the repository)
+## Kill switches that exist today (verified in the repository, main `36b62ba`)
 
 | Switch | Command (maintainer) | Effect | Source |
 |---|---|---|---|
-| Worker code rollback | `npx wrangler rollback --env <env>` | Previous Worker version. Data and secrets untouched | `RELEASE_CHECKLIST.md:127`, `OPERATIONS.md:491` |
-| Stop report intake | `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>` | `required` without the App ID returns 503 `attestationUnavailable`; `/v1/config` `available:false`. **Never** set `REPORT_ATTESTATION=disabled` | `OPERATIONS.md:494,852` |
-| Reports fail closed by default | Remote `REPORT_ATTESTATION=required` with App Attest values unset | Intake is off in staging and production today | `wrangler.jsonc` |
-| Canonical publication rollback | Revert `DB` `database_id` to the kept blue database (reviewed PR, deploy) | Official data exactly as before cutover; REPORTS_DB untouched | `RELEASE_CHECKLIST.md:125-135`, `OPERATIONS.md` §Community rollback |
+| Worker code rollback | `npx wrangler rollback --env <env>` | Previous Worker version. Data and secrets untouched (secrets are not versioned with code) | `RELEASE_CHECKLIST.md` §Rollback order |
+| Stop report intake | `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>` | `required` without the App ID returns 503 `attestationUnavailable`; `/v1/config` `available:false`. **Never** set `REPORT_ATTESTATION=disabled` | `OPERATIONS.md` §7 Rollback / disable, §Community rollback |
+| Reports fail closed by default | Remote `REPORT_ATTESTATION=required` with App Attest values unset, or `REPORT_SUBMITTER_PEPPER` missing or under 32 UTF-8 bytes | Intake is off in staging and production today. Any incomplete attestation configuration answers 503 | `wrangler.jsonc`, `reports/attestation.ts` |
+| Canonical publication rollback | Revert `DB` `database_id` to the kept blue database (reviewed PR, deploy) | Official data exactly as before cutover; REPORTS_DB untouched | `RELEASE_CHECKLIST.md` §Rollback order |
 | Hold the community source | `COMMUNITY_PUBLICATION.state = "suspended"` PR → pipeline → blue/green | Community spots leave tiles; evidence kept | `OPERATIONS.md` §Community rollback |
-| Hold one official source's evidence | `npm run source:hold -- hold …` (local canonical) → promotion | Its spots leave tiles until cleared | ADR-0018 §5 (migration 0033) |
-| Photo intake | Disabled in the exported Worker (code) | Not reachable | `app.ts` (`photoEvidence`) |
+| Hold one official source's evidence | `npm run source:hold -- hold …` (local canonical) → promotion | Its spots leave tiles until cleared. Tiles can stay cached up to the ADR-0019 window (60 s, plus `stale-while-revalidate` downstream); spot detail answers at once | ADR-0018 §5, ADR-0019 |
+| Photo intake | Disabled in the exported Worker (code): 503 `photoEvidenceDisabled` | Not reachable | `app.ts` (`photoEvidence`) |
 | Cron | No committed schedule in any environment | No scheduled job runs | `wrangler.jsonc` |
 
-**Not available yet. Do not use or cite them as existing:**
-- registration pause (`REPORT_REGISTRATION=paused`, planned in Lane 1);
-- single App Attest key revocation and bulk reject by key (planned in Lane 4);
-- Worker-side network budgets (Lane 1);
+**Code exists but is not activated** (usable only after a reviewed activation, never in an incident on its own):
+- the per-client challenge limiter (`CHALLENGE_RATE_LIMITER` + `RATE_LIMIT_KEY_PEPPER`, ADR-0019). No binding or
+  secret is set in any environment. Activating it mid-incident is a deploy plus a secret change; do it in staging
+  first. Once active, a limiter failure fails challenge issuance closed (503).
+
+**Not available. Do not use or cite them as existing:**
+- a registration pause switch (e.g. `REPORT_REGISTRATION=paused`); no code reads such a value;
+- single App Attest key revocation and bulk reject by key (later lane);
+- the successful key-registration budget (later lane);
+- a Worker-side read rate limit (reads rely on the edge cache and the edge rule, ADR-0019);
 - WAF rate-limiting rules (account; availability unverified, `SECRETS_AND_ROTATION.md` C4).
 
 ## Phases
@@ -59,8 +65,8 @@ When unsure, use the higher severity.
 |---|---|
 | S1 secret | Revoke or rotate the exposed credential first (see Rotate). If it is a report-path secret, stop intake |
 | S1 data | Stop intake if REPORTS_DB is involved. Make R2 private if it is public. For an altered publication, revert `DB` to blue |
-| S2 flood (writes) | Stop intake (`secret delete REPORT_APP_ATTEST_APP_ID`). Add or tighten a WAF rule if available (C4) |
-| S2 scraping (reads) | WAF or rate rule if available. Reads stay unauthenticated (product rule): do not add client keys |
+| S2 flood (writes) | Stop intake (`secret delete REPORT_APP_ATTEST_APP_ID`). Add or tighten a WAF rule if available (C4). The challenge limiter helps only if already activated |
+| S2 scraping (reads) | WAF or rate rule if available. Tile reads are already edge-cached (ADR-0019; custom domain only). Reads stay unauthenticated (product rule): do not add client keys |
 | S3 bad deploy | `wrangler rollback`. For bad data, revert the `DB` binding |
 | S3 provider | Nothing to switch off. Source health is advisory. If a source's facts are in doubt, use `source:hold` |
 

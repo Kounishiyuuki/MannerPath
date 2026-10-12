@@ -5,7 +5,9 @@ shared with an agent, or this document.** An agent never runs `wrangler secret p
 token operation; every step below is a maintainer action. Related documents:
 - [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)
 - [SECURITY_RELEASE_GATE.md](SECURITY_RELEASE_GATE.md)
-- [ADR-0020 (draft)](adr/0020-external-provider-proxy-and-secret-boundary.md)
+- [ADR-0020 (Proposed)](adr/0020-external-provider-proxy-and-secret-boundary.md)
+- [ADR-0019](adr/0019-read-api-edge-cache-bounded-staleness.md) and `OPERATIONS.md` §Read API and challenge abuse budget
+- [CI_SUPPLY_CHAIN_SECURITY.md](CI_SUPPLY_CHAIN_SECURITY.md) (GitHub and CI controls)
 
 ## Secret boundary
 
@@ -21,27 +23,32 @@ App / Watch / Widget → MannerPath Cloudflare Worker → external provider.
   - `/v1/config` or any other response body;
   - error bodies, explicit logs, CI artifacts.
 - **Enforced today:**
-  - the committed vars allowlist is exactly `["REPORT_ATTESTATION"]` (`services/api/test/deploy-config.test.ts:84`);
+  - the committed vars allowlist is exactly `["REPORT_ATTESTATION"]` (`services/api/test/deploy-config.test.ts`);
   - the tracked, history and Release-artifact secret scanners (`make security-validate`,
     `make apple-beta-preflight`);
   - `/v1/config` reveals only whether reports are available, never a configured value.
 
-## Inventory (repository evidence, 2026-10-12, main `ae63660`)
+## Inventory (repository evidence, 2026-10-13, main `36b62ba`)
 
-| Name | Kind | Status | Read by | Missing value → behaviour |
+Status words: **In use** = read by deployed-path code; **Implemented, not activated** = code exists and is tested,
+but no binding or secret is set in any committed environment; **Future** = no code.
+
+| Name | Kind | Status | Read by | Missing or invalid value → behaviour |
 |---|---|---|---|---|
-| `REPORT_SUBMITTER_PEPPER` | Secret | **In use** when report intake is on | `app.ts:394,443,488` → `submitterHash` (`reports/create.ts:24`) | **Not fail-closed:** hashes with an empty pepper (`pepper ?? ""`). See P1-S1 below |
-| `REPORT_APP_ATTEST_APP_ID` | Secret (deployment identifier, kept out of the repo) | In use; **unset in staging and production** by design (intake inactive) | `attestationConfig` | Fails closed: 503 `attestationUnavailable`; `/v1/config` `available:false` |
+| `REPORT_SUBMITTER_PEPPER` | Secret | **Required** wherever `REPORT_ATTESTATION=required` (staging, production). Report intake is not enabled in production yet | `attestationConfig` (`reports/attestation.ts`, `usableSubmitterPepper`) → `submitterHash` | **Fails closed:** missing, empty, whitespace-only or under 32 UTF-8 bytes after trimming makes attestation `unsupported`: every report and App Attest route answers 503 `attestationUnavailable`, and `/v1/config` `available:false`. Only local `disabled` mode (unattested schema 1) may run without it |
+| `RATE_LIMIT_KEY_PEPPER` | Secret, separate from the report pepper | **Implemented, not activated.** Read by `attest/challenge-budget.ts` (Lane 1, ADR-0019). No `CHALLENGE_RATE_LIMITER` binding in `wrangler.jsonc`, no secret set; a real Rate Limiting binding has not been verified in staging | `challengeBudget` → HMAC bucket key | Neither it nor the binding set: unchanged behaviour (no bucket). Only one set, under 32 UTF-8 bytes after trimming, or equal to `REPORT_SUBMITTER_PEPPER` after trimming: challenge issuance 503 `challengeBudgetMisconfigured`. Configured limiter fails: 503 `serviceUnavailable` (fail closed) |
+| `REPORT_APP_ATTEST_APP_ID` | Secret binding (deployment identifier, kept out of the repo) | In use; **unset in staging and production** by design (intake inactive) | `attestationConfig` | Fails closed: 503 `attestationUnavailable`; `/v1/config` `available:false` |
 | `REPORT_APP_ATTEST_ENVIRONMENT` | Secret binding (`development`/`production`) | Same as above | `attestationConfig` | Fails closed |
 | `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | Secret binding (comma list) | Same as above | `attestationConfig` | Fails closed |
-| `REPORT_ATTESTATION` | **Committed var**, not a secret | `disabled` local, `required` remote | `attestationConfig` | Unknown value fails closed |
-| `RATE_LIMIT_KEY_PEPPER` | Secret | **Planned, not implemented.** No code reads it (`git grep` finds none). The Lane 1 network budget (B2) will key a Workers Rate Limiting bucket on an HMAC of the network prefix | — | Lane 1 must fail closed to "no B2 bucket", never to an unkeyed prefix |
-| `<PROVIDER>_API_KEY` (per provider) | Secret | **Future.** No provider chosen. Governed by ADR-0020 | — | ADR-0020: missing returns a constant 503 and no unauthenticated upstream call |
-| Cloudflare API token | Account credential (maintainer terminal / OAuth) | Used by manual `wrangler` deploys only. **No CI deploy exists** | `wrangler` CLI | — |
-| GitHub deployment credential | None stored. `pages.yml` uses the job's OIDC `id-token` for GitHub Pages; `source-health.yml` reads no `secrets.*` | — | — | — |
+| `<PROVIDER>_API_KEY` (per provider) | Secret | **Future.** No provider chosen. Governed by ADR-0020 (Proposed) | — | ADR-0020: missing returns a constant 503 and no unauthenticated upstream call |
+| Cloudflare API token | **Account credential**, not a Worker binding (maintainer terminal / OAuth) | Used by manual `wrangler` deploys only. **No CI deploy exists** | `wrangler` CLI | — |
+| GitHub deployment credential | None stored. `pages.yml` uses the job's OIDC `id-token` for GitHub Pages; no workflow reads `secrets.*` | — | — | — |
 
-Bindings that are **not secrets**: `DB`, `REPORTS_DB` (D1 IDs; production IDs are pinned in `wrangler.jsonc` for
-review), `RAW_ARTIFACTS` (R2 bucket name).
+Not secrets, and kept apart from the table above:
+- **Committed var:** `REPORT_ATTESTATION` (`disabled` local, `required` remote; any other value fails closed). It is the
+  only entry the vars allowlist permits.
+- **Bindings:** `DB`, `REPORTS_DB` (D1 IDs; production IDs pinned in `wrangler.jsonc` for review), `RAW_ARTIFACTS`
+  (R2 bucket name), and the optional `CHALLENGE_RATE_LIMITER` (Workers Rate Limiting; not configured anywhere yet).
 
 ## Rotation runbooks
 
@@ -55,7 +62,8 @@ General rules:
 
 ### REPORT_SUBMITTER_PEPPER
 
-- **Rotate:** `npx wrangler secret put REPORT_SUBMITTER_PEPPER --env <env>` with a new value of 32+ random bytes.
+- **Rotate:** `npx wrangler secret put REPORT_SUBMITTER_PEPPER --env <env>` with a new value of 32+ random bytes
+  (at least 32 UTF-8 bytes after trimming, or intake fails closed). Paste it without surrounding whitespace: see P2-S3.
 - **Impact (window reset):**
   - every `submitter_hash` changes;
   - open `report_rate_windows` no longer match, so each submitter gets a fresh 10/h and 50/day budget once;
@@ -68,14 +76,20 @@ General rules:
   pepper, run retention (`reports:moderate -- --remote … retain`), then resume. A leaked pepper lets an attacker
   test guesses of the hashed key IDs. It does not expose report content.
 
-### RATE_LIMIT_KEY_PEPPER (after Lane 1 lands)
+### RATE_LIMIT_KEY_PEPPER (implemented, not activated)
 
-- **Rotate:** `secret put` with a new random value. It must be **distinct from** `REPORT_SUBMITTER_PEPPER`, so each
-  can rotate independently.
-- **Impact:** all in-memory network buckets reset at once (counters are not persisted). This is a short window where
-  only the edge rule (B1) and the deployment ceiling (B4) apply.
+- **Activate (maintainer, per environment):** a reviewed PR adds the `CHALLENGE_RATE_LIMITER` `ratelimits` binding
+  to `wrangler.jsonc`; then `npx wrangler secret put RATE_LIMIT_KEY_PEPPER --env <env>`. Set both or neither: one
+  alone makes challenge issuance fail closed. Verify in staging first, because the real binding is unverified.
+- **Rotate:** `secret put` with a new random value of at least 32 UTF-8 bytes after trimming. It must be **distinct
+  from** `REPORT_SUBMITTER_PEPPER` after trimming (checked in code), so each rotates independently.
+- **Impact:** all buckets reset at once. Their counters live in the Rate Limiting service, keyed by the HMAC, and are
+  never persisted by MannerPath. That is a short window where only the edge rule and the deployment-wide challenge
+  ceiling apply.
 - **Rollback:** not needed. It holds no persisted state.
 - **Emergency revoke:** rotate immediately. While rotating, tighten the WAF rate rule (account) to cover the gap.
+- **Deactivate:** remove the binding (reviewed PR) **and** `secret delete RATE_LIMIT_KEY_PEPPER`. Removing only one
+  leaves a half configuration, which fails challenge issuance closed.
 
 ### App Attest values (`REPORT_APP_ATTEST_APP_ID`, `_ENVIRONMENT`, `_BUNDLE_VERSIONS`)
 
@@ -89,7 +103,7 @@ These identify the app; they are not confidential keys. Changing them is a confi
 - **Rollback:** put the previous value. These values are not secret, so the maintainer can keep them.
 - **Emergency revoke / stop intake:** `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>`. `required`
   without it fails closed, and `/v1/config` `available:false`. **Never** switch `REPORT_ATTESTATION` to `disabled`.
-- Revoking a single App Attest key is **not implemented** (planned, Lane 4).
+- Revoking a single App Attest key is **not implemented** (later lane).
 
 ### Cloudflare API token
 
@@ -115,26 +129,40 @@ Record only yes/no, names, scopes and dates. Never record values, IP addresses, 
 
 | # | Item | Where | Record |
 |---|---|---|---|
-| C1 | Secret inventory per environment | `npx wrangler secret list --env staging` / `--env production` (lists names only) | Names match the table above; nothing unexpected |
+| C1 | Secret inventory per environment | `npx wrangler secret list --env staging` / `--env production` (lists names only) | Names match the table above; nothing unexpected. `RATE_LIMIT_KEY_PEPPER` is expected only where the limiter is activated |
 | C2 | API token scopes | Dashboard → API Tokens | Each token: permissions, account/zone scope, expiry, IP filter, last used |
 | C3 | Account members and MFA | Manage Account → Members | Member count, roles, MFA enforced |
 | C4 | WAF / rate-limiting availability | Zone → Security → WAF (rate limiting rules); plan name | Plan; whether rate-limiting rules are available and how many; whether the Worker is on a zone route or `workers.dev` only |
-| C5 | Workers Rate Limiting binding | Workers docs and plan | Available on the plan (yes/no) |
+| C5 | Workers Rate Limiting binding | Workers docs and plan; staging after activation | Available on the plan (yes/no); after activation, a staging check that a limited caller gets 429 and a limiter outage 503 |
 | C6 | R2 public access | R2 → each `mannerpath-raw-artifacts*` bucket → Settings | Public access off; `r2.dev` subdomain disabled; no custom domain |
 | C7 | Logpush | Analytics & Logs → Logpush | Jobs (yes/no), datasets, field list, destination retention (currently 403 per `PRODUCTION_PRIVACY_AUDIT.md`) |
 | C8 | Workers Logs retention | Worker → Logs | Plan retention, invocation logs off (matches `wrangler.jsonc`) |
 | C9 | Analytics | Web Analytics / Analytics Engine | Enabled products; no raw per-request export |
 | C10 | Audit log | Manage Account → Audit Log | Reviewed for unexpected token or secret changes |
-| G1 | `main` branch protection | GitHub → Settings → Branches / Rulesets | Required PR review, force-push blocked, deletion blocked, required checks (after Lane 2) |
-| G2 | `github-pages` environment | Settings → Environments | Deployment branches limited to `main` |
+| G1 | `main` branch protection | GitHub → Settings → Branches / Rulesets | Required PR review; force-push and deletion blocked; required check = the `PR validation` job (`pr-validation.yml`: contract, API validation, security validation steps); bypass actors reviewed (CI_SUPPLY_CHAIN_SECURITY.md §Maintainer account actions) |
+| G2 | `github-pages` environment | Settings → Environments | Deployment branches limited to `main`; protection rules as in CI_SUPPLY_CHAIN_SECURITY.md |
 | G3 | Actions secrets | Settings → Secrets and variables | Expected: none |
+| G4 | Actions defaults and account security | Settings → Actions / Code security | Default `GITHUB_TOKEN` permission read-only; allowed actions restricted; secret scanning, push protection and Dependabot alerts on |
 
-## Findings recorded by this review
+## Repository-side vs account-side status
 
-- **P1-S1 (before report intake):** `submitterHash` accepts a missing `REPORT_SUBMITTER_PEPPER` and hashes with an
-  empty pepper (`reports/create.ts:25`). The rest of attestation fails closed, but this one does not.
-  - Fix in a runtime lane: treat a missing pepper (or one shorter than 32 bytes) as `attestationUnavailable` in
-    remote modes, with a test.
-  - No code change is made here.
-- **P2-S2:** `RATE_LIMIT_KEY_PEPPER` must be a separate secret (decided here) and must fail closed when missing.
-  This goes into Lane 1's acceptance tests.
+- **Repository-side, implemented on main** (Lane 2, `CI_SUPPLY_CHAIN_SECURITY.md`): PR validation workflow running
+  `make contract`, `make api-validate` and `make security-validate`; actions pinned to full SHAs with an allowlist;
+  container and service images pinned by digest; Dependabot configuration; hardened Pages artifact packaging;
+  `scripts/check-ci-security.py` enforcing these in CI.
+- **Account-side, not verified:** required checks on `main`, force-push and deletion blocking, bypass actors,
+  Actions default permissions, `github-pages` environment protection, secret scanning and Dependabot account
+  settings (G1–G4), and every Cloudflare item (C1–C10). Repository files cannot prove any of them.
+
+## Findings
+
+- **Resolved — P1-S1 (submitter pepper fail-open):** an empty pepper (`pepper ?? ""`) was accepted. Main now fails
+  closed in every remote mode (`usableSubmitterPepper`, `test/report-submitter-pepper.test.ts`): missing, empty,
+  whitespace-only or under 32 UTF-8 bytes after trimming → 503. Only local `disabled` mode runs without it.
+- **Resolved — P2-S2 (separate rate-limit pepper):** `RATE_LIMIT_KEY_PEPPER` is a separate secret, checked in code to
+  differ from the report pepper after trimming, and every half or invalid configuration fails closed.
+- **Open — P2-S3 (submitter pepper normalization):** `usableSubmitterPepper` checks the length of the trimmed value
+  but returns the untrimmed value, so `submitterHash` uses it untrimmed. A pepper set with surrounding whitespace
+  therefore hashes differently from the trimmed one (`RATE_LIMIT_KEY_PEPPER` uses the trimmed value). Changing that
+  changes every stored `submitter_hash`, which is the same window reset as a rotation. Follow-up: decide with a
+  rotation, in a runtime lane. Until then, paste the pepper without surrounding whitespace.
