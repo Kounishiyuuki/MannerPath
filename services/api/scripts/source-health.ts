@@ -29,6 +29,14 @@ const resources: Record<string, { filename: string; url: string }> = {
 const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
   "komatsu-airport-smoking-places": { filename: "komatsu-airport-page-facts.csv", url: KOMATSU_AIRPORT_PAGE_URL },
 };
+// Reviewed sources with no health target, and why. Every SOURCE_ADAPTERS entry is exactly one of: deployed, repository-
+// reviewed, or listed here (test/source-health-unified.test.ts), so the --repository-reviewed count is never incidental.
+export const HEALTH_NOT_CONFIGURED: Record<string, string> = {
+  // The CSV itself could be fingerprinted, but every target needs a human-reviewed, scoped rights contract in
+  // review-metadata.json and source health never writes a baseline itself. Sendai's licence review (fixture
+  // rights-review.json) has no scoped terms-page fingerprint yet; adding one is a maintainer review.
+  "sendai-kaigan-park-smoking-areas": "noReviewedRightsContract",
+};
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
 const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
   "komatsu-airport-smoking-places": {
@@ -74,9 +82,15 @@ export function productionHealthTargets(): HealthTarget[] {
   // Production monitoring has an explicit inventory; repository onboarding alone never expands it.
   return healthTargets(resources);
 }
-/** The deployed inventory plus sources reviewed in the repository but not yet deployed. */
+/** The deployed inventory plus every repository-reviewed source that has health configured (see HEALTH_NOT_CONFIGURED). */
 export function repositoryReviewedHealthTargets(): HealthTarget[] {
-  return healthTargets({ ...resources, ...repositoryReviewedResources });
+  const targets = healthTargets({ ...resources, ...repositoryReviewedResources });
+  const ids = targets.map(target => target.adapter.registry.sourceId);
+  for (const { registry: { sourceId } } of SOURCE_ADAPTERS) {
+    if (ids.includes(sourceId) === sourceId in HEALTH_NOT_CONFIGURED)
+      throw new Error(`Reviewed source ${sourceId} must be either a health target or in HEALTH_NOT_CONFIGURED, exactly one`);
+  }
+  return targets;
 }
 function healthTargets(inventory: Record<string, { filename: string; url: string }>): HealthTarget[] {
   return Object.entries(inventory).map(([sourceId, resource]) => {

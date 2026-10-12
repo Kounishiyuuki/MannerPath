@@ -6,7 +6,7 @@ import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth, type HealthResult } from "../src/source-health/check.ts";
 import { buildReport, evaluateResult, validateReviews, type SourceReview } from "../src/source-health/evaluate.ts";
 import { checkRights, extractRightsScope, rightsFingerprint, withRights, type RightsContract } from "../src/source-health/rights.ts";
-import { liveTransport, main, productionHealthTargets, repositoryReviewedHealthTargets, sourceReviews } from "../scripts/source-health.ts";
+import { HEALTH_NOT_CONFIGURED, liveTransport, main, productionHealthTargets, repositoryReviewedHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { importProductionBaselineSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -284,6 +284,12 @@ test("repository Sendai and Komatsu onboarding do not expand the six-source prod
   assert.equal(ids.includes("sendai-kaigan-park-smoking-areas"), false);
   assert.equal(ids.includes("komatsu-airport-smoking-places"), false);
   // Komatsu's page-fact health is configured but repository-only until a deployment adds it.
-  assert.deepEqual(repositoryReviewedHealthTargets().map(target => target.adapter.registry.sourceId).sort(),
-    [...ids, "komatsu-airport-smoking-places"].sort());
+  const repository = repositoryReviewedHealthTargets().map(target => target.adapter.registry.sourceId).sort();
+  assert.deepEqual(repository, [...ids, "komatsu-airport-smoking-places"].sort());
+  // Reviewed sources (8) and health-monitorable sources are different counts: Sendai is reviewed but has no
+  // reviewed rights contract, so it is named as unconfigured, never silently missing.
+  assert.equal(SOURCE_ADAPTERS.length, 8);
+  assert.deepEqual(HEALTH_NOT_CONFIGURED, { "sendai-kaigan-park-smoking-areas": "noReviewedRightsContract" });
+  assert.deepEqual([...repository, ...Object.keys(HEALTH_NOT_CONFIGURED)].sort(), SOURCE_ADAPTERS.map(a => a.registry.sourceId).sort());
+  assert.equal(sourceReviews().some(review => review.sourceId === "sendai-kaigan-park-smoking-areas"), false);
 });

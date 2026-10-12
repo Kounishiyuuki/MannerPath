@@ -139,7 +139,9 @@ hold below (migration 0033).
   scope mechanism): unchanged → healthy; changed → `contentChanged` advisory (re-review); scope missing → blocking.
   Offline replay says `pageFactNotChecked`. Health never edits data. Until a source is deployed it stays out of
   the production health inventory (as Sendai does); its page is checked with `npm run source:health -- (--live |
-  --offline) --repository-reviewed`, and review metadata still lists it exactly once.
+  --offline) --repository-reviewed`, and review metadata still lists it exactly once. That mode covers every reviewed
+  source with health configured; a reviewed source without it is named in `HEALTH_NOT_CONFIGURED` with the reason
+  (Sendai: no reviewed, scoped rights contract yet), so the two counts are never confused.
 - **Evidence hold (migration 0033, maintainer decision 2026-10-12).** A live report showing the fact range gone
   (`pageFactScopeMissing`) or the page gone (`resourceMissing`) lets a maintainer run `npm run source:hold -- hold`,
   which records an append-only `spot_evidence_holds` row per spot (reason `sourceEvidenceMissing`, report SHA-256 and
