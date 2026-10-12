@@ -1,0 +1,40 @@
+# Untrusted PR code runs without secrets, write permissions or checkout credentials.
+name: PR validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: PR validation
+    # security-validate checks the Apple project using macOS plutil.
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          # security-validate scans reachable history, including deleted files.
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+      - name: Install locked dependencies without lifecycle scripts
+        working-directory: services/api
+        run: npm ci --ignore-scripts
+      - name: Contract
+        run: make contract
+      - name: API validation
+        run: make api-validate
+      - name: Security validation
+        if: always()
+        run: make security-validate

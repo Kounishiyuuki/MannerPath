@@ -13,6 +13,8 @@ api-validate:
 	./scripts/validate-api.sh
 
 security-validate:
+	python3 scripts/check-ci-security.py
+	python3 scripts/test-ci-security.py
 	python3 scripts/test-security-guardrails.py
 	python3 scripts/security-secret-scan.py --history
 	cd services/api && node --experimental-strip-types --experimental-sqlite --no-warnings --test test/release-security.test.ts test/deploy-config.test.ts
