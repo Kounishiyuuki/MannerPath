@@ -6,6 +6,8 @@ import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { app } from "../src/app.ts";
+import { type Db, type DbStatement, sha256Hex } from "../src/db.ts";
 import { recordReviewedAnchors } from "../src/pipeline/area-anchor.ts";
 import { clearSourceEvidenceHolds, evidenceHoldSignal, holdSourceEvidence } from "../src/pipeline/evidence-hold.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
@@ -19,7 +21,7 @@ import { TAITO_ADAPTER } from "../src/pipeline/taito-adapter.ts";
 import { checkSourceHealth } from "../src/source-health/check.ts";
 import { buildReport, type HealthReport } from "../src/source-health/evaluate.ts";
 import { extractRightsScope, rightsFingerprint } from "../src/source-health/rights.ts";
-import { TileBodyV1 } from "../src/tiles/dto.ts";
+import { TileBodyV1, tileEtag } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { repositoryReviewedHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { run as sourceHoldCli } from "../scripts/source-hold.ts";
@@ -93,8 +95,9 @@ test("a hold unpublishes the spot fail closed, keeps it out of every republish, 
   const db = await komatsu();
   const [spotId] = published(db);
   const held = await holdSourceEvidence(db, KOMATSU_AIRPORT_ADAPTER.registry, await report(SCOPE_GONE), { reportSha256: SHA, heldBy: "maintainer", now: LATER });
-  assert.deepEqual(held, { sourceId: KOMATSU_AIRPORT_SOURCE_ID, signal: "pageFactScopeMissing", held: [spotId], alreadyHeld: [] });
+  assert.deepEqual({ ...held, publish: undefined }, { sourceId: KOMATSU_AIRPORT_SOURCE_ID, signal: "pageFactScopeMissing", held: [spotId], alreadyHeld: [], publish: undefined });
   assert.equal(count(db, "tile_snapshot_spots"), 0, "unpublished in the same batch as the hold");
+  assert.deepEqual(published(db), [], "the tile bodies were rebuilt in the same batch");
   await publishTiles(db, { now: NOW });
   assert.deepEqual(published(db), [], "a republish never brings a held spot back");
   // The spot itself is untouched: the hold is publication state, not a lifecycle change.
@@ -113,7 +116,8 @@ test("a hold unpublishes the spot fail closed, keeps it out of every republish, 
     health_evaluated_on, executor_version, held_by, held_at) VALUES (?, ?, 'sourceEvidenceMissing', 'resourceMissing', ?, '2026-10-12',
     'source-evidence-hold.v1', 'maintainer', ?)`).run(KOMATSU_AIRPORT_SOURCE_ID, spotId, SHA, NOW), /append-only/);
 
-  assert.deepEqual(await clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER }), [spotId]);
+  assert.deepEqual((await clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER })).cleared, [spotId]);
+  assert.deepEqual(published(db), [spotId], "the clear republished in the same batch");
   await assert.rejects(clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER }), /no active hold/);
   assert.throws(() => db.raw.prepare("UPDATE spot_evidence_holds SET cleared_by = 'someone'").run(), /one reviewed clear/);
   await publishTiles(db, { now: NOW });
@@ -216,7 +220,8 @@ test("spot_evidence_holds is append-only in the database itself, including every
   for (const change of ["cleared_by = 'other'", "clear_basis = 'healthFalsePositive'", "cleared_at = NULL, cleared_by = NULL, clear_basis = NULL", "cleared_at = '2027-01-01T00:00:00Z'"]) {
     assert.throws(() => db.raw.prepare(`UPDATE spot_evidence_holds SET ${change}`).run(), /one reviewed clear|CHECK/, change);
   }
-  assert.throws(() => insert("INSERT OR REPLACE", Number(held.hold_id), "b".repeat(64)), /append-only/);
+  // The clear republished the spot, so the premise trigger may refuse first; either way nothing is replaced.
+  assert.throws(() => insert("INSERT OR REPLACE", Number(held.hold_id), "b".repeat(64)), /append-only|unpublished spot/);
   assert.equal(snapshot(), cleared);
   // A later hold of the same spot is a new row next to the cleared one, never a replacement of it.
   await publishTiles(db, { now: NOW });
@@ -225,4 +230,85 @@ test("spot_evidence_holds is append-only in the database itself, including every
   assert.equal(rows.length, 2);
   assert.equal(JSON.stringify(rows[0]), JSON.stringify(JSON.parse(cleared)[0]));
   assert.ok(Number(rows[1].hold_id) > Number(rows[0].hold_id));
+});
+
+// A hold or clear is one db.batch: membership, hold history and every tile rewrite commit together or not at all.
+// The fault is injected by a test-only Db wrapper (nothing in src/ or scripts/ can fail on purpose). The injected
+// statement fails only when `reached` is already true inside the batch, which proves where in the batch it ran.
+const tableState = (db: SqliteD1) => JSON.stringify(["tile_snapshots", "tile_snapshot_parts", "tile_snapshot_spots", "spot_evidence_holds"]
+  .map((t) => db.raw.prepare(`SELECT * FROM ${t} ORDER BY 1, 2`).all()));
+function faultAt(db: SqliteD1, at: (statements: DbStatement[]) => number, reached: string): Db {
+  return {
+    prepare: (sql) => db.prepare(sql),
+    batch: (statements) => {
+      const i = at(statements);
+      const fault = db.prepare(`SELECT CASE WHEN ${reached} THEN json('{injected fault') END`);
+      return db.batch([...statements.slice(0, i), fault, ...statements.slice(i)]);
+    },
+  };
+}
+// Right after the tile_snapshots upsert: the tile row is already rewritten, its parts and memberships are not.
+const afterTileUpsert = (statements: DbStatement[]) =>
+  statements.findIndex((st) => (st as DbStatement & { sql: string }).sql.includes("INSERT INTO tile_snapshots (")) + 1;
+const komatsuTile = (db: SqliteD1) => db.raw.prepare("SELECT t.* FROM tile_snapshots t JOIN spots s ON s.tile_id = t.tile_id WHERE s.name LIKE '小松空港%'")
+  .get() as { tile_id: string; z: number; x: number; y: number; revision: number; content_sha256: string; body_json: string };
+
+test("a hold that fails anywhere inside its batch leaves membership, hold history and tiles exactly as before", async () => {
+  const db = await komatsu();
+  const r = await report(SCOPE_GONE);
+  const before = tableState(db);
+  const { revision } = komatsuTile(db);
+  const faults: [string, (statements: DbStatement[]) => number, string][] = [
+    ["after the membership delete", () => 1, "NOT EXISTS (SELECT 1 FROM tile_snapshot_spots)"],
+    ["after the hold insert", () => 2, "EXISTS (SELECT 1 FROM spot_evidence_holds WHERE cleared_at IS NULL)"],
+    ["during the tile rebuild", afterTileUpsert, `(SELECT max(revision) FROM tile_snapshots) > ${revision}`],
+  ];
+  for (const [name, at, reached] of faults) {
+    await assert.rejects(holdSourceEvidence(faultAt(db, at, reached), KOMATSU_AIRPORT_ADAPTER.registry, r,
+      { reportSha256: SHA, heldBy: "maintainer", now: LATER }), /malformed JSON/, name);
+    assert.equal(tableState(db), before, name);
+  }
+  // The same hold without a fault commits all of it.
+  await holdSourceEvidence(db, KOMATSU_AIRPORT_ADAPTER.registry, r, { reportSha256: SHA, heldBy: "maintainer", now: LATER });
+  assert.equal(count(db, "spot_evidence_holds"), 1);
+  assert.deepEqual(published(db), []);
+});
+
+test("after a committed hold the served tile, its hash and its ETag describe the new state; a clear restores them atomically", async () => {
+  const db = await komatsu();
+  const [spotId] = published(db);
+  const old = komatsuTile(db);
+  const path = `/v1/tiles/${old.z}/${old.x}/${old.y}/manifest`;
+  const oldEtag = (await app.request(path, {}, { DB: db })).headers.get("ETag")!;
+  assert.equal(oldEtag, tileEtag(old.body_json.includes('"schemaVersion":2') ? 2 : 1, old.content_sha256));
+
+  const held = await holdSourceEvidence(db, KOMATSU_AIRPORT_ADAPTER.registry, await report(SCOPE_GONE), { reportSha256: SHA, heldBy: "maintainer", now: LATER });
+  const now = komatsuTile(db);
+  assert.equal(now.revision, old.revision + 1);
+  assert.equal(now.content_sha256, await sha256Hex(now.body_json), "the stored hash is the stored body's");
+  assert.deepEqual(held.publish.published, [{ tileId: now.tile_id, revision: now.revision, spotCount: 0, contentSha256: now.content_sha256 }]);
+  const res = await app.request(path, { headers: { "If-None-Match": oldEtag } }, { DB: db });
+  assert.equal(res.status, 200, "the pre-hold ETag no longer matches");
+  assert.equal(res.headers.get("ETag"), tileEtag(2, now.content_sha256));
+  assert.equal(count(db, "tile_snapshot_spots"), 0);
+  assert.equal(count(db, "spot_evidence_holds"), 1);
+
+  // A clear that fails after its UPDATE or inside the tile rebuild changes nothing.
+  const heldState = tableState(db);
+  for (const [name, at, reached] of [
+    ["after the clear", () => 1, "NOT EXISTS (SELECT 1 FROM spot_evidence_holds WHERE cleared_at IS NULL)"],
+    ["during the tile rebuild", afterTileUpsert, `(SELECT max(revision) FROM tile_snapshots) > ${now.revision}`],
+  ] as const) {
+    await assert.rejects(clearSourceEvidenceHolds(faultAt(db, at, reached), KOMATSU_AIRPORT_SOURCE_ID,
+      { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER }), /malformed JSON/, name);
+    assert.equal(tableState(db), heldState, name);
+  }
+  const cleared = await clearSourceEvidenceHolds(db, KOMATSU_AIRPORT_SOURCE_ID, { clearedBy: "maintainer", basis: "factsReReviewed", now: LATER });
+  assert.deepEqual(cleared.cleared, [spotId]);
+  const back = komatsuTile(db);
+  assert.equal(back.revision, now.revision + 1);
+  assert.equal(back.content_sha256, await sha256Hex(back.body_json));
+  assert.deepEqual(published(db), [spotId]);
+  assert.equal((await app.request(path, {}, { DB: db })).headers.get("ETag"), tileEtag(2, back.content_sha256));
+  assert.equal(holds(db)[0].clear_basis, "factsReReviewed");
 });

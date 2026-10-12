@@ -143,10 +143,12 @@ hold below (migration 0033).
 - **Evidence hold (migration 0033, maintainer decision 2026-10-12).** A live report showing the fact range gone
   (`pageFactScopeMissing`) or the page gone (`resourceMissing`) lets a maintainer run `npm run source:hold -- hold`,
   which records an append-only `spot_evidence_holds` row per spot (reason `sourceEvidenceMissing`, report SHA-256 and
-  date, who/when) and unpublishes it; `publishTiles` excludes active holds and a `tile_snapshot_spots` trigger refuses
-  them. `contentChanged`, 5xx/timeouts and offline reports are refused as hold reasons (no automatic or bulk
-  unpublication). Only an explicit `clear` (`factsReReviewed` | `healthFalsePositive`) ends a hold; rows are never
-  deleted. Not chosen: widening `spots.publication_hold` (a 0004 CHECK, which would need a table rebuild).
+  date, who/when) and unpublishes it. The membership deletes, hold rows and every tile rewrite run in one `db.batch`
+  (D1's transaction), as does a clear with its republish: all of it commits or none of it does. `publishTiles`
+  excludes active holds and a `tile_snapshot_spots` trigger refuses them. `contentChanged`, 5xx/timeouts and offline
+  reports are refused as hold reasons (no automatic or bulk unpublication). Only an explicit `clear`
+  (`factsReReviewed` | `healthFalsePositive`) ends a hold; rows are never deleted. Not chosen:
+  widening `spots.publication_hold` (a 0004 CHECK, which would need a table rebuild).
 - **Wire.** `locationArea.scope` optional (zod, docs/API.md); absent for v1 anchors, so their bytes are unchanged.
 - **First source.** `komatsu-airport-smoking-places`: one facility-level spot (4 zones, one 国土数値情報 C28
   TerminalBuilding anchor), `existence = operator`, hours/tobacco support/room type unknown. `accessType = unknown`
