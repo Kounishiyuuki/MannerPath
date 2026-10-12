@@ -391,7 +391,7 @@ export function createApp(options: AppOptions = {}) {
     if (input.data.acceptedTermsVersion !== CURRENT_REPORT_TERMS.version) return problem(409, "termsVersionOutdated", "current terms consent is required");
     const bytes = base64Decode(input.data.image);
     if (bytes === null) return problem(400, "invalidPhoto", "image: invalid_base64");
-    const hash = await submitterHash(attestedSubmitter(material.keyId), env.REPORT_SUBMITTER_PEPPER);
+    const hash = await submitterHash(attestedSubmitter(material.keyId), policy.submitterPepper);
     try {
       const accepted = await attachEvidencePhoto(reports, options.photoEvidence!.storage, {
         ...input.data, bytes, submitterHash: hash,
@@ -485,7 +485,7 @@ export function createApp(options: AppOptions = {}) {
     // The submitter is the verified App Attest key, not the payload's installId: the client chooses installId
     // freely, so one attested install could otherwise rotate it to escape the rate limit and to pass as several
     // "independent" submitters in community corroboration (Issue #150).
-    const hash = await submitterHash(attestedSubmitter(material.keyId), env.REPORT_SUBMITTER_PEPPER);
+    const hash = await submitterHash(attestedSubmitter(material.keyId), attestation.submitterPepper);
     const limited = await rateLimited(reports, hash, now);
     if (limited !== null) return limited;
     try {

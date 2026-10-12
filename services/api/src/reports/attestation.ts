@@ -19,7 +19,7 @@ export type AttestationStatus = "notProvided" | "verified" | "unverified";
  */
 export type AttestationConfig =
   | { kind: "disabled" }
-  | { kind: "appAttest"; appId: string; environment: AppAttestEnvironment; bundleVersions: readonly string[] }
+  | { kind: "appAttest"; appId: string; environment: AppAttestEnvironment; bundleVersions: readonly string[]; submitterPepper: string }
   | { kind: "unsupported"; detail: string };
 
 export const ATTESTATION_VALUES = ["disabled", "required"] as const;
@@ -32,6 +32,20 @@ export interface AttestationBindings {
   REPORT_APP_ATTEST_ENVIRONMENT?: string;
   /** Comma-separated exact CFBundleVersion values accepted in `apple_bundle_version_01`, e.g. `41,42`. */
   REPORT_APP_ATTEST_BUNDLE_VERSIONS?: string;
+  /** Pepper for the submitter abuse key (ADR-0007 §5). Secret binding, never committed. */
+  REPORT_SUBMITTER_PEPPER?: string;
+}
+
+/**
+ * The pepper's minimum length in UTF-8 BYTES of the configured string (not characters), matching the documented
+ * "32+ random bytes" (docs/OPERATIONS.md). Length is only a floor: it cannot prove the value is random.
+ */
+export const SUBMITTER_PEPPER_MIN_BYTES = 32;
+
+/** A usable pepper: non-blank and at least SUBMITTER_PEPPER_MIN_BYTES after trimming surrounding whitespace. */
+export function usableSubmitterPepper(value: string | undefined): string | null {
+  if (value === undefined) return null;
+  return new TextEncoder().encode(value.trim()).length >= SUBMITTER_PEPPER_MIN_BYTES ? value : null;
 }
 
 /**
@@ -73,7 +87,13 @@ export function attestationConfig(env: AttestationBindings): AttestationConfig {
   if (bundleVersions === null) {
     return { kind: "unsupported", detail: "report attestation is required but REPORT_APP_ATTEST_BUNDLE_VERSIONS is missing or malformed" };
   }
-  return { kind: "appAttest", appId, environment, bundleVersions };
+  // An empty or weak pepper would make the stored submitter hash a plain, guessable digest of the key ID. Say only
+  // that configuration is incomplete: the detail is returned to callers, so it names no secret and no length.
+  const submitterPepper = usableSubmitterPepper(env.REPORT_SUBMITTER_PEPPER);
+  if (submitterPepper === null) {
+    return { kind: "unsupported", detail: "report attestation is required but its deployment configuration is incomplete" };
+  }
+  return { kind: "appAttest", appId, environment, bundleVersions, submitterPepper };
 }
 
 /** The only status a schema-1 (unattested) report can honestly record. */

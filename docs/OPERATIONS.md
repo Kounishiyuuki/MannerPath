@@ -117,7 +117,7 @@ the same reviewed PR, and saying there which account owns the database.
 Then set the one secret the service needs:
 
 ```sh
-npx wrangler secret put REPORT_SUBMITTER_PEPPER --env staging   # 32+ random bytes, never committed
+npx wrangler secret put REPORT_SUBMITTER_PEPPER --env staging   # 32+ random bytes, never committed; required: shorter than 32 UTF-8 bytes keeps reports at 503
 ```
 
 `REPORT_ATTESTATION` is **`required`** in the committed `staging` and `production` environments.

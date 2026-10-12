@@ -13,7 +13,7 @@ import { reportsD1, SqliteD1 } from "./support/sqlite-d1.ts";
 
 const APP_ID = "ABCDE12345.com.example.mannerpath";
 const ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID,
-  REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42" };
+  REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
 
 async function harness(covered = true) {
   const db = reportsD1(), storage = new MemoryEvidencePhotoStorage(), pki = await testPki();
@@ -34,7 +34,7 @@ async function harness(covered = true) {
   const object = await attest(device, await sha256(registrationClientData(base64Decode(ch)!, device.keyId)), { appId: APP_ID, pki });
   assert.equal((await post("/v1/app-attest/keys", { schemaVersion: 1, keyId: device.keyIdBase64,
     challenge: ch, attestationObject: base64Encode(object) })).status, 201);
-  const hash = await submitterHash(attestedSubmitter(device.keyIdBase64), undefined);
+  const hash = await submitterHash(attestedSubmitter(device.keyIdBase64), ENV.REPORT_SUBMITTER_PEPPER);
   const report = await createReport(db, { schemaVersion: 2, type: "exists",
     spotId: "sp_01V64NN31G72E5KJJ5W22W1A1J", installId: crypto.randomUUID(),
     acceptedTermsVersion: CURRENT_REPORT_TERMS.version }, { now, attestationStatus: "verified", submitterHash: hash });
