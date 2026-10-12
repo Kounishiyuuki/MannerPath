@@ -140,6 +140,7 @@ test("remote-like environments require App Attest, and fail closed until a maint
     REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath",
     REPORT_APP_ATTEST_ENVIRONMENT: "production",
     REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41",
+    REPORT_SUBMITTER_PEPPER: "x".repeat(32),
   };
   assert.equal(attestationConfig(configured).kind, "appAttest");
   assert.equal(configBody(configured).reports.attestation, "appAttest");

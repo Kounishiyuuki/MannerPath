@@ -48,6 +48,7 @@ test("reports fail closed until the three App Attest values are set, then speak 
     REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath",
     REPORT_APP_ATTEST_ENVIRONMENT: "development",
     REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41",
+    REPORT_SUBMITTER_PEPPER: "x".repeat(32),
   };
   for (const missing of Object.keys(configured).filter((k) => k !== "REPORT_ATTESTATION")) {
     const partial: Record<string, string> = { ...configured };

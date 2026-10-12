@@ -14,6 +14,7 @@ const tripwire = (): Db => ({
 const attested = {
   REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath",
   REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41",
+  REPORT_SUBMITTER_PEPPER: "x".repeat(32),
 };
 function streamed(chunks: Uint8Array[]) {
   let pulls = 0;

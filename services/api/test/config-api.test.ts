@@ -95,7 +95,7 @@ test("a body whose minimum outruns the version it serves is not a valid config",
   assert.equal(ConfigBodyV1.safeParse(broken).success, false);
 });
 
-const APP_ATTEST = { REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42" };
+const APP_ATTEST = { REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
 
 test("/v1/config reports the report endpoint as unavailable exactly when it fails closed", async () => {
   for (const [env, available] of [

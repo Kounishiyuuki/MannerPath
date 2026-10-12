@@ -18,8 +18,8 @@ export function minimizeAfter(receivedAt: Date): Date {
 
 /**
  * The abuse key. The raw installId never leaves this function: it is not stored, returned or
- * logged. The pepper comes from a binding and is absent locally, which weakens the hash against a
- * guessed-installId lookup but changes nothing else (ADR-0007 §5).
+ * logged. The pepper comes from a binding. Attested callers pass the pepper attestationConfig validated, so it is
+ * never empty there; only the local unattested mode may pass none (ADR-0007 §5).
  */
 export function submitterHash(installId: string, pepper: string | undefined): Promise<string> {
   return sha256Hex(`${pepper ?? ""}\n${installId.toLowerCase()}`);

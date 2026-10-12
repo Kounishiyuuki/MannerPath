@@ -119,8 +119,11 @@ a client obligation.
 
 - `installId` is hashed on arrival: `submitter_hash = SHA-256(pepper ‖ installId)`, where the pepper
   comes from the `REPORT_SUBMITTER_PEPPER` binding. No pepper value is committed to this
-  repository; with the binding unset the hash is unpeppered, which is acceptable locally and is
-  documented as a pre-launch deployment requirement. The raw `installId` is never stored or logged.
+  repository. Where attestation is `required` (every remote environment) the pepper is part of the
+  deployment configuration: unset, blank or shorter than 32 UTF-8 bytes, the deployment is
+  `unsupported` and every report and App Attest endpoint answers `503 attestationUnavailable`
+  (§6), so no hash is ever made with an empty or weak pepper. Only the local unattested mode
+  (`disabled`) may hash without one. The raw `installId` is never stored or logged.
 - Limits are per `submitter_hash`: 10 reports per hour and 50 per day, counted in D1 windows
   (`report_rate_windows`). Over a limit the endpoint answers `429` with `Retry-After` and writes
   nothing.
