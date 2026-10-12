@@ -8,7 +8,7 @@ production/App Store release is approved. No deployment or account changes are p
 ## PR checks and trust boundary
 
 `.github/workflows/pr-validation.yml` runs on **every pull request**, without path/branch
-filters, and on main pushes. Node 24 runs `make contract`, `make api-validate` and
+filters, and on main pushes. Node **24.21.0** runs `make contract`, `make api-validate` and
 `make security-validate`. The single stable required-check candidate is **PR validation**;
 confirm its exact check-run name and GitHub Actions source after the first real hosted run.
 macOS 15 is intentional: an existing security test parses the Xcode project with `plutil`.
@@ -25,7 +25,9 @@ Dependabot PRs need no secrets. A maintainer may still need to approve a first-t
 this must not become permission to expose credentials or bypass required checks.
 
 `make security-validate` includes the YAML/dependency policy checker and negative tests.
-It rejects write-all, elevated PR permissions, privileged events, tag-only actions, persisted
+It rejects write-all, elevated PR permissions, `pull_request_target` / `workflow_run` /
+`issue_comment`, unapproved action repositories, tag-only actions, mutable container/service
+images, floating Node versions, persisted
 checkout credentials, explicit checkout refs/repositories, secret/token references, shell
 expression interpolation, filtered/skippable required checks and newly introduced unreviewed
 npm lifecycle-script packages. Its sole privileged exception is the existing Pages deploy job:
@@ -41,9 +43,39 @@ The former tag-only references were all in `pages.yml`; the source-health workfl
 SHA-pinned. The following pins were resolved from official repositories, not third-party snippets.
 Checkout/configure/deploy major versions are unchanged. The composite upload wrapper is removed:
 its pinned source still calls `actions/upload-artifact@v4`, so pinning only the wrapper would
-leave a mutable transitive action. The build job creates the same `artifact.tar` and uploads
+leave a mutable transitive action. The build job uses `scripts/package-pages-artifact.py` to create `artifact.tar` and uploads
 it directly with the already-reviewed upload-artifact v4 SHA. The deploy job depends on that
 build and retains the same `github-pages` artifact/environment contract.
+
+The artifact builder records directories as 755 and regular files as 644, with zero timestamps
+and uid/gid and no host extended attributes. It does not chmod the source. All symbolic links
+(including links within site), special files and unsafe path components are refused; hard-linked
+regular inputs become independent regular archive entries. Directory-relative no-follow opens
+prevent a path swap from dereferencing a symlink. A failed build leaves no partial archive;
+CI stops before upload. Actual site HTML/CSS files require no executable bits. Artifact tests
+exercise the real site, world-writable/executable fixtures, links, special files and traversal
+names. The packaging script is included in Pages push path filters so fixes regenerate Pages.
+
+Action approval is repository-specific, not an owner wildcard: only `actions/checkout`,
+`actions/setup-node`, `actions/upload-artifact`, `actions/configure-pages` and
+`actions/deploy-pages` are allowed, each at a full SHA. New actions need an explicit review
+and policy change. `container` / `services` images require `image@sha256:<64 lowercase hex>`;
+there are no such images in current workflows. A digest prevents a mutable tag update, but
+new image contents and runner compatibility still require review.
+
+Trigger decisions (2026-10-13):
+
+| Trigger | Policy / current use |
+| --- | --- |
+| pull_request_target, workflow_run, issue_comment | Forbidden in every workflow, regardless of permission declarations |
+| workflow_dispatch | Retained for source-health (read-only) and Pages (main-only, environment-gated write job with no checkout/shell) |
+| repository_dispatch | Not currently used; allowed only within the general read-only, secret-free, default-ref checkout policy; the Pages write exception excludes it |
+| workflow_call | Not currently used; same read-only policy, no secret declarations or inheritance; the Pages write exception excludes it |
+
+The Node patch is fixed to 24.21.0 in PR validation and source-health, matching the tested
+local runtime and API `engines.node >=24`. Updating Node requires an explicit reviewed change;
+no automatic Node updater is added. Current Pages comments were checked against official
+upstream tags: configure-pages v5.0.0 and deploy-pages v4.0.5. Their SHAs are unchanged.
 
 | Action | Former Pages ref | Commit |
 | --- | --- | --- |
@@ -89,6 +121,15 @@ A maintainer can generate a CycloneDX npm inventory from the reviewed lockfile w
 the release commit, and separately record Swift resolved revisions and Actions pins. An npm
 SBOM alone does not cover Apple assets or workflow dependencies. Do not describe a development
 lock inventory as the exact shipped Worker dependency graph.
+
+## Deferred follow-ups
+
+General shell taint/static analysis (`curl | sh`, writes to `$GITHUB_ENV`, `npm install`,
+indirect environment/control-flow propagation) remains a separate P2 follow-up. The explicit
+structural checks here must not be described as solving it. SBOM inventory and hosted Pages
+upload/deploy confirmation also remain follow-ups; neither SBOM nor absent hosted deployment
+evidence is turned into a code merge blocker by this change. Required-check/account approval
+evidence remains a separate production-readiness boundary below.
 
 ## Maintainer account actions (not performed or verified here)
 

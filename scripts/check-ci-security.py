@@ -11,6 +11,19 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
+APPROVED_ACTIONS = frozenset({
+    'actions/checkout', 'actions/setup-node', 'actions/upload-artifact',
+    'actions/configure-pages', 'actions/deploy-pages',
+})
+FORBIDDEN_EVENTS = frozenset({'pull_request_target', 'workflow_run', 'issue_comment'})
+CI_NODE_VERSION = '24.21.0'
+PAGES_PACKAGE_COMMAND = 'python3 scripts/package-pages-artifact.py --site site --output "$RUNNER_TEMP/artifact.tar"'
+
+
+def image_is_pinned(config):
+    image = config.get('image') if isinstance(config, dict) else config
+    return isinstance(image, str) and bool(re.fullmatch(r'[^\s@]+@sha256:[0-9a-f]{64}', image))
+
 # Parse YAML nodes, preserving scalar spelling (not YAML 1.1's on -> true conversion).
 # Reject duplicate keys, aliases and custom tags instead of silently guessing intent.
 YAML_PARSER = r'''
@@ -79,7 +92,12 @@ def workflow_errors(doc, filename):
     reject(not isinstance(events, dict), 'invalid events')
     if not isinstance(events, dict):
         events = {}
-    reject('pull_request_target' in events, 'pull_request_target forbidden')
+    for event in sorted(FORBIDDEN_EVENTS & set(events)):
+        errors.append(f'{event} forbidden')
+    # Dispatch/call are not blanket-banned: only read-only jobs may use them.
+    # The Pages write exception below admits only main push/manual dispatch.
+    call = events.get('workflow_call')
+    reject(isinstance(call, dict) and 'secrets' in call, 'workflow_call secret declarations forbidden')
     reject(doc.get('permissions') != {'contents': 'read'}, 'default permissions must be contents: read')
     reject(any(re.search(r'\bsecrets\b|\bgithub\s*(?:\.\s*token\b|\[\s*[\'"]token[\'"]\s*\])|\btoJSON\s*\(\s*github\s*\)' , s, re.I)
                for s in strings(doc)), 'secrets/token references forbidden in these workflows')
@@ -105,6 +123,13 @@ def workflow_errors(doc, filename):
         reject('uses' in job, 'reusable jobs require a separate security policy')
         runner = job.get('runs-on', '')
         reject(not isinstance(runner, str) or not re.fullmatch(r'(ubuntu|macos|windows)-(latest|[0-9]+(?:\.[0-9]+)?)', runner), 'GitHub-hosted literal runner required')
+        if 'container' in job:
+            reject(not image_is_pinned(job['container']), 'container image must use sha256 digest')
+        services = job.get('services', {})
+        reject(not isinstance(services, dict), 'services must be a mapping')
+        if isinstance(services, dict):
+            for service in services.values():
+                reject(not image_is_pinned(service), 'service image must use sha256 digest')
         steps = job.get('steps', [])
         if not isinstance(steps, list):
             errors.append('steps must be a list')
@@ -116,6 +141,9 @@ def workflow_errors(doc, filename):
             action = step.get('uses')
             if action is not None:
                 reject(not isinstance(action, str) or not re.fullmatch(r'[\w.-]+/[\w./-]+@[0-9a-f]{40}', action), 'action must use a full commit SHA')
+                reject(not isinstance(action, str) or action.split('@')[0] not in APPROVED_ACTIONS, 'action repository is not approved')
+                if isinstance(action, str) and action.startswith('actions/setup-node@'):
+                    reject(step.get('with', {}).get('node-version') != CI_NODE_VERSION, 'CI Node must use the reviewed patch version')
                 if isinstance(action, str) and action.lower().startswith('actions/checkout@'):
                     options = step.get('with', {})
                     reject(not isinstance(options, dict) or str(options.get('persist-credentials')).lower() != 'false', 'checkout must set persist-credentials: false')
@@ -131,7 +159,13 @@ def workflow_errors(doc, filename):
                 reject(bool(re.search(r'\bnpm\s+ci\b', run)) and run.strip() != 'npm ci --ignore-scripts', 'npm ci must disable lifecycle scripts')
                 reject(privileged_pages and bool(run), 'privileged Pages job must not run repository shell code')
     if filename == 'pages.yml':
-        reject(jobs.get('build', {}).get('if') != "github.ref == 'refs/heads/main'", 'Pages build must target main')
+        build = jobs.get('build', {})
+        reject(build.get('if') != "github.ref == 'refs/heads/main'", 'Pages build must target main')
+        reject(any(k in doc or k in build for k in ('defaults', 'env')), 'Pages packaging must use the default command environment')
+        packages = [s for s in build.get('steps', []) if isinstance(s, dict) and 'run' in s]
+        reject(len(packages) != 1 or any(s.get('run') != PAGES_PACKAGE_COMMAND or any(k in s for k in ('shell', 'env', 'working-directory', 'if', 'continue-on-error')) for s in packages), 'Pages must run the permission-normalizing packager')
+        uploads = [s for s in build.get('steps', []) if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/upload-artifact@')]
+        reject(len(uploads) != 1 or uploads[0].get('with', {}).get('name') != 'github-pages' or uploads[0].get('with', {}).get('path') != '${{ runner.temp }}/artifact.tar', 'Pages must upload the normalized archive')
     if filename == 'pr-validation.yml':
         reject('pull_request' not in events or events.get('pull_request') not in ('', None, {}), 'all PRs must run without trigger filters')
         job = jobs.get('validate', {})
@@ -141,6 +175,8 @@ def workflow_errors(doc, filename):
         for command in ('make contract', 'make api-validate', 'make security-validate'):
             steps = [s for s in job.get('steps', []) if isinstance(s, dict) and s.get('run') == command]
             reject(len(steps) != 1 or any(s.get('if') not in (None, 'always()') or s.get('continue-on-error') or any(k in s for k in ('working-directory', 'shell', 'env')) for s in steps), f'required check missing/skippable: {command}')
+        nodes = [s for s in job.get('steps', []) if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/setup-node@')]
+        reject(len(nodes) != 1, 'PR must install the reviewed Node patch')
         checkouts = [s for s in job.get('steps', []) if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/checkout@')]
         reject(len(checkouts) != 1 or str(checkouts[0].get('with', {}).get('fetch-depth')) != '0', 'full history checkout required')
     return errors

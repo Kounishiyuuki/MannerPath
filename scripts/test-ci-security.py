@@ -34,8 +34,52 @@ class CiSecurityTests(unittest.TestCase):
                 self.rejects(lambda d: d['jobs']['validate'].update(permissions=permissions), 'permissions')
 
     def test_privileged_event_all_yaml_forms(self):
-        for events in ('pull_request_target', ['pull_request_target'], {'pull_request_target': ''}):
-            self.rejects(lambda d: d.update(on=events), 'pull_request_target')
+        for trigger in ('pull_request_target', 'workflow_run', 'issue_comment'):
+            for events in (trigger, [trigger], {trigger: ''}):
+                self.rejects(lambda d: d.update(on=events), trigger)
+
+    def test_manual_and_callable_events_remain_read_only(self):
+        for event in ('repository_dispatch', 'workflow_call', 'workflow_dispatch'):
+            doc = copy.deepcopy(self.doc)
+            doc['on'] = {event: ''}
+            self.assertEqual(guard.workflow_errors(doc, 'read-only-audit.yml'), [])
+            doc['jobs']['validate']['permissions'] = {'contents': 'write'}
+            self.assertTrue(guard.workflow_errors(doc, 'read-only-audit.yml'))
+        doc = copy.deepcopy(self.doc)
+        doc['on'] = {'workflow_call': {'secrets': {'EXAMPLE': {'required': 'true'}}}}
+        self.assertIn('workflow_call secret declarations forbidden', guard.workflow_errors(doc, 'read-only-audit.yml'))
+
+    def test_container_and_service_images_require_digest(self):
+        for config in ('node:24', {'image': 'node:24'}, {'image': '${{ inputs.image }}'}, {}):
+            self.rejects(lambda d: d['jobs']['validate'].update(container=config), 'container image')
+        for config in ('postgres:16', {'image': 'postgres:16'}, {}, None):
+            self.rejects(lambda d: d['jobs']['validate'].update(services={'postgres': config}), 'service image')
+        doc = copy.deepcopy(self.doc)
+        doc['jobs']['validate']['container'] = {'image': 'node@sha256:' + 'a' * 64}
+        doc['jobs']['validate']['services'] = {'postgres': {'image': 'postgres@sha256:' + 'b' * 64}}
+        self.assertEqual(guard.workflow_errors(doc, 'pr-validation.yml'), [])
+        self.rejects(lambda d: d['jobs']['validate'].update(container='node@sha256:abc'), 'container image')
+
+    def test_action_repository_allowlist(self):
+        for name in ('unknown/action', 'actions/unknown', 'github/unknown', 'actions/checkout/subaction'):
+            self.rejects(lambda d: d['jobs']['validate']['steps'].append({'uses': name + '@' + 'a' * 40}), 'repository is not approved')
+        for name in guard.APPROVED_ACTIONS:
+            doc = copy.deepcopy(self.doc)
+            step = {'uses': name + '@' + 'a' * 40}
+            if name == 'actions/checkout':
+                # Preserve the single-checkout requirement while testing its owner.
+                doc['jobs']['validate']['steps'][0]['uses'] = step['uses']
+            else:
+                if name == 'actions/setup-node':
+                    doc['jobs']['validate']['steps'][1]['uses'] = step['uses']
+                else:
+                    doc['jobs']['validate']['steps'].append(step)
+            self.assertEqual(guard.workflow_errors(doc, 'pr-validation.yml'), [])
+
+    def test_node_patch_cannot_float(self):
+        for version in ('24', '24.x', '24.20.0', '${{ inputs.node }}'):
+            self.rejects(lambda d: d['jobs']['validate']['steps'][1]['with'].update({'node-version': version}), 'reviewed patch')
+        self.rejects(lambda d: d['jobs']['validate']['steps'].pop(1), 'reviewed Node patch')
 
     def test_action_tags_branches_short_shas_and_docker(self):
         for action in ('actions/checkout@v4', 'vendor/action@main', 'vendor/action@abc123', 'docker://image:latest'):
@@ -79,6 +123,16 @@ class CiSecurityTests(unittest.TestCase):
                        lambda d: d['jobs']['deploy']['permissions'].update({'contents': 'write'}),
                        lambda d: d['jobs']['build'].update(permissions={'contents': 'read', 'id-token': 'write'}),
                        lambda d: d['jobs']['deploy'].pop('needs')):
+            changed = copy.deepcopy(doc)
+            mutate(changed)
+            self.assertTrue(guard.workflow_errors(changed, 'pages.yml'))
+
+    def test_pages_cannot_bypass_permission_normalization(self):
+        doc = guard.parse_yaml((ROOT / '.github/workflows/pages.yml').read_text())
+        for mutate in (lambda d: d['jobs']['build']['steps'][1].update(run='tar -cf artifact.tar site'),
+                       lambda d: d['jobs']['build']['steps'][1].update(shell='bash -c true {0}'),
+                       lambda d: d['jobs']['build']['steps'][2]['with'].update(path='site'),
+                       lambda d: d['jobs']['build'].update(defaults={'run': {'shell': 'bash -c true {0}'}})):
             changed = copy.deepcopy(doc)
             mutate(changed)
             self.assertTrue(guard.workflow_errors(changed, 'pages.yml'))

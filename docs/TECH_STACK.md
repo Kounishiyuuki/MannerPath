@@ -45,7 +45,7 @@ Backend tooling and `make api-validate` require Node >=24: segmented promotion v
 
 ## CI tooling
 
-PR validation uses GitHub-hosted macOS 15 and Node 24, with read-only permissions and
+PR validation uses GitHub-hosted macOS 15 and Node 24.21.0, with read-only permissions and
 lifecycle scripts disabled during locked npm installation. Workflow policy parsing uses
 Python 3 and system Ruby/Psych without additional gems. Action SHA pins, Dependabot and
 maintainer account controls are documented in [CI_SUPPLY_CHAIN_SECURITY.md](CI_SUPPLY_CHAIN_SECURITY.md).

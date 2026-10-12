@@ -6,7 +6,7 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", ".github/workflows/pages.yml", "scripts/package-pages-artifact.py"]
   workflow_dispatch:
 
 permissions:
@@ -25,9 +25,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      # Same Pages artifact.tar contract, without the wrapper's mutable nested action.
+      # Normalize archive permissions and reject links/special files before upload.
       - name: Package public site
-        run: tar --dereference --hard-dereference --directory site -cf "$RUNNER_TEMP/artifact.tar" --exclude=.git --exclude=.github .
+        run: python3 scripts/package-pages-artifact.py --site site --output "$RUNNER_TEMP/artifact.tar"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: github-pages
@@ -48,6 +48,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
       - id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
