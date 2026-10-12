@@ -157,7 +157,7 @@ test("manifest and parts: strong ETags, 304s, hashes the client can verify, and 
   const m = await get(db, `/v1/tiles/${tileId}/manifest`);
   assert.equal(m.status, 200);
   assert.equal(m.headers.get("ETag"), tileEtag(2, sha256(manifest)));
-  assert.equal(m.headers.get("Cache-Control"), "public, no-cache");
+  assert.equal(m.headers.get("Cache-Control"), "public, max-age=60, stale-while-revalidate=300");
   const text = await m.text();
   assert.equal(text, manifest);
   const parsed = TileManifestV2.parse(JSON.parse(text));

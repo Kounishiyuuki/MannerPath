@@ -113,7 +113,7 @@ test("inactive remote writes and photo foundation reject without consuming bodie
 });
 
 test("public config ignores arbitrary secret bindings and strict contract rejects added fields", async () => {
-  const config = await (await app.request("/v1/config", {}, { DB: tripwire(), API_KEY: SENTINEL, WEBHOOK_SECRET: SENTINEL, REPORT_SUBMITTER_PEPPER: SENTINEL } as any)).json() as any;
+  const config = await (await app.request("/v1/config", {}, { DB: tripwire(), API_KEY: SENTINEL, WEBHOOK_SECRET: SENTINEL, REPORT_SUBMITTER_PEPPER: SENTINEL, RATE_LIMIT_KEY_PEPPER: SENTINEL } as any)).json() as any;
   assert.equal(JSON.stringify(config).includes(SENTINEL), false);
   assert.equal(ConfigBodyV1.safeParse(config).success, true);
   for (const altered of [{ ...config, apiKey: SENTINEL }, { ...config, reports: { ...config.reports, credential: SENTINEL } }, { ...config, schemaVersions: { ...config.schemaVersions, token: SENTINEL } }]) assert.equal(ConfigBodyV1.safeParse(altered).success, false);

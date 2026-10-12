@@ -598,20 +598,60 @@ a publisher outage, not as the runner issue.
 
 ## Cache and CDN semantics
 
-No CDN configuration is introduced. The behaviour is the one the responses already describe.
+No CDN dashboard rule is introduced; the Worker sets the policy on each response and caches tiles itself.
 
-- `GET /v1/tiles/{z}/{x}/{y}` and `GET /v1/spots/{id}` and `GET /v1/config` send
-  `Cache-Control: public, no-cache`. That means *cacheable, but revalidate every time* — not
-  "do not cache". For tiles the revalidation is a cheap `304`, because the `ETag` is the stored
-  schema version + content hash; a republished tile is therefore seen immediately, and an unchanged
-  one costs no body.
-- The tile `ETag` is derived from stored bytes, never recomputed per request, so it is stable across
-  instances and safe for a shared cache.
-- `/v1/config` intentionally has no long `max-age`: a client that has cached a stale
-  `reports.available` would offer an entry point the server refuses. Revalidation keeps that honest.
-- `POST /v1/reports` sends `Cache-Control: no-store`, as do all error bodies.
-- If a cache layer is added later, the invariant is that it must honour `ETag` and must not extend
-  freshness beyond `no-cache`; otherwise the atomic-tile-replacement contract in ADR-0005 breaks.
+- **Tiles, manifests and parts** (`GET /v1/tiles/{z}/{x}/{y}`, `…/manifest`, `…/parts/{index}`) send
+  `Cache-Control: public, max-age=60, stale-while-revalidate=300` with the stored-hash `ETag`. A republished tile
+  is therefore visible to a client within about a minute (a cache that honours `stale-while-revalidate` may answer
+  once more from the old copy while it revalidates), and an unchanged one revalidates as a `304`. The URLs are
+  mutable (a part index is not a content address), so nothing is `immutable`. A manifest and a part from different
+  revisions can meet in a cache; the ADR-0015 client applies a multi-part tile only when every part hashes to its
+  manifest entry, so it refuses the mix, keeps its cached tile and succeeds on a later sync. The v1 path replaces
+  the whole tile atomically (ADR-0005) with a complete, possibly up to a minute old, snapshot.
+- **Edge cache** (`src/edge-cache.ts`, Workers Cache API `caches.default`): only `GET` tile, manifest and part
+  reads; key = origin + path, so the query string neither changes the answer nor creates a new key; only a `200`
+  with an `ETag` and exactly the tile policy above is stored (errors, `no-store`, `no-cache` and `Set-Cookie`
+  responses never are). A conditional request is answered from the stored `ETag`, so a revalidation costs no D1
+  read while the entry is fresh. Oversized URLs or `If-None-Match` bypass the cache and get the app's `413`. A
+  cache failure falls back to the origin. The Cache API stores nothing on a `workers.dev` hostname; it takes effect
+  on a custom domain. Nothing per caller exists in these responses.
+- **Revalidate every time** (`public, no-cache`): `GET /v1/config` (a stale `reports.available` would offer an
+  entry point the server refuses), `GET /v1/spots/{id}` (a spot leaving publication, e.g. an evidence hold, must
+  leave its detail at once) and `GET /v1/coverage/tasks`. Not edge-cached.
+- **Never stored** (`no-store`): `/v1/readiness`, every write (`POST /v1/reports`, App Attest), every error,
+  and the JSON `404` for an unknown path or unsupported method.
+- Every response carries `X-Content-Type-Options: nosniff`. No CSP or frame headers: the API serves JSON or
+  empty bodies only, never a document. No CORS headers are sent (no credentialed cross-origin reads).
+
+## Read API and challenge abuse budget
+
+Public reads stay unauthenticated: no login, no App Attest and no secret URL is needed to read published data.
+Abuse is bounded in layers, each optional on its own, none storing a raw network identifier:
+
+1. **Edge IP rule** (Cloudflare WAF / Rate Limiting rule on the zone): the first line for read scraping and for
+   `POST /v1/app-attest/challenges`. **Account action** — whether the account plan offers it is not established
+   here; nothing in the repository depends on it.
+2. **Privacy-preserving Worker bucket** (challenges only, `src/attest/challenge-budget.ts`): a Workers Rate
+   Limiting binding `CHALLENGE_RATE_LIMITER` (Wrangler `ratelimits`, `simple` limit per 10 or 60 s) keyed by
+   HMAC-SHA-256(`RATE_LIMIT_KEY_PEPPER`, context + `CF-Connecting-IP`). The address is used only as HMAC input
+   inside the request; neither it nor the digest is written to D1, R2, logs or a response. Runs before the body is
+   read and before D1. Both settings or neither: with only one, a pepper under 32 characters, or a pepper equal to
+   `REPORT_SUBMITTER_PEPPER`, issuance fails closed (`503 challengeBudgetMisconfigured`). Neither is committed.
+3. **Successful key registration budget**: design only; a future per-deployment cap on new App Attest keys.
+4. **Global emergency ceiling** (unchanged): at most 1000 outstanding registration challenges per deployment and
+   3 report challenges per key, enforced in the single D1 statement that issues one.
+
+Read amplification is bounded by the tile edge cache above, the URL/header byte limits and the coverage probe
+budget; a read Worker bucket is not added.
+
+To enable layer 2 (maintainer, per environment, after a reviewed PR adds the binding to `wrangler.jsonc`):
+
+```sh
+npx wrangler secret put RATE_LIMIT_KEY_PEPPER --env staging   # 32+ random bytes; never REPORT_SUBMITTER_PEPPER's value
+```
+
+`RATE_LIMIT_KEY_PEPPER` is a Cloudflare Secret only: never a `vars` entry, a client (iPhone, Watch, Widget)
+setting, a D1/R2 value, public config or a log line. Rotating it only resets the buckets.
 
 ## Monitoring and logging policy
 

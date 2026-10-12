@@ -109,7 +109,7 @@ class SecurityGuardrails(unittest.TestCase):
         self.assertEqual(scan.secret_types(b'-----BEGIN ' + b'PRIVATE KEY-----'), ["private-key"])
         self.assertEqual(scan.secret_types(b'ghp_' + b'a' * 36), ["github-token"])
         self.assertEqual(scan.secret_types(b'API_KEY="' + b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFG' + b'"'), ["credential-assignment"])
-        for key in (b'CLOUDFLARE_API_TOKEN', b'AUTH_TOKEN', b'JWT_SECRET', b'REPORT_SUBMITTER_PEPPER'):
+        for key in (b'CLOUDFLARE_API_TOKEN', b'AUTH_TOKEN', b'JWT_SECRET', b'REPORT_SUBMITTER_PEPPER', b'RATE_LIMIT_KEY_PEPPER'):
             self.assertEqual(scan.secret_types(key + b'=' + b'0123456789abcdef'), ["credential-assignment"])
         self.assertFalse(scan.safe_origin("https://user:synthetic-password@example.invalid/"))
         self.assertFalse(scan.safe_origin("https://user:synthetic-password@bad／host"))
