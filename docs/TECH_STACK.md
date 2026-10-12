@@ -43,6 +43,13 @@ Backend tooling and `make api-validate` require Node >=24: segmented promotion v
 | Cache | HTTP cache semantics (`ETag`, `If-None-Match`) + Cloudflare cache where appropriate |
 | Scheduled import | data-pipeline CLI, later scheduled CI/Cron after each source is stable |
 
+## CI tooling
+
+PR validation uses GitHub-hosted macOS 15 and Node 24.21.0, with read-only permissions and
+lifecycle scripts disabled during locked npm installation. Workflow policy parsing uses
+Python 3 and system Ruby/Psych without additional gems. Action SHA pins, Dependabot and
+maintainer account controls are documented in [CI_SUPPLY_CHAIN_SECURITY.md](CI_SUPPLY_CHAIN_SECURITY.md).
+
 ## Why MapKit
 
 MannerPath is iOS/watchOS-first. MapKit gives native SwiftUI integration, Apple-platform POI/destination search, map rendering and walking directions without introducing a separate commercial map SDK into v1.

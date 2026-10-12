@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # actions/setup-node v4.4.0 (major v4)
         with:
-          node-version: "24"
+          node-version: "24.21.0"
       - run: npm ci --ignore-scripts
       # One exhaustive run checks every data resource and its scoped rights notice, then exits 1 for any
       # blocking signal (including unknown outages and rights drift); advisory-only findings stay green.
