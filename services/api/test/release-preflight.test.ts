@@ -51,6 +51,20 @@ test("release preflight: committed placeholders block; real ids print the launch
   assert.equal(run[0], `npx wrangler r2 bucket info ${committed.env.production.r2_buckets[0].bucket_name}            # expect: the provisioned bucket exists; stop if this check fails`);
   assert.ok(ok.launch.join("\n").includes(p.expectedDigest), "the reviewed digest is checked against the target");
   assert.ok(ok.rollback.some((l) => /wrangler rollback --env production/.test(l)));
+  // A Worker rollback can restore older secrets: the guidance prefers forward recovery, warns before the fallback
+  // rollback, and lists the post-rollback security checks (docs/SECRETS_AND_ROTATION.md).
+  const lineAt = (re: RegExp) => ok.rollback.findIndex((l) => re.test(l));
+  const rollbackAt = lineAt(/^npx wrangler rollback --env production$/);
+  assert.ok(lineAt(/forward recovery/) >= 0 && lineAt(/forward recovery/) < rollbackAt, "forward recovery comes first");
+  assert.ok(lineAt(/^npx wrangler deploy --env production$/) < rollbackAt);
+  const warning = ok.rollback.slice(0, rollbackAt).join("\n");
+  for (const re of [/may restore secret values from the target version/, /secret rotation/, /App Attest intake kill switch/,
+    /Never approve a secret-change confirmation/, /no --message, no force/, /prefer the forward recovery/]) assert.match(warning, re);
+  const after = ok.rollback.slice(rollbackAt + 1).join("\n");
+  for (const re of [/re-apply every required wrangler secret put \/ secret delete/, /wrangler secret list --env production/,
+    /\/v1\/config/, /reports\.available/, /\/v1\/app-attest\/challenges/, /\/v1\/app-attest\/keys/, /\/v1\/reports/,
+    /attestationUnavailable/]) assert.match(after, re);
+  assert.equal(ok.rollback.some((l) => /--message|--force/.test(l) && /^npx /.test(l)), false, "no command skips the confirmation");
 });
 
 test("release preflight: unsafe config, bad ids or an unreviewed plan block the launch", async (t) => {
