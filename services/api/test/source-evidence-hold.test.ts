@@ -21,7 +21,7 @@ import { buildReport, type HealthReport } from "../src/source-health/evaluate.ts
 import { extractRightsScope, rightsFingerprint } from "../src/source-health/rights.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { productionHealthTargets, sourceReviews } from "../scripts/source-health.ts";
+import { repositoryReviewedHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { run as sourceHoldCli } from "../scripts/source-hold.ts";
 import { importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
@@ -48,7 +48,7 @@ async function komatsu(db = new SqliteD1()) {
 // A health report for the Komatsu page, as the maintainer would save it from `source:health --live`.
 const LISTED = `<html><body><img alt=""> 喫煙場所はどこですか。 国際線２F出発ロビーに1ヶ所、屋外にも1ヶ所（バス乗り場付近） 関連リンク</body></html>`;
 async function report(body: string, status = 200, offline = false): Promise<HealthReport> {
-  const target = productionHealthTargets().find((t) => t.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID)!;
+  const target = repositoryReviewedHealthTargets().find((t) => t.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID)!;
   const scoped = extractRightsScope(LISTED, target.pageFact!.scope);
   assert.ok(scoped.ok);
   const reviewed = { ...target, pageFact: { ...target.pageFact!, reviewedFingerprint: await rightsFingerprint(scoped.text) } };

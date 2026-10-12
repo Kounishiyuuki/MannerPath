@@ -18,7 +18,7 @@ import { extractRightsScope, rightsFingerprint } from "../src/source-health/righ
 import { TileBodyV1, type TileSpotV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { analyzeCorpus } from "../src/quality/analyze.ts";
-import { productionHealthTargets } from "../scripts/source-health.ts";
+import { repositoryReviewedHealthTargets } from "../scripts/source-health.ts";
 import { areaPipeline } from "./support/area.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -134,7 +134,7 @@ test("rights: factReference is typed, recorded and validated; prohibited or lice
 });
 
 test("current operation (D-C): the page's scoped fact text is re-checked; change or loss needs re-review", async () => {
-  const target = productionHealthTargets().find((t) => t.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID)!;
+  const target = repositoryReviewedHealthTargets().find((t) => t.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID)!;
   assert.ok(target.pageFact);
   assert.deepEqual(target.mimeTypes, ["text/html"]);
   const html = (answer: string) => `<html><body><img alt=""> 喫煙場所はどこですか。 ${answer} 関連リンク</body></html>`;

@@ -376,8 +376,7 @@ test("acquisition metrics: tiers apart, 47 prefectures, seed stations official-o
   const osaka = pending.prefectureCoverage.prefectures.find((p) => p.code === "27")!;
   const kyoto = pending.prefectureCoverage.prefectures.find((p) => p.code === "26")!;
   assert.ok(tokyo.official > 0 && osaka.official > 0 && kyoto.official > 0);
-  // Tokyo, Osaka, Kyoto and Ishikawa (komatsu-airport-smoking-places, operator evidence, ADR-0018).
-  assert.equal(pending.prefectureCoverage.prefecturesWithOfficialSpots, 4);
+  assert.equal(pending.prefectureCoverage.prefecturesWithOfficialSpots, 3);
   assert.equal(pending.prefectureCoverage.unassigned, 0);
   assert.ok(pending.seedStationCoverage.officialOnly.covered <= pending.seedStationCoverage.allVisible.covered);
   assert.equal(pending.confirmations, null, "a canonical-only analysis reads no report store (ADR-0014)");

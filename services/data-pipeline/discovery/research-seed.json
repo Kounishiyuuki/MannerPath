@@ -1362,6 +1362,20 @@
       "sha256": "55968506e9e271a197f70a7d8a6ec6e32ddd998840da24c1a31debf6c7463f3f",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-11T00:00:00Z"
+    },
+    {
+      "targetId": "city-sendai",
+      "reference": "services/data-pipeline/fixtures/sendai-kaigan-park-smoking-areas/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "sendai-kaigan-park-smoking-areas",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.sendai.jp/joho-kikaku/shise/security/kokai/documents/041009_public_facility.csv"
+      ],
+      "sha256": "c6bf5395eed995773e3b74b6d3ba6ea3868940f45a6293b8d37330f2bdd72c8b",
+      "reviewedHashScope": "rawResponseBytes",
+      "lastModified": "Wed, 13 May 2026 06:00:09 GMT",
+      "fetchedAt": "2026-10-10T16:37:01Z"
     }
   ],
   "researchReferences": [

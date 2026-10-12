@@ -112,7 +112,7 @@ for t in targets:
  if any('bodik.jp' in c['url'] for c in t['catalogs']):
   t['priorResearch'].append({'reference':'Issue #118','status':'blocked','blockerCodes':['accessBlocked'],'rawUrls':[]})
 # Approved registry fixtures are historical implemented evidence, never automatic approval.
-reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designated-smoking-areas','ward-koto':'koto-station-smoking-areas','city-musashino':'musashino-public-smoking-areas','ward-minato':'minato-designated-smoking-areas','city-kyoto':'kyoto-public-smoking-places','operator-komatsu-airport':'komatsu-airport-smoking-places'}
+reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designated-smoking-areas','ward-koto':'koto-station-smoking-areas','city-musashino':'musashino-public-smoking-areas','ward-minato':'minato-designated-smoking-areas','city-kyoto':'kyoto-public-smoking-places','city-sendai':'sendai-kaigan-park-smoking-areas','operator-komatsu-airport':'komatsu-airport-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:
@@ -145,7 +145,7 @@ manifest={'version':1,'generatedBy':'generate-manifest.py','scope':'local-only d
 seed={'version':1,'note':'Imported prior raw inspections only; hashes do not replace raw bytes or grant reuse rights. URL skip applies to inspected unchanged releases only.','resources':seeds,'reviewedResources':reviewed_resources,'researchReferences':manifest['researchReferences']}
 # Jurisdiction boundaries prevent 津市 inheriting 大津市/草津市 or 港 inheriting 港区.
 assert not any('大津市' in p.get('evidence','') or '草津市' in p.get('evidence','') for t in targets if t['id']=='city-tsu' for p in t['priorResearch'])
-assert len(reviewed_resources)==7
+assert len(reviewed_resources)==8
 assert all(r['rawUrls'] and len(r['sha256'])==64 for r in reviewed_resources)
 assert len({t['id'] for t in targets})==len(targets)
 assert sum('prefecturalCapital' in t['roles'] for t in targets)==47

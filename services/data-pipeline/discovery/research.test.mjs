@@ -29,7 +29,7 @@ test('nationwide manifest tracks all required jurisdiction roles without duplica
   for (const target of targets) for (const url of target.rawResources.map(r => r.url)) assert.ok(['http:', 'https:'].includes(new URL(url).protocol));
 });
 test('reviewed source seeds and required historical decisions survive manifest generation', () => {
-  assert.deepEqual(manifest.targets.filter(t => t.seedStatus === 'implemented').map(t => t.name).sort(), ['台東区', '大阪市', '江東区', '武蔵野市', '港区', '京都市', '小松空港'].sort());
+  assert.deepEqual(manifest.targets.filter(t => t.seedStatus === 'implemented').map(t => t.name).sort(), ['台東区', '大阪市', '江東区', '武蔵野市', '港区', '京都市', '仙台市', '小松空港'].sort());
   for (const reference of ['PR #106', 'PR #112', 'PR #115', 'PR #119', 'PR #121', 'PR #125', 'PR #129', 'Issue #118', 'PR #122', 'docs/SOURCES.md']) assert.ok(manifest.researchReferences.includes(reference), reference);
   assert.ok(manifest.targets.some(t => t.priorResearch.some(p => p.reference.startsWith('docs/research/'))));
 });

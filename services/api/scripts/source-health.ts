@@ -23,6 +23,10 @@ const resources: Record<string, { filename: string; url: string }> = {
   "musashino-public-smoking-areas": { filename: "doc.kml", url: MUSASHINO_DATA_URL },
   "minato-designated-smoking-areas": { filename: "minatokushisetsujoho_fukugo.csv", url: MINATO_DATA_URL },
   "kyoto-public-smoking-places": { filename: "20260903_shisetsu.csv", url: KYOTO_DATA_URL },
+};
+// Reviewed in the repository but not deployed to production (ADR-0018 D-C page re-check). Kept out of the production
+// inventory above, which only a deployment expands; monitored only with --repository-reviewed.
+const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
   "komatsu-airport-smoking-places": { filename: "komatsu-airport-page-facts.csv", url: KOMATSU_AIRPORT_PAGE_URL },
 };
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
@@ -68,7 +72,14 @@ export function archiveMember(bytes: Uint8Array, suffix: string): Uint8Array {
 }
 export function productionHealthTargets(): HealthTarget[] {
   // Production monitoring has an explicit inventory; repository onboarding alone never expands it.
-  return Object.entries(resources).map(([sourceId, resource]) => {
+  return healthTargets(resources);
+}
+/** The deployed inventory plus sources reviewed in the repository but not yet deployed. */
+export function repositoryReviewedHealthTargets(): HealthTarget[] {
+  return healthTargets({ ...resources, ...repositoryReviewedResources });
+}
+function healthTargets(inventory: Record<string, { filename: string; url: string }>): HealthTarget[] {
+  return Object.entries(inventory).map(([sourceId, resource]) => {
     const adapter = SOURCE_ADAPTERS.find(candidate => candidate.registry.sourceId === sourceId);
     if (!adapter) throw new Error(`Production health inventory needs reviewed adapter: ${sourceId}`);
     const directory = new URL(`${adapter.registry.sourceId}/`, root);
@@ -109,7 +120,7 @@ function offlineFetch(targets: HealthTarget[]): (url: string) => Promise<Respons
   return async url => {
     const target = targets.find(t => t.url === url);
     if (!target) throw new Error("offline mode refuses network access");
-    const resource = resources[target.adapter.registry.sourceId];
+    const resource = { ...resources, ...repositoryReviewedResources }[target.adapter.registry.sourceId];
     const file = target.baselineResourceSha256 ? "toilet.zip" : resource.filename;
     const bytes = readFileSync(new URL(`${target.adapter.registry.sourceId}/${file}`, root));
     return new Response(bytes, { status: 200, headers: { "content-type": target.mimeTypes[0] } });
@@ -127,14 +138,15 @@ async function offlinePageFact(target: HealthTarget) {
 const STDIO = { out: (text: string) => void process.stdout.write(text), err: (text: string) => void process.stderr.write(text) };
 export async function main(args: string[] = process.argv.slice(2), now = new Date(), io = STDIO) {
   const mode = args.filter(arg => arg === "--live" || arg === "--offline");
-  if (args.some(arg => arg !== "--live" && arg !== "--offline" && !arg.startsWith("--source=")) || mode.length !== 1)
-    throw new Error("Usage: npm run source:health -- (--live | --offline) [--source=source-id]");
+  if (args.some(arg => arg !== "--live" && arg !== "--offline" && arg !== "--repository-reviewed" && !arg.startsWith("--source=")) || mode.length !== 1)
+    throw new Error("Usage: npm run source:health -- (--live | --offline) [--repository-reviewed] [--source=source-id]");
   const live = mode[0] === "--live";
   const ids = args.filter(arg => arg.startsWith("--source=")).map(arg => arg.slice(9));
-  const targets = productionHealthTargets();
+  const targets = args.includes("--repository-reviewed") ? repositoryReviewedHealthTargets() : productionHealthTargets();
   if (ids.some(id => !targets.some(t => t.adapter.registry.sourceId === id))) throw new Error("Unknown reviewed source id");
   const reviews = sourceReviews();
-  validateReviews(reviews, targets.map(t => t.adapter.registry.sourceId));
+  // The metadata covers every health-configured source, deployed or repository-reviewed, exactly once.
+  validateReviews(reviews, repositoryReviewedHealthTargets().map(t => t.adapter.registry.sourceId));
   // Sequential and exhaustive: every source (data and rights pages) is checked and reported even when
   // another fails; the exit code is decided only afterwards.
   const results = [];

@@ -6,7 +6,7 @@ import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth, type HealthResult } from "../src/source-health/check.ts";
 import { buildReport, evaluateResult, validateReviews, type SourceReview } from "../src/source-health/evaluate.ts";
 import { checkRights, extractRightsScope, rightsFingerprint, withRights, type RightsContract } from "../src/source-health/rights.ts";
-import { liveTransport, main, productionHealthTargets, sourceReviews } from "../scripts/source-health.ts";
+import { liveTransport, main, productionHealthTargets, repositoryReviewedHealthTargets, sourceReviews } from "../scripts/source-health.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { importProductionBaselineSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -14,7 +14,8 @@ import { v1TileRows } from "./support/tiles.ts";
 
 const TODAY = "2026-10-09";
 const targets = productionHealthTargets();
-const ids = targets.map(t => t.adapter.registry.sourceId);
+// Review metadata covers every health-configured source, deployed or repository-reviewed (Komatsu).
+const ids = repositoryReviewedHealthTargets().map(t => t.adapter.registry.sourceId);
 const byId = (id: string) => targets.find(t => t.adapter.registry.sourceId === id)!;
 const reviews = sourceReviews();
 const reviewOf = (id: string) => reviews.find(r => r.sourceId === id)!;
@@ -31,10 +32,10 @@ const allSources = async (fetch: () => Promise<Response>) => {
 
 // ---- Availability: unknown failures block; only explicit expiring advisories downgrade.
 
-test("all seven sources 503, connection refused or DNS failure exit 1", async () => {
+test("all six sources 503, connection refused or DNS failure exit 1", async () => {
   for (const fetch of [async () => csv(503), failing("ECONNREFUSED"), failing("ENOTFOUND")]) {
     const report = buildReport(await allSources(fetch), reviews, TODAY);
-    assert.equal(report.exitCode, 1); assert.equal(report.summary.blocking.length, 7, "Osaka's timeout advisory covers no other failure");
+    assert.equal(report.exitCode, 1); assert.equal(report.summary.blocking.length, 6, "Osaka's timeout advisory covers no other failure");
   }
 });
 test("unknown ENOTFOUND / ECONNREFUSED are blocking", async () => {
@@ -227,10 +228,10 @@ test("production rights contracts: one+ scoped contract per source, never a whol
 
 // ---- Offline CLI, no automatic baseline update, corpus invariance.
 
-async function runOffline(): Promise<{ exitCode: number; report: ReturnType<typeof buildReport> }> {
+async function runOffline(extra: string[] = []): Promise<{ exitCode: number; report: ReturnType<typeof buildReport> }> {
   const network = globalThis.fetch, out: string[] = [];
   globalThis.fetch = async () => { throw new Error("offline monitor attempted network"); };
-  try { await main(["--offline"], new Date("2026-10-09T00:00:00Z"), { out: text => void out.push(text), err: () => {} }); }
+  try { await main(["--offline", ...extra], new Date("2026-10-09T00:00:00Z"), { out: text => void out.push(text), err: () => {} }); }
   finally { globalThis.fetch = network; }
   const exitCode = Number(process.exitCode ?? 0); process.exitCode = 0;
   return { exitCode, report: JSON.parse(out.join("")) };
@@ -239,8 +240,11 @@ test("offline monitor replays reviewed fixtures with no network and never writes
   const metadata = new URL("../../data-pipeline/source-health/review-metadata.json", import.meta.url);
   const before = readFileSync(metadata);
   const first = await runOffline(), second = await runOffline();
-  assert.equal(first.exitCode, 0); assert.equal(first.report.results.length, 7);
-  for (const item of first.report.results) {
+  assert.equal(first.exitCode, 0); assert.equal(first.report.results.length, 6, "the deployed production inventory");
+  // Repository-reviewed, undeployed sources are monitored only on request: Komatsu's page-fact (ADR-0018 D-C).
+  const reviewed = await runOffline(["--repository-reviewed"]);
+  assert.equal(reviewed.exitCode, 0); assert.equal(reviewed.report.results.length, 7);
+  for (const item of [...first.report.results, ...reviewed.report.results]) {
     assert.equal(item.status, "healthy", item.sourceId);
     // ADR-0018: offline, a page-fact source's page is not fetched; that is said, not passed off as checked.
     assert.equal(item.advisory.includes("pageFactNotChecked"), item.sourceId === "komatsu-airport-smoking-places", item.sourceId);
@@ -265,16 +269,21 @@ test("health and rights checks leave registry, canonical spots, promotion and ti
     tiles: v1TileRows(db),
   });
   const before = snapshot();
-  assert.equal(before.sources.length, 7); assert.equal(before.spots.length, 516); assert.equal(before.published.length, 514); assert.equal(before.tiles.length, 82);
+  assert.equal(before.sources.length, 6); assert.equal(before.spots.length, 515); assert.equal(before.published.length, 513); assert.equal(before.tiles.length, 81);
   await runOffline();
+  await runOffline(["--repository-reviewed"]);
   await buildReport(await allSources(async () => csv(503)), reviews, TODAY);
   assert.deepEqual(snapshot(), before);
 });
 
 
-test("repository Sendai onboarding does not expand the six-source production health inventory", () => {
+test("repository Sendai and Komatsu onboarding do not expand the six-source production health inventory", () => {
   const ids = productionHealthTargets().map(target => target.adapter.registry.sourceId).sort();
   assert.deepEqual(ids, ["taito-public-smoking-areas", "osaka-designated-smoking-areas", "koto-station-smoking-areas",
     "musashino-public-smoking-areas", "minato-designated-smoking-areas", "kyoto-public-smoking-places"].sort());
   assert.equal(ids.includes("sendai-kaigan-park-smoking-areas"), false);
+  assert.equal(ids.includes("komatsu-airport-smoking-places"), false);
+  // Komatsu's page-fact health is configured but repository-only until a deployment adds it.
+  assert.deepEqual(repositoryReviewedHealthTargets().map(target => target.adapter.registry.sourceId).sort(),
+    [...ids, "komatsu-airport-smoking-places"].sort());
 });

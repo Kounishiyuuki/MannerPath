@@ -137,7 +137,9 @@ hold below (migration 0033).
   onboarding inspection and source health accept factReference instead of a licence; nothing else changes.
 - **Current operation (D-C).** Source health fetches the page and fingerprints only a scoped fact range (the rights
   scope mechanism): unchanged → healthy; changed → `contentChanged` advisory (re-review); scope missing → blocking.
-  Offline replay says `pageFactNotChecked`. Health never edits data.
+  Offline replay says `pageFactNotChecked`. Health never edits data. Until a source is deployed it stays out of
+  the production health inventory (as Sendai does); its page is checked with `npm run source:health -- (--live |
+  --offline) --repository-reviewed`, and review metadata still lists it exactly once.
 - **Evidence hold (migration 0033, maintainer decision 2026-10-12).** A live report showing the fact range gone
   (`pageFactScopeMissing`) or the page gone (`resourceMissing`) lets a maintainer run `npm run source:hold -- hold`,
   which records an append-only `spot_evidence_holds` row per spot (reason `sourceEvidenceMissing`, report SHA-256 and

@@ -395,8 +395,8 @@ test("19: every reviewed source's real pipeline: candidates change nothing, v3 b
   await publishTiles(db, { now: NOW });
   // All eight repository-reviewed sources, including the Sendai park area anchor (ADR-0017) and the Komatsu facility anchor
   // (ADR-0018); two Taito rows stay unpublished.
-  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 516);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 514);
+  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 517);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 515);
   const bundleBefore = await buildMultiSourcePromotionBundle(db);
   const before = canonical(db);
   await generateCrossSourceCandidates(db, { now: NOW });
