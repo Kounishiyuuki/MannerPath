@@ -623,6 +623,42 @@ Reachable only where `reports.attestation` is `"appAttest"`; elsewhere every end
 The App Attest key ID and the report `installId` are different identifiers and are never derived
 from each other.
 
+### Registration abuse controls
+
+New registration is paused when `REPORT_REGISTRATION` is unset or exactly `paused`.
+`enabled` requires explicit positive safe-integer `REPORT_REGISTRATION_MAX_PER_HOUR` and
+`REPORT_REGISTRATION_MAX_PER_DAY` (day >= hour), plus `CHALLENGE_RATE_LIMITER` and its distinct
+`RATE_LIMIT_KEY_PEPPER`. No production thresholds are supplied by the repository. Any other
+policy or malformed limit fails closed. These are registration-only controls: they do not change
+existing keys' report submission authorization, report counters, or report budgets.
+
+`POST /app-attest/keys` checks pause/configuration and its Worker limiter before reading the body,
+consuming a challenge, or doing certificate verification. A refused limiter attempt can retry a
+still-live challenge; once protocol verification begins, existing one-time consumption applies.
+Both endpoints require a working limiter for registration; report-purpose challenges preserve
+the existing optional-limiter configuration and fail closed if a configured limiter fails.
+
+Successful registration is limited per deployment over rolling `(now - 1 hour, now]` and
+`(now - 24 hours, now]` windows. The check and key INSERT are one SQL statement, so concurrent
+successes cannot overshoot. Only newly inserted, verified keys use slots; failed verification
+and duplicate keys do not. All retained keys count, including keys any future revocation layer
+marks unusable. No IP, IP HMAC, install identifier, or additional user identifier is stored.
+Registration timestamps use existing whole-second server UTC timestamps.
+
+| Registration control | Status | Body |
+|---|---|---|
+| Unset or paused policy | `503` | `registrationPaused` |
+| Invalid policy/limits | `503` | `registrationMisconfigured` |
+| Missing/invalid required limiter configuration | `503` | `challengeBudgetMisconfigured` |
+| Worker bucket rejects | `429` | `challengeRateLimited`; `Retry-After: 60` |
+| Limiter throws or returns malformed result | `503` | `serviceUnavailable` |
+| Verified new key exceeds success budget | `429` | `registrationLimited`; `Retry-After: 3600` |
+
+The success-budget retry hint is not a promise of capacity: a daily cap may remain exhausted.
+Pausing also blocks requests with previously issued registration challenges; resuming permits
+only still-live challenges. The challenge route checks its limiter before parsing the purpose,
+so a configured limiter failure can precede a registration pause response there.
+
 ### POST `/app-attest/challenges`
 
 ```json
@@ -669,7 +705,7 @@ refused for that. The accepted set is deployment configuration and is not publis
 | Schema violation, or a value that is not canonical base64 / 32 bytes | `400` | `invalidKeyRegistration` |
 | Challenge unknown, expired, consumed or not a registration challenge | `403` | `attestationRejected`, `reason: challengeInvalid` |
 | Attestation failed verification | `403` | `attestationRejected`, `reason: attestationInvalid`, `detail` one of `malformed`, `untrustedChain`, `nonceMismatch`, `keyIdMismatch`, `appIdMismatch`, `environmentMismatch`, `counterNotZero`, `validationCategory`, `bundleVersion` |
-| Key already registered | `409` | `keyAlreadyRegistered` — the key is usable as is |
+| Key already registered | `409` | `keyAlreadyRegistered` — use the existing key only if otherwise authorized |
 
 ### App Attest client data
 

@@ -631,12 +631,12 @@ No CDN dashboard rule is introduced; the Worker sets the policy on each response
 ## Read API and challenge abuse budget
 
 Public reads stay unauthenticated: no login, no App Attest and no secret URL is needed to read published data.
-Abuse is bounded in layers, each optional on its own, none storing a raw network identifier:
+Abuse is bounded in layers. New registration requires layers 2 and 3; none stores a raw network identifier in the application database or logs:
 
 1. **Edge IP rule** (Cloudflare WAF / Rate Limiting rule on the zone): the first line for read scraping and for
    `POST /v1/app-attest/challenges`. **Account action** — whether the account plan offers it is not established
    here; nothing in the repository depends on it.
-2. **Privacy-preserving Worker bucket** (challenges only, `src/attest/challenge-budget.ts`): a Workers Rate
+2. **Privacy-preserving Worker bucket** (challenge issuance and key-registration attempts, `src/attest/challenge-budget.ts`): a Workers Rate
    Limiting binding `CHALLENGE_RATE_LIMITER` (Wrangler `ratelimits`, `simple` limit per 10 or 60 s) keyed by
    HMAC-SHA-256(`RATE_LIMIT_KEY_PEPPER`, context + `CF-Connecting-IP`). The address is used only as HMAC input
    inside the request; neither it nor the digest is written to D1, R2, logs or a response. Runs before the body is
@@ -646,7 +646,19 @@ Abuse is bounded in layers, each optional on its own, none storing a raw network
    `limit()` throws or is unavailable) **fails closed too** (`503 serviceUnavailable`, before any D1 access):
    challenge issuance is the entry to report writes, not a read, so it never continues with its control broken.
    Reads are unaffected. Neither the binding nor the pepper is committed.
-3. **Successful key registration budget**: design only; a future per-deployment cap on new App Attest keys.
+3. **Successful key registration budget** (`src/attest/registration-policy.ts`, `src/attest/store.ts`):
+   explicit per-deployment rolling-hour and rolling-24-hour caps on verified, newly inserted keys.
+   The key INSERT and both counts are one atomic SQL statement against REPORTS_DB. Duplicates and
+   invalid attestations do not spend capacity. Counts use existing retained `registered_at` values;
+   no IP/HMAC/user ledger, table, migration or new stable identifier is added. Retained keys remain
+   counted irrespective of future revocation. With whole-second timestamps, the lower bound is
+   exclusive; exact-hour/day boundary rows expire from that window. Server time only.
+   `REPORT_REGISTRATION=paused` (also the unset default) stops new registrations and registration
+   challenges, including pre-issued challenges at registration time. Existing registered keys'
+   report authorization remains separate. No HTTP admin endpoint exists.
+   `enabled` requires `REPORT_REGISTRATION_MAX_PER_HOUR` and `REPORT_REGISTRATION_MAX_PER_DAY`
+   as canonical positive safe integers with day >= hour, plus layer 2. Missing/invalid configuration
+   fails closed. No guessed caps or limiter thresholds are committed for production.
 4. **Global emergency ceiling** (unchanged): at most 1000 outstanding registration challenges per deployment and
    3 report challenges per key, enforced in the single D1 statement that issues one.
 
@@ -661,6 +673,49 @@ npx wrangler secret put RATE_LIMIT_KEY_PEPPER --env staging   # 32+ random UTF-8
 
 `RATE_LIMIT_KEY_PEPPER` is a Cloudflare Secret only: never a `vars` entry, a client (iPhone, Watch, Widget)
 setting, a D1/R2 value, public config or a log line. Rotating it only resets the buckets.
+
+### Registration operations and integration boundary
+
+The committed staging/production configuration keeps `REPORT_REGISTRATION=paused`. It does not
+activate report intake, configure App Attest values, create a secret/binding, or deploy anything.
+Changing registration policy cannot enable reports. Before a future enablement, a maintainer must
+review measured registration demand, shared-network burst behavior, acceptable deployment-wide
+key growth, and limiter capacity; record chosen caps/windows and test in staging. The existing
+1-hour/24-hour abuse windows are used without importing per-submitter report quotas as global
+registration values. `Retry-After: 3600` on success-cap exhaustion is conservative advice, not a
+capacity guarantee. Keep the 300-second challenge TTL: no measured Apple/UX evidence establishes
+that reducing it to 120 seconds is safe here.
+
+The [Workers limiter](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
+is location-local and permissive/eventually consistent; it is burst protection, not accurate global
+accounting. D1's successful-registration INSERT enforces the hard deployment cap independently.
+Distributed attackers can still exhaust shared capacity; pause is containment, not per-human Sybil
+proof. No new identity is introduced to claim otherwise. The existing outstanding-challenge ceiling
+remains a backstop. Consumed/expired challenge cleanup remains the existing retention operation.
+The existing [Apple challenge verification](https://developer.apple.com/documentation/devicecheck/validating-apps-that-connect-to-your-server)
+and bundle/environment/key checks are unchanged.
+
+Pause takes effect for requests reading the new configuration. It cannot cancel a registration
+already admitted by an old Worker/configuration; wait for in-flight requests and verify the result.
+A malformed limiter response, exception, missing binding or invalid pepper denies new registration
+without consuming a challenge or doing certificate verification. At the challenge endpoint, a
+configured limiter refusal is checked before purpose parsing and may precede the pause response.
+Both challenge issuance and key registration spend the same transient Worker bucket, so a successful
+registration normally needs at least two allowed calls; include this in shared-network UX tests.
+Success-cap counts currently scan retained keys; measure this as the key table grows and review a
+separate `registered_at` index migration before substantial registration volume.
+Do not remove or delete registered key rows to revoke a key or to restore registration capacity:
+this would lose identity history and bypass rolling counts. Key revocation is **not implemented on
+this baseline**; full revoked-key behavior must be integrated and tested with the owning lane.
+A retained key/public key always conflicts with a new registration, even after its budget window.
+
+Lane 1 owns `reports/create.ts`, idempotency/receipt/schema v3 migration 0004, and Swift. This lane
+changes only registration helpers plus the App Attest route blocks/imports in `src/app.ts`. For
+integration, land the registration PR or Lane 1 first, then resolve `app.ts` by retaining both
+independent route blocks and test fixtures. Re-run App Attest, registration, report-v3 and full
+validation on the combined tree; do not overwrite either lane's file wholesale. There is no
+migration-number conflict because this lane adds no migration. A rollback to the old Worker drops
+these new registration controls; keep registration unexposed/fail-closed during such rollback.
 
 ## Monitoring and logging policy
 

@@ -81,7 +81,9 @@ test("DB and REPORTS_DB are separate databases with separate migration streams i
 
 function assertCommittedVars(name: string, vars: Record<string, unknown>): void {
   // Never attach env values to an assertion: node:test would print a newly committed secret.
-  assert.equal(JSON.stringify(Object.keys(vars).sort()) === '["REPORT_ATTESTATION"]', true, `${name}: committed vars allowlist`);
+  const allowed = name === "<top level>" ? '["REPORT_ATTESTATION"]' : '["REPORT_ATTESTATION","REPORT_REGISTRATION"]';
+  assert.equal(JSON.stringify(Object.keys(vars).sort()) === allowed, true, `${name}: committed vars allowlist`);
+  if (name !== "<top level>") assert.equal(vars.REPORT_REGISTRATION === "paused", true, `${name}: registration remains paused`);
   assert.equal(vars.REPORT_ATTESTATION === (name === "<top level>" ? "disabled" : "required"), true, `${name}: committed attestation policy`);
 }
 
@@ -133,6 +135,12 @@ test("remote-like environments require App Attest, and fail closed until a maint
   }
   assert.equal((config.env.staging.vars ?? {}).REPORT_ATTESTATION === "required", true);
   assert.equal((config.env.production.vars ?? {}).REPORT_ATTESTATION === "required", true);
+  for (const name of ["staging", "production"]) {
+    const vars = config.env[name].vars ?? {};
+    assert.equal(vars.REPORT_REGISTRATION, "paused", `${name}: registration stays paused`);
+    assert.equal("REPORT_REGISTRATION_MAX_PER_HOUR" in vars, false, `${name}: no guessed global threshold`);
+    assert.equal("REPORT_REGISTRATION_MAX_PER_DAY" in vars, false, `${name}: no guessed global threshold`);
+  }
 
   // Once a maintainer supplies the three deployment values, the same committed vars enforce App Attest.
   const configured = {

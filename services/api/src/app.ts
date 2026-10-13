@@ -51,9 +51,10 @@ import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag }
 import { assembleTileV1, TILE_PART_POLICY } from "./tiles/parts.ts";
 import { promotionReadiness } from "./pipeline/promotion-readiness.ts";
 import { READ_CACHE_CONTROL } from "./edge-cache.ts";
+import { registrationPolicy, type RegistrationBindings } from "./attest/registration-policy.ts";
 import { challengeBudget } from "./attest/challenge-budget.ts";
 
-export interface Env {
+export interface Env extends RegistrationBindings {
   /** The canonical DATA_DB (tiles, spots, provenance, publication). Swapped by blue/green cutover. */
   DB: Db;
   /** The durable report store (reports, moderation, App Attest, anti-abuse). Never swapped by a cutover (ADR-0014). */
@@ -324,6 +325,12 @@ export function createApp(options: AppOptions = {}) {
     const parsed = ChallengeRequestV1.safeParse(body.json);
     if (!parsed.success) return problem(400, "invalidChallengeRequest", validationDetail(parsed.error));
     const request = parsed.data;
+    if (request.purpose === "registration") {
+      const policy = registrationPolicy(env);
+      if (policy.kind === "paused") return problem(503, "registrationPaused", "new key registration is paused");
+      if (policy.kind === "misconfigured") return problem(503, "registrationMisconfigured", "registration controls are not configured");
+      if (budget === "notConfigured") return problem(503, "challengeBudgetMisconfigured", "registration requires challenge rate limiting");
+    }
 
     const now = clock();
     if (request.purpose === "report") {
@@ -346,15 +353,24 @@ export function createApp(options: AppOptions = {}) {
   async function registerKey(req: Request, env: Env, reports: Db): Promise<Response> {
     const attestation = attestationConfig(env);
     if (attestation.kind !== "appAttest") return attestationUnavailable(attestation);
+    const policy = registrationPolicy(env);
+    if (policy.kind === "paused") return problem(503, "registrationPaused", "new key registration is paused");
+    if (policy.kind === "misconfigured") return problem(503, "registrationMisconfigured", "registration controls are not configured");
+    // Protect certificate verification, including attempts with pre-issued challenges.
+    const budget = await challengeBudget(env, req);
+    if (budget === "notConfigured" || budget === "misconfigured") return problem(503, "challengeBudgetMisconfigured", "registration requires challenge rate limiting");
+    if (budget === "limited") return problem(429, "challengeRateLimited", "too many registration requests", { "Retry-After": "60" });
+    if (budget === "unavailable") return problem(503, "serviceUnavailable", "the service is temporarily unavailable");
     const body = await readJson(req, KEY_REGISTRATION_MAX_BYTES, "requestTooLarge");
     if (!body.ok) return body.response;
     const parsed = KeyRegistrationRequestV1.safeParse(body.json);
     if (!parsed.success) return problem(400, "invalidKeyRegistration", validationDetail(parsed.error));
 
     const now = clock();
-    const result = await registerAppAttestKey(context(reports, attestation, now), parsed.data);
+    const result = await registerAppAttestKey(context(reports, attestation, now), parsed.data, policy.budget);
     if (result.ok) return created({ schemaVersion: KEY_REGISTRATION_SCHEMA_VERSION, keyId: parsed.data.keyId, registeredAt: isoSeconds(now) });
     if (result.reason === "malformed") return problem(400, "invalidKeyRegistration", result.detail);
+    if (result.reason === "registrationLimited") return problem(429, "registrationLimited", "new key registration budget exhausted", { "Retry-After": "3600" });
     if (result.reason === "alreadyRegistered") return problem(409, "keyAlreadyRegistered", "this App Attest key is already registered");
     return rejected(result as Rejected);
   }

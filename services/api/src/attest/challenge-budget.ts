@@ -1,7 +1,8 @@
 // Per-client budget for App Attest challenge issuance (docs/OPERATIONS.md "Read API and challenge abuse budget").
-// One layer of four: an edge IP rule (account configuration), this Worker bucket, the successful key registration
-// budget, and the deployment-wide emergency ceiling in issueChallenge. This layer is optional and needs both a
-// Workers Rate Limiting binding and its own secret pepper; with neither, issuance behaves exactly as before.
+// One layer of four: an edge IP rule (account configuration), this Worker bucket (also checked before key registration), the successful key registration
+// budget, and the deployment-wide emergency ceiling in issueChallenge. This layer needs both a
+// Workers Rate Limiting binding and its own secret pepper. It remains optional for report-purpose
+// challenges; enabled new registration requires it at both issuance and key-registration routes.
 //
 // Privacy: the client address is used only as HMAC input inside this request. The bucket key is the HMAC under
 // RATE_LIMIT_KEY_PEPPER, so neither the address nor a reversible form of it reaches D1, a log or a response, and the
@@ -38,7 +39,9 @@ export async function challengeBudget(env: ChallengeBudgetEnv, request: Request)
   // such callers share one bucket rather than going unlimited.
   const key = await rateLimitKey(pepper, request.headers.get("CF-Connecting-IP") ?? "no-client-address");
   try {
-    return (await limiter.limit({ key })).success ? "allowed" : "limited";
+    const result = await limiter.limit({ key });
+    if (typeof result?.success !== "boolean") return "unavailable";
+    return result.success ? "allowed" : "limited";
   } catch {
     // A configured limiter that fails is a broken security control: issuance (the entry to report writes, never a
     // read) stops rather than continuing unchecked. Nothing about the caller, key or binding is surfaced.

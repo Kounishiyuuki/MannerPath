@@ -11,6 +11,7 @@
 
 import { type Db, isoSeconds } from "../db.ts";
 import { base64Encode, fromHex, hex } from "./bytes.ts";
+import type { RegistrationBudget } from "./registration-policy.ts";
 import type { AppAttestEnvironment } from "./verify.ts";
 
 export type ChallengePurpose = "registration" | "report";
@@ -104,19 +105,30 @@ export async function readKey(db: Db, keyId: string): Promise<RegisteredKey | nu
   return { keyId: row.key_id, publicKey: fromHex(row.public_key), environment: row.environment, signCount: row.sign_count };
 }
 
-/** Returns false when the key (or its public key) is already registered. */
+/** Atomic per-deployment rolling-hour/day success budget. No new caller identifier.
+ * Retained keys count irrespective of future revocation; duplicates never spend a slot. */
 export async function registerKey(
   db: Db,
   key: { keyId: string; publicKey: Uint8Array; environment: AppAttestEnvironment },
   now: Date,
-): Promise<boolean> {
+  budget: RegistrationBudget,
+): Promise<"registered" | "alreadyRegistered" | "limited"> {
+  if (!Number.isSafeInteger(budget.hour) || budget.hour < 1 || !Number.isSafeInteger(budget.day) || budget.day < budget.hour) throw new Error("registration budget invalid");
+  const at = isoSeconds(now);
+  const hourStart = isoSeconds(new Date(now.getTime() - 3600 * 1000));
+  const dayStart = isoSeconds(new Date(now.getTime() - 86400 * 1000));
   const row = await db.prepare(
     `INSERT INTO app_attest_keys (key_id, public_key, environment, sign_count, registered_at)
-     VALUES (?, ?, ?, 0, ?)
+     SELECT ?, ?, ?, 0, ?
+       WHERE (SELECT count(*) FROM app_attest_keys WHERE registered_at > ?) < ?
+         AND (SELECT count(*) FROM app_attest_keys WHERE registered_at > ?) < ?
      ON CONFLICT DO NOTHING
      RETURNING key_id`,
-  ).bind(key.keyId, hex(key.publicKey), key.environment, isoSeconds(now)).first();
-  return row !== null;
+  ).bind(key.keyId, hex(key.publicKey), key.environment, at, hourStart, budget.hour, dayStart, budget.day).first();
+  if (row !== null) return "registered";
+  const existing = await db.prepare("SELECT 1 AS present FROM app_attest_keys WHERE key_id = ? OR public_key = ?")
+    .bind(key.keyId, hex(key.publicKey)).first();
+  return existing !== null ? "alreadyRegistered" : "limited";
 }
 
 /**

@@ -1,3 +1,4 @@
+import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
 // The durable community report store (ADR-0014, Issue #67 child). Reports, moderation, App Attest and anti-abuse state
 // live in REPORTS_DB, which no blue/green cutover or rollback touches; the canonical DATA_DB (binding `DB`) is
 // replaceable and sees community evidence only as a reviewed, sanitized, digest-bound artifact.
@@ -53,7 +54,7 @@ const HOST_NAME = "店舗名 DRS-HN-0042";
 const HASHES = ["0123456789abcdef", "fedcba9876543210", "0f1e2d3c4b5a6978", "1111222233334444"].map((h) => h.repeat(4));
 const HERE = { latitude: 35.69001, longitude: 139.70001 };
 const APP_ID = "ABCDE12345.com.example.mannerpath";
-const ATTESTED = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
+const ATTESTED = { ...REGISTRATION_TEST_ENV, REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
 
 async function report(db: SqliteD1, hash: string, body: Record<string, unknown>, opts: { at?: Date; id?: string } = {}) {
   const { reportId } = await createReport(db, { schemaVersion: 1, installId: INSTALL, acceptedTermsVersion: TERMS, ...body } as any, {

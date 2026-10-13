@@ -8,6 +8,7 @@
 //   3. state changes happen only after verification: a key is inserted only when every
 //      attestation check passed, and the counter advance commits in one batch with the report.
 
+import type { RegistrationBudget } from "./registration-policy.ts";
 import { z } from "zod";
 import type { Db } from "../db.ts";
 import { base64Decode } from "./bytes.ts";
@@ -73,7 +74,8 @@ async function consume(ctx: AppAttestContext, challenge: string, purpose: Challe
 export async function registerAppAttestKey(
   ctx: AppAttestContext,
   request: KeyRegistrationRequestV1,
-): Promise<{ ok: true } | { ok: false; reason: "alreadyRegistered" } | Rejected | { ok: false; reason: "malformed"; detail: string }> {
+  budget: RegistrationBudget,
+): Promise<{ ok: true } | { ok: false; reason: "alreadyRegistered" | "registrationLimited" } | Rejected | { ok: false; reason: "malformed"; detail: string }> {
   const keyId = decode32(request.keyId);
   const challenge = decode32(request.challenge);
   const attestationObject = base64Decode(request.attestationObject);
@@ -97,8 +99,8 @@ export async function registerAppAttestKey(
   });
   if (!verdict.ok) return { ok: false, reason: "attestationInvalid", detail: verdict.reason satisfies AttestationFailure };
 
-  const inserted = await registerKey(ctx.db, { keyId: request.keyId, publicKey: verdict.publicKey, environment: ctx.environment }, ctx.now);
-  return inserted ? { ok: true } : { ok: false, reason: "alreadyRegistered" };
+  const inserted = await registerKey(ctx.db, { keyId: request.keyId, publicKey: verdict.publicKey, environment: ctx.environment }, ctx.now, budget);
+  return inserted === "registered" ? { ok: true } : { ok: false, reason: inserted === "limited" ? "registrationLimited" : "alreadyRegistered" };
 }
 
 /**

@@ -17,6 +17,7 @@ const ORIGIN = "https://api.example.invalid";
 const SUBMITTER_PEPPER = "s".repeat(32);
 const PEPPER = "r".repeat(32);
 const ATTEST_ENV = {
+  REPORT_REGISTRATION: "enabled", REPORT_REGISTRATION_MAX_PER_HOUR: "1000", REPORT_REGISTRATION_MAX_PER_DAY: "10000",
   REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath", REPORT_APP_ATTEST_ENVIRONMENT: "production",
   REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41", REPORT_SUBMITTER_PEPPER: SUBMITTER_PEPPER,
 };
@@ -230,8 +231,8 @@ test("POST /v1/app-attest/challenges applies the bucket before the body and befo
   });
   const count = (db: SqliteD1) => (db.raw.prepare("SELECT count(*) AS n FROM app_attest_challenges").get() as { n: number }).n;
   const off = post({});
-  assert.equal((await off.res).status, 201, "no binding, no pepper: unchanged behaviour");
-  assert.equal(count(off.reports), 1);
+  assert.equal((await off.res).status, 503, "enabled registration requires a limiter and pepper");
+  assert.equal(count(off.reports), 0);
   const limited = post({ CHALLENGE_RATE_LIMITER: { limit: async () => ({ success: false }) }, RATE_LIMIT_KEY_PEPPER: PEPPER });
   const res = await limited.res;
   assert.deepEqual([res.status, res.headers.get("Retry-After"), res.headers.get("Cache-Control")], [429, "60", "no-store"]);

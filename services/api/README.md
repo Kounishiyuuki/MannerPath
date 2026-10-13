@@ -132,3 +132,11 @@ Deployment settings this repository deliberately does not contain: `REPORT_SUBMI
 (hashed abuse key pepper), `REPORT_APP_ATTEST_APP_ID` (its App ID prefix is usually the Team ID),
 `REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS`, the optional `RATE_LIMIT_KEY_PEPPER` secret and `CHALLENGE_RATE_LIMITER`
 binding (challenge bucket, docs/OPERATIONS.md), and the edge rate-limit rule. No Apple key or pepper value is committed.
+
+### Registration abuse controls (Security Lane 2)
+
+New registrations default to paused independently of existing-key reports. Explicit enablement
+requires reviewed rolling-hour/day success caps and the existing privacy-preserving Worker
+limiter. The success check and key INSERT are atomic; no schema migration or identifier is added.
+Production/staging remain paused and incomplete for report intake. See `docs/API.md` registration
+controls and `docs/OPERATIONS.md` registration operations before any future activation.

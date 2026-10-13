@@ -100,10 +100,22 @@ holds:
 ## Not decided (left to later lanes)
 
 - `GET /v1/coverage/tasks` stays `no-cache` and outside the edge cache.
-- The successful App Attest key-registration budget (layer 3 in `docs/OPERATIONS.md` "Read API and challenge abuse
-  budget") is not implemented; it is left to a later security lane.
+- The successful App Attest key-registration budget was left to a later security lane; the Lane 2 amendment below now implements it without changing read-cache behavior.
 - Enabling the optional challenge bucket (`CHALLENGE_RATE_LIMITER` + `RATE_LIMIT_KEY_PEPPER`) and any edge rule are
   account and deployment actions, not part of this decision. Its failure semantics are fixed here so enabling it is
   safe: a pepper is measured in UTF-8 bytes after trimming (32 minimum, like `REPORT_SUBMITTER_PEPPER`) and must
   differ from the report pepper after the same trimming; a configured limiter that fails makes challenge issuance
   fail closed (`503`), never fail open. That is a write entry point; reads never depend on the limiter.
+
+## Amendment — Security Lane 2 registration abuse controls
+
+New App Attest registration defaults to paused. Explicit `REPORT_REGISTRATION=enabled` requires
+reviewed deployment-wide rolling-hour/day success caps and a configured, working Worker limiter.
+The same limiter protects registration certificate verification before body processing; malformed
+provider results fail closed. Existing keys' report submission and report-purpose challenges do
+not consult the registration pause. Key insertion and success-budget admission are one SQL statement
+using existing registration timestamps; duplicates/failed verification do not spend slots. No new
+identifier, report-schema migration, HTTP administration surface, or production threshold is added.
+The existing 300-second challenge TTL and one-time verification protocol remain unchanged.
+Details and operational limitations: `docs/API.md` registration controls and `docs/OPERATIONS.md`
+registration operations. Read-cache failure policy is unchanged.

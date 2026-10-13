@@ -1,3 +1,4 @@
+import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
 // The App Attest report protocol end to end over HTTP (ADR-0007 §6, docs/API.md): challenges,
 // key registration, request-bound assertions, replay and counter protection, and the guarantee
 // that only a verified assertion can store a report. The device is synthetic
@@ -19,7 +20,7 @@ import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
 type Row = Record<string, any>;
 const APP_ID = "ABCDE12345.com.example.mannerpath";
 const BUNDLE_VERSIONS = "41,42";
-const ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: BUNDLE_VERSIONS, REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
+const ENV = { ...REGISTRATION_TEST_ENV, REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: BUNDLE_VERSIONS, REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
 const INSTALL = "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f";
 const SPOT = "sp_01V64NN31G72E5KJJ5W22W1A1J";
 
@@ -29,7 +30,7 @@ interface Harness {
   db: SqliteD1;
   pki: TestPki;
   clock: { now: Date };
-  post: (path: string, body: unknown, env?: Record<string, string>) => Promise<Response>;
+  post: (path: string, body: unknown, env?: Record<string, unknown>) => Promise<Response>;
 }
 
 async function harness(): Promise<Harness> {
@@ -37,7 +38,7 @@ async function harness(): Promise<Harness> {
   const pki = await testPki();
   const clock = { now: new Date() };
   const app = createApp({ appAttestTrustAnchor: pki.root, now: () => clock.now });
-  const post = (path: string, body: unknown, env: Record<string, string> = ENV) => app.request(
+  const post = (path: string, body: unknown, env: Record<string, unknown> = ENV) => app.request(
     path,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: typeof body === "string" ? body : JSON.stringify(body) },
     { DB: new SqliteD1(), REPORTS_DB: db, ...env } as any,
