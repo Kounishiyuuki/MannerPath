@@ -178,8 +178,9 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 
 **BLOCKED-DEVELOPER-PROGRAM** (membership, signing, devices; exact steps in [APPLE_DISTRIBUTION_READINESS.md](APPLE_DISTRIBUTION_READINESS.md) §4):
 
-- Active membership, agreements, App ID / App Group provisioning, App Attest entitlement environment.
-- Signed archive, upload, processed build, TestFlight; Xcode Privacy Report from the archive.
+- ~~Active membership, App ID / App Group provisioning, App Attest entitlement environment, distribution-signed export~~
+  done 2026-10-13 ([distribution readiness](APPLE_DISTRIBUTION_READINESS.md) §1–§2); agreements in ASC remain owner-checked.
+- Upload, processed build, TestFlight; Xcode Privacy Report from the archive.
 - Export compliance: answer per the archive (§4): uses encryption **Yes** (OS HTTPS/hashing/App Attest);
   proprietary **No**; standard non-OS **No**; exempt **Yes** subject to the archive's linked libraries and territories;
   optional `ITSAppUsesNonExemptEncryption = NO` only after that confirmation.
