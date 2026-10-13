@@ -60,8 +60,9 @@ actor AppAttestReportAuthorizer: ReportAuthorizing {
             guard let keyBytes = Data(base64Encoded: keyId) else { throw ReportAuthorizationError.registrationFailed }
             let challenge: String
             do { challenge = try await server.requestChallenge(.report(keyId: keyId)) }
-            catch ReportAPIError.attestationRejected(let rejection) where rejection.reason == .keyNotRegistered {
-                // The server holds no such key and Apple will not attest this key again.
+            catch ReportAPIError.attestationRejected(let rejection)
+                where rejection.reason == .keyNotRegistered || rejection.reason == .keyRevoked {
+                // The server holds no such key, or the maintainer revoked it; Apple will not attest this key again.
                 try discardKey()
                 guard !keyRecoveryUsed else { throw ReportAuthorizationError.registrationFailed }
                 keyRecoveryUsed = true
@@ -92,7 +93,7 @@ actor AppAttestReportAuthorizer: ReportAuthorizing {
             // The deployment does not accept this build. The key itself verified fine and stays
             // usable after the user updates the app; discarding it would only churn keys.
             return
-        case .keyNotRegistered, .assertionInvalid, .attestationInvalid:
+        case .keyNotRegistered, .keyRevoked, .assertionInvalid, .attestationInvalid:
             // Apple refuses to attest a key twice, so a key the server does not hold or no longer
             // accepts cannot be re-registered: the next explicit submit generates a new one.
             try? discardKey()

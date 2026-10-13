@@ -44,6 +44,7 @@ export type KeyRegistrationRequestV1 = z.infer<typeof KeyRegistrationRequestV1>;
 export type RejectionReason =
   | "challengeInvalid" // unknown, expired, consumed, wrong purpose or key — fetch a new challenge
   | "keyNotRegistered" // the server has no such key — generate and register a new key
+  | "keyRevoked" // the maintainer revoked this key — it never signs again; generate and register a new key
   | "attestationInvalid" // registration failed verification — generate a new key
   | "assertionInvalid" // the assertion failed verification — this key is unusable; register a new one
   | "counterNotIncreasing"; // a newer assertion from this key already won — fetch a new challenge
@@ -119,6 +120,8 @@ export async function verifyReportAssertion(
 
   const key = await readKey(ctx.db, attestation.keyId);
   if (key === null) return { ok: false, reason: "keyNotRegistered", detail: "no registered App Attest key with this keyId" };
+  // Before any signature work and before any receipt is read (app.ts): a revoked key reaches nothing.
+  if (key.revoked) return { ok: false, reason: "keyRevoked", detail: "this App Attest key has been revoked" };
   if (assertion === null) return { ok: false, reason: "assertionInvalid", detail: "malformed" };
   if (key.environment !== ctx.environment) return { ok: false, reason: "assertionInvalid", detail: "environmentMismatch" };
 

@@ -422,6 +422,20 @@ struct AppAttestAuthorizerTests {
         #expect(await device.counts().generated == 1)
     }
 
+    @Test func keyRevokedAtChallengeRecoversWithANewKeyExactlyOnce() async throws {
+        let device = FakeAppAttestDevice()
+        let server = FakeAppAttestServer()
+        let store = MemoryKeyStore(.registered(keyId: FakeAppAttestDevice.keyID(5)))
+        await server.set(reportChallengeError: ReportAPIError.attestationRejected(
+            .init(reason: .keyRevoked, detail: nil)))
+        let authorizer = makeAuthorizer(device: device, server: server, store: store)
+        await #expect(throws: ReportAuthorizationError.registrationFailed) {
+            try await authorizer.authorize(payload: payload)
+        }
+        // A revoked key is never used again; replacement is bounded like keyNotRegistered.
+        #expect(await device.counts().generated == 1)
+    }
+
     @Test func aDeadSecureEnclaveKeyIsReplacedOnceAndNotReattested() async throws {
         let device = FakeAppAttestDevice()
         let server = FakeAppAttestServer()
@@ -528,7 +542,7 @@ struct AppAttestAuthorizerTests {
             await authorizer.handleRejection(.init(reason: reason, detail: nil), keyId: keyId)
             #expect(store.current == .registered(keyId: keyId))
         }
-        for reason in [AttestationRejection.Reason.keyNotRegistered, .assertionInvalid] {
+        for reason in [AttestationRejection.Reason.keyNotRegistered, .keyRevoked, .assertionInvalid] {
             let store = MemoryKeyStore(.registered(keyId: keyId))
             let authorizer = makeAuthorizer(device: FakeAppAttestDevice(), server: FakeAppAttestServer(), store: store)
             await authorizer.handleRejection(.init(reason: reason, detail: "malformed"), keyId: keyId)
