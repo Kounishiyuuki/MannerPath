@@ -176,3 +176,12 @@ test("every environment has its own raw-artifact R2 bucket, and none commits a c
   });
   assert.deepEqual(buckets, ["mannerpath-raw-artifacts", "mannerpath-raw-artifacts-staging", "mannerpath-raw-artifacts-production"]);
 });
+
+// Retention activation is a separate reviewed operational change, never implied by shipping code.
+test("report retention remains off and no maintenance cron is committed", () => {
+  for (const [name, env] of environments) {
+    assert.equal(env.vars?.REPORT_RETENTION === undefined || env.vars?.REPORT_RETENTION === "off", true, `${name}: retention automation is not activated`);
+    assert.equal("REPORT_RETENTION_CRON" in (env.vars ?? {}), false, `${name}: maintenance schedule needs separate review`);
+    assert.deepEqual(env.triggers?.crons, [], `${name}: no activated Cron`);
+  }
+});

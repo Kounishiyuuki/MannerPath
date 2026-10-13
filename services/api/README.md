@@ -140,3 +140,11 @@ requires reviewed rolling-hour/day success caps and the existing privacy-preserv
 limiter. The success check and key INSERT are atomic; no schema migration or identifier is added.
 Production/staging remain paused and incomplete for report intake. See `docs/API.md` registration
 controls and `docs/OPERATIONS.md` registration operations before any future activation.
+
+### Report retention maintenance
+
+`src/scheduled.ts` dispatches source checks separately from gated REPORTS_DB retention maintenance.
+`src/reports/retention-automation.ts` supplies validated, count-only status and one bounded cleanup
+pass. `npm run --silent local:reports:retention -- status|run` is local-only and returns JSON with
+nonzero exit for overdue/failed work. Schedules remain empty and retention defaults off. See the
+retention automation section of `docs/OPERATIONS.md` before any separate activation.

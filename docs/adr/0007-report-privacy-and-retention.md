@@ -490,3 +490,23 @@ debited in a separate statement before the report was written.
 - The iPhone client still speaks schema 2; its change is specified in `docs/API.md` ("iPhone client
   changes required for schemaVersion 3") and lands separately. Until then a schema-3 deployment's
   `/v1/config` keeps reporting off for that build.
+
+## Amendment — bounded retention automation and overdue detection
+
+The 90-day minimization policy and permanent receipt tombstones are unchanged. A separate,
+explicitly configured maintenance trigger can run read-only monitoring or one bounded cleanup
+pass against validated REPORTS_DB. All schedules remain disabled in committed configuration.
+Report redaction and receipt retirement continue to share the existing atomic D1 batch; repeated
+and interrupted runs resume from due rows and cannot recreate minimized reports. A retry overlapping
+cleanup keeps existing schema-v3 semantics (200 before retirement or 410 after it); later retries
+are 410 and no second budget is charged.
+
+Monitoring exposes only fixed outcomes and aggregate remaining counts, never report/key/object
+identifiers, cursors, personal fields, receipt hashes, per-report times or raw errors. Unfinished
+work, receipt inconsistency and unavailable stores produce operational failure signals. Inconsistent
+receipts are not repaired by reconstruction. Pending physical photo cleanup is explicitly failed
+until a reviewed storage adapter exists; photo intake remains disabled. Retention does not revoke
+App Attest keys and does not resolve Issue #242's full-erase decision.
+
+`docs/OPERATIONS.md` specifies separate activation, heartbeat/overdue alerts, query bounds and
+partial-failure recovery. The new code supplies no production cadence and performs no deployment.
