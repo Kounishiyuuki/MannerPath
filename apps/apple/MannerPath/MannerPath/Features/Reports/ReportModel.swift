@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Observation
 
 nonisolated enum ReportSubmissionState: Equatable, Sendable {
@@ -13,6 +14,9 @@ nonisolated enum ReportSubmissionState: Equatable, Sendable {
     case rejected(String)
     case rateLimited(Int?)
     case ambiguous
+    case idempotencyConflict
+    case idempotencyRetired
+    case attestationOwnerChanged
     case failed(String)
 }
 
@@ -48,7 +52,19 @@ final class ReportModel {
     private(set) var draft: ReportDraft?
     private(set) var submission: ReportSubmissionState = .idle
     private(set) var cleanupError: String?
-    var canRetryAmbiguous: Bool { submission == .ambiguous && !recoveredSubmissionAttempt }
+    var usesIdempotentRetry: Bool { draft?.pendingSubmission?.schemaVersion == 3 }
+    var canEditDraft: Bool { !isBusy && draft?.pendingSubmission == nil && !recoveredSubmissionAttempt }
+    var isTerminalReceipt: Bool {
+        submission == .idempotencyConflict || submission == .idempotencyRetired || submission == .attestationOwnerChanged
+    }
+    var canRetryAmbiguous: Bool {
+        guard submission == .ambiguous, !recoveredSubmissionAttempt else { return false }
+        if usesIdempotentRetry {
+            guard case .available(let limits) = availability else { return false }
+            return limits.submissionProtocol == .appAttestV3
+        }
+        return true
+    }
     /// A submission is in progress: preparing authorization counts, the draft must not change.
     var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission || photos.busy }
 
@@ -84,11 +100,19 @@ final class ReportModel {
                     try store.clearAcceptedCleanupMarker()
                     recoveredSubmissionAttempt = false
                 } else {
-                    submission = .ambiguous
+                    if let saved = draft, Self.validPendingSubmission(saved), saved.pendingSubmission?.ownerKeyHash != nil {
+                        recoveredSubmissionAttempt = false
+                        submission = Self.recoveredState(saved)
+                    } else {
+                        submission = .ambiguous
+                    }
                 }
             case nil:
                 if var saved = try store.load() {
-                    if let pin = saved.proposedLocation, pin != pin.quantized {
+                    if saved.pendingSubmission != nil {
+                        guard Self.validPendingSubmission(saved) else { throw CocoaError(.fileReadCorruptFile) }
+                        submission = Self.recoveredState(saved)
+                    } else if let pin = saved.proposedLocation, pin != pin.quantized {
                         saved.proposedLocation = pin.quantized
                         try store.save(saved)
                     }
@@ -106,7 +130,7 @@ final class ReportModel {
     func refreshAvailability() async {
         do {
             let fetched = try await configClient.fetchAvailability()
-            if case .available(let limits) = fetched, limits.submissionProtocol == .appAttest {
+            if case .available(let limits) = fetched, limits.submissionProtocol.isAttested {
                 guard let authorizer, attestedClient != nil, await authorizer.isSupported() else {
                     availability = .attestationUnsupported
                     return
@@ -151,14 +175,14 @@ final class ReportModel {
     /// "Is it one of these?": the user picked an existing nearby place instead of adding a new one. The new-spot draft
     /// becomes a still-here confirmation of that place; consent stays as given, the pin and claim are dropped.
     func confirmExistingInstead(spotId: String, subjectName: String?) {
-        guard var current = draft, current.type == .missing else { return }
+        guard canEditDraft, var current = draft, current.type == .missing else { return }
         current = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName,
                               acceptedTermsVersion: current.acceptedTermsVersion)
         saveDraft(current)
     }
 
     func saveDraft(_ updated: ReportDraft) {
-        guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy else { return }
+        guard !acceptedCleanupPending, canEditDraft else { return }
         var updated = updated
         updated.proposedLocation = updated.proposedLocation?.quantized
         do {
@@ -173,7 +197,7 @@ final class ReportModel {
     /// Records (or withdraws) the user's explicit agreement to the terms version this deployment shows. Only the
     /// current version can be agreed to; there is no consent without an available deployment that names one.
     func setTermsAccepted(_ accepted: Bool) {
-        guard case .available(let limits) = availability, let version = limits.termsVersion, var edited = draft else { return }
+        guard canEditDraft, case .available(let limits) = availability, let version = limits.termsVersion, var edited = draft else { return }
         edited.acceptedTermsVersion = accepted ? version : nil
         saveDraft(edited)
         consent?.remember(accepted ? version : nil)
@@ -193,13 +217,34 @@ final class ReportModel {
 
     func submit() async {
         guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy,
-              submission != .ambiguous,
+              submission != .ambiguous, !isTerminalReceipt,
               (retryAfterSecondsRemaining ?? 0) == 0,
-              case .available(let limits) = availability, let draft else { return }
+              case .available(let limits) = availability, var draft else { return }
         // One encoding, one immutable payload: these exact bytes are both hashed into the
         // assertion and base64-encoded into the envelope.
         let payload: Data
-        do { payload = try ReportRequest.encoded(draft: draft, installId: installIDs.installID(), limits: limits) }
+        do {
+            if let pending = draft.pendingSubmission {
+                guard limits.submissionProtocol == .appAttestV3, Self.validPendingSubmission(draft),
+                      pending.payload.count <= limits.maxBodyBytes else {
+                    submission = .failed(String(localized: "Saved report could not be read safely."))
+                    return
+                }
+                payload = pending.payload
+            } else {
+                if limits.submissionProtocol == .appAttestV3, draft.idempotencyKey == nil {
+                    draft.idempotencyKey = ReportIdempotencyKey.generate()
+                }
+                payload = try ReportRequest.encoded(draft: draft, installId: installIDs.installID(), limits: limits)
+                if limits.submissionProtocol == .appAttestV3 {
+                    draft.pendingSubmission = ReportPendingSubmission(schemaVersion: 3, payload: payload)
+                    // Persist one protected atomic draft before authorization or POST. A restart uses the same
+                    // payload/key, but never persists or reuses a challenge or assertion.
+                    try store.save(draft)
+                    self.draft = draft
+                }
+            }
+        }
         catch let error as ReportValidationError {
             submission = .failed(Self.validationMessage(error))
             return
@@ -210,7 +255,7 @@ final class ReportModel {
 
         var body = payload
         var authorizedKeyID: String?
-        if limits.submissionProtocol == .appAttest {
+        if limits.submissionProtocol.isAttested {
             guard let authorizer, attestedClient != nil else {
                 availability = .attestationUnsupported
                 return
@@ -226,7 +271,29 @@ final class ReportModel {
                 return
             }
             authorizedKeyID = authorization.keyId
-            do { body = try AttestedReportEnvelope.encoded(payload: payload, authorization: authorization) }
+            if limits.submissionProtocol == .appAttestV3 {
+                guard let owner = Self.ownerFingerprint(authorization.keyId) else {
+                    submission = .authorizationFailed(String(localized: "This report could not be secured. Try again later."))
+                    return
+                }
+                if let previous = draft.pendingSubmission?.ownerKeyHash, previous != owner {
+                    recordTerminalReceipt("attestationOwnerChanged", state: .attestationOwnerChanged)
+                    return
+                }
+                if draft.pendingSubmission?.ownerKeyHash == nil {
+                    draft.pendingSubmission?.ownerKeyHash = owner
+                    do {
+                        // Bind ownership atomically before recording an attempt or sending any report.
+                        try store.save(draft)
+                        self.draft = draft
+                    } catch {
+                        submission = .failed(String(localized: "Report could not be safely prepared on this device."))
+                        return
+                    }
+                }
+            }
+            do { body = try AttestedReportEnvelope.encoded(payload: payload, authorization: authorization,
+                                                         schemaVersion: limits.submissionProtocol.schemaVersion) }
             catch {
                 submission = .authorizationFailed(String(localized: "This report could not be secured. Try again later."))
                 return
@@ -244,7 +311,7 @@ final class ReportModel {
         }
         submission = .submitting
         do {
-            let accepted = limits.submissionProtocol == .appAttest
+            let accepted = limits.submissionProtocol.isAttested
                 ? try await attestedClient!.submitAttested(body)
                 : try await reportClient.submit(body)
             self.draft = nil
@@ -256,6 +323,17 @@ final class ReportModel {
             await photos.attach(to: accepted.reportId, acceptedTermsVersion: draft.acceptedTermsVersion)
         } catch let error as ReportAPIError {
             switch error {
+            case .idempotencyConflict:
+                recordTerminalReceipt("idempotencyConflict", state: .idempotencyConflict)
+            case .idempotencyRetired:
+                // Final v3 contract: an owned retired receipt is already handled. Drop this draft/key;
+                // do not manufacture a fresh key or repeat the report to recover expired content.
+                submission = .idempotencyRetired
+                self.draft = nil
+                acceptedCleanupPending = true
+                do { try store.markAcceptedForCleanup() }
+                catch { cleanupError = String(localized: "The expired submission's saved draft could not be removed.") }
+                retryAcceptedCleanup()
             case .rejected(let status, let code):
                 guard clearDefiniteAttempt() else { return }
                 if status == 503 && code == "attestationUnavailable" { availability = .unavailable }
@@ -304,6 +382,47 @@ final class ReportModel {
         }
     }
 
+    private func recordTerminalReceipt(_ code: String, state: ReportSubmissionState) {
+        guard var saved = draft, saved.pendingSubmission != nil else {
+            submission = .ambiguous
+            return
+        }
+        saved.pendingSubmission?.terminalFailure = code
+        do {
+            try store.save(saved)
+            draft = saved
+            submission = state
+        } catch {
+            submission = .ambiguous
+        }
+    }
+
+    private static func recoveredState(_ draft: ReportDraft) -> ReportSubmissionState {
+        switch draft.pendingSubmission?.terminalFailure {
+        case "idempotencyConflict": .idempotencyConflict
+        case "idempotencyRetired": .idempotencyRetired
+        case "attestationOwnerChanged": .attestationOwnerChanged
+        default: .ambiguous
+        }
+    }
+
+    private static func validPendingSubmission(_ draft: ReportDraft) -> Bool {
+        guard let pending = draft.pendingSubmission, pending.schemaVersion == 3,
+              pending.terminalFailure == nil || ["idempotencyConflict", "idempotencyRetired", "attestationOwnerChanged"].contains(pending.terminalFailure!),
+              pending.ownerKeyHash == nil || ReportIdempotencyKey.isValid(pending.ownerKeyHash),
+              let key = draft.idempotencyKey, ReportIdempotencyKey.isValid(key),
+              let object = try? JSONSerialization.jsonObject(with: pending.payload) as? [String: Any],
+              object["schemaVersion"] as? Int == 3, object["idempotencyKey"] as? String == key,
+              let installID = object["installId"] as? String, UUID(uuidString: installID) != nil else { return false }
+        return true
+    }
+
+    private static func ownerFingerprint(_ keyID: String) -> String? {
+        guard let bytes = Data(base64Encoded: keyID), bytes.count == 32,
+              bytes.base64EncodedString() == keyID else { return nil }
+        return SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+    }
+
     func retryAcceptedCleanup() {
         guard acceptedCleanupPending else { return }
         do {
@@ -312,7 +431,9 @@ final class ReportModel {
             acceptedCleanupPending = false
             cleanupError = nil
         } catch {
-            cleanupError = String(localized: "Report was received, but its local draft could not be removed.")
+            cleanupError = submission == .idempotencyRetired
+                ? String(localized: "The expired submission's saved draft could not be removed.")
+                : String(localized: "Report was received, but its local draft could not be removed.")
         }
     }
 
@@ -344,6 +465,7 @@ final class ReportModel {
 
     private static func validationMessage(_ error: ReportValidationError) -> String {
         switch error {
+        case .invalidIdempotencyKey: String(localized: "Saved report could not be read safely.")
         case .missingSpotID: String(localized: "Choose an existing place before submitting.")
         case .unexpectedSpotID: String(localized: "A missing-place suggestion cannot include an existing place.")
         case .missingProposedLocation: String(localized: "Choose and confirm a proposed map pin.")

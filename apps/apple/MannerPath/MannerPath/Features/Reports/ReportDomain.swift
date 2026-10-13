@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 nonisolated enum ReportType: String, CaseIterable, Codable, Sendable {
     case exists, missing, moved, hoursChanged, tobaccoTypeChanged, accessChanged, prohibited, other
@@ -105,6 +106,30 @@ nonisolated struct ReportCorrection: Codable, Equatable, Sendable {
     var supportsHeated: String? = nil
 }
 
+/// Per-draft randomness, never an installation or tracking identifier.
+nonisolated enum ReportIdempotencyKey {
+    static func generate() -> String? {
+        var bytes = [UInt8](repeating: 0, count: 32)
+        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
+        return bytes.map { String(format: "%02x", $0) }.joined()
+    }
+
+    static func isValid(_ value: String?) -> Bool {
+        guard let value else { return false }
+        return value.utf8.count == 64 && value.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+    }
+}
+
+/// Exact payload retained after an ambiguous submission; assertions/challenges are never persisted.
+nonisolated struct ReportPendingSubmission: Codable, Equatable, Sendable {
+    var schemaVersion: Int
+    var payload: Data
+    /// Local receipt ownership guard. Only a fingerprint, not App Attest material; removed with the draft.
+    var ownerKeyHash: String? = nil
+    /// A definitive idempotency refusal remains terminal after restarting the app.
+    var terminalFailure: String? = nil
+}
+
 nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     var type: ReportType
     var spotId: String?
@@ -120,6 +145,10 @@ nonisolated struct ReportDraft: Codable, Equatable, Sendable {
     /// ADR-0013 correction claim of an existing-spot report. Drafts saved earlier decode with nil.
     var correction: ReportCorrection? = nil
 
+    /// Older saved drafts decode missing optional fields as nil; the model upgrades them before v3 submission.
+    var idempotencyKey: String? = nil
+    var pendingSubmission: ReportPendingSubmission? = nil
+
     init(type: ReportType, spotId: String? = nil, subjectName: String? = nil,
          proposedLocation: ReportCoordinate? = nil,
          observedOn: String? = nil, note: String? = nil, acceptedTermsVersion: String? = nil) {
@@ -130,6 +159,7 @@ nonisolated struct ReportDraft: Codable, Equatable, Sendable {
         self.observedOn = observedOn
         self.note = note
         self.acceptedTermsVersion = acceptedTermsVersion
+        self.idempotencyKey = ReportIdempotencyKey.generate()
     }
 }
 
@@ -140,7 +170,18 @@ nonisolated enum ReportProtocol: Equatable, Sendable {
     /// schemaVersion 2: exact payload bytes plus an App Attest assertion over them.
     case appAttest
 
-    var schemaVersion: Int { self == .unattested ? 1 : 2 }
+    /// Schema v3: an idempotent, owned report, selected only by the deployment's API config.
+    case appAttestV3
+
+    var isAttested: Bool { self != .unattested }
+
+    var schemaVersion: Int {
+        switch self {
+        case .unattested: 1
+        case .appAttest: 2
+        case .appAttestV3: 3
+        }
+    }
 }
 
 nonisolated struct ReportLimits: Equatable, Sendable {
@@ -170,6 +211,7 @@ nonisolated enum ReportValidationError: Error, Equatable, Sendable {
     case missingSpotID, unexpectedSpotID, missingProposedLocation, unexpectedProposedLocation
     case invalidCoordinate, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge, termsNotAccepted
     case unexpectedClaim, invalidClaim, unsupportedReportType, invalidCorrection
+    case invalidIdempotencyKey
 }
 
 /// The `claim` member on the wire: a new-spot claim or an existing-spot correction, never both.
@@ -196,9 +238,10 @@ nonisolated struct ReportRequest: Encodable, Sendable {
     /// Inside the payload, so for schemaVersion 2 the App Attest assertion signs the consent too.
     let acceptedTermsVersion: String?
     let claim: ReportClaimPayload?
+    let idempotencyKey: String?
 
     enum CodingKeys: String, CodingKey {
-        case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId, acceptedTermsVersion, claim
+        case schemaVersion, type, spotId, proposedLocation, observedOn, note, installId, acceptedTermsVersion, claim, idempotencyKey
     }
 
     /// Encodes once. For schemaVersion 2 the returned bytes are the payload that is both hashed
@@ -241,12 +284,21 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         } else {
             nil
         }
+        if limits.submissionProtocol == .appAttestV3, !ReportIdempotencyKey.isValid(draft.idempotencyKey) {
+            throw ReportValidationError.invalidIdempotencyKey
+        }
         let request = Self(schemaVersion: limits.submissionProtocol.schemaVersion, type: draft.type, spotId: draft.spotId,
                            proposedLocation: draft.proposedLocation?.quantized,
                            observedOn: draft.observedOn, note: draft.note, installId: installId,
                            acceptedTermsVersion: limits.termsVersion,
-                           claim: claimPayload)
-        let data = try JSONEncoder().encode(request)
+                           claim: claimPayload,
+                           idempotencyKey: limits.submissionProtocol == .appAttestV3 ? draft.idempotencyKey : nil)
+        let encoder = JSONEncoder()
+        // Stable client bytes only; this does not claim to implement the pending server canonicalization rules.
+        if limits.submissionProtocol == .appAttestV3 {
+            encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        }
+        let data = try encoder.encode(request)
         guard data.count <= limits.maxBodyBytes else { throw ReportValidationError.bodyTooLarge }
         return data
     }
@@ -301,14 +353,15 @@ nonisolated struct AttestedReportEnvelope: Encodable, Sendable {
         let assertion: String
     }
 
-    let schemaVersion = 2
+    let schemaVersion: Int
     let payload: String
     let attestation: Attestation
 
     enum CodingKeys: String, CodingKey { case schemaVersion, payload, attestation }
 
-    static func encoded(payload: Data, authorization: ReportAuthorization) throws -> Data {
-        let envelope = Self(payload: payload.base64EncodedString(),
+    static func encoded(payload: Data, authorization: ReportAuthorization, schemaVersion: Int = 2) throws -> Data {
+        guard schemaVersion == 2 || schemaVersion == 3 else { throw ReportAPIError.incompatibleResponse }
+        let envelope = Self(schemaVersion: schemaVersion, payload: payload.base64EncodedString(),
                             attestation: .init(keyId: authorization.keyId, challenge: authorization.challenge,
                                                assertion: authorization.assertion.base64EncodedString()))
         let encoder = JSONEncoder()

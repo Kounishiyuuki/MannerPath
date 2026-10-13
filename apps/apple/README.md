@@ -147,6 +147,38 @@ data, starts and stops the Worker, and sets location, permission, appearance and
 `simctl`. No signing team or device is needed. The app has no test-only code paths; the tests
 use accessibility labels plus two identifiers (`nearbyMap`, `nearbyResultRow`).
 
+## Report schema v3 client (Lane 4)
+
+Server Slice 1 (PR #244, merge `47477d022fb2eeb28ce2e1cae9e3e591525df577`) fixes the v3
+protocol in docs/API.md, ADR-0007 and shared App Attest vectors. The client selects v3 only when
+config explicitly advertises `appAttest`, exactly `(3,3)`, compatible bundled terms and available
+intake, and the device supports App Attest. Schema 1/local and older schema 2 deployments remain
+supported only when explicitly advertised. This changes no production intake settings or signing.
+
+Each new draft gets 32 `SecRandomCopyBytes` bytes as lowercase hex; randomness failure cannot
+send a v3 report. One protected atomic draft file holds that key and the frozen payload bytes.
+The exact bytes signed are sent and reused on explicit retries, including after restart. Fresh
+challenge/assertion material exists only in memory, and the client never manages App Attest counters
+or independently implements server canonicalization. Original consent and Unicode are preserved
+in a retry even when current terms change; the server checks a receipt before current consent.
+
+Before the first POST, a local SHA-256 fingerprint of the canonical App Attest key bytes is saved
+with the draft. A different key after recovery/rotation/restore blocks POST and keeps the draft for
+review/discard: it cannot retrieve another key's receipt, nor silently create a duplicate. This
+fingerprint is local, draft-scoped, deleted with the draft, and never transmitted or logged. An
+attempted draft without a persisted owner stays blocked. Untouched legacy drafts get a key before
+their first v3 submission; uncertain old-schema attempts are never automatically upgraded.
+
+201/200 delete the draft/key using the cleanup marker. 409 preserves a blocked draft; an owned 410
+receipt is already handled and removes the draft/key without resending. 429 keeps payload/key/owner
+and delays another explicit attempt. Unknown/store-failure responses remain ambiguous. Failed
+cleanup blocks fresh reports. Frozen draft edits are refused; discard/new draft uses fresh randomness.
+
+`ReportV3Tests` and existing binding tests consume the final shared vectors. Local simulator and
+API tests do not establish real-device App Attest or production readiness. Physical-device tests
+of registration, response-loss recovery, key loss/rotation, receipt replay and actual server origins
+remain release checks. No TestFlight/API deployment or remote configuration change is part of Lane 4.
+
 ## Photo evidence foundation (Issue #147)
 
 `ReportPhotos` is injected into the iPhone report model and defaults disabled. No production uploader

@@ -866,7 +866,9 @@ struct AppAttestReportFlowTests {
             #expect(!text.localizedCaseInsensitiveContains(forbidden), "draft must not persist \(forbidden)")
         }
         let object = try #require(JSONSerialization.jsonObject(with: saved) as? [String: Any])
-        #expect(Set(object.keys) == ["type", "spotId"])
+        #expect(Set(object.keys) == ["type", "spotId", "idempotencyKey"])
+        #expect(object["idempotencyKey"] as? String == model.draft?.idempotencyKey)
+        #expect(ReportIdempotencyKey.isValid(object["idempotencyKey"] as? String))
     }
 
     @Test func attestedSubmissionClassifiesServerAnswers() async throws {
@@ -875,27 +877,27 @@ struct AppAttestReportFlowTests {
             ReportAPIClient(baseURL: URL(string: "https://example.test")!,
                             transport: MockTransport([ReportHTTPResponse(statusCode: status, body: Data(body.utf8), retryAfter: retryAfter)]))
         }
-        #expect(try await client(201, accepted, nil).submitAttested(Data()).reportId == "rp_01V64NN31G72E5KJJ5W22W1A1J")
+        #expect(try await client(201, accepted, nil).submitAttested(Data(#"{"schemaVersion":2}"#.utf8)).reportId == "rp_01V64NN31G72E5KJJ5W22W1A1J")
         // A v1 receipt from a v2 submission is not proof of anything.
         await #expect(throws: ReportAPIError.incompatibleResponse) {
-            try await client(201, accepted.replacingOccurrences(of: "\"schemaVersion\":2", with: "\"schemaVersion\":1"), nil).submitAttested(Data())
+            try await client(201, accepted.replacingOccurrences(of: "\"schemaVersion\":2", with: "\"schemaVersion\":1"), nil).submitAttested(Data(#"{"schemaVersion":2}"#.utf8))
         }
         for reason in AttestationRejection.Reason.allRawValues {
             let body = #"{"error":"attestationRejected","reason":"\#(reason)","detail":"d"}"#
             await #expect(throws: ReportAPIError.attestationRejected(
                 .init(reason: .init(rawValue: reason)!, detail: "d"))) {
-                try await client(403, body, nil).submitAttested(Data())
+                try await client(403, body, nil).submitAttested(Data(#"{"schemaVersion":2}"#.utf8))
             }
         }
         // An unknown 403 shape is not treated as a proven pre-store refusal.
         await #expect(throws: ReportAPIError.incompatibleResponse) {
-            try await client(403, #"{"error":"attestationRejected","reason":"newReason"}"#, nil).submitAttested(Data())
+            try await client(403, #"{"error":"attestationRejected","reason":"newReason"}"#, nil).submitAttested(Data(#"{"schemaVersion":2}"#.utf8))
         }
         await #expect(throws: ReportAPIError.rateLimited(61)) {
-            try await client(429, #"{"error":"reportRateLimited"}"#, "61").submitAttested(Data())
+            try await client(429, #"{"error":"reportRateLimited"}"#, "61").submitAttested(Data(#"{"schemaVersion":2}"#.utf8))
         }
         await #expect(throws: ReportAPIError.rejected(400, "reportSchemaUnsupported")) {
-            try await client(400, #"{"error":"reportSchemaUnsupported"}"#, nil).submitAttested(Data())
+            try await client(400, #"{"error":"reportSchemaUnsupported"}"#, nil).submitAttested(Data(#"{"schemaVersion":2}"#.utf8))
         }
     }
 
