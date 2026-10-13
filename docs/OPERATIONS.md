@@ -506,7 +506,7 @@ Notes:
 
 ## Source checks and raw artifacts (ADR-0008 source refresh amendment)
 
-The Worker exports a Cron `scheduled` handler that **only checks** reviewed sources: fetch the
+The Worker exports a Cron dispatcher. Source-check triggers **only check** reviewed sources: fetch the
 adapter's `refreshTarget.url`, fingerprint (sha256), retain the bytes in R2 under
 `raw/sha256/<hex>`, and record a `source_checks` row (`unchanged` / `changed` / `needsReview` /
 `failed`) plus, for a changed file, one `source_refresh_candidates` row. It never ingests, resolves,
@@ -969,7 +969,7 @@ Every `*-propose` above is a REPORTS_DB review; follow it with `export <reviewId
 canonical pipeline, `import <dir>/<sha256>.json` before any `*-apply`. Import answers `imported`, `alreadyImported`
 (same bytes: nothing written), `conflict`, `stale` or `refused` (spot merged/unknown, base changed, unknown terms):
 the last three write nothing and need a fresh review. Run `retain` (or `npm run local:reports:redact`) daily; it
-works in bounded, resumable batches.
+works in bounded, resumable batches. Count-only automation and overdue checks are described below.
 
 Then `npm run local:pipeline` (republish) and `npm run local:quality`. A large queue is a staffing signal, not a
 quality failure; no check fails on community volume.
@@ -1106,3 +1106,81 @@ cannot be inferred. The key/pepper inputs must be supplied again to apply; neith
 or audit. After revocation/retention/restore, review scope again. This CLI deliberately does not
 read/write revocation tables, receipts, App Attest counters or registration policy. Issue #242's
 full erase/receipt policy remains separate and is not resolved by rejecting a report.
+
+## Report retention automation and overdue detection
+
+Policy stays ADR-0007: report personal fields are minimized at `received_at + 90 days`, irrespective
+of moderation. The minimized report skeleton and retired idempotency receipt remain; cleanup never
+recreates a report, deletes its receipt, or restores its request hash. Full erase is the separate
+unresolved Issue #242, not implemented by this maintenance path.
+
+The Worker dispatcher (`src/scheduled.ts`) adds a separate report-maintenance branch. All committed
+`triggers.crons` remain empty, `REPORT_RETENTION` defaults to `off`, and no maintenance cron mapping
+is committed. Shipping this code does not activate cleanup, report intake, photos or registration.
+It introduces no HTTP admin endpoint, migration or secret.
+
+Controls for a future reviewed activation:
+
+- `REPORT_RETENTION`: exactly `off`, `monitor`, or `cleanup`; any other value fails closed.
+- `REPORT_RETENTION_CRON`: the exact, separate five-field numeric cron expression. It must match
+  the maintenance trigger and differ from source-check schedules. Basic numeric, `*`, comma,
+  slash and hyphen expressions are accepted; missing/invalid mapping in an active mode fails.
+- The maintenance branch requires a validated `REPORTS_DB` with migrations through 0004. It never
+  reads/writes canonical `DB`, uses source R2, changes App Attest keys, or weakens intake gates.
+- `monitor` is read-only. `cleanup` performs one bounded existing retention pass (10 of each
+  row kind), then rechecks aggregate status. Late delivery uses actual execution time, not an
+  old scheduled timestamp. Duplicate delivery is safe because each redaction/retirement is one-way.
+
+A worst-case pass uses 47 D1 queries/statements, including validation and fresh status: 10 report
+redactions + 10 receipt retirements + 10 expired rate-window deletions + 10 expired challenge
+deletions plus seven reads. This is below the current Free limit of 50 queries per Worker invocation
+([D1 limits](https://developers.cloudflare.com/d1/platform/limits/)). It does not bound rows scanned,
+CPU time, daily quota or guarantee Free-plan viability. Before activation, measure backlog arrival,
+read costs, execution time and the cadence needed to clear at most 10 reports per invocation. No
+production schedule or assumed traffic threshold is supplied here.
+
+LOCAL verification only (commands refuse remote/extra target flags):
+
+```sh
+cd services/api
+npm run local:reports:migrate
+npm run --silent local:reports:retention -- status  # read-only JSON, exit 1 if due/failed
+npm run --silent local:reports:retention -- run     # bounded cleanup, JSON, exit 1 if unfinished/failed
+```
+
+The existing `local:reports -- retain` command remains available for maintainer-controlled draining.
+The automation result is a fixed `reportRetention` event with mode, outcome, completed pass count,
+and remaining aggregate counts only: due reports, expired rate windows/challenges, inconsistent
+receipts and pending photo cleanup. No cursor, reportId, keyId, IP/HMAC, note, pin, request digest,
+object key, per-report timestamp or raw exception is emitted. This is internal maintenance data,
+not a public API or client analytics channel.
+
+Failure and recovery:
+
+1. A failed report/receipt batch rolls back the whole pass, including rate/challenge purges. Retry
+   from the oldest remaining due row; no cursor or private checkpoint is needed. Earlier completed
+   passes remain committed. A lost response after commit is safe to retry.
+2. Remaining due work yields `overdue`; inconsistent receipts or store/query errors yield `failed`.
+   Cron throws a fixed error for both, marking the invocation unsuccessful; the local CLI exits 1.
+   Receipt inconsistencies stop cleanup before writes and require controlled investigation, not
+   automatic receipt reconstruction or report resurrection.
+3. No production photo-storage adapter is configured. Pending object deletion remains counted and
+   cleanup reports failure after report minimization; it does not claim physical object deletion.
+   Photos stay disabled. A future fenced adapter and deletion/backup verification are separate work.
+4. A retry overlapping cleanup may return 200 if it read an active receipt before retirement, or
+   410 if retirement won first; neither changes minimized content or spends another report budget.
+   A retry beginning after completed retirement returns 410. Existing v3 semantics are unchanged.
+
+Activation remains a separate maintainer operation: review a distinct schedule and update its
+configuration guards, run staging cleanup/failure/retry tests, then configure the mapping and mode.
+Start with `monitor` if assessing backlog, switch to `cleanup` only after capacity/recovery review.
+Before deployment, configure alerts for `reportRetention` failed/overdue outcomes, unsuccessful Cron
+invocations, and absence of its expected heartbeat for the chosen cadence. An absent schedule or
+an invocation that never starts cannot emit its own failure; use independent heartbeat monitoring
+and the read-only status oracle. No alert, Cron, deployment or remote database operation is activated
+by this PR. Pausing uses `off`; a still-configured maintenance trigger emits `disabled` without
+falling into source checks. Monitor and alert on an unexpected disabled heartbeat as well.
+
+Lane 1 revocation ownership is preserved: this change does not modify `app.ts`, attestation/key
+handling, report idempotency, migration numbering or the moderation CLI. Only the Worker entry point
+and scheduler are shared; integration must retain both dispatch branches and rerun validation.
