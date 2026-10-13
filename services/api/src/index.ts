@@ -1,6 +1,6 @@
 import { CONDITIONAL_HEADER_MAX_BYTES, type Env, REQUEST_URL_MAX_BYTES, app, ifNoneMatchMatches } from "./app.ts";
 import { serveWithEdgeCache } from "./edge-cache.ts";
-import { scheduled } from "./refresh/scheduled.ts";
+import { scheduled } from "./scheduled.ts";
 
 const LIMITS = { urlMaxBytes: REQUEST_URL_MAX_BYTES, conditionalHeaderMaxBytes: CONDITIONAL_HEADER_MAX_BYTES, ifNoneMatchMatches };
 
