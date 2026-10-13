@@ -7,6 +7,34 @@ struct RouteSearchTests {
     private let origin = SpotCoordinate(latitude: 35, longitude: 139)
     private let destination = SpotCoordinate(latitude: 35, longitude: 139.01)
 
+    @Test func namedDistantDestinationOutranksNearbyResultsForTheSameQuery() {
+        // From Kanazawa, a 20 km region alone returned only local stations for "上野駅".
+        let nearby = [place("金沢駅", 36.578, 136.648), place("野町駅", 36.55, 136.64)]
+        let nationwide = [place("上野駅", 35.714, 139.777)]
+        let merged = DestinationResultMerger.merge(query: "上野駅", nearby: nearby, nationwide: nationwide)
+        #expect(merged.map(\.name) == ["上野駅", "金沢駅", "野町駅"])
+        // Full-width spaces and width differences do not hide the match.
+        #expect(DestinationResultMerger.merge(query: " 上野　駅 ", nearby: nearby, nationwide: nationwide).first?.name == "上野駅")
+    }
+
+    @Test func genericQueriesKeepNearbyResultsFirstAndDuplicatesCollapse() {
+        let nearby = [place("Cafe A", 36.578, 136.648), place("金沢駅", 36.578, 136.648)]
+        let nationwide = [place("Cafe B", 35.68, 139.76), place("金沢駅", 36.5785, 136.6482)]
+        #expect(DestinationResultMerger.merge(query: "カフェ", nearby: nearby, nationwide: nationwide).map(\.name)
+                == ["Cafe A", "金沢駅", "Cafe B"])
+        // The same name far apart is two places (e.g. two stores of a chain), not a duplicate.
+        let chain = DestinationResultMerger.merge(query: "x", nearby: [place("Store", 36.5, 136.6)],
+                                                  nationwide: [place("Store", 35.6, 139.7)])
+        #expect(chain.count == 2)
+        let many = (0..<10).map { place("駅\($0)", 35, 139 + Double($0)) }
+        #expect(DestinationResultMerger.merge(query: "駅", nearby: many, nationwide: []).count == 8)
+        #expect(DestinationResultMerger.merge(query: "", nearby: nearby, nationwide: []).map(\.name) == ["Cafe A", "金沢駅"])
+    }
+
+    private func place(_ name: String, _ latitude: Double, _ longitude: Double) -> PlaceDestination {
+        PlaceDestination(id: UUID(), name: name, coordinate: SpotCoordinate(latitude: latitude, longitude: longitude))
+    }
+
     @Test func confirmedFiltersPreserveUnknownAndNoAsDifferentValues() {
         let spots = [
             spot("unknown", offset: 0.001, access: .unknown, environment: .unknown,
@@ -337,32 +365,6 @@ struct RouteSearchTests {
         model.selectDestination(place(SpotCoordinate(latitude: 36.5613, longitude: 136.6562)))
         #expect(await waitUntil { model.routeState == .destinationTooFar })
         #expect(router.requests.isEmpty)
-    }
-
-    @Test func nationwideExactMatchLeadsBeforeNearbyResults() {
-        let kanazawa = SpotCoordinate(latitude: 36.578, longitude: 136.648)
-        let nearby = [
-            PlaceDestination(id: UUID(), name: "金沢駅", coordinate: kanazawa),
-            PlaceDestination(id: UUID(), name: "上野本町", coordinate: SpotCoordinate(latitude: 36.55, longitude: 136.66))
-        ]
-        let ueno = PlaceDestination(id: UUID(), name: "上野駅", coordinate: SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
-        let merged = DestinationResultMerger.merge(query: "上野駅", nearby: nearby, nationwide: [ueno])
-        #expect(merged.map(\.name) == ["上野駅", "金沢駅", "上野本町"])
-    }
-
-    @Test func nearbyResultsLeadAndUnrelatedNationwideResultsAreDropped() {
-        let shop = SpotCoordinate(latitude: 36.578, longitude: 136.648)
-        let near = PlaceDestination(id: UUID(), name: "コンビニ 金沢店", coordinate: shop)
-        let sameFar = PlaceDestination(id: UUID(), name: "コンビニ 金沢店",
-                                       coordinate: SpotCoordinate(latitude: 36.5785, longitude: 136.6483))
-        let tokyo = PlaceDestination(id: UUID(), name: "コンビニ 上野店", coordinate: SpotCoordinate(latitude: 35.71, longitude: 139.77))
-        let osaka = PlaceDestination(id: UUID(), name: "セブンイレブン 大阪道頓堀", coordinate: SpotCoordinate(latitude: 34.67, longitude: 135.5))
-        let merged = DestinationResultMerger.merge(query: "コンビニ", nearby: [near], nationwide: [sameFar, osaka, tokyo])
-        #expect(merged.map(\.id) == [near.id, tokyo.id])
-        let many = (0..<10).map { PlaceDestination(id: UUID(), name: "place \($0)",
-                                                   coordinate: SpotCoordinate(latitude: 35 + Double($0), longitude: 139)) }
-        #expect(DestinationResultMerger.merge(query: "place", nearby: many, nationwide: []).count
-                == DestinationResultMerger.maximumResults)
     }
 
     private func deviceLocation(_ coordinate: SpotCoordinate) -> DeviceLocation {

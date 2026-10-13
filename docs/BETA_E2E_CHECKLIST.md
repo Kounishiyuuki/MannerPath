@@ -95,7 +95,8 @@ unchanged by this branch, so the Apple/API suites and `SIM` rows were not repeat
 | `./scripts/check-iphone-api-base-url.sh` | exit 0 (both builds `-quiet`, no `error:`): configured value, empty unconfigured value, system keys and no copied `MannerPath-Info.plist` all checked; the script prints nothing on success |
 | `make contract` | `MannerPath contract files present.` |
 
-Watch tests are not part of `make apple-validate`; run them explicitly:
+In those historical runs Watch tests were separate. Current `make apple-validate` includes them;
+to run just the Watch tests explicitly:
 
 ```sh
 xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
@@ -331,3 +332,73 @@ the evidence. If archive creation or signed inspection fails, fix signing before
   disposable E2E environment (#55).
 - **L6** Widgets (#32) show only the single nearest cached place and refresh hourly at best; they
   never fetch or locate on their own, so they go stale until the app is opened.
+
+## Release Nearby device gate — Lane 4, 2026-10-13
+
+This is a new run, not a reclassification of the historical `SIM` or physical-device rows above.
+Baseline: `f645bf1639b7d4de619fbb07cb570089da5b825a`. Issue #35 is closed; this follow-up
+strengthens its repeatable read-path checks. Debug is cache-only by default; Release uses
+`https://mannerpath-api-production.happywestyuki.workers.dev`. The installed Release build and
+older simulator observations were reported by the maintainer; they were not independently
+observed on a physical device in this run. Signing, entitlements and distribution settings are unchanged.
+
+### Repeatable production GET audit
+
+```sh
+python3 apps/apple/scripts/audit-nearby-read-api.py
+```
+
+This performs only bounded public GET requests: config, the fixed Taito 3×3 neighborhood,
+manifest/parts and each published spot's detail. No device coordinate, credential or report is
+submitted. It checks byte-hash ETags, bodyless conditional 304s, manifest/part hashes and cardinality,
+tile/detail normalized-field parity, source attribution coverage and disabled report intake.
+It emits a summary; temporary response bodies are removed. It never reads or writes D1.
+The default expected count is a deployment observation, **not** a source registry or corpus gate.
+If it changes, investigate the deployed baseline; do not change publication to satisfy this check.
+It audits this fixed neighborhood, not worldwide coverage or absence outside it.
+
+Observed public neighborhood: 32 unique spots across five tiles:
+
+| Tile | Published spots |
+| --- | ---: |
+| `14/14552/6449` | 1 |
+| `14/14553/6449` | 11 |
+| `14/14553/6450` | 9 |
+| `14/14554/6449` | 9 |
+| `14/14554/6450` | 2 |
+
+The other four tiles in x=14552…14554, y=6448…6450 answer `404 tileNotPublished`.
+A single Nearby view only contains its current 3×3 neighborhood and active filters; its row count
+must not be assumed to equal the complete source corpus from every device location.
+The live audit proves HTTP behavior, not Swift persistence, rendered maps or signed App Groups.
+`make apple-validate` also checks the built Debug origins are empty and the built Release plist
+contains the committed production read API origin, without changing signing settings.
+`NearbyPersistenceE2ETests` separately composes scripted HTTP, real GRDB reopen, Nearby ranking
+and the same glance builder/file codec used by the app and widget. Existing tile tests cover
+manifest/part corruption, atomic replacement, ETag reuse, 404 empty replacement and request races;
+cluster and detail tests check presentation logic. These are simulator tests, not device evidence.
+
+### Physical Release checks — all remain NOT RUN until a maintainer records evidence
+
+Use the already installed Release build. Record build/version, iOS/device, timestamp, public API
+origin, permission accuracy, active filters and pass/fail for each row. Avoid screenshots/logs
+containing personal location outside the fixed test area. Do not submit a report or alter backend
+state. For the complete 32-count comparison use a fixed Taito test location (35.7112, 139.77377)
+or destination that resolves to the neighborhood above; disclose which was used.
+
+| ID | Procedure | Expected evidence | Status |
+| --- | --- | --- | --- |
+| R1 | Online launch; allow When In Use, clear filters, refresh in Taito. Compare against the GET audit from the same run. | Published IDs/count agree for the queried neighborhood; loading finishes. Report action remains unavailable. Debug results cannot satisfy this row. | NOT RUN |
+| R2 | Background, terminate and relaunch online after the initial sync. | Saved rows appear before refresh; refresh does not duplicate pins/list IDs. Unchanged ETag response keeps the same data. Use proxy request metadata only if available; never log precise device location. | NOT RUN |
+| R3 | Zoom out/in and tap an individual pin and a cluster. Open the corresponding list row. | Cluster expands to members, individual pin/list open the same ID/detail, no duplicate/stale annotations. Map basemap availability is separate from cached spot availability. | NOT RUN |
+| R4 | Inspect one unknown-hours place and an access-restricted place if present; open attribution. | Name/type/access/support/evidence/lastVerifiedAt agree with tile/detail; unknown hours never display “open now”; approximation is explicit; attribution/license usable offline. Fetch time is not verification time. | NOT RUN |
+| R5 | Add small/medium/Lock Screen iPhone widgets after online Nearby sync. Leave app and reopen widget. | Same nearest unfiltered device result/name and sensible distance/precision; no network/location permission from widget. Actual signed App Group provisioning and cross-process sharing work. Destination-only search must not replace device glance. | NOT RUN |
+| R6 | Enable airplane mode after online sync, terminate/relaunch app, open list/detail/attribution and widget. | Cached spots, straight-line distance/bearing and freshness remain; refresh failure is explicit, no invented “no places” or “open now”. Maps/routing may be unavailable; offline turn-by-turn is not promised. | NOT RUN |
+| R7 | While online, select a remote destination whose neighborhood returns only `tileNotPublished`; clear filters. Then repeat offline without prior cache there. | Online: normal empty coverage state. Offline: load-failure/cache state, not a claim that no smoking places exist. Taito rows must not leak into that destination. | NOT RUN |
+| R8 | Disable connectivity with cached data, then restore it and explicitly refresh. | Saved list persists, failure is visible, recovery completes without duplicates. Never simulate 5xx or corruption by modifying production. Automated tests provide deterministic 5xx/malformed/cache-corruption coverage. | NOT RUN |
+| R9 | Leave the widget snapshot older than one hour, and test last-known location while app is not running. | Widget labels stale data and invites opening the app; old distance is not presented as current. Timeline reload timing is OS-controlled, not instantaneous. | NOT RUN |
+| R10 | VoiceOver, larger text, denied and approximate location permissions; widget deep link. | Labels/read order distinguish evidence vs precision; controls/details reachable; permission failure has recovery; widget opens matching cached spot or Nearby safely if removed. | NOT RUN |
+
+Physical checks R1–R10 are a release gate independent of this code PR's merge status. A simulator
+pass cannot mark them complete. Cache corruption tests mutate only isolated test databases; no
+manual SQL, app-data edit, signing change, production write or dummy publication is required.

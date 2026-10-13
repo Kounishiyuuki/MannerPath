@@ -14,37 +14,6 @@ struct PlaceDestination: Identifiable, Equatable, Sendable {
     }
 }
 
-// Combines a search biased to the user's surroundings with a nationwide one, so "上野駅" from Kanazawa still offers
-// Tokyo's station while "コンビニ" keeps nearby answers. A nationwide result is kept only when its name contains the
-// query: MapKit's category matches far away (Osaka stores for "コンビニ" from Kanazawa) are noise, not destinations.
-// Order: exact-name matches, then nearby, then nationwide; same name within 200 m is one place.
-enum DestinationResultMerger {
-    static let maximumResults = 8
-    static let duplicateDistanceMeters = 200.0
-
-    static func merge(query: String, nearby: [PlaceDestination], nationwide: [PlaceDestination]) -> [PlaceDestination] {
-        let key = normalized(query)
-        let named = nationwide.filter { !key.isEmpty && normalized($0.name).contains(key) }
-        var unique: [PlaceDestination] = []
-        for place in nearby + named where !unique.contains(where: { isDuplicate($0, place) }) {
-            unique.append(place)
-        }
-        let exact = unique.filter { normalized($0.name) == key }
-        let rest = unique.filter { normalized($0.name) != key }
-        return Array((exact + rest).prefix(maximumResults))
-    }
-
-    private static func isDuplicate(_ first: PlaceDestination, _ second: PlaceDestination) -> Bool {
-        normalized(first.name) == normalized(second.name)
-            && NearbySearch.straightLineDistance(from: first.coordinate, to: second.coordinate) <= duplicateDistanceMeters
-    }
-
-    private static func normalized(_ text: String) -> String {
-        text.trimmingCharacters(in: .whitespacesAndNewlines)
-            .folding(options: [.caseInsensitive, .widthInsensitive], locale: nil)
-    }
-}
-
 struct WalkingRoute: Sendable {
     let travelTime: TimeInterval
     let distanceMeters: Double
@@ -54,6 +23,36 @@ struct WalkingRoute: Sendable {
 @MainActor
 protocol DestinationSearching {
     func search(_ text: String, near origin: SpotCoordinate?) async throws -> [PlaceDestination]
+}
+
+/// Merges a search biased to the user's surroundings with a nationwide one, so a named distant place ("上野駅" while
+/// in Kanazawa) is found without losing the nearby preference for generic queries ("カフェ").
+enum DestinationResultMerger {
+    /// Results this close with the same name are one place reported by both searches.
+    static let duplicateMeters = 150.0
+
+    static func merge(query: String, nearby: [PlaceDestination], nationwide: [PlaceDestination],
+                      limit: Int = 8) -> [PlaceDestination] {
+        var unique: [PlaceDestination] = []
+        for candidate in nearby + nationwide where !unique.contains(where: { isSame($0, candidate) }) {
+            unique.append(candidate)
+        }
+        let needle = normalized(query)
+        // Stable: a name containing the query first, then the original order (nearby before nationwide).
+        let named = unique.filter { !needle.isEmpty && normalized($0.name).contains(needle) }
+        let rest = unique.filter { needle.isEmpty || !normalized($0.name).contains(needle) }
+        return Array((named + rest).prefix(limit))
+    }
+
+    private static func isSame(_ a: PlaceDestination, _ b: PlaceDestination) -> Bool {
+        normalized(a.name) == normalized(b.name)
+            && NearbySearch.straightLineDistance(from: a.coordinate, to: b.coordinate) <= duplicateMeters
+    }
+
+    private static func normalized(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .widthInsensitive, .diacriticInsensitive], locale: nil)
+            .filter { !$0.isWhitespace }
+    }
 }
 
 @MainActor

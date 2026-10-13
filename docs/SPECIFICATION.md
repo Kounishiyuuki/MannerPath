@@ -160,6 +160,9 @@ Any future adoption follows ADR-0010 and legal review.
 
 Presentation, routing and destination search only (ADR-0001, DATA_POLICY). Not the canonical smoking-place database;
 Apple POIs are never bulk-harvested.
+Destination search is nationwide: a search biased to the device's surroundings runs with a nationwide one, a
+result whose name contains the query ranks first, and otherwise nearby results stay ahead (a distant station is
+findable by name; generic queries still prefer nearby places).
 An explicitly selected destination is the iPhone browsing area's tile/ranking origin, distinct from the
 device location used for walking routes and companion nearby data. Only its 3×3 neighborhood is displayed;
 clearing selection returns to device tiles. Generation checks reject stale loads after selection changes.
