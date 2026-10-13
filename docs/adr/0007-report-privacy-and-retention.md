@@ -491,6 +491,38 @@ debited in a separate statement before the report was written.
   changes required for schemaVersion 3") and lands separately. Until then a schema-3 deployment's
   `/v1/config` keeps reporting off for that build.
 
+## Amendment 2026-10-13 — bounded maintainer bulk rejection
+
+Issue #29's operator boundary remains CLI-only. `reports:bulk-reject` adds an explicit two-step
+plan/apply operation; it introduces no HTTP admin endpoint or key revocation. Default scope is
+pending reports; needsInfo/accepted require explicit state selection. Every selected report must
+still be `notQueued`: exported/queued/discarded/applied evidence is refused, never treated as a
+publication withdrawal. No canonical data or evidence artifact is changed.
+
+Dry-run selects at most 40 reports and emits a protected metadata-only plan. It binds report-store
+identity, queue revision, exact target snapshots, reason, maintainer handle and a 15-minute window
+in its digest. Apply requires exact digest confirmation; selector membership and snapshot changes
+abort the batch. Same completed plan is an idempotent no-op, even if a later moderator changed a
+report's state. A lost response is not proof of rollback: completion is checked, or the result is
+unconfirmed and the operator must retry/inspect the same plan.
+
+Report-store migration `0006_bulk_report_rejection.sql` adds an immutable store identity and
+append-only operation/target/completion records. These contain only opaque report IDs, server
+moderation timestamps, bounded maintainer handles/states/reasons and counts. No note, location,
+observation day, App Attest key, submitter hash or secret is copied. UPDATE, DELETE and replacement
+of audit rows are rejected by SQL guards. The audit covers these bulk operations; earlier/single
+moderation snapshots are not retroactively promoted into a complete historical decision ledger.
+It does not block the report's existing minimization. Migration 0005 belongs to the separately owned revocation lane; migration 0006 does not
+require revocation tables or change key status.
+
+Report ID and at-most-one-day received-time selectors may intersect. A key selector derives the
+existing peppered hash in memory, requires verified App Attest reports and never stores its key or
+hash in the plan/audit. It covers only hashes still retained under the supplied pepper: rotation
+and 90-day minimization prevent complete historical lookup. Future revocation tooling may supply
+reviewed IDs or the same ephemeral key selector, but rejection never revokes a key or claims all
+of that key's historical reports were found. Existing receipts, counters, retention and report
+acceptance semantics remain unchanged. See OPERATIONS.md for target/confirmation guards.
+
 ## Amendment — bounded retention automation and overdue detection
 
 The 90-day minimization policy and permanent receipt tombstones are unchanged. A separate,

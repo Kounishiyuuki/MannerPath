@@ -150,3 +150,18 @@ document makes no legal determination.
   - a `DB` binding revert;
   - the intake stop / resume.
 - Record the date and the result in `RELEASE_CHECKLIST.md`. No drill has been recorded yet.
+
+## Bulk report rejection follow-up (2026-10-13)
+
+The older "Not available" list above describes its recorded `36b62ba` baseline. The current
+repository adds `npm run --silent reports:bulk-reject` (ADR-0007, OPERATIONS.md) for explicitly
+reviewed, bounded report rejection. Its default is a private dry-run plan; apply needs target
+checks, a bounded reason, an exact digest and unchanged snapshots. No HTTP admin surface exists.
+Only `notQueued` evidence can be rejected; this does not withdraw canonical/publication evidence.
+
+Operators record counts/digests and a bounded incident reference separately, never reporter
+content, raw key IDs, submitter hashes, IPs or pepper values. One transaction records append-only
+bulk audit and moderation; repeat the same confirmed plan to resolve an ambiguous response.
+Key selection is limited by retained hash/pepper epochs; absence of a match is not absence of
+history. Future key revocation may use reviewed report IDs or the ephemeral key selector, but
+this lane implements no revoke operation and supplies no production credentials or activation.

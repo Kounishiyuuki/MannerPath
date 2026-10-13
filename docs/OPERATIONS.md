@@ -1040,6 +1040,73 @@ and `tile_snapshot_parts` rows, each part as a separate budgeted INSERT after it
 continuous indexes, hashes, counts, canonical references and complete logical membership; multipart tiles
 are never reassembled into one promotion SQL statement.
 
+## Bounded bulk report rejection (maintainer CLI, ADR-0007)
+
+`npm run --silent reports:bulk-reject` is dry-run by default. It operates only on REPORTS_DB;
+there is no HTTP admin endpoint, key revoke, canonical write or tile publication. Migrate the
+report stream through `0006_bulk_report_rejection.sql` before use. Migration 0005 is owned by the
+separate revocation lane; the bulk migration does not read or write its tables. Never edit an applied migration.
+
+Create a private JSON array of exact report IDs (mode 600). The selector must be explicit:
+IDs, a bounded `--from`/`--before` UTC-second received-time range (start inclusive/end exclusive,
+maximum 24 hours), and/or `--key-file` with `--pepper-file`. Selectors intersect. Key/pepper files
+must be regular, non-symlink UTF-8 files with no group/world permissions. Pepper bytes are used
+exactly as stored, including any whitespace: do not strip a newline or alter a real secret.
+Do not put secrets/keys on the command line, in source control, stdout or tickets.
+
+Local rehearsal (the examples execute only local report state):
+
+```sh
+cd services/api
+umask 077
+# ids.json: a reviewed array of rp_ IDs, not reporter content.
+npm run --silent reports:bulk-reject -- \
+  --ids-file /private/path/ids.json --reason abuse --decided-by maintainer \
+  --max-count 40 --out /private/path/reject-plan.json
+# Inspect the protected plan's exact IDs/states/reason/target, then type its printed digest.
+npm run --silent reports:bulk-reject -- apply \
+  --plan /private/path/reject-plan.json --confirm <exact-64-hex-digest>
+```
+
+`--persist-to <private-local-state-directory>` binds both phases to that explicit local state.
+Plan files are created exclusively at mode 600; an existing file is not overwritten. Output is
+counts/status/digest/target class only. Plans contain no reporter payload, submitter hash, raw key
+or pepper, but still stay private and outside git. Operator handles and reasons are bounded:
+`abuse`, `outOfScope`, `contradictedBySource`, `insufficientDetail`; arbitrary notes are refused.
+
+Default state is `pending`. `--states pending,needsInfo,accepted` is an explicit override; exact IDs
+must all exist and qualify. Queued/discarded/applied rows cannot be rejected: use the reviewed
+withdrawal/hold path separately if evidence has already left REPORTS_DB. A selection exceeding
+40 (or `--max-count`) fails as a whole; it never truncates. An empty selector/match fails closed.
+Use deliberately reviewed separate batches, never an automated drain-all loop.
+
+A plan expires after 15 minutes and binds target environment/database/path, immutable store ID,
+queue revision and exact snapshots. Concurrent moderation, retention and new matching reports
+invalidate it. Re-plan instead of forcing it. Apply uses one [D1 batch transaction](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch):
+header, per-report audit+moderation, then completion proof. SQL guards reject partial/stale state;
+a statement failure rolls back the transaction. Each batch has at most 42 statements and each
+query stays below [D1's 100-bound-parameter limit](https://developers.cloudflare.com/d1/platform/limits/).
+
+A transport error may occur after commit. `applyUnconfirmed` means inspect/replay **the same
+plan and digest**, not a new plan or compensating updates. Proven completion returns
+`alreadyApplied`; replay never overwrites a later decision. Audit records are append-only,
+including against INSERT OR REPLACE. Rehearse migration, race, rollback and replay locally before
+any maintainer remote operation.
+
+Remote use is a maintainer-only future operation: both phases require `--remote`, explicit
+`--env staging|production`, real `--database-id`, interactive stdin/stdout outside CI, and the
+existing production confirmation `--confirm-production mannerpath-production-reports`. The
+apply phase additionally requires the plan digest. A plan for another target is refused; there
+is no local fallback. Agents/tests must not execute against staging/production. This implementation
+and its validation execute no production database operation or Cloudflare setting change.
+
+Key selection uses only retained verified submitter hashes under the supplied original pepper.
+A zero match does not prove no historical reports exist: old pepper epochs and redacted reports
+cannot be inferred. The key/pepper inputs must be supplied again to apply; neither is in the plan
+or audit. After revocation/retention/restore, review scope again. This CLI deliberately does not
+read/write revocation tables, receipts, App Attest counters or registration policy. Issue #242's
+full erase/receipt policy remains separate and is not resolved by rejecting a report.
+
 ## Report retention automation and overdue detection
 
 Policy stays ADR-0007: report personal fields are minimized at `received_at + 90 days`, irrespective
