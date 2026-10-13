@@ -705,8 +705,32 @@ registration normally needs at least two allowed calls; include this in shared-n
 Success-cap counts currently scan retained keys; measure this as the key table grows and review a
 separate `registered_at` index migration before substantial registration volume.
 Do not remove or delete registered key rows to revoke a key or to restore registration capacity:
-this would lose identity history and bypass rolling counts. Key revocation is **not implemented on
-this baseline**; full revoked-key behavior must be integrated and tested with the owning lane.
+this would lose identity history and bypass rolling counts (a revoked key's row cannot be deleted at
+all). Revoke a key with the maintainer CLI instead (next section).
+
+### Revoke an App Attest key (maintainer CLI only)
+
+Report-store migration 0005. There is no HTTP admin endpoint; only `scripts/report-queue.ts` writes a
+revocation, under the same remote guards as moderation (interactive terminal, `--remote --env
+--database-id`, typed production confirmation):
+
+```sh
+npm run reports:moderate -- --remote --env staging --database-id <uuid> revoke-key <keyId> <compromised|abuse|maintainerRequest>
+npm run reports:moderate -- --remote --env staging --database-id <uuid> revocations
+```
+
+- The keyId is the App Attest key identifier (canonical base64, 32 bytes). Reports do not store it
+  (only the peppered submitter hash), so a keyId comes from the incident itself, not from a report.
+- The reason is a closed code, never free text; the row (`key_id`, `reason`, `revoked_at`) is the
+  append-only audit record. Revoking again is a no-op that keeps the first row; there is no un-revoke.
+- Effect: `403 keyRevoked` for challenges, submissions and retries from that key, enforced in the Worker
+  and by database triggers (a concurrent request aborts). Reports, moderation, receipts and other keys
+  are untouched. A user whose key was revoked can register a new key within the registration budget:
+  revocation retires one key, it does not ban a device or person (App Attest identifies neither).
+- Apply migration 0005 to a remote store only after 0003's import (`REPORTS_MIGRATION_RECOVERY.md`) and
+  0004; `revoke-key` fails until 0005 is applied. **Apply 0005 before deploying a Worker that contains
+  this change:** the Worker reads the revocation table on every App Attest key lookup, so without it every
+  App Attest route answers `503 reportStoreUnavailable` (fail-closed, nothing accepted).
 A retained key/public key always conflicts with a new registration, even after its budget window.
 
 Lane 1 owns `reports/create.ts`, idempotency/receipt/schema v3 migration 0004, and Swift. This lane

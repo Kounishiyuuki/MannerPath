@@ -43,7 +43,7 @@ the exact 0003 repository bytes as a prefix, followed by one deterministic bookk
 It refuses to overwrite an existing artifact, changed 0003 bytes, or a stream whose first three
 migrations are not exactly 0001–0003. Later migrations (0004 report idempotency, and onward) may exist
 in the repository; they are not part of this artifact and are applied with the normal migration
-command only after this 0003 import has completed. 0004 avoids conditional expressions inside triggers.
+command only after this 0003 import has completed. 0004 and 0005 avoid conditional expressions inside triggers.
 The INSERT checks that the ledger contains exactly 0001 and 0002. On any mismatch its applied_at
 is NULL, which violates the observed NOT NULL constraint and fails the atomic import. A duplicate
 ledger name also fails UNIQUE. There are no BEGIN/COMMIT, DROP, altered triggers or repair statements

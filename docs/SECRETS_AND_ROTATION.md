@@ -179,7 +179,8 @@ These identify the app; they are not confidential keys. Changing them is a confi
   rollback can also restore older values, or re-add a deleted App ID (re-opening intake); verify after any rollback.
 - **Emergency revoke / stop intake:** `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID --env <env>`. `required`
   without it fails closed, and `/v1/config` `available:false`. **Never** switch `REPORT_ATTESTATION` to `disabled`.
-- Revoking a single App Attest key is **not implemented** (later lane).
+- Revoking a single App Attest key: maintainer CLI `revoke-key` (`OPERATIONS.md` "Revoke an App Attest key").
+  It needs no secret change.
 
 ### Cloudflare API token
 

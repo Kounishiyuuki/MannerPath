@@ -29,7 +29,7 @@ import {
   KEY_REGISTRATION_SCHEMA_VERSION, KeyRegistrationRequestV1, type Rejected, consumeReportChallenge, decode32,
   registerAppAttestKey, verifyReportAssertion,
 } from "./attest/protocol.ts";
-import { CHALLENGE_TTL_SECONDS, advanceCounterStatement, isCounterRace, issueChallenge, readKey } from "./attest/store.ts";
+import { CHALLENGE_TTL_SECONDS, advanceCounterStatement, isCounterRace, isKeyRevoked, issueChallenge, readKey } from "./attest/store.ts";
 import { ATTESTATION_STATUS_V1, type AttestationConfig, attestationConfig } from "./reports/attestation.ts";
 import { attestedSubmitter, createReport, submitterHash } from "./reports/create.ts";
 import {
@@ -335,11 +335,20 @@ export function createApp(options: AppOptions = {}) {
     const now = clock();
     if (request.purpose === "report") {
       if (decode32(request.keyId) === null) return problem(400, "invalidChallengeRequest", "keyId: invalid_format");
-      if ((await readKey(reports, request.keyId)) === null) {
+      const key = await readKey(reports, request.keyId);
+      if (key === null) {
         return rejected({ ok: false, reason: "keyNotRegistered", detail: "no registered App Attest key with this keyId" });
       }
+      if (key.revoked) return keyRevoked();
     }
-    const issued = await issueChallenge(reports, request.purpose === "report" ? { purpose: "report", keyId: request.keyId } : { purpose: "registration" }, now);
+    let issued;
+    try {
+      issued = await issueChallenge(reports, request.purpose === "report" ? { purpose: "report", keyId: request.keyId } : { purpose: "registration" }, now);
+    } catch (e) {
+      // A revocation that committed after the read above: migration 0005 refuses the challenge insert.
+      if (isKeyRevoked(e)) return keyRevoked();
+      throw e;
+    }
     if (issued === null) {
       return problem(429, "challengeLimited", "too many outstanding challenges", { "Retry-After": String(CHALLENGE_TTL_SECONDS) });
     }
@@ -445,6 +454,7 @@ export function createApp(options: AppOptions = {}) {
       return created({ schemaVersion: 2, ...accepted });
     } catch (error) {
       if (isCounterRace(error)) return rejected({ ok: false, reason: "counterNotIncreasing", detail: "counterNotIncreasing" });
+      if (isKeyRevoked(error)) return keyRevoked();
       if (error instanceof PhotoAttachmentError) return new Response(JSON.stringify({ error: error.code }), {
         status: error.status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
       });
@@ -575,6 +585,7 @@ export function createApp(options: AppOptions = {}) {
       // The whole batch rolled back, the counter advance included. A receipt race answers from the winner's receipt and
       // records this request's counter on its own (answerFromReceipt).
       if (isCounterRace(e)) return counterRace();
+      if (isKeyRevoked(e)) return keyRevoked();
       if (isReceiptConflict(e)) {
         const winner = await readReceipt(reports, digest);
         if (winner === null) throw e;
@@ -605,6 +616,7 @@ export function createApp(options: AppOptions = {}) {
       await reports.batch([advanceCounter()]);
     } catch (e) {
       if (isCounterRace(e)) return counterRace();
+      if (isKeyRevoked(e)) return keyRevoked();
       throw e;
     }
     return answer();
@@ -662,6 +674,8 @@ const budgetLimited = (retryAfterSeconds: number) =>
 const budgetExhausted = (now: Date) => budgetLimited(Math.max(1, 3600 - (Math.floor(now.getTime() / 1000) % 3600)));
 
 const counterRace = () => problem(403, "attestationRejected", "counterNotIncreasing", {}, { reason: "counterNotIncreasing" });
+/** A key the maintainer revoked (migration 0005): definite, nothing stored, no counter moved. */
+const keyRevoked = () => problem(403, "attestationRejected", "this App Attest key has been revoked", {}, { reason: "keyRevoked" });
 
 const prefixed = (prefix: string, detail: string) => detail.split("; ").map((d) => `${prefix}.${d}`).join("; ");
 

@@ -24,6 +24,8 @@ export const MAX_OUTSTANDING_REGISTRATION_CHALLENGES = 1000;
 export const MAX_OUTSTANDING_REPORT_CHALLENGES_PER_KEY = 3;
 
 export const COUNTER_RACE_MESSAGE = "app_attest_keys: sign_count must strictly increase";
+/** Raised by migration 0005 when a revoked key's counter would advance or a report challenge would be issued to it. */
+export const KEY_REVOKED_MESSAGE = "app_attest_keys: key revoked";
 
 export interface IssuedChallenge {
   challenge: string;
@@ -95,14 +97,18 @@ export interface RegisteredKey {
   publicKey: Uint8Array;
   environment: AppAttestEnvironment;
   signCount: number;
+  /** Revoked by the maintainer (migration 0005): the key can register nothing, obtain no challenge, and sign nothing. */
+  revoked: boolean;
 }
 
 export async function readKey(db: Db, keyId: string): Promise<RegisteredKey | null> {
   const row = await db.prepare(
-    "SELECT key_id, public_key, environment, sign_count FROM app_attest_keys WHERE key_id = ?",
-  ).bind(keyId).first<{ key_id: string; public_key: string; environment: AppAttestEnvironment; sign_count: number }>();
+    `SELECT key_id, public_key, environment, sign_count,
+            EXISTS (SELECT 1 FROM app_attest_key_revocations r WHERE r.key_id = k.key_id) AS revoked
+       FROM app_attest_keys k WHERE key_id = ?`,
+  ).bind(keyId).first<{ key_id: string; public_key: string; environment: AppAttestEnvironment; sign_count: number; revoked: number }>();
   if (row === null) return null;
-  return { keyId: row.key_id, publicKey: fromHex(row.public_key), environment: row.environment, signCount: row.sign_count };
+  return { keyId: row.key_id, publicKey: fromHex(row.public_key), environment: row.environment, signCount: row.sign_count, revoked: row.revoked === 1 };
 }
 
 /** Atomic per-deployment rolling-hour/day success budget. No new caller identifier.
@@ -138,6 +144,11 @@ export async function registerKey(
  */
 export function advanceCounterStatement(db: Db, keyId: string, counter: number) {
   return db.prepare("UPDATE app_attest_keys SET sign_count = ? WHERE key_id = ?").bind(counter, keyId);
+}
+
+/** A batch that aborted because its key was revoked after the request verified (the revocation committed first). */
+export function isKeyRevoked(e: unknown): boolean {
+  return e instanceof Error && e.message.includes(KEY_REVOKED_MESSAGE);
 }
 
 export function isCounterRace(e: unknown): boolean {

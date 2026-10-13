@@ -32,7 +32,7 @@ nonisolated enum ReportAPIError: Error, Equatable, Sendable {
 
 nonisolated struct AttestationRejection: Equatable, Sendable {
     enum Reason: String, Sendable {
-        case challengeInvalid, keyNotRegistered, attestationInvalid, assertionInvalid, counterNotIncreasing
+        case challengeInvalid, keyNotRegistered, keyRevoked, attestationInvalid, assertionInvalid, counterNotIncreasing
     }
 
     let reason: Reason

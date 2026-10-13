@@ -304,7 +304,9 @@ test("the budget triggers hold exactly REPORT_RATE_LIMITS", () => {
 });
 
 test("migration 0004: fresh and upgraded stores match, existing reports stay valid, and Wrangler splits it cleanly", () => {
-  const files = reportMigrationFiles();
+  // Checked against the stream as it stood at 0004; later migrations have their own tests.
+  const all = reportMigrationFiles();
+  const files = all.slice(0, all.indexOf("0004_report_idempotency.sql") + 1);
   assert.equal(files.at(-1), "0004_report_idempotency.sql");
   const sql = (f: string) => readFileSync(new URL(`../migrations-reports/${f}`, import.meta.url), "utf8");
   const fresh = new DatabaseSync(":memory:");

@@ -479,8 +479,9 @@ debited in a separate statement before the report was written.
   procedure that decides what remains to refuse the key (open decision, Issue #242; nothing deletes reports today).
 - Payloads with a repeated member name or a lone surrogate are refused before hashing, so one signed
   payload has one meaning; the hash never replaces the assertion over the exact bytes.
-- Revoking a single App Attest key is not implemented; when it is, revocation must fail the assertion
-  check, which already precedes every receipt lookup.
+- Revoking a single App Attest key (migration 0005, maintainer CLI only, permanent and append-only with a
+  closed reason code) fails the assertion check, which precedes every receipt lookup, refuses report
+  challenges, and blocks the key's counter in the database so a concurrent request aborts.
 - Wrangler mis-split a conditional expression inside a trigger in migration 0003
   (`services/api/REPORTS_MIGRATION_RECOVERY.md`); 0004's triggers use plain boolean conditions only,
   and `test/report-idempotency.test.ts` checks the client split. The 0003 recovery tool now accepts

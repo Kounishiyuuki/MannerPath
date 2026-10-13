@@ -21,6 +21,8 @@
 // REPORTS_DB — moderation:
 //   list [state] | decide <reportId> <state> <decidedBy> [reason] | queue <reportId> <queued|discarded>
 //   triage [state] [category,...] [flag] | triage-summary | evidence | corrections | duplicates | summary | retain
+// REPORTS_DB — App Attest keys (permanent, append-only; docs/OPERATIONS.md "Revoke an App Attest key"):
+//   revoke-key <keyId> <compromised|abuse|maintainerRequest> | revocations
 // REPORTS_DB — review (independence is judged here, where the submitter keys exist):
 //   candidates <withinMetres>
 //   propose <decidedBy> <locationReportId> <reportId> <reportId>...        # new spot, communityVerified
@@ -50,6 +52,7 @@ import {
 } from "../src/reports/moderation.ts";
 import { photoEvidenceStrength, moderateEvidencePhoto, PHOTO_DECISION_REASONS, type PhotoDecisionReason } from "../src/reports/photos.ts";
 import { applyReportRetention, runReportRetention } from "../src/reports/retention.ts";
+import { REVOCATION_REASONS, type RevocationReason, listRevocations, revokeKey } from "../src/attest/revocation.ts";
 import { type ModerationTarget, moderationTarget, targetBanner } from "../src/reports/moderation-target.ts";
 import {
   exportReview, listExistingSpotQueue, listNewSpotCandidates, listReviews, proposeAbsenceReview, proposeEffectReview,
@@ -108,6 +111,12 @@ try {
     if (reason !== undefined && !DECISION_REASONS.includes(reason as DecisionReason)) throw new Error(`reason must be one of: ${DECISION_REASONS.join(", ")}`);
     await recordModerationDecision(reports, reportId, { state: state as Exclude<ModerationState, "pending">, decidedBy, reason: reason as DecisionReason | undefined, now });
     json(await listModerationQueue(reports, { state: state as ModerationState }));
+  } else if (command === "revoke-key") {
+    const [keyId, reason] = args;
+    if (!keyId || !REVOCATION_REASONS.includes(reason as RevocationReason)) throw new Error(`usage: revoke-key <keyId> <${REVOCATION_REASONS.join("|")}>`);
+    json({ result: await revokeKey(reports, keyId, reason as RevocationReason, now), reason });
+  } else if (command === "revocations") {
+    json(await listRevocations(reports));
   } else if (command === "photo-summary") {
     if (!args[0]) throw new Error("usage: photo-summary <reportId>");
     json(await photoEvidenceStrength(reports,args[0]));

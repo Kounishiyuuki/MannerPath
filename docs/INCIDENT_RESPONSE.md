@@ -36,7 +36,8 @@ When unsure, use the higher severity.
 
 **Not available. Do not use or cite them as existing:**
 - a registration pause switch (e.g. `REPORT_REGISTRATION=paused`); no code reads such a value;
-- single App Attest key revocation and bulk reject by key (later lane);
+- bulk reject by key (later lane). Single App Attest key revocation exists: maintainer CLI
+  `revoke-key <keyId> <reason>` (`OPERATIONS.md` "Revoke an App Attest key"), after migration 0005;
 - the successful key-registration budget (later lane);
 - a Worker-side read rate limit (reads rely on the edge cache and the edge rule, ADR-0019);
 - WAF rate-limiting rules (account; availability unverified, `SECRETS_AND_ROTATION.md` C4).
