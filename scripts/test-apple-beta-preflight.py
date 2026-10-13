@@ -34,7 +34,8 @@ class PreflightTests(unittest.TestCase):
         for (label, identifier), path in zip(preflight.IDS.items(), self.paths):
             path.mkdir(parents=True)
             info = {"CFBundleIdentifier": identifier, "CFBundleVersion": "42",
-                    "CFBundleShortVersionString": "1.0", "CFBundleExecutable": "Binary"}
+                    "CFBundleShortVersionString": "1.0", "CFBundleExecutable": "Binary",
+                    "CFBundleDisplayName": "MannerPath"}
             (path / "Binary").write_bytes(b"release binary")
             if label == "iPhone app":
                 info["MannerPathAPIBaseURL"] = preflight.PRODUCTION_API
@@ -132,6 +133,22 @@ class PreflightTests(unittest.TestCase):
         info_path.write_bytes(plistlib.dumps(info))
         with self.assertRaisesRegex(ValueError, "CFBundleVersion does not match"):
             self.check()
+
+    def test_missing_display_name_fails_in_every_bundle(self):
+        for path in self.paths:
+            for bad in (None, "", "  "):
+                info_path = path / "Info.plist"
+                original = info_path.read_bytes()
+                info = plistlib.loads(original)
+                if bad is None:
+                    del info["CFBundleDisplayName"]
+                else:
+                    info["CFBundleDisplayName"] = bad
+                info_path.write_bytes(plistlib.dumps(info))
+                with self.assertRaisesRegex(ValueError, "CFBundleDisplayName missing"):
+                    self.check()
+                info_path.write_bytes(original)
+        self.check()
 
     def edit_info(self, path, **changes):
         info_path = path / "Info.plist"

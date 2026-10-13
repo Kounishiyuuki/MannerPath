@@ -314,6 +314,10 @@ def inspect(path, unsigned, wrapper_release=False):
             fail(f"{label}: CFBundleIdentifier {actual!r}; expected {IDS[label]!r}")
         if not info.get("CFBundleVersion") or not info.get("CFBundleShortVersionString"):
             fail(f"{label}: version/build missing")
+        # App Store Connect refuses an upload whose extensions lack it ("Missing Info.plist value").
+        display = info.get("CFBundleDisplayName")
+        if not isinstance(display, str) or not display.strip():
+            fail(f"{label}: CFBundleDisplayName missing; App Store Connect requires it in every bundle")
         if label in ("iPhone app", "Watch app"):
             privacy = plist(bundle / "PrivacyInfo.xcprivacy")
             if not isinstance(privacy, dict):
