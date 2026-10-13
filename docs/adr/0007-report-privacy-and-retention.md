@@ -477,6 +477,7 @@ debited in a separate statement before the report was written.
 - §4's "full erase (deleting the row) for a deletion request" is not implemented, and for a report
   with a receipt it is now refused by the foreign key. Erasing such a report needs a reviewed
   procedure that decides what remains to refuse the key (open decision, Issue #242; nothing deletes reports today).
+  The proposed design and the decisions it still needs are in ADR-0021 (Proposed, not accepted).
 - Payloads with a repeated member name or a lone surrogate are refused before hashing, so one signed
   payload has one meaning; the hash never replaces the assertion over the exact bytes.
 - Revoking a single App Attest key (migration 0005, maintainer CLI only, permanent and append-only with a
