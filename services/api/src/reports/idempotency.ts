@@ -2,19 +2,25 @@
 // report draft and sends it, signed, inside the v3 payload. A retry of the same draft carries the same key with a
 // fresh challenge and assertion; the server answers with the report the first attempt created instead of a second one.
 //
-// What is stored is a digest of the key alone. It is global on purpose: a 256-bit random key does not collide, and
-// scoping it by App Attest key, submitter hash or installId would tie it to a device and would change when the
-// pepper or the App Attest key changes, turning a retry into a duplicate.
+// What is stored is a digest of the key bound to its owner: the App Attest key whose verified assertion carried it.
+// Holding an idempotency key is not ownership. Another App Attest key presenting the same idempotency key (copied,
+// guessed, chosen by an attacker or shared between devices) derives a different digest, finds no receipt and is
+// treated as its own new draft, so it learns nothing about the owner's report, not even that a receipt exists. The
+// owner is the App Attest keyId, not the peppered submitter hash, so a pepper rotation keeps every retry a retry. A
+// new App Attest key (re-registration, another device) is a new owner: no receipt carries over (docs/API.md).
 
 import { type Db, type DbStatement, sha256Hex } from "../db.ts";
 import { type ReportPayloadV3, quantizeCoordinate } from "./dto.ts";
 
-export const IDEMPOTENCY_DOMAIN = "mannerpath.report-idempotency.v1\n";
+export const IDEMPOTENCY_DOMAIN = "mannerpath.report-idempotency.v2\n";
 export const REQUEST_DOMAIN = "mannerpath.report-request.v1\n";
 
-/** The stored identifier of a client idempotency key: the raw key never reaches the database. */
-export function idempotencyDigest(idempotencyKey: string): Promise<string> {
-  return sha256Hex(IDEMPOTENCY_DOMAIN + idempotencyKey);
+/**
+ * The stored identifier of one owner's idempotency key: the raw key never reaches the database. keyId is canonical
+ * 44-character base64 (no newline) and the key 64 lowercase hex, so the framing is unambiguous.
+ */
+export function idempotencyDigest(keyId: string, idempotencyKey: string): Promise<string> {
+  return sha256Hex(`${IDEMPOTENCY_DOMAIN}${keyId}\n${idempotencyKey}`);
 }
 
 /**
@@ -37,15 +43,20 @@ export function canonicalJson(value: unknown): string {
 }
 
 /**
- * The report's meaning as the server stores it: every validated field except the idempotency key, with the same
- * normalization the write applies (the proposed pin quantized, the installId lower-cased as the abuse key reads it).
+ * Canonicalization "report-request.v1" (docs/API.md "Request hash"): the report's meaning as the server stores it.
+ * - Every validated field is included (schemaVersion, type, spotId, proposedLocation, observedOn, note,
+ *   acceptedTermsVersion as the consent, claim) except two: the idempotency key, which names the draft, and
+ *   installId, which an attested report never stores (its submitter is the App Attest key).
+ * - proposedLocation is quantized exactly as the write stores it, so two pins the store cannot tell apart hash alike.
+ * - Strings are hashed as sent, code point for code point: no Unicode normalization, because none is stored.
+ * - Numbers use JSON.stringify's shortest round-trip form, so -0 and 0 are one value.
+ * Changing any rule here changes stored receipts' meaning: it needs a new REQUEST_DOMAIN, never an edit.
  * Challenge, assertion, envelope and arrival time are not part of the payload, so they never reach this hash.
  */
 export function normalizedReport(report: ReportPayloadV3): Record<string, unknown> {
-  const { idempotencyKey: _key, ...fields } = report;
+  const { idempotencyKey: _key, installId: _install, ...fields } = report;
   return {
     ...fields,
-    installId: fields.installId.toLowerCase(),
     proposedLocation: fields.proposedLocation === undefined ? undefined : {
       latitude: quantizeCoordinate(fields.proposedLocation.latitude),
       longitude: quantizeCoordinate(fields.proposedLocation.longitude),
@@ -56,6 +67,40 @@ export function normalizedReport(report: ReportPayloadV3): Record<string, unknow
 export function requestSha256(report: ReportPayloadV3): Promise<string> {
   return sha256Hex(REQUEST_DOMAIN + canonicalJson(normalizedReport(report)));
 }
+
+/**
+ * A payload whose bytes and parsed value could mean two things: a repeated object member (JSON.parse keeps the last,
+ * another parser may keep the first) or a lone UTF-16 surrogate escape, which no UTF-8 store can hold. Both are
+ * refused before the hash, so one signed payload has exactly one meaning. `text` must already be valid JSON.
+ */
+export function ambiguousPayload(text: string): "duplicate_key" | "ill_formed_unicode" | null {
+  if (illFormed(JSON.parse(text))) return "ill_formed_unicode";
+  const objects: (Set<string> | null)[] = [];
+  let expectKey = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      let end = i + 1;
+      while (text[end] !== '"') end += text[end] === "\\" ? 2 : 1;
+      const members = objects.at(-1);
+      if (expectKey && members) {
+        const key = JSON.parse(text.slice(i, end + 1)) as string;
+        if (members.has(key)) return "duplicate_key";
+        members.add(key);
+      }
+      expectKey = false;
+      i = end;
+    } else if (c === "{") { objects.push(new Set()); expectKey = true; }
+    else if (c === "[") objects.push(null);
+    else if (c === "}" || c === "]") objects.pop();
+    else if (c === ",") expectKey = objects.at(-1) instanceof Set;
+  }
+  return null;
+}
+
+const illFormed = (value: unknown): boolean => typeof value === "string"
+  ? /\p{Cs}/u.test(value)
+  : typeof value === "object" && value !== null && Object.entries(value).some(([k, v]) => illFormed(k) || illFormed(v));
 
 export interface Receipt {
   reportId: string;

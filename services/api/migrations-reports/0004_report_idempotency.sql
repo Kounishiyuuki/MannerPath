@@ -1,9 +1,10 @@
 -- Report idempotency receipts and the hard report budget (ADR-0007 §5, docs/API.md "POST /reports").
 --
 -- A receipt records that one logical submission (one client draft) produced one report. Its key is a digest of the
--- client's 256-bit random idempotency key; the raw key is never stored, and neither an App Attest key, a submitter
--- hash nor an installId takes part in it, so a pepper rotation or a new App Attest key cannot turn a retry into a
--- second report, and the receipt adds no device linkage. request_sha256 is the canonical hash of the validated
+-- client's 256-bit random idempotency key bound to the App Attest keyId that submitted it (src/reports/idempotency.ts):
+-- only that key's owner ever finds the receipt, the raw key is never stored, and the digest reveals neither key
+-- without the other. No peppered submitter hash takes part, so a pepper rotation cannot turn a retry into a second
+-- report. request_sha256 is the canonical hash of the validated
 -- report; retention clears it together with the report's personal content (retired_at), after which the receipt only
 -- refuses the key. A receipt is never deleted, and its report cannot be deleted while it exists.
 

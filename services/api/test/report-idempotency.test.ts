@@ -11,9 +11,10 @@ import { base64Decode, base64Encode, sha256, utf8 } from "../src/attest/bytes.ts
 import type { Db } from "../src/db.ts";
 import { minimizeAfter } from "../src/reports/create.ts";
 import { ReportPayloadV3 } from "../src/reports/dto.ts";
-import { canonicalJson, idempotencyDigest, requestSha256 } from "../src/reports/idempotency.ts";
+import { ambiguousPayload, canonicalJson, idempotencyDigest, requestSha256 } from "../src/reports/idempotency.ts";
 import { REPORT_RATE_LIMITS } from "../src/reports/rate-limit.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
+import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { type TestDevice, type TestPki, assert as makeAssertion, attest, testDevice, testPki } from "./support/app-attest-fixture.ts";
 import { SqliteD1, applyMigration, reportMigrationFiles, reportsD1 } from "./support/sqlite-d1.ts";
 
@@ -57,8 +58,9 @@ interface Harness { db: SqliteD1; gate: Gate; pki: TestPki; clock: { now: Date }
 async function harness(): Promise<Harness> {
   const db = reportsD1();
   const gate = new Gate(db);
-  const pki = await testPki();
+  // A fixed clock, so budget windows never straddle an hour; the test PKI and attestations are issued for it too.
   const clock = { now: new Date("2026-10-13T03:00:00Z") };
+  const pki = await testPki(clock.now);
   const app = createApp({ appAttestTrustAnchor: pki.root, now: () => clock.now });
   const post = (path: string, body: unknown, env: Record<string, string> = ENV) => app.request(path,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
@@ -76,7 +78,7 @@ async function registered(h: Harness): Promise<TestDevice> {
   const device = await testDevice();
   const ch = await challenge(h, { purpose: "registration" });
   const cdh = await sha256(registrationClientData(base64Decode(ch)!, device.keyId));
-  const attestationObject = await attest(device, cdh, { appId: APP_ID, pki: h.pki });
+  const attestationObject = await attest(device, cdh, { appId: APP_ID, pki: h.pki, now: h.clock.now });
   const res = await h.post("/v1/app-attest/keys", { schemaVersion: 1, keyId: device.keyIdBase64, challenge: ch, attestationObject: base64Encode(attestationObject) });
   assert.equal(res.status, 201);
   return device;
@@ -86,10 +88,10 @@ const draft = (idempotencyKey: string, extra: Record<string, unknown> = {}) =>
   ({ schemaVersion: 3, type: "exists", spotId: SPOT, installId: INSTALL, idempotencyKey, ...extra });
 
 /** One attempt: a fresh challenge and a fresh assertion over the exact payload bytes. */
-async function attempt(h: Harness, device: TestDevice, payload: Record<string, unknown> | string) {
-  const bytes = utf8(typeof payload === "string" ? payload : JSON.stringify(payload));
+async function attempt(h: Harness, device: TestDevice, payload: Record<string, unknown> | string | Uint8Array, opts: { counter?: number; signWith?: CryptoKey } = {}) {
+  const bytes = payload instanceof Uint8Array ? payload : utf8(typeof payload === "string" ? payload : JSON.stringify(payload));
   const ch = await challenge(h, { purpose: "report", keyId: device.keyIdBase64 });
-  const assertion = await makeAssertion(device, await sha256(reportClientData(base64Decode(ch)!, device.keyId, bytes)), { appId: APP_ID });
+  const assertion = await makeAssertion(device, await sha256(reportClientData(base64Decode(ch)!, device.keyId, bytes)), { appId: APP_ID, ...opts });
   return { body: { schemaVersion: 3, payload: base64Encode(bytes), attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) } }, counter: device.counter };
 }
 
@@ -135,10 +137,10 @@ test("G: the first attempt's challenge and assertion are never accepted again", 
 test("H/I: the request hash is the validated meaning, independent of property order; one changed field is a 409", async () => {
   const key = newKey();
   const a = ReportPayloadV3.parse(draft(key, { observedOn: "2026-10-12", note: "灰皿あり" }));
-  const b = ReportPayloadV3.parse(JSON.parse(`{"note":"灰皿あり","observedOn":"2026-10-12","installId":"${INSTALL.toUpperCase()}","idempotencyKey":"${key}","spotId":"${SPOT}","type":"exists","schemaVersion":3}`));
+  const b = ReportPayloadV3.parse(JSON.parse(`{"note":"灰皿あり","observedOn":"2026-10-12","installId":"${INSTALL.toUpperCase().replace("8F1C", "0000")}","idempotencyKey":"${key}","spotId":"${SPOT}","type":"exists","schemaVersion":3}`));
   assert.equal(await requestSha256(a as any), await requestSha256(b as any));
   assert.equal(canonicalJson({ b: 1, a: { d: [2, { y: 1, x: 0 }], c: "é" } }), '{"a":{"c":"é","d":[2,{"x":0,"y":1}]},"b":1}');
-  // The key itself is not part of the meaning, every other field is.
+  // The key and the installId (never stored for an attested report) are not part of the meaning, every other field is.
   assert.equal(await requestSha256({ ...a, idempotencyKey: newKey() } as any), await requestSha256(a as any));
   assert.notEqual(await requestSha256({ ...a, note: "灰皿なし" } as any), await requestSha256(a as any));
 
@@ -193,12 +195,14 @@ test("E: the same key with different content racing at commit: one report, the o
   assert.equal(signCount(h.db), other.counter);
 });
 
-test("A/B: a failing report or moderation insert rolls back the receipt, the debit and the counter", async () => {
-  for (const table of ["reports", "report_moderation"]) {
+test("A/B: any failing write of the report batch rolls back the report, receipt, moderation, debits and counter", async () => {
+  const writes = [["INSERT", "reports"], ["INSERT", "report_moderation"], ["INSERT", "report_idempotency"],
+    ["INSERT", "report_rate_windows"], ["UPDATE", "app_attest_keys"], ["INSERT", "report_terms_documents"]];
+  for (const [op, table] of writes) {
     const h = await harness();
     const device = await registered(h);
-    h.db.raw.exec(`CREATE TRIGGER inject BEFORE INSERT ON ${table} BEGIN SELECT RAISE(ABORT, 'injected failure'); END`);
-    const res = await send(h, await attempt(h, device, draft(newKey())));
+    h.db.raw.exec(`CREATE TRIGGER inject BEFORE ${op} ON ${table} BEGIN SELECT RAISE(ABORT, 'injected failure'); END`);
+    const res = await send(h, await attempt(h, device, draft(newKey(), { acceptedTermsVersion: CURRENT_REPORT_TERMS.version })));
     assert.deepEqual([res.status, res.json.error], [503, "reportStoreUnavailable"], table);
     assert.match(h.gate.aborts.join("\n"), /injected failure/, table);
     assert.deepEqual([reports(h.db), receipts(h.db), moderation(h.db), debited(h.db), signCount(h.db)], [0, 0, 0, 0, 0], table);
@@ -273,12 +277,14 @@ test("a pepper rotation does not turn a retry into a second report", async () =>
 
 test("receipts store a domain-separated digest, are immutable but for one retirement, and are never deleted", async () => {
   const key = "a".repeat(64);
-  assert.equal(await idempotencyDigest(key), Buffer.from(await sha256(utf8(`mannerpath.report-idempotency.v1\n${key}`))).toString("hex"));
   const h = await harness();
   const device = await registered(h);
+  assert.equal(await idempotencyDigest(device.keyIdBase64, key),
+    Buffer.from(await sha256(utf8(`mannerpath.report-idempotency.v2\n${device.keyIdBase64}\n${key}`))).toString("hex"));
   const first = await send(h, await attempt(h, device, draft(key)));
   const raw = h.db.raw;
-  assert.equal(JSON.stringify(raw.prepare("SELECT * FROM report_idempotency").all()).includes(key), false);
+  const stored = JSON.stringify(raw.prepare("SELECT * FROM report_idempotency").all());
+  assert.equal(stored.includes(key) || stored.includes(device.keyIdBase64), false, "neither the raw key nor the keyId is stored");
   assert.throws(() => raw.exec(`UPDATE report_idempotency SET request_sha256 = '${"0".repeat(64)}'`), /one retirement/);
   assert.throws(() => raw.exec("DELETE FROM report_idempotency"), /never deleted/);
   assert.throws(() => raw.prepare("DELETE FROM reports WHERE report_id = ?").run(first.json.reportId), /FOREIGN KEY/);
@@ -327,4 +333,135 @@ test("migration 0004: fresh and upgraded stores match, existing reports stay val
     for (const s of statements) split.exec(s);
     assert.deepEqual(schema(split), schema(fresh));
   });
+});
+
+test("P0: an idempotency key is bound to its App Attest key; another key holding it learns nothing and gets its own draft", async () => {
+  const h = await harness();
+  const owner = await registered(h);
+  const attacker = await registered(h);
+  const key = newKey();
+  const mine = await send(h, await attempt(h, owner, draft(key, { note: "owner" })));
+  assert.equal(mine.status, 201);
+  // The same key with the same content, and with different content: neither a 200 with the owner's reportId nor a
+  // 409/410 that would confirm the key is in use. Both are the attacker's own new reports, budgeted as such.
+  const other = await send(h, await attempt(h, attacker, draft(key, { note: "attacker" })));
+  const copier = await registered(h);
+  const same = await send(h, await attempt(h, copier, draft(key, { note: "owner" })));
+  for (const r of [other, same]) {
+    assert.equal(r.status, 201);
+    assert.notEqual(r.json.reportId, mine.json.reportId);
+  }
+  // The owner's retry is unaffected.
+  const retry = await send(h, await attempt(h, owner, draft(key, { note: "owner" })));
+  assert.deepEqual([retry.status, retry.json.reportId], [200, mine.json.reportId]);
+  assert.deepEqual([reports(h.db), receipts(h.db)], [3, 3]);
+});
+
+test("P0: a new App Attest key (re-registration or another device) is a new owner; no receipt carries over", async () => {
+  const h = await harness();
+  const before = await registered(h);
+  const key = newKey();
+  const first = await send(h, await attempt(h, before, draft(key)));
+  const after = await registered(h);
+  const moved = await send(h, await attempt(h, after, draft(key)));
+  assert.equal(moved.status, 201);
+  assert.notEqual(moved.json.reportId, first.json.reportId);
+});
+
+test("P0: receipts are reached only after a verified assertion: forged, stale and unregistered keys learn nothing", async () => {
+  const h = await harness();
+  const owner = await registered(h);
+  const key = newKey();
+  const first = await send(h, await attempt(h, owner, draft(key)));
+  const stale = await attempt(h, owner, draft(key), { counter: owner.counter });
+  const outsider = await testDevice();
+  const forged = await attempt(h, owner, draft(key), { signWith: outsider.keys.privateKey });
+  for (const [label, a, reason] of [["forged", forged, "assertionInvalid"], ["stale counter", stale, "counterNotIncreasing"]] as const) {
+    const res = await send(h, a);
+    assert.deepEqual([res.status, res.json.reason], [403, reason], label);
+    assert.equal(JSON.stringify(res.json).includes(first.json.reportId), false, label);
+  }
+  // A key that was never registered (or is no longer) cannot even obtain a report challenge.
+  const unknown = await h.post("/v1/app-attest/challenges", { schemaVersion: 1, purpose: "report", keyId: outsider.keyIdBase64 });
+  assert.equal(unknown.status, 403);
+  assert.deepEqual([reports(h.db), receipts(h.db)], [1, 1]);
+});
+
+test("canonicalization report-request.v1 is pinned: a fixed report hashes to a fixed value", async () => {
+  const fixed = ReportPayloadV3.parse({ schemaVersion: 3, idempotencyKey: "0".repeat(64), type: "exists", spotId: SPOT, installId: INSTALL,
+    observedOn: "2026-10-12", note: "灰皿 é", acceptedTermsVersion: CURRENT_REPORT_TERMS.version });
+  assert.equal(canonicalJson(Object.fromEntries(Object.entries({ ...fixed, idempotencyKey: undefined, installId: undefined }))),
+    `{"acceptedTermsVersion":"${CURRENT_REPORT_TERMS.version}","note":"灰皿 é","observedOn":"2026-10-12","schemaVersion":3,"spotId":"${SPOT}","type":"exists"}`);
+  assert.equal(await requestSha256({ ...fixed, acceptedTermsVersion: "2026-10-01" } as any), GOLDEN);
+});
+// Computed independently: sha256("mannerpath.report-request.v1\n" + the canonical JSON above with acceptedTermsVersion "2026-10-01").
+const GOLDEN = "6c1b04d1d7552ad6ddeda50bacf7a47909f3174e4c436cff16b474fe0fe4c274";
+
+test("canonical meaning: quantization, -0, Unicode normalization and consent", async () => {
+  const pin = (latitude: number, longitude: number) => ReportPayloadV3.parse({ schemaVersion: 3, idempotencyKey: "0".repeat(64), type: "missing",
+    installId: INSTALL, proposedLocation: { latitude, longitude } }) as any;
+  // Pins the store quantizes to one value hash alike; -0 is 0; a pin the store can tell apart does not.
+  assert.equal(await requestSha256(pin(35.123454, 139.0000001)), await requestSha256(pin(35.1234549, 139)));
+  assert.equal(await requestSha256(pin(-0.000001, -0)), await requestSha256(pin(0, 0)));
+  assert.notEqual(await requestSha256(pin(35.12345, 139)), await requestSha256(pin(35.12346, 139)));
+  // Strings are stored as sent, so NFC and NFD are different meanings (a different key would be a different draft).
+  const note = (text: string) => ReportPayloadV3.parse(draft("0".repeat(64), { note: text })) as any;
+  assert.notEqual(await requestSha256(note("é".normalize("NFC"))), await requestSha256(note("é".normalize("NFD"))));
+  // Consent is part of the meaning.
+  assert.notEqual(await requestSha256(note("x")), await requestSha256({ ...note("x"), acceptedTermsVersion: CURRENT_REPORT_TERMS.version }));
+});
+
+test("ambiguous payload bytes are refused before any hash or receipt: duplicate members, lone surrogates, invalid UTF-8", async () => {
+  assert.equal(ambiguousPayload('{"a":1,"b":{"a":2},"c":[{"a":1},{"a":2}]}'), null);
+  assert.equal(ambiguousPayload('{"a":"\\"a\\":1,","b":["a","a"]}'), null);
+  assert.equal(ambiguousPayload('{"a":1,"a":1}'), "duplicate_key");
+  assert.equal(ambiguousPayload('{"a":1,"\\u0061":2}'), "duplicate_key");
+  assert.equal(ambiguousPayload('{"x":[{"k":1,"k":2}]}'), "duplicate_key");
+  assert.equal(ambiguousPayload('{"note":"\\ud800"}'), "ill_formed_unicode");
+  assert.equal(ambiguousPayload('{"note":"\\ud83d\\ude00"}'), null);
+
+  const h = await harness();
+  const device = await registered(h);
+  const key = newKey();
+  const body = JSON.stringify(draft(key));
+  const cases: [string, string | Uint8Array, string][] = [
+    ["duplicate note", body.replace("{", '{"note":"a",').replace(/}$/, ',"note":"b"}'), "payload: duplicate_key"],
+    ["duplicate idempotencyKey", body.replace(/}$/, `,"idempotencyKey":"${newKey()}"}`), "payload: duplicate_key"],
+    ["lone surrogate", body.replace(/}$/, ',"note":"\\udc00"}'), "payload: ill_formed_unicode"],
+    ["invalid UTF-8", new Uint8Array([...utf8(body.slice(0, -1)), ...utf8(',"note":"'), 0xc3, 0x28, ...utf8('"}')]), "payload: invalid_json"],
+  ];
+  for (const [label, payload, detail] of cases) {
+    const res = await send(h, await attempt(h, device, payload));
+    assert.deepEqual([res.status, res.json.error, res.json.detail], [400, "invalidReport", detail], label);
+  }
+  assert.deepEqual([reports(h.db), receipts(h.db)], [0, 0]);
+});
+
+test("the assertion covers the exact bytes: a canonically equal re-serialization under the original assertion is refused", async () => {
+  const h = await harness();
+  const device = await registered(h);
+  const key = newKey();
+  const sent = await attempt(h, device, draft(key, { note: "n" }));
+  const reordered = `{"note":"n","installId":"${INSTALL}","idempotencyKey":"${key}","spotId":"${SPOT}","type":"exists","schemaVersion":3}`;
+  const swapped = { ...sent.body, payload: base64Encode(utf8(reordered)) };
+  const res = await send(h, { body: swapped });
+  assert.deepEqual([res.status, res.json.reason], [403, "assertionInvalid"]);
+  assert.deepEqual([reports(h.db), receipts(h.db)], [0, 0]);
+});
+
+test("a retry racing retention answers 200 or 410 and never revives the report", async () => {
+  for (let round = 0; round < 2; round++) {
+    const h = await harness();
+    const device = await registered(h);
+    const key = newKey();
+    const first = await send(h, await attempt(h, device, draft(key, { note: "personal" })));
+    h.clock.now = new Date(minimizeAfter(h.clock.now).getTime() + 1000);
+    const retry = await attempt(h, device, draft(key, { note: "personal" }));
+    const [res] = await Promise.all([send(h, retry), applyReportRetention(h.db, { now: h.clock.now })]);
+    assert.ok(res.status === 410 || (res.status === 200 && res.json.reportId === first.json.reportId), JSON.stringify(res));
+    assert.deepEqual([reports(h.db), receipts(h.db)], [1, 1]);
+    assert.equal(n(h.db, "SELECT count(*) AS n FROM reports WHERE note IS NOT NULL"), 0, "the content stays redacted");
+    const after = await send(h, await attempt(h, device, draft(key, { note: "personal" })));
+    assert.equal(after.status, 410);
+  }
 });

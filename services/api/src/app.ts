@@ -38,7 +38,7 @@ import {
 } from "./reports/dto.ts";
 import { checkReportBudget, isBudgetExhausted, reportBudgetDebits } from "./reports/rate-limit.ts";
 import {
-  idempotencyDigest, isReceiptConflict, readReceipt, receiptOutcome, receiptStatement, requestSha256, type Receipt,
+  ambiguousPayload, idempotencyDigest, isReceiptConflict, readReceipt, receiptOutcome, receiptStatement, requestSha256, type Receipt,
 } from "./reports/idempotency.ts";
 import { CURRENT_REPORT_TERMS } from "./reports/terms.ts";
 import { PHOTO_PAYLOAD_MAX_BYTES, PHOTO_SUBMISSION_MAX_BYTES, PhotoPayloadV2, PhotoSubmissionV2 } from "./reports/photo-dto.ts";
@@ -504,11 +504,15 @@ export function createApp(options: AppOptions = {}) {
     if (payload === null) return problem(400, "invalidReport", "payload: invalid_base64");
     if (payload.length > REPORT_BODY_MAX_BYTES) return problem(413, "reportTooLarge", `payload must be at most ${REPORT_BODY_MAX_BYTES} bytes`);
     let decoded: unknown;
+    let text: string;
     try {
-      decoded = JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(payload));
+      text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(payload);
+      decoded = JSON.parse(text);
     } catch {
       return problem(400, "invalidReport", "payload: invalid_json");
     }
+    const ambiguous = ambiguousPayload(text);
+    if (ambiguous !== null) return problem(400, "invalidReport", `payload: ${ambiguous}`);
     const parsed = ReportPayloadV3.safeParse(decoded);
     if (!parsed.success) return problem(400, "invalidReport", prefixed("payload", validationDetail(parsed.error)));
     const report = parsed.data as ReportPayloadV3;
@@ -522,9 +526,10 @@ export function createApp(options: AppOptions = {}) {
     // nothing" (ADR-0007 §5): its challenge is already spent, so the assertion cannot be replayed either way.
     const advanceCounter = () => advanceCounterStatement(reports, material.keyId, verified.counter);
 
-    // 4. A known idempotency key answers from its receipt and writes only the counter. The receipt lookup is a fast
-    // path; correctness comes from the receipt's primary key inside the report batch below.
-    const digest = await idempotencyDigest(report.idempotencyKey);
+    // 4. A known idempotency key answers from its receipt and writes only the counter. The digest binds the key to
+    // this verified App Attest key, so only its owner ever reaches a receipt; any other key starts a new draft. The
+    // receipt lookup is a fast path; correctness comes from the receipt's primary key inside the report batch below.
+    const digest = await idempotencyDigest(material.keyId, report.idempotencyKey);
     const sha256 = await requestSha256(report);
     const known = await readReceipt(reports, digest);
     if (known !== null) return answerFromReceipt(reports, known, sha256, advanceCounter);
