@@ -13,6 +13,10 @@ enum NearbyDataState: Equatable {
 
 enum RouteDataState: Equatable {
     case idle, loading, ready, unavailable
+    /// Beyond `RouteDetourRanker.maximumWalkingDetourDistanceMeters`: straight-line only by design, not a failure.
+    case destinationTooFar
+    /// No saved place near the destination to route through; the list's empty state explains why.
+    case noPlaces
 }
 
 enum NearbyArea {
@@ -422,9 +426,16 @@ final class NearbyModel {
         invalidateRoutes()
         guard let destination, let origin = displayLocation?.coordinate,
               resultsArea?.coordinate == destination.coordinate,
-              displayLocation?.isLastKnown == false,
-              RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination.coordinate),
-              let walkingRouter, !results.isEmpty else { return }
+              displayLocation?.isLastKnown == false else { return }
+        guard RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination.coordinate) else {
+            routeState = .destinationTooFar
+            return
+        }
+        guard !results.isEmpty else {
+            routeState = .noPlaces
+            return
+        }
+        guard let walkingRouter else { return }
         let currentGeneration = routeGeneration
         let candidates = RouteDetourRanker.candidates(results, from: origin, to: destination.coordinate)
         let key = RouteRequestKey(

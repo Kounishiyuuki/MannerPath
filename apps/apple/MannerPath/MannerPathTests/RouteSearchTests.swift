@@ -258,7 +258,7 @@ struct RouteSearchTests {
         location.send(.usable(deviceLocation(SpotCoordinate(latitude: 37.323, longitude: -122.032))))
         try await Task.sleep(for: .milliseconds(350))
         #expect(router.requests.count == before)
-        #expect(model.routeState == .unavailable)
+        #expect(model.routeState == .destinationTooFar)
         #expect(model.results.map(\.spot.id) == ["saved"])
         #expect(model.routeResults.first?.detourSeconds == nil)
         #expect(RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination))
@@ -321,6 +321,48 @@ struct RouteSearchTests {
 
     private func place(_ coordinate: SpotCoordinate) -> PlaceDestination {
         PlaceDestination(id: UUID(), name: "Destination", coordinate: coordinate)
+    }
+
+    @Test func destinationWithoutSavedPlacesIsNotReportedAsRoutingFailure() async throws {
+        let router = ImmediateRouter()
+        let model = try makeModel(spots: [], router: router)
+        model.selectDestination(place(destination))
+        #expect(await waitUntil { model.routeState == .noPlaces })
+        #expect(router.requests.isEmpty)
+    }
+
+    @Test func distantDestinationIsTooFarRatherThanUnavailable() async throws {
+        let router = ImmediateRouter()
+        let model = try makeModel(spots: [spot("saved", offset: 0.001)], router: router)
+        model.selectDestination(place(SpotCoordinate(latitude: 36.5613, longitude: 136.6562)))
+        #expect(await waitUntil { model.routeState == .destinationTooFar })
+        #expect(router.requests.isEmpty)
+    }
+
+    @Test func nationwideExactMatchLeadsBeforeNearbyResults() {
+        let kanazawa = SpotCoordinate(latitude: 36.578, longitude: 136.648)
+        let nearby = [
+            PlaceDestination(id: UUID(), name: "金沢駅", coordinate: kanazawa),
+            PlaceDestination(id: UUID(), name: "上野本町", coordinate: SpotCoordinate(latitude: 36.55, longitude: 136.66))
+        ]
+        let ueno = PlaceDestination(id: UUID(), name: "上野駅", coordinate: SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
+        let merged = DestinationResultMerger.merge(query: "上野駅", nearby: nearby, nationwide: [ueno])
+        #expect(merged.map(\.name) == ["上野駅", "金沢駅", "上野本町"])
+    }
+
+    @Test func nearbyResultsLeadAndUnrelatedNationwideResultsAreDropped() {
+        let shop = SpotCoordinate(latitude: 36.578, longitude: 136.648)
+        let near = PlaceDestination(id: UUID(), name: "コンビニ 金沢店", coordinate: shop)
+        let sameFar = PlaceDestination(id: UUID(), name: "コンビニ 金沢店",
+                                       coordinate: SpotCoordinate(latitude: 36.5785, longitude: 136.6483))
+        let tokyo = PlaceDestination(id: UUID(), name: "コンビニ 上野店", coordinate: SpotCoordinate(latitude: 35.71, longitude: 139.77))
+        let osaka = PlaceDestination(id: UUID(), name: "セブンイレブン 大阪道頓堀", coordinate: SpotCoordinate(latitude: 34.67, longitude: 135.5))
+        let merged = DestinationResultMerger.merge(query: "コンビニ", nearby: [near], nationwide: [sameFar, osaka, tokyo])
+        #expect(merged.map(\.id) == [near.id, tokyo.id])
+        let many = (0..<10).map { PlaceDestination(id: UUID(), name: "place \($0)",
+                                                   coordinate: SpotCoordinate(latitude: 35 + Double($0), longitude: 139)) }
+        #expect(DestinationResultMerger.merge(query: "place", nearby: many, nationwide: []).count
+                == DestinationResultMerger.maximumResults)
     }
 
     private func deviceLocation(_ coordinate: SpotCoordinate) -> DeviceLocation {

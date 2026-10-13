@@ -500,6 +500,10 @@ struct ContentView: View {
                 case .unavailable:
                     Label { Text(verbatim: model.routeUnavailableDescription) }
                     icon: { Image(systemName: "wifi.exclamationmark") }
+                case .destinationTooFar:
+                    Label("This destination is too far from your location for walking detours. Showing straight-line distance and bearing.",
+                          systemImage: "ruler")
+                case .noPlaces: EmptyView()
                 }
             }
             if model.results.isEmpty {
