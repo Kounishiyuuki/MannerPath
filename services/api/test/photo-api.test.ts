@@ -1,3 +1,4 @@
+import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { encode } from "fast-png";
@@ -12,7 +13,7 @@ import { assert as makeAssertion, attest, testDevice, testPki } from "./support/
 import { reportsD1, SqliteD1 } from "./support/sqlite-d1.ts";
 
 const APP_ID = "ABCDE12345.com.example.mannerpath";
-const ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID,
+const ENV = { ...REGISTRATION_TEST_ENV, REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID,
   REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
 
 async function harness(covered = true) {

@@ -1,3 +1,4 @@
+import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
 // Report idempotency (schema v3, migration 0004) and the atomic report budget: retries, conflicts, retirement,
 // concurrency and failure injection against the real report-store migrations (docs/API.md "POST /reports").
 import { test } from "node:test";
@@ -20,7 +21,7 @@ import { SqliteD1, applyMigration, reportMigrationFiles, reportsD1 } from "./sup
 
 type Row = Record<string, any>;
 const APP_ID = "ABCDE12345.com.example.mannerpath";
-const ENV = { REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
+const ENV = { ...REGISTRATION_TEST_ENV, REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID, REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41,42", REPORT_SUBMITTER_PEPPER: "x".repeat(32) };
 const INSTALL = "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f";
 const SPOT = "sp_01V64NN31G72E5KJJ5W22W1A1J";
 

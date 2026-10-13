@@ -1,3 +1,4 @@
+import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { app, REQUEST_URL_MAX_BYTES } from "../src/app.ts";
@@ -11,7 +12,7 @@ const tripwire = (): Db => ({
   prepare() { assert.fail("request must be rejected before database access"); },
   async batch() { assert.fail("request must be rejected before database access"); },
 });
-const attested = {
+const attested = { ...REGISTRATION_TEST_ENV,
   REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: "ABCDE12345.com.example.mannerpath",
   REPORT_APP_ATTEST_ENVIRONMENT: "production", REPORT_APP_ATTEST_BUNDLE_VERSIONS: "41",
   REPORT_SUBMITTER_PEPPER: "x".repeat(32),
