@@ -286,7 +286,7 @@ struct RouteSearchTests {
         location.send(.usable(deviceLocation(SpotCoordinate(latitude: 37.323, longitude: -122.032))))
         try await Task.sleep(for: .milliseconds(350))
         #expect(router.requests.count == before)
-        #expect(model.routeState == .unavailable)
+        #expect(model.routeState == .destinationTooFar)
         #expect(model.results.map(\.spot.id) == ["saved"])
         #expect(model.routeResults.first?.detourSeconds == nil)
         #expect(RouteDetourRanker.canRequestWalkingDetours(from: origin, to: destination))
@@ -349,6 +349,22 @@ struct RouteSearchTests {
 
     private func place(_ coordinate: SpotCoordinate) -> PlaceDestination {
         PlaceDestination(id: UUID(), name: "Destination", coordinate: coordinate)
+    }
+
+    @Test func destinationWithoutSavedPlacesIsNotReportedAsRoutingFailure() async throws {
+        let router = ImmediateRouter()
+        let model = try makeModel(spots: [], router: router)
+        model.selectDestination(place(destination))
+        #expect(await waitUntil { model.routeState == .noPlaces })
+        #expect(router.requests.isEmpty)
+    }
+
+    @Test func distantDestinationIsTooFarRatherThanUnavailable() async throws {
+        let router = ImmediateRouter()
+        let model = try makeModel(spots: [spot("saved", offset: 0.001)], router: router)
+        model.selectDestination(place(SpotCoordinate(latitude: 36.5613, longitude: 136.6562)))
+        #expect(await waitUntil { model.routeState == .destinationTooFar })
+        #expect(router.requests.isEmpty)
     }
 
     private func deviceLocation(_ coordinate: SpotCoordinate) -> DeviceLocation {

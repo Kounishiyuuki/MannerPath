@@ -2753,6 +2753,16 @@
         }
       }
     },
+    "This destination is too far from your location for walking detours. Showing straight-line distance and bearing.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地が現在地から遠いため、徒歩の寄り道は計算しません。直線距離と方角で表示します。"
+          }
+        }
+      }
+    },
     "This device could not be registered for secure reporting. Try again later.": {
       "localizations": {
         "ja": {
