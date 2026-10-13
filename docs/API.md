@@ -570,6 +570,7 @@ no counter moved.**
 | `keyNotRegistered` | the server holds no such key | generate a new key and register it |
 | `assertionInvalid` | signature, App ID, environment, launch category, bundle version or encoding failed (`detail`) | `detail: bundleVersion` — this build is not accepted by the deployment: the user must update the app. Otherwise treat the key as unusable: generate and register a new one |
 | `counterNotIncreasing` | a newer assertion from this key was already accepted | fetch a new challenge, sign again (submit one report at a time per key) |
+| `keyRevoked` | the maintainer revoked this key (permanent) | discard the key; the next explicit submit generates and registers a new one |
 
 Any other failure — a timeout, a dropped connection, a `5xx` — is **transport-ambiguous**; see
 "Ambiguous delivery".
@@ -587,9 +588,13 @@ State per (App Attest key, `idempotencyKey`), after the assertion verifies:
 | retired | refused | counter only | `410` |
 
 A `429` leaves the counter where it was (ADR-0007 §5 "writes nothing"); its challenge is consumed, so its
-assertion can never be replayed. A store failure (`503`) rolls the whole transaction back. Revoking a
-single App Attest key is not implemented yet; once it is, a revoked key fails assertion verification and
-so never reaches a receipt.
+assertion can never be replayed. A store failure (`503`) rolls the whole transaction back. A key the
+maintainer revoked (report-store migration 0005, maintainer CLI only) is refused `403 keyRevoked` at
+every boundary: no report challenge is issued to it, an assertion from it fails before any signature work
+or receipt lookup (a retry of its own earlier draft included), and a revocation that commits while a
+request is between verification and commit aborts that request's whole transaction (the counter cannot
+advance for a revoked key). Its keyId stays registered, so it can never be registered again; its stored
+reports, moderation and receipts are unchanged.
 
 ### iPhone schemaVersion 3 client
 
