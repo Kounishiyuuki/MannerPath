@@ -190,7 +190,8 @@ test("revocation affects only its key: another key keeps submitting, and refusal
 });
 
 test("migration 0005: forward-only, fresh and upgraded stores match, existing keys and reports stay valid, Wrangler splits it", () => {
-  const files = reportMigrationFiles();
+  const all = reportMigrationFiles();
+  const files = all.slice(0, all.indexOf("0005_app_attest_key_revocation.sql") + 1);
   assert.equal(files.at(-1), "0005_app_attest_key_revocation.sql");
   const sql = (f: string) => readFileSync(new URL(`../migrations-reports/${f}`, import.meta.url), "utf8");
   const text = sql(files.at(-1)!);
@@ -218,7 +219,7 @@ test("migration 0005: forward-only, fresh and upgraded stores match, existing ke
 });
 
 test("a Worker deployed before migration 0005 fails closed: key lookups answer 503, nothing is accepted", async () => {
-  const files = reportMigrationFiles().slice(0, -1);
+  const files = reportMigrationFiles().filter((f) => f < "0005_");
   const raw = new DatabaseSync(":memory:");
   raw.exec("PRAGMA foreign_keys = ON;");
   for (const f of files) applyMigration(raw, readFileSync(new URL(`../migrations-reports/${f}`, import.meta.url), "utf8"));
