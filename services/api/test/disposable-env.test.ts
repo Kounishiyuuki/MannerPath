@@ -12,10 +12,11 @@ import { disposableConfig, parseJsonc } from "../scripts/disposable-env.ts";
 
 const committed = parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
 const ID = "0123abcd-0123-4abc-8def-0123456789ab";
-const make = (over: Partial<{ suffix: string; databaseId: string }> = {}) =>
-  disposableConfig(committed, { suffix: "p21", databaseId: ID, apiDir: "/repo/services/api", ...over });
+const REPORTS_ID = "4567abcd-0123-4abc-8def-0123456789ab";
+const make = (over: Partial<{ suffix: string; databaseId: string; reportsDatabaseId: string }> = {}) =>
+  disposableConfig(committed, { suffix: "p21", databaseId: ID, reportsDatabaseId: REPORTS_ID, apiDir: "/repo/services/api", ...over });
 
-test("the disposable config holds one Worker and one D1 binding, with no env block to fall back to", () => {
+test("the disposable config holds one Worker and its own DB and REPORTS_DB, with no env block to fall back to", () => {
   const config = make();
   assert.equal("env" in config, false);
   assert.equal(config.name, "mannerpath-api-e2e-p21");
@@ -24,18 +25,30 @@ test("the disposable config holds one Worker and one D1 binding, with no env blo
     database_name: "mannerpath-e2e-p21",
     database_id: ID,
     migrations_dir: "/repo/services/api/migrations",
+  }, {
+    binding: "REPORTS_DB",
+    database_name: "mannerpath-e2e-p21-reports",
+    database_id: REPORTS_ID,
+    migrations_dir: "/repo/services/api/migrations-reports",
   }]);
   assert.equal(config.main, "/repo/services/api/src/index.ts");
 });
 
 test("it refuses anything that could resolve a committed database or Worker", () => {
   const committedIds = [committed, ...Object.values(committed.env)].flatMap((e: any) => e.d1_databases.map((d: any) => d.database_id));
-  for (const id of committedIds) assert.throws(() => make({ databaseId: id }), /database-id/);
+  for (const id of committedIds) {
+    assert.throws(() => make({ databaseId: id }), /database-id/);
+    assert.throws(() => make({ reportsDatabaseId: id }), /reports-database-id/);
+  }
+  assert.throws(() => make({ reportsDatabaseId: ID }), /distinct from --database-id/, "the report store never shares the canonical database");
   const withRealStaging = structuredClone(committed);
   withRealStaging.env.staging.d1_databases[0].database_id = ID;
-  assert.throws(() => disposableConfig(withRealStaging, { suffix: "p21", databaseId: ID, apiDir: "/x" }), /committed in wrangler.jsonc/);
+  assert.throws(() => disposableConfig(withRealStaging, { suffix: "p21", databaseId: ID, reportsDatabaseId: REPORTS_ID, apiDir: "/x" }), /committed in wrangler.jsonc/);
   for (const bad of ["", "ab", "Staging", "p21;rm", "-p21", "a".repeat(33)]) assert.throws(() => make({ suffix: bad }), /--suffix/);
-  for (const bad of ["", "not-a-uuid", ID.toUpperCase()]) assert.throws(() => make({ databaseId: bad }), /--database-id/);
+  for (const bad of ["", "not-a-uuid", ID.toUpperCase()]) {
+    assert.throws(() => make({ databaseId: bad }), /--database-id/);
+    assert.throws(() => make({ reportsDatabaseId: bad }), /--reports-database-id/);
+  }
 });
 
 test("reports fail closed until the three App Attest values are set, then speak App Attest", () => {
@@ -63,5 +76,5 @@ test("invocation logs stay off, and a committed config that enabled them is refu
   assert.equal(make().observability.logs.invocation_logs, false);
   const leaky = structuredClone(committed);
   leaky.observability.logs.invocation_logs = true;
-  assert.throws(() => disposableConfig(leaky, { suffix: "p21", databaseId: ID, apiDir: "/x" }), /invocation_logs/);
+  assert.throws(() => disposableConfig(leaky, { suffix: "p21", databaseId: ID, reportsDatabaseId: REPORTS_ID, apiDir: "/x" }), /invocation_logs/);
 });
