@@ -803,10 +803,11 @@ decided by four values; the committed environments carry only the first.
   `503 attestationUnavailable` and `/v1/config` reports `reports.available: false`. The smoke check
   treats that as a pass. `test/deploy-config.test.ts` fails if any of them appears in the
   committed configuration.
-- **Once all three are set**, the deployment speaks report schemaVersion 2 only: `/v1/config` advertises
-  `reports.attestation: "appAttest"` and `report` version 2, schema-1 reports are refused with
+- **Once all three are set**, the deployment speaks report schemaVersion 3 only: `/v1/config` advertises
+  `reports.attestation: "appAttest"` and `report` version 3; schema-1 and schema-2 reports are refused with
   `400 reportSchemaUnsupported`, and a report is stored only after its assertion verified
-  (`attestation_status = 'verified'`). A device that reports a build not in
+  (`attestation_status = 'verified'`). The iPhone client still speaks schema 2; its schema-3
+  change is a separate prerequisite before report activation (`docs/API.md`). A device that reports a build not in
   `REPORT_APP_ATTEST_BUNDLE_VERSIONS` is refused with `detail: bundleVersion`, so add a new build's
   `CFBundleVersion` before it reaches testers. Before setting them on any long-lived remote environment, confirm #35 on a
   physical device (the blue/green carry-over is settled: reports, keys and rate limits live in REPORTS_DB, ADR-0014). The one exception

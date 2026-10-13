@@ -61,7 +61,7 @@ export interface Env extends RegistrationBindings {
   REPORTS_DB?: Db;
   /**
    * "disabled" or unset (the documented local/test default): report schema 1, unattested.
-   * "required": report schema 2 only, App Attest verified — and only when the three bindings below are
+   * "required": report schema 3 only, App Attest verified — and only when the three bindings below are
    * valid too. Any other value is a misconfiguration and fails closed with 503, so a typo can never
    * silently disable attestation (ADR-0007 §6).
    */
@@ -378,7 +378,7 @@ export function createApp(options: AppOptions = {}) {
   // POST /v1/reports: a user verification/correction report (ADR-0007). The report is stored as an
   // immutable proposal with a pending moderation state; it never mutates canonical spot data, and no
   // part of the payload is logged. Error details carry JSON paths and issue codes, never values.
-  // A deployment accepts exactly one request version: 1 where attestation is disabled, 2 (App Attest
+  // A deployment accepts exactly one request version: 1 where attestation is disabled, 3 (App Attest
   // verified) where it is required.
   app.post("/v1/reports", (c) => withReportStore(c.env, (reports) => report(c.req.raw, c.env, reports)));
 
