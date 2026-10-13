@@ -1,20 +1,22 @@
 // Disposable remote environment for App Attest E2E (Issue #55, docs/OPERATIONS.md "Disposable E2E
 // environment").
 //
-// Writes a Wrangler configuration for ONE throwaway Worker bound to ONE throwaway D1 database, into
-// the git-ignored `.wrangler/e2e/` directory. The generated file has no `env` block at all, so every
-// command run with `--config <that file>` can resolve the `DB` binding only to the disposable
-// database: there is no staging or production binding in it to fall back to. The committed
+// Writes a Wrangler configuration for ONE throwaway Worker bound to two throwaway D1 databases (canonical `DB` and
+// the report store `REPORTS_DB`, ADR-0014), into the git-ignored `.wrangler/e2e/` directory. The generated file has
+// no `env` block at all, so every command run with `--config <that file>` can resolve either binding only to its
+// disposable database: there is no staging or production binding in it to fall back to. The committed
 // `wrangler.jsonc` is read, never written, and keeps its placeholder IDs.
 //
 // It makes no network call and runs no wrangler command; it prints the commands the maintainer runs.
 //
-//   npm run e2e:config -- --suffix p21 --database-id <uuid from `wrangler d1 create mannerpath-e2e-p21`>
+//   npm run e2e:config -- --suffix p21 --database-id <uuid from `wrangler d1 create mannerpath-e2e-p21`> \
+//     --reports-database-id <uuid from `wrangler d1 create mannerpath-e2e-p21-reports`>
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const E2E_WORKER_PREFIX = "mannerpath-api-e2e-";
 export const E2E_DATABASE_PREFIX = "mannerpath-e2e-";
+export const E2E_REPORTS_DATABASE_SUFFIX = "-reports";
 const SUFFIX = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const PLACEHOLDER_DATABASE_ID = "00000000-0000-0000-0000-000000000000";
@@ -43,22 +45,26 @@ export function parseJsonc(src: string): any {
  * Builds the disposable configuration from the committed one. Throws, naming the input, whenever
  * the result could reach a committed (normal staging/production) Worker or database.
  */
-export function disposableConfig(committed: any, input: { suffix: string; databaseId: string; apiDir: string }) {
+export function disposableConfig(committed: any, input: { suffix: string; databaseId: string; reportsDatabaseId: string; apiDir: string }) {
   if (!SUFFIX.test(input.suffix)) {
     throw new Error(`--suffix must be 3-32 chars of a-z, 0-9 and inner '-', got ${JSON.stringify(input.suffix)}`);
   }
   if (!UUID.test(input.databaseId) || input.databaseId === PLACEHOLDER_DATABASE_ID) {
     throw new Error(`--database-id must be the UUID printed by \`wrangler d1 create ${E2E_DATABASE_PREFIX}${input.suffix}\`, got ${JSON.stringify(input.databaseId)}`);
   }
+  if (!UUID.test(input.reportsDatabaseId) || input.reportsDatabaseId === input.databaseId) {
+    throw new Error(`--reports-database-id must be the UUID printed by \`wrangler d1 create ${E2E_DATABASE_PREFIX}${input.suffix}${E2E_REPORTS_DATABASE_SUFFIX}\`, distinct from --database-id, got ${JSON.stringify(input.reportsDatabaseId)}`);
+  }
   const environments = [committed, ...Object.values(committed.env ?? {})] as any[];
   const committedIds = new Set(environments.flatMap((e) => (e.d1_databases ?? []).map((d: any) => d.database_id)));
   const committedNames = new Set(environments.flatMap((e) => [e.name, ...(e.d1_databases ?? []).map((d: any) => d.database_name)]));
-  if (committedIds.has(input.databaseId)) {
-    throw new Error(`--database-id ${input.databaseId} is a database committed in wrangler.jsonc; the E2E environment needs its own fresh database`);
+  for (const [flag, id] of [["--database-id", input.databaseId], ["--reports-database-id", input.reportsDatabaseId]]) {
+    if (committedIds.has(id)) throw new Error(`${flag} ${id} is a database committed in wrangler.jsonc; the E2E environment needs its own fresh database`);
   }
   const name = `${E2E_WORKER_PREFIX}${input.suffix}`;
   const databaseName = `${E2E_DATABASE_PREFIX}${input.suffix}`;
-  for (const n of [name, databaseName]) {
+  const reportsDatabaseName = `${databaseName}${E2E_REPORTS_DATABASE_SUFFIX}`;
+  for (const n of [name, databaseName, reportsDatabaseName]) {
     if (committedNames.has(n)) throw new Error(`${n} collides with a committed Worker or database name`);
   }
   // Privacy settings are copied, not re-derived, so the disposable Worker cannot drift from them.
@@ -78,16 +84,22 @@ export function disposableConfig(committed: any, input: { suffix: string; databa
       database_name: databaseName,
       database_id: input.databaseId,
       migrations_dir: `${input.apiDir}/migrations`,
+    }, {
+      binding: "REPORTS_DB",
+      database_name: reportsDatabaseName,
+      database_id: input.reportsDatabaseId,
+      migrations_dir: `${input.apiDir}/migrations-reports`,
     }],
   };
 }
 
 function parseArgs(argv: string[]) {
-  const args = { suffix: "", databaseId: "" };
+  const args = { suffix: "", databaseId: "", reportsDatabaseId: "" };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--suffix") args.suffix = argv[++i] ?? "";
     else if (argv[i] === "--database-id") args.databaseId = argv[++i] ?? "";
-    else throw new Error(`unknown argument: ${argv[i]}. Usage: disposable-env.ts --suffix <s> --database-id <uuid>`);
+    else if (argv[i] === "--reports-database-id") args.reportsDatabaseId = argv[++i] ?? "";
+    else throw new Error(`unknown argument: ${argv[i]}. Usage: disposable-env.ts --suffix <s> --database-id <uuid> --reports-database-id <uuid>`);
   }
   return args;
 }
@@ -102,9 +114,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(out, `${JSON.stringify(config, null, 2)}\n`);
   const cfg = `.wrangler/e2e/${args.suffix}.json`;
-  console.log(`wrote ${cfg}: Worker ${config.name}, D1 ${config.d1_databases[0].database_name}, REPORT_ATTESTATION=required`);
+  console.log(`wrote ${cfg}: Worker ${config.name}, D1 ${config.d1_databases.map((d) => d.database_name).join(" + ")}, REPORT_ATTESTATION=required`);
   console.log(`Every remote command below uses --config ${cfg} and never --env (docs/OPERATIONS.md):`);
   console.log(`  npx wrangler d1 migrations apply DB --config ${cfg} --remote`);
+  console.log(`  REPORTS_DB: a fresh remote store cannot take 0003 through \`migrations apply\` (docs/STAGING_VERIFICATION.md)`);
   console.log(`  npx wrangler d1 execute DB --config ${cfg} --remote --file promotion.sql`);
   console.log(`  npx wrangler deploy --config ${cfg}`);
   console.log(`  npx wrangler secret put REPORT_SUBMITTER_PEPPER --config ${cfg}`);
