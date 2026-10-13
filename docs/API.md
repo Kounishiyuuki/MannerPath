@@ -353,8 +353,10 @@ separate reconciliation step (ADR-0006, ADR-0007 §2). The response therefore ne
 anything but `pending`.
 
 **A deployment accepts exactly one report schema version**, published by `/v1/config`:
-schemaVersion 1 (unattested) where `reports.attestation` is `"none"`, schemaVersion 2 (App Attest)
-where it is `"appAttest"`. The other version is refused with `400 reportSchemaUnsupported` before
+schemaVersion 1 (unattested) where `reports.attestation` is `"none"`, schemaVersion 3 (App Attest,
+idempotent) where it is `"appAttest"`. schemaVersion 2 (App Attest without an idempotency key) is no
+longer accepted anywhere; production report intake has never been enabled, so no shipped client
+depends on it. The other version is refused with `400 reportSchemaUnsupported` before
 any other check, so a client can tell "wrong protocol" from "bad report" (ADR-0007 §6).
 
 ### schemaVersion 1 (implemented, Issue #29)
@@ -393,7 +395,7 @@ server responses, while the report body is the server's minimization boundary.)
 - `installId`: required, a client-generated UUID that is stable per install and per app only. It
   is used solely to derive a hashed abuse key and is never stored, returned or logged. Do not send
   IDFV, IDFA, a DeviceCheck value or any other system identifier. On an App Attest deployment
-  (schemaVersion 2) the abuse key is derived from the verified App Attest key instead, so changing
+  (schemaVersion 3) the abuse key is derived from the verified App Attest key instead, so changing
   `installId` neither resets the rate limit nor makes a second "independent" submitter (Issue #150).
 - `claim`: optional, **only for `missing`** (rejected for every other type), and only where `/v1/config`
   `reports.newSpotClaims` is `true` (ADR-0012). What the reporter states about the new place:
@@ -420,11 +422,11 @@ server responses, while the report body is the server's minimization boundary.)
   client before sending (Issue #124). When present it must equal `reports.termsVersion` from
   `/v1/config`; any other version is refused with `409 termsVersionOutdated` and nothing is stored. A
   report without it is stored without consent: it can be moderated and reconciled, but it is never a
-  basis for publishing community data, and consent is never added to it later. In schemaVersion 2 it
+  basis for publishing community data, and consent is never added to it later. In schemaVersion 3 it
   is part of the signed `payload`, so the App Attest assertion covers it; the envelope itself does not
   accept it.
 - `attestation`: **not accepted in schemaVersion 1**, which is the unattested version: sending
-  attestation material is a `400 invalidReport`. Attested reports use schemaVersion 2 below.
+  attestation material is a `400 invalidReport`. Attested reports use schemaVersion 3 below.
 - Nothing else is accepted: no account, no email, no device position, no position sequence, no
   client-supplied timestamp finer than a day.
 
@@ -465,18 +467,19 @@ it. See ADR-0007 §4.
 Moderation is not reconciliation: an accepted report may be `queued` or `discarded`, and the
 `applied` state is unreachable until the reconciliation step exists (ADR-0007 §2).
 
-### schemaVersion 2 — attested (implemented, Issue #37)
+### schemaVersion 3 — attested and idempotent (implemented; v2 retired)
 
 Accepted only where `/v1/config` says `reports.attestation: "appAttest"`. The report fields are
-exactly schemaVersion 1's, with `"schemaVersion": 2`; they travel as **exact bytes** inside an
-envelope that also carries the App Attest assertion over those bytes. Implementation:
-`services/api/src/attest/`, `services/api/src/reports/dto.ts` (`ReportSubmissionV2`,
-`ReportPayloadV2`), migration `0007_app_attest.sql`.
+exactly schemaVersion 1's, with `"schemaVersion": 3` and one more required field, `idempotencyKey`;
+they travel as **exact bytes** inside an envelope that also carries the App Attest assertion over
+those bytes. Implementation: `services/api/src/attest/`, `services/api/src/reports/dto.ts`
+(`ReportSubmissionV3`, `ReportPayloadV3`), `services/api/src/reports/idempotency.ts`, report-store
+migration `0004_report_idempotency.sql`.
 
 ```json
 {
-  "schemaVersion": 2,
-  "payload": "eyJzY2hlbWFWZXJzaW9uIjoyLCJ0eXBlIjoiZXhpc3RzIiwic3BvdElkIjoic3BfMDFWNjROTjMxRzcyRTVLSko1VzIyVzFBMUoiLCJpbnN0YWxsSWQiOiI4ZjFjNGQyZS0wYTNiLTRjNWQtOGU5Zi0wYTFiMmMzZDRlNWYifQ==",
+  "schemaVersion": 3,
+  "payload": "eyJzY2hlbWFWZXJzaW9uIjozLC…",
   "attestation": {
     "keyId": "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0=",
     "challenge": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
@@ -486,24 +489,54 @@ envelope that also carries the App Attest assertion over those bytes. Implementa
 ```
 
 - `payload`: standard padded base64 of the UTF-8 JSON bytes of the report (a schemaVersion 1 body
-  with `"schemaVersion": 2`, same strict rules). At most `reports.maxBodyBytes` (4096) bytes once
-  decoded. The server verifies the assertion over **these bytes** and then parses them; it never
-  re-serializes JSON, so the client may encode however it likes but must sign what it sends.
+  with `"schemaVersion": 3` plus `idempotencyKey`, same strict rules). At most `reports.maxBodyBytes`
+  (4096) bytes once decoded. The server verifies the assertion over **these bytes** and then parses
+  them; it never re-serializes JSON, so the client may encode however it likes but must sign what it
+  sends.
+- `idempotencyKey` (inside `payload`, so the assertion signs it): 32 CSPRNG bytes as 64 lowercase hex
+  characters (`^[0-9a-f]{64}$`). One key per report **draft**: generated when the draft is created,
+  kept for every retry of that draft, discarded after the draft is accepted. Never reuse it for
+  another draft, and never derive it from, or store it as, an install, device or user identifier.
 - `attestation.keyId`: the registered App Attest key ID (base64, 32 bytes), as `DCAppAttestService`
   returns it.
-- `attestation.challenge`: a `report` challenge issued to that key (see below).
+- `attestation.challenge`: a `report` challenge issued to that key (see below). **Every attempt,
+  retries included, uses a new challenge and a new assertion**; a used challenge is never accepted again.
 - `attestation.assertion`: the `generateAssertion` output, base64, over the report `clientDataHash`
   defined in "App Attest client data".
 - The whole envelope is at most `reports.maxSubmissionBytes` (8192) bytes. All base64 is standard,
   padded and canonical; anything else is `400 invalidReport`.
 
-Response (`201`): `{ "schemaVersion": 2, "reportId": "rp_…", "state": "pending", "receivedAt": "…" }`.
-The report is stored with `attestation_status = 'verified'` and no reference to the key.
+Responses:
+
+| Case | Status | Body |
+|---|---|---|
+| New report | `201` | `{ "schemaVersion": 3, "reportId": "rp_…", "state": "pending", "receivedAt": "…" }` |
+| Retry of a draft already stored: same key, same report | `200` | the same body as that report's `201` (same `reportId` and `receivedAt`; `state` describes the submission, never later moderation) |
+| Same key, a different report | `409` | `{"error":"idempotencyConflict",…}` — nothing stored, no budget used |
+| Same key after that report passed retention (90 days) | `410` | `{"error":"idempotencyRetired",…}` — its content can no longer be compared; nothing stored |
+
+The report is stored with `attestation_status = 'verified'` and no reference to the key. The server
+keeps a **receipt** per accepted draft: `SHA-256("mannerpath.report-idempotency.v1\n" ‖ idempotencyKey)`
+(never the key itself, the App Attest key, the submitter hash or the installId), the `reportId`, and
+`requestSha256 = SHA-256("mannerpath.report-request.v1\n" ‖ canonicalJSON(report))`, where `report`
+is the validated payload without `idempotencyKey`, with the pin quantized and `installId` lower-cased
+as stored, and canonical JSON sorts object keys at every level with no whitespace. Key order,
+whitespace and coordinate digits beyond the stored precision therefore do not make a "different"
+report. Retention clears `requestSha256` together with the report's personal content and keeps the
+receipt, which is never deleted. A receipt does not depend on the pepper or the App Attest key, so
+rotating either never turns a retry into a second report.
 
 Order of checks (each ends the request): envelope shape (`400`) → **challenge consumed** (`403
 challengeInvalid`) → payload bytes and report schema (`400`/`413`) → key and assertion (`403`) →
-rate limit (`429`) → counter advance and report insert in one transaction (`201`, or `403
-counterNotIncreasing` if a concurrent request won). Every `403` carries
+**receipt**: a known key answers `200`/`409`/`410` after recording this assertion's counter → terms
+version (`409 termsVersionOutdated`) → rate limit (`429`) → one transaction: counter advance, report,
+moderation row, receipt and both budget debits (`201`, or `403 counterNotIncreasing` if a concurrent
+request won). Nothing about an earlier submission is disclosed before the assertion verifies. Two
+attempts of one draft that race each other store one report: the loser's transaction aborts on the
+receipt, its counter is recorded on its own, and it answers from the winner's receipt. The budget
+(10 per hour, 50 per day per App Attest key) is enforced inside that transaction by a trigger, so
+concurrent reports cannot exceed it; a retry, a conflict and a retired key use no budget, and a
+`429` writes nothing (the counter included). Every `403` carries
 `{"error":"attestationRejected","reason":…,"detail":…}` and is **definite: no report was stored and
 no counter moved.**
 
@@ -517,6 +550,23 @@ no counter moved.**
 Any other failure — a timeout, a dropped connection, a `5xx` — is **transport-ambiguous**; see
 "Ambiguous delivery".
 
+### iPhone client changes required for schemaVersion 3 (not yet implemented)
+
+The iPhone app still sends schemaVersion 2, so against a schemaVersion 3 deployment `/v1/config`
+reports a version it does not speak and reporting stays off (`400 reportSchemaUnsupported` if sent).
+Production intake is disabled, so nothing shipped is affected. The client change, in its own PR:
+
+- `ReportDraft` gains `idempotencyKey`: 32 bytes from `SecRandomCopyBytes`, lowercase hex, generated
+  when the draft is created and saved with it in the Application Support draft file (never
+  `UserDefaults`, never the keychain item of the App Attest key, never derived from `installId`).
+- `ReportRequest.encoded` writes `"schemaVersion": 3` and the draft's key into the signed payload.
+- An ambiguous or recovered submission (`.ambiguous`, `recoveredSubmissionAttempt`) may be retried
+  with the same draft and key and a new challenge and assertion; `200` is success with the original
+  `reportId`; `409` keeps the draft and says it no longer matches what was sent; `410` drops the
+  draft as already handled.
+- Accepted-draft cleanup deletes the key with the draft. Watch and widget targets send no report.
+- Verify against `contracts/app-attest/client-data-vectors.v1.json` (the `report v3` cases).
+
 ## App Attest (implemented, Issue #37)
 
 Reachable only where `reports.attestation` is `"appAttest"`; elsewhere every endpoint here answers
@@ -525,7 +575,7 @@ Reachable only where `reports.attestation` is `"appAttest"`; elsewhere every end
 1. Once per key: `generateKey` → `POST /app-attest/challenges {purpose:"registration"}` →
    `attestKey(keyId, registration clientDataHash)` → `POST /app-attest/keys`.
 2. Per report: `POST /app-attest/challenges {purpose:"report", keyId}` → build the payload bytes →
-   `generateAssertion(keyId, report clientDataHash)` → `POST /reports` (schemaVersion 2).
+   `generateAssertion(keyId, report clientDataHash)` → `POST /reports` (schemaVersion 3).
 
 The App Attest key ID and the report `installId` are different identifiers and are never derived
 from each other.
@@ -600,17 +650,20 @@ clientDataHash          = SHA-256(clientData)      — passed to attestKey / gen
   `{"schemaVersion":2,"type":"exists","spotId":"sp_01V64NN31G72E5KJJ5W22W1A1J","installId":"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f"}`
   give `clientDataHash` `7ac2808aefe7c61d09d8486d9ea0ec308aa1abe7cff7f86dd3c8cd88fbcb2805`; the same
   report with its first two keys swapped gives `67a40c23…a44235` — different bytes, different hash.
+  These schemaVersion 2 cases remain valid **framing** vectors; the `report v3` cases add a payload
+  with `idempotencyKey`, the current request shape.
 
 ### Ambiguous delivery
 
 A verified assertion does not prove the client received the response. When the final `POST
 /reports` times out or its response is lost, the server is still consistent: either nothing was
-committed, or the report is stored **and** its challenge consumed **and** the key's counter
-advanced — all in one transaction. Resending the identical request is then refused
-(`challengeInvalid`) and can never store a second copy, but that refusal says nothing about the
-first request. The client therefore keeps treating the original as possibly accepted and offers an
-explicit, duplicate-aware retry (a new challenge, a new assertion); it never retries a report
-automatically (#30, #46).
+committed, or the report, its receipt and its budget debit are stored **and** its challenge consumed
+**and** the key's counter advanced — all in one transaction. Resending the identical request is
+refused (`challengeInvalid`): a challenge is never reused. With schemaVersion 3 the client resolves
+the ambiguity by retrying the **same draft**: same `idempotencyKey` and report, a new challenge and
+a new assertion. The answer is `201` (the first attempt stored nothing) or `200` with the first
+attempt's `reportId`; neither stores a second report or uses budget twice. Retries stay explicit,
+one at a time per key (#30, #46).
 
 ## GET `/config`
 
@@ -639,7 +692,7 @@ Implementation: `services/api/src/app.ts`. Zod schema and constants:
 ```
 
 On a deployment that requires App Attest, the report entries read
-`"schemaVersions": {…, "report": 2}`, `"minimumSupportedSchemaVersions": {…, "report": 2}` and
+`"schemaVersions": {…, "report": 3}`, `"minimumSupportedSchemaVersions": {…, "report": 3}` and
 `"reports": { "available": true, "attestation": "appAttest", "maxBodyBytes": 4096, "maxSubmissionBytes": 8192, "noteMaxLength": 280, "termsVersion": "report-terms.2026-09-30.draft", "newSpotClaims": true, "existingSpotFindings": true }`.
 
 - `schemaVersion`: the schema version of *this* body.
@@ -670,12 +723,12 @@ On a deployment that requires App Attest, the report entries read
   walking the user into a guaranteed failure. The configured values themselves (policy, App ID,
   environment, accepted bundle versions) are never exposed.
 - `reports.attestation`: the report protocol — `"none"` (schemaVersion 1, no attestation) or
-  `"appAttest"` (schemaVersion 2 with App Attest registration, challenge and assertion). For
+  `"appAttest"` (schemaVersion 3 with App Attest registration, challenge and assertion). For
   `report`, `schemaVersions` and `minimumSupportedSchemaVersions` are always equal: a deployment
   accepts one version. A client that cannot produce the advertised protocol (an old binary, or a
   device without App Attest) must present reporting as unavailable, never fall back to the other.
 - `reports.maxBodyBytes` / `reports.noteMaxLength`: the report limits the endpoint enforces — the
-  schemaVersion 1 body, or the decoded schemaVersion 2 `payload` — so a client can validate before
+  schemaVersion 1 body, or the decoded schemaVersion 3 `payload` — so a client can validate before
   submitting. `reports.maxSubmissionBytes`: the whole request body limit (equal to `maxBodyBytes`
   for schemaVersion 1, the envelope limit for 2). They are the same constants `POST /reports` uses.
 - `reports.termsVersion`: the report terms version (`services/api/src/reports/terms.ts`, document
