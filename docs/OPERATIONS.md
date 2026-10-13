@@ -136,6 +136,9 @@ npx wrangler d1 migrations apply REPORTS_DB --env staging --remote
 npx wrangler d1 migrations list REPORTS_DB --env staging --remote
 ```
 
+A fresh remote report store cannot take 0003 through `migrations apply` yet; follow the order and blockers in
+`STAGING_VERIFICATION.md` before running the REPORTS_DB lines.
+
 `DB` (canonical, replaceable) and `REPORTS_DB` (reports, moderation, App Attest, rate limits; durable) never share a
 database or a migration stream; `test/deploy-config.test.ts` enforces it.
 
@@ -857,16 +860,16 @@ decided by four values; the committed environments carry only the first.
 
 #35 P21/P23 need a remote deployment with the App Attest values set, and step 6 forbids setting them
 on a long-lived staging/production database until the blue/green report/key carry-over is decided.
-This environment breaks that loop: a throwaway Worker on a throwaway D1 database, bootstrapped by the
+This environment breaks that loop: a throwaway Worker on throwaway D1 databases (canonical and report store), bootstrapped by the
 same migrations and reviewed promotion bundle, used for the physical-device run and then deleted.
 Its reports and keys are the maintainer's own test data and are deleted with it; it is never promoted
 from, and staging/production are never switched onto it, so there is nothing to carry over.
 
 **Why a generated config.** `npm run e2e:config` writes `services/api/.wrangler/e2e/<s>.json`
-(git-ignored) from the committed `wrangler.jsonc`: one Worker `mannerpath-api-e2e-<s>`, one `DB`
-binding to `mannerpath-e2e-<s>`, `REPORT_ATTESTATION=required`, and the committed `observability`
+(git-ignored) from the committed `wrangler.jsonc`: one Worker `mannerpath-api-e2e-<s>`, a `DB`
+binding to `mannerpath-e2e-<s>` and a `REPORTS_DB` binding to `mannerpath-e2e-<s>-reports`, `REPORT_ATTESTATION=required`, and the committed `observability`
 block (`invocation_logs: false`). It has **no `env` block**, so a command run with `--config` on that
-file can resolve `DB` only to the disposable database — there is no staging or production binding in
+file can resolve `DB` and `REPORTS_DB` only to the disposable databases — there is no staging or production binding in
 it to fall back to. Never add `--env` to these commands. The generator refuses a placeholder or
 malformed ID, any `database_id` committed in `wrangler.jsonc`, and a name that collides with a
 committed Worker or database (`test/disposable-env.test.ts`). The committed file keeps its placeholder
@@ -879,12 +882,14 @@ C=.wrangler/e2e/<s>.json    # every command below needs it; an unset $C must not
 
 # 1. Fresh database, then the config bound to it (nothing else is written).
 npx wrangler d1 create mannerpath-e2e-<s>
-npm run e2e:config -- --suffix <s> --database-id <uuid printed above>
+npx wrangler d1 create mannerpath-e2e-<s>-reports
+npm run e2e:config -- --suffix <s> --database-id <uuid of the first> --reports-database-id <uuid of the second>
 
 # 2. Migrate and promote real published data through the reviewed path (steps 2 and 4).
 #    Build and read the bundle first: npm run local:pipeline && npm run local:export -- --out promotion.sql
 npx wrangler d1 migrations apply DB --config $C --remote
 npx wrangler d1 migrations list DB --config $C --remote     # expect: no pending migrations
+#    REPORTS_DB: 0003 cannot go through `migrations apply --remote` yet (docs/STAGING_VERIFICATION.md, B1).
 npm run local:verify-promotion -- --file promotion.sql --expected-content-sha256 <hash from the review record>
 npx wrangler d1 execute DB --config $C --remote --file promotion.sql
 
@@ -926,7 +931,8 @@ a new build number means updating the secret before the next report.
 
 ```sh
 npx wrangler delete --config $C                 # the mannerpath-api-e2e-<s> Worker and its secrets
-npx wrangler d1 delete mannerpath-e2e-<s>       # the disposable database, reports and keys included
+npx wrangler d1 delete mannerpath-e2e-<s>       # the disposable canonical database
+npx wrangler d1 delete mannerpath-e2e-<s>-reports  # its report store, reports and keys included
 rm $C
 ```
 

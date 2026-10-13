@@ -28,7 +28,9 @@ level (Debug and Release, #188) and all four bundles inherit it.
 (Individual, Active) matches the committed value. Automatic signing with `-allowProvisioningUpdates` then issued
 one-year Development profiles for all four bundles carrying the App Group, and App Attest on the iPhone app. Xcode's
 local account cache may still label the team “Personal Team”; the issued profiles, not that label, are the evidence.
-Distribution signing (Apple Distribution certificate, App Store profiles) is not yet created: §4 step 6.
+Distribution signing verified 2026-10-13 by a local-only `xcodebuild -exportArchive` (`method app-store-connect`,
+`destination export`, automatic signing; no upload): a cloud-managed Apple Distribution certificate and four
+“iOS Team Store Provisioning Profile” profiles (no device list, expiring 2027-10-13) signed all four bundles.
 
 ## 2. Entitlements, App Groups and App Attest
 
@@ -53,7 +55,9 @@ Client: `ReportModel` maps that to `.unavailable`; `DCAppAttestService` is reach
 explicit report submission, never while browsing. Keeping the entitlement means the iPhone App ID needs the App Attest
 capability for signing, and lets reporting be enabled later by backend configuration without a new binary. App Store/
 TestFlight builds use the production App Attest environment (repository note in `scripts/check-apple-beta-artifact.py`);
-confirm on the first TestFlight build. No Keychain sharing, iCloud, push or associated domains; WatchConnectivity needs no entitlement.
+confirmed for the App Store Connect export (2026-10-13): the re-signed iPhone app carries
+`appattest-environment = production`, `get-task-allow = false` and `beta-reports-active = true`, and
+`apple-beta-preflight.sh <exported .app>` passes. No Keychain sharing, iCloud, push or associated domains; WatchConnectivity needs no entitlement.
 
 ## 3. Build and archive results (2026-10-05, current tree)
 
@@ -141,7 +145,7 @@ bypass signed-mode signature/profile checks or provide TestFlight/device evidenc
 | --- | --- |
 | Signing configuration in repo | READY; team `58A7G4U27M` confirmed paid (2026-10-13) |
 | Entitlements / App Group / App Attest declarations | READY and consistent across the four bundles |
-| Provisioning / capabilities | Development: READY (four one-year profiles, App Group, App Attest; 2026-10-13). Distribution: not created yet (§4 step 6) |
+| Provisioning / capabilities | Development: READY (four one-year profiles, App Group, App Attest; 2026-10-13). Distribution: READY (cloud-managed Apple Distribution, four App Store profiles; 2026-10-13) |
 | App icon | RESOLVED: selected master in both slots; unsigned archive inclusion confirmed (§3.1); signed/physical/rights checks remain |
-| Archive | Development-signed Release archive passes `apple-beta-preflight.sh <archive>` (2026-10-13); distribution re-signing happens at upload |
+| Archive | Development-signed Release archive passes `apple-beta-preflight.sh <archive>` (2026-10-13); App Store Connect export (local, no upload) re-signs for distribution and passes the same preflight (2026-10-13) |
 | Upload / TestFlight | after §4 steps 1–5 |
