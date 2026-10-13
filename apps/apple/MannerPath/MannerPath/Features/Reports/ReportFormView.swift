@@ -27,6 +27,10 @@ struct ReportFormView: View {
                             .font(.footnote)
                             .accessibilityIdentifier("report-unavailable-notice")
                     }
+                    if model.usesIdempotentRetry {
+                        Text("This saved submission is fixed for retry. To change it, discard this draft and start a separate report.")
+                            .font(.footnote)
+                    }
                 }
 
                 if let draft = model.draft {
@@ -50,6 +54,7 @@ struct ReportFormView: View {
                                     Text(type.title).tag(type)
                                 }
                             }
+                            .disabled(!model.canEditDraft)
                         }
                     } else {
                         Section("What needs review?") { Text(ReportType.missing.title) }
@@ -60,6 +65,7 @@ struct ReportFormView: View {
                             Button(draft.proposedLocation == nil ? "Choose a map pin" : "Change proposed pin") {
                                 choosingPin = true
                             }
+                            .disabled(!model.canEditDraft)
                             if let pin = draft.proposedLocation {
                                 Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
                                     .font(.footnote).foregroundStyle(.secondary)
@@ -85,7 +91,7 @@ struct ReportFormView: View {
                                                 .font(.footnote).foregroundStyle(.secondary)
                                         }
                                     }
-                                    .disabled(isSubmitting)
+                                    .disabled(!model.canEditDraft)
                                 }
                             } header: {
                                 Text("Is it one of these?")
@@ -100,6 +106,7 @@ struct ReportFormView: View {
                             get: { model.draft?.correction ?? ReportCorrection() },
                             set: { value in editDraft { $0.correction = value.isEmpty ? nil : value } }
                         ))
+                        .disabled(!model.canEditDraft)
                     }
 
                     if isMissing, case .available(let limits) = model.availability, limits.acceptsNewSpotClaim {
@@ -107,15 +114,18 @@ struct ReportFormView: View {
                             get: { model.draft?.claim ?? ReportClaim() },
                             set: { value in editDraft { $0.claim = value } }
                         ))
+                        .disabled(!model.canEditDraft)
                     }
 
                     Section("When did you observe this? (optional)") {
                         Toggle("Add observation day", isOn: $hasObservedDate)
+                            .disabled(!model.canEditDraft)
                             .onChange(of: hasObservedDate) { _, enabled in
                                 editDraft { $0.observedOn = enabled ? Self.dayString(observedDate) : nil }
                             }
                         if hasObservedDate {
                             DatePicker("Day", selection: $observedDate, displayedComponents: .date)
+                                .disabled(!model.canEditDraft)
                                 .onChange(of: observedDate) { _, day in
                                     editDraft { $0.observedOn = Self.dayString(day) }
                                 }
@@ -127,6 +137,7 @@ struct ReportFormView: View {
                             get: { model.draft?.note ?? "" },
                             set: { value in editDraft { $0.note = value.isEmpty ? nil : value } }
                         ))
+                        .disabled(!model.canEditDraft)
                         .frame(minHeight: 100)
                         .accessibilityLabel("Additional report detail")
                         if case .available(let limits) = model.availability {
@@ -142,7 +153,7 @@ struct ReportFormView: View {
                                 get: { draft.acceptedTermsVersion == version },
                                 set: { model.setTermsAccepted($0) }
                             ))
-                            .disabled(isSubmitting)
+                            .disabled(!model.canEditDraft)
                         } header: {
                             Text("Report terms")
                         } footer: {
@@ -154,11 +165,11 @@ struct ReportFormView: View {
                         if case .available = model.availability {
                             TimelineView(.periodic(from: .now, by: 1)) { _ in
                                 Button("Submit for review") { Task { await model.submit() } }
-                                    .disabled(isSubmitting || isAccepted || isAmbiguous || !termsAccepted ||
+                                    .disabled(isSubmitting || isAccepted || isAmbiguous || model.isTerminalReceipt || !termsAccepted ||
                                               (model.retryAfterSecondsRemaining ?? 0) > 0)
                             }
                             if model.canRetryAmbiguous {
-                                Button("Submit again despite possible duplicate") {
+                                Button(model.usesIdempotentRetry ? "Retry saved submission" : "Submit again despite possible duplicate") {
                                     confirmingRetry = true
                                 }
                             }
@@ -198,7 +209,9 @@ struct ReportFormView: View {
                     editDraft { $0.proposedLocation = pin.quantized }
                 }
             }
-            .confirmationDialog("The report may already have been received. Submitting again may create a duplicate.",
+            .confirmationDialog(model.usesIdempotentRetry
+                                ? "Retry the same saved submission? A new security check will be performed."
+                                : "The report may already have been received. Submitting again may create a duplicate.",
                                 isPresented: $confirmingRetry) {
                 Button("Submit again") { Task { await model.retryAmbiguous() } }
             }
@@ -282,9 +295,15 @@ struct ReportFormView: View {
                 Text("Too many reports. Please try again later.")
             }
         case .ambiguous:
-            Text(model.canRetryAmbiguous
+            Text(model.usesIdempotentRetry
+                 ? "Delivery could not be confirmed. The same saved submission can be retried when reporting is available."
+                 : model.canRetryAmbiguous
                  ? "Delivery could not be confirmed. The report may already have been received. Submitting again could create a duplicate."
                  : "A previous delivery could not be resolved after the app restarted. This saved draft cannot be submitted again; discard it when you are ready.")
+        case .idempotencyConflict:
+            Text("This saved submission conflicts with an earlier submission. It cannot be sent again. Review or discard the draft; no new report was created by this attempt.")
+        case .idempotencyRetired:
+            Text("The receipt for this saved submission has expired. It cannot be sent again. Review or discard the draft; no new report was created by this attempt.")
         case .failed(let message):
             Text(message)
         }

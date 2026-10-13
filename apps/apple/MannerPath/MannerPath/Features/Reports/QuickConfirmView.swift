@@ -24,7 +24,7 @@ struct QuickConfirmView: View {
                                 get: { draft.acceptedTermsVersion == version },
                                 set: { model.setTermsAccepted($0) }
                             ))
-                            .disabled(model.isBusy)
+                            .disabled(!model.canEditDraft)
                         } footer: {
                             Text("Terms version \(version)")
                         }
@@ -39,7 +39,10 @@ struct QuickConfirmView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .disabled(model.isBusy || !termsAccepted || (model.retryAfterSecondsRemaining ?? 0) > 0
-                                      || model.submission == .ambiguous)
+                                      || model.submission == .ambiguous || model.isTerminalReceipt)
+                        }
+                        if model.canRetryAmbiguous && model.usesIdempotentRetry {
+                            Button("Retry saved submission") { Task { await model.retryAmbiguous() } }
                         }
                     }
                 }
@@ -79,7 +82,7 @@ struct QuickConfirmView: View {
     /// A quick confirmation that was never sent is not kept as a saved draft. An ambiguous delivery is kept, so the
     /// user can see it from the main screen rather than lose track of a report that may have arrived.
     private func close() {
-        if model.draft?.type == .exists && model.submission != .ambiguous { model.cancel() }
+        if model.draft?.type == .exists && model.submission != .ambiguous && !model.usesIdempotentRetry { model.cancel() }
         dismiss()
     }
 
@@ -97,6 +100,10 @@ struct QuickConfirmView: View {
             Text("Too many reports. Please try again later.")
         case .ambiguous:
             Text("Delivery could not be confirmed. The confirmation may already have been received; it stays saved on this device.")
+        case .idempotencyConflict:
+            Text("This saved submission conflicts with an earlier submission. Review or discard the saved draft.")
+        case .idempotencyRetired:
+            Text("The receipt for this saved submission has expired. Review or discard the saved draft.")
         }
     }
 }

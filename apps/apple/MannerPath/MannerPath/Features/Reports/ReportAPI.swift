@@ -27,6 +27,7 @@ nonisolated enum ReportAPIError: Error, Equatable, Sendable {
     /// A definite App Attest refusal (403 attestationRejected): nothing was stored, no counter moved.
     case attestationRejected(AttestationRejection)
     case challengeLimited(Int?)
+    case idempotencyConflict, idempotencyRetired
 }
 
 nonisolated struct AttestationRejection: Equatable, Sendable {
@@ -109,10 +110,13 @@ nonisolated protocol ReportSubmitting: Sendable {
 nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppAttestServer, AttestedReportSubmitting {
     let baseURL: URL
     let transport: any ReportHTTPTransport
+    /// Off until Server Slice 1 and its final contract vectors are merged and validated.
+    let allowsSchemaV3: Bool
 
-    init(baseURL: URL, transport: any ReportHTTPTransport = URLSessionReportTransport()) {
+    init(baseURL: URL, transport: any ReportHTTPTransport = URLSessionReportTransport(), allowsSchemaV3: Bool = false) {
         self.baseURL = baseURL
         self.transport = transport
+        self.allowsSchemaV3 = allowsSchemaV3
     }
 
     func fetchAvailability() async throws -> ReportAvailability {
@@ -135,6 +139,7 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
         switch (config.reports.attestation ?? "none", range) {
         case ("none", (1, 1)): submissionProtocol = .unattested
         case ("appAttest", (2, 2)): submissionProtocol = .appAttest
+        case ("appAttest", (3, 3)) where allowsSchemaV3: submissionProtocol = .appAttestV3
         default: return .incompatible
         }
         // This build can show only its bundled terms documents; consent to another version would not be informed.
@@ -156,7 +161,11 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
     }
 
     func submitAttested(_ envelope: Data) async throws -> AcceptedReport {
-        try await postReport(envelope, schemaVersion: 2)
+        struct EnvelopeVersion: Decodable { let schemaVersion: Int }
+        guard let version = try? JSONDecoder().decode(EnvelopeVersion.self, from: envelope),
+              version.schemaVersion == 2 || (version.schemaVersion == 3 && allowsSchemaV3)
+        else { throw ReportAPIError.incompatibleResponse }
+        return try await postReport(envelope, schemaVersion: version.schemaVersion)
     }
 
     /// Only a contract-valid 201 proves acceptance and only documented pre-store refusals are
@@ -165,13 +174,17 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
         let response = try await transport.send(post("v1/reports", body: body))
         let problem = try? JSONDecoder().decode(ReportProblem.self, from: response.body)
         switch response.statusCode {
-        case 201:
+        case let status where status == 201 || (status == 200 && schemaVersion == 3):
             guard let accepted = try? JSONDecoder().decode(AcceptedReport.self, from: response.body),
                   accepted.schemaVersion == schemaVersion, accepted.state == "pending",
                   Self.isValidReportID(accepted.reportId), Self.isValidReceivedAt(accepted.receivedAt)
             else { throw ReportAPIError.incompatibleResponse }
             return accepted
-        case 403 where schemaVersion == 2:
+        case 409 where schemaVersion == 3 && problem?.error == "idempotencyConflict":
+            throw ReportAPIError.idempotencyConflict
+        case 410 where schemaVersion == 3 && problem?.error == "idempotencyRetired":
+            throw ReportAPIError.idempotencyRetired
+        case 403 where schemaVersion == 2 || schemaVersion == 3:
             guard let rejection = Self.attestationRejection(problem) else { throw ReportAPIError.incompatibleResponse }
             throw ReportAPIError.attestationRejected(rejection)
         case 429:
