@@ -95,7 +95,8 @@ unchanged by this branch, so the Apple/API suites and `SIM` rows were not repeat
 | `./scripts/check-iphone-api-base-url.sh` | exit 0 (both builds `-quiet`, no `error:`): configured value, empty unconfigured value, system keys and no copied `MannerPath-Info.plist` all checked; the script prints nothing on success |
 | `make contract` | `MannerPath contract files present.` |
 
-Watch tests are not part of `make apple-validate`; run them explicitly:
+In those historical runs Watch tests were separate. Current `make apple-validate` includes them;
+to run just the Watch tests explicitly:
 
 ```sh
 xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj \
@@ -370,6 +371,8 @@ The other four tiles in x=14552…14554, y=6448…6450 answer `404 tileNotPublis
 A single Nearby view only contains its current 3×3 neighborhood and active filters; its row count
 must not be assumed to equal the complete source corpus from every device location.
 The live audit proves HTTP behavior, not Swift persistence, rendered maps or signed App Groups.
+`make apple-validate` also checks the built Debug origins are empty and the built Release plist
+contains the committed production read API origin, without changing signing settings.
 `NearbyPersistenceE2ETests` separately composes scripted HTTP, real GRDB reopen, Nearby ranking
 and the same glance builder/file codec used by the app and widget. Existing tile tests cover
 manifest/part corruption, atomic replacement, ETag reuse, 404 empty replacement and request races;
