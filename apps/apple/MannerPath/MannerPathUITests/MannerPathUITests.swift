@@ -497,6 +497,27 @@ final class B_OnlineUITests: MannerPathUITestCase {
         scrollTo(app.buttons["この場所の情報を報告"])
     }
 
+    func testDestinationSuggestionsAppearWhileTyping() {
+        launch()
+        waitForResults()
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
+        field.tap()
+        // No search key: suggestions must come from typing alone, with the keyboard still up.
+        field.typeText("上野駅")
+        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        let failed = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS '目的地を検索できません'")).firstMatch
+        XCTAssertTrue(match.waitForExistence(timeout: 30) || failed.exists, "Typing produced no live search outcome")
+        guard match.exists else { return } // MapKit unavailable here: the failure state is the honest outcome.
+        XCTAssertTrue(app.keyboards.firstMatch.exists, "Suggestions appear while the keyboard is still shown")
+        XCTAssertTrue(match.isHittable, "A suggestion is reachable above the keyboard (large sheet)")
+        XCTAssertFalse(match.label.isEmpty, "VoiceOver reads the suggestion's name")
+        screenshot("11-live-destination")
+        match.tap()
+        waitForDestinationResults()
+    }
+
     func testDestinationSearchCanBeOperated() {
         launch()
         waitForResults()

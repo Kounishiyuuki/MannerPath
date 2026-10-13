@@ -125,6 +125,12 @@ struct ContentView: View {
                 sheetDetent = .large
                 model.searchDestination(destinationQuery)
             }
+            // Live search: the model debounces and drops stale answers. Choosing a match writes its name into the
+            // field; that echo is not a new query.
+            .onChange(of: destinationQuery) { _, query in
+                guard model.destination?.name != query else { return }
+                model.scheduleDestinationSearch(query)
+            }
             // Searching needs the full sheet: at medium the keyboard covers the results. Focus alone is not reported
             // reliably for a drawer search field, so showing results also expands the sheet.
             .onChange(of: searchFocused) { _, focused in
