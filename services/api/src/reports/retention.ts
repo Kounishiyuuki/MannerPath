@@ -13,6 +13,7 @@ import { decodeReportCursor, encodeReportCursor, pageLimit } from "./moderation.
 import { type Db, isoSeconds } from "../db.ts";
 import type { EvidencePhotoStorage } from "./photo-storage.ts";
 import { cleanupEvidencePhotos } from "./photos.ts";
+import { retireReceiptStatement } from "./idempotency.ts";
 
 export interface RetentionResult {
   redactedReports: number;
@@ -43,13 +44,15 @@ export async function applyReportRetention(db: Db, opts: { now: Date; batchSize?
     "SELECT challenge FROM app_attest_challenges WHERE expires_at <= ? ORDER BY expires_at, challenge LIMIT ?",
   ).bind(now, limit + 1).all<{ challenge: string }>();
   const rows = due.results.slice(0, limit);
-  // One statement per report, so the immutability trigger checks each redaction individually.
-  const statements = rows.map((row) => db.prepare(
+  // One statement per report, so the immutability trigger checks each redaction individually. Its idempotency receipt
+  // (migration 0004) retires in the same batch: the request hash is a fingerprint of the content being removed, and a
+  // later retry of that key is refused (410) rather than confirmed or recreated.
+  const statements = rows.flatMap((row) => [db.prepare(
     `UPDATE reports
         SET note = NULL, proposed_latitude = NULL, proposed_longitude = NULL,
             observed_on = NULL, submitter_hash = NULL, claim_host_name = NULL, claim_hours_note = NULL, redacted_at = ?
       WHERE report_id = ? AND redacted_at IS NULL`,
-  ).bind(now, row.report_id));
+  ).bind(now, row.report_id), retireReceiptStatement(db, row.report_id, now)]);
   for (const row of expired.results.slice(0, limit)) statements.push(db.prepare(
     "DELETE FROM report_rate_windows WHERE submitter_hash = ? AND window_kind = ? AND window_start = ? AND expires_at <= ?",
   ).bind(row.submitter_hash, row.window_kind, row.window_start, now));

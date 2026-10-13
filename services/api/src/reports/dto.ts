@@ -5,9 +5,10 @@
 //
 // Two request versions exist, and a deployment accepts exactly one of them (ADR-0007 §6):
 //   - schemaVersion 1: the unattested report, accepted only where attestation is disabled;
-//   - schemaVersion 2: the attested submission, accepted only where App Attest is required. Its
+//   - schemaVersion 3: the attested submission, accepted only where App Attest is required. Its
 //     envelope carries the report payload as exact bytes (base64) plus the App Attest assertion
-//     over those bytes; the payload decodes to the same fields as v1 with schemaVersion 2.
+//     over those bytes; the payload decodes to the v1 fields with schemaVersion 3 plus the required,
+//     signed idempotencyKey. Version 2 (the same without the key) is no longer accepted anywhere.
 
 import { z } from "zod";
 import { SPOT_ID } from "../spot-id.ts";
@@ -16,13 +17,16 @@ import { TERMS_VERSION } from "./terms.ts";
 
 /** The unattested report request (and response) version. */
 export const REPORT_SCHEMA_VERSION = 1;
-/** The attested report submission (and response) version. */
-export const ATTESTED_REPORT_SCHEMA_VERSION = 2;
+/** The attested report submission (and response) version. 3 adds the signed idempotencyKey. */
+export const ATTESTED_REPORT_SCHEMA_VERSION = 3;
+
+/** One report draft's idempotency key: 32 CSPRNG bytes as lowercase hex, generated per draft, never per device. */
+export const IDEMPOTENCY_KEY = /^[0-9a-f]{64}$/;
 
 /**
  * The closed range of report request versions a deployment accepts, which /v1/config publishes.
  * It is one version wide on purpose: a required deployment cannot accept an unattested v1 report,
- * and a disabled one has nothing to verify a v2 assertion against in a way that means anything.
+ * and a disabled one has nothing to verify a v3 assertion against in a way that means anything.
  */
 export function reportSchemaRange(config: AttestationConfig): { minimum: number; current: number } {
   const version = config.kind === "disabled" ? REPORT_SCHEMA_VERSION : ATTESTED_REPORT_SCHEMA_VERSION;
@@ -142,8 +146,9 @@ const CLAIM_SCHEMAS: Partial<Record<ReportType, z.ZodType>> = {
   tobaccoTypeChanged: TobaccoCorrectionClaim,
 };
 
-const reportFields = <V extends number>(version: V) => z.object({
+const reportFields = <V extends number>(version: V, idempotent = false) => z.object({
   schemaVersion: z.literal(version),
+  ...(idempotent ? { idempotencyKey: z.string().regex(IDEMPOTENCY_KEY) } : {}),
   type: z.enum(REPORT_TYPES),
   spotId: z.string().regex(SPOT_ID).optional(),
   // The map pin being proposed, not the device's position (docs/API.md, ADR-0007 §3).
@@ -191,15 +196,19 @@ const reportFields = <V extends number>(version: V) => z.object({
 });
 
 export const ReportRequestV1 = reportFields(REPORT_SCHEMA_VERSION);
-/** The decoded payload of a v2 submission: the v1 fields, versioned 2 so the signed bytes say which protocol they belong to. */
-export const ReportPayloadV2 = reportFields(ATTESTED_REPORT_SCHEMA_VERSION);
+/**
+ * The decoded payload of a v3 submission: the v1 fields, versioned 3 so the signed bytes say which protocol they
+ * belong to, plus the draft's idempotency key. The key is inside the signed bytes, so an assertion authorizes exactly
+ * one draft's identity.
+ */
+export const ReportPayloadV3 = reportFields(ATTESTED_REPORT_SCHEMA_VERSION, true);
 
 /** Canonical standard base64 is re-checked byte-exactly when decoded (src/attest/bytes.ts). */
 const base64 = (maxLength: number) => z.string().min(4).max(maxLength).regex(/^[A-Za-z0-9+/]+={0,2}$/);
 
-export const ReportSubmissionV2 = z.object({
+export const ReportSubmissionV3 = z.object({
   schemaVersion: z.literal(ATTESTED_REPORT_SCHEMA_VERSION),
-  // The exact UTF-8 JSON bytes of a ReportPayloadV2, base64. These bytes — not a re-serialization
+  // The exact UTF-8 JSON bytes of a ReportPayloadV3, base64. These bytes — not a re-serialization
   // of them — are what the assertion binds (src/attest/binding.ts).
   payload: base64(Math.ceil(REPORT_BODY_MAX_BYTES / 3) * 4),
   attestation: z.object({
@@ -218,13 +227,13 @@ const accepted = <V extends number>(version: V) => z.object({
 }).strict();
 
 export const ReportAcceptedV1 = accepted(REPORT_SCHEMA_VERSION);
-export const ReportAcceptedV2 = accepted(ATTESTED_REPORT_SCHEMA_VERSION);
+export const ReportAcceptedV3 = accepted(ATTESTED_REPORT_SCHEMA_VERSION);
 
 export type ReportRequestV1 = z.infer<typeof ReportRequestV1>;
-export type ReportPayloadV2 = z.infer<typeof ReportPayloadV2>;
-export type ReportSubmissionV2 = z.infer<typeof ReportSubmissionV2>;
+export type ReportPayloadV3 = z.infer<typeof ReportPayloadV3> & { idempotencyKey: string };
+export type ReportSubmissionV3 = z.infer<typeof ReportSubmissionV3>;
 export type ReportAcceptedV1 = z.infer<typeof ReportAcceptedV1>;
-export type ReportAcceptedV2 = z.infer<typeof ReportAcceptedV2>;
+export type ReportAcceptedV3 = z.infer<typeof ReportAcceptedV3>;
 
 /**
  * Issue paths and codes only. A validation message must never echo a submitted value, because an

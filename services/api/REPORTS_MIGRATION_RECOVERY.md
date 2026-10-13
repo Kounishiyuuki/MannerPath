@@ -40,7 +40,10 @@ CASE-only root cause or that local validation proves remote acceptance.
 
 `npm run reports:migration -- prepare --out <new-file.sql>` is an offline dry-run: it writes
 the exact 0003 repository bytes as a prefix, followed by one deterministic bookkeeping INSERT.
-It refuses to overwrite an existing artifact or accept changed 0003 bytes/new migration streams.
+It refuses to overwrite an existing artifact, changed 0003 bytes, or a stream whose first three
+migrations are not exactly 0001–0003. Later migrations (0004 report idempotency, and onward) may exist
+in the repository; they are not part of this artifact and are applied with the normal migration
+command only after this 0003 import has completed. 0004 avoids conditional expressions inside triggers.
 The INSERT checks that the ledger contains exactly 0001 and 0002. On any mismatch its applied_at
 is NULL, which violates the observed NOT NULL constraint and fails the atomic import. A duplicate
 ledger name also fails UNIQUE. There are no BEGIN/COMMIT, DROP, altered triggers or repair statements

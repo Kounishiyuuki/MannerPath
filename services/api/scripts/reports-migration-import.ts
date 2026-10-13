@@ -30,7 +30,11 @@ export function sha256(bytes: Uint8Array): string {
 }
 
 export function migrationBytes(): Buffer {
-  assert.deepEqual(readdirSync(DIRECTORY).filter(name => name.endsWith(".sql")).sort(), [...PREVIOUS, MIGRATION], "only the reviewed three-migration stream is supported");
+  // The import covers 0003 alone and must follow exactly 0001 and 0002. Later migrations (0004+) may exist in the
+  // repository; they are applied by the normal migration path only after this import has completed.
+  const stream = readdirSync(DIRECTORY).filter(name => name.endsWith(".sql")).sort();
+  assert.deepEqual(stream.slice(0, 3), [...PREVIOUS, MIGRATION], "the reviewed 0001-0003 stream prefix is required");
+  assert.equal(stream.slice(3).every(name => name > MIGRATION), true, "later migrations must sort after 0003");
   const bytes = readFileSync(new URL(MIGRATION, DIRECTORY));
   assert.equal(sha256(bytes), MIGRATION_SHA256, "0003 repository bytes changed; independent review required");
   return bytes;
