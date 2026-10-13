@@ -450,11 +450,15 @@ debited in a separate statement before the report was written.
   required `idempotencyKey`: 32 CSPRNG bytes, lowercase hex, one per report draft, kept for every
   retry of that draft and discarded with it. Schema 2 is retired (intake has never been enabled).
 - **Receipts** (`report_idempotency`, report-store migration 0004) map
-  `SHA-256("mannerpath.report-idempotency.v1\n" ‖ key)` to the report and to
-  `SHA-256("mannerpath.report-request.v1\n" ‖ canonicalJSON(validated report without the key))`.
-  The digest is **global**: it does not include the App Attest key, the submitter hash or the
-  installId, so it adds no device linkage and a pepper or App Attest key rotation cannot turn a
-  retry into a duplicate. The raw key is never stored.
+  `SHA-256("mannerpath.report-idempotency.v2\n" ‖ keyId ‖ "\n" ‖ key)` to the report and to
+  `SHA-256("mannerpath.report-request.v1\n" ‖ canonicalJSON(validated report without the key and the
+  installId))` (canonicalization fixed in `docs/API.md` "Request hash"). The digest is **owned**: it
+  binds the idempotency key to the App Attest key whose verified assertion carried it, so holding an
+  idempotency key is not ownership, and another key presenting it learns nothing (no receipt, no
+  `reportId`, no `409`/`410`) and creates its own draft. It does not include the peppered submitter
+  hash, so a pepper rotation cannot turn a retry into a duplicate. A new App Attest key is a new
+  owner: no receipt carries over, because no authenticated key migration exists. The raw key is
+  never stored, and the digest links nothing without it.
 - **Answers.** A new draft is `201`; the same draft again `200` with the same report; the same key
   with a different report `409 idempotencyConflict`; a key whose report passed retention
   `410 idempotencyRetired`. A receipt is consulted only after the challenge is consumed and the
@@ -472,7 +476,11 @@ debited in a separate statement before the report was written.
 **Consequences.**
 - §4's "full erase (deleting the row) for a deletion request" is not implemented, and for a report
   with a receipt it is now refused by the foreign key. Erasing such a report needs a reviewed
-  procedure that decides what remains to refuse the key (open decision; nothing deletes reports today).
+  procedure that decides what remains to refuse the key (open decision, Issue #242; nothing deletes reports today).
+- Payloads with a repeated member name or a lone surrogate are refused before hashing, so one signed
+  payload has one meaning; the hash never replaces the assertion over the exact bytes.
+- Revoking a single App Attest key is not implemented; when it is, revocation must fail the assertion
+  check, which already precedes every receipt lookup.
 - Wrangler mis-split a conditional expression inside a trigger in migration 0003
   (`services/api/REPORTS_MIGRATION_RECOVERY.md`); 0004's triggers use plain boolean conditions only,
   and `test/report-idempotency.test.ts` checks the client split. The 0003 recovery tool now accepts

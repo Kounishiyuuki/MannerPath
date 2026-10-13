@@ -516,22 +516,46 @@ Responses:
 | Same key after that report passed retention (90 days) | `410` | `{"error":"idempotencyRetired",…}` — its content can no longer be compared; nothing stored |
 
 The report is stored with `attestation_status = 'verified'` and no reference to the key. The server
-keeps a **receipt** per accepted draft: `SHA-256("mannerpath.report-idempotency.v1\n" ‖ idempotencyKey)`
-(never the key itself, the App Attest key, the submitter hash or the installId), the `reportId`, and
-`requestSha256 = SHA-256("mannerpath.report-request.v1\n" ‖ canonicalJSON(report))`, where `report`
-is the validated payload without `idempotencyKey`, with the pin quantized and `installId` lower-cased
-as stored, and canonical JSON sorts object keys at every level with no whitespace. Key order,
-whitespace and coordinate digits beyond the stored precision therefore do not make a "different"
-report. Retention clears `requestSha256` together with the report's personal content and keeps the
-receipt, which is never deleted. A receipt does not depend on the pepper or the App Attest key, so
-rotating either never turns a retry into a second report.
+keeps a **receipt** per accepted draft: `SHA-256("mannerpath.report-idempotency.v2\n" ‖ keyId ‖ "\n" ‖
+idempotencyKey)` (never the raw key, the submitter hash or the installId), the `reportId`, and
+`requestSha256` (below). **A receipt belongs to the App Attest key that created it.** Only a verified
+assertion from that key can reach it: the same `idempotencyKey` presented by any other App Attest key
+(copied, guessed, chosen by an attacker, or the user's other device) finds no receipt and is that
+key's own new draft — `201` and budgeted, never another key's `reportId`, `409` or `410`. Holding an
+idempotency key is therefore not ownership. A retry is honoured only from the same App Attest key: a
+draft whose key was replaced (re-registration, another device) is a new report, and the client must
+not resubmit it automatically (no authenticated key migration exists). Retention clears
+`requestSha256` together with the report's personal content and keeps the receipt, which is never
+deleted. The receipt does not depend on the pepper, so a pepper rotation never turns a retry into a
+second report.
+
+**Request hash (canonicalization `report-request.v1`, fixed).** `requestSha256 =
+SHA-256("mannerpath.report-request.v1\n" ‖ canonicalJSON(report))`, where `report` is the validated
+payload with these rules, and any change to them requires a new domain string, never an edit:
+
+- included: every stored field — `schemaVersion`, `type`, `spotId`, `proposedLocation`, `observedOn`,
+  `note`, `acceptedTermsVersion` (the consent), `claim`; excluded: `idempotencyKey` (it names the
+  draft) and `installId` (never stored for an attested report);
+- `proposedLocation` quantized exactly as stored (5 decimal places), so pins the store cannot tell
+  apart hash alike; numbers in JSON's shortest round-trip form, so `-0` is `0`;
+- strings hashed code point for code point as stored, with **no Unicode normalization** (NFC and NFD
+  are different reports);
+- canonical JSON: object keys sorted by UTF-16 code unit at every level, no whitespace. Key order,
+  whitespace and escapes in the sent bytes therefore never make a "different" report.
+
+The hash is the comparison only; it never replaces the assertion, which covers the exact payload
+bytes. Before hashing, a payload is refused `400 invalidReport` if its bytes are not valid UTF-8
+(`payload: invalid_json`), an object repeats a member name, escapes included (`payload:
+duplicate_key`), or a string holds a lone surrogate (`payload: ill_formed_unicode`), so one signed
+payload has exactly one meaning.
 
 Order of checks (each ends the request): envelope shape (`400`) → **challenge consumed** (`403
 challengeInvalid`) → payload bytes and report schema (`400`/`413`) → key and assertion (`403`) →
 **receipt**: a known key answers `200`/`409`/`410` after recording this assertion's counter → terms
 version (`409 termsVersionOutdated`) → rate limit (`429`) → one transaction: counter advance, report,
 moderation row, receipt and both budget debits (`201`, or `403 counterNotIncreasing` if a concurrent
-request won). Nothing about an earlier submission is disclosed before the assertion verifies. Two
+request won). Nothing about an earlier submission is disclosed before the assertion verifies, and only to
+the key that made it. Two
 attempts of one draft that race each other store one report: the loser's transaction aborts on the
 receipt, its counter is recorded on its own, and it answers from the winner's receipt. The budget
 (10 per hour, 50 per day per App Attest key) is enforced inside that transaction by a trigger, so
@@ -550,6 +574,23 @@ no counter moved.**
 Any other failure — a timeout, a dropped connection, a `5xx` — is **transport-ambiguous**; see
 "Ambiguous delivery".
 
+State per (App Attest key, `idempotencyKey`), after the assertion verifies:
+
+| Receipt before | Outcome | Writes | Status |
+|---|---|---|---|
+| none | stored | counter, report, moderation, receipt, hour + day debit (one transaction) | `201` |
+| none | budget full (early check or trigger at commit) | nothing, counter included | `429` |
+| none | lost a concurrent race on the counter | nothing | `403 counterNotIncreasing` |
+| none | lost a concurrent race on the receipt | counter only, then answered from the winner's receipt | `200`/`409` |
+| active, same hash | replay | counter only | `200` |
+| active, other hash | conflict | counter only | `409` |
+| retired | refused | counter only | `410` |
+
+A `429` leaves the counter where it was (ADR-0007 §5 "writes nothing"); its challenge is consumed, so its
+assertion can never be replayed. A store failure (`503`) rolls the whole transaction back. Revoking a
+single App Attest key is not implemented yet; once it is, a revoked key fails assertion verification and
+so never reaches a receipt.
+
 ### iPhone client changes required for schemaVersion 3 (not yet implemented)
 
 The iPhone app still sends schemaVersion 2, so against a schemaVersion 3 deployment `/v1/config`
@@ -561,7 +602,9 @@ Production intake is disabled, so nothing shipped is affected. The client change
   `UserDefaults`, never the keychain item of the App Attest key, never derived from `installId`).
 - `ReportRequest.encoded` writes `"schemaVersion": 3` and the draft's key into the signed payload.
 - An ambiguous or recovered submission (`.ambiguous`, `recoveredSubmissionAttempt`) may be retried
-  with the same draft and key and a new challenge and assertion; `200` is success with the original
+  with the same draft, idempotency key **and App Attest key**, and a new challenge and assertion
+  (after the App Attest key was replaced, a retry would be a new report: keep the draft for the user
+  instead of resending it); `200` is success with the original
   `reportId`; `409` keeps the draft and says it no longer matches what was sent; `410` drops the
   draft as already handled.
 - Accepted-draft cleanup deletes the key with the draft. Watch and widget targets send no report.
