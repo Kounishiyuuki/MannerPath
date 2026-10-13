@@ -367,6 +367,101 @@ struct RouteSearchTests {
         #expect(router.requests.isEmpty)
     }
 
+    @Test func liveSearchDebouncesTypingIntoOneRequest() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(40))
+        for text in ["上", "上野", "上野駅"] { model.scheduleDestinationSearch(text) }
+        #expect(model.searchingDestination)
+        #expect(await waitUntil { search.queries.count == 1 })
+        try await Task.sleep(for: .milliseconds(80))
+        #expect(search.queries.map(\.text) == ["上野駅"])
+        let ueno = place(SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
+        search.succeed(0, matches: [ueno])
+        #expect(await waitUntil { model.destinationMatches == [ueno] && !model.searchingDestination })
+    }
+
+    @Test func liveSearchRunsForOneCharacter() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("a")
+        #expect(await waitUntil { search.queries.map(\.text) == ["a"] })
+    }
+
+    @Test func emptyOrDeletedQueryNeverSearchesAndClears() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(30))
+        model.scheduleDestinationSearch("abc")
+        model.scheduleDestinationSearch("  ")
+        try await Task.sleep(for: .milliseconds(90))
+        #expect(search.queries.isEmpty)
+        #expect(!model.searchingDestination)
+        model.scheduleDestinationSearch("ab")
+        #expect(await waitUntil { search.queries.count == 1 })
+        search.succeed(0, matches: [place(destination)])
+        #expect(await waitUntil { !model.destinationMatches.isEmpty })
+        model.scheduleDestinationSearch("")
+        #expect(model.destinationMatches.isEmpty)
+        #expect(!model.searchingDestination && !model.destinationSearchFailed)
+    }
+
+    @Test func lateOlderAnswerNeverReplacesNewerMatchesWhichStayVisibleWhileTyping() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("first")
+        #expect(await waitUntil { search.queries.count == 1 })
+        model.scheduleDestinationSearch("second")
+        #expect(await waitUntil { search.queries.count == 2 })
+        let current = place(destination)
+        search.succeed(1, matches: [current])
+        #expect(await waitUntil { model.destinationMatches == [current] })
+        search.succeed(0, matches: [place(SpotCoordinate(latitude: 35, longitude: 139.02))])
+        #expect(await waitUntil { search.completed.contains(0) })
+        await Task.yield()
+        #expect(model.destinationMatches == [current])
+        model.scheduleDestinationSearch("second more")
+        #expect(model.destinationMatches == [current])
+        #expect(model.searchingDestination)
+    }
+
+    @Test func failedLiveSearchIsShownAndCanBeRetried() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("x")
+        #expect(await waitUntil { search.queries.count == 1 })
+        search.fail(0)
+        #expect(await waitUntil { model.destinationSearchFailed && !model.searchingDestination })
+        model.searchDestination("x")
+        #expect(await waitUntil { search.queries.count == 2 })
+        #expect(!model.destinationSearchFailed)
+    }
+
+    @Test func submittingTheTypedQueryDoesNotSendASecondRequest() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(30))
+        model.scheduleDestinationSearch("上野駅")
+        model.searchDestination(" 上野駅 ")
+        #expect(await waitUntil { search.queries.count == 1 })
+        try await Task.sleep(for: .milliseconds(80))
+        #expect(search.queries.count == 1)
+        search.succeed(0, matches: [place(destination)])
+        #expect(await waitUntil { model.destinationMatches.count == 1 })
+        model.searchDestination("上野駅")
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(search.queries.count == 1)
+    }
+
+    @Test func choosingAMatchCancelsAPendingLiveSearch() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(30))
+        model.scheduleDestinationSearch("abc")
+        let chosen = place(destination)
+        model.selectDestination(chosen)
+        try await Task.sleep(for: .milliseconds(80))
+        #expect(search.queries.isEmpty)
+        #expect(model.destination == chosen)
+        #expect(model.destinationMatches.isEmpty && !model.searchingDestination)
+    }
+
     private func deviceLocation(_ coordinate: SpotCoordinate) -> DeviceLocation {
         DeviceLocation(coordinate: coordinate, timestamp: .now,
                        horizontalAccuracyMeters: 10, isApproximate: false, isLastKnown: false)
@@ -374,12 +469,13 @@ struct RouteSearchTests {
 
     private func makeModel(spots: [Spot], router: (any WalkingRouting)? = nil,
                            search: (any DestinationSearching)? = nil,
-                           location: TestLocation? = nil) throws -> NearbyModel {
+                           location: TestLocation? = nil,
+                           searchDebounce: Duration = .milliseconds(300)) throws -> NearbyModel {
         let tile = try SlippyTile.forCoordinate(latitude: origin.latitude,
             longitude: origin.longitude, zoom: SlippyTile.defaultDataZoom)
         return NearbyModel(location: location ?? TestLocation(state: .usable(deviceLocation(origin))),
             repository: TestCache(tileID: tile.id, spots: spots), refresher: nil,
-            destinationSearch: search, walkingRouter: router)
+            destinationSearch: search, walkingRouter: router, searchDebounce: searchDebounce)
     }
 
     private func waitUntil(_ condition: @escaping @MainActor () -> Bool) async -> Bool {

@@ -55,6 +55,9 @@ final class NearbyModel {
     private var clockTask: Task<Void, Never>?
     private var generation = 0
     private var searchGeneration = 0
+    /// The trimmed query whose results are shown or in flight; a repeat of it (typing then submitting) sends nothing.
+    private var activeSearchQuery: String?
+    private let searchDebounce: Duration
     private var routeGeneration = 0
     private var activeTileIDs: Set<String> = []
     /// The zoom tiles are read and synced at: the cache's namespace offline, GET /v1/config online (ADR-0015).
@@ -135,38 +138,60 @@ final class NearbyModel {
         if results.map(\.spot.id) != oldIDs { updateRoutes() }
     }
 
+    /// Search as the user types: waits `searchDebounce` after the last change, then searches once. Earlier matches stay
+    /// on screen (and selectable) until the new ones arrive; an empty query clears them without searching.
+    func scheduleDestinationSearch(_ text: String) {
+        startDestinationSearch(text, after: searchDebounce)
+    }
+
+    /// The keyboard's search button: searches now, unless the same query is already shown or in flight.
     func searchDestination(_ text: String) {
+        startDestinationSearch(text, after: nil)
+    }
+
+    private func startDestinationSearch(_ text: String, after delay: Duration?) {
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty, let destinationSearch else {
+            cancelDestinationSearch()
+            return
+        }
+        if query == activeSearchQuery { return }
         searchGeneration += 1
         let requestGeneration = searchGeneration
         searchTask?.cancel()
-        destinationMatches = []
+        activeSearchQuery = query
         destinationSearchFailed = false
-        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty, let destinationSearch else {
-            searchingDestination = false
-            return
-        }
         searchingDestination = true
         searchTask = Task { [weak self] in
-            guard let self else { return }
+            if let delay {
+                do { try await Task.sleep(for: delay) } catch { return }
+            }
+            guard let self, requestGeneration == searchGeneration, !Task.isCancelled else { return }
             do {
                 let matches = try await destinationSearch.search(query, near: displayLocation?.coordinate)
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
                 destinationMatches = matches
             } catch {
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
+                destinationMatches = []
                 destinationSearchFailed = true
+                activeSearchQuery = nil
             }
             searchingDestination = false
         }
     }
 
-    func selectDestination(_ selected: PlaceDestination?) {
+    private func cancelDestinationSearch() {
         searchGeneration += 1
         searchTask?.cancel()
+        activeSearchQuery = nil
         destinationMatches = []
-        searchingDestination = false
         destinationSearchFailed = false
+        searchingDestination = false
+    }
+
+    func selectDestination(_ selected: PlaceDestination?) {
+        cancelDestinationSearch()
         destination = selected
         if let selected {
             load(for: .destination(selected))
@@ -186,8 +211,10 @@ final class NearbyModel {
         repository: (any CachedSpotRepository)?,
         refresher: (any NearbyTileRefreshing)?,
         destinationSearch: (any DestinationSearching)? = nil,
-        walkingRouter: (any WalkingRouting)? = nil
+        walkingRouter: (any WalkingRouting)? = nil,
+        searchDebounce: Duration = .milliseconds(300)
     ) {
+        self.searchDebounce = searchDebounce
         self.location = location
         self.repository = repository
         self.refresher = refresher
@@ -230,10 +257,7 @@ final class NearbyModel {
             updateRoutes()
             return
         }
-        searchGeneration += 1
-        searchTask?.cancel()
-        destinationMatches = []
-        searchingDestination = false
+        cancelDestinationSearch()
         invalidateRoutes()
         if case .usable(let deviceLocation) = state {
             lastUsableLocation = deviceLocation
