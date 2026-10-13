@@ -129,3 +129,67 @@ test("CLI prepares reviewable bytes, verifies and applies locally; noninteractiv
   assert.match(remote.stderr, /interactive terminal outside CI/);
   assert.doesNotMatch(remote.stdout, /Executing on remote|Importing reviewed/);
 });
+
+
+test("staging recovery selects only a configured independent report UUID and exact confirmation", () => {
+  const config = readJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  const stagingId = "11111111-2222-4333-8444-555555555555";
+  const reports = config.env.staging.d1_databases.find((entry: any) => entry.binding === "REPORTS_DB");
+  const valid = () => new Map([["--env", "staging"], ["--database-id", stagingId], ["--confirm-staging", "mannerpath-staging-reports"]]);
+  const runtime = { interactive: true, ci: false };
+  assert.throws(() => remoteTarget(valid(), runtime, true, config), /placeholder/);
+  reports.database_id = stagingId;
+  assert.equal(remoteTarget(valid(), runtime, true, config), "staging");
+  assert.equal(remoteTarget(valid(), { interactive: false, ci: true }, false, config), "staging");
+  assert.throws(() => remoteTarget(valid(), { interactive: false, ci: false }, true, config), /interactive/);
+  assert.throws(() => remoteTarget(valid(), { interactive: true, ci: true }, true, config), /interactive/);
+  for (const flag of ["--env", "--database-id", "--confirm-staging"]) {
+    const flags = valid(); flags.delete(flag);
+    assert.throws(() => remoteTarget(flags, runtime, true, config));
+  }
+  const mixed = valid(); mixed.set("--confirm-production", DATABASE_NAME);
+  assert.throws(() => remoteTarget(mixed, runtime, true, config), /cross-environment/);
+  const productionFlags = new Map([["--env", "production"], ["--database-id", DATABASE_ID], ["--confirm-production", DATABASE_NAME], ["--confirm-staging", "mannerpath-staging-reports"]]);
+  assert.throws(() => remoteTarget(productionFlags, runtime, true, config), /cross-environment/);
+  for (const id of [DATABASE_ID, "ffbaea1e-b57e-4064-abeb-a0c53f459662", "not-a-uuid", "00000000-0000-0000-0000-000000000001"]) {
+    reports.database_id = id;
+    const flags = valid(); flags.set("--database-id", id);
+    assert.throws(() => remoteTarget(flags, runtime, true, config));
+  }
+  reports.database_id = stagingId;
+  const canonical = config.env.staging.d1_databases.find((entry: any) => entry.binding === "DB");
+  canonical.database_id = stagingId;
+  assert.throws(() => remoteTarget(valid(), runtime, true, config), /shared/);
+});
+
+test("staging CLI refuses placeholder and cross-environment requests before remote invocation", () => {
+  const run = (...args: string[]) => spawnSync(process.execPath, ["--experimental-strip-types", "--no-warnings", "scripts/reports-migration.ts", ...args], { cwd: new URL("..", import.meta.url), encoding: "utf8", env: { ...process.env, CI: "true" } });
+  for (const command of ["verify-remote", "apply-remote"]) {
+    const result = run(command, "--env", "staging", "--database-id", "00000000-0000-0000-0000-000000000001", "--confirm-staging", "mannerpath-staging-reports");
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /placeholder/);
+    assert.doesNotMatch(result.stdout, /Executing on remote|Importing reviewed/);
+    const mixed = run(command, "--env", "staging", "--database-id", DATABASE_ID, "--confirm-staging", "mannerpath-staging-reports", "--confirm-production", DATABASE_NAME);
+    assert.notEqual(mixed.status, 0);
+    assert.match(mixed.stderr, /cross-environment/);
+    assert.doesNotMatch(mixed.stdout, /Executing on remote|Importing reviewed/);
+  }
+});
+
+
+test("0003 recovery checkpoint rejects later migrations instead of claiming full-stream completion", () => {
+  const database = fresh();
+  try {
+    const bytes = importArtifact();
+    applyLocal(database, bytes, sha256(bytes));
+    verifySnapshot(sqliteSnapshot(database), true);
+    for (const name of ["0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql"]) {
+      // The normal stream owns these migrations, never the recovery artifact.
+      applyMigration(database, readFileSync(new URL(`../migrations-reports/${name}`, import.meta.url), "utf8"));
+      database.prepare("INSERT INTO d1_migrations(name) VALUES (?)").run(name);
+    }
+    assert.throws(() => verifySnapshot(sqliteSnapshot(database), true), /ledger mismatch/);
+    assert.deepEqual(database.prepare("PRAGMA foreign_key_check").all(), []);
+    assert.equal(database.prepare("PRAGMA integrity_check").get()?.integrity_check, "ok");
+  } finally { database.close(); }
+});

@@ -189,3 +189,11 @@ Validation on the upgraded tree: `make api-validate` PASS (typecheck, 970 API + 
 `make contract` and `git diff --check` PASS. No deploy, secret binding, Worker config or production D1
 operation is part of this change; deployed-Worker behavior under the new Wrangler is not exercised here.
 The remaining accepted P2 items above stay open.
+
+## Staging security readiness follow-up (2026-10-14)
+
+The historical best-effort report-counter row above is superseded by schema v3 atomic admission and
+idempotency receipts (migration 0004). Registration/revocation, bulk rejection and bounded retention
+are implemented; see [STAGING_VERIFICATION.md](STAGING_VERIFICATION.md) for current local evidence and
+remaining remote/device gates. This does not close provider logging/privacy, Issue #242 full erase,
+real App Attest or activation approval. No deployment/Secret change or production write was performed.
