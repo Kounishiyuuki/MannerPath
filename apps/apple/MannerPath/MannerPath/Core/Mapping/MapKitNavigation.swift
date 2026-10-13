@@ -2,24 +2,52 @@ import MapKit
 
 @MainActor
 final class MapKitDestinationSearch: DestinationSearching {
-    private var activeSearch: MKLocalSearch?
+    private var activeSearches: [MKLocalSearch] = []
+
+    /// A 20 km region alone makes MapKit answer only local places (from Kanazawa, "上野駅" returned Kanazawa
+    /// stations), so the nearby search runs alongside a nationwide one and the results are merged.
+    static let nationwideRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 36.0, longitude: 137.5),
+        span: MKCoordinateSpan(latitudeDelta: 22, longitudeDelta: 24)
+    )
 
     func search(_ text: String, near origin: SpotCoordinate?) async throws -> [PlaceDestination] {
-        let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = text
+        activeSearches.forEach { $0.cancel() }
+        var regions = [Self.nationwideRegion]
         if let origin, origin.isValid {
-            request.region = MKCoordinateRegion(
+            regions.insert(MKCoordinateRegion(
                 center: CLLocationCoordinate2D(latitude: origin.latitude, longitude: origin.longitude),
                 latitudinalMeters: 20_000, longitudinalMeters: 20_000
-            )
+            ), at: 0)
         }
-        activeSearch?.cancel()
-        let search = MKLocalSearch(request: request)
-        activeSearch = search
-        defer { if activeSearch === search { activeSearch = nil } }
-        let response = try await search.start()
+        let searches = regions.map { region in
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = text
+            request.region = region
+            return MKLocalSearch(request: request)
+        }
+        activeSearches = searches
+        defer { if activeSearches.first === searches.first { activeSearches = [] } }
+        var lists: [[PlaceDestination]] = []
+        var lastError: (any Error)?
+        for search in searches {
+            do {
+                lists.append(Self.destinations(try await search.start()))
+            } catch {
+                try Task.checkCancellation()
+                lastError = error
+                lists.append([])
+            }
+        }
         try Task.checkCancellation()
-        return response.mapItems.prefix(8).compactMap { item in
+        if let lastError, lists.allSatisfy(\.isEmpty) { throw lastError }
+        return lists.count == 2
+            ? DestinationResultMerger.merge(query: text, nearby: lists[0], nationwide: lists[1])
+            : DestinationResultMerger.merge(query: text, nearby: [], nationwide: lists[0])
+    }
+
+    private static func destinations(_ response: MKLocalSearch.Response) -> [PlaceDestination] {
+        response.mapItems.prefix(8).compactMap { item in
             let coordinate = SpotCoordinate(
                 latitude: item.placemark.coordinate.latitude,
                 longitude: item.placemark.coordinate.longitude
