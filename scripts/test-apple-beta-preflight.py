@@ -468,6 +468,29 @@ class PreflightTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "embedded.mobileprovision missing"):
                 preflight.inspect(self.app, False)
 
+    def check_app_attest_profile(self, permitted, signed_environment):
+        (self.app / "embedded.mobileprovision").write_bytes(b"fixture")
+        identifier = preflight.IDS["iPhone app"]
+        profile = {"TeamIdentifier": ["TEAM123"], "Entitlements": {
+            "application-identifier": "TEAM123." + identifier,
+            "com.apple.security.application-groups": [preflight.GROUP],
+            "com.apple.developer.devicecheck.appattest-environment": permitted}}
+        signed = {"com.apple.developer.team-identifier": "TEAM123", "application-identifier": "TEAM123." + identifier,
+                  "com.apple.developer.devicecheck.appattest-environment": signed_environment}
+        with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=plistlib.dumps(profile))):
+            preflight.check_provisioning(self.app, identifier, signed)
+
+    def test_development_profile_permitting_both_environments_passes(self):
+        self.check_app_attest_profile(["development", "production"], "development")
+
+    def test_signed_environment_outside_profile_list_fails(self):
+        with self.assertRaisesRegex(ValueError, "App Attest environments differ"):
+            self.check_app_attest_profile(["production"], "development")
+
+    def test_single_environment_profile_mismatch_fails(self):
+        with self.assertRaisesRegex(ValueError, "App Attest environments differ"):
+            self.check_app_attest_profile("production", "development")
+
     def test_profile_mismatch_does_not_echo_team_identifier(self):
         bundle = self.app
         (bundle / "embedded.mobileprovision").write_bytes(b"fixture")
