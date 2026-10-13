@@ -24,10 +24,11 @@ No separate WatchKit extension. No manual profile, identity or `PROVISIONING_PRO
 (build 1) on every target; raise `CURRENT_PROJECT_VERSION` for each upload. `DEVELOPMENT_TEAM` lives once at project
 level (Debug and Release, #188) and all four bundles inherit it.
 
-**`58A7G4U27M` is a Personal (free) Team — a provisional value.** Evidence: the only cached profile for it,
-“iOS Team Provisioning Profile: com.kounishiyuuki.MannerPath”, was issued with a 7-day lifetime (2026-09-29 → 2026-10-06),
-one device, and only `get-task-allow` / keychain entitlements: no App Groups, no App Attest. After Developer Program
-enrollment, read the paid team ID in Xcode → Settings → Accounts; if it differs, change the one project-level value.
+**`58A7G4U27M` is the confirmed paid team (2026-10-13).** The maintainer confirmed the Developer Program team ID
+(Individual, Active) matches the committed value. Automatic signing with `-allowProvisioningUpdates` then issued
+one-year Development profiles for all four bundles carrying the App Group, and App Attest on the iPhone app. Xcode's
+local account cache may still label the team “Personal Team”; the issued profiles, not that label, are the evidence.
+Distribution signing (Apple Distribution certificate, App Store profiles) is not yet created: §4 step 6.
 
 ## 2. Entitlements, App Groups and App Attest
 
@@ -138,9 +139,9 @@ bypass signed-mode signature/profile checks or provide TestFlight/device evidenc
 
 | Area | Status |
 | --- | --- |
-| Signing configuration in repo | READY except the provisional Personal Team ID (user input, §4 step 2) |
+| Signing configuration in repo | READY; team `58A7G4U27M` confirmed paid (2026-10-13) |
 | Entitlements / App Group / App Attest declarations | READY and consistent across the four bundles |
-| Provisioning / capabilities | WAITING_FOR_DEVELOPER_PROGRAM |
+| Provisioning / capabilities | Development: READY (four one-year profiles, App Group, App Attest; 2026-10-13). Distribution: not created yet (§4 step 6) |
 | App icon | RESOLVED: selected master in both slots; unsigned archive inclusion confirmed (§3.1); signed/physical/rights checks remain |
-| Archive | unsigned succeeds; signed blocked only by provisioning |
+| Archive | Development-signed Release archive passes `apple-beta-preflight.sh <archive>` (2026-10-13); distribution re-signing happens at upload |
 | Upload / TestFlight | after §4 steps 1–5 |

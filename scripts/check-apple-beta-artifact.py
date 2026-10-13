@@ -88,7 +88,11 @@ def check_provisioning(bundle, identifier, entitlements):
         if actual != expected:
             fail(f"{bundle}: {name} does not match the expected bundle, team, or App Group")
     if "com.apple.developer.devicecheck.appattest-environment" in profile_ent:
-        if profile_ent["com.apple.developer.devicecheck.appattest-environment"] != entitlements.get("com.apple.developer.devicecheck.appattest-environment"):
+        # A Development profile lists every environment it permits (["development", "production"]); others carry one string.
+        allowed = profile_ent["com.apple.developer.devicecheck.appattest-environment"]
+        if not isinstance(allowed, list):
+            allowed = [allowed]
+        if entitlements.get("com.apple.developer.devicecheck.appattest-environment") not in allowed:
             fail(f"{bundle}: profile and signed App Attest environments differ")
 
 
