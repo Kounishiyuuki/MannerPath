@@ -22,12 +22,16 @@ private struct V3InstallID: InstallIDProviding {
     func installID() -> UUID { UUID(uuidString: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f")! }
 }
 
+private final class V3VectorBundleAnchor {}
+
 private actor V3Authorizer: ReportAuthorizing {
     private var payloads: [Data] = []
+    private var keySeed: UInt8 = 9
+    func rotateKey() { keySeed += 1 }
     func isSupported() -> Bool { true }
     func authorize(payload: Data) -> ReportAuthorization {
         payloads.append(payload)
-        return ReportAuthorization(keyId: Data(repeating: 9, count: 32).base64EncodedString(),
+        return ReportAuthorization(keyId: Data(repeating: keySeed, count: 32).base64EncodedString(),
                                    challenge: Data(repeating: UInt8(payloads.count), count: 32).base64EncodedString(),
                                    assertion: Data([UInt8(payloads.count)]))
     }
@@ -99,16 +103,28 @@ struct ReportV3Tests {
         }
     }
 
-    @Test func provisionalServerV3BindingVectorIncludesKey() throws {
-        // Copied from the unmerged Server Slice 1 vector, not a declaration of a final protocol.
-        let payload = Data(#"{"schemaVersion":3,"type":"exists","spotId":"sp_01V64NN31G72E5KJJ5W22W1A1J","installId":"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f","idempotencyKey":"202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"}"#.utf8)
-        let challenge = try #require(Data(base64Encoded: "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8="))
-        let key = try #require(Data(base64Encoded: "zgSY9YSD+7TaDXssY6WlOPVS1K3Lmk+pFhlcSWE+ZV0="))
-        #expect(AppAttestBinding.reportClientDataHash(challenge: challenge, keyId: key, payload: payload).base64EncodedString()
-                == "LAkHDTJsCZAuOAjTQ8tx/nDZdLL4xFLeGE2Y2YV9rDE=")
-        let changed = Data(String(decoding: payload, as: UTF8.self).replacingOccurrences(of: "20212223", with: "40414243").utf8)
-        #expect(AppAttestBinding.reportClientDataHash(challenge: challenge, keyId: key, payload: changed)
-                != AppAttestBinding.reportClientDataHash(challenge: challenge, keyId: key, payload: payload))
+    @Test func finalizedServerV3BindingVectorsIncludeSignedKey() throws {
+        let bundle = Bundle(for: V3VectorBundleAnchor.self)
+        let url = try #require(bundle.url(forResource: "client-data-vectors.v1", withExtension: "json"))
+        let root = try object(Data(contentsOf: url))
+        let cases = try #require(root["cases"] as? [[String: Any]])
+        let vectors = cases.filter { ($0["name"] as? String)?.hasPrefix("report v3") == true }
+        #expect(vectors.count == 2)
+        for vector in vectors {
+            let challengeBase64 = try #require(vector["challengeBase64"] as? String)
+            let keyBase64 = try #require(vector["keyIdBase64"] as? String)
+            let payloadBase64 = try #require(vector["payloadBase64"] as? String)
+            let challenge = try #require(Data(base64Encoded: challengeBase64))
+            let key = try #require(Data(base64Encoded: keyBase64))
+            let payload = try #require(Data(base64Encoded: payloadBase64))
+            #expect(try object(payload)["idempotencyKey"] != nil)
+            let clientData = AppAttestBinding.clientData(domain: try #require(vector["domain"] as? String),
+                                                        parts: [challenge, key, payload])
+            let hash = AppAttestBinding.reportClientDataHash(challenge: challenge, keyId: key, payload: payload)
+            #expect(clientData.map { String(format: "%02x", $0) }.joined() == vector["clientDataHex"] as? String)
+            #expect(hash.map { String(format: "%02x", $0) }.joined() == vector["clientDataHashHex"] as? String)
+            #expect(hash.base64EncodedString() == vector["clientDataHashBase64"] as? String)
+        }
     }
 
     @Test func replay200AndCreated201AcceptOnlyV3ValidReceipt() async throws {
@@ -132,7 +148,7 @@ struct ReportV3Tests {
         }
     }
 
-    @Test func configV3RequiresOptInAndNeverDowngradesAmbiguousRanges() async throws {
+    @Test func configV3NegotiationNeverDowngradesAmbiguousRanges() async throws {
         for enabled in [false, true] {
             for (minimum, maximum, attestation) in [(1, 1, "none"), (2, 2, "appAttest"),
                                                    (3, 3, "appAttest"), (2, 3, "appAttest"), (3, 3, "none")] {
@@ -150,9 +166,9 @@ struct ReportV3Tests {
         }
     }
 
-    @Test func defaultV3GateRefusesBeforeNetwork() async throws {
+    @Test func explicitV3GateRefusesBeforeNetwork() async throws {
         let transport = V3Transport([])
-        let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: transport)
+        let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: transport, allowsSchemaV3: false)
         await #expect(throws: ReportAPIError.incompatibleResponse) { _ = try await client.submitAttested(envelope()) }
         #expect(await transport.count() == 0)
     }
@@ -227,7 +243,7 @@ struct ReportV3Tests {
     }
 
     @Test @MainActor func conflictAndRetirementPreserveFrozenDraftButCannotRetry() async throws {
-        for error in [ReportAPIError.idempotencyConflict, .idempotencyRetired] {
+        for error in [ReportAPIError.idempotencyConflict] {
             let path = directory()
             defer { try? FileManager.default.removeItem(at: path) }
             let store = FileReportDraftStore(directory: path)
@@ -293,4 +309,150 @@ struct ReportV3Tests {
         #expect(await authorizer.signedPayloads().isEmpty)
         #expect(await sender.envelopes().isEmpty)
     }
+    @Test func v3RateLimitHonorsRetryAfterAndRejectsUnknown429() async throws {
+        for (body, expected) in [("{\"error\":\"reportRateLimited\"}", ReportAPIError.rateLimited(120)),
+                                 ("{\"error\":\"unexpected\"}", ReportAPIError.incompatibleResponse)] {
+            let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!,
+                transport: V3Transport([.init(statusCode: 429, body: Data(body.utf8), retryAfter: "120")]))
+            await #expect(throws: expected) { _ = try await client.submitAttested(envelope()) }
+        }
+    }
+
+    @Test @MainActor func rateLimitKeepsFrozenPayloadAndPreventsEarlyRetry() async throws {
+        let path = directory()
+        defer { try? FileManager.default.removeItem(at: path) }
+        let sender = V3Submitter([.failure(ReportAPIError.rateLimited(120))])
+        let authorizer = V3Authorizer()
+        let model = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
+            store: FileReportDraftStore(directory: path), installIDs: V3InstallID(),
+            attestedClient: sender, authorizer: authorizer)
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: spotID)
+        let key = model.draft?.idempotencyKey
+        await model.submit()
+        #expect(model.submission == .rateLimited(120))
+        #expect(model.draft?.idempotencyKey == key)
+        #expect(model.draft?.pendingSubmission != nil)
+        await model.submit()
+        await model.retryAmbiguous()
+        #expect(await sender.envelopes().count == 1)
+        #expect(await authorizer.signedPayloads().count == 1)
+    }
+
+    @Test @MainActor func keyRotationCannotRetrieveOldReceiptInProcessOrAfterRestart() async throws {
+        for restart in [false, true] {
+            let path = directory()
+            defer { try? FileManager.default.removeItem(at: path) }
+            let store = FileReportDraftStore(directory: path)
+            let sender = V3Submitter([.failure(URLError(.networkConnectionLost))])
+            let authorizer = V3Authorizer()
+            let first = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
+                store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+            await first.refreshAvailability()
+            first.start(type: .exists, spotId: spotID)
+            await first.submit()
+            #expect(first.draft?.pendingSubmission?.ownerKeyHash != nil)
+            await authorizer.rotateKey()
+            let model = restart ? ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
+                store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer) : first
+            if restart { await model.refreshAvailability() }
+            await model.retryAmbiguous()
+            #expect(model.submission == .attestationOwnerChanged)
+            #expect(!model.canRetryAmbiguous)
+            #expect(await sender.envelopes().count == 1)
+            #expect(try store.load()?.pendingSubmission?.terminalFailure == "attestationOwnerChanged")
+        }
+    }
+
+    @Test @MainActor func attemptedV3WithoutPersistedOwnerCannotRetry() async throws {
+        let path = directory()
+        defer { try? FileManager.default.removeItem(at: path) }
+        let store = FileReportDraftStore(directory: path)
+        var draft = ReportDraft(type: .exists, spotId: spotID)
+        draft.pendingSubmission = ReportPendingSubmission(schemaVersion: 3,
+            payload: try ReportRequest.encoded(draft: draft, installId: V3InstallID().installID(), limits: limits))
+        try store.save(draft)
+        try store.markSubmissionAttempt()
+        let sender = V3Submitter([]), authorizer = V3Authorizer()
+        let model = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+        await model.refreshAvailability()
+        #expect(!model.canRetryAmbiguous)
+        await model.retryAmbiguous()
+        #expect(await sender.envelopes().isEmpty)
+        #expect(await authorizer.signedPayloads().isEmpty)
+    }
+
+    @Test @MainActor func retiredReceiptDiscardsKeyAndDoesNotRetryAfterRestart() async throws {
+        let path = directory()
+        defer { try? FileManager.default.removeItem(at: path) }
+        let store = FileReportDraftStore(directory: path)
+        let sender = V3Submitter([.failure(ReportAPIError.idempotencyRetired)])
+        let authorizer = V3Authorizer()
+        let model = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+        await model.refreshAvailability()
+        model.start(type: .exists, spotId: spotID)
+        let key = model.draft?.idempotencyKey
+        await model.submit()
+        #expect(model.submission == .idempotencyRetired)
+        #expect(model.draft == nil)
+        #expect(try store.load() == nil)
+        #expect(try store.submissionMarker() == nil)
+        let restarted = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+        await restarted.refreshAvailability()
+        await restarted.retryAmbiguous()
+        #expect(await sender.envelopes().count == 1)
+        restarted.start(type: .exists, spotId: spotID)
+        #expect(restarted.draft?.idempotencyKey != key)
+    }
+
+    @Test func finalizedV3SupportStillRequiresAvailableExactAppAttestConfig() async throws {
+        for (available, minimum, maximum, attestation) in [(true, 3, 3, "appAttest"),
+            (false, 3, 3, "appAttest"), (true, 2, 3, "appAttest"), (true, 3, 3, "none")] {
+            let body = Data("{\"schemaVersion\":1,\"apiVersion\":\"v1\",\"schemaVersions\":{\"report\":\(maximum)},\"minimumSupportedSchemaVersions\":{\"report\":\(minimum)},\"reports\":{\"available\":\(available),\"attestation\":\"\(attestation)\",\"maxBodyBytes\":4096,\"maxSubmissionBytes\":8192,\"noteMaxLength\":280}}".utf8)
+            let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!,
+                transport: V3Transport([.init(statusCode: 200, body: body, retryAfter: nil)]))
+            let result = try await client.fetchAvailability()
+            if minimum != maximum || attestation != "appAttest" { #expect(result == .incompatible) }
+            else if !available { #expect(result == .unavailable) }
+            else {
+                guard case .available(let selected) = result else { Issue.record("Finalized v3 must negotiate"); continue }
+                #expect(selected.submissionProtocol == .appAttestV3)
+            }
+        }
+    }
+
+    @Test @MainActor func replayAfterTermsUpdateKeepsOriginalConsentAndExactSignedPayload() async throws {
+        let path = directory()
+        defer { try? FileManager.default.removeItem(at: path) }
+        let store = FileReportDraftStore(directory: path)
+        let sender = V3Submitter([.failure(URLError(.networkConnectionLost)), .success(receipt)])
+        let authorizer = V3Authorizer()
+        var originalLimits = limits
+        originalLimits.termsVersion = "original-terms"
+        let first = ReportModel(configClient: V3Config(limits: originalLimits), reportClient: sender,
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+        await first.refreshAvailability()
+        first.start(type: .exists, spotId: spotID)
+        var draft = try #require(first.draft)
+        draft.acceptedTermsVersion = "original-terms"
+        first.saveDraft(draft)
+        await first.submit()
+        #expect(first.submission == .ambiguous)
+        var updatedLimits = limits
+        updatedLimits.termsVersion = "updated-terms"
+        let restarted = ReportModel(configClient: V3Config(limits: updatedLimits), reportClient: sender,
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+        await restarted.refreshAvailability()
+        #expect(restarted.canRetryAmbiguous)
+        await restarted.retryAmbiguous()
+        let signed = await authorizer.signedPayloads()
+        #expect(signed.count == 2)
+        #expect(signed[0] == signed[1])
+        #expect(try object(signed[1])["acceptedTermsVersion"] as? String == "original-terms")
+        #expect(restarted.submission == .accepted(receipt))
+    }
+
 }

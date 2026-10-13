@@ -110,10 +110,10 @@ nonisolated protocol ReportSubmitting: Sendable {
 nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppAttestServer, AttestedReportSubmitting {
     let baseURL: URL
     let transport: any ReportHTTPTransport
-    /// Off until Server Slice 1 and its final contract vectors are merged and validated.
+    /// Supports the finalized protocol; availability still requires the exact advertised range and App Attest.
     let allowsSchemaV3: Bool
 
-    init(baseURL: URL, transport: any ReportHTTPTransport = URLSessionReportTransport(), allowsSchemaV3: Bool = false) {
+    init(baseURL: URL, transport: any ReportHTTPTransport = URLSessionReportTransport(), allowsSchemaV3: Bool = true) {
         self.baseURL = baseURL
         self.transport = transport
         self.allowsSchemaV3 = allowsSchemaV3
@@ -168,7 +168,7 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
         return try await postReport(envelope, schemaVersion: version.schemaVersion)
     }
 
-    /// Only a contract-valid 201 proves acceptance and only documented pre-store refusals are
+    /// A contract-valid 201 or v3 replay 200 proves acceptance; only documented pre-store refusals are
     /// definite; everything else is transport-ambiguous (`incompatibleResponse`).
     private func postReport(_ body: Data, schemaVersion: Int) async throws -> AcceptedReport {
         let response = try await transport.send(post("v1/reports", body: body))

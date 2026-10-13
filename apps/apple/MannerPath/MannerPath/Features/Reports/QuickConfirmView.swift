@@ -103,7 +103,10 @@ struct QuickConfirmView: View {
         case .idempotencyConflict:
             Text("This saved submission conflicts with an earlier submission. Review or discard the saved draft.")
         case .idempotencyRetired:
-            Text("The receipt for this saved submission has expired. Review or discard the saved draft.")
+            Text("This earlier submission has already been handled and its receipt has expired. The draft will not be sent again.")
+            if let cleanupError = model.cleanupError { Text(cleanupError) }
+        case .attestationOwnerChanged:
+            Text("This device's security key has changed. Review or discard the saved draft; its earlier delivery remains unconfirmed.")
         }
     }
 }

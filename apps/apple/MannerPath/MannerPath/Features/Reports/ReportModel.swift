@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Observation
 
 nonisolated enum ReportSubmissionState: Equatable, Sendable {
@@ -15,6 +16,7 @@ nonisolated enum ReportSubmissionState: Equatable, Sendable {
     case ambiguous
     case idempotencyConflict
     case idempotencyRetired
+    case attestationOwnerChanged
     case failed(String)
 }
 
@@ -52,7 +54,9 @@ final class ReportModel {
     private(set) var cleanupError: String?
     var usesIdempotentRetry: Bool { draft?.pendingSubmission?.schemaVersion == 3 }
     var canEditDraft: Bool { !isBusy && draft?.pendingSubmission == nil && !recoveredSubmissionAttempt }
-    var isTerminalReceipt: Bool { submission == .idempotencyConflict || submission == .idempotencyRetired }
+    var isTerminalReceipt: Bool {
+        submission == .idempotencyConflict || submission == .idempotencyRetired || submission == .attestationOwnerChanged
+    }
     var canRetryAmbiguous: Bool {
         guard submission == .ambiguous, !recoveredSubmissionAttempt else { return false }
         if usesIdempotentRetry {
@@ -96,7 +100,7 @@ final class ReportModel {
                     try store.clearAcceptedCleanupMarker()
                     recoveredSubmissionAttempt = false
                 } else {
-                    if let saved = draft, Self.validPendingSubmission(saved) {
+                    if let saved = draft, Self.validPendingSubmission(saved), saved.pendingSubmission?.ownerKeyHash != nil {
                         recoveredSubmissionAttempt = false
                         submission = Self.recoveredState(saved)
                     } else {
@@ -267,6 +271,27 @@ final class ReportModel {
                 return
             }
             authorizedKeyID = authorization.keyId
+            if limits.submissionProtocol == .appAttestV3 {
+                guard let owner = Self.ownerFingerprint(authorization.keyId) else {
+                    submission = .authorizationFailed(String(localized: "This report could not be secured. Try again later."))
+                    return
+                }
+                if let previous = draft.pendingSubmission?.ownerKeyHash, previous != owner {
+                    recordTerminalReceipt("attestationOwnerChanged", state: .attestationOwnerChanged)
+                    return
+                }
+                if draft.pendingSubmission?.ownerKeyHash == nil {
+                    draft.pendingSubmission?.ownerKeyHash = owner
+                    do {
+                        // Bind ownership atomically before recording an attempt or sending any report.
+                        try store.save(draft)
+                        self.draft = draft
+                    } catch {
+                        submission = .failed(String(localized: "Report could not be safely prepared on this device."))
+                        return
+                    }
+                }
+            }
             do { body = try AttestedReportEnvelope.encoded(payload: payload, authorization: authorization,
                                                          schemaVersion: limits.submissionProtocol.schemaVersion) }
             catch {
@@ -301,7 +326,14 @@ final class ReportModel {
             case .idempotencyConflict:
                 recordTerminalReceipt("idempotencyConflict", state: .idempotencyConflict)
             case .idempotencyRetired:
-                recordTerminalReceipt("idempotencyRetired", state: .idempotencyRetired)
+                // Final v3 contract: an owned retired receipt is already handled. Drop this draft/key;
+                // do not manufacture a fresh key or repeat the report to recover expired content.
+                submission = .idempotencyRetired
+                self.draft = nil
+                acceptedCleanupPending = true
+                do { try store.markAcceptedForCleanup() }
+                catch { cleanupError = String(localized: "The expired submission's saved draft could not be removed.") }
+                retryAcceptedCleanup()
             case .rejected(let status, let code):
                 guard clearDefiniteAttempt() else { return }
                 if status == 503 && code == "attestationUnavailable" { availability = .unavailable }
@@ -369,18 +401,26 @@ final class ReportModel {
         switch draft.pendingSubmission?.terminalFailure {
         case "idempotencyConflict": .idempotencyConflict
         case "idempotencyRetired": .idempotencyRetired
+        case "attestationOwnerChanged": .attestationOwnerChanged
         default: .ambiguous
         }
     }
 
     private static func validPendingSubmission(_ draft: ReportDraft) -> Bool {
         guard let pending = draft.pendingSubmission, pending.schemaVersion == 3,
-              pending.terminalFailure == nil || ["idempotencyConflict", "idempotencyRetired"].contains(pending.terminalFailure!),
+              pending.terminalFailure == nil || ["idempotencyConflict", "idempotencyRetired", "attestationOwnerChanged"].contains(pending.terminalFailure!),
+              pending.ownerKeyHash == nil || ReportIdempotencyKey.isValid(pending.ownerKeyHash),
               let key = draft.idempotencyKey, ReportIdempotencyKey.isValid(key),
               let object = try? JSONSerialization.jsonObject(with: pending.payload) as? [String: Any],
               object["schemaVersion"] as? Int == 3, object["idempotencyKey"] as? String == key,
               let installID = object["installId"] as? String, UUID(uuidString: installID) != nil else { return false }
         return true
+    }
+
+    private static func ownerFingerprint(_ keyID: String) -> String? {
+        guard let bytes = Data(base64Encoded: keyID), bytes.count == 32,
+              bytes.base64EncodedString() == keyID else { return nil }
+        return SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
     }
 
     func retryAcceptedCleanup() {
@@ -391,7 +431,9 @@ final class ReportModel {
             acceptedCleanupPending = false
             cleanupError = nil
         } catch {
-            cleanupError = String(localized: "Report was received, but its local draft could not be removed.")
+            cleanupError = submission == .idempotencyRetired
+                ? String(localized: "The expired submission's saved draft could not be removed.")
+                : String(localized: "Report was received, but its local draft could not be removed.")
         }
     }
 

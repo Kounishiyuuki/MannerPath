@@ -591,24 +591,24 @@ assertion can never be replayed. A store failure (`503`) rolls the whole transac
 single App Attest key is not implemented yet; once it is, a revoked key fails assertion verification and
 so never reaches a receipt.
 
-### iPhone client changes required for schemaVersion 3 (not yet implemented)
+### iPhone schemaVersion 3 client
 
-The iPhone app still sends schemaVersion 2, so against a schemaVersion 3 deployment `/v1/config`
-reports a version it does not speak and reporting stays off (`400 reportSchemaUnsupported` if sent).
-Production intake is disabled, so nothing shipped is affected. The client change, in its own PR:
+The Swift client supports schema 3 only when `/v1/config` explicitly advertises an available
+`appAttest` deployment with report range `(3,3)` and compatible terms; it preserves schema 1/local
+and schema 2 compatibility with servers that explicitly advertise them. Production intake remains disabled.
 
-- `ReportDraft` gains `idempotencyKey`: 32 bytes from `SecRandomCopyBytes`, lowercase hex, generated
-  when the draft is created and saved with it in the Application Support draft file (never
-  `UserDefaults`, never the keychain item of the App Attest key, never derived from `installId`).
-- `ReportRequest.encoded` writes `"schemaVersion": 3` and the draft's key into the signed payload.
-- An ambiguous or recovered submission (`.ambiguous`, `recoveredSubmissionAttempt`) may be retried
-  with the same draft, idempotency key **and App Attest key**, and a new challenge and assertion
-  (after the App Attest key was replaced, a retry would be a new report: keep the draft for the user
-  instead of resending it); `200` is success with the original
-  `reportId`; `409` keeps the draft and says it no longer matches what was sent; `410` drops the
-  draft as already handled.
-- Accepted-draft cleanup deletes the key with the draft. Watch and widget targets send no report.
-- Verify against `contracts/app-attest/client-data-vectors.v1.json` (the `report v3` cases).
+- `ReportDraft` holds 32 `SecRandomCopyBytes` bytes as lowercase hex in the protected Application Support
+  draft file, never as an install/device identifier. Randomness failure cannot send a v3 report.
+- The idempotency key is inside the exact frozen payload bytes signed and transmitted. Retries retain
+  original bytes/consent and get a fresh challenge/assertion; no client-side counter or server
+  canonicalization logic replaces the signed payload.
+- A draft-scoped, local App Attest key fingerprint is saved before POST. Retry with a replaced key
+  is blocked rather than sent as a new report. Unknown old attempts or attempted v3 drafts without
+  an owner stay blocked after restart. No fingerprint is sent or logged.
+- `201`/`200` clean up the key with the draft. `409` retains a blocked draft; `410` removes it as
+  already handled. `429` retains it for a later explicit retry. Cleanup failures block new reports.
+- Watch/widgets submit no reports. Tests use `contracts/app-attest/client-data-vectors.v1.json`.
+  See `apps/apple/README.md` for persistence/retry boundaries and physical-device release checks.
 
 ## App Attest (implemented, Issue #37)
 

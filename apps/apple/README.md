@@ -147,38 +147,37 @@ data, starts and stops the Worker, and sets location, permission, appearance and
 `simctl`. No signing team or device is needed. The app has no test-only code paths; the tests
 use accessibility labels plus two identifiers (`nearbyMap`, `nearbyResultRow`).
 
-## Report schema v3 client preparation (Lane 4; not activated)
+## Report schema v3 client (Lane 4)
 
-Main's report contract remains schema 1/local and schema 2/App Attest. Server Slice 1 on
-`security/report-idempotency-atomic-budget` is unmerged and subject to security audit. This client
-preparation references its `45754d8cb801ef3e4a894fb3a02abd962444653f` proposal, not a final protocol.
-`ReportAPIClient.allowsSchemaV3` defaults to **false**; production composition does not opt in.
-The client never infers v3, downgrades required attestation, enables intake, or changes signing.
+Server Slice 1 (PR #244, merge `47477d022fb2eeb28ce2e1cae9e3e591525df577`) fixes the v3
+protocol in docs/API.md, ADR-0007 and shared App Attest vectors. The client selects v3 only when
+config explicitly advertises `appAttest`, exactly `(3,3)`, compatible bundled terms and available
+intake, and the device supports App Attest. Schema 1/local and older schema 2 deployments remain
+supported only when explicitly advertised. This changes no production intake settings or signing.
 
-The stable client requirements are per-draft 32-byte system randomness, a retained key on retry,
-fresh challenge/assertion on every explicit attempt, and signing exactly the payload transmitted.
-The proposal encodes the key as 64 lowercase hex characters inside schema-3 payload bytes and
-recognizes 201/200 acceptance, 409 `idempotencyConflict` and 410 `idempotencyRetired`.
-These wire decisions are isolated in the DTO/network adapter and covered by explicitly provisional
-Swift vectors. Server ownership, canonical comparison, receipt scope and counter behavior remain
-server-owned decisions; the client performs no independent server canonicalization or counter handling.
+Each new draft gets 32 `SecRandomCopyBytes` bytes as lowercase hex; randomness failure cannot
+send a v3 report. One protected atomic draft file holds that key and the frozen payload bytes.
+The exact bytes signed are sent and reused on explicit retries, including after restart. Fresh
+challenge/assertion material exists only in memory, and the client never manages App Attest counters
+or independently implements server canonicalization. Original consent and Unicode are preserved
+in a retry even when current terms change; the server checks a receipt before current consent.
 
-One protected atomic draft file holds its key and, before authorization, the frozen payload bytes.
-Edits are refused once frozen. A network response loss preserves both; retries never re-encode,
-reuse a challenge/assertion, replace the key, or run automatically. After restarting, a valid frozen
-v3 draft can be explicitly retried only against a compatible, opted-in v3 deployment. Unknown old
-schema attempts remain blocked after restart; they are never upgraded into a new submission.
-Untouched older drafts gain a key only before their first v3 attempt. Drafts with corrupt retry
-metadata stay blocked. An accepted receipt removes the draft/key using the existing cleanup marker;
-failed cleanup blocks a new submission. Terminal 409/410 outcomes remain saved and blocked after
-restart, requiring explicit review/discard. Discard/new draft creates independent randomness, not
-an installation identifier. App Attest material and photo previews are never stored in the draft.
+Before the first POST, a local SHA-256 fingerprint of the canonical App Attest key bytes is saved
+with the draft. A different key after recovery/rotation/restore blocks POST and keeps the draft for
+review/discard: it cannot retrieve another key's receipt, nor silently create a duplicate. This
+fingerprint is local, draft-scoped, deleted with the draft, and never transmitted or logged. An
+attempted draft without a persisted owner stays blocked. Untouched legacy drafts get a key before
+their first v3 submission; uncertain old-schema attempts are never automatically upgraded.
 
-Before enabling the gate or pushing/opening a PR: wait for Server Slice 1 to merge, re-read its final
-API/ADR/vectors, replace provisional tests with final shared vectors, check authorization/receipt
-compatibility (including key recovery and changed terms), and rerun `make apple-validate`,
-`make contract` and `git diff --check`. Local validation of this preparation is not final protocol
-acceptance or a production enablement decision. No TestFlight or API deployment is part of Lane 4.
+201/200 delete the draft/key using the cleanup marker. 409 preserves a blocked draft; an owned 410
+receipt is already handled and removes the draft/key without resending. 429 keeps payload/key/owner
+and delays another explicit attempt. Unknown/store-failure responses remain ambiguous. Failed
+cleanup blocks fresh reports. Frozen draft edits are refused; discard/new draft uses fresh randomness.
+
+`ReportV3Tests` and existing binding tests consume the final shared vectors. Local simulator and
+API tests do not establish real-device App Attest or production readiness. Physical-device tests
+of registration, response-loss recovery, key loss/rotation, receipt replay and actual server origins
+remain release checks. No TestFlight/API deployment or remote configuration change is part of Lane 4.
 
 ## Photo evidence foundation (Issue #147)
 

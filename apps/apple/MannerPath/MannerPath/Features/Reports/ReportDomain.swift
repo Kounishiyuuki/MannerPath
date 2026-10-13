@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 nonisolated enum ReportType: String, CaseIterable, Codable, Sendable {
     case exists, missing, moved, hoursChanged, tobaccoTypeChanged, accessChanged, prohibited, other
@@ -107,9 +108,10 @@ nonisolated struct ReportCorrection: Codable, Equatable, Sendable {
 
 /// Per-draft randomness, never an installation or tracking identifier.
 nonisolated enum ReportIdempotencyKey {
-    static func generate() -> String {
-        var generator = SystemRandomNumberGenerator()
-        return (0..<32).map { _ in String(format: "%02x", UInt8.random(in: .min ... .max, using: &generator)) }.joined()
+    static func generate() -> String? {
+        var bytes = [UInt8](repeating: 0, count: 32)
+        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
+        return bytes.map { String(format: "%02x", $0) }.joined()
     }
 
     static func isValid(_ value: String?) -> Bool {
@@ -122,6 +124,8 @@ nonisolated enum ReportIdempotencyKey {
 nonisolated struct ReportPendingSubmission: Codable, Equatable, Sendable {
     var schemaVersion: Int
     var payload: Data
+    /// Local receipt ownership guard. Only a fingerprint, not App Attest material; removed with the draft.
+    var ownerKeyHash: String? = nil
     /// A definitive idempotency refusal remains terminal after restarting the app.
     var terminalFailure: String? = nil
 }
@@ -166,7 +170,7 @@ nonisolated enum ReportProtocol: Equatable, Sendable {
     /// schemaVersion 2: exact payload bytes plus an App Attest assertion over them.
     case appAttest
 
-    /// Provisional schema v3, enabled only after the final server contract is approved.
+    /// Schema v3: an idempotent, owned report, selected only by the deployment's API config.
     case appAttestV3
 
     var isAttested: Bool { self != .unattested }

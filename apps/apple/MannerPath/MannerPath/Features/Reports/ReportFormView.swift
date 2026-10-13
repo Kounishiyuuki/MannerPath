@@ -303,7 +303,10 @@ struct ReportFormView: View {
         case .idempotencyConflict:
             Text("This saved submission conflicts with an earlier submission. It cannot be sent again. Review or discard the draft; no new report was created by this attempt.")
         case .idempotencyRetired:
-            Text("The receipt for this saved submission has expired. It cannot be sent again. Review or discard the draft; no new report was created by this attempt.")
+            Text("This earlier submission has already been handled and its receipt has expired. The draft will not be sent again.")
+            if let cleanupError = model.cleanupError { Text(cleanupError) }
+        case .attestationOwnerChanged:
+            Text("This device's security key has changed. The saved submission cannot be retried safely. Review or discard the draft; its earlier delivery remains unconfirmed.")
         case .failed(let message):
             Text(message)
         }
