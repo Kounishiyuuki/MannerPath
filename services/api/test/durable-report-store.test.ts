@@ -336,12 +336,13 @@ async function attestedReport(d: ReturnType<typeof deployment>, device: TestDevi
   const challengeRes = await d.call("/v1/app-attest/challenges", { schemaVersion: 1, purpose: "report", keyId: device.keyIdBase64 });
   if (challengeRes.status !== 201) return challengeRes;
   const ch = ((await challengeRes.json()) as Row).challenge;
-  const payload = utf8(JSON.stringify({ schemaVersion: 2, installId: INSTALL, acceptedTermsVersion: TERMS, ...body }));
+  const idempotencyKey = Array.from(crypto.getRandomValues(new Uint8Array(32)), (x) => x.toString(16).padStart(2, "0")).join("");
+  const payload = utf8(JSON.stringify({ schemaVersion: 3, installId: INSTALL, acceptedTermsVersion: TERMS, idempotencyKey, ...body }));
   const assertion = await makeAssertion(device, await sha256(reportClientData(base64Decode(ch)!, device.keyId, payload)), { appId: APP_ID, counter: ++counter });
-  return d.call("/v1/reports", { schemaVersion: 2, payload: base64Encode(payload), attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) } });
+  return d.call("/v1/reports", { schemaVersion: 3, payload: base64Encode(payload), attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) } });
 }
 
-const reportStoreState = (reports: SqliteD1) => JSON.stringify(["reports", "report_moderation", "report_reviews", "report_review_evidence", "app_attest_keys",
+const reportStoreState = (reports: SqliteD1) => JSON.stringify(["reports", "report_idempotency", "report_moderation", "report_reviews", "report_review_evidence", "app_attest_keys",
   "report_rate_windows", "report_terms_documents"].map((t) => all(reports, `SELECT * FROM ${t} ORDER BY 1`)));
 
 test("blue/green: reports, moderation, App Attest keys and rate-limit identity survive a cutover and a rollback; only DB switches", async () => {
@@ -486,7 +487,7 @@ test("migration streams are separate, and the long-lived report stream is append
   const canonical25 = readFileSync(new URL("../migrations/0025_durable_report_store_boundary.sql", import.meta.url), "utf8").replace(/--.*$/gm, "");
   assert.doesNotMatch(canonical25, /DROP\s+TABLE|DELETE\s+FROM/i, "the legacy report tables are kept, not dropped");
   const reports = reportsD1();
-  assert.deepEqual(tables(reports), ["app_attest_challenges", "app_attest_keys", "community_evidence_photos", "community_photo_deletions", "community_photo_requests", "moderation_queue_revision", "report_moderation", "report_rate_windows", "report_review_evidence",
+  assert.deepEqual(tables(reports), ["app_attest_challenges", "app_attest_keys", "community_evidence_photos", "community_photo_deletions", "community_photo_requests", "moderation_queue_revision", "report_idempotency", "report_moderation", "report_rate_windows", "report_review_evidence",
     "report_reviews", "report_store_meta", "report_terms_documents", "reports"], "REPORTS_DB holds no canonical table");
   const data = new SqliteD1();
   for (const t of ["report_reviews", "report_review_evidence", "report_store_meta", "report_terms_documents", "moderation_queue_revision", "community_evidence_photos", "community_photo_deletions", "community_photo_requests"]) assert.equal(tables(data).includes(t), false, t);

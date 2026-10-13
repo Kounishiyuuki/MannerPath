@@ -4,7 +4,7 @@
 import { type Db, type DbStatement, isoSeconds, sha256Hex } from "../db.ts";
 import type { AttestationStatus } from "./attestation.ts";
 import {
-  type ReportAcceptedV1, type ReportAcceptedV2, type ReportPayloadV2, type ReportRequestV1, quantizeCoordinate, storedReportType,
+  type ReportAcceptedV1, type ReportAcceptedV3, type ReportPayloadV3, type ReportRequestV1, quantizeCoordinate, storedReportType,
 } from "./dto.ts";
 import { newReportId } from "./report-id.ts";
 import { type ReviewedTerms, ensureConsentDocumentStatement, reviewedTerms } from "./terms.ts";
@@ -44,15 +44,20 @@ export interface CreateReportOptions {
    * report.
    */
   guards?: DbStatement[];
+  /**
+   * Statements that commit after the report rows in the same batch — the idempotency receipt naming the new report and
+   * the budget debits. Any of them aborting (a receipt race, an exhausted budget) stores nothing.
+   */
+  after?: (reportId: string, receivedAt: string) => DbStatement[];
   /** Resolves a consented terms version; only tests replace it, to simulate a future approved version. */
   reviewedTerms?: (version: string) => ReviewedTerms;
 }
 
 export async function createReport(
   db: Db,
-  request: ReportRequestV1 | ReportPayloadV2,
+  request: ReportRequestV1 | ReportPayloadV3,
   opts: CreateReportOptions,
-): Promise<ReportAcceptedV1 | ReportAcceptedV2> {
+): Promise<ReportAcceptedV1 | ReportAcceptedV3> {
   const reportId = (opts.newReportId ?? newReportId)();
   const receivedAt = isoSeconds(opts.now);
   const location = request.proposedLocation;
@@ -104,6 +109,7 @@ export async function createReport(
       `INSERT INTO report_moderation (report_id, state, reconciliation_state, updated_at)
        VALUES (?, 'pending', 'notQueued', ?)`,
     ).bind(reportId, receivedAt),
+    ...(opts.after?.(reportId, receivedAt) ?? []),
   ]);
 
   return { schemaVersion: request.schemaVersion, reportId, state: "pending", receivedAt };

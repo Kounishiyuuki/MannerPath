@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { REGISTRATION_DOMAIN, REPORT_DOMAIN, clientDataHash, registrationClientData, reportClientData } from "../src/attest/binding.ts";
 import { base64Decode, hex } from "../src/attest/bytes.ts";
-import { ReportPayloadV2 } from "../src/reports/dto.ts";
+import { ReportPayloadV3, ReportRequestV1 } from "../src/reports/dto.ts";
 
 const vectors = JSON.parse(readFileSync(new URL("../../../contracts/app-attest/client-data-vectors.v1.json", import.meta.url), "utf8"));
 
@@ -31,9 +31,15 @@ test("the TypeScript binding reproduces every frozen vector byte for byte", asyn
   }
 });
 
-test("the report vectors are valid v2 payloads, and different bytes never share a hash", () => {
+test("the report vectors are valid payloads (v3 current, v2 retained for framing), and different bytes never share a hash", () => {
   const reports = vectors.cases.filter((c: any) => c.domain === REPORT_DOMAIN);
-  for (const c of reports) assert.equal(ReportPayloadV2.safeParse(JSON.parse(c.payloadUtf8)).success, true, c.name);
+  const current = reports.filter((c: any) => JSON.parse(c.payloadUtf8).schemaVersion === 3);
+  assert.ok(current.length >= 2, "v3 vectors present");
+  for (const c of current) assert.equal(ReportPayloadV3.safeParse(JSON.parse(c.payloadUtf8)).success, true, c.name);
+  // The v2 cases predate the idempotency key: apart from the version they are valid report fields.
+  for (const c of reports.filter((c: any) => JSON.parse(c.payloadUtf8).schemaVersion === 2)) {
+    assert.equal(ReportRequestV1.safeParse({ ...JSON.parse(c.payloadUtf8), schemaVersion: 1 }).success, true, c.name);
+  }
   const hashes = new Set(vectors.cases.map((c: any) => c.clientDataHashHex));
   assert.equal(hashes.size, vectors.cases.length, "every case hashes differently, including a reordered or newline-terminated copy");
 });

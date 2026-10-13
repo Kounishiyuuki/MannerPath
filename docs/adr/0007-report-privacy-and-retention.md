@@ -5,7 +5,9 @@ Status: Accepted (2026-09, Issue #29). Amended 2026-09 by the PR #36 review: App
 narrowed to the ones this slice can honestly make (§2). Amended 2026-09 by Issue #37: App Attest
 implemented as a server-issued challenge / key registration / request-bound assertion protocol
 (§6), report request schema 2. Amended 2026-09 by Issue #123: `queued → applied` implemented by
-community reconciliation (§2, §8, "Amendment — community reconciliation" below).
+community reconciliation (§2, §8, "Amendment — community reconciliation" below). Amended 2026-10-13
+(security lane 4, slice 1): report request schema 3, idempotency receipts and the transactional budget
+("Amendment — idempotent submission and the atomic budget" below).
 
 Prerequisite for the report API. ADR-0006 ends with "Report privacy/retention requires a separate
 ADR before the report API ships"; this is that ADR. It governs `POST /v1/reports`
@@ -129,7 +131,9 @@ a client obligation.
   nothing.
 - The request body is capped at 4 KiB; a larger body is rejected with `413` before it is parsed.
 - D1 counters are the boundary this architecture (ADR-0003: Workers + D1, no KV or Durable Objects
-  configured) can enforce today and are best-effort under concurrency. An edge rate-limit rule in
+  configured) can enforce today. Since report-store migration 0004 a report's debit commits in the
+  report's own transaction and a trigger refuses any increment past a limit, so concurrent reports
+  cannot exceed it (see the 2026-10-13 amendment). An edge rate-limit rule in
   front of the Worker, keyed on IP, is a deployment-level pre-launch requirement and is recorded as
   such rather than implemented in application code where it would need to store IPs.
 
@@ -434,3 +438,54 @@ and connects existing-spot reports (Issue #127). Code: `services/api/src/reports
   and only reports consented to that exact version can publish (§ amendment 2026-09-30, no retroactive rights).
 - **Withdrawal stays undecided.** The options and their fit with §4's 90-day minimization are in
   `docs/legal/COMMUNITY_PUBLICATION_DECISION.md` §5; choosing B or C amends this ADR.
+
+## Amendment 2026-10-13 — idempotent submission and the atomic budget (security lane 4, slice 1)
+
+**Problem.** A report's ID was chosen by the server, so a client that lost a response could not tell
+whether its report was stored; retrying with a new challenge stored a second copy, and the budget was
+debited in a separate statement before the report was written.
+
+**Decision.**
+- **Request schema 3** replaces schema 2 for App Attest deployments. Its signed payload carries a
+  required `idempotencyKey`: 32 CSPRNG bytes, lowercase hex, one per report draft, kept for every
+  retry of that draft and discarded with it. Schema 2 is retired (intake has never been enabled).
+- **Receipts** (`report_idempotency`, report-store migration 0004) map
+  `SHA-256("mannerpath.report-idempotency.v2\n" ‖ keyId ‖ "\n" ‖ key)` to the report and to
+  `SHA-256("mannerpath.report-request.v1\n" ‖ canonicalJSON(validated report without the key and the
+  installId))` (canonicalization fixed in `docs/API.md` "Request hash"). The digest is **owned**: it
+  binds the idempotency key to the App Attest key whose verified assertion carried it, so holding an
+  idempotency key is not ownership, and another key presenting it learns nothing (no receipt, no
+  `reportId`, no `409`/`410`) and creates its own draft. It does not include the peppered submitter
+  hash, so a pepper rotation cannot turn a retry into a duplicate. A new App Attest key is a new
+  owner: no receipt carries over, because no authenticated key migration exists. The raw key is
+  never stored, and the digest links nothing without it.
+- **Answers.** A new draft is `201`; the same draft again `200` with the same report; the same key
+  with a different report `409 idempotencyConflict`; a key whose report passed retention
+  `410 idempotencyRetired`. A receipt is consulted only after the challenge is consumed and the
+  assertion verified, and a receipt answer still records that assertion's counter. A retry always
+  needs a fresh challenge and assertion; challenges stay one-time.
+- **One transaction.** Counter advance, report, moderation row, receipt and both budget debits commit
+  together. A concurrent duplicate aborts on the receipt's primary key and answers from the winner's
+  receipt; a trigger on `report_rate_windows` aborts any debit past 10/hour or 50/day. Retries,
+  conflicts and retired keys use no budget; a `429` still writes nothing, the counter included.
+- **Retention (§4).** Minimization retires the receipt in the same batch: `request_sha256` is cleared
+  with the report's personal content (it fingerprints that content) and `retired_at` set. The
+  receipt itself — a random digest and a report ID — is never deleted, and its report cannot be
+  deleted while it exists (`ON DELETE RESTRICT`).
+
+**Consequences.**
+- §4's "full erase (deleting the row) for a deletion request" is not implemented, and for a report
+  with a receipt it is now refused by the foreign key. Erasing such a report needs a reviewed
+  procedure that decides what remains to refuse the key (open decision, Issue #242; nothing deletes reports today).
+- Payloads with a repeated member name or a lone surrogate are refused before hashing, so one signed
+  payload has one meaning; the hash never replaces the assertion over the exact bytes.
+- Revoking a single App Attest key is not implemented; when it is, revocation must fail the assertion
+  check, which already precedes every receipt lookup.
+- Wrangler mis-split a conditional expression inside a trigger in migration 0003
+  (`services/api/REPORTS_MIGRATION_RECOVERY.md`); 0004's triggers use plain boolean conditions only,
+  and `test/report-idempotency.test.ts` checks the client split. The 0003 recovery tool now accepts
+  later migrations after the reviewed 0001–0003 prefix; 0003 must still be imported before 0004 is
+  applied to a remote store.
+- The iPhone client still speaks schema 2; its change is specified in `docs/API.md` ("iPhone client
+  changes required for schemaVersion 3") and lands separately. Until then a schema-3 deployment's
+  `/v1/config` keeps reporting off for that build.

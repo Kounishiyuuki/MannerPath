@@ -49,7 +49,8 @@ test("intake statement and parameter bounds are unchanged by 1,000 reports; DATA
       traces.push({ queries: [...db.queries], batches: [...db.batches] });
       assert.ok(db.queries.length <= 8);
       assert.ok(db.queries.every((q) => q.parameters <= 25));
-      assert.ok(db.batches.every((size) => size <= 3));
+      // One batch: report, moderation row and the two budget debits (migration 0004 makes the debit part of it).
+      assert.ok(db.batches.every((size) => size <= 4));
       assert.ok(db.queries.every((q) => !/count\s*\(|group\s+by|\bspots\b|\bcommunity_evidence\b/i.test(q.sql)), "no synchronous historical aggregation or canonical duplicate search");
     }
     assert.deepEqual(traces[0], traces[1]);

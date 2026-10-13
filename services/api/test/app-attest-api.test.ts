@@ -9,7 +9,7 @@ import { createApp } from "../src/app.ts";
 import { registrationClientData, reportClientData } from "../src/attest/binding.ts";
 import { base64Decode, base64Encode, sha256, utf8 } from "../src/attest/bytes.ts";
 import { CHALLENGE_TTL_SECONDS, MAX_OUTSTANDING_REPORT_CHALLENGES_PER_KEY } from "../src/attest/store.ts";
-import { ReportAcceptedV2 } from "../src/reports/dto.ts";
+import { ReportAcceptedV3 } from "../src/reports/dto.ts";
 import { REPORT_RATE_LIMITS } from "../src/reports/rate-limit.ts";
 import { applyReportRetention } from "../src/reports/retention.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
@@ -65,16 +65,20 @@ async function registered(h: Harness): Promise<TestDevice> {
   return device;
 }
 
-const reportPayload = (extra: Record<string, unknown> = {}) =>
-  utf8(JSON.stringify({ schemaVersion: 2, type: "exists", spotId: SPOT, installId: INSTALL, ...extra }));
+/** A fresh draft's idempotency key: 32 random bytes as lowercase hex. */
+const newIdempotencyKey = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), (x) => x.toString(16).padStart(2, "0")).join("");
 
-/** Builds a v2 submission the way the iPhone client must: challenge → exact bytes → assertion. */
+/** Each call is a new draft (a new idempotency key) unless `extra` names one. */
+const reportPayload = (extra: Record<string, unknown> = {}) =>
+  utf8(JSON.stringify({ schemaVersion: 3, type: "exists", spotId: SPOT, installId: INSTALL, idempotencyKey: newIdempotencyKey(), ...extra }));
+
+/** Builds a v3 submission the way the iPhone client must: challenge → exact bytes → assertion. */
 async function submission(h: Harness, device: TestDevice, payload = reportPayload(), opts: { challenge?: string; counter?: number } = {}) {
   const ch = opts.challenge ?? await challenge(h, { purpose: "report", keyId: device.keyIdBase64 });
   const cdh = await sha256(reportClientData(base64Decode(ch)!, device.keyId, payload));
   const assertion = await makeAssertion(device, cdh, { appId: APP_ID, counter: opts.counter });
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     payload: base64Encode(payload),
     attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) },
   };
@@ -230,13 +234,17 @@ test("registration challenges are single-use, expire, and cannot cross purposes"
 test("an attested report is stored as verified, with nothing linking it to the key", async () => {
   const h = await harness();
   const device = await registered(h);
-  const res = await h.post("/v1/reports", await submission(h, device));
+  const idempotencyKey = newIdempotencyKey();
+  const res = await h.post("/v1/reports", await submission(h, device, reportPayload({ idempotencyKey })));
   assert.equal(res.status, 201, JSON.stringify(await res.clone().json()));
-  const body = ReportAcceptedV2.parse(await res.json());
+  const body = ReportAcceptedV3.parse(await res.json());
   assert.equal(body.state, "pending");
 
   const row = h.db.raw.prepare("SELECT * FROM reports WHERE report_id = ?").get(body.reportId) as Row;
-  assert.equal(row.schema_version, 2);
+  assert.equal(row.schema_version, 3);
+  // The receipt holds a digest of the draft's key, never the key, the App Attest key or the installId.
+  const receipt = JSON.stringify(h.db.raw.prepare("SELECT * FROM report_idempotency WHERE report_id = ?").get(body.reportId));
+  for (const secret of [idempotencyKey, device.keyIdBase64, INSTALL]) assert.equal(receipt.includes(secret), false);
   assert.equal(row.attestation_status, "verified");
   assert.equal(row.subject_spot_id, SPOT);
   const stored = JSON.stringify(row);
@@ -249,12 +257,14 @@ test("an attested report is stored as verified, with nothing linking it to the k
 test("the assertion binds the exact payload bytes: the same assertion over another body is refused", async () => {
   const h = await harness();
   const device = await registered(h);
-  const signed = await submission(h, device, reportPayload({ note: "灰皿あり" }));
+  const idempotencyKey = newIdempotencyKey();
+  const signed = await submission(h, device, reportPayload({ note: "灰皿あり", idempotencyKey }));
   for (const tampered of [
-    reportPayload({ note: "灰皿なし" }),
-    reportPayload({ type: "prohibited" }),
+    reportPayload({ note: "灰皿なし", idempotencyKey }),
+    reportPayload({ type: "prohibited", idempotencyKey }),
+    reportPayload({ note: "灰皿あり" }), // another draft's key is another signed identity
     // Same meaning, different bytes: key order and whitespace are part of what is signed.
-    utf8(JSON.stringify({ type: "exists", schemaVersion: 2, spotId: SPOT, installId: INSTALL, note: "灰皿あり" })),
+    utf8(JSON.stringify({ type: "exists", schemaVersion: 3, spotId: SPOT, installId: INSTALL, note: "灰皿あり", idempotencyKey })),
     utf8(new TextDecoder().decode(base64Decode(signed.payload)!) + " "),
   ]) {
     const fresh = await challenge(h, { purpose: "report", keyId: device.keyIdBase64 });
@@ -406,8 +416,8 @@ test("malformed attestation material is rejected without storing a report or mov
       return { ...s, payload: s.payload.replace(/=+$/, "") };
     }, 400],
     ["unknown envelope field", async () => ({ ...(await submission(h, device)), extra: true }), 400],
-    ["missing attestation", async () => ({ schemaVersion: 2, payload: (await submission(h, device)).payload }), 400],
-    ["payload is not a report", () => submission(h, device, utf8(JSON.stringify({ schemaVersion: 2, type: "bogus", installId: INSTALL }))), 400],
+    ["missing attestation", async () => ({ schemaVersion: 3, payload: (await submission(h, device)).payload }), 400],
+    ["payload is not a report", () => submission(h, device, utf8(JSON.stringify({ schemaVersion: 3, type: "bogus", installId: INSTALL }))), 400],
     ["payload is v1-shaped", () => submission(h, device, utf8(JSON.stringify({ schemaVersion: 1, type: "exists", spotId: SPOT, installId: INSTALL }))), 400],
     ["payload is not JSON", () => submission(h, device, utf8("not json")), 400],
   ];
@@ -455,7 +465,7 @@ test("the deployment's bundle-version allowlist governs registration and reports
     const payload = reportPayload();
     const cdh = await sha256(reportClientData(base64Decode(ch)!, device.keyId, payload));
     const assertion = await makeAssertion(device, cdh, { appId: APP_ID, extensions: v === undefined ? undefined : versioned(v) });
-    return h.post("/v1/reports", { schemaVersion: 2, payload: base64Encode(payload), attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) } });
+    return h.post("/v1/reports", { schemaVersion: 3, payload: base64Encode(payload), attestation: { keyId: device.keyIdBase64, challenge: ch, assertion: base64Encode(assertion) } });
   };
   const unlisted = await rejection(await report("43"));
   assert.equal(unlisted.reason, "assertionInvalid");
@@ -478,7 +488,7 @@ test("required mode without a usable bundle-version allowlist fails closed every
     for (const [path, body] of [
       ["/v1/app-attest/challenges", { schemaVersion: 1, purpose: "registration" }],
       ["/v1/app-attest/keys", { schemaVersion: 1 }],
-      ["/v1/reports", { schemaVersion: 2 }],
+      ["/v1/reports", { schemaVersion: 3 }],
     ] as const) {
       const res = await h.post(path, body, env as any);
       assert.equal(res.status, 503, `${path} ${JSON.stringify(env)}`);

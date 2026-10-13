@@ -56,7 +56,7 @@ test("reports fail closed until the three App Attest values are set, then speak 
     assert.equal(configBody(partial).reports.available, false, `without ${missing}`);
   }
   assert.equal(configBody(configured).reports.attestation, "appAttest");
-  assert.equal(configBody(configured).schemaVersions.report, 2);
+  assert.equal(configBody(configured).schemaVersions.report, 3);
 });
 
 test("invocation logs stay off, and a committed config that enabled them is refused", () => {

@@ -43,6 +43,15 @@ add("report exists, keys reordered", REPORT,
     note="the same report with a different key order is different bytes and a different hash: bytes, not meaning, are bound")
 add("report exists, trailing newline", REPORT, (EXISTS + "\n").encode(),
     note="one extra byte is a different hash; the server hashes exactly the bytes it receives")
+# Report schema v3 (current): the payload carries the draft's 32-byte idempotency key as lowercase hex, so the
+# assertion signs it. The framing rules are unchanged; the v2 cases above remain valid framing vectors.
+IDEMPOTENCY_KEY = bytes(range(32, 64)).hex()
+add("report v3 exists", REPORT,
+    ('{"schemaVersion":3,"type":"exists","spotId":"sp_01V64NN31G72E5KJJ5W22W1A1J","installId":"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f","idempotencyKey":"' + IDEMPOTENCY_KEY + '"}').encode(),
+    note="schema v3: idempotencyKey is inside the signed payload bytes")
+add("report v3 exists, another draft", REPORT,
+    ('{"schemaVersion":3,"type":"exists","spotId":"sp_01V64NN31G72E5KJJ5W22W1A1J","installId":"8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f","idempotencyKey":"' + bytes(range(64, 96)).hex() + '"}').encode(),
+    note="the same report under another draft's key is different signed bytes")
 
 print(json.dumps({
     "contract": "mannerpath-app-attest-client-data-vectors",

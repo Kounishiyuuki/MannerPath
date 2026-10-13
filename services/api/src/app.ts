@@ -20,7 +20,7 @@ import { COVERAGE_TASKS_SCHEMA_VERSION, CoverageTasksBodyV1 } from "./coverage/d
 import { SEED_AREAS_VERSION } from "./coverage/seed-areas.ts";
 import { CoverageProbeOverflow, publishedGapTasks } from "./coverage/published-gaps.ts";
 import { COVERAGE_TASKS_VERSION } from "./coverage/tasks.ts";
-import { type Db, isoSeconds, sha256Hex } from "./db.ts";
+import { type Db, type DbStatement, isoSeconds, sha256Hex } from "./db.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { APPLE_APP_ATTEST_ROOT_DER } from "./attest/apple-root.ts";
 import { base64Decode } from "./attest/bytes.ts";
@@ -34,9 +34,12 @@ import { ATTESTATION_STATUS_V1, type AttestationConfig, attestationConfig } from
 import { attestedSubmitter, createReport, submitterHash } from "./reports/create.ts";
 import {
   ATTESTED_REPORT_SCHEMA_VERSION, REPORT_BODY_MAX_BYTES, REPORT_SCHEMA_VERSION, REPORT_SUBMISSION_MAX_BYTES,
-  ReportPayloadV2, ReportRequestV1, ReportSubmissionV2, validationDetail,
+  ReportPayloadV3, ReportRequestV1, ReportSubmissionV3, validationDetail,
 } from "./reports/dto.ts";
-import { consumeReportBudget } from "./reports/rate-limit.ts";
+import { checkReportBudget, isBudgetExhausted, reportBudgetDebits } from "./reports/rate-limit.ts";
+import {
+  ambiguousPayload, idempotencyDigest, isReceiptConflict, readReceipt, receiptOutcome, receiptStatement, requestSha256, type Receipt,
+} from "./reports/idempotency.ts";
 import { CURRENT_REPORT_TERMS } from "./reports/terms.ts";
 import { PHOTO_PAYLOAD_MAX_BYTES, PHOTO_SUBMISSION_MAX_BYTES, PhotoPayloadV2, PhotoSubmissionV2 } from "./reports/photo-dto.ts";
 import { attachEvidencePhoto, PhotoAttachmentError } from "./reports/photos.ts";
@@ -89,7 +92,7 @@ export const REQUEST_URL_MAX_BYTES = 4096;
 export const CONDITIONAL_HEADER_MAX_BYTES = 4096;
 
 function problem(
-  status: 400 | 403 | 404 | 409 | 413 | 415 | 422 | 429 | 503,
+  status: 400 | 403 | 404 | 409 | 410 | 413 | 415 | 422 | 429 | 503,
   code: string,
   detail: string,
   headers: Record<string, string> = {},
@@ -111,6 +114,12 @@ export function ifNoneMatchMatches(header: string | undefined, etag: string): bo
 
 const created = (body: unknown) => new Response(JSON.stringify(body), {
   status: 201,
+  headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+});
+
+/** An idempotent retry: the report the first attempt of this draft created, unchanged. */
+const replayed = (body: unknown) => new Response(JSON.stringify(body), {
+  status: 200,
   headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
 });
 
@@ -464,11 +473,19 @@ export function createApp(options: AppOptions = {}) {
     const limited = await rateLimited(reports, hash, now);
     if (limited !== null) return limited;
 
-    return created(await createReport(reports, request, { now, attestationStatus: ATTESTATION_STATUS_V1, submitterHash: hash }));
+    try {
+      return created(await createReport(reports, request, {
+        now, attestationStatus: ATTESTATION_STATUS_V1, submitterHash: hash,
+        after: () => reportBudgetDebits(reports, hash, now),
+      }));
+    } catch (e) {
+      if (isBudgetExhausted(e)) return (await rateLimited(reports, hash, now)) ?? budgetExhausted(now);
+      throw e;
+    }
   }
 
   async function attestedReport(env: Env, reports: Db, attestation: Extract<AttestationConfig, { kind: "appAttest" }>, json: unknown): Promise<Response> {
-    const envelope = ReportSubmissionV2.safeParse(json);
+    const envelope = ReportSubmissionV3.safeParse(json);
     if (!envelope.success) return problem(400, "invalidReport", validationDetail(envelope.error));
     const { payload: payloadText, attestation: material } = envelope.data;
     if (decode32(material.keyId) === null || decode32(material.challenge) === null) {
@@ -477,7 +494,8 @@ export function createApp(options: AppOptions = {}) {
 
     const now = clock();
     const ctx = context(reports, attestation, now);
-    // 1. Burn the challenge first: from here on, whatever fails, this challenge is spent.
+    // 1. Burn the challenge first: from here on, whatever fails, this challenge is spent. A retry of the same draft
+    // always brings a fresh challenge and a fresh assertion; the idempotency key never revives a used one.
     const burned = await consumeReportChallenge(ctx, material.challenge, material.keyId);
     if (burned !== null) return rejected(burned);
 
@@ -486,39 +504,94 @@ export function createApp(options: AppOptions = {}) {
     if (payload === null) return problem(400, "invalidReport", "payload: invalid_base64");
     if (payload.length > REPORT_BODY_MAX_BYTES) return problem(413, "reportTooLarge", `payload must be at most ${REPORT_BODY_MAX_BYTES} bytes`);
     let decoded: unknown;
+    let text: string;
     try {
-      decoded = JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(payload));
+      text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(payload);
+      decoded = JSON.parse(text);
     } catch {
       return problem(400, "invalidReport", "payload: invalid_json");
     }
-    const report = ReportPayloadV2.safeParse(decoded);
-    if (!report.success) return problem(400, "invalidReport", prefixed("payload", validationDetail(report.error)));
+    const ambiguous = ambiguousPayload(text);
+    if (ambiguous !== null) return problem(400, "invalidReport", `payload: ${ambiguous}`);
+    const parsed = ReportPayloadV3.safeParse(decoded);
+    if (!parsed.success) return problem(400, "invalidReport", prefixed("payload", validationDetail(parsed.error)));
+    const report = parsed.data as ReportPayloadV3;
 
-    // 3. Verify the assertion over those bytes. Pure: nothing is written.
+    // 3. Verify the assertion over those bytes. Pure: nothing is written. Nothing about an earlier submission, not
+    // even whether this key has one, is revealed before this succeeds.
     const verified = await verifyReportAssertion(ctx, material, payload);
     if (!verified.ok) return rejected(verified);
-    const outdated = outdatedTerms(report.data.acceptedTermsVersion);
+    // A verified assertion that is answered from a receipt (a retry, a conflict, a retired key) still advances the
+    // counter, so a valid newer assertion is never left unrecorded. A budget refusal keeps its documented "writes
+    // nothing" (ADR-0007 §5): its challenge is already spent, so the assertion cannot be replayed either way.
+    const advanceCounter = () => advanceCounterStatement(reports, material.keyId, verified.counter);
+
+    // 4. A known idempotency key answers from its receipt and writes only the counter. The digest binds the key to
+    // this verified App Attest key, so only its owner ever reaches a receipt; any other key starts a new draft. The
+    // receipt lookup is a fast path; correctness comes from the receipt's primary key inside the report batch below.
+    const digest = await idempotencyDigest(material.keyId, report.idempotencyKey);
+    const sha256 = await requestSha256(report);
+    const known = await readReceipt(reports, digest);
+    if (known !== null) return answerFromReceipt(reports, known, sha256, advanceCounter);
+
+    const outdated = outdatedTerms(report.acceptedTermsVersion);
     if (outdated !== null) return outdated;
 
-    // 4. Abuse boundary, then one batch: counter advance + report + moderation row. The trigger on
-    // app_attest_keys aborts the batch if a concurrent request already advanced the counter.
-    // The submitter is the verified App Attest key, not the payload's installId: the client chooses installId
-    // freely, so one attested install could otherwise rotate it to escape the rate limit and to pass as several
-    // "independent" submitters in community corroboration (Issue #150).
+    // 5. Abuse boundary, then one batch: counter advance, report, moderation, receipt and budget debits commit
+    // together or not at all. The submitter is the verified App Attest key, not the payload's installId: the client
+    // chooses installId freely, so one attested install could otherwise rotate it to escape the rate limit and to
+    // pass as several "independent" submitters in community corroboration (Issue #150).
     const hash = await submitterHash(attestedSubmitter(material.keyId), attestation.submitterPepper);
-    const limited = await rateLimited(reports, hash, now);
-    if (limited !== null) return limited;
+    const early = await checkReportBudget(reports, hash, now);
+    if (!early.allowed) return budgetLimited(early.retryAfterSeconds);
     try {
-      return created(await createReport(reports, report.data, {
+      return created(await createReport(reports, report, {
         now,
         attestationStatus: "verified",
         submitterHash: hash,
-        guards: [advanceCounterStatement(reports, material.keyId, verified.counter)],
+        guards: [advanceCounter()],
+        after: (reportId, receivedAt) => [
+          receiptStatement(reports, digest, reportId, sha256, receivedAt),
+          ...reportBudgetDebits(reports, hash, now),
+        ],
       }));
     } catch (e) {
-      if (isCounterRace(e)) return rejected({ ok: false, reason: "counterNotIncreasing", detail: "counterNotIncreasing" });
+      // The whole batch rolled back, the counter advance included. A receipt race answers from the winner's receipt and
+      // records this request's counter on its own (answerFromReceipt).
+      if (isCounterRace(e)) return counterRace();
+      if (isReceiptConflict(e)) {
+        const winner = await readReceipt(reports, digest);
+        if (winner === null) throw e;
+        return answerFromReceipt(reports, winner, sha256, advanceCounter);
+      }
+      if (isBudgetExhausted(e)) return (await rateLimited(reports, hash, now)) ?? budgetExhausted(now);
       throw e;
     }
+  }
+
+  /** Answers a request whose key already has a receipt: same report 200, different report 409, retired 410. */
+  async function answerFromReceipt(reports: Db, receipt: Receipt, sha256: string, advanceCounter: () => DbStatement): Promise<Response> {
+    return recordCounterThen(reports, advanceCounter, () => {
+      switch (receiptOutcome(receipt, sha256)) {
+        case "replay":
+          return replayed({ schemaVersion: ATTESTED_REPORT_SCHEMA_VERSION, reportId: receipt.reportId, state: "pending", receivedAt: receipt.createdAt });
+        case "conflict":
+          return problem(409, "idempotencyConflict", "this idempotency key already names a different report; a new report needs a new draft");
+        case "retired":
+          return problem(410, "idempotencyRetired", "this idempotency key's report has passed retention; it cannot be confirmed or resubmitted");
+      }
+    });
+  }
+
+  /** Commits the counter advance alone, then answers; a lost counter race answers counterNotIncreasing instead. */
+  async function recordCounterThen(reports: Db, advanceCounter: () => DbStatement, answer: () => Response | Promise<Response>): Promise<Response> {
+    try {
+      await reports.batch([advanceCounter()]);
+    } catch (e) {
+      if (isCounterRace(e)) return counterRace();
+      throw e;
+    }
+    return answer();
   }
 
   function context(db: Db, attestation: Extract<AttestationConfig, { kind: "appAttest" }>, now: Date): AppAttestContext {
@@ -560,11 +633,19 @@ function outdatedTerms(accepted: string | undefined): Response | null {
   return problem(409, "termsVersionOutdated", `this deployment records consent to terms version ${CURRENT_REPORT_TERMS.version} only (see /v1/config)`);
 }
 
+/** The fast refusal for a submitter already at a limit; nothing is written. */
 async function rateLimited(db: Db, hash: string, now: Date): Promise<Response | null> {
-  const budget = await consumeReportBudget(db, hash, now);
-  if (budget.allowed) return null;
-  return problem(429, "reportRateLimited", "too many reports from this install", { "Retry-After": String(budget.retryAfterSeconds) });
+  const budget = await checkReportBudget(db, hash, now);
+  return budget.allowed ? null : budgetLimited(budget.retryAfterSeconds);
 }
+
+const budgetLimited = (retryAfterSeconds: number) =>
+  problem(429, "reportRateLimited", "too many reports from this install", { "Retry-After": String(retryAfterSeconds) });
+
+/** A debit the trigger refused although the fast check allowed it (a concurrent report won the last unit). */
+const budgetExhausted = (now: Date) => budgetLimited(Math.max(1, 3600 - (Math.floor(now.getTime() / 1000) % 3600)));
+
+const counterRace = () => problem(403, "attestationRejected", "counterNotIncreasing", {}, { reason: "counterNotIncreasing" });
 
 const prefixed = (prefix: string, detail: string) => detail.split("; ").map((d) => `${prefix}.${d}`).join("; ");
 
