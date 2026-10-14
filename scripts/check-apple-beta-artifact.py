@@ -61,7 +61,7 @@ def signed_entitlements(bundle):
         fail(f"{bundle}: code signature has no readable entitlements")
 
 
-def check_provisioning(bundle, identifier, entitlements):
+def check_provisioning(bundle, identifier, entitlements, distribution=False):
     profile_path = bundle / "embedded.mobileprovision"
     if not profile_path.is_file():
         fail(f"{bundle}: embedded.mobileprovision missing; use a provisioned device/archive build")
@@ -94,6 +94,14 @@ def check_provisioning(bundle, identifier, entitlements):
             allowed = [allowed]
         if entitlements.get("com.apple.developer.devicecheck.appattest-environment") not in allowed:
             fail(f"{bundle}: profile and signed App Attest environments differ")
+    if distribution:
+        # TestFlight needs an App Store profile: no device list, not debuggable, beta reports on.
+        if profile.get("ProvisionedDevices"):
+            fail(f"{bundle}: profile lists provisioned devices; export with the App Store Connect method")
+        if entitlements.get("get-task-allow") is not False:
+            fail(f"{bundle}: get-task-allow must be false in a distribution signature")
+        if entitlements.get("beta-reports-active") is not True:
+            fail(f"{bundle}: beta-reports-active must be true in a distribution signature")
 
 
 def one(parent, pattern, label):
@@ -294,7 +302,9 @@ def check_build_settings(project=PROJECT):
         fail("build settings (Release): exactly one target must set the canonical production API and public-site origins")
 
 
-def inspect(path, unsigned, wrapper_release=False):
+def inspect(path, unsigned, wrapper_release=False, distribution=False):
+    if distribution and unsigned:
+        fail("--distribution needs a signed artifact; it cannot be combined with --unsigned-build")
     if path.suffix == ".xcarchive":
         app = one(path / "Products/Applications", "MannerPath.app", "iPhone app")
     else:
@@ -332,11 +342,13 @@ def inspect(path, unsigned, wrapper_release=False):
         if groups != [GROUP]:
             fail(f"{label}: application-groups {groups!r}; expected [{GROUP!r}]")
         if not unsigned:
-            check_provisioning(bundle, IDS[label], ent)
+            check_provisioning(bundle, IDS[label], ent, distribution)
         if label == "iPhone app":
             environment = ent.get("com.apple.developer.devicecheck.appattest-environment")
             if environment not in ("development", "production"):
                 fail(f"iPhone app: App Attest environment {environment!r}; expected development or production")
+            if distribution and environment != "production":
+                fail(f"iPhone app: App Attest environment {environment!r}; a TestFlight build must sign production")
         check_release_binary(bundle, info, label)
         print(f"{label}: {actual} | App Group: {GROUP}")
     known = {bundle.resolve() for bundle in bundles.values()}
@@ -402,10 +414,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact", type=pathlib.Path, help="MannerPath.app or .xcarchive")
     parser.add_argument("--unsigned-build", action="store_true", help="Use source entitlements; never claim signing proof")
+    parser.add_argument("--distribution", action="store_true",
+                        help="Signed App Store export (TestFlight): also require distribution signing properties")
     parser.add_argument("--wrapper-release-archive", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
-        inspect(args.artifact, args.unsigned_build, args.wrapper_release_archive)
+        inspect(args.artifact, args.unsigned_build, args.wrapper_release_archive, args.distribution)
     except ValueError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         sys.exit(1)

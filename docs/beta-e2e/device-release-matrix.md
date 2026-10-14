@@ -88,6 +88,7 @@ Fail-closed correctness checks:
 | App Group `[group.com.kounishiyuuki.MannerPath]` in all four | source files | signed code signature + embedded profile |
 | App Attest entitlement on iPhone app | source file | signed, and equal to profile |
 | Code signature valid, `DTPlatformName` device, profile team/app ID match | — | ✓ |
+| Distribution signature, all four bundles: profile without `ProvisionedDevices`, `get-task-allow` false, `beta-reports-active` true; iPhone App Attest `production` (`check-apple-beta-artifact.py --distribution`, exported App Store Connect app only) | — | opt-in |
 
 Release-configuration evidence and its limit: with no argument the wrapper itself archives
 `-configuration Release` (a fixture test pins this contract and the override refusal), and the output says so.
@@ -210,6 +211,21 @@ Automated cover (simulator/unit, not device evidence): `RouteSearchTests` —
 | L7 | #259 | VoiceOver on | Type with the on-screen keyboard, swipe to a match, double-tap | Matches are announced and selectable | P1 | |
 | L8 | #259 | Largest accessibility text | Type and pick | Matches readable and reachable by scrolling | P1 | |
 
+### Search sheet refresh regression (#263, only if it is merged before Build 3)
+
+Skip this table when the Build 3 commit does not contain #263. Its UI tests (`NativeSearchSheetUITests`) run outside
+`make apple-validate`, so these rows are the device evidence.
+
+| # | PR | Precondition | Steps | Expected | Sev | Result |
+| --- | --- | --- | --- | --- | --- | --- |
+| U1 | #263 | Build 3 with #263; online | Drag the sheet between medium and large, then back | Both detents reachable; map stays usable at medium | P0 | |
+| U2 | #263 | U1 | Tap search, type "上野", pick a match | Matches scroll into view when typing starts; picking dismisses search and the keyboard; destination row shown | P0 | |
+| U3 | #263 | Destination set | Read the list | Names and distance lead each row; route/precision/freshness warnings and 「約」/approximate notes still shown | P0 | |
+| U4 | #263 | Filters that match nothing | Apply, then clear | Empty state with a working clear action; list recovers | P1 | |
+| U5 | #263 | Settings → Accessibility → Reduce Transparency on | Open the sheet | Solid readable background; text contrast kept | P1 | |
+| U6 | #263 | iOS 18–25 device if available (iOS 26 otherwise, note the version) | Open the sheet in Light and Dark | Sheet surface readable in both; no clipped controls | P1 | |
+| U7 | #263 | Largest accessibility text, VoiceOver on | Search, swipe to a match, double-tap | Rows readable by scrolling; matches announced and selectable; targets ≥ 44 pt | P1 | |
+
 ### API, cache and offline procedure
 
 Run in this order on one install; each step's evidence is a screenshot and the local time.
@@ -289,14 +305,18 @@ its own severity; this section only groups them.
 
 Build 3 is the first build with #259 live search. Do these in order; stop at the first failure.
 
-1. `main` contains #259 and the intended search-UI lane; `git log origin/main` recorded in the PR.
+1. `main` contains #259, #265 and — only if merged — the #263 search-sheet refresh; `git log origin/main` recorded
+   in the PR. Whether #263 is in decides if the U table runs in step 9.
 2. Repo PR raising `CURRENT_PROJECT_VERSION` to 3 in all 16 configurations; `MARKETING_VERSION` stays 1.0;
    no Info.plist hard-codes a build number.
 3. On that PR: `make apple-validate`, `make contract`, `make security-validate` all exit 0; CI green; merge.
 4. Archive from the merged `main` commit (Release, automatic signing, team `58A7G4U27M`).
 5. `./scripts/apple-beta-preflight.sh <archive>.xcarchive` and on the exported IPA: exit 0,
    `CFBundleVersion for App Attest server: 3`, `Release artifact scan: … suspects=0`.
-6. Signed checks on all four bundles: 1.0 (3), `Apple Distribution` team `58A7G4U27M`, `codesign --verify --strict`,
+6. `python3 scripts/check-apple-beta-artifact.py --distribution <unzipped IPA>/Payload/MannerPath.app` exits 0 (covers the
+   profile, `get-task-allow`, `beta-reports-active`, App Group and App Attest items below). Then confirm by eye
+   what it does not check: the `Apple Distribution` signing identity (`codesign -dvv`).
+   Signed checks on all four bundles: 1.0 (3), `Apple Distribution` team `58A7G4U27M`, `codesign --verify --strict`,
    no provisioned devices, `get-task-allow` false, `beta-reports-active` true, App Group
    `group.com.kounishiyuuki.MannerPath`; iPhone app `appattest-environment = production`; Info.plist origins
    `https://mannerpath-api-production.happywestyuki.workers.dev` and `https://kounishiyuuki.github.io/MannerPath/`.
@@ -304,5 +324,5 @@ Build 3 is the first build with #259 live search. Do these in order; stop at the
 8. Upload; App Store Connect processing finished; export compliance answered; internal group only (no external
    testers, no review submission).
 9. On device, record model, iOS/watchOS version, build and time per row, then run in this order:
-   L1–L8, D1–D5 regression, D6–D8, the API/cache/offline procedure, P10 remainder, R1, W1–W5b, G2/G3, WG2.
+   L1–L8, U1–U7 (only with #263), D1–D5 regression, D6–D8, the API/cache/offline procedure, P10 remainder, R1, W1–W5b, G2/G3, WG2.
 10. Fill the Result column only with what was observed on 1.0 (3); leave the rest empty.
