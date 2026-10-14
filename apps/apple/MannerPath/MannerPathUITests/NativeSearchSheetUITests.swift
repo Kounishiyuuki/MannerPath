@@ -45,7 +45,7 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         field.typeText("上")
         screenshot("02-typing")
         field.typeText("野駅")
-        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        let match = taitoDestinationMatch
         XCTAssertTrue(match.waitForExistence(timeout: 40), "MapKit must provide actual candidates for this visual comparison")
         XCTAssertTrue(app.keyboards.firstMatch.exists)
         XCTAssertTrue(match.isHittable)
@@ -54,7 +54,7 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         screenshot("03-candidates")
         match.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10), "Selecting a destination ends system search")
-        waitForDestinationResults()
+        waitForVisualDestinationResults()
         XCTAssertTrue(resultRows.firstMatch.exists)
         screenshot("04-destination-selected")
         assertNoDeveloperText()
@@ -75,10 +75,10 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         clearSearch(field)
         field.typeText("上")
         field.typeText("野駅")
-        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        let match = taitoDestinationMatch
         XCTAssertTrue(match.waitForExistence(timeout: 40), "Actual MapKit destination required")
         match.tap()
-        waitForDestinationResults()
+        waitForVisualDestinationResults()
     }
 
     private func clearSearch(_ field: XCUIElement) {
@@ -87,12 +87,25 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         }
     }
 
+    private var taitoDestinationMatch: XCUIElement {
+        // Live MapKit ranking/interim answers vary; Uenoshiba is not the public Taito test area.
+        app.buttons.matching(identifier: "destinationMatch").matching(NSPredicate(
+            format: "label BEGINSWITH %@ AND label CONTAINS %@", "上野駅", "台東"
+        )).firstMatch
+    }
+
+    private func waitForVisualDestinationResults() {
+        // On a small screen at AX5 the refresh row is lazy and below the long destination note.
+        scrollForegroundListTo(app.buttons["refreshDestination"])
+        scrollForegroundListTo(resultRows.firstMatch)
+    }
+
     func testEmptyFilterStateHasReachableRecovery() {
         launch()
         establishPublishedArea()
         app.buttons["絞り込み"].tap()
         let picker = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '場所の種類'")).firstMatch
-        scrollFilterTo(picker)
+        scrollForegroundListTo(picker)
         // iOS 18 exposes the Form row as a button around the actual Menu button.
         let menu = picker.buttons.firstMatch
         let menuButton: XCUIElement
@@ -101,7 +114,7 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         } else {
             menuButton = menu.exists ? menu : picker
         }
-        scrollFilterTo(menuButton)
+        scrollForegroundListTo(menuButton)
         menuButton.tap()
         let type = app.buttons["公共の喫煙室"]
         XCTAssertTrue(type.waitForExistence(timeout: 5))
@@ -177,15 +190,23 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         return row
     }
 
-    private func scrollFilterTo(_ element: XCUIElement) {
-        // The native modal Form is inset. The map sheet's left-edge drag can miss this foreground Form.
-        for _ in 0..<12 {
-            if element.exists && element.isHittable { break }
-            guard let form = app.collectionViews.allElementsBoundByIndex.last else {
-                XCTFail("No foreground filter Form")
-                return
+    private func scrollForegroundListTo(_ element: XCUIElement) {
+        // Drive the foreground list itself; a left-edge drag can miss an inset sheet or its Form.
+        // Preserve a time-bounded async-data wait as well as a bounded number of gestures.
+        let deadline = Date().addingTimeInterval(40)
+        var gestures = 0
+        while Date() < deadline {
+            if element.exists && element.isHittable { return }
+            if gestures < 12, let form = app.collectionViews.allElementsBoundByIndex.last {
+                form.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))
+                    .press(forDuration: 0.05, thenDragTo: form.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
+                gestures += 1
             }
-            form.swipeUp()
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                element.exists && element.isHittable
+            }, object: nil)
+            let remaining = deadline.timeIntervalSinceNow
+            if remaining > 0, XCTWaiter().wait(for: [ready], timeout: min(1, remaining)) == .completed { return }
         }
         XCTAssertTrue(element.exists && element.isHittable)
     }
