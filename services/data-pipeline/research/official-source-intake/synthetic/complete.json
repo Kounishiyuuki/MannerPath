@@ -1,0 +1,4 @@
+[
+  {"row_id":"syn-1","name":"Fictional permitted smoking area","latitude":35,"longitude":135,"smoking_status":"permitted","point_kind":"smokingPlace","observed_on":"2026-10-01","evidence_ref":"synthetic-evidence-1"},
+  {"row_id":"syn-2","name":"Fictional station smoking room","latitude":null,"longitude":null,"smoking_status":"permitted","point_kind":"facility","observed_on":null,"evidence_ref":"synthetic-evidence-2"}
+]

@@ -213,7 +213,13 @@ These commands never target a remote database.
 
 ## Official-source onboarding (offline advisory)
 
-From `services/api`, `npm run source:onboarding` checks the six pinned reviewed sources and emits
+New publisher deliveries first use the offline `source:intake` preparation step. See
+[official source intake requirements and human review](../../docs/OFFICIAL_SOURCE_INTAKE.md).
+It fingerprints/inspects permitted local files and compares earlier deliveries, but never
+imports, approves, connects to D1 or publishes. Synthetic examples are in
+`research/official-source-intake/synthetic/`.
+
+From `services/api`, `npm run source:onboarding` checks the registered pinned reviewed sources and emits
 human-review queues. `--discovery-report <json>` consumes existing discovery results without scanning,
 and `--metadata <json>` accepts explicit resource-bound human review assertions. Nothing approves a
 source, infers coordinates, geocodes, connects to D1 or publishes. READY is local preparation only;
