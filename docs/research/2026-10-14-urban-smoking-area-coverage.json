@@ -1,0 +1,680 @@
+{
+  "version": 1,
+  "checkedOnJST": "2026-10-14",
+  "baselineHead": "f6ddf4e9516b3977d052351c8c24453f2b66b0e9",
+  "selection": "Priority Kanazawa, Toyama, Fukui, Nagano, Niigata; multiple municipal/operator/open-data/GIS paths. Fukushima additional explicit-ashtray candidate blocked by original terms.",
+  "batchGate": "User explicitly requires ashtray installation evidence. Smoking-place designation is recorded separately and never treated as proof of installed ashtrays. No weaker criterion authorized.",
+  "knownAshtrayFreeSmokingPlaceExample": "Official municipal response https://www.city.shijonawate.lg.jp/site/ikenbako/130104.html demonstrates that a designated smoking place need not have an ashtray; example only, not canonical input.",
+  "policyChange": null,
+  "candidates": [
+    {
+      "candidateId": "kanazawa21-outdoor",
+      "municipality": "金沢市",
+      "name": "金沢21世紀美術館 屋外喫煙コーナー",
+      "existenceUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "rightsStatus": "factReference",
+      "termsUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=60",
+      "rightsReview": "Copyright footer reserves expression only. Site policy is privacy policy; no information-use/database ban found.",
+      "current": "Live visitor rules list outdoor Hiro坂口 smoking corner. Not field verified.",
+      "decision": "HOLD_ASH_TRAY_EVIDENCE",
+      "anchor": {
+        "lat": 36.560867,
+        "lon": 136.658258,
+        "precision": "areaApproximate",
+        "scope": "facility",
+        "originKind": "publisherFacilityPoint",
+        "basis": "referenceDatasetPoint",
+        "publisher": "金沢市",
+        "dataset": "172014-tourism",
+        "resourceId": "51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66",
+        "row": 6,
+        "recordId": "AA0000001260",
+        "resourceUrl": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/datastore_search?resource_id=51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66&limit=10000",
+        "license": "CC-BY; numeric data freely reusable under original terms 2(1)",
+        "termsUrl": "https://portal-data.city.kanazawa.ishikawa.jp/pdf/opendata_rule.pdf",
+        "attribution": "金沢市 観光施設一覧 を加工して作成",
+        "note": "Host facility point, never Hiro坂口 zone point"
+      },
+      "futureClosure": {
+        "start": "2027-05-06",
+        "end": "2028-03",
+        "url": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+        "note": "Re-review smoking corner before closure; outdoors continuity unknown"
+      },
+      "hours": null,
+      "openNow": null,
+      "tobaccoSupport": null,
+      "ashtrayStatus": "unknown",
+      "publicationApproved": false
+    },
+    {
+      "candidateId": "niigata-ishimiya-park",
+      "municipality": "新潟市",
+      "name": "石宮公園喫煙所",
+      "existencePage": {
+        "url": "https://www.city.niigata.lg.jp/kurashi/gomi/gomi_recycl/seidoannai/poisuteindex/kitsuenjo.html",
+        "status": 200,
+        "sha256": "235becdd4f37b8cb275725112bfaec64d899890c56d5962bbf154f795a266904",
+        "checkedAt": "2026-10-14T09:31:25.275038+00:00"
+      },
+      "rightsStatus": "factReference",
+      "rightsTermsUrl": "https://www.city.niigata.lg.jp/homepage/unei/chosakuken.html",
+      "termsClause": "著作権の帰属 / 無断転載、複製等の禁止",
+      "termsQuote": "文書、画像等のファイルやその内容",
+      "rightsReading": "Copyright expression reservation; no explicit information acquisition/database use prohibition found. Store only normalized facts; no expressive content. ADR0018 D-R internal engineering reading.",
+      "currentListed": true,
+      "ashtrayEvidence": "Official exterior photo inspected; no ashtray identifiable. No primary text establishing ashtray installation found.",
+      "accessType": "unknown",
+      "hours": "04:00–24:00 (page states unavailable 00:00–04:00)",
+      "healthMarkers": [
+        "石宮公園喫煙所",
+        "午前0時から午前4時までは利用できません。"
+      ],
+      "anchor": {
+        "name": "石宮公園",
+        "latitude": 37.9126374,
+        "longitude": 139.0594717,
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "kind": "park",
+        "basis": "referenceDatasetPoint",
+        "source": {
+          "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-gis/od-gis_kurashibosai/od-gis_park.files/od_gis_10019_park.csv",
+          "status": 200,
+          "sha256": "5f97356c920dce15c053c160f12a7c65b56d7bfbcb718d9cfedd2795374defe2",
+          "checkedAt": "2026-10-14T09:31:24.994700+00:00"
+        },
+        "row": {
+          "longitude": "139.0594717",
+          "latitude": "37.9126374",
+          "SAUID": "6420",
+          "SAFIELD000": "石宮公園",
+          "SAFIELD001": "中央区弁天1丁目1番20号",
+          "SAFIELD002": "1300"
+        },
+        "license": "CC BY 2.1 JP",
+        "termsUrl": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/od-riyoukiyaku.html",
+        "resourceReviewUrl": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-gis/od-gis_kurashibosai/od-gis_park.html",
+        "attribution": "公園・緑地、新潟市、CC BY 2.1 JP（改変利用）"
+      },
+      "decision": "HOLD_ASH_TRAY_EVIDENCE",
+      "ashtrayStatus": "unknown",
+      "accessReview": "No universal access assumption is approved in this research batch.",
+      "publicationApproved": false
+    },
+    {
+      "candidateId": "fukui-station-underpass",
+      "municipality": "福井市",
+      "name": "福井駅高架下公衆喫煙所",
+      "existencePage": {
+        "url": "https://www.city.fukui.lg.jp/kurasi/mati/sigaitikassei/p025672.html",
+        "status": 200,
+        "sha256": "0a939bd0195b885743b650320df91f407bb4767017268dd3616d1844bb039055",
+        "checkedAt": "2026-10-14T09:31:25.538061+00:00"
+      },
+      "currentCorroborationPage": {
+        "url": "https://www.city.fukui.lg.jp/kurasi/kankyo/akichi/poisute-fungai-kakudai.html",
+        "status": 200,
+        "sha256": "216c95a912f25f0df7f255a1c0f3077fad1e51654e8d7dee71cc93d14dc6ada9",
+        "checkedAt": "2026-10-14T09:31:25.892846+00:00"
+      },
+      "rightsStatus": "factReference",
+      "rightsTermsUrl": "https://www.city.fukui.lg.jp/sisei/kohou/hp/site-p.html",
+      "termsQuote": "文書、写真、画像及び映像に関する著作権",
+      "rightsReading": "Site policy reserves expression and offers unspecified-version CC BY-SA for text. Use normalized factReference only, no copied text; no information/database ban found.",
+      "currentListed": true,
+      "accessType": "unknown",
+      "hours": "05:00–25:00",
+      "healthMarkers": [
+        "公衆喫煙所",
+        "5：00～25：00",
+        "屋内へ移設しました"
+      ],
+      "anchor": {
+        "name": "福井駅",
+        "latitude": 36.062122,
+        "longitude": 136.223318,
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "kind": "station",
+        "basis": "referenceDatasetPoint",
+        "source": {
+          "url": "https://www.city.fukui.lg.jp/sisei/tokei/opendata/p018971_d/fil/fukuishieki.xls",
+          "status": 200,
+          "sha256": "b253a4b013656a900e3a175311b92550b80f8d3ba15c610e0f772800cd60dd3c",
+          "checkedAt": "2026-10-14T09:32:47.402911+00:00"
+        },
+        "sheet": "Sheet0",
+        "zeroBasedRow": 9,
+        "row": [
+          "1",
+          "福井駅",
+          "ふくい",
+          "福井市中央1丁目1-1",
+          "ハピラインふくい線",
+          "ハピラインふくい",
+          36.062122,
+          136.223318
+        ],
+        "resourceLicenseHeader": [
+          "#license",
+          "http://creativecommons.org/licenses/by/3.0/deed.ja"
+        ],
+        "license": "CC BY 3.0 (resource-specific header)",
+        "portalLicense": "CC BY 2.1 JP (resource header takes precedence)",
+        "resourceReviewUrl": "https://www.city.fukui.lg.jp/sisei/tokei/opendata/p018971.html",
+        "attribution": "市内駅（鉄道）一覧、福井市、CC BY 3.0（改変利用）",
+        "reviewCaution": "Station anchor, not underpass-room exact point; reflect station facility scope. Do not use other Fukui railway platform points or nearby plaza as namedZone."
+      },
+      "decision": "HOLD_ASH_TRAY_EVIDENCE",
+      "ashtrayStatus": "unknown",
+      "accessReview": "No universal access assumption is approved in this research batch.",
+      "publicationApproved": false
+    },
+    {
+      "candidateId": "jr-west-toyama-station",
+      "municipality": "富山市",
+      "name": "富山駅 喫煙ルーム",
+      "existenceURL": "https://www.jr-odekake.net/railroad/service/smoking.html",
+      "officialStationId": "0541465",
+      "currentOperation": "Current JR smoking page lists Toyama; response digest unchanged from prior station review. Not a field visit.",
+      "rightsBasisCandidate": "factReference",
+      "termsURL": "https://www.jr-odekake.net/use/about.html",
+      "rightsReading": "JR terms reserve copyrighted expression/database works; normalized factReference remains subject to recorded D-R source review and homepage linking conditions. No open licence for the JR webpage.",
+      "ashtrayStatus": "unknown",
+      "anchor": {
+        "dataset": "富山市 駅・電停",
+        "resourceURL": "https://opdt.city.toyama.lg.jp/dataset/cdfb54b6-372a-4aac-b2e8-59cf03c50ead/resource/f6d23453-3306-4b39-88ef-7e107b169d3d/download/intfs01.int.toyama-city.localredirect111015downloads26ekidentei.xlsx",
+        "sha256": "075babf062741532aef0458fb7d7383f0d344200fd46ad285e20820809ef1a1b",
+        "sheet": "Sheet1",
+        "row": 89,
+        "featureId": 88,
+        "facilityName": "富山駅",
+        "classification": "北陸新幹線",
+        "rawLatitudeDMS": "36°42′5.21″",
+        "rawLongitudeDMS": "137°12′48.29″",
+        "conversion": "degrees + minutes/60 + seconds/3600",
+        "latitude": 36.70144722222223,
+        "longitude": 137.21341388888888,
+        "scope": "facility",
+        "locationPrecision": "areaApproximate",
+        "basis": "referenceDatasetPoint",
+        "datum": "not stated; approximate-only limitation",
+        "rights": "CC BY 4.0 / original municipal terms",
+        "termsURL": "https://opdt.city.toyama.lg.jp/pages/terms"
+      },
+      "accessType": "unknown",
+      "hours": "unknown",
+      "decision": "HOLD_ASH_TRAY_EVIDENCE",
+      "publicationApproved": false,
+      "observations": [
+        {
+          "url": "https://www.jr-odekake.net/railroad/service/smoking.html",
+          "checkedAt": "2026-10-14T09:45:27.344061+00:00",
+          "status": 200,
+          "finalURL": "https://www.jr-odekake.net/railroad/service/smoking.html",
+          "sha256": "2413afaedbfb905ab84bd8229b951ddc70b71a891c9cae2b091175224f890e3b",
+          "byteCount": 88386
+        },
+        {
+          "url": "https://www.jr-odekake.net/use/about.html",
+          "checkedAt": "2026-10-14T09:45:27.747531+00:00",
+          "status": 200,
+          "finalURL": "https://www.jr-odekake.net/use/about.html",
+          "sha256": "91b4dac984252511deea90d54bdaf5ec81e273ee254a03d18cbf7a21dfcfbe4d",
+          "byteCount": 115477
+        },
+        {
+          "url": "https://eki.jr-odekake.net/top?id=0541465",
+          "checkedAt": "2026-10-14T09:45:27.991955+00:00",
+          "status": 200,
+          "finalURL": "https://eki.jr-odekake.net/top?id=0541465",
+          "sha256": "b7e0cbcc55042e7021a0772022de9ab10d0fa15e509eed3219f58569df9f0cad",
+          "byteCount": 28590
+        },
+        {
+          "url": "https://opdt.city.toyama.lg.jp/dataset/infomap-toyama13",
+          "checkedAt": "2026-10-14T09:45:28.679152+00:00",
+          "status": 200,
+          "finalURL": "https://opdt.city.toyama.lg.jp/dataset/infomap-toyama13",
+          "sha256": "b4db68768f732f8eac01bcf870254a91b4c145b764024c530f58262ac0129c29",
+          "byteCount": 15319
+        },
+        {
+          "url": "https://opdt.city.toyama.lg.jp/pages/terms",
+          "checkedAt": "2026-10-14T09:45:28.966419+00:00",
+          "status": 200,
+          "finalURL": "https://opdt.city.toyama.lg.jp/pages/terms",
+          "sha256": "77bf6d47a30d6d3c6f9b51fd43405192571eea92f5f016695a3172e3a54cea60",
+          "byteCount": 29375
+        },
+        {
+          "url": "https://opdt.city.toyama.lg.jp/dataset/cdfb54b6-372a-4aac-b2e8-59cf03c50ead/resource/f6d23453-3306-4b39-88ef-7e107b169d3d/download/intfs01.int.toyama-city.localredirect111015downloads26ekidentei.xlsx",
+          "checkedAt": "2026-10-14T09:45:29.263889+00:00",
+          "status": 200,
+          "finalURL": "https://opdt.city.toyama.lg.jp/dataset/cdfb54b6-372a-4aac-b2e8-59cf03c50ead/resource/f6d23453-3306-4b39-88ef-7e107b169d3d/download/intfs01.int.toyama-city.localredirect111015downloads26ekidentei.xlsx",
+          "sha256": "075babf062741532aef0458fb7d7383f0d344200fd46ad285e20820809ef1a1b",
+          "byteCount": 16528
+        }
+      ]
+    }
+  ],
+  "otherPaths": [
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/soshikikarasagasu/dorokanrika/gyomuannai/30/28323.html",
+      "finding": "Station manager road department instructs use of smoking places under east/west common plaza rules. FactReference original terms https://www4.city.kanazawa.lg.jp/11790.html reserve text/images only. No accepted plaza zone anchor, count/locations or physical ashtray confirmed."
+    },
+    {
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/en/info/question.php",
+      "finding": "Smoking area near management office; current accessible old /english/info.html blanket park prohibition conflicting; R6 operations report says smoking place installed, but no accepted physical ashtray or anchor."
+    },
+    {
+      "url": "https://katamachi-kirara.com/information/",
+      "finding": "Current facility info prohibits smoking indoors; no generic positive claim."
+    },
+    {
+      "url": "https://toyama-stationcity.jp/info/",
+      "finding": "Operator list names Maroot4F, Toyamarche NorenYokocho, MarieToyama1F. Three facilities need appropriate independent host anchors; no ashtray evidence or final rights review."
+    },
+    {
+      "url": "https://eki.jr-odekake.net/premises?id=0541449",
+      "finding": "Current 2024-11-28 station plan; legend is not evidence of actual installed room, PDF web fetch failed; no accepted record."
+    },
+    {
+      "url": "https://www.city.toyama.lg.jp/business/nourin/1010636/1006052.html",
+      "finding": "Market manager current page explicitly states designated ashtray installation places. Visits require advance permission; no independent facility anchor reviewed; outside station/downtown priority."
+    },
+    {
+      "city": "新潟市",
+      "result": "Current smoking permission explicit; no independently reviewed station/south-zone anchor established in this review. Park point cannot stand in for station south."
+    },
+    {
+      "city": "新潟市",
+      "url": "https://www.city.niigata.lg.jp/business/ichiba/ichibasyokudou.files/1Fguidemap202501.pdf",
+      "result": "Smoking rooms explicit on map; no reuse/anchor reviewed; peripheral relative to station/downtown priority; no copied map or derived coordinates."
+    },
+    {
+      "city": "福井市",
+      "result": "West/east traffic plaza host coordinates found in delegated display; no smoking point. Prefer official station XLS with resource license reviewed."
+    },
+    {
+      "city": "長野市",
+      "result": "Historic proposed or ashtray records do not establish current operation; no publication."
+    },
+    {
+      "city": "長野市",
+      "url": "https://www.jreast.co.jp/estation/station/info.aspx?StationCd=1105",
+      "result": "Current text has no smoking-place fact. Guide map only would need actual label review; not a canonical anchor."
+    },
+    {
+      "city": "長野市",
+      "url": "https://www.jreast.co.jp/press/2021/nagano/20210910_na02.pdf",
+      "result": "Official search result says station ashtrays removed excluding designated platform smoking rooms; direct fetch 403. Preserve as conflict lead, do not resurrect historic station ashtray facts."
+    },
+    {
+      "city": "長野市",
+      "url": "https://naoce.net/wp/wp-content/themes/%E3%81%AA%E3%81%8C%E3%81%AE%E8%A1%A8%E5%8F%82%E9%81%93%E3%82%BB%E3%83%B3%E3%83%88%E3%83%A9%E3%83%AB%E3%82%B9%E3%82%AF%E3%82%A8%E3%82%A2%E6%94%B9/kiyaku06.pdf",
+      "result": "Current linked official PDF §3(8) allows smoking only designated place. Rights on downloadable PDF and reusable park anchor not established; no publishable point. Specific ashtray unknown."
+    },
+    {
+      "city": "長野市",
+      "result": "Facility/park layers exist; resource-level rights and matching anchor record not reviewed; no assumed coordinates."
+    }
+  ],
+  "preservedExclusions": [
+    {
+      "name": "旧新潟駅前喫煙所",
+      "closure": "2024-08-05",
+      "basis": "Prior primary-source review explicitly records closure; retained without overwriting from current park/station hosts."
+    },
+    {
+      "name": "福井駅旧屋外喫煙所",
+      "reason": "Official city states relocation to indoor station-underpass room; old outdoor location not separate current spot."
+    },
+    {
+      "name": "historic Nagano station ashtrays/proposed station rooms",
+      "reason": "Current individual operation unresolved and 2021 JR removal conflict retained."
+    },
+    {
+      "name": "金沢百番街 / あんと屋内",
+      "reason": "Known contradictory official FAQ/services; not reinstated."
+    },
+    {
+      "name": "金沢フォーラス",
+      "reason": "Explicit information-use restriction; no unconditional revival."
+    },
+    {
+      "name": "JR West abolished eight stations",
+      "reason": "Known 2024 abolition notice takes precedence over stale master listings; none proposed."
+    }
+  ],
+  "additionalCity": {
+    "city": "福島市",
+    "reviewScope": "Bounded municipal smoking list, legal terms, municipal open-data facilities, municipal GIS and government station point paths",
+    "verdict": "prohibited",
+    "readySpots": 0,
+    "existence": "Current municipal list names east and west designated public smoking places and specifically requires cigarette ends in installed ashtrays. This meets actual ashtray existence evidence, but not reuse rights.",
+    "rights": {
+      "status": "prohibited",
+      "termsUrl": "https://www.city.fukushima.fukushima.jp/shisei/koho/4/10256.html",
+      "clause": "1.知的財産権の帰属",
+      "quote": "情報等やそれらに包含される内容（一部か全部かを問わない。）を複製・公開・送信・頒布・譲渡・貸与・使用許諾・転載・再利用できません。",
+      "reading": "Definition expressly encompasses published information, and no-consent prohibition explicitly includes reuse of partial contents. Fail closed under ADR0018 D-R; no fact sheet or publication."
+    },
+    "preservedRelocation": {
+      "name": "東口指定喫煙所",
+      "date": "2025-12-01",
+      "action": "Moved/rebuilt. Never resurrect historical east point; current page describes station police box east side.",
+      "oldCoordinatesCopied": false
+    },
+    "coordinatePaths": [
+      {
+        "decision": "GoogleMap-linked coordinates excluded; none retained as normalized coordinates."
+      },
+      {
+        "result": "School/childcare/sports facility resources; no station anchor listed. Unrelated resource files not re-fetched."
+      },
+      {
+        "termsUrl": "https://www.sonicweb-asp.jp/fukushimacity/agreement?confirm=false",
+        "quote": "個人的な目的に利用する範囲内に限ります",
+        "result": "Information use commercially and for profit expressly forbidden. Stop; no values copied."
+      },
+      {
+        "url": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N05-v1_3.html",
+        "result": "Official point geometries exist but resource page states 非商用. Rejected before raw download."
+      },
+      {
+        "url": "https://www.city.fukushima.fukushima.jp/material/files/group/64/kouenkanridaityou.pdf",
+        "result": "Park names/addresses, no candidate smoking park and no smoking-station point. Did not turn address into geocode."
+      }
+    ],
+    "resumeWhen": "Publisher grants information/fact reuse permission and independently reusable station/zone anchor is established; retain east relocation exclusion.",
+    "fetches": [
+      {
+        "url": "https://www.city.fukushima.fukushima.jp/kenko-fukushi/kenkozukuri/4/15781.html",
+        "status": 200,
+        "sha256": "552359db33eb9c92f96a288a26956ec36839e576fdcc15add7002e747ed3dcb9",
+        "checkedAt": "2026-10-14T09:40:33.441148+00:00"
+      },
+      {
+        "url": "https://www.city.fukushima.fukushima.jp/shisei/koho/4/10256.html",
+        "status": 200,
+        "sha256": "b8eeb8011120905be1e6df8330768c2fc54c778b5bb603b75ce9e9670a18f2cb",
+        "checkedAt": "2026-10-14T09:40:33.716672+00:00"
+      },
+      {
+        "url": "https://www.sonicweb-asp.jp/fukushimacity/agreement?confirm=false",
+        "status": 200,
+        "sha256": "8a34ac1f574528c9a155a76b6163b18a2cc7ddb32ec6d86b77fa80778f9bf2e9",
+        "checkedAt": "2026-10-14T09:40:33.996039+00:00"
+      },
+      {
+        "url": "https://www.city.fukushima.fukushima.jp/soshiki/2/1005/1/1/2478.html",
+        "status": 200,
+        "sha256": "fad864f1cd292ca20fa3f4a06ff2fdeef18ea9f0f4b4c37d527770f1d4aaabeb",
+        "checkedAt": "2026-10-14T09:40:34.153391+00:00"
+      },
+      {
+        "url": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N05-v1_3.html",
+        "status": 200,
+        "sha256": "7d7755d86e95300961bccbfd66202087543e8bf5e1bdd4877efbe25b67756ce6",
+        "checkedAt": "2026-10-14T09:40:35.720839+00:00"
+      }
+    ]
+  },
+  "fukuiTenderFollowup": {
+    "checkedAt": "2026-10-14T09:42:31.786742+00:00",
+    "primaryNavigationUrl": "https://www.city.fukui.lg.jp/nyusatsu/keiyaku/gyoumu/08main.html",
+    "officialSystem": "https://www2.ebid.pref.fukui.jp/ebidPPIPublish/EjPPIj",
+    "discoveryOnly": "https://newsatsu.jp/companies/25147",
+    "claimNotAccepted": "2024-12-03 award 高架下公衆トイレ及び喫煙所清掃業務 長期継続契約",
+    "finding": "Official city result page directs to prefecture procurement service. Past-tender search form available, Nendo options currently2026/2027 only. Complete2024 historical query returns server error; no specificationPDF or equipment clause retrieved. Therefore contract dates/ashtray equipment remain unverified. Current operator smoking-room page remains existence evidence separately, no photo002003 treated as ashtray."
+  },
+  "observations": [
+    {
+      "url": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "httpStatus": 200,
+      "sha256": "3cc603538b15bdcaed2164a9dbaab5d14950f8cff525c1141becfc7608d3a9ce",
+      "checkedAt": "2026-10-14T09:33:51.140907+00:00"
+    },
+    {
+      "url": "https://www.kanazawa21.jp/data_list.php?d=1&g=60",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=60",
+      "httpStatus": 200,
+      "sha256": "53ba4066743a11b00bec43ea13e7c9720b987d8881f93b1ff36d689bc8aa44ca",
+      "checkedAt": "2026-10-14T09:33:51.460584+00:00"
+    },
+    {
+      "url": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+      "httpStatus": 200,
+      "sha256": "10fecc08136104eff35550034ef2cb138b46f2bb47f8d90b9081c2bd21877fa2",
+      "checkedAt": "2026-10-14T09:33:51.693141+00:00"
+    },
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/soshikikarasagasu/dorokanrika/gyomuannai/30/28323.html",
+      "finalUrl": "https://www4.city.kanazawa.lg.jp/soshikikarasagasu/dorokanrika/gyomuannai/30/28323.html",
+      "httpStatus": 200,
+      "sha256": "d8134a536d969ac56cc2b41f7290e6e99ad6be6654b57c4db54ee6efd1f5a902",
+      "checkedAt": "2026-10-14T09:33:52.322934+00:00"
+    },
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/11790.html",
+      "finalUrl": "https://www4.city.kanazawa.lg.jp/11790.html",
+      "httpStatus": 200,
+      "sha256": "0e3ad0b1fba991599bb708876b278faec53f39fdb8d1ea0ce473b86371a87781",
+      "checkedAt": "2026-10-14T09:33:52.659791+00:00"
+    },
+    {
+      "url": "https://portal-data.city.kanazawa.ishikawa.jp/pdf/opendata_rule.pdf",
+      "finalUrl": "https://portal-data.city.kanazawa.ishikawa.jp/pdf/opendata_rule.pdf",
+      "httpStatus": 200,
+      "sha256": "9d3988a95af44cfd0d31bab45e8fb3812b7a68153e5baa2e90dc47bfc95e86d0",
+      "checkedAt": "2026-10-14T09:33:53.018030+00:00"
+    },
+    {
+      "url": "https://toyama-stationcity.jp/info/",
+      "finalUrl": "https://toyama-stationcity.jp/info/",
+      "httpStatus": 200,
+      "sha256": "b88d9548a2ff3c6db024787cabbf42d383d25e6d133ea24f8da0b6ca1e586918",
+      "checkedAt": "2026-10-14T09:33:53.462782+00:00"
+    },
+    {
+      "url": "https://katamachi-kirara.com/information/",
+      "finalUrl": "https://katamachi-kirara.com/information/",
+      "httpStatus": 200,
+      "sha256": "bbb0efed5f7780310031b4a2dea828a042411b97cd0d6f1eadf97eb178db4556",
+      "checkedAt": "2026-10-14T09:33:54.281326+00:00"
+    },
+    {
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/en/info/question.php",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/en/info/question.php",
+      "httpStatus": 200,
+      "sha256": "eea24c307fc5ae4d3a0e8fa7c3cfa4361559c3d2e50a5d3e8d4643f87de4faa5",
+      "checkedAt": "2026-10-14T09:33:54.772940+00:00"
+    },
+    {
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/english/info.html",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/english/info.html",
+      "httpStatus": 200,
+      "sha256": "fc7dae9629d3479941cdfd51094381a7e745787557be3c682389df596d3615dc",
+      "checkedAt": "2026-10-14T09:33:54.963752+00:00"
+    },
+    {
+      "sha256": "3504fa03c6aab36c6481fc69a652ff9841b52563735acb04a5ef853ccba578a5",
+      "resourceLabel": "kanazawa-tourism-search",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/package_search?q=%E8%A6%B3%E5%85%89&rows=100",
+      "httpStatus": null,
+      "fetchedAt": null,
+      "digestRecordedAt": "2026-10-14T09:33:54.964431+00:00",
+      "sha256Scope": "rawHTTPResponseBodyBytes",
+      "observationDate": "2026-10-14"
+    },
+    {
+      "sha256": "e682e3e089c8b861a2e72ab176fe6ed8c3d3bf9ab3e304411b861fd3f613b7e9",
+      "resourceLabel": "facility-search",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/package_search?q=%E6%96%BD%E8%A8%AD&rows=100",
+      "httpStatus": null,
+      "fetchedAt": null,
+      "digestRecordedAt": "2026-10-14T09:33:54.964629+00:00",
+      "sha256Scope": "rawHTTPResponseBodyBytes",
+      "observationDate": "2026-10-14"
+    },
+    {
+      "sha256": "39acb54c694ec962e4c27f502a10ce29e1f7a109d4618c061973d97b3741420d",
+      "resourceLabel": "kanazawa-facility-metadata",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/package_show?id=172014-public-facility",
+      "httpStatus": null,
+      "fetchedAt": null,
+      "digestRecordedAt": "2026-10-14T09:33:54.964850+00:00",
+      "sha256Scope": "rawHTTPResponseBodyBytes",
+      "observationDate": "2026-10-14"
+    },
+    {
+      "sha256": "d1d6c3edfb405cfaacd76c60afcc025ac103c49cc5e3cd26da9831de0728f19c",
+      "resourceLabel": "kanazawa-facility-records",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/datastore_search?resource_id=2e6dd5a7-793b-420f-9a22-bdf5b25a97e3&limit=10000",
+      "httpStatus": null,
+      "fetchedAt": null,
+      "digestRecordedAt": "2026-10-14T09:33:54.966707+00:00",
+      "sha256Scope": "rawHTTPResponseBodyBytes",
+      "observationDate": "2026-10-14"
+    },
+    {
+      "sha256": "5d1e3331be882622ee785db0d8cf1326645d07546bb7cddc3a2981b9bc736f41",
+      "resourceLabel": "tourism-records",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/datastore_search?resource_id=51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66&limit=10000",
+      "httpStatus": null,
+      "fetchedAt": null,
+      "digestRecordedAt": "2026-10-14T09:33:54.966802+00:00",
+      "sha256Scope": "rawHTTPResponseBodyBytes",
+      "observationDate": "2026-10-14"
+    },
+    {
+      "sha256": "260804d63954c655dc2d699b94ac9f6874c486acb952409ad2533df30bb9426c",
+      "resourceLabel": "tourism-meta",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/package_show?id=172014-tourism",
+      "httpStatus": null,
+      "fetchedAt": null,
+      "digestRecordedAt": "2026-10-14T09:33:54.966840+00:00",
+      "sha256Scope": "rawHTTPResponseBodyBytes",
+      "observationDate": "2026-10-14"
+    },
+    {
+      "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-gis/od-gis_kurashibosai/od-gis_park.files/od_gis_10019_park.csv",
+      "status": 200,
+      "sha256": "5f97356c920dce15c053c160f12a7c65b56d7bfbcb718d9cfedd2795374defe2",
+      "checkedAt": "2026-10-14T09:31:24.994700+00:00"
+    },
+    {
+      "url": "https://www.city.niigata.lg.jp/kurashi/gomi/gomi_recycl/seidoannai/poisuteindex/kitsuenjo.html",
+      "status": 200,
+      "sha256": "235becdd4f37b8cb275725112bfaec64d899890c56d5962bbf154f795a266904",
+      "checkedAt": "2026-10-14T09:31:25.275038+00:00"
+    },
+    {
+      "url": "https://www.city.fukui.lg.jp/kurasi/mati/sigaitikassei/p025672.html",
+      "status": 200,
+      "sha256": "0a939bd0195b885743b650320df91f407bb4767017268dd3616d1844bb039055",
+      "checkedAt": "2026-10-14T09:31:25.538061+00:00"
+    },
+    {
+      "url": "https://www.city.fukui.lg.jp/kurasi/kankyo/akichi/poisute-fungai-kakudai.html",
+      "status": 200,
+      "sha256": "216c95a912f25f0df7f255a1c0f3077fad1e51654e8d7dee71cc93d14dc6ada9",
+      "checkedAt": "2026-10-14T09:31:25.892846+00:00"
+    },
+    {
+      "url": "https://www.city.niigata.lg.jp/homepage/unei/chosakuken.html",
+      "status": 200,
+      "sha256": "cefa8653a2c8b6bebcb98cfb7b509ed8aaa1d4d28fc5d43b12e3d91fe479d2e1",
+      "checkedAt": "2026-10-14T09:32:46.264684+00:00"
+    },
+    {
+      "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/od-riyoukiyaku.html",
+      "status": 200,
+      "sha256": "71a53b437fc363b6cac23f76c60ba913e547ac40c70b654a02408f2e600118ce",
+      "checkedAt": "2026-10-14T09:32:46.436387+00:00"
+    },
+    {
+      "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-gis/od-gis_kurashibosai/od-gis_park.html",
+      "status": 200,
+      "sha256": "d4338d930eb97e5e6b7d2653f445a91564c5925aa5dc8ecc78984626c3bc42b2",
+      "checkedAt": "2026-10-14T09:32:46.606110+00:00"
+    },
+    {
+      "url": "https://www.city.fukui.lg.jp/sisei/kohou/hp/site-p.html",
+      "status": 200,
+      "sha256": "f4aac82891b19b7b800e404817c7d5ff7293c8df9de9b9725d3acfcf40996918",
+      "checkedAt": "2026-10-14T09:32:47.037099+00:00"
+    },
+    {
+      "url": "https://www.city.fukui.lg.jp/sisei/tokei/opendata/p018971.html",
+      "status": 200,
+      "sha256": "fa5eadf677638980fe8054d999943c8ae181a135184f4ead00075da047447280",
+      "checkedAt": "2026-10-14T09:32:47.236776+00:00"
+    },
+    {
+      "url": "https://www.city.fukui.lg.jp/sisei/tokei/opendata/p018971_d/fil/fukuishieki.xls",
+      "status": 200,
+      "sha256": "b253a4b013656a900e3a175311b92550b80f8d3ba15c610e0f772800cd60dd3c",
+      "checkedAt": "2026-10-14T09:32:47.402911+00:00"
+    },
+    {
+      "url": "https://naoce.net/",
+      "status": 200,
+      "sha256": "17ffa63a7001430366412b28d97b383d7ccc87997ca8777d64bd58f8da25278d",
+      "checkedAt": "2026-10-14T09:32:47.996967+00:00"
+    },
+    {
+      "url": "https://naoce.net/wp/wp-content/themes/%E3%81%AA%E3%81%8C%E3%81%AE%E8%A1%A8%E5%8F%82%E9%81%93%E3%82%BB%E3%83%B3%E3%83%88%E3%83%A9%E3%83%AB%E3%82%B9%E3%82%AF%E3%82%A8%E3%82%A2%E6%94%B9/kiyaku06.pdf",
+      "status": 200,
+      "sha256": "10c7a67eaba09f1939ab4f613d0ca6bf050642039a3c3ea11ed82d8e691d3a10",
+      "checkedAt": "2026-10-14T09:35:14.144324+00:00"
+    }
+  ],
+  "result": {
+    "priorityMunicipalitiesReviewed": 5,
+    "additionalMunicipalitiesReviewed": 1,
+    "sourcesApproved": 0,
+    "implementedSources": 0,
+    "spotsAdded": 0,
+    "baseline": {
+      "canonical": 524,
+      "published": 522,
+      "tiles": 90,
+      "sources": 15,
+      "crossSourceCandidates": 0
+    },
+    "after": {
+      "canonical": 524,
+      "published": 522,
+      "tiles": 90,
+      "sources": 15,
+      "crossSourceCandidates": 0
+    },
+    "prefecturesBefore": 12,
+    "prefecturesAfter": 12,
+    "excludedCanonicalBefore": 2,
+    "excludedCanonicalAfter": 2,
+    "qualityFailedChecks": 0,
+    "productionChanged": false,
+    "validation": {
+      "nodeVersion": "24.21.0",
+      "contract": "pass",
+      "apiTests": 1162,
+      "discoveryTests": 102,
+      "typecheck": "pass",
+      "promotionFreshApply": "completed",
+      "promotionReexportIdentical": true,
+      "promotionDigest": "e22e3446c63b3c521c2bb4cc9f5a2d3a01f2f488e88546d349d37a6305ecba58"
+    }
+  },
+  "limits": [
+    "Bounded scan; missing evidence is not proof of absence.",
+    "Government host points do not establish smoking existence or ashtray installation.",
+    "No raw HTML/images/PDFs/maps or third-party map pins retained.",
+    "No source registry, adapter, fixture, source health baseline, canonical record or production state altered."
+  ]
+}
