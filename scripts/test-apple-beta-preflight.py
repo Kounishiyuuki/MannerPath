@@ -436,7 +436,7 @@ class PreflightTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "App Attest environment"):
                 self.check()
 
-    def test_signed_archive_reads_all_four_signed_entitlements(self):
+    def inspect_signed_archive(self, environment="development", distribution=False):
         archive = pathlib.Path(self.temp.name) / "Beta.xcarchive"
         applications = archive / "Products/Applications"
         applications.mkdir(parents=True)
@@ -463,15 +463,27 @@ class PreflightTests(unittest.TestCase):
             identifier = plistlib.loads((pathlib.Path(command[-1]) / "Info.plist").read_bytes())["CFBundleIdentifier"]
             entitlements["application-identifier"] = "TEAM123." + identifier
             entitlements["com.apple.developer.team-identifier"] = "TEAM123"
+            entitlements.update({"get-task-allow": False, "beta-reports-active": True})
             if command[-1].endswith("/MannerPath.app"):
-                entitlements["com.apple.developer.devicecheck.appattest-environment"] = "development"
+                entitlements["com.apple.developer.devicecheck.appattest-environment"] = environment
             return subprocess.CompletedProcess(command, 0, stdout=plistlib.dumps(entitlements))
 
         with patch.object(preflight.subprocess, "run", side_effect=codesign) as run:
             with redirect_stdout(StringIO()) as output:
-                preflight.inspect(archive, False)
+                preflight.inspect(archive, False, distribution=distribution)
+        return run, output
+
+    def test_signed_archive_reads_all_four_signed_entitlements(self):
+        run, output = self.inspect_signed_archive()
         self.assertEqual(run.call_count, 14)
         self.assertIn("signed artifact entitlements", output.getvalue())
+
+    def test_distribution_archive_with_production_app_attest_passes(self):
+        self.inspect_signed_archive("production", distribution=True)
+
+    def test_distribution_archive_rejects_development_app_attest(self):
+        with self.assertRaisesRegex(ValueError, "TestFlight build must sign production"):
+            self.inspect_signed_archive("development", distribution=True)
 
     def test_missing_profile_fails_signed_mode(self):
         for path in self.paths:
@@ -507,6 +519,43 @@ class PreflightTests(unittest.TestCase):
     def test_single_environment_profile_mismatch_fails(self):
         with self.assertRaisesRegex(ValueError, "App Attest environments differ"):
             self.check_app_attest_profile("production", "development")
+
+    def check_distribution(self, profile_extra=None, **signed_extra):
+        (self.app / "embedded.mobileprovision").write_bytes(b"fixture")
+        identifier = preflight.IDS["iPhone app"]
+        profile = {"TeamIdentifier": ["TEAM123"], "Entitlements": {
+            "application-identifier": "TEAM123." + identifier,
+            "com.apple.security.application-groups": [preflight.GROUP]}, **(profile_extra or {})}
+        signed = {"com.apple.developer.team-identifier": "TEAM123", "application-identifier": "TEAM123." + identifier,
+                  "get-task-allow": False, "beta-reports-active": True, **signed_extra}
+        with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=plistlib.dumps(profile))):
+            preflight.check_provisioning(self.app, identifier, signed, distribution=True)
+
+    def test_distribution_signature_passes(self):
+        self.check_distribution()
+
+    def test_distribution_rejects_development_signature(self):
+        for profile_extra, signed_extra, message in (
+            ({"ProvisionedDevices": ["00008140-0000000000000000"]}, {}, "provisioned devices"),
+            (None, {"get-task-allow": True}, "get-task-allow"),
+            (None, {"beta-reports-active": None}, "beta-reports-active"),
+        ):
+            with self.subTest(message), self.assertRaisesRegex(ValueError, message):
+                self.check_distribution(profile_extra, **signed_extra)
+
+    def test_distribution_is_not_checked_without_the_flag(self):
+        (self.app / "embedded.mobileprovision").write_bytes(b"fixture")
+        identifier = preflight.IDS["iPhone app"]
+        profile = {"TeamIdentifier": ["TEAM123"], "ProvisionedDevices": ["00008140-0000000000000000"], "Entitlements": {
+            "application-identifier": "TEAM123." + identifier, "com.apple.security.application-groups": [preflight.GROUP]}}
+        signed = {"com.apple.developer.team-identifier": "TEAM123", "application-identifier": "TEAM123." + identifier,
+                  "get-task-allow": True}
+        with patch.object(preflight.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=plistlib.dumps(profile))):
+            preflight.check_provisioning(self.app, identifier, signed)
+
+    def test_distribution_needs_a_signed_artifact(self):
+        with self.assertRaisesRegex(ValueError, "cannot be combined with --unsigned-build"):
+            preflight.inspect(self.app, True, distribution=True)
 
     def test_profile_mismatch_does_not_echo_team_identifier(self):
         bundle = self.app
