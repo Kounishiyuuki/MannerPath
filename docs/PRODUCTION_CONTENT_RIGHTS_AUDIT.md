@@ -229,3 +229,18 @@ Submission handoff:
 No license-unavailable municipal source was found. **Not yet “maintainer signoff only”:** the two UI
 remedies are implemented, but final signed-build notice/link/asset checks remain. This result does not reopen OSM or community legal work as a v1
 corpus prerequisite, and authorizes neither production changes nor ASC submission.
+
+## 7. v1 frozen-corpus GET follow-up — 2026-10-15 (Lane 4)
+
+[GET-only evidence and capture preparation](release/V1_DATA_AND_STORE_ASSETS.md) observes 513 distinct
+published IDs / six municipal sources inside 81 explicitly queried tiles. License/name/attribution strings
+match the approved registry 6/6; Osaka remains CC BY 2.1 JP, the other five CC BY 4.0. Missing tile source
+references/license/attribution: 0; approximation: 0; access unknown: 513; hours unknown: 493.
+The API has no global tile index; this is bounded public observation, not a repeat of §2 remote D1
+lineage/release-digest checks or a proof that nothing is published elsewhere. Local 515 canonical /
+513 published counts are explicitly fixture-only. No production writes or new license approval.
+
+The maintainer freezes v1 at this existing corpus; repository-approved additional sources wait until
+after release. G5 remains OPEN for signed iPhone/Watch attribution/link/processing-notice verification,
+map credit and final asset/rights approval. G10 stays OPEN; no completed screenshots or hardware PASS
+is inferred from production GETs, current source code or simulator fixtures.

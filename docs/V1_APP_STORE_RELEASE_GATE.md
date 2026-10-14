@@ -12,7 +12,7 @@ store copy consistent.
 
 | Decision | v1.0 |
 | --- | --- |
-| Covered areas | **Confirmed 2026-10-15:** the production corpus, **6 sources / 513 spots** — 東京都 台東区 32, 港区 114, 江東区 3, 武蔵野市 3; 大阪市 344; 京都市 17 ([rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md)). Sources approved in the repository but not promoted (airports etc., `SOURCES.md`) are **not** in v1.0 unless promoted first (G19) |
+| Covered areas | What production publishes at submission. Today: **6 sources / 513 spots** — 東京都 台東区 32, 港区 114, 江東区 3, 武蔵野市 3; 大阪市 344; 京都市 17 ([rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md)). Sources approved in the repository but not deployed (airports etc., `SOURCES.md`) are **not** in v1.0; new production data waits until after release (G19) |
 | Everywhere else | Honest empty state (`404 tileNotPublished` → 「この周辺に掲載中の場所はありません」) |
 | Price / storefront | Free, Japan only ([entry sheet §9](APP_STORE_CONNECT_ENTRY.md#9-pricing-and-availability)) |
 | Reports, App Attest registration, photos | Unavailable (`reports.available:false`) |
@@ -40,7 +40,7 @@ legal decision, App Store Connect, device). **Ext** = waits on a third party.
 | G7 | Export compliance | P0 | OPEN | Proposed: uses encryption Yes, exempt (OS-only); `ITSAppUsesNonExemptEncryption` absent ([submission §4](APP_STORE_SUBMISSION.md)) | Answered in ASC for the submitted build after the linked-library check | 3 | yes | no |
 | G8 | Description, subtitle, keywords | P0 | DONE | Description names the covered areas and partial coverage (this audit); limits and banned claims checked by `test-store-copy.py` | Re-check: area sentence equals §1 production inventory on the day of entry | 1 | no | no |
 | G9 | Covered-area explanation outside the store | P1 | OPEN | App: 「掲載範囲は地域によって異なります」 + honest empty state; support page explains unlisted areas but not *which* areas are listed | Support page lists the §1 areas (public-site change, needs approval); in-app list is P2 for Lane 2 | 1 | yes | no |
-| G10 | Screenshots iPhone 6.9" + Watch | P0 | OPEN | None final; fixture captures are not store assets ([entry sheet §6](APP_STORE_CONNECT_ENTRY.md)) | Final-build, production-data captures from a covered area (no synthetic data), Watch set one size; approved by maintainer | 2/3 | yes | no |
+| G10 | Screenshots iPhone + Watch | P0 | OPEN | None final; fixture captures are not store assets ([entry sheet §6](APP_STORE_CONNECT_ENTRY.md)) | Final-build, production-data captures from a covered area (no synthetic data), Watch set one size; approved by maintainer | 2/3 | yes | no |
 | G11 | App Review contact | P0 | OPEN | Not in repo by design; Japanese entry values: [entry sheet §0](APP_STORE_CONNECT_ENTRY.md#0-v10-最終入力チェック表日本語2026-10-15) | Name, phone, email entered in ASC | 1 | yes | no |
 | G12 | Review Notes / reviewer steps | P0 | OPEN | Draft with tested destination steps (「浅草駅 東京」) and covered areas ([entry sheet §5](APP_STORE_CONNECT_ENTRY.md)); Japanese entry values: [entry sheet §0](APP_STORE_CONNECT_ENTRY.md#0-v10-最終入力チェック表日本語2026-10-15) | Steps re-run on the submitted build; maintainer approves the text | 1 | yes | no |
 | G13 | In-app support / privacy links | P1 | OPEN | Release-simulator navigation to both pages and contact verified (#179) | Links and mail compose checked on a physical device | 3 | yes | no |
@@ -49,7 +49,7 @@ legal decision, App Store Connect, device). **Ext** = waits on a third party.
 | G16 | Production API, reports off | P0 | DONE | `GET /v1/config` 2026-10-14T15:47Z: `reports.available:false`, `photoEvidenceEnabled:false`; route gates #185 | Re-run the same read-only GET on submission day | 1 | no | no |
 | G17 | First launch, location permission, offline | P0 | OPEN | Simulator UI tests; device rows not observed | Matrix P1, P4, P8/P9b, R1, AI1 `PASS 1.0 (N)` on the submitted build | 3 | yes | no |
 | G18 | Accessibility / UI tests | P1 | OPEN | Simulator UI tests incl. visual audit pass (#265); Reduce Motion simulator (#191); VoiceOver/large text not observed on device | Matrix A1, A1W, P17, W9, W10 observed; ASC accessibility answers claim only observed support | 2/3 | yes | no |
-| G19 | Published data and quality | P1 | DONE | Maintainer decision 2026-10-15: v1.0 ships with the production corpus, 6 sources / 513 spots (§1). Repo-approved, unpromoted sources are not in v1.0 | Promoting more sources later updates §1 and G8 first | 4 | yes | no |
+| G19 | Published data and quality | P1 | DONE | Maintainer freezes v1 at the existing 6-source corpus; 2026-10-15 public GET scan observes 513 IDs in 81 explicit tiles, source notices match 6/6; local six-source quality checks pass ([Lane 4 evidence](release/V1_DATA_AND_STORE_ASSETS.md)) | Recheck public data before submission; bounded GET evidence is not a global tile inventory or remote D1 audit. New data waits until after release | 4 | yes | no |
 | G20 | App Review risk | P1 | OPEN | Guideline 1.4.3 (tobacco), 2.1 (sparse data looks broken), 5.1.1 (privacy) — mitigations in [submission §7](APP_STORE_SUBMISSION.md) | Maintainer accepts residual risk; notes lead with compliance purpose and covered areas | 1 | yes | no |
 | G21 | Build to submit | P0 | OPEN | Build 1.0 (2) lacks #259; Build 3 checklist [matrix §8](beta-e2e/device-release-matrix.md) not started | One build passes G14/G15/G17 and the signed preflight; build number raised by Lane 3 only | 3 | yes | no |
 | G22 | In-app covered-area list | P2 | OPEN | Not implemented | Optional covered-area list in the app (Lane 2 decision) | 2 | no | no |
@@ -62,3 +62,11 @@ P2 = after release.
 1. All P0 rows `DONE`; every P1 row `DONE` or recorded as accepted by the maintainer.
 2. G8 and G16 re-checks run on the day of entry.
 3. Only then: Add for Review → Submit (maintainer, manual release). Nothing in this repository performs it.
+
+## 4. Lane 4 data and capture preparation (2026-10-15)
+
+[Production observation and screenshot runbook](release/V1_DATA_AND_STORE_ASSETS.md) separates
+public GET evidence from local fixture counts, freezes the existing corpus for v1, and records
+current image sizes, privacy/rights checks and the Watch destination-sync limitation.
+G5/G10 remain OPEN: no final RC images, signed-device attribution approval or Watch PASS is declared.
+PR #263/#273 being merged is not a processed-build/device result. Other lane/device rows stay unchanged.

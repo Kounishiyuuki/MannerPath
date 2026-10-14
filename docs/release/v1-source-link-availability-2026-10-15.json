@@ -1,0 +1,91 @@
+{
+  "method": "GET",
+  "checkedAt": "2026-10-14T16:49:47.319Z",
+  "scope": "Only approved public attribution/license URLs; header observation, no content/license reapproval",
+  "results": [
+    {
+      "url": "https://creativecommons.org/licenses/by/2.1/jp/",
+      "status": 200,
+      "finalUrl": "https://creativecommons.org/licenses/by/2.1/jp/",
+      "contentType": "text/html"
+    },
+    {
+      "url": "https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html",
+      "status": 200,
+      "finalUrl": "https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html",
+      "contentType": "text/html"
+    },
+    {
+      "url": "https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv",
+      "status": null,
+      "observation": "transport not verified; not proof of a broken link",
+      "followUp": {
+        "method": "GET",
+        "client": "curl",
+        "status": 200,
+        "checkedAt": "2026-10-14T16:52:17.683878+00:00",
+        "scope": "same approved URL; no content or license reapproval"
+      }
+    },
+    {
+      "url": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+      "status": 200,
+      "finalUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+      "contentType": "text/html"
+    },
+    {
+      "url": "https://data.city.kyoto.lg.jp/dataset/00003/",
+      "status": 200,
+      "finalUrl": "https://data.city.kyoto.lg.jp/dataset/00003/",
+      "contentType": "text/html; charset=UTF-8"
+    },
+    {
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "status": 200,
+      "finalUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "contentType": "text/html"
+    },
+    {
+      "url": "https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html",
+      "status": 200,
+      "finalUrl": "https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html",
+      "contentType": "text/html"
+    },
+    {
+      "url": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "status": 200,
+      "finalUrl": "https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip",
+      "contentType": "application/zip"
+    },
+    {
+      "url": "https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo",
+      "status": 200,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo",
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "url": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "status": 200,
+      "finalUrl": "https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv",
+      "contentType": "text/csv"
+    },
+    {
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "status": 200,
+      "finalUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "contentType": "text/csv"
+    },
+    {
+      "url": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "status": 200,
+      "finalUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+      "contentType": "text/csv"
+    },
+    {
+      "url": "https://portal.data.metro.tokyo.lg.jp/terms/",
+      "status": 200,
+      "finalUrl": "https://portal.data.metro.tokyo.lg.jp/terms/",
+      "contentType": "text/html; charset=UTF-8"
+    }
+  ]
+}
