@@ -245,6 +245,17 @@ integrity, not on reaching a coverage number:
   major stations, population/usage-weighted coverage — as targets that drive improvement after release, never as a
   reason to fabricate or to hide a gap.
 
+**v1.0 scope (maintainer decision, 2026-10-15; supersedes the "nationwide data first" sequencing).** v1.0 ships to
+the App Store with **limited covered areas** — the regions the production corpus actually publishes — instead of
+waiting for nationwide data:
+
+- free, Japan storefront only; reports, App Attest registration and photos stay unavailable;
+- no waiting on external data-provider replies (e.g. モクログ); nationwide data work continues after release;
+- store copy, screenshots and Review Notes name the covered areas and the location-precision limits, and never
+  suggest a spot can be found anywhere in Japan;
+- the behavior and integrity gates above are unchanged; the single submission checklist is
+  [`V1_APP_STORE_RELEASE_GATE.md`](V1_APP_STORE_RELEASE_GATE.md), and nothing is submitted while it lists an open P0.
+
 Nationwide rollout is a data-quality programme, not an import-volume milestone: coverage keeps improving after v1
 (N1 → N2 → N3 remain the rollout stages), and a single-region beta is still not the product.
 

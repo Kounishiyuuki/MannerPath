@@ -108,6 +108,9 @@ v1 release gate (PRODUCT_REQUIREMENTS §10, NATIONWIDE_DATA_STRATEGY §6): natio
 states and evidence integrity. Coverage (spot count, prefectures, major cities and stations, population-weighted) is
 measured continuously and keeps improving after release.
 
+v1.0 (2026-10-15 decision): released with limited covered areas, free, Japan only, reports off; N1–N3 continue
+after release. Submission gate: [`V1_APP_STORE_RELEASE_GATE.md`](V1_APP_STORE_RELEASE_GATE.md).
+
 ## Phase 8 — Nationwide quality gate and coverage measurement
 
 - calculate station-area and population-weighted coverage, reported as official-source coverage and all usable

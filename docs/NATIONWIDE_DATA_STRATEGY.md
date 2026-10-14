@@ -122,6 +122,10 @@ integrity rows as failing checks):
 | Freshness | Reported per tier (`freshness.v1`: fresh / aging / stale / unknown); staleness labels a spot, it never removes it |
 | Unknown fields | Reported transparently by source/region; unknown is not converted to false |
 
+**v1.0 limited-area release (2026-10-15, PRODUCT_REQUIREMENTS §10).** v1.0 ships with the areas production
+publishes at submission; nationwide behavior (honest empty state everywhere else) is what the gate above requires.
+Copy and listing claims follow [`V1_APP_STORE_RELEASE_GATE.md`](V1_APP_STORE_RELEASE_GATE.md).
+
 **Coverage targets (measured continuously; not release blockers).** They direct which lawful data to add next and are
 reported in every quality report, before and after release. Not reaching one never justifies inventing data or hiding
 a gap; reaching one never relaxes an integrity row above.
