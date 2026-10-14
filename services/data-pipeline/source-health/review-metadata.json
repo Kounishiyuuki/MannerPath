@@ -252,6 +252,241 @@
           "reviewDueAt": "2027-01-11"
         }
       ]
+    },
+    {
+      "sourceId": "hiroshima-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "about/index.html §1; homepage links §2; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.hij.airport.jp/about/index.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "１ 著作権",
+                "end": "3 免責事項"
+              }
+            ],
+            "requiredMarkers": [
+              "１ 著作権"
+            ]
+          },
+          "reviewedFingerprint": "a9c5cbb13e809db4deb8f856355cd7794bc5fb5a4fdf65bf1f792326567bea9d",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "sourceId": "kochi-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "privacy/footer; smoking FAQ footer; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.kochiap.co.jp/privacy/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "&copy; 2014 Kochi Ryoma Air Port",
+                "end": "[link:https://www.kochiap.co.jp/company/]"
+              }
+            ],
+            "requiredMarkers": [
+              "&copy; 2014 Kochi Ryoma Air Port"
+            ]
+          },
+          "reviewedFingerprint": "5dc18987b1fc3f3b01c0f4a355347c5f03525cbdd41c9c8a9c31f1444a6af8c1",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "sourceId": "matsuyama-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "links.html: リンクについて; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.matsuyama-airport.co.jp/links.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "リンクについて 当サイトへのリンク",
+                "end": "松山空港ホーム リンク集"
+              }
+            ],
+            "requiredMarkers": [
+              "リンクについて 当サイトへのリンク"
+            ]
+          },
+          "reviewedFingerprint": "24e84301ae6bf9d675400ff257a5f5f7242bd396bf9eec11648e42618d1e04b7",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "sourceId": "miyazaki-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "use: 著作権について; リンクについて; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.miyazaki-airport.co.jp/use",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "著作権について 本サイトに掲載",
+                "end": "推奨環境について"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権について 本サイトに掲載"
+            ]
+          },
+          "reviewedFingerprint": "fa34c0147c24460ab8d2ed95c63925507f87e7f2e694f20d4bfbedf6ac7e5510",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "sourceId": "oita-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "sitepolicy: 著作権について; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.oita-airport.jp/sitepolicy/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "著作権について 当社ホームページ",
+                "end": "当社ホームページリンク用バナーについて"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権について 当社ホームページ"
+            ]
+          },
+          "reviewedFingerprint": "d2dabf7609443a72eaee1dafc68a8d69bce97a46be1597a8a257f348adcdab5f",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "sourceId": "takamatsu-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "policy: ホームページの著作権について; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.takamatsu-airport.com/policy/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "ホームページの著作権について",
+                "end": "キャンペーン・イベント情報"
+              }
+            ],
+            "requiredMarkers": [
+              "ホームページの著作権について"
+            ]
+          },
+          "reviewedFingerprint": "00796e4dea0b082a361b432b21e514212796efb30f0c5bbf43bb2dc8e1f6e377",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "sourceId": "yonago-airport-smoking-places",
+      "rightsReviewedAt": "2026-10-14",
+      "rightsEvidence": "siteinfo: 著作権について §2; factReference under ADR-0018; homepage attribution only, precise evidence internal.",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-14",
+      "reviewDueAt": "2027-01-14",
+      "reviewerNote": "Re-read smoking facts, closure exclusions, terms/link conditions and C28 terminal identity. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.yonago-air.com/siteinfo/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "著作権について 1.当サイトの著作権",
+                "end": "個人情報保護に関するお問合せ先"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権について 1.当サイトの著作権"
+            ]
+          },
+          "reviewedFingerprint": "36dfc5c33cf476ddd3826a366c43a4a7b7ed250842320e3869ea2ed0e166482b",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        },
+        {
+          "url": "https://www.yonago-air.com/siteinfo/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "米子鬼太郎空港サイトへのリンクについて",
+                "end": "当サイトの翻訳について"
+              }
+            ],
+            "requiredMarkers": [
+              "米子鬼太郎空港サイトへのリンクについて"
+            ]
+          },
+          "reviewedFingerprint": "d35d3838e1b2baf70f2ec2ae53d2504a52e989ee541d4f84a2a02abae791cca6",
+          "reviewedAt": "2026-10-14",
+          "reviewDueAt": "2027-01-14"
+        }
+      ]
     }
   ]
 }

@@ -29,6 +29,14 @@ export const SOURCE_PREFECTURES: Readonly<Record<string, PrefectureCode>> = {
   "osaka-designated-smoking-areas": "27",
   "kyoto-public-smoking-places": "26",
   "komatsu-airport-smoking-places": "17",
+  "sendai-kaigan-park-smoking-areas": "04",
+  "takamatsu-airport-smoking-places": "37",
+  "kochi-airport-smoking-places": "39",
+  "matsuyama-airport-smoking-places": "38",
+  "oita-airport-smoking-places": "44",
+  "yonago-airport-smoking-places": "31",
+  "miyazaki-airport-smoking-places": "45",
+  "hiroshima-airport-smoking-places": "34",
 };
 
 /** Community sources have no jurisdiction; their spots are assigned through seed areas or not at all. */

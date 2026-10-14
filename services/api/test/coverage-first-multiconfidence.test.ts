@@ -33,6 +33,7 @@ import { TileBodyV1, type TileSpotV1 } from "../src/tiles/dto.ts";
 import { type CandidateRow, publishTiles, verificationDto } from "../src/tiles/publish.ts";
 import { TAITO_SOURCE_ID } from "../src/pipeline/taito.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
+import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
@@ -139,9 +140,10 @@ const SMOKING_CAFE: Claim = { spotType: "smokingPermittedVenue", hostType: "rest
 test("official spots remain official: officialListing, evidence-backed precision, no confirmation count, review month from the release", async () => {
   const db = await world();
   const all = v1TileRows(db).flatMap((t) => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
-  // The ADR-0018 page-fact operator source is asserted in its own test (komatsu-airport-source.test.ts).
-  const spots = all.filter((s) => !s.sourceIds.includes("komatsu-airport-smoking-places"));
-  assert.equal(all.length - spots.length, 1);
+  // ADR-0018 operator facts have their own facility-approximation regression tests.
+  const operatorIds = new Set(SOURCE_ADAPTERS.filter(a => a.registry.kind === "operator").map(a => a.registry.sourceId));
+  const spots = all.filter((s) => !s.sourceIds.some(id => operatorIds.has(id)));
+  assert.equal(all.length - spots.length, 8);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
@@ -500,22 +502,24 @@ test("an older client that knows only the pre-ADR-0012 fields still reads every 
 // 25
 test("quality counts tiers separately and never fails because a lower tier exists", async () => {
   const db = await world();
-  const baseline = await analyzeCorpus(db, { now: isoSeconds(APPLY) });
+  const corpusNow = "2026-10-14T12:00:00Z"; // After every reviewed fixture date; future-date checks remain unchanged.
+  const baseline = await analyzeCorpus(db, { now: corpusNow });
   const official = baseline.nationwide.coverage.official;
+  assert.equal(official, 514);
   await reportedSpot(db, ASHTRAY_AT_STORE, "R", HASHES[2], { latitude: 35.57, longitude: 139.57 });
   await verifiedSpot(db, [SMOKING_CAFE, SMOKING_CAFE], "V", { latitude: 35.58, longitude: 139.58 });
-  await publishTiles(db, { now: isoSeconds(APPLY) });
+  await publishTiles(db, { now: corpusNow });
 
-  const blocked = await analyzeCorpus(db, { now: isoSeconds(APPLY) });
+  const blocked = await analyzeCorpus(db, { now: corpusNow });
   assert.deepEqual(blocked.nationwide.coverage, { ...baseline.nationwide.coverage }, "blocked: nothing counts as coverage");
   assert.deepEqual(blocked.nationwide.confidence.communityCanonicalByTier,
     { communityReported: { canonical: 1, unpublished: 1 }, communityVerified: { canonical: 1, unpublished: 1 } });
 
   simulateRightsGranted(db);
-  await publishTiles(db, { now: isoSeconds(APPLY) });
-  const granted = await analyzeCorpus(db, { now: isoSeconds(APPLY) });
-  // The one operator spot is the ADR-0018 Komatsu airport page-fact source.
-  assert.deepEqual(granted.nationwide.coverage, { official, operator: 1, communityVerified: 1, communityReported: 1, allVisible: official + 3 });
+  await publishTiles(db, { now: corpusNow });
+  const granted = await analyzeCorpus(db, { now: corpusNow });
+  // Eight ADR-0018 airport spots stay on the operator coverage line.
+  assert.deepEqual(granted.nationwide.coverage, { official, operator: 8, communityVerified: 1, communityReported: 1, allVisible: official + 10 });
   assert.equal(granted.nationwide.confidence.locationPrecision.communityPinned, 2);
   assert.equal(granted.nationwide.confidence.existence.official, official);
   // The simulated approval edits the community source row by hand, so the registry-drift checks rightly flag that
@@ -529,7 +533,7 @@ test("quality counts tiers separately and never fails because a lower tier exist
   const part = one(db, "SELECT tile_id, part_index, body_json FROM tile_snapshot_parts WHERE body_json LIKE '%communityReported%'");
   const forged = part.body_json.replace('"existence":"communityReported"', '"existence":"official"');
   db.raw.prepare("UPDATE tile_snapshot_parts SET body_json = ? WHERE tile_id = ? AND part_index = ?").run(forged, part.tile_id, part.part_index);
-  assert.equal((await analyzeCorpus(db, { now: isoSeconds(APPLY) })).checks.find((c) => c.id === "confidence-never-overstated")!.status, "fail");
+  assert.equal((await analyzeCorpus(db, { now: corpusNow })).checks.find((c) => c.id === "confidence-never-overstated")!.status, "fail");
 });
 
 test("static boundary: the upgrade module's only canonical write is the guarded evidence-tier update", () => {

@@ -23,15 +23,43 @@ import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../src/pipeline/taito.ts
 import { publishTiles } from "../src/tiles/publish.ts";
 import { MUSASHINO_ADAPTER, MUSASHINO_FIXTURE_RELEASE, MUSASHINO_SOURCE_ID } from "../src/pipeline/musashino-adapter.ts";
 import { KOMATSU_AIRPORT_ADAPTER, KOMATSU_AIRPORT_FIXTURE_RELEASE, KOMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/komatsu-airport-adapter.ts";
+import { TAKAMATSU_AIRPORT_ADAPTER, TAKAMATSU_AIRPORT_FIXTURE_RELEASE, TAKAMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/takamatsu-airport-adapter.ts";
+import { KOCHI_AIRPORT_ADAPTER, KOCHI_AIRPORT_FIXTURE_RELEASE, KOCHI_AIRPORT_SOURCE_ID } from "../src/pipeline/kochi-airport-adapter.ts";
+import { MATSUYAMA_AIRPORT_ADAPTER, MATSUYAMA_AIRPORT_FIXTURE_RELEASE, MATSUYAMA_AIRPORT_SOURCE_ID } from "../src/pipeline/matsuyama-airport-adapter.ts";
+import { OITA_AIRPORT_ADAPTER, OITA_AIRPORT_FIXTURE_RELEASE, OITA_AIRPORT_SOURCE_ID } from "../src/pipeline/oita-airport-adapter.ts";
+import { YONAGO_AIRPORT_ADAPTER, YONAGO_AIRPORT_FIXTURE_RELEASE, YONAGO_AIRPORT_SOURCE_ID } from "../src/pipeline/yonago-airport-adapter.ts";
+import { MIYAZAKI_AIRPORT_ADAPTER, MIYAZAKI_AIRPORT_FIXTURE_RELEASE, MIYAZAKI_AIRPORT_SOURCE_ID } from "../src/pipeline/miyazaki-airport-adapter.ts";
+import { HIROSHIMA_AIRPORT_ADAPTER, HIROSHIMA_AIRPORT_FIXTURE_RELEASE, HIROSHIMA_AIRPORT_SOURCE_ID } from "../src/pipeline/hiroshima-airport-adapter.ts";
 
 // Preserve the original no-argument command. Import other reviewed sources into the same local DB:
 //   npm run local:pipeline -- osaka-designated-smoking-areas
 //   npm run local:pipeline -- koto-station-smoking-areas
 const sourceId = process.argv[2] ?? TAITO_SOURCE_ID;
-if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID, KOMATSU_AIRPORT_SOURCE_ID].includes(sourceId)) {
+if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID, TAKAMATSU_AIRPORT_SOURCE_ID, KOCHI_AIRPORT_SOURCE_ID, MATSUYAMA_AIRPORT_SOURCE_ID, OITA_AIRPORT_SOURCE_ID, YONAGO_AIRPORT_SOURCE_ID, MIYAZAKI_AIRPORT_SOURCE_ID, HIROSHIMA_AIRPORT_SOURCE_ID, KOMATSU_AIRPORT_SOURCE_ID].includes(sourceId)) {
   throw new Error(`local:pipeline: unreviewed source ${sourceId}`);
 }
-const selected = sourceId === KOMATSU_AIRPORT_SOURCE_ID ? {
+const selected = sourceId === HIROSHIMA_AIRPORT_SOURCE_ID ? {
+  adapter: HIROSHIMA_AIRPORT_ADAPTER, release: HIROSHIMA_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/hiroshima-airport-smoking-places/hiroshima-airport-page-facts.csv",
+} : sourceId === MIYAZAKI_AIRPORT_SOURCE_ID ? {
+  adapter: MIYAZAKI_AIRPORT_ADAPTER, release: MIYAZAKI_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/miyazaki-airport-smoking-places/miyazaki-airport-page-facts.csv",
+} : sourceId === YONAGO_AIRPORT_SOURCE_ID ? {
+  adapter: YONAGO_AIRPORT_ADAPTER, release: YONAGO_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/yonago-airport-smoking-places/yonago-airport-page-facts.csv",
+} : sourceId === OITA_AIRPORT_SOURCE_ID ? {
+  adapter: OITA_AIRPORT_ADAPTER, release: OITA_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/oita-airport-smoking-places/oita-airport-page-facts.csv",
+} : sourceId === MATSUYAMA_AIRPORT_SOURCE_ID ? {
+  adapter: MATSUYAMA_AIRPORT_ADAPTER, release: MATSUYAMA_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/matsuyama-airport-smoking-places/matsuyama-airport-page-facts.csv",
+} : sourceId === KOCHI_AIRPORT_SOURCE_ID ? {
+  adapter: KOCHI_AIRPORT_ADAPTER, release: KOCHI_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/kochi-airport-smoking-places/kochi-airport-page-facts.csv",
+} : sourceId === TAKAMATSU_AIRPORT_SOURCE_ID ? {
+  adapter: TAKAMATSU_AIRPORT_ADAPTER, release: TAKAMATSU_AIRPORT_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/takamatsu-airport-smoking-places/takamatsu-airport-page-facts.csv",
+} : sourceId === KOMATSU_AIRPORT_SOURCE_ID ? {
   adapter: KOMATSU_AIRPORT_ADAPTER, release: KOMATSU_AIRPORT_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/komatsu-airport-smoking-places/komatsu-airport-page-facts.csv",
 } : sourceId === SENDAI_SOURCE_ID ? {

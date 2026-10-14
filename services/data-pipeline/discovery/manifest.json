@@ -8087,6 +8087,258 @@
       "blockerCodes": [
         "noSmokingEvidence"
       ]
+    },
+    {
+      "id": "operator-matsuyama-airport",
+      "name": "松山空港",
+      "prefecture": "愛媛県",
+      "publisher": "松山空港ビル",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.matsuyama-airport.co.jp/",
+        "https://www.matsuyama-airport.co.jp/service/smoking.html"
+      ],
+      "homepageUrl": "https://www.matsuyama-airport.co.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/matsuyama-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "matsuyama-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.matsuyama-airport.co.jp/service/smoking.html"
+          ],
+          "sha256": "fdb3471cd4880b47d698f2dc0480c8523d1f490f33f7815f8ad4a072831e918e",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:58Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "matsuyama-airport-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-takamatsu-airport",
+      "name": "高松空港",
+      "prefecture": "香川県",
+      "publisher": "高松空港",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.takamatsu-airport.com/",
+        "https://www.takamatsu-airport.com/guide/s013/"
+      ],
+      "homepageUrl": "https://www.takamatsu-airport.com/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/takamatsu-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "takamatsu-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.takamatsu-airport.com/guide/s013/"
+          ],
+          "sha256": "daff2f45853ae975c603e936621a63cb59a4d45a07425d2f1a312815ff54bf19",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:59Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "takamatsu-airport-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-oita-airport",
+      "name": "大分空港",
+      "prefecture": "大分県",
+      "publisher": "大分航空ターミナル",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.oita-airport.jp/",
+        "https://www.oita-airport.jp/qa/"
+      ],
+      "homepageUrl": "https://www.oita-airport.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/oita-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "oita-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.oita-airport.jp/qa/"
+          ],
+          "sha256": "76f8a44d95816da7200843ec6b76600da44582f83393a6cc6cf2f55eaeb9bd1b",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:58Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "oita-airport-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-kochi-airport",
+      "name": "高知龍馬空港",
+      "prefecture": "高知県",
+      "publisher": "高知空港ビル",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.kochiap.co.jp/",
+        "https://www.kochiap.co.jp/faq/"
+      ],
+      "homepageUrl": "https://www.kochiap.co.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/kochi-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "kochi-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.kochiap.co.jp/faq/"
+          ],
+          "sha256": "5c72d09726315a54138791c8601d343f3bb0486f6f9d50a08a7e3d13ed9dd4fb",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:58Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "kochi-airport-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-yonago-airport",
+      "name": "米子鬼太郎空港",
+      "prefecture": "鳥取県",
+      "publisher": "米子空港ビル",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.yonago-air.com/",
+        "https://www.yonago-air.com/faq"
+      ],
+      "homepageUrl": "https://www.yonago-air.com/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/yonago-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "yonago-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.yonago-air.com/faq"
+          ],
+          "sha256": "74049b2178a21075bc574a19ffb41d77b38af05967b1dcc8f48523d0472ff90b",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:59Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "yonago-airport-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-miyazaki-airport",
+      "name": "宮崎ブーゲンビリア空港",
+      "prefecture": "宮崎県",
+      "publisher": "宮崎空港ビル",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.miyazaki-airport.co.jp/",
+        "https://www.miyazaki-airport.co.jp/faq"
+      ],
+      "homepageUrl": "https://www.miyazaki-airport.co.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/miyazaki-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "miyazaki-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.miyazaki-airport.co.jp/faq"
+          ],
+          "sha256": "8d47b07bf4616c1703ac5579f5a4a500a596a62c1db3aaaf1319b09c22d77f92",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:58Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "miyazaki-airport-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-hiroshima-airport",
+      "name": "広島空港",
+      "prefecture": "広島県",
+      "publisher": "広島国際空港",
+      "kind": "operator",
+      "roles": [
+        "airport"
+      ],
+      "urls": [
+        "https://www.hij.airport.jp/",
+        "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html"
+      ],
+      "homepageUrl": "https://www.hij.airport.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/hiroshima-airport-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "hiroshima-airport-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html"
+          ],
+          "sha256": "559617124dfa4b85f4439476c45165032be9bad8115cb1e352d97a9f16dfdb8b",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-13T17:59:57Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "hiroshima-airport-smoking-places"
+      ]
     }
   ]
 }

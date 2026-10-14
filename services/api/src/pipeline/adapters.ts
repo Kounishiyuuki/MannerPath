@@ -12,5 +12,17 @@ import { TAITO_ADAPTER } from "./taito-adapter.ts";
 import { MUSASHINO_ADAPTER } from "./musashino-adapter.ts";
 import { SENDAI_ADAPTER } from "./sendai-adapter.ts";
 import { KOMATSU_AIRPORT_ADAPTER } from "./komatsu-airport-adapter.ts";
+import { TAKAMATSU_AIRPORT_ADAPTER } from "./takamatsu-airport-adapter.ts";
+import { KOCHI_AIRPORT_ADAPTER } from "./kochi-airport-adapter.ts";
+import { MATSUYAMA_AIRPORT_ADAPTER } from "./matsuyama-airport-adapter.ts";
+import { OITA_AIRPORT_ADAPTER } from "./oita-airport-adapter.ts";
+import { YONAGO_AIRPORT_ADAPTER } from "./yonago-airport-adapter.ts";
+import { MIYAZAKI_AIRPORT_ADAPTER } from "./miyazaki-airport-adapter.ts";
+import { HIROSHIMA_AIRPORT_ADAPTER } from "./hiroshima-airport-adapter.ts";
 
-export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER, SENDAI_ADAPTER, KOMATSU_AIRPORT_ADAPTER];
+export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
+  TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER,
+  SENDAI_ADAPTER, KOMATSU_AIRPORT_ADAPTER,
+  MATSUYAMA_AIRPORT_ADAPTER, TAKAMATSU_AIRPORT_ADAPTER, OITA_AIRPORT_ADAPTER, KOCHI_AIRPORT_ADAPTER,
+  YONAGO_AIRPORT_ADAPTER, MIYAZAKI_AIRPORT_ADAPTER, HIROSHIMA_AIRPORT_ADAPTER,
+];
