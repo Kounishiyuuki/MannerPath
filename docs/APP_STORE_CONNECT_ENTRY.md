@@ -17,6 +17,102 @@ Status legend:
 | **WAITING-PRODUCTION** | Needs release-build/provider evidence; backend deployment/runtime evidence now exists (#185), but signed-build and provider-retention checks remain |
 | **BLOCKED-DEVELOPER-PROGRAM** | Needs the paid membership, signing, a signed archive, TestFlight or physical devices |
 
+## 0. v1.0 最終入力チェック表（日本語・2026-10-15）
+
+確定方針：本番 6 ソース / 513 地点の掲載地域限定、日本のみ、無料、Apple 標準 EULA の方向、投稿・写真・App Attest 登録は無効。
+**ASC の画面はこのリポジトリ作業では見ていません。** 下表の「状態」は入力値の準備状況であり、ASC 入力済みを意味しません。
+入力済みかどうかは ASC で確認し、入力済みの項目は再入力しないでください。個人情報（氏名・電話番号）はここに書きません。
+
+### 0.1 ASC 入力値
+
+| 項目 | 入力値 | 状態 |
+| --- | --- | --- |
+| アプリ名 / サブタイトル | `MannerPath` / `喫煙可能場所と利用条件を確認` | 値確定 |
+| プライマリ言語 | 日本語 | 値確定 |
+| カテゴリ | ナビゲーション（主）、ユーティリティ（副） | 値確定 |
+| SKU | 任意の固定文字列（例 `mannerpath-ios-1`、利用者には非表示） | **MAINTAINER 入力** |
+| 著作権 | 候補 `2026 MannerPath 運営`（法的な権利者名をメンテナーが確定） | **MAINTAINER 確定** |
+| サポート URL | `https://kounishiyuuki.github.io/MannerPath/support/` | 値確定（公開済み） |
+| プライバシーポリシー URL | `https://kounishiyuuki.github.io/MannerPath/privacy/` | 値確定（公開済み、内容修正案は §0.3） |
+| マーケティング URL | 空欄 | 値確定 |
+| 使用許諾 | Apple 標準 EULA | 方針確定、ASC で既定のままか確認 |
+| 価格 / 配信地域 | 無料 / 日本のみ | 方針確定 |
+| 審査担当の連絡先 | 氏名・電話（国際形式）・メール | **MAINTAINER 入力（Git に記録しない）** |
+| サインイン必要 | いいえ | 値確定 |
+| 審査メモ | §5（英語、最終案） | **MAINTAINER 承認** |
+| 公開方法 | 手動公開 | 値確定 |
+
+### 0.2 App Privacy 回答候補
+
+**事実（確認済み）**：アプリは端末の GPS 座標を送らず、タイル ID（z14〜16 の地域番号）を本番 Worker に送る。
+Worker の invocation logs は無効、console/エラーログは保存有効（[監査](PRODUCTION_PRIVACY_AUDIT.md)）。
+IP・User-Agent・URL（タイル ID）・時刻は Cloudflare の処理で扱われうる。保持期間・項目は Logpush/プラン API が 403 で **未確認**。
+`/v1/config` は `reports.available:false`、`photoEvidenceEnabled:false`（2026-10-15 GET で確認）。App Attest 登録・投稿・写真の通信は発生しない。
+Widget はネットワーク取得をせず App Group のスナップショットを読む。Watch は iPhone からの同期データを使う。
+MapKit 検索・経路と「マップ」への受け渡しは Apple のサービス。解析 SDK・広告 SDK・クラッシュ SDK・IDFA は無い。
+サポートは Gmail で送信者アドレスと本文を受け取る。
+
+**申告案（保守的）**：「データを収集する」を選ぶ（「収集しない」は選ばない）。すべて「ユーザーにリンク」「トラッキングに使用しない」。
+
+| ASC の項目 | 選択 | 目的 | 根拠の種類 |
+| --- | --- | --- | --- |
+| 正確な位置情報 | 選ぶ | アプリの機能 | 保守的（GPS は送らないが、タイル＋IP の保持状況が未確認） |
+| おおよその位置情報 | 選ぶ | アプリの機能 | 保守的（タイル ID は地域を示す） |
+| デバイス ID | 選ぶ | アプリの機能 | 保守的（IP/UA による端末の関連付けを否定できない） |
+| カスタマーサポート | 選ぶ | アプリの機能 | 事実（サポートメール） |
+| メールアドレス | 選ぶ | アプリの機能 | 事実（サポートメール） |
+| その他の診断データ | 選ぶ | アプリの機能 | 保守的（エラーログ保存が有効） |
+| 製品の操作 | 選ぶ | アプリの機能＋解析 | 保守的（要求記録の利用範囲が未確認） |
+| 写真またはビデオ | 条件付き：サポートで添付画像を保持しないと確認できれば選ばない。確認できなければ選ぶ | アプリの機能 | 投稿の写真機能は無効（事実） |
+| クラッシュデータ | 条件付き：配布ビルドにクラッシュ送信が無いことを確認できれば選ばない。できなければ選ぶ | アプリの機能 | クラッシュ SDK なし（事実） |
+| その他のユーザーコンテンツ | 選ばない | — | 投稿機能は無効（事実） |
+| トラッキング | いいえ | — | 広告・IDFA なし（事実）。事業者の広告利用が無いことはメンテナーが確認 |
+
+狭い申告に変えてよい条件は [submission §2.2](APP_STORE_SUBMISSION.md) の表のとおり。未確認を理由に「収集しない」を選ばない。
+**MAINTAINER REVIEW**：この保守的な申告を採用するか、Cloudflare の保持設定を確認して狭めるか。
+
+### 0.3 プライバシーポリシーとの矛盾と修正案
+
+| 箇所 | 現在の記載 | 矛盾 / 問題 | 修正案 |
+| --- | --- | --- | --- |
+| §2 第1文 | Cloudflare を「利用する方針です」 | 本番は稼働中で、将来形は事実と合わない | 「Cloudflare のサービス（Workers、D1 など）を利用しています」 |
+| §2 第2文 | 自動記録を行わない設定で「運用する方針です」 | invocation logs 無効は確認済み、エラーログ保存は有効 | 「リクエストごとの自動記録は無効にしています。エラー発生時の診断記録は保存される設定です」 |
+| §2 保存期間 | 確認内容を反映する | 保持期間は未確認のまま（403） | 現状維持（推測で期間を書かない） |
+| §6 | 解析・広告・クラッシュ報告ツールなし | ASC で「製品の操作（解析）」「診断」を保守的に選ぶ場合、利用者には矛盾に見えうる | 「ストアのプライバシー表示は、通信事業者の記録の可能性を含めて保守的に申告しています」と 1 文追加 |
+| §5 | 投稿・写真・端末登録は利用不可 | 矛盾なし | — |
+
+修正版は別 PR（公開サイト変更、メンテナー承認まで merge しない）。
+
+### 0.4 年齢制限の回答案
+
+| 質問 | 回答 |
+| --- | --- |
+| アルコール、タバコ、ドラッグの使用または言及 | **頻繁/極端** |
+| ユーザー生成コンテンツ | いいえ（投稿無効） |
+| 制限のない Web アクセス | いいえ |
+| メッセージ・チャット / ソーシャルメディア / 広告 | いいえ |
+| ペアレンタルコントロール / 年齢確認 | いいえ |
+| 暴力・性的・ホラー・下品なユーモア・医療・ギャンブル・コンテスト・ルートボックス | なし / いいえ |
+| キッズ向け | いいえ |
+
+想定結果は 18+（Apple が算出）。**MAINTAINER 判断**：アプリ独自の最低利用年齢を設けるか。アプリ内の案内は「日本では 20 歳未満は喫煙できない」という法令の説明で、年齢確認はしない。ASC に 20+ の選択肢は無いので、上書きするなら利用可能な最も高い区分を選ぶ。
+
+### 0.5 Content Rights 確認結果
+
+- 事実：本番の 6 ソース / 513 地点のライセンス・出典表示・リリース指紋が登録内容と一致（2026-10-05 監査）。2026-10-15 の読み取り GET で台東区タイル（14/14553/6449）が出典 `taito-public-smoking-areas`、ライセンス URL `creativecommons.org/licenses/by/4.0/legalcode.ja` を返すことを再確認（他の 5 ソースは今回再測定していない）。
+- 実装済み（未実機）：台東区の加工表示、Watch のライセンスリンク（#193）。iPhone/Watch のユニット・UI テストあり。
+- 未確認：配布署名ビルドの実機で出典・ライセンスリンクが開くこと、MapKit の帰属表示、スクリーンショット・アイコンの権利。
+- ASC 回答案：「第三者のコンテンツを含む」。「必要な権利を有する」の申告は、実機確認とメンテナーの法務承認の後に行う。各ライセンス（CC BY 4.0 / 2.1 JP など）の条件を超える利用（ロゴ・地図画像・原文の再配布など）はしない。
+
+### 0.6 ユーザーの判断・入力（短い一覧）
+
+1. App Privacy：§0.2 の保守的申告を採用するか（写真・クラッシュの条件 P/C の確認を含む）。
+2. プライバシーポリシー修正 PR の承認。
+3. 最低利用年齢を設けるか。
+4. 著作権者名と SKU、審査担当の連絡先を ASC に入力。
+5. Content Rights の法務承認（実機での出典・リンク確認の後）。
+6. 審査メモ §5 の承認、Apple 標準 EULA の確認。
+
 ## 1. Build facts (verified in the Xcode project)
 
 | Item | Value | Status |
@@ -111,10 +207,10 @@ itself imposes a minimum use age above the calculated rating is a **MAINTAINER**
 
 ## 5. App Review notes and reviewer steps
 
-Notes (English). The only unresolved marker is the production origin and the tested populated-area steps:
+Notes (English), final draft 2026-10-15 for maintainer approval. Steps 1–5 below were verified on the Release simulator (#191/#193); re-run them on the submitted build:
 
 ```text
-MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It helps users check evidenced permitted locations, access restrictions, source information and uncertainty, and instructs them to follow posted signs and local rules. It does not encourage tobacco consumption, sell tobacco, provide purchase links, promote brands or show tobacco/nicotine advertising. There are no payments, rewards, streaks or accounts. No sign-in is required.
+MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It shows places listed in published municipal open data, with access restrictions, source information and uncertainty; it does not guarantee that smoking is permitted at a place at any given time, and it instructs users to follow posted signs and local rules. It does not encourage tobacco consumption, sell tobacco, provide purchase links, promote brands or show tobacco/nicotine advertising. There are no payments, rewards, streaks or accounts. No sign-in is required.
 
 Location permission is When In Use. MannerPath uses the device location for nearby ranking, distance and bearing; requests to our service contain geographic tile IDs, not raw device GPS coordinates. We do not intentionally retain location history. Apple MapKit search/routing and Apple Maps operate through Apple's services. Our privacy policy (https://kounishiyuuki.github.io/MannerPath/privacy/) describes how network providers may process request information.
 
