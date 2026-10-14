@@ -297,6 +297,43 @@ test("a new spot proposed next to an existing one is a duplicate candidate; noth
   assert.equal(one(db, "SELECT count(*) AS n FROM spots WHERE merged_into IS NOT NULL").n, 0);
 });
 
+test("triage flags a report missing what its category needs; display only, minimized reports are not flagged", async () => {
+  const db = await world();
+  const spotId = anyOfficialSpot(db);
+  const seen = "2026-09-20";
+  const complete = [
+    await report(db, HASHES[0], { type: "missing", proposedLocation: HERE, observedOn: seen, claim: { spotType: "ashtray" } }),
+    await report(db, HASHES[1], { type: "moved", spotId, proposedLocation: HERE, observedOn: seen }),
+    await report(db, HASHES[2], { type: "notFound", spotId, observedOn: seen }),
+    await report(db, HASHES[3], { type: "typeChanged", spotId, claim: { spotType: "facilitySmokingRoom" } }),
+    await report(db, HASHES[0], { type: "tobaccoTypeChanged", spotId, claim: { supportsHeated: "yes" } }),
+    await report(db, HASHES[1], { type: "hoursChanged", spotId, note: NOTE }),
+    await report(db, HASHES[2], { type: "exists", spotId }),
+  ];
+  const incomplete = [
+    await report(db, HASHES[0], { type: "missing", proposedLocation: HERE, observedOn: seen }),
+    await report(db, HASHES[1], { type: "missing", proposedLocation: HERE, observedOn: seen, claim: { spotType: "unknown" } }),
+    await report(db, HASHES[2], { type: "missing", proposedLocation: HERE, claim: { spotType: "ashtray" } }),
+    await report(db, HASHES[3], { type: "removed", spotId }),
+    await report(db, HASHES[0], { type: "typeChanged", spotId }),
+    await report(db, HASHES[1], { type: "accessChanged", spotId }),
+    await report(db, HASHES[2], { type: "hoursChanged", spotId }),
+  ];
+  const flagged = async () => (await triageQueue(reportsOf(db), db, { now: APPLY, flag: "incomplete", limit: 100 })).map((r) => r.reportId).sort();
+  assert.deepEqual(await flagged(), [...incomplete].sort());
+  const all = await triageQueue(reportsOf(db), db, { now: APPLY, limit: 100 });
+  assert.equal(all.length, complete.length + incomplete.length, "nothing is rejected or hidden");
+  const unflagged = await triageQueue(reportsOf(db), db, { now: APPLY, limit: 100 });
+  assert.deepEqual(all.map((r) => [r.reportId, r.priority]), unflagged.map((r) => [r.reportId, r.priority]));
+  assert.equal(JSON.stringify(all).includes(NOTE), false);
+  // A minimized report lost these fields on purpose; it is not reported as incomplete.
+  const minimize = reportsOf(db).raw.prepare(`UPDATE reports SET note = NULL, proposed_latitude = NULL, proposed_longitude = NULL,
+    observed_on = NULL, submitter_hash = NULL, claim_host_name = NULL, claim_hours_note = NULL, redacted_at = ? WHERE report_id = ?`);
+  minimize.run(isoSeconds(APPLY), complete[0]);
+  minimize.run(isoSeconds(APPLY), incomplete[2]);
+  assert.deepEqual(await flagged(), incomplete.filter((id) => id !== incomplete[2]).sort());
+});
+
 test("moderation triage: filters, flags, a fixed order and a summary — IDs and counts only, never content", async () => {
   const db = await world();
   const spotId = anyOfficialSpot(db);

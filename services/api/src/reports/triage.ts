@@ -15,7 +15,7 @@ export type TriageCategory = (typeof TRIAGE_CATEGORIES)[number];
 /** `correction` is a filter alias for every field correction. */
 export const CORRECTION_CATEGORIES: readonly TriageCategory[] = ["typeChange", "accessChange", "hoursChange", "tobaccoChange"];
 
-export const TRIAGE_FLAGS = ["duplicateCandidate", "highReportCount", "conflicting", "old"] as const;
+export const TRIAGE_FLAGS = ["duplicateCandidate", "highReportCount", "conflicting", "old", "incomplete"] as const;
 export type TriageFlag = (typeof TRIAGE_FLAGS)[number];
 /** Three or more open reports about one spot. */
 export const HIGH_REPORT_COUNT = 3;
@@ -33,6 +33,38 @@ export function triageCategory(reportType: string, finding: string | null): Tria
     case "prohibited": return "prohibited";
     default:
       return finding === "notFound" || finding === "removed" ? "missing" : finding === "wrongType" ? "typeChange" : "other";
+  }
+}
+
+/** The stated fields a reviewer reads; content stays in the store, only presence is passed here. */
+export interface ReportCompleteness {
+  reportType: string;
+  finding: string | null;
+  observedOn: boolean;
+  note: boolean;
+  claimSpotType: string | null;
+  claimAccessType: string | null;
+  claimSupportsPaper: string | null;
+  claimSupportsHeated: string | null;
+  redacted: boolean;
+}
+
+/**
+ * A report missing what a reviewer needs to decide its own category: what kind of place a new spot is and when it
+ * was seen, when a place was seen moved or gone, or the value a correction proposes. Display only: it never
+ * rejects, accepts or reorders, and a minimized report is not flagged (its fields were removed on purpose).
+ */
+export function isIncomplete(r: ReportCompleteness): boolean {
+  if (r.redacted) return false;
+  switch (triageCategory(r.reportType, r.finding)) {
+    case "newSpot": return !r.observedOn || r.claimSpotType === null || r.claimSpotType === "unknown";
+    case "moved":
+    case "missing": return !r.observedOn;
+    case "typeChange": return r.claimSpotType === null;
+    case "accessChange": return r.claimAccessType === null;
+    case "tobaccoChange": return r.claimSupportsPaper === null && r.claimSupportsHeated === null;
+    case "hoursChange": return !r.note;
+    default: return false;
   }
 }
 
@@ -88,6 +120,8 @@ export async function triageQueue(db: Db, dataDb: Db, opts: TriageOptions): Prom
   const { results } = await db.prepare(
     `WITH queue AS (
        SELECT r.report_id, r.report_type, r.finding, r.subject_spot_id, r.received_at, r.minimize_after, r.accepted_terms_version,
+              r.observed_on IS NOT NULL AS has_observed_on, r.note IS NOT NULL AS has_note, r.redacted_at IS NOT NULL AS redacted,
+              r.claim_spot_type, r.claim_access_type, r.claim_supports_paper, r.claim_supports_heated,
               m.state, m.reconciliation_state,
               CASE WHEN r.received_at < ? OR r.report_type = 'moved'
                      OR (r.report_type = 'other' AND r.finding IN ('notFound', 'removed'))
@@ -110,7 +144,9 @@ export async function triageQueue(db: Db, dataDb: Db, opts: TriageOptions): Prom
   ).bind(ageBefore, snapshot, opts.state ?? "pending", snapshot, maxRowid, JSON.stringify([...wanted]), JSON.stringify([...wanted]),
     cursor?.priority ?? -1, cursor?.priority ?? -1, cursor?.receivedAt ?? "", cursor?.receivedAt ?? "", cursor?.reportId ?? "", limit)
     .all<{ report_id: string; report_type: string; finding: string | null; subject_spot_id: string | null;
-    received_at: string; minimize_after: string; accepted_terms_version: string | null; state: string; reconciliation_state: string; priority: number }>();
+    received_at: string; minimize_after: string; accepted_terms_version: string | null; state: string; reconciliation_state: string; priority: number;
+    has_observed_on: number; has_note: number; redacted: number; claim_spot_type: string | null; claim_access_type: string | null;
+    claim_supports_paper: string | null; claim_supports_heated: string | null }>();
   const spotIds = [...new Set(results.map((r) => r.subject_spot_id).filter((id): id is string => id !== null))];
 
   const openPerSpot = new Map<string, number>();
@@ -133,6 +169,11 @@ export async function triageQueue(db: Db, dataDb: Db, opts: TriageOptions): Prom
     if (r.subject_spot_id !== null && (openPerSpot.get(r.subject_spot_id) ?? 0) >= HIGH_REPORT_COUNT) flags.push("highReportCount");
     if (r.subject_spot_id !== null && conflicting.has(r.subject_spot_id)) flags.push("conflicting");
     if (r.received_at < oldBefore || (r.minimize_after > now && r.minimize_after < minimizeSoon)) flags.push("old");
+    if (isIncomplete({
+      reportType: r.report_type, finding: r.finding, observedOn: r.has_observed_on === 1, note: r.has_note === 1,
+      claimSpotType: r.claim_spot_type, claimAccessType: r.claim_access_type, claimSupportsPaper: r.claim_supports_paper,
+      claimSupportsHeated: r.claim_supports_heated, redacted: r.redacted === 1,
+    })) flags.push("incomplete");
     if (opts.flag !== undefined && !flags.includes(opts.flag)) continue;
     rows.push({
       reportId: r.report_id, category, spotId: r.subject_spot_id, state: r.state, reconciliationState: r.reconciliation_state,

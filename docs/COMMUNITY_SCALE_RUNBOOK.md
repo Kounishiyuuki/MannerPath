@@ -126,6 +126,8 @@ P0. The cursor binds filter, age snapshot, maximum inserted row and queue revisi
 a page traversal runs. Moderation or redaction changes invalidate that traversal explicitly; restart instead of
 silently skipping or duplicating reprioritized items. A concurrent revision change during the read also fails.
 Flag filtering is a filter of the selected bounded triage page, not a global cursor traversal.
+`incomplete` marks reports missing what their category needs (a new spot's type or observation day, a correction's
+proposed value). Use it to choose `needsInfo` or `insufficientDetail` deliberately; it never decides for you.
 
 Candidate groups are marked `pageLocal`; never treat a page as all corroborating evidence. Duplicate neighbour
 lists cap at 200 each and expose truncation even when the retained bounding-box candidates lie outside 50 m.
