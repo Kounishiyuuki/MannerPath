@@ -148,6 +148,9 @@ run_phase denied -only-testing:MannerPathUITests/E_LocationDeniedUITests
 fixture_state=services/api/.wrangler/state.ui-fixture
 rm -rf "$fixture_state"
 cp -R services/api/.wrangler/state "$fixture_state"
+# The copied Workers cache still holds tiles the earlier phases read (max-age=60, stale-while-revalidate=300), so the
+# fixture Worker would serve them without the fixture spots for minutes. Only D1 is the fixture's input.
+rm -rf "$fixture_state/v3/cache"
 fixture_db=""
 for f in "$fixture_state"/v3/d1/miniflare-D1DatabaseObject/*.sqlite; do
   sqlite3 "$f" "SELECT 1 FROM spots LIMIT 1" >/dev/null 2>&1 && fixture_db=$f && break
@@ -155,6 +158,10 @@ done
 (cd services/api && node --experimental-strip-types --experimental-sqlite --no-warnings \
   scripts/local-ui-fixture.ts "${fixture_db#services/api/}") >>"$results/setup.log" 2>&1
 start_worker --persist-to .wrangler/state.ui-fixture
+if ! curl -fsS http://127.0.0.1:8787/v1/tiles/14/14553/6449 | grep -q '"locationPrecision":"areaApproximate"'; then
+  echo "Fixture Worker does not serve the areaApproximate fixture spot; see $results/setup.log" >&2
+  exit 1
+fi
 fresh_install
 xcrun simctl privacy "$sim" grant location "$bundle_id"
 run_phase visual-audit -only-testing:MannerPathUITests/G_VisualAuditUITests
