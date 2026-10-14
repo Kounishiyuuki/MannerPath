@@ -7,6 +7,8 @@ import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { runDiscovery } from './cli.mjs';
 import { FetchCache } from './fetch-cache.mjs';
+import { SOURCE_ADAPTERS } from '../../api/src/pipeline/adapters.ts';
+import { REVIEWED_FIXTURES } from '../../api/test/support/reviewed-fixtures.ts';
 const json = async path => JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
 const manifest = await json('./manifest.json');
 const seed = await json('./research-seed.json');
@@ -29,9 +31,27 @@ test('nationwide manifest tracks all required jurisdiction roles without duplica
   for (const target of targets) for (const url of target.rawResources.map(r => r.url)) assert.ok(['http:', 'https:'].includes(new URL(url).protocol));
 });
 test('reviewed source seeds and required historical decisions survive manifest generation', () => {
-  assert.deepEqual(manifest.targets.filter(t => t.seedStatus === 'implemented').map(t => t.name).sort(), ['台東区', '大阪市', '江東区', '武蔵野市', '港区', '京都市', '仙台市', '小松空港'].sort());
+  const implemented = manifest.targets.filter(t => t.seedStatus === 'implemented');
+  const approvedIds = SOURCE_ADAPTERS.map(adapter => adapter.registry.sourceId).sort();
+  assert.deepEqual(implemented.flatMap(t => t.reviewedSourceIds).sort(), approvedIds);
+  assert.deepEqual(seed.reviewedResources.map(r => r.sourceId).sort(), approvedIds);
   for (const reference of ['PR #106', 'PR #112', 'PR #115', 'PR #119', 'PR #121', 'PR #125', 'PR #129', 'Issue #118', 'PR #122', 'docs/SOURCES.md']) assert.ok(manifest.researchReferences.includes(reference), reference);
   assert.ok(manifest.targets.some(t => t.priorResearch.some(p => p.reference.startsWith('docs/research/'))));
+});
+test('reviewed page facts retain fixture hashes and provenance without becoming raw HTML resources', async () => {
+  for (const entry of seed.reviewedResources.filter(r => r.reviewedHashScope === 'reviewedPageFactSheetBytesNotPageHtml')) {
+    const target = manifest.targets.find(t => t.id === entry.targetId);
+    const fixture = REVIEWED_FIXTURES[entry.sourceId];
+    assert.ok(target && fixture, entry.sourceId);
+    assert.equal(entry.reference, `services/data-pipeline/fixtures/${entry.sourceId}/PROVENANCE.md`);
+    assert.deepEqual(entry.rawUrls, [fixture.release.sourceUrl]);
+    assert.equal(entry.fetchedAt, fixture.release.fetchedAt);
+    const bytes = await readFile(new URL(`../fixtures/${fixture.file}`, import.meta.url));
+    assert.equal(entry.sha256, createHash('sha256').update(bytes).digest('hex'));
+    assert.ok(target.priorResearch.some(r => r.sourceId === entry.sourceId && r.sha256 === entry.sha256));
+    assert.ok(!target.rawResources.some(r => entry.rawUrls.includes(r.url)), entry.sourceId);
+    await readFile(new URL(`../../../${entry.reference}`, import.meta.url));
+  }
 });
 test('historical seed imports the exact 52 audited URLs and hashes, preserving inspection counts', async () => {
   const audit = await json('../../../docs/research/2026-09-30-east-north-operator-mega-batch.raw-audit.json');

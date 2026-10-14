@@ -19,8 +19,22 @@ import { ensureReviewedSource } from "../../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../../src/pipeline/resolve.ts";
 import { TAITO_FIXTURE_RELEASE, TAITO_SOURCE_ID } from "../../src/pipeline/taito.ts";
 import { sequentialSpotIds } from "./fixture.ts";
+import { TAKAMATSU_AIRPORT_FIXTURE_RELEASE, TAKAMATSU_AIRPORT_SOURCE_ID } from "../../src/pipeline/takamatsu-airport-adapter.ts";
+import { KOCHI_AIRPORT_FIXTURE_RELEASE, KOCHI_AIRPORT_SOURCE_ID } from "../../src/pipeline/kochi-airport-adapter.ts";
+import { MATSUYAMA_AIRPORT_FIXTURE_RELEASE, MATSUYAMA_AIRPORT_SOURCE_ID } from "../../src/pipeline/matsuyama-airport-adapter.ts";
+import { OITA_AIRPORT_FIXTURE_RELEASE, OITA_AIRPORT_SOURCE_ID } from "../../src/pipeline/oita-airport-adapter.ts";
+import { YONAGO_AIRPORT_FIXTURE_RELEASE, YONAGO_AIRPORT_SOURCE_ID } from "../../src/pipeline/yonago-airport-adapter.ts";
+import { MIYAZAKI_AIRPORT_FIXTURE_RELEASE, MIYAZAKI_AIRPORT_SOURCE_ID } from "../../src/pipeline/miyazaki-airport-adapter.ts";
+import { HIROSHIMA_AIRPORT_FIXTURE_RELEASE, HIROSHIMA_AIRPORT_SOURCE_ID } from "../../src/pipeline/hiroshima-airport-adapter.ts";
 
 export const REVIEWED_FIXTURES: Readonly<Record<string, { release: ReleaseMetadata; file: string }>> = {
+  [TAKAMATSU_AIRPORT_SOURCE_ID]: { release: TAKAMATSU_AIRPORT_FIXTURE_RELEASE, file: "takamatsu-airport-smoking-places/takamatsu-airport-page-facts.csv" },
+  [KOCHI_AIRPORT_SOURCE_ID]: { release: KOCHI_AIRPORT_FIXTURE_RELEASE, file: "kochi-airport-smoking-places/kochi-airport-page-facts.csv" },
+  [MATSUYAMA_AIRPORT_SOURCE_ID]: { release: MATSUYAMA_AIRPORT_FIXTURE_RELEASE, file: "matsuyama-airport-smoking-places/matsuyama-airport-page-facts.csv" },
+  [OITA_AIRPORT_SOURCE_ID]: { release: OITA_AIRPORT_FIXTURE_RELEASE, file: "oita-airport-smoking-places/oita-airport-page-facts.csv" },
+  [YONAGO_AIRPORT_SOURCE_ID]: { release: YONAGO_AIRPORT_FIXTURE_RELEASE, file: "yonago-airport-smoking-places/yonago-airport-page-facts.csv" },
+  [MIYAZAKI_AIRPORT_SOURCE_ID]: { release: MIYAZAKI_AIRPORT_FIXTURE_RELEASE, file: "miyazaki-airport-smoking-places/miyazaki-airport-page-facts.csv" },
+  [HIROSHIMA_AIRPORT_SOURCE_ID]: { release: HIROSHIMA_AIRPORT_FIXTURE_RELEASE, file: "hiroshima-airport-smoking-places/hiroshima-airport-page-facts.csv" },
   [SENDAI_SOURCE_ID]: { release: SENDAI_FIXTURE_RELEASE, file: "sendai-kaigan-park-smoking-areas/041009_public_facility.csv" },
   [TAITO_SOURCE_ID]: { release: TAITO_FIXTURE_RELEASE, file: "taito-public-smoking-areas/20260818_koshukitsuenjo.csv" },
   [OSAKA_SOURCE_ID]: { release: OSAKA_FIXTURE_RELEASE, file: "osaka-designated-smoking-areas/opendata_1012.csv" },
@@ -57,6 +71,7 @@ export async function importAllReviewedSources(db: Db, now: string): Promise<voi
 }
 
 async function importReviewedSources(db: Db, now: string, adapters: readonly SourceAdapter[]): Promise<void> {
+  if (adapters.length > 1000) throw new Error("reviewed-fixtures: source ID slots exhausted (maximum index 999)");
   for (const [i, adapter] of adapters.entries()) {
     const fixture = REVIEWED_FIXTURES[adapter.registry.sourceId];
     if (!fixture) throw new Error(`reviewed-fixtures: no pinned fixture for ${adapter.registry.sourceId}`);
@@ -66,7 +81,12 @@ async function importReviewedSources(db: Db, now: string, adapters: readonly Sou
     // Sendai's ADR-0017 anchor is a named reviewed constant; ADR-0018 adapters declare theirs per release.
     if (adapter.registry.sourceId === SENDAI_SOURCE_ID) await recordAreaAnchor(db, adapter, SENDAI_AREA_ANCHOR, now);
     await recordReviewedAnchors(db, adapter, await sha256Hex(bytes), now);
-    const result = await resolveFirstRelease(db, adapter, releaseId, { now, newSpotId: sequentialSpotIds(String(i)) });
+    // Preserve the original eight sources' IDs; later sources use a namespace disjoint from
+    // both those numeric prefixes and community fixtures' single-letter prefixes.
+    let sequence = 0;
+    const newSpotId = i < 8 ? sequentialSpotIds(String(i))
+      : () => `sp_0Z${String(i).padStart(3, "0")}${String(++sequence).padStart(21, "0")}`;
+    const result = await resolveFirstRelease(db, adapter, releaseId, { now, newSpotId });
     if (result.status !== "resolved") throw new Error(`reviewed-fixtures: ${adapter.registry.sourceId} did not resolve`);
   }
 }

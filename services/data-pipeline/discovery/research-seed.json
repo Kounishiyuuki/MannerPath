@@ -1376,6 +1376,97 @@
       "reviewedHashScope": "rawResponseBytes",
       "lastModified": "Wed, 13 May 2026 06:00:09 GMT",
       "fetchedAt": "2026-10-10T16:37:01Z"
+    },
+    {
+      "targetId": "operator-matsuyama-airport",
+      "reference": "services/data-pipeline/fixtures/matsuyama-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "matsuyama-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.matsuyama-airport.co.jp/service/smoking.html"
+      ],
+      "sha256": "fdb3471cd4880b47d698f2dc0480c8523d1f490f33f7815f8ad4a072831e918e",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:58Z"
+    },
+    {
+      "targetId": "operator-takamatsu-airport",
+      "reference": "services/data-pipeline/fixtures/takamatsu-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "takamatsu-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.takamatsu-airport.com/guide/s013/"
+      ],
+      "sha256": "daff2f45853ae975c603e936621a63cb59a4d45a07425d2f1a312815ff54bf19",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:59Z"
+    },
+    {
+      "targetId": "operator-oita-airport",
+      "reference": "services/data-pipeline/fixtures/oita-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "oita-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.oita-airport.jp/qa/"
+      ],
+      "sha256": "76f8a44d95816da7200843ec6b76600da44582f83393a6cc6cf2f55eaeb9bd1b",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:58Z"
+    },
+    {
+      "targetId": "operator-kochi-airport",
+      "reference": "services/data-pipeline/fixtures/kochi-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "kochi-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.kochiap.co.jp/faq/"
+      ],
+      "sha256": "5c72d09726315a54138791c8601d343f3bb0486f6f9d50a08a7e3d13ed9dd4fb",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:58Z"
+    },
+    {
+      "targetId": "operator-yonago-airport",
+      "reference": "services/data-pipeline/fixtures/yonago-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "yonago-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.yonago-air.com/faq"
+      ],
+      "sha256": "74049b2178a21075bc574a19ffb41d77b38af05967b1dcc8f48523d0472ff90b",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:59Z"
+    },
+    {
+      "targetId": "operator-miyazaki-airport",
+      "reference": "services/data-pipeline/fixtures/miyazaki-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "miyazaki-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.miyazaki-airport.co.jp/faq"
+      ],
+      "sha256": "8d47b07bf4616c1703ac5579f5a4a500a596a62c1db3aaaf1319b09c22d77f92",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:58Z"
+    },
+    {
+      "targetId": "operator-hiroshima-airport",
+      "reference": "services/data-pipeline/fixtures/hiroshima-airport-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "hiroshima-airport-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html"
+      ],
+      "sha256": "559617124dfa4b85f4439476c45165032be9bad8115cb1e352d97a9f16dfdb8b",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-13T17:59:57Z"
     }
   ],
   "researchReferences": [

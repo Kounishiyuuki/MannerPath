@@ -1,0 +1,926 @@
+{
+  "version": 1,
+  "checkedOnJST": "2026-10-14",
+  "baselineHead": "0b7f2c8fe15189f728c589b41ef9a7cbc2c32c03",
+  "historicalPackageCommit": "cbce6dca21b5e6c131ce58071a85588b7dae4a75",
+  "selection": "Eight previously prepared airport packages; ADR-0018 merge resolves the former policy blocker, so this is a justified re-review.",
+  "reviews": [
+    {
+      "sourceId": "hiroshima-airport-smoking-places",
+      "facilityName": "広島空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "1F国際線到着ロビー外",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "2F国際線チェックイン前",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "3F展望デッキ前",
+          "accessCondition": "unknown"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "広島県三原市本郷町善入寺64-31",
+        "postalCode": "729-0416",
+        "prefecture": "広島県",
+        "municipality": "三原市",
+        "scope": "passengerTerminal",
+        "sourceUrl": "https://www.hij.airport.jp/tw/access/car.html",
+        "locator": "廣島機場航廈大樓住所を日本語住所へ正規化",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.hij.airport.jp/about/index.html"
+      ],
+      "publicReferenceURL": "https://www.hij.airport.jp/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00079",
+        "airportName": "広島空港",
+        "administrativeAreaCode": "34204",
+        "terminalFeatureId": "cf04_00079",
+        "pointId": "pt_t_76",
+        "latitude": "34.43986100",
+        "longitude": "132.91925000",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00079 広島空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [
+            "https://www.hij.airport.jp/news/info/"
+          ],
+          "excludedClaims": [
+            "1F domestic-arrival exterior closed2025-02-28; excluded."
+          ],
+          "resolvedChanges": [
+            "Live notice still directs to retained3; ongoing construction alone is not closure."
+          ]
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.hij.airport.jp/about/index.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.hij.airport.jp/about/index.html",
+          "sha256": "2922220b34dd843be6dcf8d3324d9f1c9ea96877fd63990f3963bb8209a6ed82",
+          "byteCount": 37061,
+          "checkedAt": "2026-10-13T17:59:57.621778+00:00"
+        },
+        {
+          "url": "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html",
+          "sha256": "3428dea779a0c36057093aa3acfbe7bde67a161357b7122fc33467852fa4d329",
+          "byteCount": 36943,
+          "checkedAt": "2026-10-13T17:59:57.634504+00:00"
+        },
+        {
+          "url": "https://www.hij.airport.jp/news/info/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.hij.airport.jp/news/info/",
+          "sha256": "e7535ba98fc56422f8d5311b769f619d7f52249f3ce550ad82cff514ffd94070",
+          "byteCount": 43133,
+          "checkedAt": "2026-10-13T17:59:57.611087+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "kagoshima-airport-smoking-places",
+      "facilityName": "鹿児島空港",
+      "decision": "hold",
+      "blockers": [
+        "Operator link policy rejects 営利目的のもの; commercial application source attribution remains uncleared. Do not implement/publish pending reviewed resolution."
+      ],
+      "normalizedFacts": [
+        {
+          "zone": "国内線喫煙スペース（施設集約）",
+          "accessCondition": "unknown"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "鹿児島県霧島市溝辺町麓822番地",
+        "postalCode": null,
+        "prefecture": "鹿児島県",
+        "municipality": "霧島市",
+        "scope": "domesticTerminal",
+        "sourceUrl": "https://www.pref.kagoshima.jp/suisuinavi/5755.html",
+        "locator": "施設基本情報：鹿児島空港（国内線ターミナルビル）／所在地",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false,
+        "operatorPostalAddress": {
+          "value": "〒899-6494 鹿児島県霧島市溝辺町麓822番地",
+          "sourceUrl": "https://www.koj-ab.co.jp/airports/outline.html",
+          "scope": "companyPostalAddress",
+          "postalCodeNotInferredForPhysicalTerminal": true
+        }
+      },
+      "expectedCanonicalCount": 0,
+      "rightsBasis": "blockedPendingLinkPermission",
+      "rightsUrls": [
+        "https://www.koj-ab.co.jp/airports/copyright.html"
+      ],
+      "publicReferenceURL": "https://www.koj-ab.co.jp/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00045",
+        "airportName": "鹿児島空港",
+        "administrativeAreaCode": "46218",
+        "terminalFeatureId": "cf04_00045",
+        "pointId": "pt_t_44",
+        "latitude": "31.80091700",
+        "longitude": "130.71630600",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00045 鹿児島空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.koj-ab.co.jp/service/smoking-area.html",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [
+            "https://www.koj-ab.co.jp/airports/outline.html",
+            "https://www.pref.kagoshima.jp/am01/20260730b.html"
+          ],
+          "excludedClaims": []
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.koj-ab.co.jp/airports/copyright.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.koj-ab.co.jp/airports/copyright.html",
+          "sha256": "8633afa08831d0a3849a7daa2617fd2695201c123286b827713c34ea1d542204",
+          "byteCount": 25334,
+          "checkedAt": "2026-10-13T17:59:58.383513+00:00"
+        },
+        {
+          "url": "https://www.koj-ab.co.jp/airports/outline.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.koj-ab.co.jp/airports/outline.html",
+          "sha256": "efc4bf312ff5c797780bc04209dcd4eb3825247dce9d04ecef337e909617a4ea",
+          "byteCount": 21602,
+          "checkedAt": "2026-10-13T17:59:58.300608+00:00"
+        },
+        {
+          "url": "https://www.koj-ab.co.jp/service/smoking-area.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.koj-ab.co.jp/service/smoking-area.html",
+          "sha256": "cccfedd4ed07a2191f1e322cc733d3efae1f6ee5cfdd57616cd3acae90dd5c93",
+          "byteCount": 19384,
+          "checkedAt": "2026-10-13T17:59:58.357303+00:00"
+        },
+        {
+          "url": "https://www.pref.kagoshima.jp/am01/20260730b.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.pref.kagoshima.jp/am01/20260730b.html",
+          "sha256": "a0500fa97a80b3304309cd646041dd8117cc34c705301a107237fd9831cc8eba",
+          "byteCount": 16451,
+          "checkedAt": "2026-10-13T17:59:59.046456+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "kochi-airport-smoking-places",
+      "facilityName": "高知龍馬空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "2F搭乗待合室",
+          "accessCondition": "afterSecurity"
+        },
+        {
+          "zone": "屋外中央池横",
+          "accessCondition": "unknown"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "高知県南国市久枝乙58番地",
+        "postalCode": "783-0096",
+        "prefecture": "高知県",
+        "municipality": "南国市",
+        "scope": "airportFacility",
+        "sourceUrl": "https://www.kochiap.co.jp/faq/",
+        "locator": "空港利用者向けFAQ footer・総合案内住所",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.kochiap.co.jp/privacy/"
+      ],
+      "publicReferenceURL": "https://www.kochiap.co.jp/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00052",
+        "airportName": "高知空港",
+        "administrativeAreaCode": "39204",
+        "terminalFeatureId": "cf04_00052",
+        "pointId": "pt_t_50",
+        "latitude": "33.54733300",
+        "longitude": "133.67427800",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00052 高知空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.kochiap.co.jp/faq/",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [],
+          "excludedClaims": []
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.kochiap.co.jp/faq/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.kochiap.co.jp/faq/",
+          "sha256": "aac269682c75756bd56942d7211cfcc46f871028ec988771c7266ca85b44eaa2",
+          "byteCount": 35341,
+          "checkedAt": "2026-10-13T17:59:58.944135+00:00"
+        },
+        {
+          "url": "https://www.kochiap.co.jp/privacy/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.kochiap.co.jp/privacy/",
+          "sha256": "28a4e1b7a7cfe2a32ae3a3ed030752ffa6bdcd85f01eddb311f126f06674802f",
+          "byteCount": 30847,
+          "checkedAt": "2026-10-13T17:59:59.513374+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "matsuyama-airport-smoking-places",
+      "facilityName": "松山空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "国内線2F出発ロビー",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "国内線2F搭乗待合室",
+          "accessCondition": "afterSecurity"
+        },
+        {
+          "zone": "国際線2F搭乗待合室",
+          "accessCondition": "afterSecurity"
+        },
+        {
+          "zone": "屋外ジェットスターカウンター東側",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "屋外国際線到着口側",
+          "accessCondition": "unknown"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "愛媛県松山市南吉田町2731番地",
+        "postalCode": null,
+        "prefecture": "愛媛県",
+        "municipality": "松山市",
+        "scope": "passengerTerminal",
+        "sourceUrl": "https://info-faq.city.matsuyama.ehime.jp/faq/show/780?site_domain=default",
+        "locator": "松山市公式FAQ No780：空港ターミナルビル／所在地",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false,
+        "historicalAddressSource": {
+          "url": "https://www.matsuyama-airport.co.jp/pdf/pamphlet/info.pdf",
+          "directStatus": "404 on current check; cached PDF not live evidence",
+          "postalCodeInCachedPdf": "791-8042",
+          "notUsedForCurrentPostalAssertion": true
+        }
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.matsuyama-airport.co.jp/links.html"
+      ],
+      "publicReferenceURL": "https://www.matsuyama-airport.co.jp/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00053",
+        "airportName": "松山空港",
+        "administrativeAreaCode": "38201",
+        "terminalFeatureId": "cf04_00053",
+        "pointId": "pt_t_51",
+        "latitude": "33.82877800",
+        "longitude": "132.70411100",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00053 松山空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.matsuyama-airport.co.jp/service/smoking.html",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [
+            "https://www.matsuyama-airport.co.jp/news/",
+            "https://www.matsuyama-airport.co.jp/q-and-a.html"
+          ],
+          "excludedClaims": []
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.matsuyama-airport.co.jp/links.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.matsuyama-airport.co.jp/links.html",
+          "sha256": "1d88188a9a7a886f616c2bc372b52e455223c5489661374f8a785f449a8e9380",
+          "byteCount": 25995,
+          "checkedAt": "2026-10-13T17:59:57.937503+00:00"
+        },
+        {
+          "url": "https://www.matsuyama-airport.co.jp/news/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.matsuyama-airport.co.jp/news/",
+          "sha256": "16187f4708f35e534e309031719b2b4ccc77136c766b347bdf84afc4cbaa26b5",
+          "byteCount": 27396,
+          "checkedAt": "2026-10-13T17:59:58.226263+00:00"
+        },
+        {
+          "url": "https://www.matsuyama-airport.co.jp/q-and-a.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.matsuyama-airport.co.jp/q-and-a.html",
+          "sha256": "6d66a5a301a0fb510e518d2c1c01aa93eb4df36d431aa96732b68d4511518ed7",
+          "byteCount": 42156,
+          "checkedAt": "2026-10-13T17:59:58.245926+00:00"
+        },
+        {
+          "url": "https://www.matsuyama-airport.co.jp/service/smoking.html",
+          "httpStatus": 200,
+          "finalUrl": "https://www.matsuyama-airport.co.jp/service/smoking.html",
+          "sha256": "7b324db44f74df35a86ec2db1279541317d6e8270aae6495cbc2ed17d84f4452",
+          "byteCount": 25629,
+          "checkedAt": "2026-10-13T17:59:58.394162+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "miyazaki-airport-smoking-places",
+      "facilityName": "宮崎ブーゲンビリア空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "1F航空会社カウンター前",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "2F待合室",
+          "accessCondition": "unknown"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "宮崎県宮崎市赤江",
+        "postalCode": "880-0912",
+        "prefecture": "宮崎県",
+        "municipality": "宮崎市",
+        "scope": "airportFacility",
+        "sourceUrl": "https://www.miyazaki-airport.co.jp/access",
+        "locator": "宮崎ブーゲンビリア空港の場所",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.miyazaki-airport.co.jp/use"
+      ],
+      "publicReferenceURL": "https://www.miyazaki-airport.co.jp/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00050",
+        "airportName": "宮崎空港",
+        "administrativeAreaCode": "45201",
+        "terminalFeatureId": "cf04_00050",
+        "pointId": "pt_t_48",
+        "latitude": "31.87280600",
+        "longitude": "131.44150000",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00050 宮崎空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.miyazaki-airport.co.jp/faq",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [],
+          "excludedClaims": []
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.miyazaki-airport.co.jp/faq",
+          "httpStatus": 200,
+          "finalUrl": "https://www.miyazaki-airport.co.jp/faq",
+          "sha256": "bb9ec9ae1ba531eed588d13678f21aed53644e631e6dad2a3d8826591b615845",
+          "byteCount": 68978,
+          "checkedAt": "2026-10-13T17:59:58.708683+00:00"
+        },
+        {
+          "url": "https://www.miyazaki-airport.co.jp/use",
+          "httpStatus": 200,
+          "finalUrl": "https://www.miyazaki-airport.co.jp/use",
+          "sha256": "b3ba15dcac86975d2e05ac3f1adeeb8ccbad466a2af27732d186fc6c4ab07a35",
+          "byteCount": 42741,
+          "checkedAt": "2026-10-13T17:59:58.676414+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "oita-airport-smoking-places",
+      "facilityName": "大分空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "2F搭乗待合室",
+          "accessCondition": "afterSecurity"
+        },
+        {
+          "zone": "1F旅客ビル北側",
+          "accessCondition": "unknown"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "大分県国東市武蔵町糸原大海田",
+        "postalCode": null,
+        "prefecture": "大分県",
+        "municipality": "国東市",
+        "scope": "airportSite",
+        "sourceUrl": "https://www.oita-airport.jp/about/index.shtml",
+        "locator": "所在地（空港全体）；operator郵便住所とは別scope",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false,
+        "operatorPostalAddress": {
+          "value": "〒873-0231 大分県国東市安岐町下原13番地（大分空港内）",
+          "sourceUrl": "https://oat.oita-airport.jp/",
+          "scope": "operatorInAirportPostalAddress",
+          "notAssertedAsTerminalStreetAddress": true
+        }
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.oita-airport.jp/sitepolicy/"
+      ],
+      "publicReferenceURL": "https://www.oita-airport.jp/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00096",
+        "airportName": "大分空港",
+        "administrativeAreaCode": "44214",
+        "terminalFeatureId": "cf04_00096",
+        "pointId": "pt_t_90",
+        "latitude": "33.47736100",
+        "longitude": "131.73272200",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00096 大分空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.oita-airport.jp/qa/",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [
+            "https://www.oita-airport.jp/news/detail/576",
+            "https://oat.oita-airport.jp/"
+          ],
+          "excludedClaims": [
+            "Original2F cash-corner-rear: D, not matched to current central-stairs-rear; excluded.",
+            "Current central-stairs-rear and extra international room not added to this original-surviving-scope package."
+          ],
+          "resolvedChanges": [
+            "Outdoor north-side sole outdoor room from2025-04-07; retained current north-side fact."
+          ]
+        }
+      },
+      "observations": [
+        {
+          "url": "https://oat.oita-airport.jp/",
+          "httpStatus": 200,
+          "finalUrl": "https://oat.oita-airport.jp/",
+          "sha256": "ff8cf97780d936635d7055dabc232c2ff5252e5e5da964d73b39c5e351986741",
+          "byteCount": 17738,
+          "checkedAt": "2026-10-13T17:59:57.558101+00:00"
+        },
+        {
+          "url": "https://www.oita-airport.jp/news/detail/576",
+          "httpStatus": 200,
+          "finalUrl": "https://www.oita-airport.jp/news/detail/576",
+          "sha256": "3a476ab01eaf5b0d489119ff2c70930e49a9048a89946256801ad8c4b487c3d7",
+          "byteCount": 20177,
+          "checkedAt": "2026-10-13T17:59:58.653478+00:00"
+        },
+        {
+          "url": "https://www.oita-airport.jp/qa/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.oita-airport.jp/qa/",
+          "sha256": "7499b8e349dac458c3a1c000b590be44d474a193e44090e6bce038a2b7fe2f93",
+          "byteCount": 51930,
+          "checkedAt": "2026-10-13T17:59:58.689700+00:00"
+        },
+        {
+          "url": "https://www.oita-airport.jp/sitepolicy/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.oita-airport.jp/sitepolicy/",
+          "sha256": "c2f2a28f5072b60be805c08134fbecef9bb907e9fc0aa5538c9697e89acacdc6",
+          "byteCount": 22614,
+          "checkedAt": "2026-10-13T17:59:58.825110+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "takamatsu-airport-smoking-places",
+      "facilityName": "高松空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "ターミナル中央屋外",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "2F国際線出発ロビー・ファミリーマート横",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "2F国内線搭乗待合室",
+          "accessCondition": "afterSecurity"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "香川県高松市香南町岡1312番地7",
+        "postalCode": "761-1401",
+        "prefecture": "香川県",
+        "municipality": "高松市",
+        "scope": "airportFacility",
+        "sourceUrl": "https://www.takamatsu-airport.com/areas/map/index.php",
+        "locator": "高松空港住所欄；郵便番号はoperator policyに記載",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.takamatsu-airport.com/policy/"
+      ],
+      "publicReferenceURL": "https://www.takamatsu-airport.com/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00054",
+        "airportName": "高松空港",
+        "administrativeAreaCode": "37201",
+        "terminalFeatureId": "cf04_00054",
+        "pointId": "pt_t_52",
+        "latitude": "34.21866700",
+        "longitude": "134.01833300",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00054 高松空港 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.takamatsu-airport.com/guide/s013/",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [
+            "https://www.takamatsu-airport.com/news/info/20260612-9764/"
+          ],
+          "excludedClaims": [
+            "International BOARDING waiting-room closed from2026-06-13 indefinitely; not included. International DEPARTURE LOBBY room is explicit fallback."
+          ]
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.takamatsu-airport.com/guide/s013/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.takamatsu-airport.com/guide/s013/",
+          "sha256": "60370993b2a26b9f7c1c2ea3be59a9f796b33c44f45dc852dc0ea237ae55170a",
+          "byteCount": 58177,
+          "checkedAt": "2026-10-13T17:59:59.361277+00:00"
+        },
+        {
+          "url": "https://www.takamatsu-airport.com/news/info/20260612-9764/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.takamatsu-airport.com/news/info/20260612-9764/",
+          "sha256": "94f57186f23c7aaa2fdbd8617c0e4147ed7a4db74af35460aec05e75fb630566",
+          "byteCount": 59296,
+          "checkedAt": "2026-10-13T17:59:59.384273+00:00"
+        },
+        {
+          "url": "https://www.takamatsu-airport.com/policy/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.takamatsu-airport.com/policy/",
+          "sha256": "e3b48d875859d5a5ff0b3e74543d38a609f3c56ee6a25abbc0520b4fc28daf53",
+          "byteCount": 57187,
+          "checkedAt": "2026-10-13T17:59:59.164021+00:00"
+        }
+      ]
+    },
+    {
+      "sourceId": "yonago-airport-smoking-places",
+      "facilityName": "米子鬼太郎空港",
+      "decision": "acceptForImplementation",
+      "blockers": [],
+      "normalizedFacts": [
+        {
+          "zone": "屋外中央出入口付近",
+          "accessCondition": "unknown"
+        },
+        {
+          "zone": "2F搭乗待合室",
+          "accessCondition": "afterSecurity"
+        }
+      ],
+      "officialAddress": {
+        "normalized": "鳥取県境港市佐斐神町1634番地",
+        "postalCode": "684-0055",
+        "prefecture": "鳥取県",
+        "municipality": "境港市",
+        "scope": "airportFacility",
+        "sourceUrl": "https://www.yonago-air.com/outline",
+        "locator": "公式空港施設案内footer",
+        "verifiedAs": "official facility address evidence, not smoking coordinates",
+        "geocodeExecuted": false,
+        "geocodeFallbackCleared": false
+      },
+      "expectedCanonicalCount": 1,
+      "rightsBasis": "factReference",
+      "rightsUrls": [
+        "https://www.yonago-air.com/siteinfo/"
+      ],
+      "publicReferenceURL": "https://www.yonago-air.com/",
+      "anchor": {
+        "basis": "referenceDatasetPoint",
+        "originKind": "publisherFacilityPoint",
+        "locationPrecision": "areaApproximate",
+        "scope": "facility",
+        "dataset": "国土数値情報 空港データ C28 令和3年度",
+        "catalogUrl": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-C28-v3_0.html",
+        "resourceUrl": "https://nlftp.mlit.go.jp/ksj/gml/data/C28/C28-21/C28-21_GML.zip",
+        "zipSha256": "07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "member": "UTF-8/C28-21.xml",
+        "memberSha256": "3fdbef2b7bd514a3aa22235d9874c508d56597a0407e7b4e1f1815e36ac7a158",
+        "airportFeatureId": "cf02_00077",
+        "airportName": "美保飛行場",
+        "administrativeAreaCode": "31204",
+        "terminalFeatureId": "cf04_00077",
+        "pointId": "pt_t_74",
+        "latitude": "35.50066700",
+        "longitude": "133.24530600",
+        "crs": "JGD2011 geographic, publisher lat/lon order",
+        "anchorReference": "国土数値情報 空港データ(C28) 令和3年度 TerminalBuilding cf04_00077 美保飛行場 C28-21_GML.zip sha256:07d69353a34558d7ebd21d4b5f62b685d4f9b9d0e55c6eed6ce05aefcc6b7b35",
+        "license": {
+          "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_02.html",
+          "commercialUse": "catalog 商用可",
+          "attributionRequired": true,
+          "processingNoticeRequired": true,
+          "rawDatabaseRedistributed": false
+        }
+      },
+      "currentOperation": {
+        "basis": "ADR-0018 D-C current first-party listed-as-of checkedAt",
+        "sourceUrl": "https://www.yonago-air.com/faq",
+        "notSiteVerified": true,
+        "contradictionReview": {
+          "reviewedAt": "2026-10-14",
+          "result": "No unresolved contradictory first-party evidence found for INCLUDED scope in bounded current checks; not proof of absence.",
+          "urls": [
+            "https://www.yonago-air.com/news"
+          ],
+          "excludedClaims": []
+        }
+      },
+      "observations": [
+        {
+          "url": "https://www.yonago-air.com/faq",
+          "httpStatus": 200,
+          "finalUrl": "https://www.yonago-air.com/faq",
+          "sha256": "955c0c1c46d67d135a78680dcecfb32a05f128773f6ee5b4789ee2ea1cd077d0",
+          "byteCount": 50775,
+          "checkedAt": "2026-10-13T17:59:59.340341+00:00"
+        },
+        {
+          "url": "https://www.yonago-air.com/news",
+          "httpStatus": 200,
+          "finalUrl": "https://www.yonago-air.com/news",
+          "sha256": "91d98b39a937d405e012d1b1ceb015853062e48ebe33b9bff18e771bf315ccad",
+          "byteCount": 37587,
+          "checkedAt": "2026-10-13T18:00:00.297946+00:00"
+        },
+        {
+          "url": "https://www.yonago-air.com/siteinfo/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.yonago-air.com/siteinfo",
+          "sha256": "4b03f446b4849fa7c8ac5f442c7aaeeb9c13d688b061674f00cfe7ece6ec342b",
+          "byteCount": 43638,
+          "checkedAt": "2026-10-13T18:00:01.169381+00:00"
+        }
+      ]
+    }
+  ],
+  "localMeasurement": {
+    "before": {
+      "canonical": 517,
+      "published": 515,
+      "tiles": 83,
+      "sources": 8,
+      "crossSourceCandidates": 0
+    },
+    "after": {
+      "canonical": 524,
+      "published": 522,
+      "tiles": 90,
+      "sources": 15,
+      "crossSourceCandidates": 0
+    },
+    "actualPrefecturesBefore": 5,
+    "actualPrefecturesAfter": 12,
+    "newPrefectures": [
+      "鳥取県",
+      "広島県",
+      "香川県",
+      "愛媛県",
+      "高知県",
+      "大分県",
+      "宮崎県"
+    ],
+    "excludedBefore": 2,
+    "excludedAfter": 2,
+    "allOriginal83TileHashesUnchanged": true,
+    "productionChanged": false,
+    "validation": {
+      "nodeVersion": "24.21.0",
+      "qualityFailedChecks": 0,
+      "crossSourceCandidates": 0,
+      "repeatIngestion": "15/15 alreadyApplied",
+      "promotionV4": {
+        "chunks": 71,
+        "digest": "e22e3446c63b3c521c2bb4cc9f5a2d3a01f2f488e88546d349d37a6305ecba58",
+        "independentSecondBuildIdentical": true,
+        "freshApplyAndReexportIdentical": true
+      },
+      "realLocalD1": {
+        "freshCanonicalMigrations": 33,
+        "newSourceCount": 7,
+        "canonical": 7,
+        "published": 7,
+        "tiles": 7,
+        "qualityFailedChecks": 0,
+        "secondIngestionAlreadyApplied": 7,
+        "fullCorpusLimitation": "Two existing Osaka resolve batches hit local Worker bridge ECONNRESET; full15 corpus uses migration-backed node:sqlite adapter."
+      }
+    }
+  }
+}

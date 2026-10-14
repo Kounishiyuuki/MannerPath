@@ -106,9 +106,9 @@ test("Sendai onboarding diagnoses the park anchor as approximate and never as a 
   assert.equal(result.pinnedRelease!.rawRows, 2844);
   assert.equal(result.pinnedRelease!.observedRows, 1);
   assert.equal(result.productionApproval, false);
-  // Only the two anchored sources are approximate: Sendai's park area (ADR-0017) and Komatsu's facility (ADR-0018).
+  // Park and airport facility anchors stay approximate; exact municipal fixtures stay publisherPoint.
   for (const other of inspectReviewedSources().filter(r => r.sourceId !== result.sourceId)) {
-    assert.equal(other.coordinates.kind, other.sourceId === "komatsu-airport-smoking-places" ? "areaApproximate" : "publisherPoint", other.sourceId);
+    assert.equal(other.coordinates.kind, other.sourceId.endsWith("-airport-smoking-places") ? "areaApproximate" : "publisherPoint", other.sourceId);
   }
 });
 

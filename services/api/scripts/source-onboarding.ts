@@ -15,6 +15,13 @@ import { MINATO_FIXTURE_RELEASE } from "../src/pipeline/minato-adapter.ts";
 import { SENDAI_FIXTURE_RELEASE } from "../src/pipeline/sendai-adapter.ts";
 import { KYOTO_FIXTURE_RELEASE } from "../src/pipeline/kyoto-adapter.ts";
 import { KOMATSU_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/komatsu-airport-adapter.ts";
+import { TAKAMATSU_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/takamatsu-airport-adapter.ts";
+import { KOCHI_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/kochi-airport-adapter.ts";
+import { MATSUYAMA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/matsuyama-airport-adapter.ts";
+import { OITA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/oita-airport-adapter.ts";
+import { YONAGO_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/yonago-airport-adapter.ts";
+import { MIYAZAKI_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/miyazaki-airport-adapter.ts";
+import { HIROSHIMA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/hiroshima-airport-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const sourceIdSchema = z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).max(100);
@@ -54,6 +61,13 @@ export type Candidate = z.input<typeof candidateSchema>;
 
 // Pins of already reviewed releases, not a new approval registry or a latest-live-release claim.
 const pins = [
+  ["hiroshima-airport-smoking-places", "hiroshima-airport-page-facts.csv", HIROSHIMA_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
+  ["miyazaki-airport-smoking-places", "miyazaki-airport-page-facts.csv", MIYAZAKI_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
+  ["yonago-airport-smoking-places", "yonago-airport-page-facts.csv", YONAGO_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
+  ["oita-airport-smoking-places", "oita-airport-page-facts.csv", OITA_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
+  ["matsuyama-airport-smoking-places", "matsuyama-airport-page-facts.csv", MATSUYAMA_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
+  ["kochi-airport-smoking-places", "kochi-airport-page-facts.csv", KOCHI_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
+  ["takamatsu-airport-smoking-places", "takamatsu-airport-page-facts.csv", TAKAMATSU_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
   ["sendai-kaigan-park-smoking-areas", "041009_public_facility.csv", SENDAI_FIXTURE_RELEASE, "sendai-source.test.ts"],
   ["taito-public-smoking-areas", "20260818_koshukitsuenjo.csv", TAITO_FIXTURE_RELEASE, "taito-reconciliation.test.ts"],
   ["osaka-designated-smoking-areas", "opendata_1012.csv", OSAKA_FIXTURE_RELEASE, "osaka-source.test.ts"],

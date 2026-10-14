@@ -243,11 +243,11 @@ test("offline monitor replays reviewed fixtures with no network and never writes
   assert.equal(first.exitCode, 0); assert.equal(first.report.results.length, 6, "the deployed production inventory");
   // Repository-reviewed, undeployed sources are monitored only on request: Komatsu's page-fact (ADR-0018 D-C).
   const reviewed = await runOffline(["--repository-reviewed"]);
-  assert.equal(reviewed.exitCode, 0); assert.equal(reviewed.report.results.length, 7);
+  assert.equal(reviewed.exitCode, 0); assert.equal(reviewed.report.results.length, repositoryReviewedHealthTargets().length);
   for (const item of [...first.report.results, ...reviewed.report.results]) {
     assert.equal(item.status, "healthy", item.sourceId);
     // ADR-0018: offline, a page-fact source's page is not fetched; that is said, not passed off as checked.
-    assert.equal(item.advisory.includes("pageFactNotChecked"), item.sourceId === "komatsu-airport-smoking-places", item.sourceId);
+    assert.equal(item.advisory.includes("pageFactNotChecked"), SOURCE_ADAPTERS.find(a => a.registry.sourceId === item.sourceId)?.registry.rightsBasis?.kind === "factReference", item.sourceId);
     assert.ok(item.rights.every((r: { outcome: string }) => r.outcome === "notChecked")); assert.ok(item.advisory.includes("rightsNotChecked"));
   }
   assert.deepEqual(second.report, first.report, "deterministic");
@@ -285,10 +285,10 @@ test("repository Sendai and Komatsu onboarding do not expand the six-source prod
   assert.equal(ids.includes("komatsu-airport-smoking-places"), false);
   // Komatsu's page-fact health is configured but repository-only until a deployment adds it.
   const repository = repositoryReviewedHealthTargets().map(target => target.adapter.registry.sourceId).sort();
-  assert.deepEqual(repository, [...ids, "komatsu-airport-smoking-places"].sort());
-  // Reviewed sources (8) and health-monitorable sources are different counts: Sendai is reviewed but has no
+  assert.deepEqual(repository, SOURCE_ADAPTERS.map(a => a.registry.sourceId).filter(id => !(id in HEALTH_NOT_CONFIGURED)).sort());
+  // Reviewed sources and health-monitorable sources are different counts: Sendai is reviewed but has no
   // reviewed rights contract, so it is named as unconfigured, never silently missing.
-  assert.equal(SOURCE_ADAPTERS.length, 8);
+  assert.ok(SOURCE_ADAPTERS.length >= 8);
   assert.deepEqual(HEALTH_NOT_CONFIGURED, { "sendai-kaigan-park-smoking-areas": "noReviewedRightsContract" });
   assert.deepEqual([...repository, ...Object.keys(HEALTH_NOT_CONFIGURED)].sort(), SOURCE_ADAPTERS.map(a => a.registry.sourceId).sort());
   assert.equal(sourceReviews().some(review => review.sourceId === "sendai-kaigan-park-smoking-areas"), false);

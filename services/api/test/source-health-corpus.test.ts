@@ -10,7 +10,7 @@ import { importAllReviewedSources, REVIEWED_FIXTURES, reviewedFixtureBytes } fro
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 import { v1TileRows } from "./support/tiles.ts";
 
-const NOW = "2026-10-11T12:00:00Z";
+const NOW = "2026-10-14T12:00:00Z";
 
 // Compare every canonical table, including evidence and publication state, without pinning corpus counts.
 function databaseContents(db: SqliteD1) {
@@ -32,8 +32,8 @@ test("source health failures and changed payloads leave the approved corpus and 
   assert.ok(beforeTiles.length > 0, "exercise actual published manifests and assembled tile bodies");
   const targets = productionHealthTargets();
   assert.deepEqual(targets.map(target => target.adapter.registry.sourceId).sort(),
-    SOURCE_ADAPTERS.filter(adapter => adapter.registry.sourceId !== SENDAI_SOURCE_ID && adapter.registry.sourceId !== KOMATSU_AIRPORT_SOURCE_ID)
-      .map(adapter => adapter.registry.sourceId).sort());
+    ["taito-public-smoking-areas", "osaka-designated-smoking-areas", "koto-station-smoking-areas",
+      "musashino-public-smoking-areas", "minato-designated-smoking-areas", "kyoto-public-smoking-places"].sort());
   assert.equal(targets.length, 6, "production health keeps the six deployed sources");
   assert.equal(targets.some(target => target.adapter.registry.sourceId === SENDAI_SOURCE_ID), false, "repository-reviewed Sendai is not production-monitored");
   assert.equal(targets.some(target => target.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID), false, "repository-reviewed Komatsu is not production-monitored");

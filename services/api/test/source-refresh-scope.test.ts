@@ -3,15 +3,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { MUSASHINO_ADAPTER, MUSASHINO_SOURCE_ID } from "../src/pipeline/musashino-adapter.ts";
-import { MINATO_ADAPTER, MINATO_SOURCE_ID } from "../src/pipeline/minato-adapter.ts";
-import { KOTO_ADAPTER, KOTO_SOURCE_ID } from "../src/pipeline/koto-adapter.ts";
-import { SENDAI_ADAPTER, SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
-import { KYOTO_ADAPTER, KYOTO_SOURCE_ID } from "../src/pipeline/kyoto-adapter.ts";
-import { KOMATSU_AIRPORT_ADAPTER, KOMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/komatsu-airport-adapter.ts";
 import { OSAKA_ADAPTER, OSAKA_DATA_URL, OSAKA_SOURCE_ID } from "../src/pipeline/osaka-adapter.ts";
 import { ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { checkSource } from "../src/refresh/check.ts";
+import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { runSourceChecks } from "../src/refresh/scheduled.ts";
 import { type RawArtifactStore, rawArtifactKey } from "../src/refresh/artifact-store.ts";
 import { NOW, TAITO_BYTES, importTaito } from "./support/fixture.ts";
@@ -33,51 +28,24 @@ function memoryStore() {
 }
 const fetchOsaka = async () => new Response(OSAKA_BYTES);
 
-test("scheduled registry checks Taito but skips seven sources without refresh targets or fetches", async () => {
+test("scheduled registry checks Taito but skips fourteen sources without refresh targets or fetches", async () => {
   const db = new SqliteD1();
   await importTaito(db);
-  await ensureReviewedSource(db, OSAKA_SOURCE_ID, NOW);
-  await ensureReviewedSource(db, KOTO_SOURCE_ID, NOW);
-  await ensureReviewedSource(db, MUSASHINO_SOURCE_ID, NOW);
-  await ensureReviewedSource(db, MINATO_SOURCE_ID, NOW);
-  await ensureReviewedSource(db, KYOTO_SOURCE_ID, NOW);
-  await ensureReviewedSource(db, SENDAI_SOURCE_ID, NOW);
-  await ensureReviewedSource(db, KOMATSU_AIRPORT_SOURCE_ID, NOW);
-  assert.equal(OSAKA_ADAPTER.refreshTarget, undefined);
-  assert.equal(KOTO_ADAPTER.refreshTarget, undefined);
-  assert.equal(MUSASHINO_ADAPTER.refreshTarget, undefined);
-  assert.equal(MINATO_ADAPTER.refreshTarget, undefined);
-  assert.equal(KYOTO_ADAPTER.refreshTarget, undefined);
-  assert.equal(SENDAI_ADAPTER.refreshTarget, undefined);
-  // A page-fact source has no release file to refresh; its page is re-checked by source health (ADR-0018 D-C).
-  assert.equal(KOMATSU_AIRPORT_ADAPTER.refreshTarget, undefined);
+  for (const adapter of SOURCE_ADAPTERS.slice(1)) {
+    await ensureReviewedSource(db, adapter.registry.sourceId, NOW);
+    // Page-fact sources re-check their pages through source health; no release-file refresh is approved.
+    assert.equal(adapter.refreshTarget, undefined, adapter.registry.sourceId);
+  }
   let fetches = 0;
   const results = await runSourceChecks({ db, store: memoryStore().store, now,
     fetch: async () => { fetches++; return new Response(TAITO_BYTES); },
   }, "scope-scheduled", "scheduled");
-  assert.equal(results.length, 8);
+  assert.equal(results.length, 15);
   assert.equal(results[0].result.status === "recorded" && results[0].result.outcome, "unchanged");
-  assert.deepEqual(results[1], { sourceId: OSAKA_SOURCE_ID,
-    result: { status: "skipped", reason: `${OSAKA_SOURCE_ID} has no refresh target` },
-  });
-  assert.deepEqual(results[2], { sourceId: KOTO_SOURCE_ID,
-    result: { status: "skipped", reason: `${KOTO_SOURCE_ID} has no refresh target` },
-  });
-  assert.deepEqual(results[3], { sourceId: MUSASHINO_SOURCE_ID,
-    result: { status: "skipped", reason: `${MUSASHINO_SOURCE_ID} has no refresh target` },
-  });
-  assert.deepEqual(results[4], { sourceId: MINATO_SOURCE_ID,
-    result: { status: "skipped", reason: `${MINATO_SOURCE_ID} has no refresh target` },
-  });
-  assert.deepEqual(results[5], { sourceId: KYOTO_SOURCE_ID,
-    result: { status: "skipped", reason: `${KYOTO_SOURCE_ID} has no refresh target` },
-  });
-  assert.deepEqual(results[6], { sourceId: SENDAI_SOURCE_ID,
-    result: { status: "skipped", reason: `${SENDAI_SOURCE_ID} has no refresh target` },
-  });
-  assert.deepEqual(results[7], { sourceId: KOMATSU_AIRPORT_SOURCE_ID,
-    result: { status: "skipped", reason: `${KOMATSU_AIRPORT_SOURCE_ID} has no refresh target` },
-  });
+  for (const [i, adapter] of SOURCE_ADAPTERS.slice(1).entries()) {
+    const sourceId = adapter.registry.sourceId;
+    assert.deepEqual(results[i + 1], { sourceId, result: { status: "skipped", reason: `${sourceId} has no refresh target` } });
+  }
   assert.equal(fetches, 1);
   assert.equal(count(db, "source_checks"), 1);
   assert.equal(count(db, "source_refresh_candidates"), 0);
