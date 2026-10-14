@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sourceId": "synthetic-city-smoking-places",
+  "publisher": "Fictional municipality (synthetic test only)",
+  "publisherUrl": "https://municipality.example.invalid/",
+  "resourceUrl": "https://municipality.example.invalid/smoking-places.csv",
+  "receivedOn": "2026-10-15",
+  "evidenceReference": "Synthetic explicit permitted smoking-place statement; not real evidence",
+  "rightsReference": "Synthetic processing example only; not a third-party license",
+  "attributionText": "SYNTHETIC ONLY — no production approval",
+  "licenseName": null,
+  "licenseUrl": null,
+  "coordinateMeaning": "smokingPlace",
+  "operationClaim": "active",
+  "operationEvidenceReference": "Synthetic current statement; not verified"
+}
