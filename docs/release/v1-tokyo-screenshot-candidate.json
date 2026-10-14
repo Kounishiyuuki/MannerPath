@@ -1,0 +1,48 @@
+{
+  "evidenceKind": "public-production-GET-observation",
+  "onSiteVerification": false,
+  "fixture": false,
+  "finalScreenshot": false,
+  "method": "GET",
+  "url": "https://mannerpath-api-production.happywestyuki.workers.dev/v1/spots/sp_1CNC5Y441SJS8J0F3EF95CX834",
+  "status": 200,
+  "checkedAt": "2026-10-14T16:54:21.561Z",
+  "responseSha256": "afebc1ece0192b9c2944ff979f60ffd81422b29d3298ad176aa75e4b944af0c8",
+  "spotId": "sp_1CNC5Y441SJS8J0F3EF95CX834",
+  "name": "佐竹公衆喫煙所",
+  "tile": "14/14553/6450",
+  "sourceIds": [
+    "taito-public-smoking-areas"
+  ],
+  "locationPrecision": "publisherPoint",
+  "accessType": "unknown",
+  "hoursStatus": "unparsed",
+  "lastVerifiedAt": "2026-08-18",
+  "provenance": [
+    {
+      "field": "existence",
+      "sourceId": "taito-public-smoking-areas",
+      "rule": "taito.listed.v1",
+      "observedOn": "2026-08-18"
+    },
+    {
+      "field": "lifecycle",
+      "sourceId": "taito-public-smoking-areas",
+      "rule": "taito.listed.v1",
+      "observedOn": "2026-08-18"
+    },
+    {
+      "field": "location",
+      "sourceId": "taito-public-smoking-areas",
+      "rule": "taito.coordinates.v1",
+      "observedOn": "2026-08-18"
+    },
+    {
+      "field": "name",
+      "sourceId": "taito-public-smoking-areas",
+      "rule": "taito.name.v1",
+      "observedOn": "2026-08-18"
+    }
+  ],
+  "attributionReference": "v1-production-data-2026-10-15.json sources[]"
+}
