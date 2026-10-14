@@ -289,12 +289,15 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
 
 ### 5.9 Destination search
 
-- **Current:** `TextField("Search a destination in Apple Maps")` + Search button inside the ScrollView.
+- **Current:** native `.searchable` in the Nearby sheet, with live candidates from merged PR #259.
+  Search debounce, stale-answer handling and ranking remain in their existing models.
 - **Stitch target:** search field at the top of the map. No dedicated destination screen in Stitch.
 - **Apple-native:** `.searchable` on the root `NavigationStack` (or in the sheet), results as a native suggestion
   list, MapKit search (ADR-0001: MapKit is search infrastructure, results are not persisted as canonical spots).
-- **Required change:** replace the inline text field with `.searchable`; keep destination-mode copy and the
-  straight-line vs route explanation.
+- **UI refresh:** plain List with transparent content rows; name/distance lead, address/access/evidence
+  remain readable. Compact status labels keep warnings and distinguish success/info/failure by symbol and
+  warning prominence. Native `dismissSearch` ends editing on selection; existing selection/query handlers stay.
+  Keep destination-mode copy and the straight-line vs route explanation.
 
 ### 5.10 Empty
 
@@ -405,9 +408,11 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
   `.sheet`, map controls, `Button` styles.
 - Do **not** call `glassEffect`, `GlassEffectContainer` or `.buttonStyle(.glass)` to manufacture glass on custom
   views. (If a future need appears, it requires an update to this document first.)
-- Do not set `presentationBackground`, `toolbarBackground` or custom bar backgrounds that would block the system
-  material.
-- iOS 18 renders the same code with pre-Liquid-Glass materials; no `#available` forks for appearance.
+- On iOS 26+, leave the sheet background to the system; do not override native Liquid Glass or toolbar
+  scroll-edge effects. The plain List hides its scroll background and uses transparent rows instead of glass cards.
+- On iOS 18–25, the Nearby sheet uses standard `.regularMaterial` as its availability-gated fallback.
+  With Reduce Transparency, use solid `systemBackground` and semantic labels. The deployment floor stays iOS 18.
+  No custom glass APIs or decoration are introduced.
 
 ## 8. Prohibited custom UI
 
@@ -461,3 +466,22 @@ Each step is one reviewable PR; each must keep `make apple-validate` green and u
 7. Add Place / Report (§5.12–§5.14)
 8. Watch (§5.15–§5.17)
 9. Widgets (§5.18)
+
+## Native search sheet refresh — 2026-10-14
+
+Implementation begins after live destination search PR #259 is merged. The search API, debounce, ranking,
+TileSync, GRDB and report flows remain unchanged. Before/After uses the actual Simulator app, the same
+public Taito neighborhood and real MapKit suggestions, with no test-only production UI. Normal/multiple,
+input, candidates, selected destination and filtered-empty/recovery are compared in Light and Dark.
+OS/device-specific accessibility evidence and Simulator failures are recorded separately from passing checks.
+The visual journey falls back to destination browsing when Simulator GPS is unavailable. In that case,
+the normal-screen capture has a different browsing origin and detent from the device-location baseline;
+it is qualitative evidence, not a matched-state or pixel comparison. Suggestions also depend on live MapKit.
+
+For a focused visual run, build and run `NativeSearchSheetUITests` with the `MannerPathUITests` scheme,
+then export its xcresult attachments. These network-dependent tests are separate from `make apple-validate`.
+Repeat in Light/Dark and accessibility text sizes. On a device, also check VoiceOver navigation from search
+through candidates and results, Reduce Transparency's solid sheet, Reduce Motion's nonanimated scrolling,
+medium/large dragging, keyboard dismissal, and long names at the largest supported text size. Verify that
+the far-destination warning and approximate-location notes remain readable; do not count code inspection
+as a completed device accessibility check. iPad uses the existing iPhone compatibility configuration.

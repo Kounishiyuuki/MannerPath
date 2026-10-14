@@ -32,6 +32,7 @@ struct ContentView: View {
 
     private static let summaryAnchor = "nearbySheetSummaryAnchor"
     private static let destinationListAnchor = "nearbyDestinationListAnchor"
+    private static let searchResultsAnchor = "nearbySearchResultsAnchor"
 
     // docs/DESIGN.md §5.1–5.5: the map fills the screen and Nearby lives in a standard, non-dismissable sheet over it.
     // The sheet holds its own NavigationStack, so details and every other sheet are presented from inside it.
@@ -84,32 +85,40 @@ struct ContentView: View {
                     // While a destination search runs or has answers, its results lead the sheet, under the field.
                     if isShowingSearchResults {
                         searchResultsSection
+                            .id(Self.searchResultsAnchor)
+                            .listRowBackground(Color.clear)
                     }
                     if model.browsingCoordinate == nil {
-                        Section { sheetSummary.id(Self.summaryAnchor) }
+                        Section { sheetSummary.id(Self.summaryAnchor) }.listRowBackground(Color.clear)
                     }
                     // Results first, as in Maps: the medium detent shows the summary and the nearest rows; location,
                     // tasks, destination and reporting follow.
                     if model.browsingCoordinate != nil {
-                        listSection
+                        listSection.listRowBackground(Color.clear)
                     }
                     Section {
                         locationSection
-                    }
+                    }.listRowBackground(Color.clear)
                     if model.browsingCoordinate != nil {
-                        nearbyTasksSection
+                        nearbyTasksSection.listRowBackground(Color.clear)
                     }
-                    destinationSection
+                    destinationSection.listRowBackground(Color.clear)
                     Section {
                         reportSection
-                    }
+                    }.listRowBackground(Color.clear)
                 }
-                .listStyle(.insetGrouped)
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
                 .listSectionSpacing(.compact)
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
                 .onChange(of: summaryScrollRequest) { _, _ in
                     guard selectedSpotID != nil else { return }
                     withAnimation(reduceMotion ? nil : .default) { proxy.scrollTo(Self.summaryAnchor, anchor: .top) }
+                }
+                // A new search starts above the old list offset. Do not scroll on each candidate update.
+                .onChange(of: isShowingSearchResults) { _, showing in
+                    if showing { proxy.scrollTo(Self.searchResultsAnchor, anchor: .top) }
                 }
                 .onChange(of: model.destination) { _, destination in
                     guard destination != nil else { return }
@@ -225,6 +234,7 @@ struct ContentView: View {
         // keeps the map in view and starts with the summary; large holds the full list, search and details.
         .presentationDetents([.medium, .large], selection: $sheetDetent)
         .presentationDragIndicator(.visible)
+        .modifier(NearbySheetSurface())
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .interactiveDismissDisabled()
         .onChange(of: path) { _, newPath in
@@ -495,20 +505,23 @@ struct ContentView: View {
             if model.destination != nil {
                 Text("Straight-line distances and bearings below are from the selected destination, not your device location.")
                     .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .id(Self.destinationListAnchor)
                 Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("refreshDestination")
                 switch model.routeState {
                 case .idle: EmptyView()
-                case .loading: Label("Checking walking detours. Saved places remain available below.", systemImage: "figure.walk")
-                case .ready: Text("Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.")
+                case .loading: compactStatus("Checking walking detours. Saved places remain available below.", symbol: "figure.walk")
+                case .ready: compactStatus("Routed places rank by added walking time. Other nearby places use straight-line distance and may be off your route.", symbol: "info.circle")
                 case .unavailable:
                     Label { Text(verbatim: model.routeUnavailableDescription) }
                     icon: { Image(systemName: "wifi.exclamationmark") }
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 case .destinationTooFar:
-                    Label("This destination is too far from your location for walking detours. Showing straight-line distance and bearing.",
-                          systemImage: "ruler")
+                    compactStatus("This destination is too far from your location for walking detours. Showing straight-line distance and bearing.",
+                                  symbol: "exclamationmark.triangle", important: true)
                 case .noPlaces: EmptyView()
                 }
             }
@@ -581,32 +594,21 @@ struct ContentView: View {
 
     private var searchResultsSection: some View {
         Section {
-            if model.searchingDestination { ProgressView("Searching destinations…") }
-            if model.destinationSearchFailed {
-                Text("Destination search unavailable. Saved nearby places remain available.")
+            if model.searchingDestination {
+                ProgressView("Searching destinations…")
+                    .controlSize(.small)
                     .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if model.destinationSearchFailed {
+                compactStatus("Destination search unavailable. Saved nearby places remain available.", symbol: "wifi.exclamationmark", important: true)
             }
             ForEach(model.destinationMatches) { match in
-                Button {
+                DestinationSuggestionRow(match: match) {
                     destinationQuery = match.name
                     searchFocused = false
                     selectDestination(match)
-                } label: {
-                    HStack {
-                        Image(systemName: "mappin")
-                        VStack(alignment: .leading) {
-                            Text(match.name)
-                            if let subtitle = match.subtitle, subtitle != match.name {
-                                Text(subtitle).font(.footnote).foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                    }
-                    // The whole row selects, not only its text: a plain button's Spacer takes no taps.
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("destinationMatch")
             }
         } header: {
             Text("Walking destination")
@@ -648,20 +650,28 @@ struct ContentView: View {
                         ? "Updating nearby places; distances use the previous device location…"
                         : "Updating destination places; distances use the selected destination…",
                   systemImage: "internaldrive")
+                .font(.footnote).foregroundStyle(.secondary)
         case .refreshing:
-            Label("Showing saved places; refreshing…", systemImage: "arrow.clockwise")
+            compactStatus("Showing saved places; refreshing…", symbol: "arrow.clockwise")
         case .refreshed:
-            Text("Nearby data refreshed.")
+            compactStatus("Nearby data refreshed.", symbol: "checkmark.circle")
         case .refreshFailed:
             // The empty state below already explains a failure with nothing saved.
             if !model.results.isEmpty || model.hasUnfilteredResults {
-                Text("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
+                compactStatus("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.", symbol: "wifi.exclamationmark", important: true)
             }
         case .cacheOnly:
-            Text("Showing saved nearby data. Live updates are unavailable.")
+            compactStatus("Showing saved nearby data. Live updates are unavailable.", symbol: "info.circle")
         case .cacheUnavailable:
-            Text("Saved nearby data is unavailable on this device.")
+            compactStatus("Saved nearby data is unavailable on this device.", symbol: "externaldrive.badge.exclamationmark", important: true)
         }
+    }
+
+    private func compactStatus(_ title: LocalizedStringKey, symbol: String, important: Bool = false) -> some View {
+        Label(title, systemImage: symbol)
+            .font(.footnote)
+            .foregroundStyle(important ? Color.primary : Color.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder
@@ -756,9 +766,12 @@ private struct NearbySpotRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(SpotPresentation.name(result.spot))
                     .font(.headline)
-                Text(typeLine)
                 Text("\(SpotPresentation.distance(result)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
                     .fontWeight(.medium)
+                    .monospacedDigit()
+                Text(typeLine)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 if let note = SpotPresentation.approximateLocationNote(result.spot) {
                     Label(note, systemImage: "mappin.and.ellipse").foregroundStyle(.secondary)
                 }
@@ -771,6 +784,7 @@ private struct NearbySpotRow: View {
                 }
                 Label("\(SpotPresentation.evidence(result.spot)) · \(SpotPresentation.confirmation(result))",
                       systemImage: SpotPresentation.existenceSymbol(result.spot.verification.existenceTier))
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
@@ -886,5 +900,54 @@ private struct SelectedSpotSummary: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("selectedSpotSummary")
+    }
+}
+
+/// Let modern sheets own their Liquid Glass; legacy sheets use a standard system Material.
+/// Rows are transparent content, not glass cards. Reduced transparency always has a solid semantic surface.
+private struct NearbySheetSurface: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content.presentationBackground(Color(.systemBackground))
+        } else if #available(iOS 26, *) {
+            content
+        } else {
+            content.presentationBackground(.regularMaterial)
+        }
+    }
+}
+
+/// Reads the system search environment inside searchable content, so selection actually dismisses its keyboard.
+private struct DestinationSuggestionRow: View {
+    @Environment(\.dismissSearch) private var dismissSearch
+    let match: PlaceDestination
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button {
+            dismissSearch()
+            onSelect()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "mappin")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(match.name).font(.headline)
+                    if let subtitle = match.subtitle, subtitle != match.name {
+                        Text(subtitle).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+            }
+            .frame(minHeight: 44, alignment: .leading)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("destinationMatch")
     }
 }
