@@ -52,7 +52,7 @@ Status legend:
 | Field | Enter | Status |
 | --- | --- | --- |
 | Promotional text (optional) | `喫煙可能場所の位置、利用条件、情報源を確認。周囲の掲示や施設のルールを優先し、案内情報を参考にしてください。` | CONFIRMED |
-| Description | block below (526 characters; limit 4,000) | CONFIRMED |
+| Description | block below (length checked by `scripts/test-store-copy.py`; limit 4,000). The covered-area sentence must match the production inventory at submission ([release gate](V1_APP_STORE_RELEASE_GATE.md) G8) | CONFIRMED wording; area list re-check at submission |
 | Keywords | `喫煙所,灰皿設置,指定場所,利用条件,徒歩案内,位置情報` (74 bytes; limit 100) | CONFIRMED |
 | Support URL | `https://kounishiyuuki.github.io/MannerPath/support/` | CONFIRMED (live, #177/#179) |
 | Marketing URL | leave blank | CONFIRMED |
@@ -76,7 +76,7 @@ MannerPathは、喫煙が認められている場所の位置や利用条件を�
 ・Apple Watchで近くの場所や距離・方向を確認
 ・ウィジェットから保存済みの近くの場所情報を参照
 
-掲載範囲は地域によって異なります。情報がない地域では、その状態を表示します。営業時間や利用条件が不明な場合は、不明として表示します。施設内の目安位置は、正確な喫煙場所の位置と区別します。
+現在の掲載地域は、東京都の一部（台東区、港区、江東区、武蔵野市）、大阪市、京都市です。各地域でも、公的機関が公開し利用条件を確認できた場所のみを掲載しており、すべての喫煙場所を網羅するものではありません。掲載地域外では場所は表示されず、掲載がないことを表示します。営業時間や利用条件が不明な場合は、不明として表示します。施設内の目安位置は、正確な喫煙場所の位置と区別します。
 
 掲載情報だけで、その時点の喫煙可否を保証するものではありません。現地の掲示、施設のルール、自治体の規則を優先してください。日本では20歳未満の方は喫煙できません。法令上喫煙が認められている方を対象としています。
 
@@ -120,7 +120,7 @@ Location permission is When In Use. MannerPath uses the device location for near
 
 Reports, report device registration and photo uploads are unavailable in this initial version. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
 
-Coverage depends on published open data and varies by area; areas without published places show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results from outside Japan, search for “浅草駅 東京” in destination search and select the result, then open a published place's details and sources. This displays the selected destination's area, not your current location. Walking routes may be unavailable far from the destination; straight-line distance and bearing remain available. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
+Coverage depends on published open data. In version 1.0, places are published only for parts of Tokyo (Taito, Minato, Koto and Musashino), Osaka City and Kyoto City; other areas show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results from outside Japan, search for “浅草駅 東京” in destination search and select the result, then open a published place's details and sources. This displays the selected destination's area, not your current location. Walking routes may be unavailable far from the destination; straight-line distance and bearing remain available. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
 ```
 
 Reviewer steps (draft, not final approved Review Notes; Release simulator J/K/L and source-rights UI confirmed

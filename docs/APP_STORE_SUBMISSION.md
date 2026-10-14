@@ -354,28 +354,10 @@ Description ≤4,000 characters, promotional text ≤170, keywords ≤100 UTF-8 
 | Screenshots / review contact / notes | §9 / §8 / §7 |
 | License agreement / terms | Apple standard EULA recommended for first read-only release; custom EULA only if approved |
 
-Description draft (plain text):
+Description: the single canonical text is in [APP_STORE_CONNECT_ENTRY.md §3](APP_STORE_CONNECT_ENTRY.md#3-version-10-page-asc--ios-app--10)
+(duplicate removed 2026-10-15; v1.0 names its limited covered areas, see [release gate](V1_APP_STORE_RELEASE_GATE.md)).
 
-```text
-MannerPathは、喫煙が認められている場所の位置や利用条件を確認するための案内アプリです。たばこの販売・購入案内や広告は行いません。
-
-・近くの喫煙可能場所を地図と一覧で確認
-・利用条件、情報源、確認状況、位置の精度を確認
-・徒歩経路を確認し、Appleのマップへ案内を引き継ぎ
-・保存済みの場所情報は通信できないときも参照可能
-・Apple Watchで近くの場所や距離・方向を確認
-・ウィジェットから保存済みの近くの場所情報を参照
-
-掲載範囲は地域によって異なります。情報がない地域では、その状態を表示します。営業時間や利用条件が不明な場合は、不明として表示します。施設内の目安位置は、正確な喫煙場所の位置と区別します。
-
-掲載情報だけで、その時点の喫煙可否を保証するものではありません。現地の掲示、施設のルール、自治体の規則を優先してください。日本では20歳未満の方は喫煙できません。法令上喫煙が認められている方を対象としています。
-
-アカウント登録は不要です。端末の現在地は近くの場所の順位や距離・方向の計算に使用します。オフラインでの徒歩経路案内には対応していません。
-
-この初回バージョンでは、場所の報告と写真の送信は利用できません。
-```
-
-No nationwide completeness promise, “open now” guarantee, exact-pin guarantee, tobacco shopping,
+No nationwide or complete-coverage promise (v1.0 ships with limited covered areas), “open now” guarantee, exact-pin guarantee, tobacco shopping,
 “喫煙を楽しもう”, rewards or consumption encouragement. Philosophy: [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md).
 Do not claim all location processing is on-device: MapKit routes and system Maps need separate explanation.
 
