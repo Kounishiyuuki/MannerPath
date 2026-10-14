@@ -140,17 +140,21 @@ any hidden reviewer feature (§7).
 
 ## 6. Screenshots
 
-Use final-build UI only, Japanese localization, no synthetic place data. Current Apple dimensions: §9.
+Use final-build UI only, Japanese localization, no synthetic place data. Current Apple dimensions:
+[submission §9](APP_STORE_SUBMISSION.md#9-screenshots-checklist) and the
+[Lane 4 production-data/capture runbook](release/V1_DATA_AND_STORE_ASSETS.md).
 
 | Set | Size to upload | Required? | Status |
 | --- | --- | --- | --- |
-| iPhone 6.9" | 1320 × 2868 portrait (iPhone 17 Pro Max class) | Yes | Production Release capture path CONFIRMED (#191/#193); final selected screenshots/localization/size/maintainer approval still required |
+| iPhone Dynamic Island medium | 1206 × 2622 or 1179 × 2556 portrait | Current required set; confirm Media Manager well/scaling | Final native RC capture pending; [Lane 4 runbook](release/V1_DATA_AND_STORE_ASSETS.md) |
+| iPhone Dynamic Island large (historical 6.9-inch) | 1320 × 2868 portrait; alternatives 1260 × 2736, 1290 × 2796 | Optional larger set; validate required-well scaling at upload | Production Release rehearsal exists; final selected RC captures/approval pending |
 | Apple Watch | 416 × 496 (Series 10/11 46mm class), one size for all localizations | Yes for the Watch app | Final production-data captures and signed paired-device verification required; #176/#193 fixture simulator captures are not store assets. Destination corpus is not propagated to Watch |
 
 v1 screenshot sets are **iPhone + Apple Watch only**: the app is iPhone-only, so no iPad set is required.
 
-Suggested 5-shot iPhone sequence: nearby map + list; place detail with sources/evidence; walking
-route preview / Maps handoff; approximate-location or filter state; Data & Privacy. Watch: nearby list; place
+Suggested 5-shot iPhone sequence: covered-area map; destination search; destination-relative list/distance;
+place detail with official evidence; in-app Apple Maps handoff. No approximate example is manufactured: the
+2026-10-15 observed six-source corpus has zero areaApproximate spots. See the Lane 4 runbook for privacy checks. Watch: nearby list; place
 detail with distance/direction. Exclude brands, smoking imagery, purchase cues and coverage/permission guarantees.
 
 ## 7. Waiting / blocked items

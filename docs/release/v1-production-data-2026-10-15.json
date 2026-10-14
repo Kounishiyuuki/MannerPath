@@ -1,0 +1,1691 @@
+{
+  "schemaVersion": 1,
+  "origin": "https://mannerpath-api-production.happywestyuki.workers.dev",
+  "startedAt": "2026-10-14T16:42:39.935Z",
+  "observedAt": "2026-10-14T16:43:51.168Z",
+  "scope": "Explicit bounded tile footprint; no global inventory endpoint. Does not prove absence of other published tiles.",
+  "queriedTiles": [
+    "14/14354/6509",
+    "14/14355/6505",
+    "14/14355/6508",
+    "14/14355/6510",
+    "14/14356/6504",
+    "14/14356/6505",
+    "14/14356/6506",
+    "14/14356/6507",
+    "14/14356/6508",
+    "14/14357/6504",
+    "14/14357/6505",
+    "14/14357/6506",
+    "14/14357/6507",
+    "14/14357/6508",
+    "14/14357/6509",
+    "14/14357/6510",
+    "14/14357/6511",
+    "14/14358/6503",
+    "14/14358/6504",
+    "14/14358/6505",
+    "14/14358/6506",
+    "14/14358/6507",
+    "14/14358/6508",
+    "14/14358/6509",
+    "14/14358/6510",
+    "14/14358/6511",
+    "14/14358/6512",
+    "14/14359/6503",
+    "14/14359/6504",
+    "14/14359/6505",
+    "14/14359/6506",
+    "14/14359/6507",
+    "14/14359/6508",
+    "14/14359/6509",
+    "14/14359/6510",
+    "14/14359/6511",
+    "14/14360/6503",
+    "14/14360/6504",
+    "14/14360/6505",
+    "14/14360/6506",
+    "14/14360/6507",
+    "14/14360/6508",
+    "14/14360/6509",
+    "14/14360/6510",
+    "14/14360/6511",
+    "14/14361/6504",
+    "14/14361/6505",
+    "14/14361/6506",
+    "14/14361/6507",
+    "14/14361/6508",
+    "14/14361/6509",
+    "14/14361/6510",
+    "14/14361/6511",
+    "14/14362/6505",
+    "14/14362/6511",
+    "14/14368/6491",
+    "14/14370/6489",
+    "14/14370/6490",
+    "14/14370/6493",
+    "14/14371/6489",
+    "14/14373/6490",
+    "14/14542/6450",
+    "14/14543/6450",
+    "14/14544/6450",
+    "14/14550/6452",
+    "14/14551/6451",
+    "14/14551/6452",
+    "14/14551/6453",
+    "14/14551/6454",
+    "14/14552/6449",
+    "14/14552/6452",
+    "14/14552/6453",
+    "14/14552/6454",
+    "14/14553/6449",
+    "14/14553/6450",
+    "14/14553/6454",
+    "14/14554/6449",
+    "14/14554/6450",
+    "14/14554/6453",
+    "14/14555/6452",
+    "14/14555/6453"
+  ],
+  "readiness": {
+    "schemaVersion": 1,
+    "completed": true,
+    "state": "completed"
+  },
+  "schemaVersions": {
+    "tile": 2,
+    "spotDetail": 1,
+    "report": 2
+  },
+  "minimumSupportedSchemaVersions": {
+    "tile": 1,
+    "spotDetail": 1,
+    "report": 2
+  },
+  "reportsAvailable": false,
+  "photoEvidenceEnabled": false,
+  "counts": {
+    "tiles": 81,
+    "spots": 513,
+    "sources": 6,
+    "areaApproximate": 0,
+    "accessUnknown": 513,
+    "hoursUnknown": 493,
+    "verifiedDateUnknown": 464
+  },
+  "sourceCounts": {
+    "osaka-designated-smoking-areas": 344,
+    "kyoto-public-smoking-places": 17,
+    "musashino-public-smoking-areas": 3,
+    "minato-designated-smoking-areas": 114,
+    "taito-public-smoking-areas": 32,
+    "koto-station-smoking-areas": 3
+  },
+  "sourceStats": [
+    {
+      "sourceId": "osaka-designated-smoking-areas",
+      "spots": 344,
+      "areaApproximate": 0,
+      "accessUnknown": 344,
+      "hoursUnknown": 344,
+      "lastVerifiedDates": [
+        null
+      ]
+    },
+    {
+      "sourceId": "kyoto-public-smoking-places",
+      "spots": 17,
+      "areaApproximate": 0,
+      "accessUnknown": 17,
+      "hoursUnknown": 17,
+      "lastVerifiedDates": [
+        "2026-09-03"
+      ]
+    },
+    {
+      "sourceId": "musashino-public-smoking-areas",
+      "spots": 3,
+      "areaApproximate": 0,
+      "accessUnknown": 3,
+      "hoursUnknown": 3,
+      "lastVerifiedDates": [
+        null
+      ]
+    },
+    {
+      "sourceId": "minato-designated-smoking-areas",
+      "spots": 114,
+      "areaApproximate": 0,
+      "accessUnknown": 114,
+      "hoursUnknown": 114,
+      "lastVerifiedDates": [
+        null
+      ]
+    },
+    {
+      "sourceId": "taito-public-smoking-areas",
+      "spots": 32,
+      "areaApproximate": 0,
+      "accessUnknown": 32,
+      "hoursUnknown": 12,
+      "lastVerifiedDates": [
+        "2026-08-18"
+      ]
+    },
+    {
+      "sourceId": "koto-station-smoking-areas",
+      "spots": 3,
+      "areaApproximate": 0,
+      "accessUnknown": 3,
+      "hoursUnknown": 3,
+      "lastVerifiedDates": [
+        null
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "osaka-designated-smoking-areas",
+      "displayName": "大阪市指定喫煙所（マップナビおおさか）",
+      "licenseName": "CC BY 2.1 JP",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.1/jp/",
+      "attributionText": "出典：大阪市「マップナビおおさか 施設情報ポイントデータ（環境・リサイクル）」 https://www.city.osaka.lg.jp/toshikeikaku/page/0000250227.html 元データ https://www.mapnavi.city.osaka.lg.jp/osakacity/osakacity/opendatafile/map_1/CSV/opendata_1012.csv CC BY 2.1 JP https://creativecommons.org/licenses/by/2.1/jp/ 本ページに掲載しているデータの使用で生じた結果等については、大阪市は一切の責任を負いません。MannerPathが大阪市指定喫煙所を抽出・正規化して作成。"
+    },
+    {
+      "id": "kyoto-public-smoking-places",
+      "displayName": "京都市 公設喫煙場所（施設情報一覧）",
+      "licenseName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+      "attributionText": "出典：京都市オープンデータ「京都市等の施設に関する情報（一覧表）」施設情報一覧（令和８年９月３日現在） https://data.city.kyoto.lg.jp/dataset/00003/ 著作権者 京都市 クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/legalcode.ja MannerPathが喫煙場所カテゴリを抽出・正規化して作成。京都市は本データの利用により生じた結果について責任を負いません。"
+    },
+    {
+      "id": "musashino-public-smoking-areas",
+      "displayName": "武蔵野市 公衆喫煙所（地域生活環境指標）",
+      "licenseName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "出典：武蔵野市「4(2)トイレおよび路上禁煙エリア・公衆喫煙所 令和4年版地域生活環境指標」 https://www.city.musashino.lg.jp/shiseijoho/tokeishiryo/chiikiseikatsu_kankyoshihyo/1040384/1040390.html 元データ https://www.city.musashino.lg.jp/_res/common/opendata_kikaku/toilet.zip CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが公衆喫煙所のKML Pointを抽出・正規化して作成。武蔵野市による推奨・保証を意味しません。"
+    },
+    {
+      "id": "minato-designated-smoking-areas",
+      "displayName": "港区 指定喫煙場所（施設情報）",
+      "licenseName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "出典：港区オープンデータカタログサイト「複合施設・男女平等参画施設・その他の施設」 https://opendata.city.minato.tokyo.jp/dataset/minatokushisetsujoho_fukugo 元データ https://opendata.city.minato.tokyo.jp/dataset/c02688a0-2e85-4637-aa36-edb37b3d010b/resource/02705cbf-d01a-4f32-98c1-05329a11d316/download/minatokushisetsujoho_fukugo.csv （2026年9月30日に利用） CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ MannerPathが指定喫煙場所を抽出・正規化して作成。"
+    },
+    {
+      "id": "taito-public-smoking-areas",
+      "displayName": "台東区 公衆喫煙所",
+      "licenseName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+      "attributionText": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+    },
+    {
+      "id": "koto-station-smoking-areas",
+      "displayName": "江東区 公共喫煙所一覧（駅前）",
+      "licenseName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "このデータベースは、以下の著作物を改変して利用しています。公共喫煙所一覧（駅前）、東京都・江東区、クリエイティブ・コモンズ・ライセンス 表示4.0国際 https://creativecommons.org/licenses/by/4.0/ 元データ https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv MannerPathが抽出・正規化して作成。コンテンツ提供者は内容を保証せず、利用により生じた損害について責任を負いません。利用規約 https://portal.data.metro.tokyo.lg.jp/terms/"
+    }
+  ],
+  "tiles": [
+    {
+      "tile": "14/14354/6509",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "0a3af3d7841784e969b1943ffbd624d862bdd16fb856b79a909ca37c34e6634a",
+      "etag": "W/\"2-0a3af3d7841784e969b1943ffbd624d862bdd16fb856b79a909ca37c34e6634a\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "208b0fec0e88f894296b47203880fb8a32c53fad15bdc2b8172fc4291fa88d88"
+        }
+      ]
+    },
+    {
+      "tile": "14/14355/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "37a5ae8515e47cc54e0a5da51213a0678a71957f4c204b1b33c46e7fd2ddac28",
+      "etag": "W/\"2-37a5ae8515e47cc54e0a5da51213a0678a71957f4c204b1b33c46e7fd2ddac28\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "077c967381c23325b2782140d16488c33db4d505cb735ddf5009e4da30ce17ba"
+        }
+      ]
+    },
+    {
+      "tile": "14/14355/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "5d5c42d0d1c1aed800bc843c774fd28f63c712be27eb55ab3635b266e3ffad7a",
+      "etag": "W/\"2-5d5c42d0d1c1aed800bc843c774fd28f63c712be27eb55ab3635b266e3ffad7a\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "41bf69c8406aa4937410b74ec618837839f8eadcf7bc785f0bf36f32e2a05c1e"
+        }
+      ]
+    },
+    {
+      "tile": "14/14355/6510",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "d15c640f07fb226c3b495a2c0eca7f0337ebd291e762d7038c6da2fb35e8af4c",
+      "etag": "W/\"2-d15c640f07fb226c3b495a2c0eca7f0337ebd291e762d7038c6da2fb35e8af4c\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "93807060994fe9ecea3e64a983860fc50d0ba96444be1c59abac6140e9aa8d78"
+        }
+      ]
+    },
+    {
+      "tile": "14/14356/6504",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 3,
+      "manifestSha256": "a6ebd9d2ec14a3a4ac080c793da71743ff6c9de26ea4a27a04e03f605cea54a7",
+      "etag": "W/\"2-a6ebd9d2ec14a3a4ac080c793da71743ff6c9de26ea4a27a04e03f605cea54a7\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 3,
+          "sha256": "09802e5993392d0ef3e2c3185dcc2cc2c3c2813379fa069267760071d471c806"
+        }
+      ]
+    },
+    {
+      "tile": "14/14356/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "888b14c14e6fd369bd9ac143a0743ade9ed26a71df4e030926064601bc62665c",
+      "etag": "W/\"2-888b14c14e6fd369bd9ac143a0743ade9ed26a71df4e030926064601bc62665c\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "68cea1daf4b84a1a9642352ca2f106134abe4be6319304f81a832ef2a4d5eeb5"
+        }
+      ]
+    },
+    {
+      "tile": "14/14356/6506",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "1e36103f04392856223979117cec452b7dfd0b4e597428c2dd862cdc2090b9a5",
+      "etag": "W/\"2-1e36103f04392856223979117cec452b7dfd0b4e597428c2dd862cdc2090b9a5\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "0021afb290678d51400ed75c474a9cc8bacf1eaa34e2278065b15d8a484e0e51"
+        }
+      ]
+    },
+    {
+      "tile": "14/14356/6507",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "0f7d38191ec32bb4e7141ce6c765c8e081d2e97a05b0a9429aef6dfd415e3407",
+      "etag": "W/\"2-0f7d38191ec32bb4e7141ce6c765c8e081d2e97a05b0a9429aef6dfd415e3407\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "8586c9ec1ec312aa9f503f1de1f81fa60a2b0495256c1b9874187f08552e0150"
+        }
+      ]
+    },
+    {
+      "tile": "14/14356/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "ee2ac146880cd32d9c1026e7909f962a970f341a39d13eb5dffe6d17f7624834",
+      "etag": "W/\"2-ee2ac146880cd32d9c1026e7909f962a970f341a39d13eb5dffe6d17f7624834\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "1a1afb7426a625ea4f7cbd897a8eb0aa7500109126a2dcdeca5c408de46cd38d"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6504",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "ce29d88e080577382c262ce97c2a0301ac2af4b3e8e4fd844a471eaadef853c3",
+      "etag": "W/\"2-ce29d88e080577382c262ce97c2a0301ac2af4b3e8e4fd844a471eaadef853c3\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "a26136bedc71bda9a979dd52fde0cfb22c81d53e26f683653f0a0a9c69808aa1"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "c2539590591734197e38acdc20154668833813354cc30ed0eb1cd8ab43aa6583",
+      "etag": "W/\"2-c2539590591734197e38acdc20154668833813354cc30ed0eb1cd8ab43aa6583\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "d71a1e469052a4c3cd369ddc83a14b515a40690f5911aa68dd676b3d02e4e020"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6506",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 7,
+      "manifestSha256": "a4dd15f8ff21210b4d4fd5b863a468d9bb6efa79de988324e8e78bc3215d5743",
+      "etag": "W/\"2-a4dd15f8ff21210b4d4fd5b863a468d9bb6efa79de988324e8e78bc3215d5743\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 7,
+          "sha256": "60340850f0f70f038032f6c47bc6a86f235f10eb7e1e26c708abaa2b7a4843fd"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6507",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 3,
+      "manifestSha256": "3f9ba8cc2f53926da3669a963d64c55c3aeb1a1ab9bd5b4f74b514f93a50f3d1",
+      "etag": "W/\"2-3f9ba8cc2f53926da3669a963d64c55c3aeb1a1ab9bd5b4f74b514f93a50f3d1\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 3,
+          "sha256": "4f47debccfb7c0ccd6e7cb7c90a0054f81acd7fb2674634cc70c895f13f7c274"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 3,
+      "manifestSha256": "5d582546bc89801d9f2640a20a1012ccda0dabd7800f5ed69db05da5c8f11bf6",
+      "etag": "W/\"2-5d582546bc89801d9f2640a20a1012ccda0dabd7800f5ed69db05da5c8f11bf6\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 3,
+          "sha256": "e414e4dcb4709029120b1ade9eda20920820b6f35bd22c8a314c4e77a327c3c7"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6509",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "71a01316a6665a0784818e4b158b24284df2444cb63e5c625d2774ba36cab7de",
+      "etag": "W/\"2-71a01316a6665a0784818e4b158b24284df2444cb63e5c625d2774ba36cab7de\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "d6178e732b05b7971073f5fb47c584b3a0ae9f69f76c49d2270ef99a0f492a41"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6510",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 7,
+      "manifestSha256": "bdb696c7c04516891d5a1e834eedea636776de3d8a3bb85f10e9ea1c4ea3e247",
+      "etag": "W/\"2-bdb696c7c04516891d5a1e834eedea636776de3d8a3bb85f10e9ea1c4ea3e247\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 7,
+          "sha256": "21ea7cc5a9d23270ccec5e47b525851d8d927f36092578b3bbe612f785cdb375"
+        }
+      ]
+    },
+    {
+      "tile": "14/14357/6511",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "e44685ab9c59736073891359bfaf9a6a6f8f0728d093c2eddb4af3891a5b5b4b",
+      "etag": "W/\"2-e44685ab9c59736073891359bfaf9a6a6f8f0728d093c2eddb4af3891a5b5b4b\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "e7de6290f27d74f1511dc0ffa129683b9f76d9cdcf1b6fa0e5fff7633d1e0e1d"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6503",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "4e65339609ee724de9c85667010becbcbc24f4e212a88af6da5f4746dc56498f",
+      "etag": "W/\"2-4e65339609ee724de9c85667010becbcbc24f4e212a88af6da5f4746dc56498f\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "35bf016514048d9a34d761134bc99f7032dbc699c1a0db8b616041a9c3ecc29a"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6504",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 10,
+      "manifestSha256": "01a61b15698bfd63487b60b3058dd4d74ecf53dceeaddddb584134cc64a88fc3",
+      "etag": "W/\"2-01a61b15698bfd63487b60b3058dd4d74ecf53dceeaddddb584134cc64a88fc3\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 10,
+          "sha256": "1421c1a211ea9c1e75fa02dfe72761a1d57f9375db5181a3fe94bac763c016f7"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "ce01623f93c2e3d740b531a53b6182f725eb07125f2affdd7415aa15ffb74f72",
+      "etag": "W/\"2-ce01623f93c2e3d740b531a53b6182f725eb07125f2affdd7415aa15ffb74f72\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "05335267e040bfe01107ad624b165aa7fa626bd97865644f2fbeab12f87679dd"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6506",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 28,
+      "manifestSha256": "13129372130e7e2c04c010aeace87aba11fd6d1a6bc296d0aed675af2f078e33",
+      "etag": "W/\"2-13129372130e7e2c04c010aeace87aba11fd6d1a6bc296d0aed675af2f078e33\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 28,
+          "sha256": "31b13fa6d359158b8addaf52f766a85c739363b74885e1c711908a7f22b17d53"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6507",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 18,
+      "manifestSha256": "eb9bfff2c5ca0891a07faa80519be7f403632e93ed15c68cfc55955ac1604a84",
+      "etag": "W/\"2-eb9bfff2c5ca0891a07faa80519be7f403632e93ed15c68cfc55955ac1604a84\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 18,
+          "sha256": "c258c307833ac291735a7503d8b545b11b59b2f1a5100c481d228e129a508859"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 42,
+      "manifestSha256": "fd26483219462c4392eb8e18c5e34a592b1475547da6b344eeced8f98e80b597",
+      "etag": "W/\"2-fd26483219462c4392eb8e18c5e34a592b1475547da6b344eeced8f98e80b597\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 42,
+          "sha256": "135ce80136887ea1b4325589f1bfd5ccb708d7fcf48c8e7c26b8a42f2ec00ae5"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6509",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 10,
+      "manifestSha256": "0c5868383d065524c491b8938c97c969edf62e19de7e793ded940b1d3992b5c1",
+      "etag": "W/\"2-0c5868383d065524c491b8938c97c969edf62e19de7e793ded940b1d3992b5c1\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 10,
+          "sha256": "f23066c58a006640c9e75ed024aa25547fd9b6a68df0aa1dc0f84000c410914a"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6510",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 8,
+      "manifestSha256": "613bbcda704f5e948b69c9e709c358abce306ca7bc7a6a403cb22d2406528b57",
+      "etag": "W/\"2-613bbcda704f5e948b69c9e709c358abce306ca7bc7a6a403cb22d2406528b57\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 8,
+          "sha256": "bcdb7507ced830499a1ab0ec7e245a2e7bcbeaf34a592c39856fcae0a8969c04"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6511",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 5,
+      "manifestSha256": "3050d092836c6d87c002a8b8e1da41c025b8d09343197de0f0a892b48a3a5eb5",
+      "etag": "W/\"2-3050d092836c6d87c002a8b8e1da41c025b8d09343197de0f0a892b48a3a5eb5\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 5,
+          "sha256": "e296d466ff0cff189c5183c943c12d368cc2b750f2d55cedd499f2e0ae53a26d"
+        }
+      ]
+    },
+    {
+      "tile": "14/14358/6512",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "34c3adcca82fcabfb5f6becf8aebc38a9e5e8c41d3e2f59c72c18afbff48869f",
+      "etag": "W/\"2-34c3adcca82fcabfb5f6becf8aebc38a9e5e8c41d3e2f59c72c18afbff48869f\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "bf087f02e8e825469e75c1bbc2100080b5e87c7f7b01a40b7314c21bab8b39c5"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6503",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "ef2e61239f8860bd0a1cab2089a412d326ea238e91c485adac1f11b220c9e3ca",
+      "etag": "W/\"2-ef2e61239f8860bd0a1cab2089a412d326ea238e91c485adac1f11b220c9e3ca\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "452b71df951b7afac8c6907fa7212dca0fcb36627bda0cb6b44a2fc030dac856"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6504",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 3,
+      "manifestSha256": "157c83a9ca302fc791c5431fe5bfff5d198fd2c91f964bf170211972327b0918",
+      "etag": "W/\"2-157c83a9ca302fc791c5431fe5bfff5d198fd2c91f964bf170211972327b0918\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 3,
+          "sha256": "4822fea067a631503f4de1391056a343b22ca25b075edc2cbd98a1da83c607b6"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 5,
+      "manifestSha256": "c12f6d7fdba66b7c4b6f2e72ac7a13e0716cdf4a5fbd6c65ec117d41f310a1ef",
+      "etag": "W/\"2-c12f6d7fdba66b7c4b6f2e72ac7a13e0716cdf4a5fbd6c65ec117d41f310a1ef\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 5,
+          "sha256": "67214ed522d6be7574ab9dd24be292ae9f0ea6f8e115b2af34cbc60d0f41b74a"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6506",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 10,
+      "manifestSha256": "c21dcd4f0100f5d15c220d45fa4afff9e6007ed7218941c57c42713b92a8026e",
+      "etag": "W/\"2-c21dcd4f0100f5d15c220d45fa4afff9e6007ed7218941c57c42713b92a8026e\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 10,
+          "sha256": "9d295a28351c3138921514dfab5d371cf8ebc08c9b0b0d1e3c3f5a8d212de39e"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6507",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 8,
+      "manifestSha256": "214fad051a99bdf506bec3c398078f5b36a94edc5b3674fbd4836b1ca942c1b4",
+      "etag": "W/\"2-214fad051a99bdf506bec3c398078f5b36a94edc5b3674fbd4836b1ca942c1b4\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 8,
+          "sha256": "eed7b2b3347d5686aeb65fadf8d44e91084d2a9f3c84cc572874711e6048e40a"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 8,
+      "manifestSha256": "4063f7a6dcab29e537309e435ebacb986552a4a8acc009be0a0de6a2b56ac5d2",
+      "etag": "W/\"2-4063f7a6dcab29e537309e435ebacb986552a4a8acc009be0a0de6a2b56ac5d2\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 8,
+          "sha256": "54e7247233544e6431a3eadf96c257757404878dd05f25e68eadd635b4a5e72f"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6509",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 20,
+      "manifestSha256": "9d7e4d4f772e92b4a18e57f4e8a936cab95ad303d379b4ff550f223c62adb155",
+      "etag": "W/\"2-9d7e4d4f772e92b4a18e57f4e8a936cab95ad303d379b4ff550f223c62adb155\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 20,
+          "sha256": "0abf8ae4f95cc8bc0438f891586b723def32bcb865fbafdaef95c198b29d7d48"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6510",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "f1ac01950543e0049dda51257292f58a7af0193fe913bfe67ad4e60a5ea99aab",
+      "etag": "W/\"2-f1ac01950543e0049dda51257292f58a7af0193fe913bfe67ad4e60a5ea99aab\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "726d37c0a4de76487363d4989e5898e362d77bbabe99b50d8617a9d3bf437769"
+        }
+      ]
+    },
+    {
+      "tile": "14/14359/6511",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 17,
+      "manifestSha256": "3dd6095e63842d106208811b15ab25554d4cee6f639a99a9edea86a21821e21e",
+      "etag": "W/\"2-3dd6095e63842d106208811b15ab25554d4cee6f639a99a9edea86a21821e21e\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 17,
+          "sha256": "101258d61ab854e13729f22737c40ba81a74b039e5ac35d9e54d62b47493cbc9"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6503",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "95dd6f39663b159c984b727cd3f58d2a9fc31c3b1766f0ca31a2588947b7f3a3",
+      "etag": "W/\"2-95dd6f39663b159c984b727cd3f58d2a9fc31c3b1766f0ca31a2588947b7f3a3\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "cd66b4b983d3c723b1dde9648c29757cb4a1750ce7cf6df74d82fac4471e890c"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6504",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 3,
+      "manifestSha256": "225dffcca40f21e56663b6f245b3a552cafbee3ff66bcb5500339238fc868182",
+      "etag": "W/\"2-225dffcca40f21e56663b6f245b3a552cafbee3ff66bcb5500339238fc868182\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 3,
+          "sha256": "3c680e556e2ccc067ed186240a93a0004968c574561199288a7da8e192dcdbe9"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 7,
+      "manifestSha256": "96a2f293bb74b10d9d79fa0837f14b76b704ce764125121e56356e0df233a242",
+      "etag": "W/\"2-96a2f293bb74b10d9d79fa0837f14b76b704ce764125121e56356e0df233a242\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 7,
+          "sha256": "9970a6ab59923a5b1eb8be5d5a585c741982350871582c9319122498b4621655"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6506",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 11,
+      "manifestSha256": "e4a937376cc3b87102ad7be4c06f2e999113836e70798037bbdd107dfa92908a",
+      "etag": "W/\"2-e4a937376cc3b87102ad7be4c06f2e999113836e70798037bbdd107dfa92908a\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 11,
+          "sha256": "6dd4ca396625851e037059c365bd42bc037b22cd703a4fd70c0b8d09f4a8c5fc"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6507",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 11,
+      "manifestSha256": "73bd390331fd276532262f4d58ded02a3258b9c44195bb10532530dac4d2b26a",
+      "etag": "W/\"2-73bd390331fd276532262f4d58ded02a3258b9c44195bb10532530dac4d2b26a\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 11,
+          "sha256": "c402a4ebe1479bcf2adc538bcac1babf1c88796a808b88285e13e5abbb2d1e11"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 10,
+      "manifestSha256": "c29b0835801f7de33b66bafa7198ecc2e3247ebf3850e1adc309698a1b4f7161",
+      "etag": "W/\"2-c29b0835801f7de33b66bafa7198ecc2e3247ebf3850e1adc309698a1b4f7161\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 10,
+          "sha256": "048b6553ee78bb10ddc109ae7fb79d4c9aad2785707fbd220fa5d04e5ea0ee9c"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6509",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "2822ac8b337f1b289ff85a3eefbb88ae3ecadde36e7f78bd657a8dd2d3f0f4c0",
+      "etag": "W/\"2-2822ac8b337f1b289ff85a3eefbb88ae3ecadde36e7f78bd657a8dd2d3f0f4c0\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "d6b2bc21f07355797de0873b3a20d5d406759a7d48602fb991342a4750574d16"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6510",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 6,
+      "manifestSha256": "ab138214c217a48dfa317a9401d70a9db852e2dc1ec47bcbe10d26f0790f35f1",
+      "etag": "W/\"2-ab138214c217a48dfa317a9401d70a9db852e2dc1ec47bcbe10d26f0790f35f1\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 6,
+          "sha256": "8f7ed8abc97087e1de583b3a7c1899aa13b4bd9334ecb1b0e9e3d08db951d97e"
+        }
+      ]
+    },
+    {
+      "tile": "14/14360/6511",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 6,
+      "manifestSha256": "31ca0786a6968565b12adf6367bce8536c5ff9452f87bea7f385b797dc0d97ae",
+      "etag": "W/\"2-31ca0786a6968565b12adf6367bce8536c5ff9452f87bea7f385b797dc0d97ae\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 6,
+          "sha256": "db6ff5be9d31d81d394f3edf29e6d7adca957197813bc5f31e94433896bf7f4a"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6504",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 5,
+      "manifestSha256": "cba74669e174caecfb0bb0395246654f9af578473092363e240326d56ea908ba",
+      "etag": "W/\"2-cba74669e174caecfb0bb0395246654f9af578473092363e240326d56ea908ba\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 5,
+          "sha256": "a9b4534434718c294f57d8967d5c2f9acc89b7f07f6b80c9d3007d684ec0e646"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "900df69eeebb1e4a51a73bbc2d3bd23634e43fec873df028f1bccc7bee3e8f6b",
+      "etag": "W/\"2-900df69eeebb1e4a51a73bbc2d3bd23634e43fec873df028f1bccc7bee3e8f6b\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "9ce04e94968cf5c780f8e2a29278b85b731c84fecfc037acccb236fe186c75c7"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6506",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 3,
+      "manifestSha256": "629ada696bc49cbee2059c08bef6f60fa3481c377ff46da53c48a34382d3dc63",
+      "etag": "W/\"2-629ada696bc49cbee2059c08bef6f60fa3481c377ff46da53c48a34382d3dc63\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 3,
+          "sha256": "2e29798389e20d0e363ac7103f3039a0cdc12ec6284687e7aa79cb30e4f216f7"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6507",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "7b3a33ac503499e9c7f0677c82f399d5742abd78b8ce305056857c386e6de50e",
+      "etag": "W/\"2-7b3a33ac503499e9c7f0677c82f399d5742abd78b8ce305056857c386e6de50e\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "9cf7139bc5b2e002c0d1b6f1a1acee087454ccd19266ecdfba5ee7f0b729016b"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6508",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 2,
+      "manifestSha256": "0793fe7637d16f74a5e01963210e54ef8288fc141e4270a1ef7f605e8451be40",
+      "etag": "W/\"2-0793fe7637d16f74a5e01963210e54ef8288fc141e4270a1ef7f605e8451be40\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "687e321dbc37b507a9a884d823b51d02783b211912ed570a61ad0297ca61a067"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6509",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "f02fe1275497927724f9f4d69d00c6fbc4ec4e520278f838ad89f0a41c6ac74f",
+      "etag": "W/\"2-f02fe1275497927724f9f4d69d00c6fbc4ec4e520278f838ad89f0a41c6ac74f\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "735ef9138ea102d84fd06141c2eb95820747f688e6c6764e192cf967efeddd95"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6510",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 5,
+      "manifestSha256": "eb97b05c5fa53a6b1839df565085515ff5041e806e7f8e4deab9dc755e7accc2",
+      "etag": "W/\"2-eb97b05c5fa53a6b1839df565085515ff5041e806e7f8e4deab9dc755e7accc2\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 5,
+          "sha256": "ec531df4a39eaa16f6a0e8cf46ebcc26d0a1c64dc79c33e22a111f1a459c225e"
+        }
+      ]
+    },
+    {
+      "tile": "14/14361/6511",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "c739f04a59b7b24433cf5592999c42e5f39d22054b376c60769b82f818070a52",
+      "etag": "W/\"2-c739f04a59b7b24433cf5592999c42e5f39d22054b376c60769b82f818070a52\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "ee45ac018c628e0a6f49d48de871538f5c94a2c2419a936cf6d3688040e46b09"
+        }
+      ]
+    },
+    {
+      "tile": "14/14362/6505",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 1,
+      "manifestSha256": "5d2c31b10c84296c10c8125559ac79fa9694115f1cb79363fb823351e3ab5aab",
+      "etag": "W/\"2-5d2c31b10c84296c10c8125559ac79fa9694115f1cb79363fb823351e3ab5aab\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "2589f9757f5902e4a6e385c2989493981f129db59ba400221ce9ace3a361849d"
+        }
+      ]
+    },
+    {
+      "tile": "14/14362/6511",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:48Z",
+      "spotCount": 4,
+      "manifestSha256": "dabbb1a5adbb63b751e1a181c4d1dfbf40fd269496d789db2ffade4f8c16af6a",
+      "etag": "W/\"2-dabbb1a5adbb63b751e1a181c4d1dfbf40fd269496d789db2ffade4f8c16af6a\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "4a209ace38aee8d177fccfe0f23db2c62f5f187ea5dfe818ef9b80330cb588ee"
+        }
+      ]
+    },
+    {
+      "tile": "14/14368/6491",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:21Z",
+      "spotCount": 1,
+      "manifestSha256": "81be7a869984aa7663c92c4b58e0a9d239369ae233392aac7e89d92a972a2468",
+      "etag": "W/\"2-81be7a869984aa7663c92c4b58e0a9d239369ae233392aac7e89d92a972a2468\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "bc0aace31449f9d4e72ebb45bae8295f5d5d65dcf44fc22eeb70021e23c858a5"
+        }
+      ]
+    },
+    {
+      "tile": "14/14370/6489",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:21Z",
+      "spotCount": 1,
+      "manifestSha256": "f0bb7370c028a3ffd54fd4ce52dfeab3049ad2aeb2cb3cf91620288548db1d2b",
+      "etag": "W/\"2-f0bb7370c028a3ffd54fd4ce52dfeab3049ad2aeb2cb3cf91620288548db1d2b\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "1405c7cf8228eaeefd2e726ef7a83b325cca6bcf7bb472288cb06145fead594e"
+        }
+      ]
+    },
+    {
+      "tile": "14/14370/6490",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:21Z",
+      "spotCount": 8,
+      "manifestSha256": "e697df98d8874eafd99017cde01cb0029b3f4aa3abd127fdcf1ed1953d1f853b",
+      "etag": "W/\"2-e697df98d8874eafd99017cde01cb0029b3f4aa3abd127fdcf1ed1953d1f853b\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 8,
+          "sha256": "f2cb88d165495fad26807d715c90ccf24f40a69b251f9af03b03d6607d7f8d1d"
+        }
+      ]
+    },
+    {
+      "tile": "14/14370/6493",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:21Z",
+      "spotCount": 1,
+      "manifestSha256": "15efacc7752a2067622c5d4826a8e5e3622c8649841102fdfe624cfdb36aaaf4",
+      "etag": "W/\"2-15efacc7752a2067622c5d4826a8e5e3622c8649841102fdfe624cfdb36aaaf4\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "258ec35b56e2ce8136e9374219185e9f760cf0b705debb2d26e51cac1e00c627"
+        }
+      ]
+    },
+    {
+      "tile": "14/14371/6489",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:21Z",
+      "spotCount": 4,
+      "manifestSha256": "f7a29e951c781f6b0281e5b68e81fc9bc09de89a6ac525517b1d6e0e85f7db40",
+      "etag": "W/\"2-f7a29e951c781f6b0281e5b68e81fc9bc09de89a6ac525517b1d6e0e85f7db40\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "af4d03b4030fffd9e26459f336c6f2f91bdbc2d7cb6f9450c9a110532eae4aae"
+        }
+      ]
+    },
+    {
+      "tile": "14/14373/6490",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:21Z",
+      "spotCount": 2,
+      "manifestSha256": "9dc2b8b6c48b6c4bafd4a7790ddd0ee37ee0539b00600a63c835b7993db717b7",
+      "etag": "W/\"2-9dc2b8b6c48b6c4bafd4a7790ddd0ee37ee0539b00600a63c835b7993db717b7\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "c782fb352c6119f00cd66a463735c4a63af0bd099497d4082f1884cf757aa4e2"
+        }
+      ]
+    },
+    {
+      "tile": "14/14542/6450",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:12Z",
+      "spotCount": 1,
+      "manifestSha256": "b519670f72a4f98faa8f77f80d6b821383d2d395edca6889481f861507678503",
+      "etag": "W/\"2-b519670f72a4f98faa8f77f80d6b821383d2d395edca6889481f861507678503\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "6efd0a39e0dc7ab563feef17b02a027253bbcf45294e2ef9bb58ce19055bbdee"
+        }
+      ]
+    },
+    {
+      "tile": "14/14543/6450",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:12Z",
+      "spotCount": 1,
+      "manifestSha256": "b032c4479e194fce28491cb76f5975657cc435bb19b9276067e790cad8241052",
+      "etag": "W/\"2-b032c4479e194fce28491cb76f5975657cc435bb19b9276067e790cad8241052\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "e988429748779c0f9fb18594a9dd661d91a0744de4fa194c2b19c0e9e068e607"
+        }
+      ]
+    },
+    {
+      "tile": "14/14544/6450",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:12Z",
+      "spotCount": 1,
+      "manifestSha256": "bcdeb4c4a33e1083fedae0f5540fdec1e3aeb4c793f13400d4b24b37ee55dea7",
+      "etag": "W/\"2-bcdeb4c4a33e1083fedae0f5540fdec1e3aeb4c793f13400d4b24b37ee55dea7\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "515147a0111da3b358a4aedcc70beca9633b7b10d460b2647ed5600431c0a8cb"
+        }
+      ]
+    },
+    {
+      "tile": "14/14550/6452",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 6,
+      "manifestSha256": "356c4d2130019dbeeb5352733cfc683906c035ca2b686125802141681deffa0d",
+      "etag": "W/\"2-356c4d2130019dbeeb5352733cfc683906c035ca2b686125802141681deffa0d\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 6,
+          "sha256": "0f0356302afcf2e2bc2fdf4a0cbb5fca98a1fab2568d7c1565ec06868f369476"
+        }
+      ]
+    },
+    {
+      "tile": "14/14551/6451",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 1,
+      "manifestSha256": "f9829dcdb0c3b2db3f9573ba8d8d7aab783d8d8f79c909332409e93f51798455",
+      "etag": "W/\"2-f9829dcdb0c3b2db3f9573ba8d8d7aab783d8d8f79c909332409e93f51798455\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "6e8ae1a4484b1f8f2e6dc1dd0a398a69a55923a3a81852cbd3ecf8befc7cfdba"
+        }
+      ]
+    },
+    {
+      "tile": "14/14551/6452",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 19,
+      "manifestSha256": "3fe0bf7263aed3ede3025221c064399a84796e9b401b22345db33e277dd5cdb3",
+      "etag": "W/\"2-3fe0bf7263aed3ede3025221c064399a84796e9b401b22345db33e277dd5cdb3\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 19,
+          "sha256": "0dbe2d2d869c4c7d2d3f6094fc083cdb8564eb676e52f945a0b8a36cebead9e1"
+        }
+      ]
+    },
+    {
+      "tile": "14/14551/6453",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 4,
+      "manifestSha256": "1d576e870e5b2ae4211983d5a4a0c3ce09ae6bf9c1c0051c36c16240df64502c",
+      "etag": "W/\"2-1d576e870e5b2ae4211983d5a4a0c3ce09ae6bf9c1c0051c36c16240df64502c\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 4,
+          "sha256": "21982a665d4ddafb69ad4a1cd8e6f63c274f5d48432ce9967ad36b4c0ceaf75f"
+        }
+      ]
+    },
+    {
+      "tile": "14/14551/6454",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 15,
+      "manifestSha256": "ed97fb68e90a3987f593878eb577fe5f84a15cd22f2f666af05d777d592e7762",
+      "etag": "W/\"2-ed97fb68e90a3987f593878eb577fe5f84a15cd22f2f666af05d777d592e7762\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 15,
+          "sha256": "9d2851b89bee14a8a11da8a894a00c3f8ef2f4a95558e8496047ad5d8a89bbf8"
+        }
+      ]
+    },
+    {
+      "tile": "14/14552/6449",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:23Z",
+      "spotCount": 1,
+      "manifestSha256": "2871f33ef80e764031717ad230bd7939e7c95d0705b72e6992e4ff862ad83dc8",
+      "etag": "W/\"2-2871f33ef80e764031717ad230bd7939e7c95d0705b72e6992e4ff862ad83dc8\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "f0c23b5b03ef78d53c9885a67493c68f63cb4c66bd41cebfa183357c1a8ebc88"
+        }
+      ]
+    },
+    {
+      "tile": "14/14552/6452",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 23,
+      "manifestSha256": "35efd3fcc5eb175041f57d4cd3dcb7242f7b38b7cb320821fedbcb550d08aec9",
+      "etag": "W/\"2-35efd3fcc5eb175041f57d4cd3dcb7242f7b38b7cb320821fedbcb550d08aec9\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 23,
+          "sha256": "a9b0d7019e78ad9f4f77694f382d19150829e5ce15040792b0fc4d6b1c597ff3"
+        }
+      ]
+    },
+    {
+      "tile": "14/14552/6453",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 36,
+      "manifestSha256": "ba2f4b096acd8455179d5aaee7688a2e035aa9cc24ed3916503385a252811bf4",
+      "etag": "W/\"2-ba2f4b096acd8455179d5aaee7688a2e035aa9cc24ed3916503385a252811bf4\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 36,
+          "sha256": "53e27b273dfcfcf126897d3c26812bb06cca9abfbc09f7ecfdb80dbfaf202021"
+        }
+      ]
+    },
+    {
+      "tile": "14/14552/6454",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 1,
+      "manifestSha256": "3319c4678459e0eb92cdae75d99c808f9bee0a5340bec6fd2d9f0db4e95039ee",
+      "etag": "W/\"2-3319c4678459e0eb92cdae75d99c808f9bee0a5340bec6fd2d9f0db4e95039ee\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "63da2e61931b0b78566b242fffcced13fe3d8f0e6a7b1049bb98212e4eadddbb"
+        }
+      ]
+    },
+    {
+      "tile": "14/14553/6449",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:23Z",
+      "spotCount": 11,
+      "manifestSha256": "1dcefb30fa18622a420357f6e0cdd3756600989b903dffa090b4184c9d97a1be",
+      "etag": "W/\"2-1dcefb30fa18622a420357f6e0cdd3756600989b903dffa090b4184c9d97a1be\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 11,
+          "sha256": "31eacd13ac0b878ab7486660d2c61e9249c8a85deed703aa94abed5981fd18c9"
+        }
+      ]
+    },
+    {
+      "tile": "14/14553/6450",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:23Z",
+      "spotCount": 9,
+      "manifestSha256": "6d5fbc13a2d172ab9717031605ff693fcd97eecfe2464f84f2afb67bd647b66e",
+      "etag": "W/\"2-6d5fbc13a2d172ab9717031605ff693fcd97eecfe2464f84f2afb67bd647b66e\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 9,
+          "sha256": "c2d3f53fc1518947c9e2d24a24ba0c03b210d09dcf175dfcec7b405cd84d3922"
+        }
+      ]
+    },
+    {
+      "tile": "14/14553/6454",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:13Z",
+      "spotCount": 9,
+      "manifestSha256": "9983e94443b1b661bf454008d28053464193db24d0900aff9d75001984d499c9",
+      "etag": "W/\"2-9983e94443b1b661bf454008d28053464193db24d0900aff9d75001984d499c9\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 9,
+          "sha256": "7c68eb6da04462e6218aa4d9029a80b80ad20789bb3482494f936a9ff1d49678"
+        }
+      ]
+    },
+    {
+      "tile": "14/14554/6449",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:23Z",
+      "spotCount": 9,
+      "manifestSha256": "d2f48ec5776dd8652dcbbfc46a2e7e7640b8013c960110054fe538d342f0cb0c",
+      "etag": "W/\"2-d2f48ec5776dd8652dcbbfc46a2e7e7640b8013c960110054fe538d342f0cb0c\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 9,
+          "sha256": "d2852178027fa8711945a97d1a0923c09ca1dc280c8281eaf3cdbeb982fd9623"
+        }
+      ]
+    },
+    {
+      "tile": "14/14554/6450",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:10:23Z",
+      "spotCount": 2,
+      "manifestSha256": "9287df1590a05b7e7a8c11ab7d6f1a4482464aeac8d36ad80e17a774f846ecf3",
+      "etag": "W/\"2-9287df1590a05b7e7a8c11ab7d6f1a4482464aeac8d36ad80e17a774f846ecf3\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 2,
+          "sha256": "8fb608bd777ca1d69509e3f14a3f3f8007850ee142b3f93d1661b59de8816d4b"
+        }
+      ]
+    },
+    {
+      "tile": "14/14554/6453",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:11Z",
+      "spotCount": 1,
+      "manifestSha256": "342c9199648887b49bc0410d1042247964c0bbb4c92c5eb8e760bf623038f9f1",
+      "etag": "W/\"2-342c9199648887b49bc0410d1042247964c0bbb4c92c5eb8e760bf623038f9f1\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "6c8285d4e964fcd4f6caac3b6342e7129492e899916adf3ec4033c5719914084"
+        }
+      ]
+    },
+    {
+      "tile": "14/14555/6452",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:11Z",
+      "spotCount": 1,
+      "manifestSha256": "d8104705b00ca6b22df6da6de4273a037c275010606e8064ff7fa362fd8d7087",
+      "etag": "W/\"2-d8104705b00ca6b22df6da6de4273a037c275010606e8064ff7fa362fd8d7087\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "b88f18bfdf1e2ddfb86929622ace160cc314b984e50da9db2a8862caf5ef6e4a"
+        }
+      ]
+    },
+    {
+      "tile": "14/14555/6453",
+      "revision": 1,
+      "generatedAt": "2026-10-05T02:11:11Z",
+      "spotCount": 1,
+      "manifestSha256": "7c84fb4c0a69259e5c1308f87489bececbbb4c5bde5b7060aadd5336955c9722",
+      "etag": "W/\"2-7c84fb4c0a69259e5c1308f87489bececbbb4c5bde5b7060aadd5336955c9722\"",
+      "parts": [
+        {
+          "index": 0,
+          "spotCount": 1,
+          "sha256": "4d224aff889c554193afa117f9b906c6d64cf2073c9cc8dfe5fab7dc52448daf"
+        }
+      ]
+    }
+  ],
+  "detailSamples": [
+    {
+      "sourceId": "osaka-designated-smoking-areas",
+      "spotId": "sp_1E323S9TVTRSRWVENNBZ4G748M",
+      "name": "ATCビルITM棟２F東　屋外喫煙スペース",
+      "tile": "14/14354/6509",
+      "provenance": [
+        {
+          "field": "existence",
+          "sourceId": "osaka-designated-smoking-areas",
+          "rule": "osaka.designatedListing.v1",
+          "observedOn": null
+        },
+        {
+          "field": "lifecycle",
+          "sourceId": "osaka-designated-smoking-areas",
+          "rule": "osaka.designatedListing.v1",
+          "observedOn": null
+        },
+        {
+          "field": "location",
+          "sourceId": "osaka-designated-smoking-areas",
+          "rule": "osaka.jgd2011Coordinates.v1",
+          "observedOn": null
+        },
+        {
+          "field": "name",
+          "sourceId": "osaka-designated-smoking-areas",
+          "rule": "osaka.name.v1",
+          "observedOn": null
+        },
+        {
+          "field": "openingHours",
+          "sourceId": "osaka-designated-smoking-areas",
+          "rule": "osaka.hoursUnparsed.v1",
+          "observedOn": null
+        }
+      ]
+    },
+    {
+      "sourceId": "kyoto-public-smoking-places",
+      "spotId": "sp_31NFKBV1SG7MZ3VEWXWGC46CQ5",
+      "name": "ＪＲ桂川駅前喫煙場所",
+      "tile": "14/14368/6491",
+      "provenance": [
+        {
+          "field": "existence",
+          "sourceId": "kyoto-public-smoking-places",
+          "rule": "kyoto.smokingPlaceCategory.v1",
+          "observedOn": "2026-09-03"
+        },
+        {
+          "field": "lifecycle",
+          "sourceId": "kyoto-public-smoking-places",
+          "rule": "kyoto.smokingPlaceCategory.v1",
+          "observedOn": "2026-09-03"
+        },
+        {
+          "field": "location",
+          "sourceId": "kyoto-public-smoking-places",
+          "rule": "kyoto.suppliedLatLng.v1",
+          "observedOn": "2026-09-03"
+        },
+        {
+          "field": "name",
+          "sourceId": "kyoto-public-smoking-places",
+          "rule": "kyoto.name.v1",
+          "observedOn": "2026-09-03"
+        }
+      ]
+    },
+    {
+      "sourceId": "musashino-public-smoking-areas",
+      "spotId": "sp_218ZG8A5YV74SCKXVKKC5ETHD8",
+      "name": "武蔵境駅喫煙所",
+      "tile": "14/14542/6450",
+      "provenance": [
+        {
+          "field": "existence",
+          "sourceId": "musashino-public-smoking-areas",
+          "rule": "musashino.publicSmokingLayer.v1",
+          "observedOn": null
+        },
+        {
+          "field": "lifecycle",
+          "sourceId": "musashino-public-smoking-areas",
+          "rule": "musashino.publicSmokingLayer.v1",
+          "observedOn": null
+        },
+        {
+          "field": "location",
+          "sourceId": "musashino-public-smoking-areas",
+          "rule": "musashino.suppliedWgs84Point.v1",
+          "observedOn": null
+        },
+        {
+          "field": "name",
+          "sourceId": "musashino-public-smoking-areas",
+          "rule": "musashino.name.v1",
+          "observedOn": null
+        }
+      ]
+    },
+    {
+      "sourceId": "minato-designated-smoking-areas",
+      "spotId": "sp_0YKJF3J77QNF6F4VTQ9X5K2XS6",
+      "name": "表参道交差点指定喫煙場所（1）",
+      "tile": "14/14550/6452",
+      "provenance": [
+        {
+          "field": "existence",
+          "sourceId": "minato-designated-smoking-areas",
+          "rule": "minato.designatedSmokingPoint.v1",
+          "observedOn": null
+        },
+        {
+          "field": "lifecycle",
+          "sourceId": "minato-designated-smoking-areas",
+          "rule": "minato.designatedSmokingPoint.v1",
+          "observedOn": null
+        },
+        {
+          "field": "location",
+          "sourceId": "minato-designated-smoking-areas",
+          "rule": "minato.suppliedLatLon.v1",
+          "observedOn": null
+        },
+        {
+          "field": "name",
+          "sourceId": "minato-designated-smoking-areas",
+          "rule": "minato.name.v1",
+          "observedOn": null
+        }
+      ]
+    },
+    {
+      "sourceId": "taito-public-smoking-areas",
+      "spotId": "sp_1VA5H58BWCFVTQYQ9G05RKT58J",
+      "name": "池之端二丁目公衆トイレ横",
+      "tile": "14/14552/6449",
+      "provenance": [
+        {
+          "field": "existence",
+          "sourceId": "taito-public-smoking-areas",
+          "rule": "taito.listed.v1",
+          "observedOn": "2026-08-18"
+        },
+        {
+          "field": "lifecycle",
+          "sourceId": "taito-public-smoking-areas",
+          "rule": "taito.listed.v1",
+          "observedOn": "2026-08-18"
+        },
+        {
+          "field": "location",
+          "sourceId": "taito-public-smoking-areas",
+          "rule": "taito.coordinates.v1",
+          "observedOn": "2026-08-18"
+        },
+        {
+          "field": "name",
+          "sourceId": "taito-public-smoking-areas",
+          "rule": "taito.name.v1",
+          "observedOn": "2026-08-18"
+        },
+        {
+          "field": "openingHours",
+          "sourceId": "taito-public-smoking-areas",
+          "rule": "taito.hours.v1",
+          "observedOn": "2026-08-18"
+        }
+      ]
+    },
+    {
+      "sourceId": "koto-station-smoking-areas",
+      "spotId": "sp_19B4RBMJ4BYT4RVYPAX05375W0",
+      "name": "辰巳駅前公衆喫煙所",
+      "tile": "14/14554/6453",
+      "provenance": [
+        {
+          "field": "existence",
+          "sourceId": "koto-station-smoking-areas",
+          "rule": "koto.stationSmokingListing.v1",
+          "observedOn": null
+        },
+        {
+          "field": "lifecycle",
+          "sourceId": "koto-station-smoking-areas",
+          "rule": "koto.stationSmokingListing.v1",
+          "observedOn": null
+        },
+        {
+          "field": "location",
+          "sourceId": "koto-station-smoking-areas",
+          "rule": "koto.suppliedLatLon.v1",
+          "observedOn": null
+        },
+        {
+          "field": "name",
+          "sourceId": "koto-station-smoking-areas",
+          "rule": "koto.name.v1",
+          "observedOn": null
+        }
+      ]
+    }
+  ],
+  "screenshotCandidates": [
+    {
+      "sourceId": "osaka-designated-smoking-areas",
+      "spotId": "sp_1E323S9TVTRSRWVENNBZ4G748M",
+      "name": "ATCビルITM棟２F東　屋外喫煙スペース",
+      "tile": "14/14354/6509"
+    },
+    {
+      "sourceId": "kyoto-public-smoking-places",
+      "spotId": "sp_31NFKBV1SG7MZ3VEWXWGC46CQ5",
+      "name": "ＪＲ桂川駅前喫煙場所",
+      "tile": "14/14368/6491"
+    },
+    {
+      "sourceId": "musashino-public-smoking-areas",
+      "spotId": "sp_218ZG8A5YV74SCKXVKKC5ETHD8",
+      "name": "武蔵境駅喫煙所",
+      "tile": "14/14542/6450"
+    },
+    {
+      "sourceId": "minato-designated-smoking-areas",
+      "spotId": "sp_0YKJF3J77QNF6F4VTQ9X5K2XS6",
+      "name": "表参道交差点指定喫煙場所（1）",
+      "tile": "14/14550/6452"
+    },
+    {
+      "sourceId": "taito-public-smoking-areas",
+      "spotId": "sp_1VA5H58BWCFVTQYQ9G05RKT58J",
+      "name": "池之端二丁目公衆トイレ横",
+      "tile": "14/14552/6449"
+    },
+    {
+      "sourceId": "koto-station-smoking-areas",
+      "spotId": "sp_19B4RBMJ4BYT4RVYPAX05375W0",
+      "name": "辰巳駅前公衆喫煙所",
+      "tile": "14/14554/6453"
+    }
+  ]
+}

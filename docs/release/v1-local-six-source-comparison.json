@@ -1,0 +1,86 @@
+{
+  "evidenceKind": "local-pinned-six-source-fixture-only",
+  "artificialTestIds": true,
+  "canonical": 515,
+  "published": 513,
+  "tiles": 81,
+  "sourceCounts": {
+    "osaka-designated-smoking-areas": 344,
+    "kyoto-public-smoking-places": 17,
+    "musashino-public-smoking-areas": 3,
+    "minato-designated-smoking-areas": 114,
+    "taito-public-smoking-areas": 32,
+    "koto-station-smoking-areas": 3
+  },
+  "approximate": 0,
+  "accessUnknown": 513,
+  "hoursUnknown": 493,
+  "qualityChecks": [
+    {
+      "id": "published-sources-reviewed",
+      "status": "pass"
+    },
+    {
+      "id": "published-sources-approved",
+      "status": "pass"
+    },
+    {
+      "id": "registry-row-matches-reviewed-entry",
+      "status": "pass"
+    },
+    {
+      "id": "published-sources-carry-license-and-attribution",
+      "status": "pass"
+    },
+    {
+      "id": "published-tiles-carry-attribution",
+      "status": "pass"
+    },
+    {
+      "id": "osm-blocked",
+      "status": "pass"
+    },
+    {
+      "id": "confidence-never-overstated",
+      "status": "pass"
+    },
+    {
+      "id": "area-anchor-never-exact",
+      "status": "pass"
+    },
+    {
+      "id": "taito-public-smoking-areas-unstated-fields-stay-unknown",
+      "status": "pass"
+    },
+    {
+      "id": "taito-public-smoking-areas-existence-evidence-is-the-municipal-listing",
+      "status": "pass"
+    },
+    {
+      "id": "taito-public-smoking-areas-list-page-conflicts-resolved-conservatively",
+      "status": "pass"
+    },
+    {
+      "id": "taito-public-smoking-areas-attenuations-are-attested",
+      "status": "pass"
+    },
+    {
+      "id": "published-spots-are-active-and-unheld",
+      "status": "pass"
+    },
+    {
+      "id": "tiles-at-data-tile-zoom",
+      "status": "pass"
+    },
+    {
+      "id": "tile-part-budget",
+      "status": "pass"
+    },
+    {
+      "id": "freshness-timestamps-valid-and-not-future",
+      "status": "pass"
+    }
+  ],
+  "reviewedMain": "e7a465468cfdeb6a3400ad37e74c9b89fa5b58cf",
+  "qualityFailedChecks": 0
+}

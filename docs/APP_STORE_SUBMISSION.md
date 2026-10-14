@@ -426,12 +426,13 @@ the maintainer and counsel if engaged. Public support/privacy and contact requir
 
 Minimum 1, maximum 10 per supported screenshot set; PNG/JPEG, no alpha/transparency.
 Use actual final-build UI, no synthetic permitted-place data or disabled reports/photos in product claims.
-[Upload guidance](https://developer.apple.com/help/app-store-connect/manage-app-information/upload-app-previews-and-screenshots/),
+[Upload guidance](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-your-app-store-assets/),
 [current dimensions](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
 
-- [ ] iPhone: recommend 6.9-inch portrait **1320 × 2868**; verify accepted well at upload.
-      Apple currently accepts alternatives 1260 × 2736 and 1290 × 2796 for that set.
-      If no 6.9-inch set, supply required 6.5-inch set; consult live table, not a remembered device name.
+- [ ] iPhone: current required Dynamic Island medium set **1206 × 2622** or **1179 × 2556** portrait.
+      Optional large set **1320 × 2868** (alternatives 1260 × 2736, 1290 × 2796); verify native captures,
+      required wells and scaling in Media Manager. The older 6.9-inch-only wording is superseded.
+      [Lane 4 runbook](release/V1_DATA_AND_STORE_ASSETS.md) records the 2026-10-15 specification check.
 - [x] iPad: not required. v1 is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`); iPad runs it in iPhone compatibility mode
       ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)). Native iPad support is reconsidered after v1.
 - [ ] Apple Watch: supply screenshot set in Media Manager for shipping Watch app; all captures in a set use
