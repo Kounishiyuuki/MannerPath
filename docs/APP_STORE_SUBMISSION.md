@@ -74,6 +74,8 @@ system Maps handoff as MannerPath retaining GPS.
 
 ### 2.2 V1 final ASC answer proposal — conservative disclosure
 
+**Superseded 2026-10-15** by [entry sheet §0.2](APP_STORE_CONNECT_ENTRY.md) (Apple's current definitions; only evidenced collection is declared). Kept as history.
+
 Decision draft aligned with main `cb8de215e55897a6315a7d38a59cf4886505c5e7` (#185/#186).
 This is the recommended input proposal, **not a legal determination, observed collection finding or
 authorization to publish/submit**. It supersedes earlier conditional input recommendations, not the

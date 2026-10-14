@@ -42,34 +42,49 @@ Status legend:
 | 審査メモ | §5（英語、最終案） | **MAINTAINER 承認** |
 | 公開方法 | 手動公開 | 値確定 |
 
-### 0.2 App Privacy 回答候補
+### 0.2 App Privacy 推奨回答（Apple の現行定義に基づく、2026-10-15）
 
-**事実（確認済み）**：アプリは端末の GPS 座標を送らず、タイル ID（z14〜16 の地域番号）を本番 Worker に送る。
-Worker の invocation logs は無効、console/エラーログは保存有効（[監査](PRODUCTION_PRIVACY_AUDIT.md)）。
-IP・User-Agent・URL（タイル ID）・時刻は Cloudflare の処理で扱われうる。保持期間・項目は Logpush/プラン API が 403 で **未確認**。
-`/v1/config` は `reports.available:false`、`photoEvidenceEnabled:false`（2026-10-15 GET で確認）。App Attest 登録・投稿・写真の通信は発生しない。
-Widget はネットワーク取得をせず App Group のスナップショットを読む。Watch は iPhone からの同期データを使う。
-MapKit 検索・経路と「マップ」への受け渡しは Apple のサービス。解析 SDK・広告 SDK・クラッシュ SDK・IDFA は無い。
-サポートは Gmail で送信者アドレスと本文を受け取る。
+**メンテナー未承認の推奨案。ASC 入力は承認後。** [submission §2.2](APP_STORE_SUBMISSION.md) の「7 項目すべて申告」案を置き換える。
+Apple 定義（[App privacy details](https://developer.apple.com/app-store/app-privacy-details/)、2026-10-15 取得）：
 
-**申告案（保守的）**：「データを収集する」を選ぶ（「収集しない」は選ばない）。すべて「ユーザーにリンク」「トラッキングに使用しない」。
+- 「収集」＝端末外に送り、リクエストをリアルタイムで処理するのに必要な時間を超えてアクセスできる状態にすること。
+  「IP アドレスがサーバー呼び出しで送られても保持しない場合は申告不要」。IP を保持する場合は用途に応じて位置・デバイス ID・診断として申告。
+- 正確な位置情報＝緯度経度の小数点以下 3 桁以上と同等以上の解像度。おおよその位置情報＝それ未満。
+- デバイス ID＝広告識別子など端末レベルの ID。解析（Analytics）目的＝利用者の行動評価、機能効果の把握、利用者規模の測定。
+- 任意開示の例外は 4 条件すべてが必要。うち「データがアプリの画面で入力され、送信フォームに利用者名が表示され、毎回送信を選ぶ」を含む。
 
-| ASC の項目 | 選択 | 目的 | 根拠の種類 |
-| --- | --- | --- | --- |
-| 正確な位置情報 | 選ぶ | アプリの機能 | 保守的（GPS は送らないが、タイル＋IP の保持状況が未確認） |
-| おおよその位置情報 | 選ぶ | アプリの機能 | 保守的（タイル ID は地域を示す） |
-| デバイス ID | 選ぶ | アプリの機能 | 保守的（IP/UA による端末の関連付けを否定できない） |
-| カスタマーサポート | 選ぶ | アプリの機能 | 事実（サポートメール） |
-| メールアドレス | 選ぶ | アプリの機能 | 事実（サポートメール） |
-| その他の診断データ | 選ぶ | アプリの機能 | 保守的（エラーログ保存が有効） |
-| 製品の操作 | 選ぶ | アプリの機能＋解析 | 保守的（要求記録の利用範囲が未確認） |
-| 写真またはビデオ | 条件付き：サポートで添付画像を保持しないと確認できれば選ばない。確認できなければ選ぶ | アプリの機能 | 投稿の写真機能は無効（事実） |
-| クラッシュデータ | 条件付き：配布ビルドにクラッシュ送信が無いことを確認できれば選ばない。できなければ選ぶ | アプリの機能 | クラッシュ SDK なし（事実） |
-| その他のユーザーコンテンツ | 選ばない | — | 投稿機能は無効（事実） |
-| トラッキング | いいえ | — | 広告・IDFA なし（事実）。事業者の広告利用が無いことはメンテナーが確認 |
+**証拠（このリポジトリと公開 GET で確認）**
 
-狭い申告に変えてよい条件は [submission §2.2](APP_STORE_SUBMISSION.md) の表のとおり。未確認を理由に「収集しない」を選ばない。
-**MAINTAINER REVIEW**：この保守的な申告を採用するか、Cloudflare の保持設定を確認して狭めるか。
+| 対象 | 確認した事実 | 根拠 |
+| --- | --- | --- |
+| 場所データの取得 | 送るのはタイル URL（z14〜16）と `If-None-Match`（データのハッシュ）。GPS 座標・端末 ID・アカウントは送らない | `Core/Networking/TileAPIClient.swift`。インストール ID は報告送信時のみ（`ReportModel.swift`、報告は無効） |
+| タイルの解像度 | z16 のタイル幅は経度 360/2^16 ≈ 0.0055°。小数点以下 3 桁（0.001°）より粗い | 計算 |
+| Worker のログ | invocation logs 無効。リクエスト処理のコードは `console.log` しない（ログは定期処理のみ、本番 crons 空）。`app.onError` は 503 を返すだけで記録しない | `wrangler.jsonc`、`services/api/src/app.ts:181`、`refresh/scheduled.ts:50` |
+| Workers Logs の保持期間 | Cloudflare 文書：Free 3 日 / Paid 7 日。invocation logs 無効時は console 出力・エラー・未捕捉例外が対象 | [Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)（2026-10-15 取得） |
+| 報告・写真・App Attest | `reports.available:false`、`photoEvidenceEnabled:false` | 公開 `GET /v1/config` |
+| 解析・広告・クラッシュ SDK | なし（依存は GRDB のみ） | `APP_PRIVACY_INVENTORY.md` |
+| サポート | アプリ内リンクからメールアプリで Gmail 宛に送る。送信者アドレスと本文が Gmail に残る | 公開ポリシー §9 |
+
+**未確認**：本番 Workers の現在の設定（Cloudflare 認証切れのため 2026-10-15 は未確認、10-05 監査では invocation logs 無効）。
+Workers Logs に実際に残っている項目。Logpush ジョブ・契約プラン（API 403）。Cloudflare のセキュリティ・分析系サービスでの IP 保持。
+
+**推奨回答**
+
+| ASC 項目 | 推奨 | 根拠 |
+| --- | --- | --- |
+| カスタマーサポート | **申告する**（リンク、トラッキングなし、アプリの機能） | Gmail に保持される。メールアプリ経由のため「アプリの画面で入力・利用者名表示」の例外条件を満たさない |
+| メールアドレス | **申告する**（同上） | 同上 |
+| 正確な位置情報 | **申告しない** | GPS は送らない。タイルは小数点 3 桁より粗い。IP からの推定もおおよそ |
+| デバイス ID | **申告しない** | 端末レベルの ID を送らない。インストール ID は無効な報告機能でのみ使用。ETag はデータのハッシュ |
+| 製品の操作 | **条件 A を満たせば申告しない** | リクエスト処理で記録しない設計。満たせない場合のみ申告（目的はアプリの機能） |
+| 解析（目的） | **選ばない** | 行動評価・利用者規模の測定に使っていない。未確認でも用途が無い以上、目的として選ぶ根拠がない |
+| おおよその位置情報 | **条件 A を満たせば申告しない** | タイル＋IP を保持しなければ「収集」に当たらない。保持があれば申告（リンク、アプリの機能） |
+| その他の診断データ | **条件 A を満たせば申告しない** | エラーを記録しない設計。保持があれば申告 |
+| 写真・クラッシュ・その他のユーザーコンテンツ | **申告しない** | 機能が無効、または SDK が無い |
+| トラッキング | **いいえ** | 広告・データブローカーへの提供なし |
+
+**条件 A（メンテナーが Cloudflare ダッシュボードで確認）**：(1) 本番 Worker の Observability で invocation logs が無効、(2) Workers Logs に IP・リクエスト URL を含むエントリが無い、(3) Logpush ジョブが無い。
+3 つとも確認できれば「収集する」はサポート関連の 2 項目のみ。1 つでも確認できなければ、おおよその位置情報・その他の診断データ・製品の操作（目的はアプリの機能のみ）を加える。正確な位置情報・デバイス ID・解析目的は、どちらの場合も加えない。
 
 ### 0.3 プライバシーポリシーとの矛盾と修正案
 
@@ -78,7 +93,7 @@ MapKit 検索・経路と「マップ」への受け渡しは Apple のサービ
 | §2 第1文 | Cloudflare を「利用する方針です」 | 本番は稼働中で、将来形は事実と合わない | 「Cloudflare のサービス（Workers、D1 など）を利用しています」 |
 | §2 第2文 | 自動記録を行わない設定で「運用する方針です」 | invocation logs 無効は確認済み、エラーログ保存は有効 | 「リクエストごとの自動記録は無効にしています。エラー発生時の診断記録は保存される設定です」 |
 | §2 保存期間 | 確認内容を反映する | 保持期間は未確認のまま（403） | 現状維持（推測で期間を書かない） |
-| §6 | 解析・広告・クラッシュ報告ツールなし | ASC で「製品の操作（解析）」「診断」を保守的に選ぶ場合、利用者には矛盾に見えうる | 「ストアのプライバシー表示は、通信事業者の記録の可能性を含めて保守的に申告しています」と 1 文追加 |
+| §6 | 解析・広告・クラッシュ報告ツールなし | §0.2 推奨では解析目的を選ばないため矛盾なし | 修正なし（#275 での追加案は撤回済み） |
 | §5 | 投稿・写真・端末登録は利用不可 | 矛盾なし | — |
 
 修正版は別 PR（公開サイト変更、メンテナー承認まで merge しない）。
@@ -106,7 +121,7 @@ MapKit 検索・経路と「マップ」への受け渡しは Apple のサービ
 
 ### 0.6 ユーザーの判断・入力（短い一覧）
 
-1. App Privacy：§0.2 の保守的申告を採用するか（写真・クラッシュの条件 P/C の確認を含む）。
+1. App Privacy：§0.2 の条件 A を確認し、推奨回答を承認するか。
 2. プライバシーポリシー修正 PR の承認。
 3. 最低利用年齢を設けるか。
 4. 著作権者名と SKU、審査担当の連絡先を ASC に入力。
@@ -261,18 +276,7 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
   origin and Release simulator destination/list/map/detail/source/refresh/clear verified, including denied
   location and AX5. §5 provides tested draft steps; final Review Notes are still maintainer-owned.
 - Backend gates verified by #185 and Release simulator availability by #186; community remains pending. Signed distribution/hardware browsing traffic still to confirm.
-- **App Privacy (ASC → App Privacy): concrete final proposal ready for owner approval, no input performed.**
-  Choose **Yes, we collect data from this app**. Select Precise Location, Coarse Location, Device ID,
-  Customer Support, Other Diagnostic Data, Product Interaction and Email Address. Choose **Linked / not
-  used for Tracking / App Functionality** for each; additionally **Analytics** for Product Interaction as
-  an inclusive fallback. See submission §2.2 for every category's evidence and conservative rationale.
-  Photos/Videos and Crash Data stay NOT COLLECTED only under §2.2 conditions P/C. If not confirmed,
-  **also select Photos or Videos and Crash Data, Linked / not tracking / App Functionality**. Report-only
-  Other User Content stays unselected while intake is unavailable. Never choose Data Not Collected.
-  Retention UNKNOWNs remain evidence gaps, not unanswered ASC checkboxes; owner must approve assumptions,
-  actual purposes/partner tracking, policy/manifests and the signed archive before publishing. The per-type
-  over-disclosure risks and evidence needed to narrow each choice are in submission §2.2; no proposed
-  Precise Location/Device ID collection is asserted as an observed fact.
+- **App Privacy:** use the recommendation in §0.2 (2026-10-15, Apple's current definitions) after the maintainer confirms condition A and approves it. The older seven-category proposal (submission §2.2) is superseded.
 - ~~Content Rights final production corpus identity/license/API evidence~~ confirmed by [rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md). Taito app-side notice and Watch license Link implemented; final signed iPhone/Watch visual/link/asset checks and MAINTAINER legal signoff remain; do not enter the necessary-rights declaration yet.
 - Store screenshots with production data (§6).
 
@@ -323,6 +327,5 @@ detail with distance/direction. Exclude brands, smoking imagery, purchase cues a
 7. Screenshots: iPhone and Apple Watch (§6).
 8. App Review: sign-in No, contact, notes with the WAITING markers filled (§5).
 9. App Privacy: privacy policy URL `https://kounishiyuuki.github.io/MannerPath/privacy/`, then the exact
-   conservative checklist in §7 / submission §2.2 after owner approval. Keep factual UNKNOWNs documented;
-   do not treat broad disclosure as privacy signoff or authorization to publish/submit.
+   §0.2 recommended answers after owner approval (condition A decides the fallback). Keep UNKNOWNs documented.
 10. Version release: manual. Add for Review → Submit only after every WAITING / BLOCKED / P0 item above is closed.
