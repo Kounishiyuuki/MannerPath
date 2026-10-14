@@ -13,3 +13,4 @@ for f in "${required[@]}"; do
   test -s "$f" || { echo "missing required contract: $f" >&2; exit 1; }
 done
 echo "MannerPath contract files present."
+python3 scripts/test-device-release-matrix.py
