@@ -1,124 +1,180 @@
 # Staging verification of the security-hardened write path
 
-Scope: report-store migrations 0003 → 0004 → 0005 → 0006, App Attest registration and assertion, key
-revocation, idempotency, the atomic report budget, the registration limiter, retention cleanup and the bulk
-reject CLI. This document says what is verified locally, what blocks a staging run, and the exact maintainer
-steps once the blockers are resolved.
+Scope: report-store migrations 0003 → 0004 → 0005 → 0006, App Attest registration/assertion,
+schema v3 ownership/idempotency/atomic budget, revocation, bulk rejection, retention/overdue detection,
+registration pause and challenge limiter. This is readiness for a **separately authorized maintainer run**.
+No remote deploy, migration, Secret registration/change or Cloudflare production operation is performed
+by this work. Production report intake stays disabled. Do not use real personal reports in a rehearsal.
 
-**Nothing here has been run against Cloudflare.** No staging deploy, remote migration, secret or binding was
-created or changed while writing it, and production is out of scope: every command below names
-`--env staging`, never `--env production`. Production report intake stays disabled.
+## Current readiness and remaining blockers
 
-## Readiness
+| Area | Repository/local state | Remote state |
+| --- | --- | --- |
+| Staging config | `required` attestation, `paused` registration, invocation logs off, empty crons; mirrors production behavior | Placeholder D1 IDs: not provisioned/verified here |
+| 0003 recovery | Explicit staging support with typed target confirmation, configured UUID, exact digest, interactive writes outside CI | Import parser/acceptance remains unverified; never infer remote success from local |
+| 0004/0005/0006 | Normal additive migration stream after the 0003 checkpoint | Apply only after schema/ledger verification and separate authorization |
+| v3 security flows | Worker route handler + local workerd D1 rehearsal and existing SQLite fault/concurrency suites | Real Apple/device, provider limiter and network E2E not run |
+| Activation | No cap, limiter binding, IDs, Secret or cron added | Blocked on B1–B4 below |
 
-| Area | State |
-| --- | --- |
-| Committed staging config | Mirrors production except for names and IDs; `REPORT_ATTESTATION=required`, `REPORT_REGISTRATION=paused`, no cron, invocation logs off (`test/staging-readiness.test.ts`, `test/deploy-config.test.ts`) |
-| Staging resources | Placeholder `database_id`s: deploy and `--remote` fail until a reviewed PR lands real IDs |
-| Report-store schema | Locally verified 0001–0006 in order, rollback on a failed migration, fail-closed Worker below 0005 |
-| Write path | **Not ready to enable on staging**: blockers B1–B3 below |
+- **B1 — resources.** A maintainer must provision and review distinct staging `DB`/`REPORTS_DB` IDs;
+  `test/deploy-config.test.ts` currently requires placeholders for staging. Never reuse production IDs.
+  A completed reviewed DATA_DB promotion is separately needed for remote readiness/read smoke.
+- **B2 — abuse controls.** Choose measured registration hour/day success caps and a staging-only
+  `CHALLENGE_RATE_LIMITER` binding/namespace/threshold. These are deployment/account decisions, not fixture
+  values to copy. New registration stays paused until this is reviewed.
+- **B3 — environment-specific Secrets and device.** Separate staging peppers, App ID prefix + bundle ID,
+  build allowlist and actual App Attest environment; verify a signed staging-targeted client on device.
+  Merely advertising v3 in `/v1/config` does not prove enrollment, counters or report-store migrations work.
+- **B4 — operational evidence.** Before intake, verify secret preservation on forward deploy/rollback,
+  logging/privacy, limiter failure, retention scheduling/heartbeat and overdue alerts on staging.
+  Repository checks do not establish Cloudflare provider logging or remote delivery guarantees.
 
-## Migration order
+Issue #242 (full erase versus permanent receipt FK) remains unresolved; this work neither chooses an
+alternate privacy policy nor implements full erasure. Photos and community publication stay disabled;
+Issue #124 remains separate. Staging smoke success is not production or App Store activation approval.
 
-The report store (`REPORTS_DB`) is migrated in place and never rebuilt. Order, each step verified before the next:
+## Staging / production comparison
 
-1. 0001, 0002: `wrangler d1 migrations apply`.
-2. 0003: **not** through `migrations apply --remote` (B1). Production's attempt failed atomically on it
-   (`services/api/REPORTS_MIGRATION_RECOVERY.md`); a fresh staging store is expected to fail the same way.
-3. 0004, 0005, 0006: `wrangler d1 migrations apply` after 0003 is recorded in the ledger. None of them
-   uses a conditional expression inside a trigger.
-4. Deploy the Worker only after 0005: below 0005 every App Attest and report route answers
-   `503 reportStoreUnavailable`, which is safe but not usable. 0006 is used only by the bulk reject CLI.
-   Retention needs 0004.
+Named environments repeat their own bindings; do not inherit top-level local `disabled` attestation.
 
-Every migration is forward-only and runs as one transaction. A failed migration leaves its predecessors
-applied, records nothing for itself and stops the stream; do not retry blindly or repair by hand, inspect the
-ledger and schema read-only first. There is no down migration. A bad Worker is rolled back by redeploying the
-previous commit; the migrations are additive and their triggers stay in force, so an older Worker can fail a
-write that the newer schema refuses (for a revoked key), but it cannot make that write succeed.
+| Requirement | Staging | Production |
+| --- | --- | --- |
+| Worker | `mannerpath-api-staging` | `mannerpath-api-production` |
+| DATA_DB (`DB`) | `mannerpath-staging`, placeholder | `mannerpath-production`, reviewed provisioned ID |
+| Durable `REPORTS_DB` | `mannerpath-staging-reports`, placeholder | `mannerpath-production-reports`, reviewed provisioned ID |
+| RAW_ARTIFACTS | staging R2 bucket; source checks only | production R2 bucket; source checks only |
+| Attestation / registration | `required` / `paused` | `required` / `paused` |
+| Logs / crons | invocation logs false / none committed | same |
+| Submitter pepper | Separate secret; nonblank, at least 32 UTF-8 bytes. Preserve original bytes for existing hashes | same requirement, separate value |
+| Limiter pepper | Separate secret; trim + UTF-8 32-byte minimum; normalized value must differ from submitter pepper | same requirement, separate value |
+| App Attest values | Actual staging client App ID/environment/build allowlist, environment-specific secrets | actual shipping App ID, `production` for TestFlight/App Store, exact build allowlist |
+| Registration caps / limiter | reviewed staging-only configuration, not yet present | no guessed production values or activation |
+| Retention | default off/no schedule; measured maintenance cadence/alerts required before intake | unchanged, separately authorized |
 
-## Blockers
+Secret names: `REPORT_SUBMITTER_PEPPER`, `RATE_LIMIT_KEY_PEPPER`, `REPORT_APP_ATTEST_APP_ID`,
+`REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS`. Use interactive per-environment
+Secret entry by a maintainer; never command-line literal values, tracked `.dev.vars`, logs or tickets.
+Binding `CHALLENGE_RATE_LIMITER` and vars `REPORT_REGISTRATION_MAX_PER_HOUR`,
+`REPORT_REGISTRATION_MAX_PER_DAY`, `REPORT_RETENTION`, `REPORT_RETENTION_CRON` are separate controls.
 
-- **B1. 0003 has no staging import path.** `npm run reports:migration` accepts only production, by design.
-  Staging needs either that tool extended to an explicit `--env staging` target (same guards: typed
-  confirmation, interactive terminal, digest-pinned artifact) or a reviewed alternative. Until then, stop
-  after 0002.
-- **B2. Staging IDs.** `wrangler d1 create mannerpath-staging` and `mannerpath-staging-reports`, then a
-  reviewed PR that relaxes `test/deploy-config.test.ts` for staging only.
-- **B3. Registration cannot be enabled.** It requires a `CHALLENGE_RATE_LIMITER` binding (`ratelimits` in
-  `wrangler.jsonc`) and measured caps (`docs/OPERATIONS.md` "Registration operations"). Neither is committed;
-  choosing them is a maintainer decision. Without registration no device can obtain a key, so the App Attest
-  E2E stops at the fail-closed checks.
-- Known limits that do not block a staging run: photos stay disabled (no storage adapter); full erase is
-  Issue #242; the first staging deploy must confirm that a redeploy keeps secrets (`docs/OPERATIONS.md`).
+### App Attest environment matrix
 
-## Secrets, vars and bindings
+A backend environment is not an App Attest environment. Staging can verify a development-signed
+client's `development` attestations or a TestFlight/App Store client's `production` attestations,
+but one deployment must explicitly match the actual signed client's environment. Do not guess from
+Debug/Release or the word “staging”, accept both environments, or disable verification to make a test pass.
+Apple development keys and production keys are not interchangeable. Pin actual App ID prefix +
+bundle ID and CFBundleVersion; a staging-targeted build/origin is Lane 3/Apple work, not changed here.
+The local rehearsal uses generated test certificates and an injected test root, never real Apple keys
+or a new production trust root. It proves handler/SQL semantics, not Apple's service or device behavior.
 
-| Name | Kind | Where | Required for |
-| --- | --- | --- | --- |
-| `DB`, `REPORTS_DB` | D1 bindings | `wrangler.jsonc` | Reads; every report route |
-| `RAW_ARTIFACTS` | R2 binding | `wrangler.jsonc` | Source checks only |
-| `REPORT_ATTESTATION` | var, `required` | `wrangler.jsonc` | Never changed on a remote |
-| `REPORT_REGISTRATION` | var, `paused` | `wrangler.jsonc` | `enabled` only after B3 |
-| `REPORT_REGISTRATION_MAX_PER_HOUR`, `REPORT_REGISTRATION_MAX_PER_DAY` | var | reviewed PR (B3) | Registration |
-| `CHALLENGE_RATE_LIMITER` | `ratelimits` binding | reviewed PR (B3) | Registration and challenges |
-| `REPORT_SUBMITTER_PEPPER` | secret | `wrangler secret put` | Reports |
-| `RATE_LIMIT_KEY_PEPPER` | secret, never equal to the submitter pepper | `wrangler secret put` | Limiter keying |
-| `REPORT_APP_ATTEST_APP_ID`, `REPORT_APP_ATTEST_ENVIRONMENT`, `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | secret | `wrangler secret put` | App Attest |
-| `REPORT_RETENTION`, `REPORT_RETENTION_CRON` | var | reviewed PR | Retention automation (`off` committed) |
+## Migration order and fail-closed recovery
 
-Secret values are typed interactively by the maintainer; they never appear in the repository, a log, a ticket
-or this document.
+REPORTS_DB is durable and migrated in place. A canonical cutover changes `DB` only; never rebuild,
+replace or switch REPORTS_DB to recover. Never modify already applied migration bytes.
 
-## Local verification (safe at any time)
+1. Inspect exact target, ledger, schema and FK state read-only. Apply 0001/0002 only to an authorized fresh
+   staging report store. Use a reviewed temporary config/migration directory containing those two files;
+   normal `migrations apply` against the full stream would also attempt 0003. Do not mutate the tracked config.
+2. If 0003 is pending and the store is exactly 0001+0002, prepare/review the exact import artifact.
+   The narrow recovery tool accepts explicit `--env staging --database-id <reviewed-staging-reports-uuid>
+   --confirm-staging mannerpath-staging-reports`. It refuses placeholders, canonical/production IDs,
+   shared IDs, cross-environment confirmations, changed bytes/digest and noninteractive remote apply/CI.
+3. Verify the **0003-only checkpoint** with the recovery verifier immediately after import. Expected ledger:
+   exactly 0001–0003. Any partial/mismatched state or transport failure: STOP, investigate read-only; never
+   blindly replay. A completed import is not replayed even after a lost response.
+4. Then apply normal 0004 (idempotency/atomic budget), 0005 (key revocation), 0006 (bulk audit) in order.
+   Verify full ledger, FK checks and tested constraints. The 0003 verifier deliberately refuses the later
+   full schema; use the migration ledger and full-stream checks at this point. It must not be called as a
+   post-0006 verifier. See [recovery runbook](../services/api/REPORTS_MIGRATION_RECOVERY.md).
+5. Deploy the Worker only after 0005 for App Attest/report routes. Below it, routes fail closed with
+   `503 reportStoreUnavailable`. Bulk rejection needs 0006; retention receipt cleanup needs 0004.
 
-From `services/api`, Node 24:
+The repository's 0003 bytes pass local SQLite/workerd, but a historical remote `/query` parser failure
+requires the reviewed file-import path for an affected remote store. This is not proof every remote
+store is currently broken. Failed migration/import must leave its schema/ledger unchanged; preserve the
+predecessor checkpoint and diagnose rather than dropping objects. No down migration is required.
+Rollback a Worker with a reviewed known-good deployment, keeping REPORTS_DB and additive triggers.
+Older code may fail newer guarded writes; rollback must never weaken revocation or receipt protection.
+
+## Safe local verification
+
+Node 24.21.0, from `services/api`:
 
 ```sh
-node --experimental-strip-types --no-warnings --test test/staging-readiness.test.ts
-npx wrangler d1 migrations apply REPORTS_DB --env staging --local --persist-to <scratch dir>
-npx wrangler d1 migrations list REPORTS_DB --env staging --local --persist-to <scratch dir>   # no migrations to apply
+node --experimental-strip-types --experimental-sqlite --no-warnings --test \
+  test/staging-readiness.test.ts test/staging-local-d1.test.ts \
+  test/reports-migration-import.test.ts test/staging-security-smoke.test.ts
 ```
 
-`test/staging-readiness.test.ts` covers: staging/production config parity; the Worker answering 503 until 0005
-and serving from 0005; and on the fully migrated store registration, report, idempotent retry, concurrent sends
-from one key (each stored once or refused `counterNotIncreasing`), the atomic hourly budget under concurrency,
-revocation (`403 keyRevoked`, stored reports untouched), a bulk reject plan and apply, and retention monitor
-then cleanup until complete. No request writes a log line. The local Wrangler run applies the same files with
-workerd's D1. Failure injection with a conflicting object before 0005 left the ledger at 0004, created none
-of 0005's objects and did not apply 0006.
+The new local D1 test creates only its own temporary config/storage, forces `--local` and
+`remoteBindings:false`, rehearses 0001/0002 → exact 0003 import → 0004/0005/0006, checks ledger/FKs and
+uses the real workerd D1 binding from the Node-executed Worker route handler. It does **not** run the
+complete deployed Worker/edge stack or Cloudflare remote D1. Generated PKI and low test budgets are
+synthetic and do not authorize staging values. SQL-trigger failure and batch rollback are checked locally.
+Existing suites also cover ownership, canonicalization/consent vectors, challenges/counters, concurrent
+budget admission, migration rollback, maintenance boundedness, bulk races and retention-first/retry-first.
 
-## Maintainer steps once B1–B3 are resolved (not run here)
+## GET-only staging smoke
 
-Each step is typed by hand, one at a time, from `services/api`. Stop at the first unexpected output.
+Unlike generic `local:smoke`, this probe sends **no POST at all**. Default target is loopback, reports
+unavailable. It validates readiness/config/cache protection and emits fixed check names/status only,
+never response bodies, secrets, IDs, IPs or HMACs. HTTP timeout is 10 seconds per GET; JSON is bounded
+at 8 KiB with cancellation. Redirects are refused.
 
 ```sh
-# 0. Read-only: confirm the account and that the staging Worker is the target.
-npx wrangler whoami
-# 1. Resources (B2), then land their IDs by reviewed PR.
-npx wrangler d1 create mannerpath-staging
-npx wrangler d1 create mannerpath-staging-reports
-# 2. Canonical DB and promotion: docs/OPERATIONS.md steps 2 and 4.
-# 3. Report store: 0001+0002, then the reviewed 0003 path (B1), then the rest.
-npx wrangler d1 migrations list REPORTS_DB --env staging --remote     # expect only the not-yet-applied files
-npx wrangler d1 migrations apply REPORTS_DB --env staging --remote    # after 0003 is in the ledger
-npx wrangler d1 migrations list REPORTS_DB --env staging --remote     # expect: no migrations to apply
-# 4. Deploy with writes still closed, then set the peppers.
-npx wrangler deploy --env staging
-npx wrangler secret put REPORT_SUBMITTER_PEPPER --env staging
-npx wrangler secret put RATE_LIMIT_KEY_PEPPER --env staging
-node --experimental-strip-types --no-warnings scripts/smoke.ts --base-url https://<staging host> --remote --tile <tile> --expect-reports unavailable
-# 5. App Attest values for a staging-signed build, then verify the advertised config.
-npx wrangler secret put REPORT_APP_ATTEST_APP_ID --env staging
-npx wrangler secret put REPORT_APP_ATTEST_ENVIRONMENT --env staging
-npx wrangler secret put REPORT_APP_ATTEST_BUNDLE_VERSIONS --env staging
-node --experimental-strip-types --no-warnings scripts/smoke.ts --base-url https://<staging host> --remote --tile <tile> --expect-reports appAttest
+npm run --silent staging:security-smoke
+# Future maintainer GET-only probe, only after B1 is resolved and promotion is completed:
+npm run --silent staging:security-smoke -- \
+  --base-url https://mannerpath-api-staging.<account-subdomain>.workers.dev \
+  --confirm-staging mannerpath-api-staging --expect-reports unavailable
+# After separate reviewed staging activation, require precisely App Attest schema 3..3:
+npm run --silent staging:security-smoke -- \
+  --base-url https://mannerpath-api-staging.<account-subdomain>.workers.dev \
+  --confirm-staging mannerpath-api-staging --expect-reports v3
 ```
 
-Then on a physical device against staging: register, submit, retry the same draft (same reportId), submit past
-the hourly budget (429), revoke the key with the CLI (`403 keyRevoked` at the next challenge; the app
-registers a new key), bulk reject the test reports, and run retention in `monitor`. Afterwards set
-`REPORT_REGISTRATION` back to `paused` by redeploying the committed config.
+Only loopback and explicitly confirmed staging `workers.dev` origins are accepted; production,
+credentials/query/path, unknown flags and custom domains are refused. Custom-domain edge-cache checks
+(ADR-0019) use a separately reviewed maintainer probe; workers.dev smoke cannot prove actual edge caching.
+The output always says `writePath: UNVERIFIED`. Config does not prove store health, limiter availability,
+registration availability or signed write acceptance. Do not count GET smoke as a report E2E pass.
 
-Rollback: redeploy the previous commit with `npx wrangler deploy --env staging`; never drop or recreate
-`REPORTS_DB`; `npx wrangler delete --env staging` takes the Worker down without touching its databases.
+## Future maintainer deployment sequence — NOT EXECUTED
+
+Every write/Secret/deploy below requires separate authorization; none is a command for CI. Use only
+reviewed staging resources and a staging-targeted client. Stop at the first unexpected result.
+
+1. Confirm account, Worker name, environment and distinct IDs without logging credentials; review B1/B2
+   configuration. Stage only 0001/0002 for a new report store, use the guarded 0003 import sequence above,
+   then apply 0004–0006. Complete reviewed canonical promotion separately. Do not copy production data.
+2. Deploy staging with registration paused, retention off and no App Attest activation Secrets. Readiness
+   must be complete and GET-only smoke must say unavailable. Verify no invocation/request-body logging.
+3. A maintainer sets separate staging peppers and actual client App Attest values interactively; validates
+   caps/limiter and then separately enables registration on staging. Use a reviewed environment config,
+   never global `REPORT_ATTESTATION=disabled` or a top-level local fallback. Verify v3 GET-only smoke.
+4. Perform the signed-device matrix below with synthetic report drafts. Never use production API/client
+   origin, device histories or personal free text. Keep assertions/challenges/key IDs private and ephemeral.
+5. Validate retention monitoring/cleanup and aggregate overdue/failed/heartbeat alerts before leaving
+   intake enabled. Restore registration paused and the approved retention policy; review whether all
+   report intake must be closed. **Registration pause alone does not close reports from existing keys.**
+   Use the documented removal of staging App Attest activation binding for complete intake shutdown.
+6. Test forward redeploy/rollback Secret preservation and reverify config/behavior. Code rollback alone
+   must not be assumed to preserve Secrets. Never delete/recreate REPORTS_DB or roll back its schema.
+
+| Signed staging/device scenario | Expected behavior / evidence | Current remote result |
+| --- | --- | --- |
+| Actual signed client register/report | Matching App ID/environment/build; challenge one-use and 300s TTL, 201 enrollment/report | NOT RUN |
+| Response loss / retry | Same owner/draft key + same payload; fresh challenge/assertion; 200 same receipt/report, no second budget debit | NOT RUN |
+| Changed payload / different App Attest owner | 409 for same owner's changed draft; another key cannot retrieve old receipt; never auto-resign old draft after rotation | NOT RUN |
+| Retired receipt | Cleanup then owned retry → 410, no resurrected report/budget debit | NOT RUN |
+| Atomic budget / 429 | Concurrent valid sends cannot exceed the final slot; Retry-After respected; fresh material for explicit retry | NOT RUN |
+| Pause / limiter outage | New registration paused; existing-key reports separate. Throwing/malformed limiter → 503 before body/DB, denied bucket → 429, no PII logs | NOT RUN |
+| Revoke / bulk reject | Revoke key → 403; old reports remain. Private bounded bulk dry-run/confirmed apply → reject+audit once; no canonical publication/revoke from bulk | NOT RUN |
+| Cleanup / overdue / concurrent retry | Bounded cleanup, retired receipts, monitor read-only aggregate overdue; races yield legitimate 200-before-cleanup or 410-after, never duplicate/report resurrection | NOT RUN |
+| Rollback / cross-environment isolation | Staging deploys/Secrets/DB IDs stay separate; reports store stable, no production change | NOT RUN |
+
+Primary runtime semantics: [D1 batch transactions](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch),
+[environment Secrets](https://developers.cloudflare.com/workers/configuration/secrets/),
+[Workers limiter binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
+Local tests do not replace remote/device evidence for these services.

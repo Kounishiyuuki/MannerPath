@@ -13,8 +13,8 @@ const allowed: Record<string, string[]> = {
   prepare: ["--out"],
   "verify-local": ["--database", "--completed"],
   "apply-local": ["--database", "--file", "--expected-digest"],
-  "verify-remote": ["--env", "--database-id", "--confirm-production", "--completed"],
-  "apply-remote": ["--env", "--database-id", "--confirm-production", "--file", "--expected-digest"],
+  "verify-remote": ["--env", "--database-id", "--confirm-production", "--confirm-staging", "--completed"],
+  "apply-remote": ["--env", "--database-id", "--confirm-production", "--confirm-staging", "--file", "--expected-digest"],
 };
 assert.ok(Object.hasOwn(allowed, command), "command must be prepare, verify-local, apply-local, verify-remote or apply-remote");
 const flags = new Map<string, string>();
@@ -33,8 +33,8 @@ const cwd = fileURLToPath(new URL("../", import.meta.url));
 const configPath = join(cwd, "wrangler.jsonc");
 const wrangler = join(cwd, "node_modules/wrangler/bin/wrangler.js");
 const query = "SELECT name FROM d1_migrations ORDER BY id; SELECT type, name, tbl_name, sql FROM sqlite_schema ORDER BY type, name; PRAGMA table_info(d1_migrations); PRAGMA foreign_key_check;";
-function remoteSnapshot(): Snapshot {
-  const results = JSON.parse(execFileSync(process.execPath, [wrangler, "d1", "execute", "REPORTS_DB", "--config", configPath, "--env", "production", "--remote", "--command", query, "--json"], { cwd, encoding: "utf8" }));
+function remoteSnapshot(environment: "production" | "staging"): Snapshot {
+  const results = JSON.parse(execFileSync(process.execPath, [wrangler, "d1", "execute", "REPORTS_DB", "--config", configPath, "--env", environment, "--remote", "--command", query, "--json"], { cwd, encoding: "utf8" }));
   assert.equal(results.length, 4);
   assert.ok(results.every((result: any) => result.success === true && result.meta?.rows_written === 0 && result.meta?.changed_db === false));
   return { migrations: results[0].results, schema: results[1].results, columns: results[2].results, integrity: null, foreignKeys: results[3].results };
@@ -55,19 +55,19 @@ if (command === "prepare") {
     console.log(JSON.stringify({ status: command === "apply-local" ? "applied" : "verified", migration: "0003_evidence_photos.sql" }));
   } finally { database.close(); }
 } else {
-  remoteTarget(flags, { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) }, command === "apply-remote", readJsonc(readFileSync(configPath, "utf8")));
+  const environment = remoteTarget(flags, { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) }, command === "apply-remote", readJsonc(readFileSync(configPath, "utf8")));
   if (command === "verify-remote") {
-    verifySnapshot(remoteSnapshot(), flags.get("--completed") === "true", true);
+    verifySnapshot(remoteSnapshot(environment), flags.get("--completed") === "true", true);
     console.log("REPORTS_DB schema/ledger/FK verified; remote integrity_check unsupported; no writes executed");
   } else {
     const bytes = readFileSync(required("--file"));
     verifyArtifact(bytes, required("--expected-digest"));
-    verifySnapshot(remoteSnapshot(), false, true);
+    verifySnapshot(remoteSnapshot(environment), false, true);
     const pinned = join(mkdtempSync(join(tmpdir(), "reports-migration-import-")), "0003-import.sql");
     writeFileSync(pinned, bytes, { flag: "wx", mode: 0o600 });
     console.log(`Importing reviewed bytes from ${pinned}; any failure requires read-only investigation, never blind replay`);
-    execFileSync(process.execPath, [wrangler, "d1", "execute", "REPORTS_DB", "--config", configPath, "--env", "production", "--remote", "--file", pinned], { cwd, stdio: "inherit" });
-    verifySnapshot(remoteSnapshot(), true, true);
+    execFileSync(process.execPath, [wrangler, "d1", "execute", "REPORTS_DB", "--config", configPath, "--env", environment, "--remote", "--file", pinned], { cwd, stdio: "inherit" });
+    verifySnapshot(remoteSnapshot(environment), true, true);
     console.log("REPORTS_DB 0003 schema and bookkeeping verified; migration complete");
   }
 }

@@ -114,15 +114,33 @@ export function applyLocal(database: DatabaseSync, bytes: Buffer, expectedDigest
   } catch (error) { database.exec("ROLLBACK"); throw error; }
 }
 
-export function remoteTarget(flags: Map<string, string>, runtime: { interactive: boolean; ci: boolean }, write: boolean, config: any): void {
-  assert.equal(flags.get("--env"), "production", "explicit production environment required");
-  assert.equal(flags.get("--database-id"), DATABASE_ID, "only the reviewed production REPORTS_DB is supported");
-  assert.equal(flags.get("--confirm-production"), DATABASE_NAME, "typed production report-store confirmation required");
+export function remoteTarget(flags: Map<string, string>, runtime: { interactive: boolean; ci: boolean }, write: boolean, config: any): "production" | "staging" {
+  const environment = flags.get("--env");
+  assert.ok(environment === "production" || environment === "staging", "explicit production or staging environment required");
+  const databases = config.env?.[environment]?.d1_databases ?? [];
+  const reports = databases.filter((entry: any) => entry.binding === "REPORTS_DB");
+  assert.equal(reports.length, 1, "exactly one report-store binding required");
+  const target = reports[0];
+  if (environment === "production") {
+    assert.equal(flags.has("--confirm-staging"), false, "cross-environment confirmation refused");
+    assert.equal(flags.get("--database-id"), DATABASE_ID, "only the reviewed production REPORTS_DB is supported");
+    assert.equal(flags.get("--confirm-production"), DATABASE_NAME, "typed production report-store confirmation required");
+    assert.equal(target.database_id, DATABASE_ID);
+    assert.equal(target.database_name, DATABASE_NAME);
+  } else {
+    assert.equal(flags.has("--confirm-production"), false, "cross-environment confirmation refused");
+    assert.equal(flags.get("--confirm-staging"), "mannerpath-staging-reports", "typed staging report-store confirmation required");
+    assert.equal(target.database_name, "mannerpath-staging-reports");
+    assert.match(target.database_id ?? "", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "configured staging UUID required");
+    assert.equal(/^00000000-0000-0000-0000-/.test(target.database_id), false, "placeholder staging database refused");
+    assert.equal(flags.get("--database-id"), target.database_id, "explicit staging database must match configuration");
+    const production = config.env?.production?.d1_databases ?? [];
+    const forbidden = [DATABASE_ID, "ffbaea1e-b57e-4064-abeb-a0c53f459662", ...production.map((entry: any) => entry.database_id)];
+    assert.equal(forbidden.some((id: unknown) => typeof id === "string" && id.toLowerCase() === target.database_id.toLowerCase()), false, "production database refused for staging");
+  }
+  assert.equal(target.migrations_dir, "migrations-reports");
+  const otherDatabases = [...(config.d1_databases ?? []), ...Object.values(config.env ?? {}).flatMap((entry: any) => entry.d1_databases ?? [])];
+  assert.equal(otherDatabases.some((entry: any) => entry !== target && typeof entry.database_id === "string" && entry.database_id.toLowerCase() === target.database_id.toLowerCase()), false, "shared database binding refused");
   if (write) assert.equal(runtime.interactive && !runtime.ci, true, "remote apply requires an interactive terminal outside CI");
-  const databases = config.env?.production?.d1_databases ?? [];
-  const reports = databases.find((entry: any) => entry.binding === "REPORTS_DB");
-  assert.equal(reports?.database_id, DATABASE_ID);
-  assert.equal(reports?.database_name, DATABASE_NAME);
-  assert.equal(reports?.migrations_dir, "migrations-reports");
-  assert.equal(databases.some((entry: any) => entry.binding !== "REPORTS_DB" && entry.database_id === DATABASE_ID), false);
+  return environment;
 }

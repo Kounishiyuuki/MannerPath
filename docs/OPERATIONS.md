@@ -1190,3 +1190,11 @@ falling into source checks. Monitor and alert on an unexpected disabled heartbea
 Lane 1 revocation ownership is preserved: this change does not modify `app.ts`, attestation/key
 handling, report idempotency, migration numbering or the moderation CLI. Only the Worker entry point
 and scheduler are shared; integration must retain both dispatch branches and rerun validation.
+
+## Staging security E2E readiness
+
+Use [STAGING_VERIFICATION.md](STAGING_VERIFICATION.md) for the current staging-only migration checkpoints,
+0003 guarded import, GET-only smoke and signed-device security matrix. It separates local workerd D1
+evidence from remote/device checks and keeps activation blocked on reviewed staging IDs, limiter/caps,
+environment-specific Secrets and maintenance/privacy evidence. No remote action or automated migration
+is authorized by the checklist. Production report intake remains disabled.

@@ -56,9 +56,12 @@ Before writing, tooling checks the exact ledger, all report schema definitions, 
 and FK state. Partial/applied/canonical/mismatched states are refused. It pins reviewed bytes in a
 new private temporary file before invoking Wrangler, then verifies the complete schema and ledger.
 
-Remote apply accepts only explicit production env, this REPORTS_DB ID and typed report-store name;
-it refuses CI and noninteractive stdin/stdout before invoking Wrangler. There is no DB, staging,
-arbitrary-migration, retry or force option. Post-failure investigation is read-only, never blind replay.
+Production remote apply retains the pinned production REPORTS_DB ID and typed production name.
+Staging requires explicit `--env staging`, a configured non-placeholder UUID for its unique
+`REPORTS_DB` binding, matching `--database-id`, and `--confirm-staging mannerpath-staging-reports`.
+Production IDs, shared/canonical bindings, cross-environment confirmations and implicit targets are
+refused. Both remote write paths require interactive stdin/stdout outside CI before invoking Wrangler.
+Reads and writes use the same validated environment. There is no arbitrary-migration, retry or force option. Post-failure investigation is read-only, never blind replay.
 D1 rejects `PRAGMA integrity_check` with SQLITE_AUTH; remote checks report it unsupported, while
 local verification requires integrity_check=ok. The supported remote foreign_key_check is required.
 
@@ -76,7 +79,10 @@ npm run reports:migration -- verify-remote --env production --database-id e641b1
 npx wrangler d1 migrations list REPORTS_DB --env production --remote
 ```
 
-Expect complete schema, exactly three ledger rows, empty FK check and no pending migrations.
+Expect the exact 0001–0003 schema, exactly three ledger rows and an empty FK check.
+At this checkpoint 0004–0006 remain pending in the current stream. The recovery verifier intentionally
+refuses a database with later migrations; run `--completed true` immediately after 0003, before
+applying 0004 idempotency, 0005 key revocation and 0006 bulk rejection separately in order.
 If anything fails, stop without cleanup. Inspect ledger and schema read-only before deciding whether
 the import failed atomically or completed despite a transport failure. Never reapply an applied migration.
 Canonical promotion, Worker deploy and activation remain separate launch steps, not part of this tool.
@@ -84,8 +90,8 @@ Canonical promotion, Worker deploy and activation remain separate launch steps, 
 ## Local validation
 
 Fresh isolated local D1: Wrangler migrations 0001+0002 → exact artifact file import (15 statements)
-→ migrations list against the full report stream: no migrations to apply. `verify-local --completed true`
-checks all schema definitions, ledger, integrity and foreign keys. Focused tests additionally cover
+→ migrations list against the full report stream: 0004–0006 remain pending. `verify-local --completed true`
+checks the exact 0001–0003 schema definitions, ledger, integrity and foreign keys before later migrations. Focused tests additionally cover
 atomic rollback on bookkeeping failure, partial/drifted schema refusal, byte/digest tampering,
 canonical target rejection, CI/noninteractive refusal and re-run refusal without mutation.
 
@@ -93,3 +99,22 @@ The equivalent SQLite file path is explicit for local tooling:
 `npm run reports:migration -- apply-local --database <existing-0001+0002.sqlite> --file <artifact> --expected-digest <reviewed-sha256>`.
 Use `verify-local --database <sqlite>` before apply and `verify-local --database <sqlite> --completed true`
 afterward. Schema/record changes occur in one local transaction; this is simulation, not proof of remote import duration or acceptance.
+
+
+## Staging recovery checkpoint (maintainer-only, not executed by this task)
+
+Use recovery only if read-only inspection establishes the exact 0001+0002 state and a 0003 parser
+failure; do not apply this workaround to a fresh staging database by default. Provisioning, configuration,
+remote migrations and deployment require separate maintainer action. Repository staging IDs remain
+placeholders and the tool refuses them. With the independently provisioned staging configuration and
+UUID, the environment-specific sequence is:
+
+```sh
+npm run reports:migration -- verify-remote --env staging --database-id <configured-staging-reports-uuid> --confirm-staging mannerpath-staging-reports
+npm run reports:migration -- apply-remote --env staging --database-id <configured-staging-reports-uuid> --confirm-staging mannerpath-staging-reports --file <reviewed-artifact.sql> --expected-digest <reviewed-artifact-sha256>
+npm run reports:migration -- verify-remote --env staging --database-id <configured-staging-reports-uuid> --confirm-staging mannerpath-staging-reports --completed true
+```
+
+These commands reuse the unchanged 0003 artifact and digest validation. Stop at the third command
+before the normal 0004–0006 sequence. Do not substitute production IDs or production confirmation.
+Transport failure means read-only investigation of ledger and schema, never automatic retry or cleanup.

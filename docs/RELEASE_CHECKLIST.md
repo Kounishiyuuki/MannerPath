@@ -206,3 +206,11 @@ are implemented, but final signed iPhone/Watch notice/link/attribution/asset che
 No registry, corpus, artifact or production changes are authorized by that audit.
 Repository policy wording corrections and revision dates updated 2026-10-05 and confirmed live; signed-build and evidence-dependent §2/§5/§9 details remain in the
 [audit handoff](PRODUCTION_PRIVACY_AUDIT.md).
+
+## Staging security follow-up (2026-10-14)
+
+The current [staging security runbook](STAGING_VERIFICATION.md) supersedes older report-intake-only
+engineering status: atomic v3 budget/receipts, key revoke, bounded bulk rejection and retention automation
+are implemented, with activation off. Earlier dated launch evidence above remains historical.
+Local tests and GET-only smoke do not authorize intake; remote migration, signed-device App Attest,
+limiter/caps, privacy and retention alert evidence remain maintainer gates. Issue #242 remains open.
