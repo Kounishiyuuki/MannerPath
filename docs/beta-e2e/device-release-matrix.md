@@ -20,7 +20,7 @@ row is never filled from simulator, unit-test or source evidence. `python3 scrip
 | --- | --- | --- | --- |
 | 1.0 (1) | `main` after #252 | yes | superseded by 1.0 (2); no device rows recorded |
 | 1.0 (2) | `main` `2c133ba` (#254, #255; **not** #259) | 2026-10-14, signed preflight passed | rows marked `1.0 (2)` below |
-| 1.0 (3) | not built | — | §8 checklist; first build carrying #259 live search |
+| 1.0 (3) | `main` `e7a4654` (#259 live search, #263 search sheet, #265, #267) | 2026-10-15, signed + `--distribution` preflight passed | none yet; run sheet §9 |
 
 Observed by the maintainer on an iPhone with TestFlight 1.0 (2), production API, standing in Kanazawa
 (device model, iOS version and time were not recorded; record them from Build 3 on):
@@ -301,7 +301,7 @@ its own severity; this section only groups them.
 | TESTFLIGHT ONLY | T10 tester distribution, App Attest production environment of the distributed build, §6 items 1 and 4 for the distributed build |
 | APP STORE BEFORE SUBMISSION | all P1 above closed, final export-compliance/territory decision for the submitted build, screenshots/Review Notes and legal signoff (`APP_STORE_SUBMISSION.md`) |
 
-## 8. Build 3 distribution checklist (not started)
+## 8. Build 3 distribution checklist (steps 1–7 done 2026-10-15; step 8 upload done, App Store Connect processing/compliance pending; 9–10 not started)
 
 Build 3 is the first build with #259 live search. Do these in order; stop at the first failure.
 
@@ -326,3 +326,69 @@ Build 3 is the first build with #259 live search. Do these in order; stop at the
 9. On device, record model, iOS/watchOS version, build and time per row, then run in this order:
    L1–L8, U1–U7 (only with #263), D1–D5 regression, D6–D8, the API/cache/offline procedure, P10 remainder, R1, W1–W5b, G2/G3, WG2.
 10. Fill the Result column only with what was observed on 1.0 (3); leave the rest empty.
+
+## 9. Build 1.0 (3) device run sheet (P0 first)
+
+Operator steps for the maintainer; nothing here has been run on a device. It orders existing §4 rows, it does not
+replace them: record each result in its §4 row as `PASS 1.0 (3)` / `FAIL 1.0 (3)` / `PARTIAL 1.0 (3): … Open: …`.
+Before starting write down: iPhone model + iOS, Watch model + watchOS, TestFlight build shown as **1.0 (3)**, local
+time, and that the iPhone and Watch are paired. Stay inside published coverage (e.g. 上野・浅草 or 大阪市) unless the
+row says otherwise; Kanazawa has no published places. Screenshot every P0 row.
+
+Release-gate mapping: session A → G17; B, C, D → G14 and G15; E, F → Build 3 search regression. All P0 rows pass →
+G21 can name 1.0 (3).
+
+**A. Fresh install, first launch, permission, reports (G17).**
+1. Delete MannerPath from iPhone and confirm the Watch app is gone too (Watch app → My Watch → Installed apps); remove any MannerPath widgets. Install 1.0 (3) from TestFlight. Do not
+   add any widget yet.
+2. Launch → eligibility notice in Japanese; tap 「確認しました」 → Nearby (**P1**, **AI1**: no crash).
+3. Before tapping anything, confirm no location prompt appeared. Tap 「現在地を使用」 → prompt; choose *While Using*
+   → 「近くの場所の情報を更新しました。」 and places (**P4**).
+4. Open a place detail → 「現在、報告機能を利用できません。」, no 「この場所の情報を報告」 button, and no 「喫煙場所を追加」 on Nearby (**R1**; the same checks as `testReleaseBuildReadsProductionDataWithReportsUnavailable`). The
+   "no App Attest request" half of R1 is not observable on a device (App Privacy Report lists hosts, and reports and
+   reads share one host); it is covered only by unit tests (`unavailableConfigDisablesSubmission`, `AppAttestReportTests`). Record
+   R1 as `PARTIAL 1.0 (3): unavailable text seen. Open: none observable on device` if that is all you saw.
+
+**B. App Group: iPhone writes → widget reads (G14, G2/S1–S2, G3/G3b).**
+1. After A3, with places loaded, note the **first unfiltered** row: name, distance, verification text.
+2. Add the small and medium Home Screen widgets. Expect the same place, distance and verification text (**G2**).
+3. If the first place is approximate or of unknown precision, the widget says so (**G3/G3b**); otherwise record G3
+   as not exercised.
+4. A widget still showing "unavailable" after a successful load is an App Group provisioning failure (S2): stop and
+   record `FAIL 1.0 (3)`; do not continue to C.
+
+**C. Watch sync (G15, W1–W3, WG2/S3–S4).**
+1. W1 is only testable before step A3: if you want it, open the Watch app right after A2 → first-use notice → "open
+   iPhone to sync". Otherwise leave W1 empty and redo it on the next clean install.
+2. With iPhone Nearby loaded, open the Watch app → the same nearby places and a sync time (**W2**).
+3. Add the MannerPath Watch widget/complication → same first place as the Watch app, "From iPhone", verification age
+   (**WG2**).
+4. Put the iPhone in airplane mode (or out of range), turn Watch Wi-Fi/cellular off, force-quit and reopen the Watch
+   app → cached places and filters remain (**W3**).
+5. Open an approximate and, if present, an unknown-precision place on the Watch → never shown as exact (**W5b**).
+
+**D. Offline (G17, P8/P9b) and staleness (W5).**
+1. iPhone: airplane mode, force-quit, relaunch → cached list with distance, bearing, freshness and an honest refresh
+   failure, never 「近くに場所がありません」-style empty state (**P8/P9b**).
+2. Airplane mode off → refresh succeeds.
+3. W5 needs the Watch away from the iPhone for more than 1 hour: reopen → labelled old, no current distance. Run it
+   last or on another day.
+
+**E. Build 3 search (L1–L8, U1–U7), online, inside or outside coverage.**
+Run §4 L1, L2, L5 and U1–U3 (P0) first, then L3, L4, L6, U4–U6, and L7/L8/U7 with VoiceOver and the largest text.
+Search cancel: L4 (delete the query), L5 (pick while a search is pending), and closing search without picking —
+record whether the previous destination stays; no row defines that yet, so note it rather than PASS/FAIL it. Light/Dark: U6; Liquid Glass / Reduce Transparency: U5.
+
+**F. Destination regression (D1–D5, P10, P14).** From the current location search 「上野駅」 → D1–D3; open a place →
+P10 remainder and D4; 「経路」/directions → P14 (Apple Maps opens at the spot); D5 from a distant location.
+
+**G. Known automated failure to check on device (2026-10-15).** `scripts/run-iphone-ui-tests.sh` on `main`
+`069a4af` (same app code as 1.0 (3)) fails `B_OnlineUITests/testMapPinOpensDetail` twice in a row at
+`MannerPathUITests.swift:285`: after pin → summary → 「場所の詳細を見る」 → back, the summary's 「選択を解除」 button sits at
+the sheet's top edge under the navigation bar, the tap lands on the bar and the selection stays. On the device: tap a
+pin, open details, go back, tap 「選択を解除」 once. Record whether the selection clears on the first tap, and whether
+the button is fully visible without scrolling. A miss is a usability defect for Lane 2 (search sheet), not a data
+problem.
+
+Stop rule: any P0 `FAIL` on 1.0 (3) blocks G21 for this build; record it and report before any rebuild (a rebuild
+needs a new build number, Lane 3).
