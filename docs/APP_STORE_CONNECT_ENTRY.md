@@ -65,8 +65,11 @@ Apple 定義（[App privacy details](https://developer.apple.com/app-store/app-p
 | 解析・広告・クラッシュ SDK | なし（依存は GRDB のみ） | `APP_PRIVACY_INVENTORY.md` |
 | サポート | アプリ内リンクからメールアプリで Gmail 宛に送る。送信者アドレスと本文が Gmail に残る | 公開ポリシー §9 |
 
-**未確認**：本番 Workers の現在の設定（Cloudflare 認証切れのため 2026-10-15 は未確認、10-05 監査では invocation logs 無効）。
-Workers Logs に実際に残っている項目。Logpush ジョブ・契約プラン（API 403）。Cloudflare のセキュリティ・分析系サービスでの IP 保持。
+**Cloudflare 読み取り確認（2026-10-15、wrangler OAuth、GET のみ）**：`mannerpath-api-production` の script-settings は
+`invocation_logs:false`、`logs.persist:true`、traces 無効、Worker の `logpush:false`、tail consumers なし。アカウントにゾーンは無い（`workers.dev` のみ）。
+
+**未確認**：アカウントの Logpush ジョブと契約プラン（API 403、OAuth スコープ外）。Workers Logs に実際に残っている項目（テレメトリ照会のスコープなし）。
+保持期間は文書上 Free 3 日 / Paid 7 日で、プランが読めないため最長 7 日とだけ言える。Cloudflare の基盤側（workers.dev、DDoS 対策、集計メトリクス）での IP 保持。
 
 **推奨回答**
 
@@ -83,7 +86,7 @@ Workers Logs に実際に残っている項目。Logpush ジョブ・契約プ�
 | 写真・クラッシュ・その他のユーザーコンテンツ | **申告しない** | 機能が無効、または SDK が無い |
 | トラッキング | **いいえ** | 広告・データブローカーへの提供なし |
 
-**条件 A（メンテナーが Cloudflare ダッシュボードで確認）**：(1) 本番 Worker の Observability で invocation logs が無効、(2) Workers Logs に IP・リクエスト URL を含むエントリが無い、(3) Logpush ジョブが無い。
+**条件 A（メンテナーが Cloudflare ダッシュボードで確認）**：(1) 本番 Worker の Observability で invocation logs が無効（2026-10-15 API で確認済み）、(2) Workers Logs に IP・リクエスト URL を含むエントリが無い、(3) Logpush ジョブが無い。
 3 つとも確認できれば「収集する」はサポート関連の 2 項目のみ。1 つでも確認できなければ、おおよその位置情報・その他の診断データ・製品の操作（目的はアプリの機能のみ）を加える。正確な位置情報・デバイス ID・解析目的は、どちらの場合も加えない。
 
 ### 0.3 プライバシーポリシーとの矛盾と修正案
