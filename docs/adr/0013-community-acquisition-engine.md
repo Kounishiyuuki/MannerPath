@@ -69,8 +69,12 @@ evidence rather than by one voice, and measurable — without turning MannerPath
     assignment is by source jurisdiction, or for community spots only inside a seed area (approximate) — otherwise
     `unassigned`, never guessed. The licensed top-50/top-300 station metric stays `notComputableYet`.
 12. **Moderation scales without auto-acceptance.** Triage filters by category, flags `duplicateCandidate`,
-    `highReportCount`, `conflicting` and `old`, orders flagged-first then oldest-first, and summarizes pending /
+    `highReportCount`, `conflicting`, `old` and `incomplete`, orders flagged-first then oldest-first, and summarizes pending /
     accepted / rejected / applied / rightsBlocked. There is no bulk accept: every decision is a single reviewed call.
+    `incomplete` (2026-10-14) marks a report missing what its own category needs — a new spot's type or observation
+    day, the observation day of a move or absence, a correction's proposed value, an hours change without a note. It
+    is display only (never a rejection, acceptance or priority), reads field presence not content, and skips
+    minimized reports.
 13. **Venue/operator claims later, without a schema rewrite.** Community claims arrive through the `userReport` source.
     A future venue/operator self-registration is a *separate* source kind (ADR-0008's `operator`, its own registry row,
     terms and attribution), so its claims stay distinguishable from community ones by provenance and the existing

@@ -106,7 +106,7 @@ npm run local:reports -- effect-apply ce_...                  # records the revi
 npm run local:reports -- effect-hold ce_...                   # prohibited only; `blocked` until community rights hold (#124)
 npm run local:reports -- effect-lift ce_... reviewer-2        # reviewed lift, then republish
 # ADR-0013 community acquisition (migration 0024). Read-only triage; there is no bulk accept.
-npm run local:reports -- triage pending missing,correction     # filter by category; optional flag: duplicateCandidate|highReportCount|conflicting|old
+npm run local:reports -- triage pending missing,correction     # filter by category; optional flag: duplicateCandidate|highReportCount|conflicting|old|incomplete
 npm run local:reports -- triage-summary                       # pending / accepted / rejected / applied / rightsBlocked per category
 npm run local:reports -- evidence                             # per spot: normal | needsRecheck | reviewCandidate | held, + conflicting
 npm run local:reports -- corrections                          # moved pins: awaitingIndependentConfirmation | relocationCandidate
