@@ -6,8 +6,37 @@ can do. Row IDs (P*, W*, G*, WG*, S*, A*) are the ones in [`BETA_E2E_CHECKLIST.m
 which keeps the simulator/automation history. This file supersedes its "Physical-device procedure"
 for v1 (production, nationwide, read-only; reports unavailable).
 
-Audited 2026-10-09 on `main` `a37fdcf`. Nothing here was run on a device, signed, uploaded, or
-changed in Apple Developer / App Store Connect / Cloudflare.
+Audited 2026-10-09 on `main` `a37fdcf`; device results for TestFlight 1.0 (2) recorded 2026-10-14 (§0).
+Writing this file ran nothing on a device and changed nothing in Apple Developer / App Store Connect / Cloudflare.
+
+**Result column.** Only `PASS 1.0 (N)`, `FAIL 1.0 (N)`, `PARTIAL 1.0 (N)` (some expectations observed; the
+note says which are still open) or empty (not run). A result always names the build it was observed on, and a
+row is never filled from simulator, unit-test or source evidence. `python3 scripts/test-device-release-matrix.py`
+(run by `make contract`) enforces this.
+
+## 0. Build history and observed device results
+
+| Build | Source | Uploaded | Device result |
+| --- | --- | --- | --- |
+| 1.0 (1) | `main` after #252 | yes | superseded by 1.0 (2); no device rows recorded |
+| 1.0 (2) | `main` `2c133ba` (#254, #255; **not** #259) | 2026-10-14, signed preflight passed | rows marked `1.0 (2)` below |
+| 1.0 (3) | not built | — | §8 checklist; first build carrying #259 live search |
+
+Observed by the maintainer on an iPhone with TestFlight 1.0 (2), production API, standing in Kanazawa
+(device model, iOS version and time were not recorded; record them from Build 3 on):
+
+| Observation | Row |
+| --- | --- |
+| "上野駅" found from Kanazawa | D1 |
+| 上野駅 set as destination | D2 |
+| Smoking places around Ueno shown | D3 |
+| Place detail opened from the list | P10 (partial) |
+| Distance, bearing and official confirmation shown in the detail | P10 (partial), D4 |
+| Apple Maps directions opened | P14 |
+| Distant destination shows the "no walking detour" message instead of a routing failure | D5 |
+
+Everything else in §4 is **not yet observed on a device**, including every Watch, widget, VoiceOver,
+large-text, offline/cache, location-permission and first-launch row.
 
 ## 1. Target inventory (from `xcodebuild -showBuildSettings`, Debug and Release identical unless noted)
 
@@ -18,10 +47,10 @@ changed in Apple Developer / App Store Connect / Cloudflare.
 | `MannerPathWatch Watch App` | `com.kounishiyuuki.MannerPath.watchkitapp` | watchOS 11.0 | 4 | App Group | Automatic, inherited team; `WKCompanionAppBundleIdentifier = com.kounishiyuuki.MannerPath` |
 | `MannerPathWatchWidgets` | `com.kounishiyuuki.MannerPath.watchkitapp.widgets` | watchOS 11.0 | 4 | App Group | Automatic, inherited team |
 
-Version `MARKETING_VERSION 1.0`, build `CURRENT_PROJECT_VERSION 1` on all four (raise per upload).
+Version `MARKETING_VERSION 1.0`, build `CURRENT_PROJECT_VERSION 2` on all four (raise per upload; Build 3 is §8).
 No `PROVISIONING_PROFILE_SPECIFIER` pinned. App Attest environment: TestFlight/App Store builds use
-production regardless of the `development` value in the source file (Apple behavior; confirm on the
-first TestFlight build, T5).
+production regardless of the `development` value in the source file (Apple behavior; observed in the signed
+1.0 (2) export: `appattest-environment = production` on the iPhone app).
 
 ### Debug vs Release
 
@@ -100,10 +129,10 @@ iPhone paired with the Watch, standing inside published coverage unless the row 
 | P4 | Location not determined | Open Nearby; tap "現在地を使用"; allow While Using | Prompt only after the tap; results load from production | screenshot | P0 | |
 | P5 | Location denied | Deny; tap "設定を開く"; re-allow; return | Denial message; Settings opens app page; results after re-allow | — | P1 | |
 | P7 | Precise Location off | Relaunch Nearby | Approximate warning; results still load | screenshot | P1 | |
-| P10 | Loaded | Map, list, row → detail, pin → detail | Type, distance, bearing, access, freshness, last verified, attribution | screenshot | P0 | |
+| P10 | Loaded | Map, list, row → detail, pin → detail | Type, distance, bearing, access, freshness, last verified, attribution | screenshot | P0 | PARTIAL 1.0 (2): row → detail with distance, bearing, official confirmation (destination area). Open: pin → detail, type, access, freshness, last verified, attribution, device-location area |
 | P11 | Loaded | Each filter; clear | Empty state then results; unknown support not hidden | — | P1 | |
-| P12/P13 | Online | Search a destination; pick result | Results with detour minutes; unconfirmed marked | — | P1 | |
-| P14 | Detail open | Walking directions | Apple Maps opens at the spot | — | P0 | |
+| P12/P13 | Online | Search a destination; pick result | Results with detour minutes; unconfirmed marked | — | P1 | PARTIAL 1.0 (2): distant search and pick (D1–D3). Open: a walkable destination with detour minutes (D6) |
+| P14 | Detail open | Walking directions | Apple Maps opens at the spot | — | P0 | PASS 1.0 (2) (from a destination-area detail; confirm the pin lands on the spot on Build 3) |
 | P15 | Detail open | Open attribution / Data & Privacy, privacy and support links | Source + licence; Pages links open | — | P1 | |
 | P8/P9b | Data loaded | Airplane mode; force-quit; relaunch | Cached list, distance, bearing, freshness; failure message honest | screenshot | P0 | |
 | P9c | Fresh install, airplane mode | Launch | "読み込めませんでした"; not "no places" | screenshot | P1 | |
@@ -151,6 +180,64 @@ App Group fallback (by design, no crash): if the container is unavailable the iP
 the widget stays "unavailable"; the Watch keeps a private cache. A widget stuck on "unavailable" / "Open iPhone app
 to sync" after a successful load therefore means a provisioning failure (S2/S4), not a data problem.
 
+### Destination search regression (#254 dual-region search, #255 route states, #259 live search)
+
+Automated cover (simulator/unit, not device evidence): `RouteSearchTests` —
+`namedDistantDestinationOutranksNearbyResultsForTheSameQuery`, `genericQueriesKeepNearbyResultsFirstAndDuplicatesCollapse`
+(#254); `distantDestinationIsTooFarRatherThanUnavailable`, `destinationWithoutSavedPlacesIsNotReportedAsRoutingFailure`,
+`walkingDistanceGate*` (#255); `liveSearch*`, `emptyOrDeletedQueryNeverSearchesAndClears`,
+`lateOlderAnswerNeverReplacesNewerMatchesWhichStayVisibleWhileTyping`, `failedLiveSearchIsShownAndCanBeRetried`,
+`submittingTheTypedQueryDoesNotSendASecondRequest`, `choosingAMatchCancelsAPendingLiveSearch` (#259); UI tests
+`testDestinationSuggestionsAppearWhileTyping`, `testDestinationSearchCanBeOperated`,
+`testOutsideJapanDestinationLoadsPublishedTokyoPlaces` (real MapKit + production tile).
+
+| # | PR | Precondition | Steps | Expected | Sev | Result |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1 | #254 | In Kanazawa (or any place far from Tokyo), online | Type "上野駅" and search | 上野駅 (Tokyo) is the first match, above local stations | P0 | PASS 1.0 (2) |
+| D2 | #254 | D1 | Tap the match | Destination row shows 上野駅; device-area places are replaced | P0 | PASS 1.0 (2) |
+| D3 | #254 | D2 | Look at map and list | Published Taito places around Ueno appear on map and list | P0 | PASS 1.0 (2) |
+| D4 | — | D3 | Open a place | Distance/bearing are labelled as from the destination, not the device; official confirmation shown | P0 | PARTIAL 1.0 (2): distance, bearing, official confirmation seen; the "from the selected destination" wording not recorded |
+| D5 | #255 | D2 (destination beyond walking range) | Look under the destination row | 「目的地が現在地から遠いため、徒歩の寄り道は計算しません。直線距離と方角で表示します。」; no 「徒歩ルートを利用できません」 failure text | P0 | PASS 1.0 (2) |
+| D6 | #255 | Destination within walking range of the device, with places nearby | Pick it | 「徒歩での寄り道を確認中です…」 then places ranked with added walking minutes | P1 | |
+| D7 | #255 | Destination within range but no published places nearby | Pick it | Empty-list explanation only; no routing-failure text | P1 | |
+| D8 | #254 | Kanazawa | Search "カフェ" | Nearby cafés first; distant ones after; no duplicates; ≤ 8 matches | P1 | |
+| L1 | #259 | Build 3; online | Type "上野" one character at a time, do not press search | Matches appear while typing (≈0.3 s after the last key); keyboard stays up; matches are tappable | P0 | |
+| L2 | #259 | L1 | Keep typing "上野駅" quickly, then pause | Earlier matches stay visible until the newer answer replaces them; an older answer never comes back | P0 | |
+| L3 | #259 | L1 | Press the keyboard search key after the matches appear | No flicker or second result change (one request) | P1 | |
+| L4 | #259 | Matches shown | Delete the whole query | Matches disappear; no search for an empty query | P1 | |
+| L5 | #259 | Matches shown | Tap a match while still typing | Destination is set; no late match list reappears | P0 | |
+| L6 | #259 | Airplane mode | Type a query | Failure message, existing destination kept; after airplane off, typing again searches | P1 | |
+| L7 | #259 | VoiceOver on | Type with the on-screen keyboard, swipe to a match, double-tap | Matches are announced and selectable | P1 | |
+| L8 | #259 | Largest accessibility text | Type and pick | Matches readable and reachable by scrolling | P1 | |
+
+### API, cache and offline procedure
+
+Run in this order on one install; each step's evidence is a screenshot and the local time.
+
+1. **API fetch** (P4/P10): online, inside coverage, tap 「現在地を使用」. Expect 「近くの場所の情報を更新しました。」 and
+   places. Optional: *Settings → Privacy & Security → App Privacy Report* afterwards lists only the production API
+   host and Apple hosts (§6 item 4).
+2. **Cached display** (P8/P9b): airplane mode, force-quit, relaunch. Expect the same places with distance, bearing
+   and freshness, and an honest "couldn't refresh" message; never "no places".
+3. **No cache** (P9c): delete the app, reinstall from TestFlight, airplane mode before first launch. Expect
+   「読み込めませんでした」, not the no-published-places state.
+4. **Destination while offline** (L6): with step 2's cache, search a destination. Expect a search failure that
+   keeps the cached area.
+5. **Recovery**: airplane off, pull/refresh. Expect a new update time.
+6. **Watch/widget follow-on** (W2, W3, G2, G8): after step 1, check the Watch and the widget, then repeat step 2's
+   airplane mode on both.
+
+Automated cover (not device evidence): `testCachedResultsRemainAndFailureIsExplained`,
+`testNoCacheAndNoBackendIsDistinctFromNoPublishedPlaces`, `NearbyPersistenceE2E`, `TileSync` tests.
+
+### Not yet observed on any device (open after 1.0 (2))
+
+- **Widgets / App Group**: G1–G10, WG1–WG6. The P0 rows G2/S1–S2, G3/G3b and WG2/S3–S4 are the only proof that the
+  App Group works in a signed build; the signed entitlements alone do not prove it.
+- **Watch**: W1–W10, A1W. W1, W2, W3, W5, W5b are P0.
+- **VoiceOver and large text**: A1, A1W, P17, W9/W10, L7, L8.
+- **iPhone**: P1, P3–P5, P7, P8/P9b, P9c, P9d, P11, P15, P16a, P24, R1, AI1, D6–D8.
+
 ## 5. TestFlight preflight
 
 | # | Item | Repo state | Owner |
@@ -158,7 +245,7 @@ to sync" after a successful load therefore means a provisioning failure (S2/S4),
 | T1 | Paid Developer Program; team ID; change project-level `DEVELOPMENT_TEAM` if not `58A7G4U27M` (reviewed PR) | provisional Personal team | **MAINTAINER ACTION** |
 | T2 | Register 4 App IDs, App Group on all four, App Attest on iPhone app (Xcode automatic signing or one deliberate `-allowProvisioningUpdates` archive) | entitlements READY | **MAINTAINER ACTION** |
 | T3 | Signed Release archive → `./scripts/apple-beta-preflight.sh <archive>.xcarchive`; save output (no profiles/certificates) | script READY | MAINTAINER ACTION (needs T1–T2) |
-| T4 | Raise `CURRENT_PROJECT_VERSION` per upload; all four equal (preflight enforces) | 1.0 (1) | repo PR |
+| T4 | Raise `CURRENT_PROJECT_VERSION` per upload; all four equal (preflight enforces) | 1.0 (2) | repo PR |
 | T5 | Upload via Organizer; answer export compliance for the build in App Store Connect (`APP_STORE_SUBMISSION.md` §4). Required **before the build can go to any tester** (it stays "Missing Compliance" until answered), so it is P0, not a post-TestFlight item | `ITSAppUsesNonExemptEncryption` absent | **MAINTAINER ACTION** · SIGNED BUILD (in App Store Connect) |
 | T6 | Privacy manifests, usage descriptions | both hosts carry `PrivacyInfo.xcprivacy`; When-In-Use string on iPhone and Watch (preflight) | AUTOMATED |
 | T7 | Support/privacy URLs | Release Pages origin (preflight); live links #179 | AUTOMATED |
@@ -197,3 +284,25 @@ its own severity; this section only groups them.
 | SIGNED BUILD (no TestFlight needed) | T3 signed preflight (signature, profiles, App Group, App Attest entitlement), §6 items 2–3 on the signed archive, AI1 |
 | TESTFLIGHT ONLY | T10 tester distribution, App Attest production environment of the distributed build, §6 items 1 and 4 for the distributed build |
 | APP STORE BEFORE SUBMISSION | all P1 above closed, final export-compliance/territory decision for the submitted build, screenshots/Review Notes and legal signoff (`APP_STORE_SUBMISSION.md`) |
+
+## 8. Build 3 distribution checklist (not started)
+
+Build 3 is the first build with #259 live search. Do these in order; stop at the first failure.
+
+1. `main` contains #259 and the intended search-UI lane; `git log origin/main` recorded in the PR.
+2. Repo PR raising `CURRENT_PROJECT_VERSION` to 3 in all 16 configurations; `MARKETING_VERSION` stays 1.0;
+   no Info.plist hard-codes a build number.
+3. On that PR: `make apple-validate`, `make contract`, `make security-validate` all exit 0; CI green; merge.
+4. Archive from the merged `main` commit (Release, automatic signing, team `58A7G4U27M`).
+5. `./scripts/apple-beta-preflight.sh <archive>.xcarchive` and on the exported IPA: exit 0,
+   `CFBundleVersion for App Attest server: 3`, `Release artifact scan: … suspects=0`.
+6. Signed checks on all four bundles: 1.0 (3), `Apple Distribution` team `58A7G4U27M`, `codesign --verify --strict`,
+   no provisioned devices, `get-task-allow` false, `beta-reports-active` true, App Group
+   `group.com.kounishiyuuki.MannerPath`; iPhone app `appattest-environment = production`; Info.plist origins
+   `https://mannerpath-api-production.happywestyuki.workers.dev` and `https://kounishiyuuki.github.io/MannerPath/`.
+7. Production `/v1/config` still reports `reports.available: false` (read-only GET); no secret, D1 or Cloudflare change.
+8. Upload; App Store Connect processing finished; export compliance answered; internal group only (no external
+   testers, no review submission).
+9. On device, record model, iOS/watchOS version, build and time per row, then run in this order:
+   L1–L8, D1–D5 regression, D6–D8, the API/cache/offline procedure, P10 remainder, R1, W1–W5b, G2/G3, WG2.
+10. Fill the Result column only with what was observed on 1.0 (3); leave the rest empty.
