@@ -27,7 +27,7 @@
 <h2>2. 通信とサーバー</h2>
 <ul>
 <li>場所データの配信には Cloudflare のサービス（Cloudflare Workers など）を利用しています。通信の過程で、Cloudflare などの通信・配信事業者が、IP アドレスやリクエスト情報（要求したタイル ID、日時、端末・アプリの技術情報など）を、配信、安全確保、障害対応のために処理し、記録する場合があります。</li>
-<li>MannerPath は、リクエストごとの自動記録を無効にしています。ただし、エラーが発生したときの診断記録は保存される設定であり、事業者側の記録が残る場合もあります。</li>
+<li>MannerPath は、Cloudflare Workers のリクエストごとの自動記録（呼び出しログ）を無効にしています。ただし、エラーが発生したときの診断記録は保存される場合があり、事業者側の記録が残る場合もあります。</li>
 <li>記録される項目と保存期間は、事業者のサービスと設定によって異なります。MannerPath が確認した内容は、本ポリシーに反映します。</li>
 <li>MannerPath は、これらの情報を利用者の特定、位置情報の履歴の作成、広告には使いません。</li>
 <li>通信事業者による情報の取り扱いは、各事業者のプライバシーポリシーにも従います。</li>
@@ -59,7 +59,6 @@
 <h2>6. 解析・広告・トラッキング</h2>
 <ul>
 <li>本アプリには、外部の利用状況解析ツール、広告用トラッカー、クラッシュ報告ツールは含まれていません。</li>
-<li>App Store のプライバシー表示は、通信・配信事業者による記録の可能性を含めて、保守的に申告しています。</li>
 <li>通信・配信事業者による記録については、第2項をご覧ください。</li>
 <li>本アプリは、他社のアプリやウェブサイトをまたいで利用者を追跡（トラッキング）しません。広告識別子（IDFA）も使いません。</li>
 <li>Apple が提供する診断情報の共有を端末の設定で有効にしている場合、その情報は Apple の仕組みと規約に従って扱われます。</li>
@@ -98,7 +97,7 @@
 <h2>2. Network and server</h2>
 <ul>
 <li>MannerPath uses Cloudflare's services (such as Cloudflare Workers) to deliver place data. Network and delivery providers such as Cloudflare may process and record IP addresses and request information (requested tile IDs, time, technical device/app information) to deliver and protect the service and to handle failures.</li>
-<li>Automatic per-request records are turned off. Diagnostic records created when an error occurs are kept by the current settings, and records kept by providers may also remain.</li>
+<li>MannerPath has turned off automatic per-request records (invocation logs) in Cloudflare Workers. Diagnostic records created when an error occurs may still be kept, and records kept by providers may also remain.</li>
 <li>Which details are recorded, and for how long, depends on each provider's services and settings. What MannerPath confirms will be added to this policy.</li>
 <li>MannerPath does not use this information to identify you, to build a location history, or for advertising.</li>
 <li>Providers also handle information under their own privacy policies.</li>
@@ -130,7 +129,6 @@
 <h2>6. Analytics, advertising and tracking</h2>
 <ul>
 <li>MannerPath does not include third-party analytics, advertising trackers, or a crash-reporting SDK.</li>
-<li>The App Store privacy details are declared conservatively, including records that network and delivery providers may keep.</li>
 <li>For records kept by network and delivery providers, see section 2.</li>
 <li>MannerPath does not track you across other companies' apps or websites and does not use the advertising identifier (IDFA).</li>
 <li>If you share diagnostics with Apple in your device settings, Apple handles that information under its own terms.</li>
