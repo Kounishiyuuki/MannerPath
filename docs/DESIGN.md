@@ -469,7 +469,7 @@ Each step is one reviewable PR; each must keep `make apple-validate` green and u
 
 ## Native search sheet refresh — 2026-10-14
 
-Implementation begins after live destination search PR #259 is merged. The search API, debounce, ranking,
+Implemented after live destination search PR #259 was merged. The search API, debounce, ranking,
 TileSync, GRDB and report flows remain unchanged. Before/After uses the actual Simulator app, the same
 public Taito neighborhood and real MapKit suggestions, with no test-only production UI. Normal/multiple,
 input, candidates, selected destination and filtered-empty/recovery are compared in Light and Dark.
@@ -485,3 +485,12 @@ through candidates and results, Reduce Transparency's solid sheet, Reduce Motion
 medium/large dragging, keyboard dismissal, and long names at the largest supported text size. Verify that
 the far-destination warning and approximate-location notes remain readable; do not count code inspection
 as a completed device accessibility check. iPad uses the existing iPhone compatibility configuration.
+
+The completed Simulator audit covers iPhone 17/iOS 26.5 Light and Dark, medium/large detents,
+keyboard-visible live suggestions and selection, filtered-empty/recovery, and the largest accessibility
+text size (AX5). iPhone SE/iOS 18.6 checks the small screen and Material fallback. Reduce Transparency
+is changed through actual Settings, photographed with the app's solid sheet, and restored to its original
+value by the test. iPad mini/iOS 26.5 is checked in the existing iPhone compatibility mode: capture the
+whole display with `XCUIScreen.main.screenshot()`, because app-only captures can crop that window.
+These screenshots use real public read-only data and MapKit, and are visually reviewed in addition to
+assertions. They do not replace the physical Build 3 device matrix or verify spoken VoiceOver output.
