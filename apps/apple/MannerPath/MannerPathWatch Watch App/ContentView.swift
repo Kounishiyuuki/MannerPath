@@ -175,7 +175,7 @@ struct ContentView: View {
         List {
             Section {
                 Text(type(result.spot.spotType))
-                if result.distanceMeters.isFinite {
+                if result.distanceMeters.isFinite && model.latitude != nil {
                     Text("\(distance(result)) straight-line · current location")
                     Text(bearing(result))
                 } else {
@@ -201,7 +201,7 @@ struct ContentView: View {
                     Link(ApproximateLocation.navigationTitle(precision: result.spot.locationPrecision, scope: result.spot.locationAreaScope), destination: url)
                         .accessibilityIdentifier("watch-directions")
                 }
-                Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite))
+                Text(WatchNavigation.fallback(hasLocation: result.distanceMeters.isFinite && model.latitude != nil))
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section("Details") {

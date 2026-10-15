@@ -13,6 +13,7 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     private(set) var preferences: WatchPreferences = .defaults()
     private(set) var latitude: Double?
     private(set) var longitude: Double?
+    private var locationObservedAt: Date?
     private(set) var accuracyMeters: Double?
     private(set) var locationUnavailable = false
     private(set) var locationAuthorizationUndetermined = false
@@ -79,7 +80,15 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
         }
     }
 
-    func refreshClock() { now = Date() }
+    func refreshClock(at date: Date = Date()) {
+        now = date
+        // A fix accepted while fresh must not remain "current" indefinitely on an open screen.
+        // Use the same validity window as incoming Core Location fixes; retain saved places.
+        if let locationObservedAt, !(-5...60).contains(date.timeIntervalSince(locationObservedAt)) {
+            clearLocation()
+            locationUnavailable = true
+        }
+    }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         #if DEBUG
@@ -104,6 +113,7 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
         }
         latitude = location.coordinate.latitude
         longitude = location.coordinate.longitude
+        locationObservedAt = location.timestamp
         accuracyMeters = location.horizontalAccuracy
         locationUnavailable = false
     }
@@ -117,6 +127,7 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
         latitude = nil
         longitude = nil
         accuracyMeters = nil
+        locationObservedAt = nil
     }
 
     #if DEBUG
