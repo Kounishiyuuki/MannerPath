@@ -172,6 +172,9 @@ if ! curl -fsS http://127.0.0.1:8787/v1/tiles/14/14553/6449 | grep -q '"location
 fi
 fresh_install
 xcrun simctl privacy "$sim" grant location "$bundle_id"
+# The directions test hands off to Apple Maps. Maps has never run on this new Simulator, and its first-run location
+# prompt kept Maps out of the foreground (and covered MannerPath's rows); granting location here avoids the prompt.
+xcrun simctl privacy "$sim" grant location com.apple.Maps
 run_phase visual-audit -only-testing:MannerPathUITests/G_VisualAuditUITests
 stop_worker
 
