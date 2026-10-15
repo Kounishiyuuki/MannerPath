@@ -392,3 +392,63 @@ problem.
 
 Stop rule: any P0 `FAIL` on 1.0 (3) blocks G21 for this build; record it and report before any rebuild (a rebuild
 needs a new build number, Lane 3).
+
+## 10. Release-candidate automated regression
+
+Automated evidence is Simulator/unit evidence only. It never fills a §4 Result cell and never replaces a device row.
+
+### P0 ↔ test map
+
+| P0 (gate) | Device rows | Automated cover | Not covered by automation |
+| --- | --- | --- | --- |
+| First launch (G17) | P1, AI1 | UI `A_FirstLaunchUITests` (runner phase first-launch) | Signed-build launch on the paid team (AI1) |
+| Location permission (G17) | P4, P5 | UI `F_LocationNotDeterminedUITests`, `E_LocationDeniedUITests`; unit `NearbyLocationModelTests` | Real system prompt and Settings round trip |
+| List → detail (G17 via P10) | P10 | UI `B_OnlineUITests` (`testListRowOpensDetailWithKeySections`, `testMapPinOpensDetail` — **failing, §9 G**) | Production data on device |
+| Directions (P14) | P14 | UI `testExactPlaceDirectionsHandOffToMaps` (visual audit) | Apple Maps actually opening |
+| Offline cache (G17) | P8/P9b, P9c | UI `C_OfflineWithCacheUITests`, `D_CleanOfflineUITests`; unit `NearbyPersistenceE2ETests`, `TileSyncTests` | Airplane mode with a signed build |
+| Reports unavailable (G16/G17) | R1 | unit `AppAttestReportTests` (`unavailableConfigDisablesSubmission`, no unattested fallback); UI `I_ProductionAPIUITests` (outside runner) | Device screen of the submitted build |
+| Destination search (Build 3) | D1–D8, L1–L8 | unit `RouteSearchTests` (merge, route states, live search); UI `testDestinationSuggestionsAppearWhileTyping`, `testDestinationSearchCanBeOperated` (runner), `J_`/`K_`/`L_` production classes (outside runner) | Real MapKit from Kanazawa, keyboard timing |
+| Search sheet (#263) | U1–U7 | UI `NativeSearchSheetUITests` (outside runner) | Liquid Glass/Reduce Transparency rendering on device |
+| App Group widget (G14) | G2, G3, WG2 | unit `NearbyGlanceTests` (glance content); signed preflight checks the entitlement | **Any** shared-container read on device: only the device rows prove it |
+| Watch (G15) | W1–W5b | unit `MannerPathWatch Watch AppTests` (in `make apple-validate`), `WatchSyncTests` | WatchConnectivity transfer between paired devices |
+
+### UI test classes outside the runner
+
+`scripts/run-iphone-ui-tests.sh` runs only the local-Worker phases. These classes need the internet, production or
+manual Simulator settings and are run separately; `scripts/test-ui-test-inventory.py` (in `make contract`) fails when a
+UI test class is in neither the runner nor this table.
+
+| Class | Needs | How to run |
+| --- | --- | --- |
+| `H_PublicSiteLinksUITests` | Release build, internet | `docs/PUBLIC_SITE.md` |
+| `I_ProductionAPIUITests` | Release build, production API, Taito location | `MannerPathUITests` scheme, `-configuration Release`, `simctl location <sim> set 35.7118,139.7775`, `-only-testing:MannerPathUITests/I_ProductionAPIUITests` (class comment; `docs/RELEASE_CHECKLIST.md` §2) |
+| `J_ProductionDestinationUITests` | Production API, live MapKit | as I, `-only-testing:MannerPathUITests/J_ProductionDestinationUITests` |
+| `K_DeniedProductionDestinationUITests` | Production API, location revoked | as J, after `simctl privacy revoke location` |
+| `L_ProductionDestinationLargeTextUITests` | Production API, AX5 text | as J, after `simctl ui content_size accessibility-extra-extra-extra-large` |
+| `M_MapFirstAccessibilityUITests` | Production API; Reduce Motion/Transparency, Increase Contrast set on the Simulator | as I, settings changed outside the app |
+| `NativeSearchSheetUITests` | Live MapKit, public data | `docs/DESIGN.md` "focused visual run" |
+| `MannerPathWatch_Watch_AppUITests` | Watch Simulator, Debug hooks | `MannerPathWatch Watch App` scheme; not a gate (`scripts/validate-apple.sh`) |
+
+### Run order for a release candidate
+
+One Simulator workload at a time: the runner, `make apple-validate` and the classes above each boot or reuse
+Simulators, and running them together has stalled launchd/System App startup (#263).
+
+1. `make contract`, `make security-validate`.
+2. `make apple-validate` (iOS unit + Watch unit, Watch build, Release origin check).
+3. `scripts/run-iphone-ui-tests.sh` — all phases must pass; a failing phase blocks the candidate (do not rerun until
+   green and call it flaky without a cause).
+4. The outside-runner classes above that touch the change, with Release/production as each requires.
+5. Signed archive → `apple-beta-preflight.sh` and `check-apple-beta-artifact.py --distribution` (§8).
+6. Device run sheet §9.
+
+### Known instability factors
+
+| Factor | Effect | Mitigation in place |
+| --- | --- | --- |
+| Concurrent Simulator workloads | launchd/System App start stalls (#263) | Run sequentially (above) |
+| Simulator location stops updating on a long-booted device | Nearby waits forever | Runner re-applies the location per phase |
+| Workers cache serving tiles from an earlier phase | Stale fixture data (#265) | Runner clears the copied cache |
+| Taps at the home-indicator edge or under the sheet's navigation bar | Synthesized tap swallowed | Tests move targets clear of the edge; `testMapPinOpensDetail` still hits the bar case (§9 G, Lane 2) |
+| Live MapKit / production network (J–M, NativeSearchSheet) | Results vary by time and network | Kept outside the gate runner |
+| Hung `xcodebuild` | Run never ends | Runner `bounded` 1800 s per phase |

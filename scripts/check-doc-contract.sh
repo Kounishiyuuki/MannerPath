@@ -17,3 +17,4 @@ python3 scripts/test-device-release-matrix.py
 # Release preflight failure fixtures; nothing else runs them and the Build 3 checklist relies on --distribution.
 python3 scripts/test-apple-beta-preflight.py
 python3 scripts/test-store-copy.py
+python3 scripts/test-ui-test-inventory.py
