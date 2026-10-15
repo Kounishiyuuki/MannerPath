@@ -392,6 +392,43 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(model.results[0].distanceMeters.isNaN)
     }
 
+    @Test @MainActor func acceptedLocationExpiresWhileOpenAndFreshFixRestoresDistance() throws {
+        let cache = try store()
+        defer { try? FileManager.default.removeItem(at: cache.directory) }
+        try cache.acceptSnapshot(WatchCodec.encode(snapshot([spot("saved", longitude: 0.001)])))
+        let model = WatchNearbyModel(store: cache, activateConnectivity: false)
+        let timestamp = Date().addingTimeInterval(-30)
+        let fix = CLLocation(coordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                             altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5, timestamp: timestamp)
+        model.locationManager(CLLocationManager(), didUpdateLocations: [fix])
+        model.refreshClock(at: timestamp.addingTimeInterval(60))
+        #expect(model.results[0].distanceMeters.isFinite)
+        model.refreshClock(at: timestamp.addingTimeInterval(61))
+        #expect(model.latitude == nil && model.longitude == nil && model.accuracyMeters == nil)
+        #expect(model.locationUnavailable)
+        #expect(model.results.map(\.spot.id) == ["saved"])
+        #expect(model.results[0].distanceMeters.isNaN && model.results[0].bearingDegrees.isNaN)
+        #expect(cache.snapshot()?.spots.count == 1)
+        let newerFix = CLLocation(coordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0.002),
+                                  altitude: 0, horizontalAccuracy: 3, verticalAccuracy: 3, timestamp: .now)
+        model.locationManager(CLLocationManager(), didUpdateLocations: [newerFix])
+        // Keep the clock monotonic: this newer fix is still within 60 seconds at the advanced clock.
+        model.refreshClock(at: timestamp.addingTimeInterval(61))
+        #expect(model.longitude == 0.002 && model.accuracyMeters == 3)
+        #expect(!model.locationUnavailable && model.results[0].distanceMeters.isFinite)
+    }
+
+    @Test @MainActor func clockRollbackCannotKeepAFutureFixCurrent() throws {
+        let model = WatchNearbyModel(store: nil, activateConnectivity: false)
+        let timestamp = Date()
+        let fix = CLLocation(coordinate: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                             altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5, timestamp: timestamp)
+        model.locationManager(CLLocationManager(), didUpdateLocations: [fix])
+        model.refreshClock(at: timestamp.addingTimeInterval(-6))
+        #expect(model.latitude == nil && model.longitude == nil && model.accuracyMeters == nil)
+        #expect(model.locationUnavailable)
+    }
+
     @Test @MainActor func oldSnapshotIsMarkedBeforeShowingResults() throws {
         let cache = try store()
         defer { try? FileManager.default.removeItem(at: cache.directory) }
