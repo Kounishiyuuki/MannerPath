@@ -46,6 +46,14 @@ bounded() {
   wait "$pid"
 }
 
+# A concurrent xcodebuild test run starves this one: queries time out and fixture results arrive late, which
+# reads as app failures (first-launch, report draft, data/privacy in the v1 RC run). Refuse instead of reporting them.
+if other=$(pgrep -fl 'xcodebuild.* test' 2>/dev/null); then
+  echo "Another xcodebuild test run is active; wait for it to finish (it is not stopped here):" >&2
+  echo "$other" >&2
+  exit 3
+fi
+
 sim=$(xcrun simctl create mannerpath-ui-tests "iPhone 17")
 cleanup() {
   [[ -n "$worker_pid" ]] && kill_tree "$worker_pid"

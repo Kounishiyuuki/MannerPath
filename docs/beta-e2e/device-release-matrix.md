@@ -403,7 +403,7 @@ Automated evidence is Simulator/unit evidence only. It never fills a §4 Result 
 | --- | --- | --- | --- |
 | First launch (G17) | P1, AI1 | UI `A_FirstLaunchUITests` (runner phase first-launch) | Signed-build launch on the paid team (AI1) |
 | Location permission (G17) | P4, P5 | UI `F_LocationNotDeterminedUITests`, `E_LocationDeniedUITests`; unit `NearbyLocationModelTests` | Real system prompt and Settings round trip |
-| List → detail (G17 via P10) | P10 | UI `B_OnlineUITests` (`testListRowOpensDetailWithKeySections`, `testMapPinOpensDetail` — **failing, §9 G**) | Production data on device |
+| List → detail (G17 via P10) | P10 | UI `B_OnlineUITests` (`testListRowOpensDetailWithKeySections`, `testMapPinOpensDetail` — passes on main with #282, which 1.0 (3) does not contain: §9 G) | Production data on device |
 | Directions (P14) | P14 | UI `testExactPlaceDirectionsHandOffToMaps` (visual audit) | Apple Maps actually opening |
 | Offline cache (G17) | P8/P9b, P9c | UI `C_OfflineWithCacheUITests`, `D_CleanOfflineUITests`; unit `NearbyPersistenceE2ETests`, `TileSyncTests` | Airplane mode with a signed build |
 | Reports unavailable (G16/G17) | R1 | unit `AppAttestReportTests` (`unavailableConfigDisablesSubmission`, no unattested fallback); UI `I_ProductionAPIUITests` (outside runner) | Device screen of the submitted build |
@@ -448,9 +448,9 @@ Simulators, and running them together has stalled launchd/System App startup (#2
 
 | Factor | Effect | Mitigation in place |
 | --- | --- | --- |
-| Concurrent Simulator workloads | launchd/System App start stalls (#263) | Run sequentially (above) |
+| Concurrent Simulator workloads | launchd/System App start stalls (#263); on 2026-10-15 a run overlapping another lane's xcodebuild failed 4 tests that all passed alone | Run sequentially; `run-iphone-ui-tests.sh` exits 3 while another `xcodebuild … test` is active |
 | Simulator location stops updating on a long-booted device | Nearby waits forever | Runner re-applies the location per phase |
 | Workers cache serving tiles from an earlier phase | Stale fixture data (#265) | Runner clears the copied cache |
-| Taps at the home-indicator edge or under the sheet's navigation bar | Synthesized tap swallowed | Tests move targets clear of the edge; `testMapPinOpensDetail` still hits the bar case (§9 G, Lane 2) |
+| Taps at the home-indicator edge or under the sheet's navigation bar | Synthesized tap swallowed | Tests move targets clear of the edge; #282 keeps the clear-selection control off the bar after detail navigation |
 | Live MapKit / production network (J–M, NativeSearchSheet) | Results vary by time and network | Kept outside the gate runner |
 | Hung `xcodebuild` | Run never ends | Runner `bounded` 1800 s per phase |
