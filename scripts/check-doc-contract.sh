@@ -18,3 +18,6 @@ python3 scripts/test-device-release-matrix.py
 python3 scripts/test-apple-beta-preflight.py
 python3 scripts/test-store-copy.py
 python3 scripts/test-ui-test-inventory.py
+
+# Store asset checks remain technical-only; never grant rights/device approval.
+python3 scripts/test-store-screenshots.py

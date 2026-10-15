@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "appVersion": "1.0",
+  "build": "3",
+  "sourceHead": "86631d5af67495e8cc322f6f20ff752c5a4eb157",
+  "sourceTree": "d50f8a752e6cfa9307b6012c430cab75f2a84698",
+  "apiOrigin": "https://mannerpath-api-production.happywestyuki.workers.dev",
+  "locale": "ja",
+  "images": [
+    {
+      "file": "iphone-6.9/ja/02-destination-search.jpg",
+      "platform": "iphoneLarge",
+      "captureKind": "releaseSimulator",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "3a07bb5a14283d865a79567469393a9dabcbf9a7fbf1d8ad4abcb5948be8a2a8",
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ],
+      "spotIds": [],
+      "syntheticSpotData": false,
+      "status": "candidate",
+      "physicalDeviceVerified": false,
+      "rightsApproved": false,
+      "submitReady": false,
+      "visualReview": "RECAPTURE_MAP_CREDIT_VISIBILITY_PENDING",
+      "scene": "destinationSearch"
+    },
+    {
+      "file": "iphone-6.9/ja/03-destination-list.jpg",
+      "platform": "iphoneLarge",
+      "captureKind": "releaseSimulator",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "aec4f4a880ef0d5885087aa03f3f55120a862dbc317aa00b0933590b7fe72c2e",
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ],
+      "spotIds": [
+        "sp_49GCV8887NA0Y00R59MSHE80HT",
+        "sp_7VYQR893GA66C0SWWNG34C6KWR",
+        "sp_1EDKZTDBF9N7686RXKFK3KT8J6",
+        "sp_5AX973GX8921DYPF0BD6H6A8TB"
+      ],
+      "syntheticSpotData": false,
+      "status": "candidate",
+      "physicalDeviceVerified": false,
+      "rightsApproved": false,
+      "submitReady": false,
+      "visualReview": "RECAPTURE_MAP_CREDIT_VISIBILITY_PENDING"
+    },
+    {
+      "file": "iphone-6.9/ja/04-place-detail.jpg",
+      "platform": "iphoneLarge",
+      "captureKind": "releaseSimulator",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "a54223ccc2b9947fda7a7b16ef99bb5fc1d2aa340146c801f5499ca2cb24e0fd",
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ],
+      "spotIds": [
+        "sp_49GCV8887NA0Y00R59MSHE80HT"
+      ],
+      "syntheticSpotData": false,
+      "status": "candidate",
+      "physicalDeviceVerified": false,
+      "rightsApproved": false,
+      "submitReady": false,
+      "visualReview": "RECAPTURE_MAP_CREDIT_VISIBILITY_PENDING"
+    },
+    {
+      "file": "iphone-6.9/ja/05-source-license.jpg",
+      "platform": "iphoneLarge",
+      "captureKind": "releaseSimulator",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "33fff1cd03e8c9266cdbb5abc43fe22cbb0d83f44b53918194026d7da5eb12d8",
+      "sourceIds": [
+        "taito-public-smoking-areas"
+      ],
+      "spotIds": [
+        "sp_49GCV8887NA0Y00R59MSHE80HT"
+      ],
+      "syntheticSpotData": false,
+      "status": "candidate",
+      "physicalDeviceVerified": false,
+      "rightsApproved": false,
+      "submitReady": false,
+      "visualReview": "RECAPTURE_MAP_CREDIT_VISIBILITY_PENDING"
+    }
+  ],
+  "captureNotes": "Release simulator, production HTTPS, denied device location, real public destination Ueno. Not TestFlight device evidence. Search frame contains no smoking-place identity; sourceIds indicate the subsequent scene context only.",
+  "localAssetRoot": "/private/tmp/mannerpath-v1-store-assets",
+  "note": "Metadata copy only; run validator against the local manifest alongside images. No image bytes published."
+}
