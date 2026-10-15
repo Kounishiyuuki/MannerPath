@@ -1,0 +1,36 @@
+{
+  "technicalValidation": "PASS",
+  "submissionReady": false,
+  "rightsApproval": "PENDING",
+  "physicalDeviceVerification": "NOT_PROVEN",
+  "images": [
+    {
+      "file": "iphone-6.9/ja/02-destination-search.jpg",
+      "width": 1320,
+      "height": 2868,
+      "alpha": "no",
+      "sha256": "3a07bb5a14283d865a79567469393a9dabcbf9a7fbf1d8ad4abcb5948be8a2a8"
+    },
+    {
+      "file": "iphone-6.9/ja/03-destination-list.jpg",
+      "width": 1320,
+      "height": 2868,
+      "alpha": "no",
+      "sha256": "aec4f4a880ef0d5885087aa03f3f55120a862dbc317aa00b0933590b7fe72c2e"
+    },
+    {
+      "file": "iphone-6.9/ja/04-place-detail.jpg",
+      "width": 1320,
+      "height": 2868,
+      "alpha": "no",
+      "sha256": "a54223ccc2b9947fda7a7b16ef99bb5fc1d2aa340146c801f5499ca2cb24e0fd"
+    },
+    {
+      "file": "iphone-6.9/ja/05-source-license.jpg",
+      "width": 1320,
+      "height": 2868,
+      "alpha": "no",
+      "sha256": "33fff1cd03e8c9266cdbb5abc43fe22cbb0d83f44b53918194026d7da5eb12d8"
+    }
+  ]
+}
