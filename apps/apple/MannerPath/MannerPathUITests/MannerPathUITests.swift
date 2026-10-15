@@ -261,6 +261,30 @@ final class B_OnlineUITests: MannerPathUITestCase {
     }
 
     func testMapPinOpensDetail() throws {
+        try checkMapPinDetailDismissal(returnToMedium: true)
+    }
+
+    func testMapPinCanBeClearedAfterDetailAtLarge() throws {
+        try checkMapPinDetailDismissal(returnToMedium: false)
+    }
+
+    func testMapPinCanBeClearedWhileSearching() throws {
+        launch()
+        waitForResults()
+        try selectPin()
+        destinationSearch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        let clear = app.buttons["clearSelectedSpot"]
+        XCTAssertTrue(clear.waitForExistence(timeout: 5))
+        XCTAssertTrue(clear.isHittable)
+        XCTAssertLessThanOrEqual(clear.frame.maxY, app.keyboards.firstMatch.frame.minY)
+        screenshot("18-selection-with-keyboard")
+        clear.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["selectedSpotSummary"].waitForNonExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["clearSelectedSpot"].exists)
+    }
+
+    private func checkMapPinDetailDismissal(returnToMedium: Bool) throws {
         launch()
         waitForResults()
         // A pin selects first (docs/DESIGN.md §5.5): a summary in the sheet, details one explicit step further.
@@ -281,7 +305,27 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertEqual(detailDirections.label, ctaLabel, "Summary and detail disagree on exact/approximate")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
-        app.buttons["clearSelectedSpot"].tap()
+        if returnToMedium {
+            let title = app.navigationBars["近くの場所"]
+            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
+            sleep(1)
+            XCTAssertGreaterThan(title.frame.minY, app.windows.firstMatch.frame.height * 0.3)
+        } else {
+            let title = app.navigationBars["近くの場所"]
+            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+            sleep(1)
+            XCTAssertLessThan(title.frame.minY, app.windows.firstMatch.frame.height * 0.25)
+        }
+        let clear = app.buttons["clearSelectedSpot"]
+        XCTAssertTrue(clear.waitForExistence(timeout: 5), "Clear selection remains available after returning from detail")
+        XCTAssertTrue(clear.isHittable)
+        XCTAssertGreaterThanOrEqual(clear.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(clear.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(clear.frame.minY, app.navigationBars["近くの場所"].frame.maxY)
+        screenshot("16-selected-spot-after-detail")
+        clear.tap()
         XCTAssertTrue(summary.waitForNonExistence(timeout: 5))
     }
 
@@ -645,6 +689,17 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         XCTAssertTrue(app.descendants(matching: .any)["selectedSpotPrecision"].exists)
         showSelectedCallToAction()
         screenshot("20b-selected-approximate")
+        scrollTo(app.buttons["selectedSpotDetails"])
+        app.buttons["selectedSpotDetails"].tap()
+        waitForDetail()
+        let directions = app.buttons["open-walking-directions"]
+        scrollTo(directions)
+        XCTAssertEqual(directions.label, "この付近へ案内")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let clear = app.buttons["clearSelectedSpot"]
+        XCTAssertTrue(clear.waitForExistence(timeout: 5))
+        clear.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["selectedSpotSummary"].waitForNonExistence(timeout: 5))
     }
 
     // Summary and detail use the same production helper, so their directions wording always agrees. Which precision

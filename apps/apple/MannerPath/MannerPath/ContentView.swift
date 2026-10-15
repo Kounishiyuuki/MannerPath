@@ -150,6 +150,16 @@ struct ContentView: View {
             }
             .navigationTitle("Nearby")
             .navigationBarTitleDisplayMode(.inline)
+            // A selected List row can scroll under navigation chrome after a detail pop. Keep its dismissal outside
+            // the scroll content, inside the root destination, and above the system keyboard safe area.
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if selectedResult != nil {
+                    clearSelectionButton
+                        .buttonStyle(.borderless)
+                        .padding(.horizontal)
+                        .background(.bar)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(filters == NearbyFilters() ? "Filters" : "Filters active",
@@ -466,6 +476,16 @@ struct ContentView: View {
         .accessibilityHint("Select a pin to see a summary in the Nearby list")
     }
 
+    private var clearSelectionButton: some View {
+        Button { selectedSpotID = nil } label: {
+            Label("Clear selection", systemImage: "xmark.circle.fill")
+                // Floating sheets can scale their contents slightly below 1:1.
+                .frame(maxWidth: .infinity, minHeight: 46)
+                .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("clearSelectedSpot")
+    }
+
     /// The selected pin, while it is still among the shown results.
     private var selectedResult: NearbyResult? {
         selectedSpotID.flatMap { id in model.results.first { $0.spot.id == id } }
@@ -479,8 +499,7 @@ struct ContentView: View {
                 result: result,
                 locationAccuracyMeters: model.resultsArea?.deviceLocation?.horizontalAccuracyMeters ?? 0,
                 onShowDetails: { openDetail(result) },
-                onDirections: { AppleMapsHandoff.openWalkingDirections(to: result.spot) },
-                onClear: { selectedSpotID = nil }
+                onDirections: { AppleMapsHandoff.openWalkingDirections(to: result.spot) }
             )
         } else if model.destination == nil, let nearest = displayResults.first?.nearby {
             VStack(alignment: .leading, spacing: 4) {
@@ -838,28 +857,13 @@ private struct SelectedSpotSummary: View {
     let locationAccuracyMeters: Double
     let onShowDetails: () -> Void
     let onDirections: () -> Void
-    let onClear: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Selected place")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer()
-                // The frame sits on the label so it is the button's own hit region. 46, not 44: iOS 26 draws a floating
-                // (non-large) sheet scaled to its inset width (386/402 on iPhone 17), and 44 pt measured 42.2 pt on screen.
-                Button(action: onClear) {
-                    Label("Clear selection", systemImage: "xmark.circle.fill")
-                        .labelStyle(.iconOnly)
-                        .frame(minWidth: 46, minHeight: 46)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
+            Text("Selected place")
+                .font(.footnote)
                 .foregroundStyle(.secondary)
-                .accessibilityIdentifier("clearSelectedSpot")
-            }
+                .accessibilityAddTraits(.isHeader)
             Text(SpotPresentation.name(result.spot))
                 .font(.title3.weight(.semibold))
             Text("\(SpotPresentation.distance(result)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
