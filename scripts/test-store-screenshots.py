@@ -66,6 +66,55 @@ class Screenshots(unittest.TestCase):
         self.data["images"][0].update(scene="destinationSearch", spotIds=[])
         self.assertEqual(self.run_check()["technicalValidation"], "PASS")
 
+    def test_actual_capture_build_is_not_locked_to_build_three(self):
+        self.data["build"] = "4"
+        result = self.run_check()
+        self.assertEqual(result["captureBuild"], "4")
+        self.assertFalse(result["submissionReady"])
+        for value in ["", "0", "-1", "4.0", True, None, " 4 "]:
+            self.data["build"] = value
+            with self.assertRaises(ValueError):
+                self.run_check()
+
+    def test_series_nine_asc_size_and_device_capture(self):
+        self.data["images"][0].update(platform="watch", width=396, height=484,
+                                      captureKind="testFlightDevice")
+        self.assertEqual(self.run_check((396, 484, "no"))["technicalValidation"], "PASS")
+        # Apple's submission table lists the large Series 9 size, not every hardware screenshot size.
+        self.data["images"][0].update(width=352, height=430)
+        with self.assertRaises(ValueError):
+            self.run_check((352, 430, "no"))
+
+    def test_watch_sizes_are_not_mixed(self):
+        self.data["images"][0].update(platform="watch", width=396, height=484)
+        other = copy.deepcopy(self.data["images"][0])
+        other.update(file="second.jpg", width=416, height=496)
+        (self.root / "second.jpg").write_bytes(self.bytes)
+        self.data["images"].append(other)
+        manifest = self.root / "manifest.json"
+        manifest.write_text(json.dumps(self.data))
+        with self.assertRaises(ValueError):
+            check.validate(manifest, lambda p: (396, 484, "no") if p.name == "sample.jpg" else (416, 496, "no"))
+
+    def test_per_size_count_limit(self):
+        template = self.data["images"][0]
+        self.data["images"] = []
+        for i in range(11):
+            entry = copy.deepcopy(template)
+            entry["file"] = f"frame-{i}.jpg"
+            (self.root / entry["file"]).write_bytes(self.bytes)
+            self.data["images"].append(entry)
+        with self.assertRaises(ValueError):
+            self.run_check()
+        self.data["images"].pop()
+        self.assertEqual(len(self.run_check()["images"]), 10)
+
+    def test_file_extension_matches_real_encoding(self):
+        (self.root / "renamed.png").write_bytes(self.bytes)
+        self.data["images"][0]["file"] = "renamed.png"
+        with self.assertRaises(ValueError):
+            self.run_check()
+
     def test_wrong_origin(self):
         self.data["apiOrigin"] = "https://fixture.example.invalid"
         with self.assertRaises(ValueError):

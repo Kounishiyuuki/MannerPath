@@ -23,7 +23,7 @@ def properties(path):
 def validate(manifest_path, inspector=properties):
     manifest_path = Path(manifest_path)
     data = json.loads(manifest_path.read_text())
-    if (data.get("version") != 1 or data.get("appVersion") != "1.0" or str(data.get("build")) != "3"
+    if (data.get("version") != 1 or data.get("appVersion") != "1.0" or not re.fullmatch(r"[1-9][0-9]*", str(data.get("build", "")))
             or data.get("apiOrigin") != ORIGIN or data.get("locale") != "ja"
             or not all(re.fullmatch(r"[0-9a-f]{40}", data.get(k, "")) for k in ("sourceHead", "sourceTree"))):
         raise ValueError("Invalid capture provenance")
@@ -31,7 +31,7 @@ def validate(manifest_path, inspector=properties):
     if not isinstance(images, list) or not images:
         raise ValueError("No captured images")
     root = manifest_path.resolve().parent
-    checked, seen, watch_sizes = [], set(), set()
+    checked, seen, watch_sizes, counts = [], set(), set(), {}
     for image in images:
         relative = Path(image["file"])
         path = root / relative
@@ -61,8 +61,15 @@ def validate(manifest_path, inspector=properties):
                 or (width, height) != (image.get("width"), image.get("height")) or alpha != "no"):
             raise ValueError("Wrong native dimensions or alpha channel")
         content = path.read_bytes()
-        if not (content.startswith(b"\xff\xd8\xff") or content.startswith(b"\x89PNG\r\n\x1a\n")):
-            raise ValueError("Not PNG/JPEG bytes")
+        is_png = content.startswith(b"\x89PNG\r\n\x1a\n")
+        is_jpeg = content.startswith(b"\xff\xd8\xff")
+        if not ((path.suffix.lower() == ".png" and is_png)
+                or (path.suffix.lower() in {".jpg", ".jpeg"} and is_jpeg)):
+            raise ValueError("PNG/JPEG bytes must match the file extension")
+        platform = image["platform"]
+        counts[platform] = counts.get(platform, 0) + 1
+        if counts[platform] > 10:
+            raise ValueError("At most 10 screenshots per device size and locale")
         digest = hashlib.sha256(content).hexdigest()
         if digest != image.get("sha256"):
             raise ValueError("Image digest mismatch")
@@ -71,7 +78,8 @@ def validate(manifest_path, inspector=properties):
         checked.append({"file": str(relative), "width": width, "height": height, "alpha": alpha, "sha256": digest})
     if len(watch_sizes) > 1:
         raise ValueError("Watch sizes must be consistent")
-    return {"technicalValidation": "PASS", "submissionReady": False, "rightsApproval": "PENDING",
+    return {"captureAppVersion": data["appVersion"], "captureBuild": str(data["build"]),
+            "technicalValidation": "PASS", "submissionReady": False, "rightsApproval": "PENDING",
             "physicalDeviceVerification": "NOT_PROVEN", "images": checked}
 
 
