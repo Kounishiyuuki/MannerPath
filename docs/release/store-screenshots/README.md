@@ -1,5 +1,11 @@
 # v1.0 (3) screenshot capture delivery — Lane 4
 
+Follow-up: [Series 9 physical capture and submission handoff](WATCH_DEVICE_CAPTURE.md)
+preserves the four originals, records #282/Build 4 impact, rechecks the current Apple
+specification and supplies the hardware workflow. Its ASC-well confirmation requirement
+supersedes the earlier conclusion below that medium is not an unconditional second set;
+historical capture results remain unchanged.
+
 2026-10-15. **Candidates only; G5 and G10 remain OPEN.** No App Store Connect upload,
 production write, TestFlight upload, product UI change, build-number change or signing.
 Images are actual uncomposited Release-simulator app screenshots, not fixture renders and

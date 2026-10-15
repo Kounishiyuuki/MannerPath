@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-15T10:19:31.946153+00:00",
+  "method": "bounded public GET only; no D1 access",
+  "apiOrigin": "https://mannerpath-api-production.happywestyuki.workers.dev",
+  "part": "14/14553/6449/parts/0",
+  "capturedSpotIdsMatched": [
+    "sp_1EDKZTDBF9N7686RXKFK3KT8J6",
+    "sp_49GCV8887NA0Y00R59MSHE80HT",
+    "sp_5AX973GX8921DYPF0BD6H6A8TB",
+    "sp_7VYQR893GA66C0SWWNG34C6KWR"
+  ],
+  "sourceMetadata": [
+    {
+      "id": "taito-public-smoking-areas",
+      "displayName": "台東区 公衆喫煙所",
+      "licenseName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode.ja",
+      "attributionText": "台東区 CC-BY表示4.0国際 本作品の内容について、台東区は一切保証しないものとする。 元データ https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv"
+    }
+  ],
+  "reportsAvailable": false,
+  "note": "Initial Python HTTP client received 403; ordinary curl GET returned 200 for config, manifest and part. No full-corpus recount or device sync asserted.",
+  "tileSpotCount": 11,
+  "rightsApproved": false,
+  "submissionReady": false
+}
