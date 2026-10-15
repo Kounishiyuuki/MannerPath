@@ -427,6 +427,8 @@ UI test class is in neither the runner nor this table.
 | `L_ProductionDestinationLargeTextUITests` | Production API, AX5 text | as J, after `simctl ui content_size accessibility-extra-extra-extra-large` |
 | `M_MapFirstAccessibilityUITests` | Production API; Reduce Motion/Transparency, Increase Contrast set on the Simulator | as I, settings changed outside the app |
 | `NativeSearchSheetUITests` | Live MapKit, public data | `docs/DESIGN.md` "focused visual run" |
+| `StoreScreenshotCaptureUITests` | Store screenshot capture, not a regression gate | `docs/release/store-screenshots/README.md` |
+| `StoreWatchCaptureUITests` | Watch store screenshot capture, not a regression gate | `docs/release/store-screenshots/README.md` |
 | `MannerPathWatch_Watch_AppUITests` | Watch Simulator, Debug hooks | `MannerPathWatch Watch App` scheme; not a gate (`scripts/validate-apple.sh`) |
 
 ### Run order for a release candidate
