@@ -165,3 +165,9 @@ remain false; no technical PASS can produce submissionReady=true.
   tooling/docs merge blocker; it confirmed that rights, map-credit visibility and physical Watch
   checks remain release blockers. The second iPhone capture startup was also interrupted after
   remaining stalled; only the earlier successful candidate images are delivered.
+- `make security-validate`: PASS. `make apple-validate` was attempted on dedicated simulators;
+  the initial medium-device run stalled and was interrupted, and the already-booted-phone retry
+  reported `xcodebuild: error: Unable to find a device matching the provided destination specifier:`.
+  Xcode listed no available iOS simulator destination at that point. This is **not an Apple test
+  PASS**; rerun on a healthy local simulator environment. Both Release capture targets had compiled
+  successfully earlier. No production app source is changed by these opt-in test additions.
