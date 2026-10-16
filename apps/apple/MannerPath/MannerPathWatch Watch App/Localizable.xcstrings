@@ -1,6 +1,9 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Sync saved data from iPhone": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneの保存済みデータを同期"}}}},
+    "Refresh nearby places on iPhone first. This requests its saved data, not Watch location.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "先にiPhoneで近くの場所を更新してください。Watchの現在地ではなく、iPhoneの保存済みデータを取得します。"}}}},
+    "Could not sync with iPhone. Open the iPhone app and try again. Saved data is unchanged.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneと同期できませんでした。iPhoneアプリを開いて再試行してください。保存済みデータは変更されていません。"}}}},
     "Navigate into this facility": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この施設内へ案内" } } } },
     "The smoking place is confirmed to be inside this facility. Its position inside the facility is not confirmed; the pin marks the facility.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "喫煙場所はこの施設内にあることが確認されています。施設内の詳しい位置は確認できていません。ピンは施設の位置を示します。" } } } },
     "Approximate location": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "位置は目安" } } } },

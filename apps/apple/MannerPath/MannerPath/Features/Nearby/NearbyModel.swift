@@ -68,6 +68,7 @@ final class NearbyModel {
     private var lastRouteComputedAt: Date?
     private var deviceCorpus: (spots: [Spot], sources: [SpotSource], location: DeviceLocation, cacheReadFailed: Bool)?
     var onCachedCorpusChange: (([Spot], [SpotSource], SpotCoordinate) -> Void)?
+    var onConfirmedCorpusRefresh: (([Spot], [SpotSource], SpotCoordinate, Date) -> Void)?
     var onCachedGlanceChange: (([Spot], DeviceLocation) -> Void)?
 
     private(set) var filters = NearbyFilters()
@@ -116,7 +117,7 @@ final class NearbyModel {
     }
 
     func publishCachedCorpusForWatch() {
-        guard let deviceCorpus else { return }
+        guard let deviceCorpus, !deviceCorpus.cacheReadFailed else { return }
         onCachedCorpusChange?(deviceCorpus.spots, deviceCorpus.sources, deviceCorpus.location.coordinate)
         if !deviceCorpus.cacheReadFailed { onCachedGlanceChange?(deviceCorpus.spots, deviceCorpus.location) }
     }
@@ -387,6 +388,11 @@ final class NearbyModel {
             publish(cachedByTile, sourcesByTile: sourcesByTile, from: area,
                     cacheReadFailed: cacheReadFailed, generation: currentGeneration)
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
+            let confirmedAt = Date()
+            if !refreshFailed, !cacheReadFailed, let device = area.deviceLocation, !device.isLastKnown,
+               (-5...60).contains(confirmedAt.timeIntervalSince(device.timestamp)) {
+                onConfirmedCorpusRefresh?(cachedSpots, sources, device.coordinate, confirmedAt)
+            }
         }
     }
 
@@ -432,8 +438,10 @@ final class NearbyModel {
             }
         if let deviceLocation = area.deviceLocation {
             deviceCorpus = (spots, sources, deviceLocation, cacheReadFailed)
-            onCachedCorpusChange?(spots, sources, deviceLocation.coordinate)
-            if !cacheReadFailed { onCachedGlanceChange?(spots, deviceLocation) }
+            if !cacheReadFailed {
+                onCachedCorpusChange?(spots, sources, deviceLocation.coordinate)
+                onCachedGlanceChange?(spots, deviceLocation)
+            }
         }
         updateRoutes()
     }

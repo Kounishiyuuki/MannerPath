@@ -38,8 +38,11 @@ sync/rights/navigation behavior. Initial production coverage is limited to Taito
 Musashino, Osaka and Kyoto source regions; no whole-city or nationwide completeness promise.
 
 Widget staleness is explicit after one hour, with an expiry timeline entry and requested hourly
-refresh; last-known/future phone location is stale. Unchanged Watch snapshot content intentionally
-keeps its original revision/time, so a phone refresh need not make it look newly fetched.
+refresh; last-known/future phone location is stale. Cached Watch snapshot retransmission keeps its original revision/time. The subsequent
+`fix/watch-sync-refresh-state` repair distinguishes a successful all-tile refresh from a replay:
+even unchanged/empty successful results advance revision/time; failed refreshes do not. The
+separate Watch saved-data sync button requests the iPhone's persisted snapshot without fetching
+or acquiring location. Build 4 predates this repair and requires a later paired-device recheck.
 `reloadTimelines` is a request, **not an immediate-update guarantee**; record actual delays.
 See [Apple WidgetKit refresh budgets](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date).
 

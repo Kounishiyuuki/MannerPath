@@ -257,6 +257,9 @@ struct ContentView: View {
         model.onCachedCorpusChange = { spots, sources, origin in
             PhoneWatchSync.shared.publish(spots: spots, sources: sources, near: origin)
         }
+        model.onConfirmedCorpusRefresh = { spots, sources, origin, checkedAt in
+            PhoneWatchSync.shared.publish(spots: spots, sources: sources, near: origin, confirmedAt: checkedAt)
+        }
         model.onCachedGlanceChange = { spots, location in
             PhoneGlancePublisher.publish(spots: spots, near: location)
         }

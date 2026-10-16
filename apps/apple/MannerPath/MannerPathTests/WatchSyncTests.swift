@@ -100,6 +100,71 @@ struct WatchSyncTests {
         #expect(Set(watchSpot.sourceIDs).isSubset(of: Set(decoded.sources.map(\.id))))
     }
 
+    @Test func confirmedEmptyRefreshAdvancesRevisionTimeAndSurvivesReopen() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PhoneWatchSnapshotStore(directory: directory)
+        let old = try store.prepare(candidate(at: now, sources: []), confirmedRefresh: true)
+        let date = now.addingTimeInterval(7_200)
+        let fresh = try store.prepare(candidate(at: date, sources: []), confirmedRefresh: true)
+        #expect(fresh.spots.isEmpty && fresh.sources.isEmpty)
+        #expect(fresh.revision == old.revision + 1 && fresh.generatedAt == date)
+        #expect(fresh.snapshotID != old.snapshotID)
+        #expect(PhoneWatchSnapshotStore(directory: directory).snapshot() == fresh)
+        #expect(try store.prepare(candidate(at: date.addingTimeInterval(100), sources: [])) == fresh)
+        #expect(try store.prepare(candidate(at: now, sources: []), confirmedRefresh: true) == fresh)
+        #expect(try store.prepare(candidate(at: date, sources: []), confirmedRefresh: true) == fresh)
+    }
+
+    @Test func confirmedUnchangedNonemptyRefreshAdvancesWithoutChangingFacts() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PhoneWatchSnapshotStore(directory: directory)
+        let spot = WatchSpot(id: "one", name: "Synthetic", latitude: 0, longitude: 0,
+                             spotType: "unknown", accessType: "unknown", supportsPaper: "unknown",
+                             supportsHeated: "unknown", lifecycle: "active", evidenceQuality: nil,
+                             evidenceQualityVersion: nil, lastVerifiedAt: nil, openingHours: nil, sourceIDs: [])
+        func payload(_ date: Date) -> WatchSnapshot {
+            WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: date, snapshotID: UUID(), spots: [spot], sources: [])
+        }
+        let old = try store.prepare(payload(now), confirmedRefresh: true)
+        let fresh = try store.prepare(payload(now.addingTimeInterval(7_200)), confirmedRefresh: true)
+        #expect(fresh.revision == old.revision + 1 && fresh.spots == old.spots && fresh.sources == old.sources)
+    }
+
+    @Test func watchRequestResendsOnlyValidatedSavedPayloadWithoutNewTime() throws {
+        let saved = candidate(at: now, sources: [])
+        let reply = PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true], snapshot: saved)
+        let data = try #require(reply["snapshotV1"] as? Data)
+        #expect(try WatchCodec.snapshot(data) == saved)
+        #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true], snapshot: nil).isEmpty)
+        #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": false], snapshot: saved).isEmpty)
+        #expect(PhoneWatchSync.snapshotReply(for: ["other": true], snapshot: saved).isEmpty)
+        #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true, "extra": true], snapshot: saved).isEmpty)
+    }
+
+    @Test func cacheAgeMarkerDoesNotChangeCurrentRankingOrTop500Selection() {
+        let date = Date()
+        let spots = (0..<510).map { index in
+            Spot(id: "synthetic-\(index)", mergedInto: nil, name: "Synthetic", latitude: 0,
+                 longitude: Double(index + 1) / 100_000, tileId: "14/8192/8192", spotType: .ashtray,
+                 hostType: nil, accessType: .unknown, environment: .unknown, supportsPaper: .unknown,
+                 supportsHeated: .unknown, openingHours: nil, feeType: nil, floor: nil, entranceNote: nil,
+                 lifecycle: .active, verification: SpotVerification(acceptedExistenceEvidence: .yes,
+                     evidenceQuality: "officialListing", sourceDisplayNames: []),
+                 lastVerifiedAt: date.addingTimeInterval(index.isMultiple(of: 2) ? -60 : -20_000_000),
+                 createdAt: nil, updatedAt: nil)
+        }
+        let origin = SpotCoordinate(latitude: 0, longitude: 0)
+        let fresh = WatchSnapshotBuilder.build(spots: spots, sources: [], near: origin, at: date)
+        let cached = WatchSnapshotBuilder.build(spots: spots, sources: [], near: origin, at: date,
+                                                snapshotGeneratedAt: .distantPast)
+        #expect(fresh.spots.count == 500 && cached.spots == fresh.spots)
+        #expect(cached.generatedAt == .distantPast && fresh.generatedAt == date)
+    }
+
     private func candidate(at date: Date, sources: [WatchSource]) -> WatchSnapshot {
         WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: date, snapshotID: UUID(),
                       spots: [], sources: sources)
