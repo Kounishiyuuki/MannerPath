@@ -3,7 +3,7 @@ import WatchConnectivity
 
 enum WatchSnapshotBuilder {
     static func build(spots: [Spot], sources: [SpotSource], near origin: SpotCoordinate,
-                      at now: Date = Date()) -> WatchSnapshot {
+                      at now: Date = Date(), snapshotGeneratedAt: Date? = nil) -> WatchSnapshot {
         // Selection is unfiltered by preferences. The Watch may change its quick filters offline.
         let candidates = NearbySearch.rank(spots, from: origin, at: now).prefix(500).map(\.spot)
         let allSources = Set(sources + candidates.flatMap { $0.verification.sources ?? [] })
@@ -12,7 +12,7 @@ enum WatchSnapshotBuilder {
         let referenced = Set(candidates.flatMap { $0.verification.sources?.map(\.id) ?? [] })
         return WatchSnapshot(
             schemaVersion: WatchSnapshot.schemaVersion, revision: 1,
-            generatedAt: now, snapshotID: UUID(),
+            generatedAt: snapshotGeneratedAt ?? now, snapshotID: UUID(),
             spots: candidates.map { spot in
                 WatchSpot(
                     id: spot.id, name: spot.name, latitude: spot.latitude, longitude: spot.longitude,
@@ -75,7 +75,9 @@ nonisolated struct PhoneWatchSnapshotStore {
         return try? WatchCodec.snapshot(data)
     }
 
-    func prepare(_ candidate: WatchSnapshot, recovered: WatchSnapshot? = nil) throws -> WatchSnapshot {
+    func prepare(_ candidate: WatchSnapshot, recovered: WatchSnapshot? = nil,
+                 confirmedRefresh: Bool = false) throws -> WatchSnapshot {
+        _ = try candidate.validated()
         let local = snapshot()
         let previous = if let recovered, recovered.revision > (local?.revision ?? 0) {
             recovered
@@ -83,7 +85,8 @@ nonisolated struct PhoneWatchSnapshotStore {
         if let previous, previous.revision > (local?.revision ?? 0) {
             try WatchCodec.encode(previous).write(to: url, options: .atomic)
         }
-        if let previous, previous.spots == candidate.spots && previous.sources == candidate.sources {
+        if let previous, previous.spots == candidate.spots && previous.sources == candidate.sources,
+           !confirmedRefresh || candidate.generatedAt <= previous.generatedAt {
             return previous
         }
         guard (previous?.revision ?? 0) < UInt64.max else { throw WatchPayloadError.invalid }
@@ -151,14 +154,16 @@ final class PhoneWatchSync: NSObject, WCSessionDelegate {
         }
     }
 
-    func publish(spots: [Spot], sources: [SpotSource], near origin: SpotCoordinate) {
+    func publish(spots: [Spot], sources: [SpotSource], near origin: SpotCoordinate, confirmedAt: Date? = nil) {
         guard let producerStore else { return }
-        let candidate = WatchSnapshotBuilder.build(spots: spots, sources: sources, near: origin)
+        let candidate = WatchSnapshotBuilder.build(spots: spots, sources: sources, near: origin,
+                                                   at: confirmedAt ?? Date(),
+                                                   snapshotGeneratedAt: confirmedAt ?? .distantPast)
         let recovered: WatchSnapshot? = if WCSession.isSupported(),
             let data = WCSession.default.applicationContext["snapshotV1"] as? Data {
             try? WatchCodec.snapshot(data)
         } else { nil }
-        guard let snapshot = try? producerStore.prepare(candidate, recovered: recovered) else { return }
+        guard let snapshot = try? producerStore.prepare(candidate, recovered: recovered, confirmedRefresh: confirmedAt != nil) else { return }
         snapshotData = try? WatchCodec.encode(snapshot)
         send()
     }
@@ -188,6 +193,21 @@ final class PhoneWatchSync: NSObject, WCSessionDelegate {
         if let snapshotData { payload["snapshotV1"] = snapshotData }
         if let preferenceData { payload["preferencesV1"] = preferenceData }
         return payload
+    }
+
+    // Explicit Watch request: resend only the last persisted, validated payload. Reading it does not
+    // refresh timestamps, fetch tiles or request location. Atomic file writes make concurrent reads safe.
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any],
+                             replyHandler: @escaping ([String: Any]) -> Void) {
+        let snapshot = (try? PhoneWatchSnapshotStore.applicationSupport())?.snapshot()
+        replyHandler(Self.snapshotReply(for: message, snapshot: snapshot))
+    }
+
+    nonisolated static func snapshotReply(for message: [String: Any], snapshot: WatchSnapshot?) -> [String: Any] {
+        guard message.count == 1, message["requestSnapshotV1"] as? Bool == true,
+              let snapshot, (try? snapshot.validated()) != nil,
+              let data = try? WatchCodec.encode(snapshot) else { return [:] }
+        return ["snapshotV1": data]
     }
 
     nonisolated func session(_ session: WCSession, activationDidCompleteWith state: WCSessionActivationState,

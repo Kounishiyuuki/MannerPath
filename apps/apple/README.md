@@ -195,3 +195,34 @@ report draft. No EXIF-derived coordinates, timestamp or device metadata enter re
 report acceptance; failure does not resubmit the report. Attachment retries reuse the selection UUID.
 A received photo is still awaiting moderation, and ash-disposal equipment does not prove smoking
 permission. Issue #124 remains the publication gate; this foundation enables no public photos or spots.
+
+## Watch refresh confirmation and explicit saved-data sync
+
+Watch `generatedAt` is refreshed only after all current-device-neighborhood tile refreshes and final
+cache reads succeed, with a non-last-known fix still inside the existing -5…60 second validity
+window. Successful zero/unchanged results advance the durable Watch revision and timestamp;
+content deduplication applies to cached replays, not new verified refreshes. Tile revisions,
+spot IDs, lastVerifiedAt and location precision are unchanged. Ranking still uses current time.
+
+A cache-only newly produced Watch payload uses `Date.distantPast` as an unknown refresh time;
+replaying identical cached contents preserves the previous payload instead of inventing freshness.
+Offline/partial refresh, cache-read failure, destination search, preference resend and reconnection
+cannot confirm freshness. Watch accepts only valid monotonic snapshots and persists them atomically.
+A received payload's original timestamp controls staleness; receipt time alone is not data freshness.
+Existing snapshotV1 wire/disk fields remain unchanged and old payloads remain readable.
+
+The Watch toolbar requests **Watch location only** (#284); it cannot refresh iPhone data. The separate
+“Sync saved data from iPhone” button sends one reachable WCSession request while one is in flight.
+The paired iPhone replies only with its last persisted validated snapshot. It does not fetch tiles
+or request GPS in response. The owner must refresh nearby data on iPhone first. Missing phone,
+missing/invalid payload, failed save or rejected transfer preserves saved contents/time and displays
+an honest failure. Duplicate valid replies never refresh timestamps. A newer application-context
+payload wins over an older pending request reply. The Watch widget reads the same Watch-local
+App Group file and is asked to reload after a new snapshot is persisted; App Group does not bridge
+devices. iPhone's glance file remains separate.
+
+Build 4's observed empty-result stale warning is explained by the previous content-only producer
+deduplication, not proof that physical WC delivery works. Automated tests use synthetic data and
+injected request replies; paired Series 9 transport, background/reconnect delivery and WidgetKit
+reload timing must be rechecked on a separately distributed build containing this fix. No upload
+or production configuration change is part of this repair.

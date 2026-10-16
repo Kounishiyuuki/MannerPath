@@ -8,7 +8,13 @@ import WatchConnectivity
 @MainActor
 final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDelegate {
     private let locationManager = CLLocationManager()
+    typealias SnapshotRequester = (@escaping @MainActor (Data?) -> Void) -> Void
     private let store: WatchStore?
+    private let snapshotRequester: SnapshotRequester?
+    private let widgetReloader: () -> Void
+    private(set) var syncRequestFailed = false
+    private(set) var isSyncing = false
+    private var requestedRevision: UInt64 = 0
     private(set) var snapshot: WatchSnapshot?
     private(set) var preferences: WatchPreferences = .defaults()
     private(set) var latitude: Double?
@@ -47,8 +53,11 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
         self.init(store: try? WatchStore.applicationSupport(), activateConnectivity: true)
     }
 
-    init(store: WatchStore?, activateConnectivity: Bool) {
+    init(store: WatchStore?, activateConnectivity: Bool, snapshotRequester: SnapshotRequester? = nil,
+         widgetReloader: @escaping () -> Void = { WidgetCenter.shared.reloadTimelines(ofKind: "WatchNearby") }) {
         self.store = store
+        self.snapshotRequester = snapshotRequester
+        self.widgetReloader = widgetReloader
         super.init()
         snapshot = store?.snapshot()
         preferences = store?.preferences() ?? .defaults()
@@ -161,14 +170,61 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     }
     #endif
 
-    func receive(snapshotData: Data?, preferenceData: Data?) {
-        if let data = snapshotData,
-           let accepted = try? store?.acceptSnapshot(data) {
-            snapshot = accepted
-            WidgetCenter.shared.reloadTimelines(ofKind: "WatchNearby")
+    // The toolbar's location action remains independent of iPhone data synchronization.
+    func requestSync() {
+        guard !isSyncing else { return }
+        isSyncing = true
+        requestedRevision = snapshot?.revision ?? 0
+        if let snapshotRequester {
+            snapshotRequester { [weak self] data in self?.completeSyncRequest(data) }
+            return
         }
+        guard WCSession.isSupported(), WCSession.default.activationState == .activated,
+              WCSession.default.isReachable else {
+            isSyncing = false
+            syncRequestFailed = true
+            return
+        }
+        WCSession.default.sendMessage(["requestSnapshotV1": true], replyHandler: { [weak self] reply in
+            let data = reply["snapshotV1"] as? Data
+            Task { @MainActor in self?.completeSyncRequest(data) }
+        }, errorHandler: { [weak self] _ in
+            Task { @MainActor in self?.completeSyncRequest(nil) }
+        })
+    }
+
+    private func completeSyncRequest(_ data: Data?) {
+        isSyncing = false
+        guard let data else { syncRequestFailed = true; return }
+        if let incoming = try? WatchCodec.snapshot(data), let snapshot,
+           snapshot.revision > requestedRevision, incoming.revision < snapshot.revision {
+            // A newer application context won the race. Do not replace it or report a false failure.
+            return
+        }
+        syncRequestFailed = !receive(snapshotData: data, preferenceData: nil)
+    }
+
+    @discardableResult
+    func receive(snapshotData: Data?, preferenceData: Data?) -> Bool {
+        var received = false
+        if let data = snapshotData, let store {
+            do {
+                let incoming = try WatchCodec.snapshot(data)
+                if let accepted = try store.acceptSnapshot(data) {
+                    snapshot = accepted
+                    // A receipt does not make old data fresh, nor revive an expired location fix.
+                    refreshClock()
+                    widgetReloader()
+                    received = true
+                } else {
+                    received = incoming == store.snapshot()
+                }
+            } catch { /* Preserve saved data and timestamps after malformed/conflicting payloads. */ }
+        }
+        if received { syncRequestFailed = false }
         if let data = preferenceData,
            let accepted = try? store?.acceptPreferences(data) { preferences = accepted }
+        return received
     }
 
     func setTobacco(_ value: String?) {

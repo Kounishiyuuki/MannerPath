@@ -64,7 +64,9 @@ struct ContentView: View {
                         }
                         // Old data is said in text, not colour: the Watch cannot tell offline from an unsynced iPhone.
                         if model.snapshotIsOld {
-                            Label("Not updated from iPhone for over an hour. Showing saved data.",
+                            Label(model.snapshot?.generatedAt == .distantPast
+                                  ? "Saved data is old. Open iPhone app to refresh."
+                                  : "Not updated from iPhone for over an hour. Showing saved data.",
                                   systemImage: "clock.arrow.circlepath")
                                 .font(.footnote).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("watch-old-data-note")
@@ -85,6 +87,17 @@ struct ContentView: View {
                     }
                     NavigationLink("Quick filters") { filters }
                         .accessibilityIdentifier("watch-quick-filters")
+                }
+                if eligibilityNoticeAccepted {
+                    Button("Sync saved data from iPhone") { model.requestSync() }
+                        .accessibilityIdentifier("watch-sync-from-iphone")
+                        .disabled(model.isSyncing)
+                    Text("Refresh nearby places on iPhone first. This requests its saved data, not Watch location.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    if model.syncRequestFailed {
+                        Text("Could not sync with iPhone. Open the iPhone app and try again. Saved data is unchanged.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
             }
             .navigationTitle("Nearby")
