@@ -1,0 +1,1293 @@
+{
+  "version": 1,
+  "issues": [
+    67,
+    113,
+    137
+  ],
+  "baseCommit": "d8dca64ea26477daf44b9f251209a5fe42a6ee5c",
+  "selection": {
+    "poolConstruction": "Purposive 20-city expansion pool in four zero-published prefectures, outside existing 190-target manifest; GIS/open-data capability and municipal smoking inventory leads. Not population-ranked or exhaustive.",
+    "algorithm": "Exclude exact publisher names already in manifest; sort remaining pool by municipal code; take first 20.",
+    "manifestSha256": "f5db124e6e5410c5c092ea9581e13f268e71e46a1dacf4f97267e1c46d3a64fa",
+    "cap": 20,
+    "existingQueueReopened": 0,
+    "searchLimit": "Two stored query strings per municipality plus focused follow-ups; search result ranking is not deterministic. Frozen URLs and selection can be replayed, future web content cannot be guaranteed identical."
+  },
+  "candidates": [
+    {
+      "code": "22203",
+      "publisher": "沼津市",
+      "prefecture": "静岡県",
+      "queries": [
+        "沼津市 喫煙所 公式 地図 オープンデータ 座標",
+        "沼津市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.numazu.shizuoka.jp/kurashi/sumai/kankyo/rojyokitsuen/",
+        "https://opendata.pref.shizuoka.jp/dataset/9155/resource/61624/content.html"
+      ],
+      "classification": "D",
+      "decision": "Two station plaza smoking places described; toilet CSV positions are host/amenity coordinates and excluded.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "22203",
+          "url": "https://www.city.numazu.shizuoka.jp/kurashi/sumai/kankyo/rojyokitsuen/",
+          "fetchedAt": "2026-10-09T17:34:21.972216+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.numazu.shizuoka.jp/kurashi/sumai/kankyo/rojyokitsuen/",
+          "bytes": 16147,
+          "sha256": "4f0ccbeb43f874a947776b7c9000b6bfabd3a96b4ac70b1c12d85057b86c8b6a",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 20
+        },
+        {
+          "code": "22203",
+          "url": "https://opendata.pref.shizuoka.jp/dataset/9155/resource/61624/content.html",
+          "fetchedAt": "2026-10-09T17:34:23.622423+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata.pref.shizuoka.jp/dataset/9155/resource/61624/content.html",
+          "bytes": 71883,
+          "sha256": "18669f615c854b90cfc7604659f2091dee3da2ce8ab39182881dce49e6b85870",
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "22206",
+      "publisher": "三島市",
+      "prefecture": "静岡県",
+      "queries": [
+        "三島市 喫煙所 公式 地図 オープンデータ 座標",
+        "三島市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.mishima.shizuoka.jp/page/3071.html",
+        "https://www.city.mishima.shizuoka.jp/page/1668.html"
+      ],
+      "classification": "E",
+      "decision": "South-exit removal notice conflicts with historical smoking-place lead; other current sites cannot inherit its position.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "South-exit site removed 2023-12-18 per acquired official notice; other managed sites remain separate unreviewed candidates.",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "22206",
+          "url": "https://www.city.mishima.shizuoka.jp/page/3071.html",
+          "fetchedAt": "2026-10-09T17:34:24.172930+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.mishima.shizuoka.jp/page/3071.html",
+          "bytes": 43338,
+          "sha256": "b7bff8c9958087aeaaeae07efb9f0d425dd726c36ca17722bc20487f3f45b4fc",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 10
+        },
+        {
+          "code": "22206",
+          "url": "https://www.city.mishima.shizuoka.jp/page/1668.html",
+          "fetchedAt": "2026-10-09T17:36:20.414309+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.mishima.shizuoka.jp/page/1668.html",
+          "sha256": "bf0fd1c254ad5d762a0dee74f1a8cfe3f6c060d4f701f22b33deb66e983cb8e9",
+          "bytes": 45250,
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 29
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "conflict for removed site"
+      }
+    },
+    {
+      "code": "22210",
+      "publisher": "富士市",
+      "prefecture": "静岡県",
+      "queries": [
+        "富士市 喫煙所 公式 地図 オープンデータ 座標",
+        "富士市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.fuji.shizuoka.jp/1006050000/p007247.html",
+        "https://opendata.pref.shizuoka.jp/dataset/10974.html"
+      ],
+      "classification": "C",
+      "decision": "Town-map route limits use to private use and excludes commercial purposes; unrelated licensed public-facility CSV does not license GIS.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "22210",
+          "url": "https://www.city.fuji.shizuoka.jp/1006050000/p007247.html",
+          "fetchedAt": "2026-10-09T17:34:25.512093+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.fuji.shizuoka.jp/1006050000/p007247.html",
+          "bytes": 35906,
+          "sha256": "ea8926ff2f3e6783aaa40a262147e37fc43c51db758ec69560b8fb6df4b8cb36",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "22210",
+          "url": "https://opendata.pref.shizuoka.jp/dataset/10974.html",
+          "fetchedAt": "2026-10-09T17:34:25.789130+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata.pref.shizuoka.jp/dataset/10974.html",
+          "bytes": 14915,
+          "sha256": "20992b5eeb23fe91e1dd2ba8f7bca3c19dd0aac47a2cb1fd8f150e2eff81d9d5",
+          "contentType": "text/html; charset=UTF-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "blocked on private-use GIS route",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "22211",
+      "publisher": "磐田市",
+      "prefecture": "静岡県",
+      "queries": [
+        "磐田市 喫煙所 公式 地図 オープンデータ 座標",
+        "磐田市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.iwata.shizuoka.jp/shiseijouhou/1006207/1002775.html"
+      ],
+      "classification": "F",
+      "decision": "Open-data entry point exists; bounded search did not expose smoking-site Point resource.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "22211",
+          "url": "https://www.city.iwata.shizuoka.jp/shiseijouhou/1006207/1002775.html",
+          "fetchedAt": "2026-10-09T17:34:25.929360+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.iwata.shizuoka.jp/shiseijouhou/1006207/1002775.html",
+          "bytes": 67777,
+          "sha256": "9d87865aa4ebb0c6e0a6d3cd4d7799d94a293dbf3a89a67e86987cca3f64acf3",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "22212",
+      "publisher": "焼津市",
+      "prefecture": "静岡県",
+      "queries": [
+        "焼津市 喫煙所 公式 地図 オープンデータ 座標",
+        "焼津市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.yaizu.lg.jp/life/digital-cityoffice/smart-maps.html",
+        "https://opendata.pref.shizuoka.jp/dataset/8444/resource/49053/content.html",
+        "https://github.com/yaizu-city/opendata"
+      ],
+      "classification": "F",
+      "decision": "Official map/catalog route exists; bounded inventory did not establish smoking-specific resource.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "22212",
+          "url": "https://www.city.yaizu.lg.jp/life/digital-cityoffice/smart-maps.html",
+          "fetchedAt": "2026-10-09T17:34:27.483981+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.yaizu.lg.jp/life/digital-cityoffice/smart-maps.html",
+          "bytes": 35148,
+          "sha256": "dcf4141047e7ac3cbcdb43cb118b542f8da66943d6729cdbac2d694b58e04b92",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "22212",
+          "url": "https://opendata.pref.shizuoka.jp/dataset/8444/resource/49053/content.html",
+          "fetchedAt": "2026-10-09T17:34:27.960502+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata.pref.shizuoka.jp/dataset/8444/resource/49053/content.html",
+          "bytes": 43377,
+          "sha256": "ffd4fe82f8c84dd8e2d500bdd4cb7e715c0f34a8c12510ba705d58580833d3e4",
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "22212",
+          "url": "https://github.com/yaizu-city/opendata",
+          "fetchedAt": "2026-10-09T17:34:28.433302+00:00",
+          "status": 200,
+          "finalUrl": "https://github.com/yaizu-city/opendata",
+          "bytes": 600913,
+          "sha256": "755d8f4271d1eaa8a84eb5453c92e5775307a8fd75538d4a650ee80bb04bd7e5",
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "22214",
+      "publisher": "藤枝市",
+      "prefecture": "静岡県",
+      "queries": [
+        "藤枝市 喫煙所 公式 地図 オープンデータ 座標",
+        "藤枝市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.fujieda.shizuoka.jp/benri/shisetsu/map/index.html",
+        "https://opendata.pref.shizuoka.jp/dataset/8696/resource/53238/content.html"
+      ],
+      "classification": "F",
+      "decision": "Facility map categories and Wi-Fi data are host evidence only; no smoking Point source established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "22214",
+          "url": "https://www.city.fujieda.shizuoka.jp/benri/shisetsu/map/index.html",
+          "fetchedAt": "2026-10-09T17:34:29.883001+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.fujieda.shizuoka.jp/benri/shisetsu/map/index.html",
+          "bytes": 63048,
+          "sha256": "d0d9ab32c051b78a5266e211b64c1e5b9902189103e457d91e9958c895c1c4f6",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "22214",
+          "url": "https://opendata.pref.shizuoka.jp/dataset/8696/resource/53238/content.html",
+          "fetchedAt": "2026-10-09T17:34:30.436248+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata.pref.shizuoka.jp/dataset/8696/resource/53238/content.html",
+          "bytes": 27082,
+          "sha256": "f6e81de4ccd614aeb5808cb99213c67cc1129cb9a42d0644e40981dc36c23269",
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "23202",
+      "publisher": "岡崎市",
+      "prefecture": "愛知県",
+      "queries": [
+        "site:city.okazaki.lg.jp 喫煙所 地図",
+        "岡崎市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.okazaki.lg.jp/shisei/opendata/1005809.html",
+        "https://www.city.okazaki.lg.jp/kurashi/gomi/1002338/1012441/1002409.html",
+        "https://odcs.bodik.jp/232025/",
+        "https://www.city.okazaki.lg.jp/_res/projects/default_project/_page_/001/008/136/245-248.pdf"
+      ],
+      "classification": "D",
+      "decision": "Search-index smoking inventory lead; direct publisher acquisition access-limited. Official BODIK delegation and smoking-specific facility card found; scoped reusable Point release not established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "23202",
+          "url": "https://www.city.okazaki.lg.jp/shisei/opendata/1005809.html",
+          "fetchedAt": "2026-10-09T17:34:30.820097+00:00",
+          "status": 403
+        },
+        {
+          "code": "23202",
+          "url": "https://www.city.okazaki.lg.jp/kurashi/gomi/1002338/1012441/1002409.html",
+          "fetchedAt": "2026-10-09T17:34:31.044774+00:00",
+          "status": "hostStopped"
+        },
+        {
+          "code": "23202",
+          "url": "https://odcs.bodik.jp/232025/",
+          "fetchedAt": "2026-10-09T17:34:31.044803+00:00",
+          "status": 200,
+          "finalUrl": "https://odcs.bodik.jp/232025/",
+          "bytes": 88831,
+          "sha256": "7c8d47f84ec07b5a7d20e2129ebe682c55e70ad67ade0387968b938e29f9b26a",
+          "contentType": "text/html; charset=UTF-8",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "23202",
+          "url": "https://www.city.okazaki.lg.jp/_res/projects/default_project/_page_/001/008/136/245-248.pdf",
+          "fetchedAt": "2026-10-09T17:34:31.976295+00:00",
+          "status": "hostStopped"
+        }
+      ],
+      "reviewDepth": "partial/access-limited; no exact raw smoking resource review",
+      "limitations": [
+        "Direct publisher host returned 403 and stopped; indexed web search is discovery-only and cannot confer raw resource approval."
+      ],
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "23203",
+      "publisher": "一宮市",
+      "prefecture": "愛知県",
+      "queries": [
+        "site:city.ichinomiya.aichi.jp 喫煙所 地図",
+        "一宮市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.ichinomiya.aichi.jp/kankyou/kankyouseisaku/1043982/1043983/1000038/1003115.html",
+        "https://www.city.ichinomiya.aichi.jp/cgi-opd/opendata.cgi?text=%E5%96%AB%E7%85%99"
+      ],
+      "classification": "D",
+      "decision": "Station east/west designated places; linked image map, no smoking Point export established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "23203",
+          "url": "https://www.city.ichinomiya.aichi.jp/kankyou/kankyouseisaku/1043982/1043983/1000038/1003115.html",
+          "fetchedAt": "2026-10-09T17:34:31.976317+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.ichinomiya.aichi.jp/kankyou/kankyouseisaku/1043982/1043983/1000038/1003115.html",
+          "bytes": 35520,
+          "sha256": "c0f72013ac868737b09eb8bdea542b06463cbdf5a4af9d9f13edc8ac1214ec74",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 24
+        },
+        {
+          "code": "23203",
+          "url": "https://www.city.ichinomiya.aichi.jp/cgi-opd/opendata.cgi?text=%E5%96%AB%E7%85%99",
+          "fetchedAt": "2026-10-09T17:36:18.197655+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.ichinomiya.aichi.jp/cgi-opd/opendata.cgi?text=%E5%96%AB%E7%85%99",
+          "sha256": "7bfb01c6b460034cc1d0c95e871ae293f7f58c3821d69bf738ce6d4800b9f80b",
+          "bytes": 37978,
+          "contentType": "text/html; charset=UTF-8",
+          "smokingKeywordOccurrences": 1
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "23206",
+      "publisher": "春日井市",
+      "prefecture": "愛知県",
+      "queries": [
+        "site:city.kasugai.lg.jp 喫煙所 地図",
+        "春日井市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.kasugai.lg.jp/"
+      ],
+      "classification": "F",
+      "decision": "Bounded official-domain keyword searches found health rules, not a smoking-site coordinate resource.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.kasugai.lg.jp/shisei/gyousei/jouhoukoukai/opendata/opendatalist.html"
+      ],
+      "receipts": [
+        {
+          "code": "23206",
+          "url": "https://www.city.kasugai.lg.jp/",
+          "fetchedAt": "2026-10-09T17:34:32.258814+00:00",
+          "status": 403
+        }
+      ],
+      "reviewDepth": "partial/access-limited; no exact raw smoking resource review",
+      "limitations": [
+        "Direct publisher host returned 403 and stopped; indexed web search is discovery-only and cannot confer raw resource approval."
+      ],
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "23210",
+      "publisher": "刈谷市",
+      "prefecture": "愛知県",
+      "queries": [
+        "刈谷市 喫煙所 公式 地図 オープンデータ 座標",
+        "刈谷市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.kariya.lg.jp/kurashi/pet/1003907/1003912.html",
+        "https://www2.wagmap.jp/kariyacity/Portal"
+      ],
+      "classification": "D",
+      "decision": "Search-index smoking inventory lead; direct publisher acquisition access-limited. Official exception for manager-installed smoking places and PNG area map; generic GIS is not smoking Point evidence.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.kariya.lg.jp/shisei/opendata/1007323/index.html"
+      ],
+      "receipts": [
+        {
+          "code": "23210",
+          "url": "https://www.city.kariya.lg.jp/kurashi/pet/1003907/1003912.html",
+          "fetchedAt": "2026-10-09T17:34:32.635469+00:00",
+          "status": 403
+        },
+        {
+          "code": "23210",
+          "url": "https://www2.wagmap.jp/kariyacity/Portal",
+          "fetchedAt": "2026-10-09T17:34:33.040196+00:00",
+          "status": 200,
+          "finalUrl": "https://www2.wagmap.jp/kariyacity/Portal",
+          "bytes": 52742,
+          "sha256": "414dcc0a8db811f5c44652855ee1a6b78cca99d9d8c40b9207ea5e3957701ea8",
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "partial/access-limited; no exact raw smoking resource review",
+      "limitations": [
+        "Direct publisher host returned 403 and stopped; indexed web search is discovery-only and cannot confer raw resource approval."
+      ],
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "23211",
+      "publisher": "豊田市",
+      "prefecture": "愛知県",
+      "queries": [
+        "site:city.toyota.aichi.jp 喫煙所 地図",
+        "豊田市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.toyota.aichi.jp/shisei/1073254/gyoseikeikaku/toshiseibi/1026093.html",
+        "https://www2.wagmap.jp/toyotacity/Portal"
+      ],
+      "classification": "D",
+      "decision": "Five named dedicated facilities and image map; no numeric smoking-site export established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "23211",
+          "url": "https://www.city.toyota.aichi.jp/shisei/1073254/gyoseikeikaku/toshiseibi/1026093.html",
+          "fetchedAt": "2026-10-09T17:34:33.471929+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.toyota.aichi.jp/shisei/1073254/gyoseikeikaku/toshiseibi/1026093.html",
+          "bytes": 54027,
+          "sha256": "bddb4e8b0173f129a9afd6dcec087543e34658ad045620a5fe5a44da690f755d",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 68
+        },
+        {
+          "code": "23211",
+          "url": "https://www2.wagmap.jp/toyotacity/Portal",
+          "fetchedAt": "2026-10-09T17:36:31.703762+00:00",
+          "status": 200,
+          "finalUrl": "https://www2.wagmap.jp/toyotacity/Portal",
+          "sha256": "959c97f6c5e5bf0c397360f53435139623e4f4dac7b968d9268f4b3c01572e15",
+          "bytes": 53284,
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "23212",
+      "publisher": "安城市",
+      "prefecture": "愛知県",
+      "queries": [
+        "安城市 喫煙所 公式 地図 オープンデータ 座標",
+        "安城市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.anjo.aichi.jp/kurasu/bika/rojoukituen.html",
+        "https://www.city.anjo.aichi.jp/shisei/shisetsu/chizu/index.html"
+      ],
+      "classification": "D",
+      "decision": "Search-index smoking inventory lead; direct publisher acquisition access-limited. Designated-place guidance; no smoking-site Point export established. Individual latest operation still requires review.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.anjo.aichi.jp/shisei/degital/public-gis.html"
+      ],
+      "receipts": [
+        {
+          "code": "23212",
+          "url": "https://www.city.anjo.aichi.jp/kurasu/bika/rojoukituen.html",
+          "fetchedAt": "2026-10-09T17:34:33.925850+00:00",
+          "status": 403
+        },
+        {
+          "code": "23212",
+          "url": "https://www.city.anjo.aichi.jp/shisei/shisetsu/chizu/index.html",
+          "fetchedAt": "2026-10-09T17:34:34.481104+00:00",
+          "status": "hostStopped"
+        }
+      ],
+      "reviewDepth": "partial/access-limited; no exact raw smoking resource review",
+      "limitations": [
+        "Direct publisher host returned 403 and stopped; indexed web search is discovery-only and cannot confer raw resource approval."
+      ],
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "25206",
+      "publisher": "草津市",
+      "prefecture": "滋賀県",
+      "queries": [
+        "草津市 喫煙所 公式 地図 オープンデータ 座標",
+        "草津市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.kusatsu.shiga.jp/kurashi/kankyo/rojokitsuenboshi/kituennzyo20210826.html",
+        "https://www.city.kusatsu.shiga.jp/shisei/seisaku/dx/kusatsuopendata.html"
+      ],
+      "classification": "D",
+      "decision": "Two stations have manner spaces; position PDFs only in this inspected inventory. Numeric Point/license/current per-site review unresolved.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.kusatsu.shiga.jp/shisei/seisaku/dx/kusatsuopendata.html"
+      ],
+      "receipts": [
+        {
+          "code": "25206",
+          "url": "https://www.city.kusatsu.shiga.jp/kurashi/kankyo/rojokitsuenboshi/kituennzyo20210826.html",
+          "fetchedAt": "2026-10-09T17:34:34.481141+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.kusatsu.shiga.jp/kurashi/kankyo/rojokitsuenboshi/kituennzyo20210826.html",
+          "bytes": 19819,
+          "sha256": "505e41de85e5c57d58ddd028717133f3e0186b987f7b1bb442f6510491c3aeee",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 13
+        },
+        {
+          "code": "25206",
+          "url": "https://www.city.kusatsu.shiga.jp/shisei/seisaku/dx/kusatsuopendata.html",
+          "fetchedAt": "2026-10-09T17:36:22.244255+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.kusatsu.shiga.jp/shisei/seisaku/dx/kusatsuopendata.html",
+          "sha256": "9e143d8c68d250285d5c40fb721896d30c64d30c04a89114f36f296abc1d5848",
+          "bytes": 20832,
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "25207",
+      "publisher": "守山市",
+      "prefecture": "滋賀県",
+      "queries": [
+        "守山市 喫煙所 公式 地図 オープンデータ 座標",
+        "守山市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.moriyama.lg.jp/shisetsu/index.html",
+        "https://www.city.moriyama.lg.jp/shiseijouhou/opendata/index.html"
+      ],
+      "classification": "F",
+      "decision": "Facility entry and historical/event smoking references; neither a current smoking Point release nor site operation established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.moriyama.lg.jp/shiseijouhou/opendata/index.html"
+      ],
+      "receipts": [
+        {
+          "code": "25207",
+          "url": "https://www.city.moriyama.lg.jp/shisetsu/index.html",
+          "fetchedAt": "2026-10-09T17:34:34.816763+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.moriyama.lg.jp/shisetsu/index.html",
+          "bytes": 23858,
+          "sha256": "42fc9e9286d2785b913fd1786ed90294048e9a9a1984f3342c94608c3cafeca2",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "25207",
+          "url": "https://www.city.moriyama.lg.jp/shiseijouhou/opendata/index.html",
+          "fetchedAt": "2026-10-09T17:36:23.943054+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.moriyama.lg.jp/shiseijouhou/opendata/index.html",
+          "sha256": "3fae4f37e59105226a2afd0ab2774720714d6cda8f6cd237bdd85d575c83e63f",
+          "bytes": 25607,
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "28202",
+      "publisher": "尼崎市",
+      "prefecture": "兵庫県",
+      "queries": [
+        "尼崎市 喫煙所 公式 地図 オープンデータ 座標",
+        "尼崎市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.amagasaki.hyogo.jp/kurashi/kenko/kenko_joho/1011882/1039707.html",
+        "https://www.city.amagasaki.hyogo.jp/opendata/index.html"
+      ],
+      "classification": "D",
+      "decision": "Seven explicitly named municipal smoking places; addresses only in inventory, no smoking Point export established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.amagasaki.hyogo.jp/opendata/index.html"
+      ],
+      "receipts": [
+        {
+          "code": "28202",
+          "url": "https://www.city.amagasaki.hyogo.jp/kurashi/kenko/kenko_joho/1011882/1039707.html",
+          "fetchedAt": "2026-10-09T17:34:35.144605+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.amagasaki.hyogo.jp/kurashi/kenko/kenko_joho/1011882/1039707.html",
+          "bytes": 37598,
+          "sha256": "7a5f0ce019f56411c4def71a048c9e869447d8ac22ff2176458994e4826bbd05",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 24
+        },
+        {
+          "code": "28202",
+          "url": "https://www.city.amagasaki.hyogo.jp/opendata/index.html",
+          "fetchedAt": "2026-10-09T17:36:25.568072+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.amagasaki.hyogo.jp/opendata/index.html",
+          "sha256": "44af9eab8818eb607bfd60dc023ac3371cfcf933049305aaf0646470223e9ad1",
+          "bytes": 34047,
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "28203",
+      "publisher": "明石市",
+      "prefecture": "兵庫県",
+      "queries": [
+        "明石市 喫煙所 公式 地図 オープンデータ 座標",
+        "明石市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.akashi.lg.jp/kankyou/kankyou_soumu_ka/kurashi/seisaku/new_sumiyoikankyo.html",
+        "https://www.city.akashi.lg.jp/soumu/j_kanri_ka/shise/opendata/index.html",
+        "https://www.city.akashi.lg.jp/documents/29427/282031_open_data_list.csv"
+      ],
+      "classification": "D",
+      "decision": "Five named station smoking facilities; PNG positions/photos. Licensed open-data index must not license ordinary page by proximity.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "28203",
+          "url": "https://www.city.akashi.lg.jp/kankyou/kankyou_soumu_ka/kurashi/seisaku/new_sumiyoikankyo.html",
+          "fetchedAt": "2026-10-09T17:34:35.698786+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.akashi.lg.jp/kankyou/kankyou_soumu_ka/kurashi/seisaku/new_sumiyoikankyo.html",
+          "bytes": 38416,
+          "sha256": "5ff62e2e25fa0b07bed61d7e3c661ac9387cc394984cffc248e8470e4d9fdea4",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 19
+        },
+        {
+          "code": "28203",
+          "url": "https://www.city.akashi.lg.jp/soumu/j_kanri_ka/shise/opendata/index.html",
+          "fetchedAt": "2026-10-09T17:34:36.071693+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.akashi.lg.jp/soumu/j_kanri_ka/shise/opendata/index.html",
+          "bytes": 33631,
+          "sha256": "2a9e56c659c51b53385e0f76c0aed06cdf3139dad932f8df1347754b54e5a2cb",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "28203",
+          "url": "https://www.city.akashi.lg.jp/documents/29427/282031_open_data_list.csv",
+          "fetchedAt": "2026-10-09T17:36:29.798359+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.akashi.lg.jp/documents/29427/282031_open_data_list.csv",
+          "sha256": "5a876807e60eb39ddef5fd203e02999e65bd0b1134d09bf576054fd890442a19",
+          "bytes": 87876,
+          "contentType": "text/csv",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "28204",
+      "publisher": "西宮市",
+      "prefecture": "兵庫県",
+      "queries": [
+        "西宮市 喫煙所 公式 地図 オープンデータ 座標",
+        "西宮市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.nishi.or.jp/shisei/seisaku/kankyokatsudo/kitsuen/kitsuenkinshikuiki.html",
+        "https://opendata.nishi.or.jp/opendata/ResultList.php",
+        "https://opendata.nishi.or.jp/opendata/results.php"
+      ],
+      "classification": "F",
+      "decision": "Prohibition-area notice and GIS/catalog leads; prohibition geometry and third-party OpenPOI discovery are not permitted-place evidence.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "28204",
+          "url": "https://www.nishi.or.jp/shisei/seisaku/kankyokatsudo/kitsuen/kitsuenkinshikuiki.html",
+          "fetchedAt": "2026-10-09T17:34:37.975750+00:00",
+          "status": 200,
+          "finalUrl": "https://www.nishi.or.jp/shisei/seisaku/kankyokatsudo/kitsuen/kitsuenkinshikuiki.html",
+          "bytes": 18259,
+          "sha256": "73efbe9cef9bae76abfe74e2c0c2fa89686a0ee8fa7d81968920a306ee759746",
+          "contentType": "text/html; charset=UTF-8",
+          "smokingKeywordOccurrences": 31
+        },
+        {
+          "code": "28204",
+          "url": "https://opendata.nishi.or.jp/opendata/ResultList.php",
+          "fetchedAt": "2026-10-09T17:34:38.173906+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata.nishi.or.jp/opendata/ResultList.php",
+          "bytes": 41622,
+          "sha256": "eabaaf2ed94c3669feaa9862836d3b4a118660592f26a9fe0d22112d00131dac",
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "28204",
+          "url": "https://opendata.nishi.or.jp/opendata/results.php",
+          "fetchedAt": "2026-10-09T17:36:35.784079+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata.nishi.or.jp/opendata/results.php",
+          "sha256": "73d50720155bc756310426198fa2b25c9dce1f4f18131ae73fe70ec3271c721f",
+          "bytes": 45236,
+          "contentType": "text/html; charset=utf-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "28207",
+      "publisher": "伊丹市",
+      "prefecture": "兵庫県",
+      "queries": [
+        "伊丹市 喫煙所 公式 地図 オープンデータ 座標",
+        "伊丹市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.itami.lg.jp/SOSIKI/SOGOSEISAKU/JYOHO/1585621601034.html",
+        "https://itami.maps.arcgis.com/home/index.html"
+      ],
+      "classification": "F",
+      "decision": "Official delegated GIS with per-layer conditions; smoking resource identity not established in bounded scan.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "28207",
+          "url": "https://www.city.itami.lg.jp/SOSIKI/SOGOSEISAKU/JYOHO/1585621601034.html",
+          "fetchedAt": "2026-10-09T17:34:39.961368+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.itami.lg.jp/SOSIKI/SOGOSEISAKU/JYOHO/1585621601034.html",
+          "bytes": 46769,
+          "sha256": "617990d7aab5717527185dd509d18aece4eb95581a8b58ba7f50a021ff3715d6",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "28207",
+          "url": "https://itami.maps.arcgis.com/home/index.html",
+          "fetchedAt": "2026-10-09T17:36:33.593271+00:00",
+          "status": 200,
+          "finalUrl": "https://itami.maps.arcgis.com/home/index.html",
+          "sha256": "8b9d55655e8507fac141749269a221a2a6b60341b399ee798b95ab73f874f15b",
+          "bytes": 1345,
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "28210",
+      "publisher": "加古川市",
+      "prefecture": "兵庫県",
+      "queries": [
+        "加古川市 喫煙所 公式 地図 オープンデータ 座標",
+        "加古川市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.kakogawa.lg.jp/soshikikarasagasu/kikakubu/jouhouseisakuka/ict_1/dashboard.html",
+        "https://opendata-api-kakogawa.jp/odp/"
+      ],
+      "classification": "F",
+      "decision": "Official dashboard delegates open-data catalog; inspected entry points do not establish smoking-specific Points.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "not approved; see decision",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "receipts": [
+        {
+          "code": "28210",
+          "url": "https://www.city.kakogawa.lg.jp/soshikikarasagasu/kikakubu/jouhouseisakuka/ict_1/dashboard.html",
+          "fetchedAt": "2026-10-09T17:34:40.446806+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.kakogawa.lg.jp/soshikikarasagasu/kikakubu/jouhouseisakuka/ict_1/dashboard.html",
+          "bytes": 63236,
+          "sha256": "c2db491718202a201427c9a30e2455ad80d63e92c7043611b67218c22102f84c",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        },
+        {
+          "code": "28210",
+          "url": "https://opendata-api-kakogawa.jp/odp/",
+          "fetchedAt": "2026-10-09T17:34:40.965091+00:00",
+          "status": 200,
+          "finalUrl": "https://opendata-api-kakogawa.jp/odp/",
+          "bytes": 25284,
+          "sha256": "f0b65039fbac26b8acb513f694708deb95d04eb3b188c04aecc55b9ed2d9e931",
+          "contentType": "text/html; charset=UTF-8",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded discovery/catalog review; no raw smoking resource deep review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    },
+    {
+      "code": "28214",
+      "publisher": "宝塚市",
+      "prefecture": "兵庫県",
+      "queries": [
+        "宝塚市 喫煙所 公式 地図 オープンデータ 座標",
+        "宝塚市 喫煙所 CSV GeoJSON KML 緯度 経度"
+      ],
+      "urls": [
+        "https://www.city.takarazuka.hyogo.jp/1060685/1060714/1061609/1049763/1012143.html",
+        "https://www.city.takarazuka.hyogo.jp/1014984/index.html"
+      ],
+      "classification": "D",
+      "decision": "Official designated-place exception and area maps; numeric licensed smoking Points not established.",
+      "rights": "unestablished for exact smoking resource",
+      "coordinates": "no reusable publisher smoking Point release established",
+      "currentOperation": "Current HTML has scheduled morning closure conditions; no unconditional openNow or hours imported.",
+      "implementationCandidate": false,
+      "productionApproval": false,
+      "additionalDiscoveredUrls": [
+        "https://www.city.takarazuka.hyogo.jp/1014984/index.html"
+      ],
+      "receipts": [
+        {
+          "code": "28214",
+          "url": "https://www.city.takarazuka.hyogo.jp/1060685/1060714/1061609/1049763/1012143.html",
+          "fetchedAt": "2026-10-09T17:34:42.282923+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.takarazuka.hyogo.jp/1060685/1060714/1061609/1049763/1012143.html",
+          "bytes": 41167,
+          "sha256": "c60fd57cda5648a0d6da687e9e9621a0b15aea496967e28a001dbdf05d995c2d",
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 52
+        },
+        {
+          "code": "28214",
+          "url": "https://www.city.takarazuka.hyogo.jp/1014984/index.html",
+          "fetchedAt": "2026-10-09T17:36:27.876790+00:00",
+          "status": 200,
+          "finalUrl": "https://www.city.takarazuka.hyogo.jp/1060687/1060729/1014984/index.html",
+          "sha256": "a01c6e932b7aca355b63fdb2f5924c1ddf8f7406ca032ca23c4fd19c9d6b448e",
+          "bytes": 41934,
+          "contentType": "text/html",
+          "smokingKeywordOccurrences": 0
+        }
+      ],
+      "reviewDepth": "bounded primary HTML/catalog review",
+      "nextAction": "Resume only with a newly identified exact publisher smoking-site Point resource, explicit applicable reuse terms, and per-record operation evidence.",
+      "gateStatus": {
+        "officialPublisher": "municipality identity; delegated export authority still resource-specific",
+        "exactSmokingDataset": "not established",
+        "rights": "not established for exact smoking resource",
+        "publisherSmokingPoint": "not established",
+        "currentOperation": "not approved at record/release level"
+      }
+    }
+  ],
+  "summary": {
+    "candidatesScanned": 20,
+    "unit": "distinct municipality expansion leads; not 20 found datasets or deep-reviewed releases",
+    "classes": {
+      "A": 0,
+      "B": 0,
+      "C": 1,
+      "D": 10,
+      "E": 1,
+      "F": 8
+    },
+    "newApprovedSources": 0,
+    "implementedSources": 0,
+    "primaryReceipts": 43,
+    "receiptStatuses": {
+      "200": 36,
+      "403": 4,
+      "hostStopped": 3
+    },
+    "deepReviewedSmokingPointReleases": 0,
+    "absenceProven": false
+  },
+  "providerDiscovery": {
+    "command": "npm run discovery:providers -- --provider bodik --catalog https://data.bodik.jp --catalog https://odm.bodik.jp --query 'title:*喫煙*' --max-candidates 20 --max-pages 2 --cache /private/tmp/exact-source-next-provider-cache --out /private/tmp/exact-source-next-provider.json",
+    "resources": [
+      {
+        "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20230601_koshukitsuenjo.csv",
+        "publisher": "131067_東京都台東区",
+        "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000255",
+        "resourceId": "3b2d9ac5-fa84-4958-bb1e-143b67858bc4"
+      },
+      {
+        "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_station.csv",
+        "publisher": "131083_東京都江東区",
+        "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+        "resourceId": "0346a9f5-c71e-4d91-8a84-09478159f159"
+      },
+      {
+        "rawUrl": "https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv",
+        "publisher": "131083_東京都江東区",
+        "datasetUrl": "https://odm.bodik.jp/dataset/t131083d0000000061",
+        "resourceId": "72d37d02-9c9b-4a88-86f2-85c9834231b3"
+      },
+      {
+        "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/5b27f9e3-3c7c-48bc-820a-594e417a219a/download/minatokushisetsujoho_shiteikitsuenbasyo.csv",
+        "publisher": "131032_東京都港区",
+        "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+        "resourceId": "5b27f9e3-3c7c-48bc-820a-594e417a219a"
+      },
+      {
+        "rawUrl": "https://opendata.city.minato.tokyo.jp/dataset/29ded576-f3a0-4bf9-83a3-a51d6954d458/resource/6b0b7ea6-c898-4422-8e75-b9722806a9f1/download/minatokushisetsujoho_shiteikitsuenbasyo.json",
+        "publisher": "131032_東京都港区",
+        "datasetUrl": "https://odm.bodik.jp/dataset/minatokushisetsujoho_shiteikitsuenbasyo",
+        "resourceId": "6b0b7ea6-c898-4422-8e75-b9722806a9f1"
+      },
+      {
+        "rawUrl": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20240627_koshukitsuenjo.csv",
+        "publisher": "131067_東京都台東区",
+        "datasetUrl": "https://odm.bodik.jp/dataset/t131067d0000000110",
+        "resourceId": "f60b6998-8d0a-4cfb-bd35-c2da4a56d05f"
+      }
+    ],
+    "fetches": [
+      {
+        "url": "https://data.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+        "status": 200,
+        "sha256": "f13a058350444152afa76a37005e05d7e2596d9e5d342c5e47e82001e2396137",
+        "fetchedAt": "2026-10-09T17:33:20.081Z",
+        "cacheHit": false,
+        "blockerCodes": []
+      },
+      {
+        "url": "https://odm.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=0",
+        "status": 200,
+        "sha256": "9bfd5a9a397d1640cc0fb3c05910fc69880d7c9c30829b0b324ece1c3a611010",
+        "fetchedAt": "2026-10-09T17:33:21.664Z",
+        "cacheHit": false,
+        "blockerCodes": []
+      },
+      {
+        "url": "https://odm.bodik.jp/api/3/action/package_search?q=title%3A*%E5%96%AB%E7%85%99*&rows=20&start=20",
+        "status": 200,
+        "sha256": "a8c776fd162dfc66de3d8cc996de1ffa10949d5a77e14144efea4d92729a0680",
+        "fetchedAt": "2026-10-09T17:33:23.314Z",
+        "cacheHit": false,
+        "blockerCodes": []
+      }
+    ],
+    "truncated": false,
+    "newSelectedResources": 0,
+    "decision": "Existing/historical Taito, Koto, Minato resources excluded; no raw retry."
+  },
+  "priorResearch": [
+    "#113 body and 2026-10-02 comment",
+    "#137 body",
+    "2026-10-01-nationwide-high-value-blocker-resolution.md",
+    "2026-10-07-official-source-onboarding-batch-1.md",
+    "2026-10-08-open-provider-batch-2.md",
+    "2026-10-09-high-value-source-rights-requests.md",
+    "2026-10-01-nationwide-east-deep-followup.md",
+    "2026-10-01-official-reverse-source-review.md"
+  ],
+  "localValidation": {
+    "baseline": {
+      "sources": 6,
+      "canonical": 515,
+      "published": 513,
+      "tiles": 81
+    },
+    "quality": {
+      "passed": 16,
+      "failed": 0
+    },
+    "crossSourceCandidates": 0,
+    "promotion": {
+      "version": "promotion-bundle.v3",
+      "contentSha256": "c6123dfba677a19b65035a13e05ad19a37e61264cc3558e62dbb8a430fbf5e68",
+      "verified": true,
+      "targetCanonical": 513,
+      "targetPublished": 513,
+      "targetTiles": 81,
+      "targetQuality": {
+        "passed": 16,
+        "failed": 0
+      },
+      "byteIdenticalReexport": true
+    },
+    "coverage": [
+      {
+        "code": "22",
+        "name": "静岡県",
+        "official": 0,
+        "communityVerified": 0,
+        "visitedConfirmed": 0,
+        "communityReported": 0,
+        "allVisible": 0
+      },
+      {
+        "code": "23",
+        "name": "愛知県",
+        "official": 0,
+        "communityVerified": 0,
+        "visitedConfirmed": 0,
+        "communityReported": 0,
+        "allVisible": 0
+      },
+      {
+        "code": "25",
+        "name": "滋賀県",
+        "official": 0,
+        "communityVerified": 0,
+        "visitedConfirmed": 0,
+        "communityReported": 0,
+        "allVisible": 0
+      },
+      {
+        "code": "28",
+        "name": "兵庫県",
+        "official": 0,
+        "communityVerified": 0,
+        "visitedConfirmed": 0,
+        "communityReported": 0,
+        "allVisible": 0
+      }
+    ],
+    "apiValidate": {
+      "apiTests": 970,
+      "discoveryTests": 101,
+      "failed": 0,
+      "skipped": 0,
+      "typecheck": "pass"
+    },
+    "contract": "pass",
+    "review": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "upstreamReacquiredByReviewer": false
+    }
+  }
+}
