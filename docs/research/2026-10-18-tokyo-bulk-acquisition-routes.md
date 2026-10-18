@@ -9,15 +9,23 @@ or cited document on 2026-10-18; everything else is labelled as an estimate with
 
 ## 1. Result
 
-- **The public smoking-place ceiling in the 23 wards is 641** (ward-run + ward-designated, PlanWorks 政策研究所,
-  2026-05). MannerPath publishes 149 of them (Taito 32, Minato 114, Koto 3) and PR #292 adds 14. Public lists alone
-  cannot reach 2,000.
+- **One survey counts 641 ward-run + ward-designated public smoking places in the 23 wards** (PlanWorks 政策研究所,
+  2026-05). It is not a ceiling: it excludes Tama, private places outside ward designation and changes since, and ward
+  lists differ from it (§3). MannerPath publishes 149 such places (Taito 32, Minato 114, Koto 3) and PR #292 adds 14. Public lists alone are
+  unlikely to reach 2,000.
 - **Only one route can reach 2,000 by itself: licensed restaurant/café smoking data** (Retty Food Data Platform,
-  ≈78,000 smoking restaurant spots nationwide). It needs a contract **and** an ADR, because a licensed aggregator is
+  whose case page says CLUB JT's map holds ≈78,000 restaurant smoking spots nationwide — an undated figure for JT's
+  product, **not** what Retty can license to MannerPath, and not a Tokyo count). It needs a contract **and** an ADR, because a licensed aggregator is
   still third-party discovery under AGENTS.md.
 - Without that contract, the realistic Tokyo total is **≈1,100–1,900** (§4), not 2,000.
 - **Start now:** (1) wire the address-geocode anchor and onboard the remaining ward lists; (2) send the Retty and chain
   inquiries; (3) request notification statistics from the health centres.
+
+## Status (2026-10-18, after PRs #292, #293, #295 opened)
+
+Open, not merged: #292 (14 Chuo parks), #293 (address-geocode anchor, ADR-0018 item 5), #295 (batch triage, building/
+floor split; its dry run: 89 anchors from 116 listed rows of Chuo, Shibuya, Toshima, Shinjuku). Phase 1 below assumes
+#293 and #295 merge; until then the R1 estimate is not reachable. Shinjuku stays blocked by its information-use clause.
 
 ## 2. Route comparison
 
@@ -25,7 +33,7 @@ or cited document on 2026-10-18; everything else is labelled as an estimate with
 | --- | --- | ---: | ---: | --- | --- | --- | --- |
 | R1 | 23-ward public lists (factReference + address anchor) | **641** measured (PPI table, §3) | **≈420 new** (641 − 149 published − Shinjuku 32 − ≈5 % suspended/no address) | D-R factReference per ward site; Shinjuku restricts information use (fails closed); Chiyoda's map images forbid secondary use but its site terms allow reuse of text | `areaApproximate` (address geocode, ADR-0018 item 5) or publisher point where a dataset exists | Page fingerprint (source health) | **M once** (geocoder), **S per ward** (≈20 adapters) |
 | R2 | Tama 26 cities + town lists | Not measured | 50–150 (estimate: Musashino 3 already; station-front lists are small) | As R1 | As R1 | As R1 | S per city |
-| R3 | Restaurant/café smoking data, **Retty FDP** (contract) | ≈78,000 nationwide (measured, Retty case page); **Tokyo share not published** — 7,800–15,600 if Tokyo is 10–20 % | **0 today**; with a contract that allows storage, offline cache and redistribution in tiles: thousands | Monthly-fee B2B licence (Retty disclosure); terms unknown | Restaurant point (vendor) → must be shown as venue point, not a booth | API, continuous; decay risk (smoking status changes) | **L**: contract, new evidence tier (ADR), freshness model |
+| R3 | Restaurant/café smoking data, **Retty FDP** (contract) | Unknown: the only figure is ≈78,000 nationwide on CLUB JT's map (Retty case page, undated); Retty's own licensable set and Tokyo share are not published — 7,800–15,600 if Tokyo is 10–20 % | **0 today**; with a contract that allows storage, offline cache and redistribution in tiles: thousands | Monthly-fee B2B licence (Retty disclosure); terms unknown | Restaurant point (vendor) → must be shown as venue point, not a booth | API, continuous; decay risk (smoking status changes) | **L**: contract, new evidence tier (ADR), freshness model |
 | R4 | Chain official store data (cafés with smoking rooms) | Doutor 486 Tokyo stores (measured, official locator); share with smoking rooms unknown | 0 today; with written permission 200–600 (estimate across Doutor/Renoir/Komeda/others) | First-party operator: D-R applies to pages; the locator is a NAVITIME-hosted app, bulk retrieval needs permission | Operator point or address anchor | Chain feed or page check | M per chain |
 | R5 | HotPepper Gourmet API | Large; `non_smoking` field per shop | **0** | Terms forbid copying into a third party's database, editing/processing, and require cache refresh within 24 h | — | — | Not pursued for canonical data |
 | R6 | Smoking-data companies (CLUB JT, moqlog, tobacco.tokyo) | CLUB JT ≈80,000 nationwide incl. Retty; tobacco.tokyo claims 24,096 Tokyo (inconsistent with its own 6,953 page) | 0 | CLUB JT is a tobacco maker's service (brand/promotion rule); moqlog: no licence (2026-10-14 review); tobacco.tokyo: provenance unknown | Host points | — | Lead-only at most |
@@ -41,7 +49,8 @@ or cited document on 2026-10-18; everything else is labelled as an estimate with
   not existing places. Ward-level counts differ from current ward lists (Chuo lists 21 ward-run + private places;
   Minato 116), so each adapter re-counts from its own page.
 - **Already published**: 149 (six-source baseline). PR #292: 14 Chuo parks (open, not merged).
-- **R3**: Retty case page for CLUB JT: 「約78,000件」 restaurant smoking spots, delivered by API, attributes include where
+- **R3**: Retty case page for CLUB JT: 「約78,000件」 restaurant smoking spots registered on CLUB JT's map (undated; the
+  count of a JT product built with FDP, not an offer to MannerPath), delivered by API, attributes include where
   smoking is allowed and tobacco type; sourcing method not stated. Retty's securities report: FDP is a monthly-fee
   data feed.
 - **R4**: Doutor official store search lists 486 Tokyo stores; its search has no smoking filter, so the smoking-room
