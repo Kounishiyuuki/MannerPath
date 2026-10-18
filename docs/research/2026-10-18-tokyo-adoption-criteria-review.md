@@ -4,6 +4,17 @@ Baseline `origin/main` `a2411a0`. Input: the Lane 4 Tokyo major-station research
 `research/tokyo-v1-major-station-sources`, not pushed; 0 READY). Review only: no source, adapter, fixture, D1,
 Cloudflare or App Store change. Not legal advice; rights readings are engineering readings under D-R.
 
+## Status update (2026-10-18, later the same day)
+
+Superseded counts below are kept as the original review. Since then (all open, not merged):
+- **#292** onboarded **14** Chuo ward-run parks, not the 3 parks of the Lane 4 subset: the whole ward-run park list was
+  reviewed. The undeclared datum was cross-checked in review (park points 10–145 m from GSI address geocodes, no Tokyo
+  Datum offset).
+- **#293** wires the address-geocode anchor (ADR-0018 item 5), so "not wired" in §1–§3 no longer holds once it merges.
+- **#295** adds batch triage and the building/floor split; its dry run gave 89 anchors from 116 rows (Chuo, Shibuya,
+  Toshima, Shinjuku). Shinjuku remains blocked by its information-use clause.
+- §5's "fixed 513" alignment and §6's decisions are still open.
+
 ## 1. Result
 
 Of 35 listed candidates (Chuo 13, Shinjuku 9, Shibuya 6, Toshima 7; Asakusa adds none), **3 are truly unpublishable** (suspended now), **9 wait on one rights decision**
