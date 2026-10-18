@@ -172,6 +172,15 @@ hold below (migration 0033).
   files and refuses a mismatch (F1). A listing cell may be completed only with the source's own prefecture/municipality
   (`completeOfficialAddress`); a cell naming another one is `outsideSourceScope` (F3). No source uses
   it yet: adopting one is a separate source review (existence, rights, current operation, same-anchor rule).
+- **Gate v2 and batch triage (2026-10-18).** `address-anchor-gate.v2` adds one reviewed split: when the lot matched at
+  `residential_detail` and the geocoder's only remainder is the address's own trailing building name and/or floor, the
+  lot alone is gated and the removed text is kept in the reference (`除外=`). A remainder holding another lot number or an
+  area (公園・地区・駅…) is not split. 先・付近・周辺・他・か所 and similar wording are `ambiguousLocationWording` before any
+  geocode: a frontage or vicinity is never a point. `evaluateIntakeBatch` (`src/pipeline/bulk-intake.ts`,
+  `npm run bulk:intake`) triages a batch of listing rows into adoptable / needsReview / rejected with reason counts: the
+  source's rights and publication come only from the reviewed registry (a batch cannot approve its source), suspended or
+  closed rows and duplicate listings are rejected, and rows sharing one anchor count as one spot. It writes nothing;
+  adopting rows remains a reviewed adapter and pinned fact sheet.
 
 ## Future work (not decided)
 

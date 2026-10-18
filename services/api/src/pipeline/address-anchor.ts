@@ -10,7 +10,9 @@
 // input here, pinned by geocoder version and dataset release digest (scripts/address-anchor-candidates.ts).
 import { type GeocodeRun, REVIEWED_GEOCODERS, evaluateDerivedCoordinate } from "./derived-coordinate.ts";
 
-export const ADDRESS_ANCHOR_GATE_VERSION = "address-anchor-gate.v1";
+export type { GeocodeRun };
+
+export const ADDRESS_ANCHOR_GATE_VERSION = "address-anchor-gate.v2";
 
 /**
  * The reviewed ABR dataset release for anchors: `abrg download -c 131016 131024 131067 131041 131130 131164 --keep`
@@ -62,6 +64,29 @@ export function canonicalAddress(address: string): string {
     .replace(/(\d+)丁目(?=\d)/g, "$1-");
 }
 
+/** Wording that makes the address a frontage, a vicinity or several places: never a point, whatever the geocoder says. */
+const AMBIGUOUS_LOCATION = /先|付近|周辺|附近|近く|前$|横$|他|ほか|か所|ヶ所|箇所|、|～|~/;
+/** A remainder naming an area rather than one building on the lot (a park zone, a station) is not a facility. */
+const AREA_REMAINDER = /公園|広場|地区|駅|構内|敷地/;
+
+/**
+ * The reviewed building/floor split (address-anchor-gate.v2): when the geocoder matched the lot at residential_detail and
+ * its only remainder is the address's own trailing text, that text is a building name and/or floor on the lot
+ * (「銀座6丁目9番5号 7階」, 「東池袋1丁目8番1号WACCA池袋5階」). The lot's point is still only the lot's representative point,
+ * so the anchor stays approximate; the removed text is kept verbatim in the reference. Returns null when not safe.
+ */
+export function buildingSuffix(address: string, run: GeocodeRun): string | null {
+  const remainder = run.others.map((o) => o.trim()).filter((o) => o !== "");
+  if (run.input !== address || remainder.length !== 1 || run.coordinateLevel !== "residential_detail" || run.matchLevel !== "residential_detail") return null;
+  const suffix = remainder[0];
+  if (!address.endsWith(suffix) || AMBIGUOUS_LOCATION.test(suffix) || AREA_REMAINDER.test(suffix)) return null;
+  // Another lot or house number in the remainder means the geocoder stopped early, not that a building follows.
+  const text = suffix.normalize("NFKC");
+  if (/\d+\s*[-番号]/.test(text) || /^-/.test(text) || /^\d+(?!\d*階)/.test(text)) return null;
+  const lot = address.slice(0, -suffix.length).trimEnd();
+  return /[\d０-９]号?$/.test(lot) ? suffix : null;
+}
+
 const TOKYO_WARDS = ["千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区", "品川区", "目黒区", "大田区",
   "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"];
 const PREFECTURE_PREFIX = /^(北海道|東京都|京都府|大阪府|[^\s\d]{2,3}県)/;
@@ -87,7 +112,17 @@ export function completeOfficialAddress(cell: string, scope: { prefecture: strin
 export function evaluateAddressAnchor(input: AddressAnchorInput): AddressAnchorResult {
   const address = input.officialAddress?.trim() ?? "";
   if (address === "") return { status: "reviewPending", reasons: ["officialAddressMissing"] };
+  if (AMBIGUOUS_LOCATION.test(address)) return { status: "reviewPending", reasons: ["ambiguousLocationWording"] };
   if (input.geocode === null) return { status: "reviewPending", reasons: ["noGeocodeResult"] };
+  const suffix = buildingSuffix(address, input.geocode);
+  if (suffix !== null) {
+    const lot = address.slice(0, -suffix.length).trimEnd();
+    const output = input.geocode.output?.endsWith(suffix) ? input.geocode.output.slice(0, -suffix.length).trimEnd() : null;
+    if (output === null) return { status: "reviewPending", reasons: ["unmatchedRemainder"] };
+    // The lot is a verbatim prefix of the official address; the gate re-checks it as if it had been the whole input.
+    const r = evaluateAddressAnchor({ ...input, officialAddress: lot, geocode: { ...input.geocode, input: lot, output, others: [] } });
+    return r.status === "anchor" ? { ...r, reference: `${r.reference} 除外=${suffix}` } : r;
+  }
   const run = input.geocode;
   // Existence, current operation and rights belong to the page-fact source review; this gate decides the point only.
   const evaluation = evaluateDerivedCoordinate({

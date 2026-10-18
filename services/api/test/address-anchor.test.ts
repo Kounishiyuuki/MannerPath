@@ -69,8 +69,9 @@ test("anything else is reviewPending with reasons, never a guessed point", () =>
   assert.deepEqual(pending(evaluateAddressAnchor({ officialAddress: "  ", expectedPrefecture: "東京都", expectedMunicipality: "中央区", geocode: run(KYOBASHI) })), ["officialAddressMissing"]);
   assert.deepEqual(pending(evaluateAddressAnchor({ officialAddress: KYOBASHI.query.input, expectedPrefecture: "東京都", expectedMunicipality: "中央区", geocode: null })), ["noGeocodeResult"]);
   // 「先」, a floor or a building name is an unmatched remainder: the point would be a guess about what was dropped.
-  assert.ok(pending(evaluate(SAKI, "豊島区")).includes("unmatchedRemainder"));
-  assert.ok(pending(evaluate(FLOOR, "中央区")).includes("unmatchedRemainder"));
+  assert.deepEqual(pending(evaluate(SAKI, "豊島区")), ["ambiguousLocationWording"], "a 番先 frontage is never a point");
+  // A floor whose lot sits only at block level is not split (bulk-intake.test.ts covers the reviewed split).
+  assert.ok(pending(evaluate(FLOOR, "中央区", { matchLevel: "residential_block", coordinateLevel: "residential_block" })).includes("unmatchedRemainder"));
   // A town or city point is not a facility.
   assert.ok(pending(evaluate(TOWN, "千代田区")).includes("precisionTooLow"));
   assert.ok(pending(evaluate(KYOBASHI, "中央区", { coordinateLevel: "parcel", matchLevel: "parcel" })).includes("precisionTooLow"));

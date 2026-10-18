@@ -15,6 +15,7 @@
     "local:reports:migrate": "wrangler d1 migrations apply REPORTS_DB --local",
     "local:pipeline": "node --experimental-strip-types --no-warnings scripts/local-pipeline.ts",
     "address:anchors": "node --experimental-strip-types --no-warnings scripts/address-anchor-candidates.ts",
+    "bulk:intake": "node --experimental-strip-types --no-warnings scripts/bulk-intake.ts",
     "local:registry": "node --experimental-strip-types --no-warnings scripts/apply-source-registry.ts",
     "local:reports": "node --experimental-strip-types --no-warnings scripts/report-queue.ts",
     "local:reports:retention": "node --experimental-strip-types --no-warnings scripts/report-retention.ts",
