@@ -57,8 +57,9 @@ Existence and anchor stay separate. Allowed anchor sources, in order:
    its attribution travels with the anchor. An anchor source can never create existence.
 4. The facility's own official address, and 5. a geocode of that address (D-A approved both) — as an
    **approximate anchor only**. Never `publisherPoint`, never `reviewedDerived` on the spot (it stays `areaApproximate`);
-   the geocoder is an anchor-making tool, never existence evidence. No geocoder is wired yet: the schema accepts
-   `anchor_basis = officialAddressGeocode`, and the first such source must pin its geocoder/version in its provenance.
+   the geocoder is an anchor-making tool, never existence evidence. The schema accepts
+   `anchor_basis = officialAddressGeocode`; the gate is `src/pipeline/address-anchor.ts` (Implementation, 2026-10-18), and
+   each source using it pins the geocoder version and dataset release in its anchor reference and provenance.
 
 Still forbidden: Google/Apple/MapKit POI coordinates, OSM (ADR-0010), positions read off floor maps or screenshots,
 manual pins, a facility point used as `namedZone`, and a zone point used as exact.
@@ -156,6 +157,21 @@ hold below (migration 0033).
   TerminalBuilding anchor), `existence = operator`, hours/tobacco support/room type unknown. `accessType = unknown`
   (maintainer decision 2026-10-12): two zones are after security, so neither `public` nor `facilityOnly` is true of
   the facility spot as a whole; the name keeps 「一部は保安検査後」.
+- **Official-address geocode anchors (2026-10-18).** `evaluateAddressAnchor` (`src/pipeline/address-anchor.ts`) reuses
+  ADR-0011's fail-closed gate over an abr-geocoder 2.3.1 run (no `--fuzzy`) and a pinned ABR dataset release
+  (`ADDRESS_ANCHOR_DATASET_RELEASE`: 千代田・中央・台東・新宿・渋谷・豊島, downloaded 2026-10-18). Input is the publisher's
+  address verbatim. Accepted: `residential_detail` / `residential_block`, coordinate level = match level, no remainder,
+  jurisdiction match. One reviewed notation rule lets score < 1 pass when input and output differ only in 丁目 numerals or
+  番/号/hyphen spelling (`canonicalAddress`); 「先」, a building name, a floor or any other remainder stays
+  `reviewPending`, as do a missing address and parcel or coarser points. The result fills the fact sheet's anchor cells
+  (`anchor_basis = officialAddressGeocode`, reference naming geocoder, version, dataset, level, input and output); the
+  spot stays `areaApproximate` (scope `facility`). The CLI JSON states no SRID (ABR mixes JGD2011/JGD2000 by level),
+  acceptable for an approximate pin only. ADR-0011's derived-coordinate lane keeps no pinned dataset and stays Proposed.
+  The geocoder runs outside the repository (observed on Node 23.3.0, and for geocoding on 22.23.3; not on Node 24);
+  `npm run address:anchors -- evaluate … --dataset <dir>` first recomputes the release digest from the directory's own zip
+  files and refuses a mismatch (F1). A listing cell may be completed only with the source's own prefecture/municipality
+  (`completeOfficialAddress`); a cell naming another one is `outsideSourceScope` (F3). No source uses
+  it yet: adopting one is a separate source review (existence, rights, current operation, same-anchor rule).
 
 ## Future work (not decided)
 
