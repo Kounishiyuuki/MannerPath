@@ -258,11 +258,15 @@ test("no Google/MapKit/OSM geocoding: the module and its registry name none of t
   for (const forbidden of [/googleapis|maps\.google/i, /MKLocalSearch|CLGeocoder|MKGeocod/, /nominatim|overpass/i, /fetch\(/]) assert.doesNotMatch(src, forbidden);
   assert.deepEqual(REVIEWED_GEOCODERS.map((g) => g.geocoderId), ["abr-geocoder"]);
   assert.deepEqual(REVIEWED_GEOCODERS[0].datasetReleases, []);
-  // No other source file consumes derived coordinates, so nothing resolves or publishes them.
+  // Only the ADR-0018 approximate-anchor gate reuses the evaluation; nothing records, resolves or publishes a derived
+  // coordinate, so the ADR-0011 publication lane stays inert.
   const users = readdirSync(new URL("../src/", import.meta.url), { recursive: true }).map(String)
     .filter((f) => f.endsWith(".ts") && !f.endsWith("derived-coordinate.ts"))
     .filter((f) => readFileSync(new URL(`../src/${f}`, import.meta.url), "utf8").includes("derived-coordinate"));
-  assert.deepEqual(users, []);
+  assert.deepEqual(users, ["pipeline/address-anchor.ts"]);
+  const anchorSrc = readFileSync(new URL("../src/pipeline/address-anchor.ts", import.meta.url), "utf8");
+  for (const forbidden of [/googleapis|maps\.google/i, /MKLocalSearch|CLGeocoder|MKGeocod/, /nominatim|overpass/i, /fetch\(/,
+    /recordDerivedGeocode|recordDerivedReview|derivedPublicationDecision/]) assert.doesNotMatch(anchorSrc, forbidden);
 });
 
 test("migration 0022: evidence and reviews are append-only, bound to digests, and never touch published spots or tiles", async () => {
