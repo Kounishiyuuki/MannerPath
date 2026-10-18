@@ -167,7 +167,10 @@ hold below (migration 0033).
   (`anchor_basis = officialAddressGeocode`, reference naming geocoder, version, dataset, level, input and output); the
   spot stays `areaApproximate` (scope `facility`). The CLI JSON states no SRID (ABR mixes JGD2011/JGD2000 by level),
   acceptable for an approximate pin only. ADR-0011's derived-coordinate lane keeps no pinned dataset and stays Proposed.
-  The geocoder runs outside the repository (Node ≤23); `npm run address:anchors` evaluates its JSON output. No source uses
+  The geocoder runs outside the repository (observed on Node 23.3.0, and for geocoding on 22.23.3; not on Node 24);
+  `npm run address:anchors -- evaluate … --dataset <dir>` first recomputes the release digest from the directory's own zip
+  files and refuses a mismatch (F1). A listing cell may be completed only with the source's own prefecture/municipality
+  (`completeOfficialAddress`); a cell naming another one is `outsideSourceScope` (F3). No source uses
   it yet: adopting one is a separate source review (existence, rights, current operation, same-anchor rule).
 
 ## Future work (not decided)

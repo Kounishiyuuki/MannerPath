@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  ADDRESS_ANCHOR_DATASET_RELEASE, abrJsonRun, canonicalAddress, evaluateAddressAnchor,
+  ADDRESS_ANCHOR_DATASET_RELEASE, abrJsonRun, canonicalAddress, completeOfficialAddress, evaluateAddressAnchor,
 } from "../src/pipeline/address-anchor.ts";
 import { AREA_ANCHOR_POLICY_VERSION, type ReviewedAreaAnchor, anchoredObservation, recordReviewedAnchors } from "../src/pipeline/area-anchor.ts";
 import { parseCsv } from "../src/pipeline/csv.ts";
@@ -13,7 +13,12 @@ import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
-import { evaluateCandidates } from "../scripts/address-anchor-candidates.ts";
+import { candidateAddresses, evaluateCandidates } from "../scripts/address-anchor-candidates.ts";
+import { datasetManifest, verifyDatasetDir } from "../scripts/address-anchor-dataset.ts";
+import { createHash } from "node:crypto";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { sha256Hex } from "../src/db.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -92,14 +97,50 @@ test("ADR-0011's derived-coordinate lane is unchanged: no dataset is pinned ther
 
 test("the candidate script pairs geocoder results with candidates in order and refuses a misaligned file", () => {
   const candidates = [
-    { id: "a", officialAddress: KYOBASHI.query.input, prefecture: "東京都", municipality: "中央区" },
+    { id: "a", officialAddress: "京橋1丁目2番1号", prefecture: "東京都", municipality: "中央区" },
     { id: "b", officialAddress: null, prefecture: "東京都", municipality: "中央区" },
     { id: "c", officialAddress: SAKI.query.input, prefecture: "東京都", municipality: "豊島区" },
+    { id: "d", officialAddress: "千代田区丸の内1-1", prefecture: "東京都", municipality: "中央区" },
   ];
-  assert.deepEqual(evaluateCandidates(candidates, [KYOBASHI, SAKI]).map((r) => [r.id, r.status]),
-    [["a", "anchor"], ["b", "reviewPending"], ["c", "reviewPending"]]);
-  assert.throws(() => evaluateCandidates(candidates, [SAKI, KYOBASHI]), /is not its official address/);
-  assert.throws(() => evaluateCandidates(candidates, [KYOBASHI, SAKI, FLOOR]), /have no candidate/);
+  assert.equal(candidateAddresses(candidates), `${KYOBASHI.query.input}\n${SAKI.query.input}\n`);
+  const R = ADDRESS_ANCHOR_DATASET_RELEASE;
+  assert.deepEqual(evaluateCandidates(candidates, [KYOBASHI, SAKI], R).map((r) => [r.id, r.status]),
+    [["a", "anchor"], ["b", "reviewPending"], ["c", "reviewPending"], ["d", "reviewPending"]]);
+  assert.deepEqual(evaluateCandidates(candidates, [KYOBASHI, SAKI], R)[3], { id: "d", status: "reviewPending", reasons: ["outsideSourceScope"] });
+  assert.throws(() => evaluateCandidates(candidates, [SAKI, KYOBASHI], R), /is not its official address/);
+  assert.throws(() => evaluateCandidates(candidates, [KYOBASHI, SAKI, FLOOR], R), /have no candidate/);
+  // A release id that the dataset check did not return is not pinned: everything stays pending.
+  assert.equal(evaluateCandidates(candidates, [KYOBASHI, SAKI], "abr-unverified").filter((r) => r.status === "anchor").length, 0);
+});
+
+test("F3: only the source's own prefecture and municipality may be prefixed to an address cell", () => {
+  const chuo = { prefecture: "東京都", municipality: "中央区" };
+  assert.deepEqual(completeOfficialAddress("東京都中央区京橋1丁目2番1号", chuo), { address: "東京都中央区京橋1丁目2番1号", completed: "none" });
+  assert.deepEqual(completeOfficialAddress("中央区京橋1丁目2番1号", chuo), { address: "東京都中央区京橋1丁目2番1号", completed: "prefecture" });
+  assert.deepEqual(completeOfficialAddress(" 京橋1丁目2番1号 ", chuo), { address: "東京都中央区京橋1丁目2番1号", completed: "prefectureAndMunicipality" });
+  // A town name ending in 町 is not a municipality: 日本橋小伝馬町 is completed as 中央区.
+  assert.equal(completeOfficialAddress("日本橋小伝馬町15番18号", chuo)?.address, "東京都中央区日本橋小伝馬町15番18号");
+  for (const outside of ["東京都千代田区丸の内1-1", "千代田区丸の内1-1", "港区新橋1-1", "神奈川県川崎市1-1", "大阪府大阪市北区1-1", ""]) {
+    assert.equal(completeOfficialAddress(outside, chuo), null, outside);
+  }
+});
+
+test("F1: the dataset directory must reproduce the pinned release digest from its own zip files", () => {
+  const dir = mkdtempSync(join(tmpdir(), "abr-"));
+  mkdirSync(join(dir, "download"));
+  const files = [{ name: "b.csv.zip", bytes: new Uint8Array([2]) }, { name: "a.csv.zip", bytes: new Uint8Array([1]) }];
+  for (const f of files) writeFileSync(join(dir, "download", f.name), f.bytes);
+  const manifest = datasetManifest(files);
+  assert.match(manifest, /^[0-9a-f]{64} {2}a\.csv\.zip\n[0-9a-f]{64} {2}b\.csv\.zip\n$/, "shasum -a 256 *.zip format, sorted");
+  const pinned = `abr-test:sha256:${createHash("sha256").update(manifest).digest("hex")}`;
+  assert.equal(verifyDatasetDir(dir, pinned), pinned);
+  writeFileSync(join(dir, "download", "b.csv.zip"), new Uint8Array([3]));
+  assert.throws(() => verifyDatasetDir(dir, pinned), /is not the pinned release/);
+  writeFileSync(join(dir, "download", "b.csv.zip"), new Uint8Array([2]));
+  writeFileSync(join(dir, "download", "c.csv.zip"), new Uint8Array([4]));
+  assert.throws(() => verifyDatasetDir(dir, pinned), /is not the pinned release/, "an extra file changes the digest");
+  assert.throws(() => verifyDatasetDir(dir, "abr-test-without-digest"), /carries no digest/);
+  assert.throws(() => verifyDatasetDir(mkdtempSync(join(tmpdir(), "abr-")), pinned));
 });
 
 // A TEST ONLY page-fact sheet whose one row carries a geocoded anchor, through the ordinary pipeline in a local DB.
