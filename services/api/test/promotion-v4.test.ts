@@ -183,7 +183,7 @@ test("v4 parser respects escaped quotes, Unicode, semicolons and stream boundari
   await assert.rejects(async () => { for await (const _ of sqlStatements(path)) { /* consume stream */ } }, /capacity policy/);
 });
 
-test("v4 bootstraps all seventeen reviewed sources including the Sendai, eight airport, 14 Chuo park and 47 Chuo private anchors and deterministically re-exports", async t => {
+test("v4 bootstraps all eighteen reviewed sources including the Sendai, eight airport, 14 Chuo park, 47 Chuo private and 30 Chiyoda address anchors and deterministically re-exports", async t => {
   const root = await mkdtemp(join(tmpdir(), "promotion-v4-reviewed-sources-"));
   const source = new SqliteD1(), target = migratedSqlite();
   t.after(async () => { source.raw.close(); target.close(); await rm(root, { recursive: true, force: true }); });
@@ -191,16 +191,46 @@ test("v4 bootstraps all seventeen reviewed sources including the Sendai, eight a
   await publishTiles(source, { now: NOW });
   const directory = join(root, "bundle");
   const manifest = await exportPromotionV4(source.raw, directory, { chunkBytes: 90_000 });
-  assert.equal(manifest.sources.length, 17);
-  assert.equal(manifest.rows.tile_snapshot_spots, 583);
-  assert.equal(manifest.rows.tile_snapshots, 93);
-  assert.equal(manifest.rows.area_location_anchors, 70);
-  assert.equal(manifest.rows.area_point_mappings, 11);
+  assert.equal(manifest.sources.length, 18);
+  assert.equal(manifest.rows.tile_snapshot_spots, 613);
+  assert.equal(manifest.rows.tile_snapshots, 96);
+  assert.equal(manifest.rows.area_location_anchors, 100);
+  assert.equal(manifest.rows.area_point_mappings, 12);
   assert.equal((await applyPromotionV4(target, directory, manifest.wholeBundleSha256)).status, "completed");
-  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 583);
+  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 613);
   // Sendai keeps its ADR-0017 v1 anchor (no scope/basis); all ADR-0018 facility anchors keep both through the bootstrap.
   assert.deepEqual(target.prepare("SELECT anchor_id, area_scope, anchor_basis FROM area_location_anchors ORDER BY anchor_id").all()
     .map(r => ({ ...(r as object) })), [
+    { anchor_id: "aa_chiyoda02", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda08", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda12", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda14", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda15", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda16", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda19", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda20", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda21", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda22", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda23", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda24", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda25", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda30", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda33", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda35", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda37", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda39", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda40", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda41", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda42", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda43", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda49", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda50", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda5357", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda56", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda58", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda61", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda66", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_chiyoda76", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_chuoparkhamacho", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_chuoparkishikawajima", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_chuoparkjizobashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },

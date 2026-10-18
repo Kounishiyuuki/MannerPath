@@ -1493,6 +1493,19 @@
       "sha256": "464673d8e558c1bc9f9429fd58b5762d8a123f70fd9eb9285294248056ef1442",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-18T10:56:21Z"
+    },
+    {
+      "targetId": "ward-chiyoda",
+      "reference": "services/data-pipeline/fixtures/chiyoda-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "chiyoda-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.chiyoda.lg.jp/koho/machizukuri/sekatsu/jore/muryokitsuenjo.html"
+      ],
+      "sha256": "535f8940d3551c3a218c4c8c500ad28bfe30a6536b074e5b6b10c595994a5d61",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-18T18:21:16Z"
     }
   ],
   "researchReferences": [

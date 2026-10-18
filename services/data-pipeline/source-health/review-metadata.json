@@ -549,6 +549,38 @@
           "reviewDueAt": "2027-01-18"
         }
       ]
+    },
+    {
+      "sourceId": "chiyoda-smoking-places",
+      "rightsReviewedAt": "2026-10-19",
+      "rightsEvidence": "千代田区ホームページ利用規約 (free reuse incl. commercial, with credit and an edited/processed note; photos/illustrations and the SMOKING AREA MAP images excluded and unused); factReference under ADR-0018; anchors are ABR address points (abr-geocoder 2.3.1, pinned release).",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-19",
+      "reviewDueAt": "2027-01-19",
+      "reviewerNote": "Re-read the whole 無料喫煙所 list, its suspension notes and the 助成施設 definition, the 利用規約 and each adopted row's address. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.chiyoda.lg.jp/koho/kuse/homepage/riyokiyaku/index.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "ホームページ利用規約 千代田区ホームページで公開している情報",
+                "end": "お問い合わせ"
+              }
+            ],
+            "requiredMarkers": [
+              "商用利用も可能です",
+              "出典の記載"
+            ]
+          },
+          "reviewedFingerprint": "6bb5da8374bec61e8b5b28a87f7ba5f4e2448e273d912fb54a43ab46caf56288",
+          "reviewedAt": "2026-10-19",
+          "reviewDueAt": "2027-01-19"
+        }
+      ]
     }
   ]
 }

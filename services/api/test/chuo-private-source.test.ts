@@ -117,7 +117,8 @@ test("with every reviewed source, the 47 places stay separate spots and none dup
   const mine = spots.filter((s) => s.sourceIds.includes(CHUO_PRIVATE_SOURCE_ID));
   assert.equal(mine.length, 47);
   assert.ok(mine.every((s) => s.sourceIds.length === 1), "never merged into another source's spot");
-  // The nearest other points are 区営 park places the page lists separately (数寄屋橋公園 47 m from GinzaNovo).
+  // The nearest other points are 区営 park places the page lists separately (数寄屋橋公園 47 m from GinzaNovo) and, across
+  // the ward boundary, rooms 千代田区 lists at other addresses (paspa鍛冶町 86 m from 東山ビルディング).
   const metres = (a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }) => {
     const r = Math.PI / 180, x = (b.longitude - a.longitude) * r * Math.cos((a.latitude + b.latitude) * r / 2);
     return Math.hypot(x, (b.latitude - a.latitude) * r) * 6371000;
@@ -125,6 +126,6 @@ test("with every reviewed source, the 47 places stay separate spots and none dup
   const others = spots.filter((s) => !s.sourceIds.includes(CHUO_PRIVATE_SOURCE_ID));
   for (const s of mine) {
     const near = others.filter((o) => metres(s, o) < 100);
-    assert.ok(near.every((o) => o.sourceIds.join() === "chuo-park-smoking-places" && metres(s, o) >= 40), s.name);
+    assert.ok(near.every((o) => ["chuo-park-smoking-places", "chiyoda-smoking-places"].includes(o.sourceIds.join()) && metres(s, o) >= 40), s.name);
   }
 });

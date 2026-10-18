@@ -170,8 +170,9 @@ hold below (migration 0033).
   The geocoder runs outside the repository (observed on Node 23.3.0, and for geocoding on 22.23.3; not on Node 24);
   `npm run address:anchors -- evaluate … --dataset <dir>` first recomputes the release digest from the directory's own zip
   files and refuses a mismatch (F1). A listing cell may be completed only with the source's own prefecture/municipality
-  (`completeOfficialAddress`); a cell naming another one is `outsideSourceScope` (F3). No source uses
-  it yet: adopting one is a separate source review (existence, rights, current operation, same-anchor rule).
+  (`completeOfficialAddress`); a cell naming another one is `outsideSourceScope` (F3). Adopting it is a
+  separate source review (existence, rights, current operation, same-anchor rule). First source (2026-10-19):
+  `chiyoda-smoking-places`, 30 spots from the 31 `adoptable` rows of a bulk-intake run over the ward's 78 listings.
 - **Gate v2 and batch triage (2026-10-18).** `address-anchor-gate.v2` adds one reviewed split: when the lot matched at
   `residential_detail` and the geocoder's only remainder is the address's own trailing building name and/or floor, the
   lot alone is gated and the removed text is kept in the reference (`除外=`). A remainder holding another lot number or an

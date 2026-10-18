@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {buildHighValueQueue} from './high-value.mjs';
+import {buildHighValueQueue, priorityOverrides} from './high-value.mjs';
 const target = (id,evidence,extra={}) => ({id,name:id,publisher:id,prefecture:null,seedStatus:'blocked',blockerCodes:['licenseUnknown'],priorResearch:[{reference:'prior.md',evidence}],...extra});
 test('high-value selection rejects host-only/keyword negatives and implemented duplicates',()=>{
  const items=buildHighValueQueue({targets:[target('host','facility smoking amenities; host Point only'),target('negative','No smoking dataset found'),target('positive','Direct official list; coordinates unknown'),target('done','Direct official list',{seedStatus:'implemented'})]},[]);
@@ -16,7 +16,9 @@ test('committed queue distinguishes processed attempts, pending reviews and reso
  const prior=await read('../../../docs/research/nationwide-discovery/2026-10-01-east-deep-reviews.json');
  const queue=await read('../../../docs/research/nationwide-discovery/2026-10-01-high-value-blockers.json');
  const reviews=await read('../../../docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json');
- assert.deepEqual(queue.items.map(i=>i.target),buildHighValueQueue(manifest,prior).map(i=>i.target));
+ // The committed queue is the 2026-10-01 record; a target implemented since leaves the rebuilt queue but stays recorded.
+ const implementedSince=new Set(manifest.targets.filter(t=>t.seedStatus==='implemented'&&!priorityOverrides.has(t.id)).map(t=>t.id));
+ assert.deepEqual(queue.items.map(i=>i.target).filter(t=>!implementedSince.has(t)),buildHighValueQueue(manifest,prior).map(i=>i.target));
  assert.equal(new Set(reviews.map(r=>r.targetId)).size,queue.items.length);
  assert.ok(queue.items.length>=15);
  assert.equal(queue.processed,queue.items.filter(i=>i.processingStatus==='attemptCompleted').length);

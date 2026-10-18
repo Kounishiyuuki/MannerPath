@@ -131,6 +131,9 @@ reviewed.update({'operator-'+slug+'-airport':slug+'-airport-smoking-places' for 
 # private places (official-address geocode anchors) as two reviewed sources of one target.
 reviewed['ward-chuo']=['chuo-park-smoking-places','chuo-private-smoking-places']
 PAGE_FACT_SOURCES={'chuo-park-smoking-places','chuo-private-smoking-places'}
+# 千代田区's current free smoking place list, anchored at ABR points of its own addresses (ADR-0018 item 5).
+reviewed['ward-chiyoda']='chiyoda-smoking-places'
+PAGE_FACT_SOURCES|={'chiyoda-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:

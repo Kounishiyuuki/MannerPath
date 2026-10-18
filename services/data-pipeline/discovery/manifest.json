@@ -4328,14 +4328,22 @@
           ],
           "rawUrls": [],
           "evidence": "| 千代田区 SMOKING AREA MAP | PDF only | 「上記の地図の画像は、ホームページ利用規約に関わらず、コンテンツの二次利用はできません」 **[verified]** | — | Rejected: secondary use is prohibited |"
+        },
+        {
+          "reference": "services/data-pipeline/fixtures/chiyoda-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "chiyoda-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.city.chiyoda.lg.jp/koho/machizukuri/sekatsu/jore/muryokitsuenjo.html"
+          ],
+          "sha256": "535f8940d3551c3a218c4c8c500ad28bfe30a6536b074e5b6b10c595994a5d61",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-18T18:21:16Z"
         }
       ],
-      "seedStatus": "blocked",
-      "blockerCodes": [
-        "coordinatesMissing",
-        "licenseUnknown",
-        "redistributionBlocked"
-      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
       "deepReview": {
         "status": "blocked",
         "deepReviewed": true,
@@ -4357,7 +4365,10 @@
         ],
         "resolvedBlockers": [],
         "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
-      }
+      },
+      "reviewedSourceIds": [
+        "chiyoda-smoking-places"
+      ]
     },
     {
       "id": "ward-chuo",
