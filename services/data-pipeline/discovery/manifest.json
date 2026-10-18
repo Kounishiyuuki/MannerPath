@@ -5136,14 +5136,22 @@
           ],
           "rawUrls": [],
           "evidence": "| 渋谷区 喫煙所マップ | Google Maps link | No reuse license found | — | Rejected: no terms; data is hosted by a third party |"
+        },
+        {
+          "reference": "services/data-pipeline/fixtures/shibuya-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "shibuya-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.city.shibuya.tokyo.jp/kankyo/machi-seiso/kitsuen/smokingplace.html"
+          ],
+          "sha256": "68e26b09a7928b16264c178441b6a5bd40af7ac94fd1f8031beadfd5be03dbef",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-18T20:03:11Z"
         }
       ],
-      "seedStatus": "blocked",
-      "blockerCodes": [
-        "coordinatesMissing",
-        "hostPointOnly",
-        "licenseUnknown"
-      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
       "highValueReview": {
         "reviewReference": "docs/research/nationwide-discovery/2026-10-01-high-value-reviews.json",
         "attemptCompleted": true,
@@ -5155,7 +5163,10 @@
         ],
         "resolvedBlockers": [],
         "reviewedAt": "2026-09-30T16:41:23.755693+00:00"
-      }
+      },
+      "reviewedSourceIds": [
+        "shibuya-smoking-places"
+      ]
     },
     {
       "id": "ward-nakano",

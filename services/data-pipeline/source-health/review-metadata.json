@@ -581,6 +581,37 @@
           "reviewDueAt": "2027-01-19"
         }
       ]
+    },
+    {
+      "sourceId": "shibuya-smoking-places",
+      "rightsReviewedAt": "2026-10-19",
+      "rightsEvidence": "渋谷区ポータル サイトポリシー「著作権について」 (copyright reserved, 転載・複製 forbidden; no prohibition of information use); factReference under ADR-0018; anchors are ABR address points (abr-geocoder 2.3.1, pinned release).",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-19",
+      "reviewDueAt": "2027-01-19",
+      "reviewerNote": "Re-read the whole 区内公共喫煙所一覧 (all four categories), its closure notices, the サイトポリシー copyright clause and each adopted row's address. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.shibuya.tokyo.jp/guide/website/list/site_policy.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "本サイト上の情報・画像・図表などは",
+                "end": "プライバシー、個人情報について"
+              }
+            ],
+            "requiredMarkers": [
+              "転載・複製はこれを禁じます"
+            ]
+          },
+          "reviewedFingerprint": "454d1cec82eb8b3d0d690045d807f6692ec3d572af0e0f592d56b16f7e78bf63",
+          "reviewedAt": "2026-10-19",
+          "reviewDueAt": "2027-01-19"
+        }
+      ]
     }
   ]
 }

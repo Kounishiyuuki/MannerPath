@@ -18,6 +18,7 @@ import { KOMATSU_AIRPORT_PAGE_URL } from "../src/pipeline/komatsu-airport-adapte
 import { CHUO_PARK_PAGE_URL } from "../src/pipeline/chuo-park-adapter.ts";
 import { CHUO_PRIVATE_PAGE_URL } from "../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_PAGE_URL } from "../src/pipeline/chiyoda-adapter.ts";
+import { SHIBUYA_PAGE_URL } from "../src/pipeline/shibuya-adapter.ts";
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -42,6 +43,7 @@ const repositoryReviewedResources: Record<string, { filename: string; url: strin
   "chuo-park-smoking-places": { filename: "chuo-park-page-facts.csv", url: CHUO_PARK_PAGE_URL },
   "chuo-private-smoking-places": { filename: "chuo-private-page-facts.csv", url: CHUO_PRIVATE_PAGE_URL },
   "chiyoda-smoking-places": { filename: "chiyoda-page-facts.csv", url: CHIYODA_PAGE_URL },
+  "shibuya-smoking-places": { filename: "shibuya-page-facts.csv", url: SHIBUYA_PAGE_URL },
 };
 // Reviewed sources with no health target, and why. Every SOURCE_ADAPTERS entry is exactly one of: deployed, repository-
 // reviewed, or listed here (test/source-health-unified.test.ts), so the --repository-reviewed count is never incidental.
@@ -81,6 +83,12 @@ const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
     scope: { kind: "htmlText", ranges: [{ start: "秋葉原駅エリア 芳林公園喫煙所（区営）", end: "すべて助成施設となります。" }],
       requiredMarkers: ["Smoking Place 木倉食品", "paspa秋葉原高架下", "AKIBA BREATH", "スモーキングプレイス・マツイ", "paspa内神田", "smoking room ohira", "神田駅西口商店街喫煙所", "セブン-イレブン神田駅西口通り店内喫煙所", "スモーキングスペース TeeTime", "paspa鍛冶町", "paspa小伝馬町", "THE TOBACCO IWAMOTOCHO", "paspa東神田", "朝陽ビル無料公衆喫煙所", "ヒライ商会", "Smo9 o2", "Smoking Room 九段北店", "九段会館テラス地下1階喫煙所", "paspa飯田橋西口", "paspa飯田橋東口", "ピュアウッドガーデン", "THE TOBACCO IIDABASHI", "一服（Ippuku）平河町店", "paspa 永田町", "三久ビル喫煙所", "paspa霞が関", "THE TABACCO 2:50.76", "THE TOBACCO HIBIYA", "paspa市ヶ谷", "喜助お茶の水ビル喫煙所", "paspa西神田"] },
     reviewedFingerprint: "0e14537fd9368f9bcda25a69d11ddf0a34e58e3369fbd9c5e97cbd264b72f461",
+  },
+  // The whole list from the ward's closure notice through its last listed place, so a new 休止/閉鎖 note re-opens review.
+  "shibuya-smoking-places": {
+    scope: { kind: "htmlText", ranges: [{ start: "台風や大雪などの気象状況により", end: "環境整備課きれいなまちづくり係" }],
+      requiredMarkers: ["代々木駅東口喫煙所", "代々木駅西口喫煙所", "代々木二丁目あおい公園喫煙所", "神南1丁目香取屋ビル西側喫煙所", "paspa宮益坂", "クランクストリート加熱式たばこ喫煙所", "THE TOBACCO SHIBUYA SECOND", "THE TOBACCO DOGENZAKA", "THE TOBACCO DOGENZAKA SECOND", "THE TOBACCO AOYAMA", "ファミリーマート神宮前三丁目店喫煙所", "もこのたばこ（旧瀧島たばこ店）喫煙所", "渋谷キャスト", "渋谷ストリーム", "渋谷ソラスタ", "ラ・トゥール渋谷宇田川Abema Towers", "渋谷パルコ", "渋谷フクラス", "MIYASHITA PARK", "道玄坂通 dogenzaka-dori", "渋谷アクシュ", "関電不動産渋谷ビル", "BASE 1", "表参道ヒルズ", "WITH HARAJUKU", "東急プラザ原宿「ハラカド」", "アパホテル&リゾート西新宿五丁目タワー", "タイムズスクエアビル", "リンクスクエア新宿", "住友不動産新宿南口ビル", "ヒューリック将棋会館千駄ヶ谷ビル"] },
+    reviewedFingerprint: "58e83b254ef67b8e1823fd389454d6a3a1e6d0e9a266d0b79b811117ef016b43",
   },
 };
 // Read ZIP central directory rather than trusting local headers/data descriptors. No files are written.
