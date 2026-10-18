@@ -315,6 +315,29 @@ rights reading: `services/data-pipeline/fixtures/chiyoda-smoking-places/PROVENAN
 | Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-19; local DB only |
 | Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
 
+### 渋谷区 区内公共喫煙所一覧 — ADR-0018 factReference page-fact source, address-geocode anchors
+
+Reviewed 2026-10-19 under ADR-0018 (D-A item 5, D-R, D-C). Normalized fact sheet, batch triage, exclusions, anchor and
+rights reading: `services/data-pipeline/fixtures/shibuya-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `shibuya-smoking-places` |
+| Name / publisher | 渋谷区ポータル「区内公共喫煙所一覧」 / 渋谷区 |
+| Kind | municipal |
+| Official source URL | https://www.city.shibuya.tokyo.jp/kankyo/machi-seiso/kitsuen/smokingplace.html |
+| Rights basis | **factReference** (ADR-0018 §3). サイトポリシー「著作権について」 reserves copyright and forbids 転載・複製; no clause prohibits information use, data acquisition or databases. Only normalized names, floors, hours, addresses and existence are stored. Engineering classification, not legal clearance |
+| Anchor source | ABR representative point of each row's own address (abr-geocoder 2.3.1, pinned release `ADDRESS_ANCHOR_DATASET_RELEASE`, gate `address-anchor-gate.v2`, all `residential_detail`). Supplies points only, never existence. No SRID stated; approximate pin only |
+| Required attribution text | `出典：渋谷区ポータル「区内公共喫煙所一覧」（…）（2026-10-19確認）。MannerPathが事実のみを正規化して作成。位置の目安：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約 第1.0版）の住所代表点…` (full text in the adapter) |
+| Geographic scope / completeness | 45 listed → 31 places → 30 spots. Not published: 8 区設置 frontages (「…先」), 表参道第二～第十, 代々木公園 A地区, Shibuya Sakura Stage (「1-1他」), 2 lots ABR does not fully match, and Ploom LOUNGE 渋谷 (tobacco-maker brand lounge, excluded under the no-brand-promotion rule). Partial |
+| Location | `areaApproximate`, `locationArea.scope = facility`, kind `facility`: an address point, never the smoking place, entrance or floor. THE TOBACCO SHIBUYA SECOND and 渋谷パルコ 1階 share 宇田川町15-1 and are **one** spot |
+| Hours / access | Page hours and （注） verbatim, always unparsed. `accessType = public`; `hostType = municipality` only for 区設置喫煙所; spot type, environment and tobacco types unknown (type notes stay visible in the hours text) |
+| Observation date | `observedOn = 2026-10-19`, the day the current page was checked (D-C); not a site visit |
+| Current operation | Listed without suspension on the current page; source health re-checks the whole list and the copyright clause (review-metadata.json) |
+| Reviewed release | Fact sheet SHA-256 `68e26b09a7928b16264c178441b6a5bd40af7ac94fd1f8031beadfd5be03dbef`; 30 records → 30 published spots |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-19; local DB only |
+| Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
+
 ### 江東区 公共喫煙所一覧（公園） — blocked candidate
 
 Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv

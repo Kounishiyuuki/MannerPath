@@ -1506,6 +1506,19 @@
       "sha256": "535f8940d3551c3a218c4c8c500ad28bfe30a6536b074e5b6b10c595994a5d61",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-18T18:21:16Z"
+    },
+    {
+      "targetId": "ward-shibuya",
+      "reference": "services/data-pipeline/fixtures/shibuya-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "shibuya-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.shibuya.tokyo.jp/kankyo/machi-seiso/kitsuen/smokingplace.html"
+      ],
+      "sha256": "68e26b09a7928b16264c178441b6a5bd40af7ac94fd1f8031beadfd5be03dbef",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-18T20:03:11Z"
     }
   ],
   "researchReferences": [

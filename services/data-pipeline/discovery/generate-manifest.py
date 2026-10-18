@@ -134,6 +134,9 @@ PAGE_FACT_SOURCES={'chuo-park-smoking-places','chuo-private-smoking-places'}
 # 千代田区's current free smoking place list, anchored at ABR points of its own addresses (ADR-0018 item 5).
 reviewed['ward-chiyoda']='chiyoda-smoking-places'
 PAGE_FACT_SOURCES|={'chiyoda-smoking-places'}
+# 渋谷区's 区内公共喫煙所一覧, anchored at ABR points of its own addresses (ADR-0018 item 5).
+reviewed['ward-shibuya']='shibuya-smoking-places'
+PAGE_FACT_SOURCES|={'shibuya-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:

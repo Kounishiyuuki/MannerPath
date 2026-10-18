@@ -143,7 +143,7 @@ test("official spots remain official: officialListing, evidence-backed precision
   // ADR-0018 page-fact sources (operator and municipal) have their own facility-approximation regression tests.
   const pageFactIds = new Set(SOURCE_ADAPTERS.filter(a => a.registry.rightsBasis?.kind === "factReference").map(a => a.registry.sourceId));
   const spots = all.filter((s) => !s.sourceIds.some(id => pageFactIds.has(id)));
-  assert.equal(all.length - spots.length, 99);
+  assert.equal(all.length - spots.length, 129);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
@@ -505,7 +505,7 @@ test("quality counts tiers separately and never fails because a lower tier exist
   const corpusNow = "2026-10-14T12:00:00Z"; // After every reviewed fixture date; future-date checks remain unchanged.
   const baseline = await analyzeCorpus(db, { now: corpusNow });
   const official = baseline.nationwide.coverage.official;
-  assert.equal(official, 605);
+  assert.equal(official, 635);
   await reportedSpot(db, ASHTRAY_AT_STORE, "R", HASHES[2], { latitude: 35.57, longitude: 139.57 });
   await verifiedSpot(db, [SMOKING_CAFE, SMOKING_CAFE], "V", { latitude: 35.58, longitude: 139.58 });
   await publishTiles(db, { now: corpusNow });
