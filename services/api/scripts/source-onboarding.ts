@@ -21,6 +21,7 @@ import { MATSUYAMA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/matsuyama-air
 import { OITA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/oita-airport-adapter.ts";
 import { YONAGO_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/yonago-airport-adapter.ts";
 import { CHUO_PARK_FIXTURE_RELEASE } from "../src/pipeline/chuo-park-adapter.ts";
+import { CHUO_PRIVATE_FIXTURE_RELEASE } from "../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_FIXTURE_RELEASE } from "../src/pipeline/chiyoda-adapter.ts";
 import { MIYAZAKI_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/miyazaki-airport-adapter.ts";
 import { HIROSHIMA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/hiroshima-airport-adapter.ts";
@@ -67,6 +68,7 @@ const pins = [
   ["miyazaki-airport-smoking-places", "miyazaki-airport-page-facts.csv", MIYAZAKI_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
   ["yonago-airport-smoking-places", "yonago-airport-page-facts.csv", YONAGO_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
   ["chuo-park-smoking-places", "chuo-park-page-facts.csv", CHUO_PARK_FIXTURE_RELEASE, "chuo-park-source.test.ts"],
+  ["chuo-private-smoking-places", "chuo-private-page-facts.csv", CHUO_PRIVATE_FIXTURE_RELEASE, "chuo-private-source.test.ts"],
   ["chiyoda-smoking-places", "chiyoda-page-facts.csv", CHIYODA_FIXTURE_RELEASE, "chiyoda-source.test.ts"],
   ["oita-airport-smoking-places", "oita-airport-page-facts.csv", OITA_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],
   ["matsuyama-airport-smoking-places", "matsuyama-airport-page-facts.csv", MATSUYAMA_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],

@@ -270,6 +270,28 @@ Reviewed 2026-10-18 under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet, exclu
 | Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-18; local DB only |
 | Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
 
+### 中央区 民間指定喫煙場所 — ADR-0018 factReference page-fact source
+
+Reviewed 2026-10-18 (page re-fetched unchanged 2026-10-19 JST) under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet,
+exclusions, anchor and rights reading: `services/data-pipeline/fixtures/chuo-private-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `chuo-private-smoking-places` |
+| Name / publisher | 中央区ホームページ「中央区内指定喫煙場所一覧」民間指定喫煙場所 / 中央区 |
+| Kind | municipal |
+| Official source URL | https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html |
+| Rights basis | **factReference** (ADR-0018 §3), same page and 「著作権について」 reading as `chuo-park-smoking-places`. Only normalized names, zones, hours, addresses and existence are stored. Engineering classification, not legal clearance |
+| Anchor source | `officialAddressGeocode` (address-anchor-gate.v2): the page's 所在地 through abr-geocoder 2.3.1 over ABR release `abr-tokyo-6wards-2026-10-18:sha256:30b45f8a…6ac2` (公共データ利用規約 1.0). Supplies the address's representative point only, never existence |
+| Required attribution text | `出典：中央区ホームページ「中央区内指定喫煙場所一覧」…（2026-10-18確認）。位置の目安：アドレス・ベース・レジストリ（デジタル庁）…` (full text in the adapter) |
+| Geographic scope / completeness | 58 listed → 50 places kept → 47 spots. Excluded: 5 suspended, paspa小舟町 (紙巻き suspended; held until tobacco types can be stated safely), THE TOBACCO NIHOMBASHI MK-238 (address remainder not split), 晴海客船ターミナル (facility closed 2022-02-20 per 東京都港湾局). Partial |
+| Location | `areaApproximate`, `locationArea.scope = facility`: the address's representative point, never the smoking place, entrance or floor. Same-anchor rule: 八重洲地下街 1–3 and GSパーク銀座5丁目 9/15 are one spot each |
+| Hours / access | Page 供用時間 verbatim with its 注記; every range is qualified, so all stay unparsed and openNow is never asserted. Access, host, tobacco types, spot type and environment unknown |
+| Observation date | `observedOn = 2026-10-18`, the day the current page was checked (D-C); not a site visit |
+| Current operation | Listed without suspension on the current page; source health re-checks the whole scoped 民間 section and the copyright clause (review-metadata.json) |
+| Reviewed release | Fact sheet SHA-256 `464673d8e558c1bc9f9429fd58b5762d8a123f70fd9eb9285294248056ef1442`; 47 records → 47 published spots |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-18; local DB only |
+
 ### 千代田区 無料喫煙所（公衆喫煙所） — ADR-0018 factReference page-fact source, address-geocode anchors
 
 Reviewed 2026-10-19 under ADR-0018 (D-A item 5, D-R, D-C). Normalized fact sheet, batch triage, exclusions, anchor and

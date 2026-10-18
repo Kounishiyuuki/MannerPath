@@ -16,6 +16,7 @@ import { MINATO_DATA_URL } from "../src/pipeline/minato-adapter.ts";
 import { KYOTO_DATA_URL } from "../src/pipeline/kyoto-adapter.ts";
 import { KOMATSU_AIRPORT_PAGE_URL } from "../src/pipeline/komatsu-airport-adapter.ts";
 import { CHUO_PARK_PAGE_URL } from "../src/pipeline/chuo-park-adapter.ts";
+import { CHUO_PRIVATE_PAGE_URL } from "../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_PAGE_URL } from "../src/pipeline/chiyoda-adapter.ts";
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
@@ -39,6 +40,7 @@ const repositoryReviewedResources: Record<string, { filename: string; url: strin
 
   "komatsu-airport-smoking-places": { filename: "komatsu-airport-page-facts.csv", url: KOMATSU_AIRPORT_PAGE_URL },
   "chuo-park-smoking-places": { filename: "chuo-park-page-facts.csv", url: CHUO_PARK_PAGE_URL },
+  "chuo-private-smoking-places": { filename: "chuo-private-page-facts.csv", url: CHUO_PRIVATE_PAGE_URL },
   "chiyoda-smoking-places": { filename: "chiyoda-page-facts.csv", url: CHIYODA_PAGE_URL },
 };
 // Reviewed sources with no health target, and why. Every SOURCE_ADAPTERS entry is exactly one of: deployed, repository-
@@ -67,6 +69,12 @@ const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
     scope: { kind: "htmlText", ranges: [{ start: "区営指定喫煙場所 1.楓川久安橋公園", end: "民間指定喫煙場所 1." }],
       requiredMarkers: ["楓川久安橋公園", "数寄屋橋公園", "楓川新富橋公園", "5.築地川公園", "築地川亀井橋公園", "築地川銀座公園", "築地川千代橋公園（東側）", "築地川千代橋公園（西側）", "楓川弾正橋公園", "地蔵橋公園", "蛎殻町公園", "浜町公園", "佃公園", "石川島公園（中央大橋側）", "石川島公園（相生橋側）", "新月島公園"] },
     reviewedFingerprint: "08010a782b9a99d16fe3fbf46ba05432c09f7016fb2f3dc2aa3bec420b85ae67",
+  },
+  // The whole private list, so a new 休止 note, a removal or a changed address/hours on any listed place needs re-review.
+  "chuo-private-smoking-places": {
+    scope: { kind: "htmlText", ranges: [{ start: "民間指定喫煙場所 1.八重洲地下街", end: "お問い合わせ先 中央区保健所生活衛生課" }],
+      requiredMarkers: ["八重洲地下街（サウステラス）", "TOFROM YAESU TOWER", "晴海客船ターミナル", "paspa小舟町"] },
+    reviewedFingerprint: "9edab2d60b64c735c5468aaeb9a18dcaab7aeac9cf9701c74859d91a01ab9423",
   },
   // The whole list (区営 and 助成施設) through the page's definition of 助成施設, so a suspension note anywhere re-opens review.
   "chiyoda-smoking-places": {

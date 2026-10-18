@@ -9,6 +9,7 @@ import { verifyPromotionV4, sqlStatements, insertTable } from "../scripts/promot
 import { applyPromotionV4, applyV4Chunk, finalizePromotionV4, nextUnappliedChunk } from "../scripts/promotion-v4-apply.ts";
 import { canonicalManifestDigest, D1_CAPACITY_POLICY, type PromotionV4Manifest } from "../scripts/promotion-v4-format.ts";
 import { promotionReadiness } from "../src/pipeline/promotion-readiness.ts";
+import { CHUO_PRIVATE_REVIEWED_ROWS } from "../src/pipeline/chuo-private-facts.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
@@ -182,7 +183,7 @@ test("v4 parser respects escaped quotes, Unicode, semicolons and stream boundari
   await assert.rejects(async () => { for await (const _ of sqlStatements(path)) { /* consume stream */ } }, /capacity policy/);
 });
 
-test("v4 bootstraps all seventeen reviewed sources including the Sendai, eight airport, 14 Chuo park and 30 Chiyoda address anchors and deterministically re-exports", async t => {
+test("v4 bootstraps all eighteen reviewed sources including the Sendai, eight airport, 14 Chuo park, 47 Chuo private and 30 Chiyoda address anchors and deterministically re-exports", async t => {
   const root = await mkdtemp(join(tmpdir(), "promotion-v4-reviewed-sources-"));
   const source = new SqliteD1(), target = migratedSqlite();
   t.after(async () => { source.raw.close(); target.close(); await rm(root, { recursive: true, force: true }); });
@@ -190,13 +191,13 @@ test("v4 bootstraps all seventeen reviewed sources including the Sendai, eight a
   await publishTiles(source, { now: NOW });
   const directory = join(root, "bundle");
   const manifest = await exportPromotionV4(source.raw, directory, { chunkBytes: 90_000 });
-  assert.equal(manifest.sources.length, 17);
-  assert.equal(manifest.rows.tile_snapshot_spots, 566);
-  assert.equal(manifest.rows.tile_snapshots, 95);
-  assert.equal(manifest.rows.area_location_anchors, 53);
-  assert.equal(manifest.rows.area_point_mappings, 11);
+  assert.equal(manifest.sources.length, 18);
+  assert.equal(manifest.rows.tile_snapshot_spots, 613);
+  assert.equal(manifest.rows.tile_snapshots, 96);
+  assert.equal(manifest.rows.area_location_anchors, 100);
+  assert.equal(manifest.rows.area_point_mappings, 12);
   assert.equal((await applyPromotionV4(target, directory, manifest.wholeBundleSha256)).status, "completed");
-  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 566);
+  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 613);
   // Sendai keeps its ADR-0017 v1 anchor (no scope/basis); all ADR-0018 facility anchors keep both through the bootstrap.
   assert.deepEqual(target.prepare("SELECT anchor_id, area_scope, anchor_basis FROM area_location_anchors ORDER BY anchor_id").all()
     .map(r => ({ ...(r as object) })), [
@@ -244,6 +245,8 @@ test("v4 bootstraps all seventeen reviewed sources including the Sendai, eight a
     { anchor_id: "aa_chuoparktsukijigawaginza", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_chuoparktsukijigawakameibashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_chuoparktsukuda", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    // 47 Chuo private places: one official-address geocode anchor per reviewed fact row (p01…p58, zero-padded so sorted).
+    ...CHUO_PRIVATE_REVIEWED_ROWS.map(r => ({ anchor_id: `aa_chuopriv${r[0]}`, area_scope: "facility", anchor_basis: "officialAddressGeocode" })),
     { anchor_id: "aa_hiroshimaairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_kochiairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_komatsuairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
