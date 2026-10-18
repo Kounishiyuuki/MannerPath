@@ -26,7 +26,7 @@ struct ContentView: View {
                     ContentUnavailableView("No saved data", systemImage: "iphone.and.arrow.forward",
                                            description: Text("Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch."))
                 } else if eligibilityNoticeAccepted {
-                    Section(model.snapshotIsOld ? "Saved places · old data" : "Saved nearby places") {
+                    Section(model.savedDataState == .stale ? "Saved places · old data" : "Saved nearby places") {
                         ForEach(model.results, id: \.spot.id) { result in
                             NavigationLink {
                                 detail(result)
@@ -55,8 +55,9 @@ struct ContentView: View {
                             .accessibilityIdentifier("watch-spot-\(result.spot.id)")
                         }
                         if model.snapshot?.spots.isEmpty == true {
-                            Text("The saved data has no places for this area. This does not mean there are none.")
+                            Text(emptySavedDataMessage)
                                 .font(.footnote)
+                                .accessibilityIdentifier("watch-empty-data-state")
                         } else if model.results.isEmpty {
                             Text("No saved places match these filters.")
                             Button("Clear Watch filters") { model.clearFilters() }
@@ -64,8 +65,8 @@ struct ContentView: View {
                         }
                         // Old data is said in text, not colour: the Watch cannot tell offline from an unsynced iPhone.
                         if model.snapshotIsOld {
-                            Label(model.snapshot?.generatedAt == .distantPast
-                                  ? "Saved data is old. Open iPhone app to refresh."
+                            Label(model.savedDataState == .unconfirmed
+                                  ? "The iPhone data update time is unknown. Showing saved data."
                                   : "Not updated from iPhone for over an hour. Showing saved data.",
                                   systemImage: "clock.arrow.circlepath")
                                 .font(.footnote).foregroundStyle(.secondary)
@@ -94,8 +95,12 @@ struct ContentView: View {
                         .disabled(model.isSyncing)
                     Text("Refresh nearby places on iPhone first. This requests its saved data, not Watch location.")
                         .font(.footnote).foregroundStyle(.secondary)
-                    if model.syncRequestFailed {
-                        Text("Could not sync with iPhone. Open the iPhone app and try again. Saved data is unchanged.")
+                    if model.syncState == .waiting {
+                        ProgressView("Waiting for iPhone saved data…")
+                            .font(.footnote)
+                            .accessibilityIdentifier("watch-sync-waiting")
+                    } else if model.syncState == .failed {
+                        Text("Could not receive iPhone data. Connection status is unknown. Open the iPhone app and try again.")
                             .font(.footnote).foregroundStyle(.secondary)
                     }
                 }
@@ -117,6 +122,19 @@ struct ContentView: View {
                 try? await Task.sleep(for: .seconds(60))
                 if !Task.isCancelled { model.refreshClock() }
             }
+        }
+    }
+
+    private var emptySavedDataMessage: LocalizedStringKey {
+        switch model.savedDataState {
+        case .recentSavedEmpty:
+            "The recent saved iPhone data contains no listed places. This may not cover your Watch location."
+        case .unconfirmed:
+            "The saved data has no places. Its update time is unavailable."
+        case .stale:
+            "The old saved data has no places. Refresh nearby places on iPhone to check current listings."
+        case .notSynced, .savedPlaces:
+            "No places are included in the saved data. This does not mean there are none."
         }
     }
 

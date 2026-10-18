@@ -11,6 +11,20 @@ enum NearbyDataState: Equatable {
     case cacheUnavailable
 }
 
+/// Describes the last operation, never a device-wide connectivity diagnosis.
+nonisolated enum NearbyRefreshFailure: Equatable, Hashable, Sendable {
+    case connectionUnavailable, timedOut, unknown
+
+    static func classify(_ error: any Error) -> Self {
+        guard let error = error as? URLError else { return .unknown }
+        switch error.code {
+        case .notConnectedToInternet: return .connectionUnavailable
+        case .timedOut: return .timedOut
+        default: return .unknown
+        }
+    }
+}
+
 enum RouteDataState: Equatable {
     case idle, loading, ready, unavailable
     /// Beyond `RouteDetourRanker.maximumWalkingDetourDistanceMeters`: straight-line only by design, not a failure.
@@ -81,6 +95,7 @@ final class NearbyModel {
 
     private(set) var locationState: NearbyLocationState
     private(set) var dataState: NearbyDataState = .waitingForLocation
+    private(set) var refreshFailure: NearbyRefreshFailure?
     private(set) var results: [NearbyResult] = []
     private(set) var resultsArea: NearbyArea?
     var resultsLocation: DeviceLocation? { resultsArea?.deviceLocation }
@@ -282,6 +297,7 @@ final class NearbyModel {
     }
 
     private func load(for area: NearbyArea) {
+        refreshFailure = nil
         generation += 1
         let currentGeneration = generation
         loadTask?.cancel()
@@ -347,6 +363,7 @@ final class NearbyModel {
                 serverZoom = try await refresher.prepare()
             } catch {
                 guard currentGeneration == generation else { return }
+                refreshFailure = cacheReadFailed ? .unknown : NearbyRefreshFailure.classify(error)
                 dataState = .refreshFailed
                 return
             }
@@ -359,20 +376,20 @@ final class NearbyModel {
                 sourcesByTile = [:]
             }
             let refreshTiles = tiles
-            let refreshFailed = await withTaskGroup(of: Bool.self, returning: Bool.self) { group in
+            let failures = await withTaskGroup(of: NearbyRefreshFailure?.self, returning: [NearbyRefreshFailure].self) { group in
                 for tile in refreshTiles {
                     group.addTask {
                         do {
                             try await refresher.refresh(tile)
-                            return false
+                            return nil
                         } catch {
-                            return true
+                            return NearbyRefreshFailure.classify(error)
                         }
                     }
                 }
-                var failed = false
-                for await tileFailed in group { failed = failed || tileFailed }
-                return failed
+                var failures: [NearbyRefreshFailure] = []
+                for await failure in group { if let failure { failures.append(failure) } }
+                return failures
             }
             guard currentGeneration == generation else { return }
 
@@ -387,6 +404,15 @@ final class NearbyModel {
             }
             publish(cachedByTile, sourcesByTile: sourcesByTile, from: area,
                     cacheReadFailed: cacheReadFailed, generation: currentGeneration)
+            let refreshFailed = !failures.isEmpty
+            // Mixed failures have no single trustworthy diagnosis; completion order must not choose the copy.
+            if cacheReadFailed {
+                refreshFailure = .unknown
+            } else if Set(failures).count == 1 {
+                refreshFailure = failures.first
+            } else {
+                refreshFailure = failures.isEmpty ? nil : .unknown
+            }
             dataState = (refreshFailed || cacheReadFailed) ? .refreshFailed : .refreshed
             let confirmedAt = Date()
             if !refreshFailed, !cacheReadFailed, let device = area.deviceLocation, !device.isLastKnown,

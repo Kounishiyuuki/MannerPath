@@ -1,6 +1,13 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "The iPhone data update time is unknown. Showing saved data.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneデータの更新時刻は不明です。保存済みデータを表示しています。"}}}},
+    "Waiting for iPhone saved data…": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneの保存済みデータを待っています…"}}}},
+    "Could not receive iPhone data. Connection status is unknown. Open the iPhone app and try again.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneのデータを受信できませんでした。接続状態は不明です。iPhoneアプリを開いて再試行してください。"}}}},
+    "The recent saved iPhone data contains no listed places. This may not cover your Watch location.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneの最近の保存済みデータに掲載地点はありません。Watchの現在地を含むとは限りません。"}}}},
+    "The saved data has no places. Its update time is unavailable.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "保存済みデータに地点はありません。更新時刻は不明です。"}}}},
+    "The old saved data has no places. Refresh nearby places on iPhone to check current listings.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "古い保存済みデータに地点はありません。最新の掲載状況はiPhoneで更新して確認してください。"}}}},
+    "No places are included in the saved data. This does not mean there are none.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "保存済みデータに地点はありません。場所が存在しないという意味ではありません。"}}}},
     "Sync saved data from iPhone": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneの保存済みデータを同期"}}}},
     "Refresh nearby places on iPhone first. This requests its saved data, not Watch location.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "先にiPhoneで近くの場所を更新してください。Watchの現在地ではなく、iPhoneの保存済みデータを取得します。"}}}},
     "Could not sync with iPhone. Open the iPhone app and try again. Saved data is unchanged.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneと同期できませんでした。iPhoneアプリを開いて再試行してください。保存済みデータは変更されていません。"}}}},

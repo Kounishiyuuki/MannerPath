@@ -423,7 +423,7 @@ struct ContentView: View {
               current.isDestination == area.isDestination else { return nil }
         return switch model.dataState {
         case .cacheOnly: String(localized: "Showing saved nearby data. Live updates are unavailable.")
-        case .refreshFailed: String(localized: "Some nearby data could not be loaded or refreshed. Saved results remain available where possible.")
+        case .refreshFailed: refreshFailureDescription
         default: nil
         }
     }
@@ -595,7 +595,7 @@ struct ContentView: View {
             }
         case .refreshFailed:
             ContentUnavailableView("Could not load nearby data", systemImage: "wifi.exclamationmark",
-                                   description: Text("No saved places are available. Published places may still exist nearby."))
+                                   description: Text(verbatim: refreshFailureDescription))
         case .cacheOnly:
             ContentUnavailableView("No saved places nearby", systemImage: "mappin.slash",
                                    description: Text("Live updates are unavailable."))
@@ -661,6 +661,19 @@ struct ContentView: View {
         }
     }
 
+    private var refreshFailureDescription: String {
+        switch model.refreshFailure {
+        case .connectionUnavailable:
+            model.hasUnfilteredResults
+                ? String(localized: "Showing saved information. The latest availability could not be checked.")
+                : String(localized: "Offline. There is no saved data for this nearby area.")
+        case .timedOut:
+            String(localized: "The update timed out. Showing saved places where available; current coverage could not be checked.")
+        default:
+            String(localized: "Nearby data could not be loaded or refreshed. Showing saved places where available; current coverage could not be checked.")
+        }
+    }
+
     @ViewBuilder
     private var dataStatus: some View {
         switch model.dataState {
@@ -674,16 +687,25 @@ struct ContentView: View {
                   systemImage: "internaldrive")
                 .font(.footnote).foregroundStyle(.secondary)
         case .refreshing:
-            compactStatus("Showing saved places; refreshing…", symbol: "arrow.clockwise")
+            if model.results.isEmpty && !model.hasUnfilteredResults {
+                compactStatus("Loading nearby places…", symbol: "arrow.clockwise")
+            } else {
+                compactStatus("Showing saved places; refreshing…", symbol: "arrow.clockwise")
+            }
         case .refreshed:
             compactStatus("Nearby data refreshed.", symbol: "checkmark.circle")
         case .refreshFailed:
             // The empty state below already explains a failure with nothing saved.
             if !model.results.isEmpty || model.hasUnfilteredResults {
-                compactStatus("Some nearby data could not be loaded or refreshed. Saved results remain available where possible.", symbol: "wifi.exclamationmark", important: true)
+                Label { Text(verbatim: refreshFailureDescription) } icon: { Image(systemName: "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90") }
+                    .font(.footnote).fixedSize(horizontal: false, vertical: true)
             }
         case .cacheOnly:
-            compactStatus("Showing saved nearby data. Live updates are unavailable.", symbol: "info.circle")
+            if model.hasUnfilteredResults {
+                compactStatus("Showing saved nearby data. Live updates are unavailable.", symbol: "info.circle")
+            } else {
+                compactStatus("Live updates are unavailable.", symbol: "info.circle")
+            }
         case .cacheUnavailable:
             compactStatus("Saved nearby data is unavailable on this device.", symbol: "externaldrive.badge.exclamationmark", important: true)
         }

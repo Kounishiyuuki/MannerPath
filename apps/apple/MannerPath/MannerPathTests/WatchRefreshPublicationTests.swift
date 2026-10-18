@@ -24,6 +24,8 @@ struct WatchRefreshPublicationTests {
         let confirmedAt = try #require(received.first?.3)
         #expect(confirmedAt >= before && confirmedAt <= Date())
         #expect(confirmedAt > deviceLocation().timestamp, "refresh time is not the location observation time")
+        #expect(model.dataState == .refreshed)
+        #expect(model.refreshFailure == nil)
         #expect(await store.refreshCount() == 9)
         model.refresh()
         #expect(await waitUntil { received.count == 2 })
@@ -72,6 +74,31 @@ struct WatchRefreshPublicationTests {
         model.start()
         #expect(await waitUntil { model.dataState == .refreshFailed })
         #expect(confirmations == 0)
+    }
+
+    @Test(arguments: [0, 2], ["connection", "timeout", "unknown"])
+    func failedRefreshPreservesSavedResultsAndRecovers(count: Int, failure: String) async throws {
+        for phase in ["prepare", "tile"] {
+            let tile = try homeTile()
+            let rows = (0..<count).map { spot("saved-\($0)", tile: tile) }
+            let store = ConfirmationStore(rows: [tile.id: rows], networkFailure: failure, failurePhase: phase)
+            let model = NearbyModel(location: ConfirmationLocation(observed: deviceLocation()), repository: store, refresher: store)
+            var confirmations = 0
+            model.onConfirmedCorpusRefresh = { _, _, _, _ in confirmations += 1 }
+            model.start()
+            #expect(await waitUntil { model.dataState == .refreshFailed })
+            let expected: NearbyRefreshFailure = failure == "connection" ? .connectionUnavailable : failure == "timeout" ? .timedOut : .unknown
+            #expect(model.refreshFailure == expected)
+            #expect(Set(model.results.map { $0.spot.id }) == Set(rows.map(\.id)))
+            #expect(confirmations == 0, "An empty cache plus a failed request is not confirmed zero coverage")
+
+            await store.restoreConnection()
+            model.refresh()
+            #expect(await waitUntil { model.dataState == .refreshed })
+            #expect(model.refreshFailure == nil)
+            #expect(Set(model.results.map { $0.spot.id }) == Set(rows.map(\.id)))
+            #expect(confirmations == 1)
+        }
     }
 
     @Test func lastKnownLocationCannotConfirmCurrentAreaRefresh() async throws {
@@ -150,9 +177,12 @@ private actor ConfirmationStore: CachedSpotRepository, NearbyTileRefreshing {
     let corruptFinalRead: Bool
     let corruptInitialRead: Bool
     private var refreshes = 0
-    init(rows: [String: [Spot]] = [:], failing: Set<String> = [], prepareFails: Bool = false, corruptFinalRead: Bool = false, corruptInitialRead: Bool = false) {
+    private var networkFailure: String?
+    private let failurePhase: String
+    init(rows: [String: [Spot]] = [:], failing: Set<String> = [], prepareFails: Bool = false, corruptFinalRead: Bool = false, corruptInitialRead: Bool = false, networkFailure: String? = nil, failurePhase: String = "tile") {
         self.rows = rows; self.failing = failing; self.prepareFails = prepareFails; self.corruptFinalRead = corruptFinalRead
         self.corruptInitialRead = corruptInitialRead
+        self.networkFailure = networkFailure; self.failurePhase = failurePhase
     }
     func spots(inTile tileID: String) async throws -> [Spot] {
         if corruptInitialRead || (corruptFinalRead && refreshes > 0) { throw ConfirmationFailure.unavailable }
@@ -161,12 +191,23 @@ private actor ConfirmationStore: CachedSpotRepository, NearbyTileRefreshing {
     func sources(inTile tileID: String) async throws -> [SpotSource] { [] }
     func dataZoom() async throws -> Int { SlippyTile.defaultDataZoom }
     func prepare() async throws -> Int {
+        if failurePhase == "prepare" { try throwNetworkFailure() }
         if prepareFails { throw ConfirmationFailure.unavailable }
         return SlippyTile.defaultDataZoom
     }
     func refresh(_ tile: SlippyTile) async throws {
         refreshes += 1
+        if failurePhase == "tile" { try throwNetworkFailure() }
         if failing.contains(tile.id) { throw ConfirmationFailure.unavailable }
     }
     func refreshCount() -> Int { refreshes }
+    func restoreConnection() { networkFailure = nil }
+    private func throwNetworkFailure() throws {
+        switch networkFailure {
+        case "connection": throw URLError(.notConnectedToInternet)
+        case "timeout": throw URLError(.timedOut)
+        case .some: throw ConfirmationFailure.unavailable
+        case nil: return
+        }
+    }
 }

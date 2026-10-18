@@ -1,6 +1,10 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Showing saved information. The latest availability could not be checked.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "保存済みの情報を表示しています。最新の利用状況は確認できません。"}}}},
+    "Offline. There is no saved data for this nearby area.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "オフラインです。この周辺の保存済みデータはありません。"}}}},
+    "Nearby data could not be loaded or refreshed. Showing saved places where available; current coverage could not be checked.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "周辺データの読込または更新ができませんでした。保存済みの場所があれば表示します。現在の掲載状況は確認できていません。"}}}},
+    "The update timed out. Showing saved places where available; current coverage could not be checked.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "更新がタイムアウトしました。保存済みの場所があれば表示します。現在の掲載状況は確認できていません。"}}}},
     "Navigate into this facility": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この施設内へ案内" } } } },
     "The smoking place is confirmed to be inside this facility. Its position inside the facility is not confirmed; the pin marks the facility.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "喫煙場所はこの施設内にあることが確認されています。施設内の詳しい位置は確認できていません。ピンは施設の位置を示します。" } } } },
     "Tobacco": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "たばこ" } } } },
@@ -1702,7 +1706,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この周辺に掲載中の場所はありません"
+            "value": "この周辺に掲載中の喫煙所はありません。"
           }
         }
       }

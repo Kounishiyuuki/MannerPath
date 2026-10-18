@@ -15,6 +15,71 @@ struct WatchSyncRefreshTests {
                       snapshotID: UUID(), spots: [], sources: [])
     }
 
+    @Test func legacySnapshotTimestampSeparatesMissingUnknownRecentAndOldSavedData() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        let model = WatchNearbyModel(store: store, activateConnectivity: false, widgetReloader: {})
+        let checkedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        model.refreshClock(at: checkedAt)
+        #expect(model.savedDataState == .notSynced)
+        #expect(model.syncState == .idle)
+
+        let unconfirmed = payload(revision: 1, at: .distantPast)
+        #expect(model.receive(snapshotData: try WatchCodec.encode(unconfirmed), preferenceData: nil))
+        model.refreshClock(at: checkedAt)
+        #expect(model.savedDataState == .unconfirmed)
+        #expect(model.snapshot?.spots.isEmpty == true)
+
+        let confirmed = payload(revision: 2, at: checkedAt)
+        #expect(model.receive(snapshotData: try WatchCodec.encode(confirmed), preferenceData: nil))
+        model.refreshClock(at: checkedAt)
+        #expect(model.savedDataState == .recentSavedEmpty, "Legacy v1 timestamps describe recent saved data, not successful tile refresh")
+        model.refreshClock(at: checkedAt.addingTimeInterval(3_601))
+        #expect(model.savedDataState == .stale)
+        model.refreshClock(at: checkedAt.addingTimeInterval(-1))
+        #expect(model.savedDataState == .unconfirmed, "A future timestamp cannot confirm freshness")
+    }
+
+    @Test func waitingAndFailedRequestsDoNotBecomeSuccessfulEmptyResults() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        var completion: (@MainActor (Data?) -> Void)?
+        let model = WatchNearbyModel(store: store, activateConnectivity: false,
+                                     snapshotRequester: { completion = $0 }, widgetReloader: {})
+        model.requestSync()
+        #expect(model.syncState == .waiting && model.savedDataState == .notSynced)
+        completion?(nil)
+        #expect(model.syncState == .failed && model.savedDataState == .notSynced)
+        model.requestSync()
+        #expect(model.syncState == .waiting && !model.syncRequestFailed)
+        let confirmed = payload(revision: 1, at: Date(timeIntervalSince1970: 1_800_000_000))
+        completion?(try WatchCodec.encode(confirmed))
+        model.refreshClock(at: confirmed.generatedAt)
+        #expect(model.syncState == .idle && model.savedDataState == .recentSavedEmpty)
+        #expect(model.snapshot?.generatedAt == confirmed.generatedAt)
+    }
+
+    @Test func failedAndRecoveredRequestsPreserveOldDataEvidence() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        let checkedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let old = payload(revision: 1, at: checkedAt.addingTimeInterval(-7_200))
+        try store.acceptSnapshot(WatchCodec.encode(old))
+        var completion: (@MainActor (Data?) -> Void)?
+        let model = WatchNearbyModel(store: store, activateConnectivity: false,
+                                     snapshotRequester: { completion = $0 }, widgetReloader: {})
+        model.refreshClock(at: checkedAt)
+        model.requestSync()
+        #expect(model.syncState == .waiting && model.savedDataState == .stale)
+        completion?(nil)
+        #expect(model.syncState == .failed && model.savedDataState == .stale)
+        model.requestSync()
+        completion?(try WatchCodec.encode(old))
+        model.refreshClock(at: checkedAt)
+        #expect(model.syncState == .idle && model.savedDataState == .stale)
+        #expect(model.snapshot == old, "A recovered connection is not a fresh iPhone tile update")
+    }
+
     @Test func freshEmptyReceiptClearsWarningAndPersistsWithoutRevivingOldLocation() throws {
         let store = try cache()
         defer { try? FileManager.default.removeItem(at: store.directory) }

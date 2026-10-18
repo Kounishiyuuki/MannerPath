@@ -226,3 +226,45 @@ deduplication, not proof that physical WC delivery works. Automated tests use sy
 injected request replies; paired Series 9 transport, background/reconnect delivery and WidgetKit
 reload timing must be rechecked on a separately distributed build containing this fix. No upload
 or production configuration change is part of this repair.
+
+
+## Nearby update and saved-data messages
+
+The iPhone declares a completed update (including zero published results) only after configuration,
+all requested neighborhood tiles and cache reads succeed. A valid `404 tileNotPublished` is an
+unpublished tile, whereas an unexpected 404, API error or timeout is a failed update. Existing
+atomic cache writes, provenance and location-precision labels remain unchanged.
+
+`URLError.notConnectedToInternet` describes a connection unavailable **during that request**;
+`timedOut` is a separate timeout. Other errors and mixed tile failures have unknown cause.
+No network monitor is added, and none of these states promises device-wide connectivity.
+Without a refresher the app says saved data/live updates unavailable, not offline. Cached
+places remain available on failure; an empty cache never proves zero current listings.
+
+Watch saved-data evidence and request progress are independent. No snapshot means unsynced;
+an explicit request shows waiting, and failure never proves internet or Bluetooth is offline.
+A recent empty iPhone snapshot describes saved iPhone data, not the
+Watch's current area; its v1 timestamp alone cannot prove a successful network refresh. Unknown update time and old snapshots retain distinct wording. Revision
+orders snapshots; generatedAt describes producer update time, not receipt time or location age.
+Older app versions did not guarantee generatedAt was a complete network refresh; paired update
+and physical-device validation remain necessary. Neither the Watch nor widgets independently
+checks tile coverage. Widget computedAt is local ranking time, so existing conservative saved-data
+wording stays unchanged.
+
+Release checks still require a physical iPhone/Watch pair: empty/populated iPhone refresh,
+explicit sync waiting/failure/recovery, saved-cache restart, stale data and stale GPS. Japanese
+labels use wrapping system text/List/ProgressView with no fixed text heights; large Dynamic Type
+and spoken VoiceOver checks on the physical Series 9 are not claimed by unit tests.
+
+| Surface/input | Display meaning |
+| --- | --- |
+| iPhone: all tile reads succeed, no unfiltered places | この周辺に掲載中の喫煙所はありません。 |
+| iPhone: explicit notConnectedToInternet, readable cache with no places | オフラインです。この周辺の保存済みデータはありません。 |
+| iPhone: explicit notConnectedToInternet, saved places | 保存済みの情報を表示しています。最新の利用状況は確認できません。 |
+| iPhone: timeout / other error / unreadable cache | Update timed out / update could not be checked; never confirmed zero coverage |
+| Watch: no snapshot / pending request / failed request | Nothing synced / waiting for iPhone / could not receive; no offline inference |
+| Watch: recent empty / unknown timestamp / old snapshot | Recent saved data contains no places / update time unknown / old saved data |
+
+The offline sentence is request-result evidence only and is reset when the next update starts.
+A cache read failure is not an empty cache; it takes the unknown-error path even if connectivity
+also failed. No first-party existence, source/license, coordinate, ranking or freshness gate changes.

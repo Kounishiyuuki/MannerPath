@@ -34,6 +34,24 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
                                      preferences: preferences, at: now)
     }
 
+    // Data evidence and request progress are independent: neither reachability nor a failed
+    // request proves the Watch is offline, and receipt alone never confirms fresh tile data. Legacy v1 timestamps are not full-refresh evidence.
+    enum SavedDataState: Equatable {
+        case notSynced, unconfirmed, stale, recentSavedEmpty, savedPlaces
+    }
+    enum SyncState: Equatable { case idle, waiting, failed }
+
+    var savedDataState: SavedDataState {
+        guard let snapshot else { return .notSynced }
+        guard snapshot.generatedAt != .distantPast, snapshot.generatedAt <= now else { return .unconfirmed }
+        if snapshotIsOld { return .stale }
+        return snapshot.spots.isEmpty ? .recentSavedEmpty : .savedPlaces
+    }
+
+    var syncState: SyncState {
+        isSyncing ? .waiting : syncRequestFailed ? .failed : .idle
+    }
+
     var snapshotIsOld: Bool {
         guard let generatedAt = snapshot?.generatedAt else { return false }
         return generatedAt > now || now.timeIntervalSince(generatedAt) > 3_600
@@ -174,6 +192,7 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     func requestSync() {
         guard !isSyncing else { return }
         isSyncing = true
+        syncRequestFailed = false
         requestedRevision = snapshot?.revision ?? 0
         if let snapshotRequester {
             snapshotRequester { [weak self] data in self?.completeSyncRequest(data) }
