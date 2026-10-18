@@ -1,0 +1,537 @@
+{
+ "sourceId": "chuo-private-smoking-places",
+ "checkedAt": "2026-10-18",
+ "rows": [
+  {
+   "id": "chuo-private:1",
+   "name": "八重洲地下街（サウステラス）",
+   "officialAddress": "東京都中央区八重洲2丁目1番",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:2",
+   "name": "八重洲地下街（イーストテラス）",
+   "officialAddress": "東京都中央区八重洲2丁目1番",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:3",
+   "name": "八重洲地下街（ノーステラス）",
+   "officialAddress": "東京都中央区八重洲2丁目1番",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:4.1",
+   "name": "東京ミッドタウン八重洲 八重洲セントラルタワー【地下1階】",
+   "officialAddress": "東京都中央区八重洲2丁目2番1号 地下1階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:4.2",
+   "name": "東京ミッドタウン八重洲 八重洲セントラルタワー【2階】",
+   "officialAddress": "東京都中央区八重洲2丁目2番1号 2階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:5",
+   "name": "THE TOBACCO YAESU",
+   "officialAddress": "東京都中央区京橋1丁目2番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:6",
+   "name": "TODA BUILDING喫煙所",
+   "officialAddress": "東京都中央区京橋1丁目7番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:7",
+   "name": "THE TOBACCO KYOBASHI",
+   "officialAddress": "東京都中央区京橋1丁目14番6号 ガーデニアビル2階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:8",
+   "name": "paspa京橋",
+   "officialAddress": "東京都中央区京橋3丁目6番21号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "suspended",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:9",
+   "name": "GSパーク銀座5丁目駐車場内 昭和通り側喫煙所(旧：GSパーク銀座1丁目駐車場内喫煙所)",
+   "officialAddress": "東京都中央区銀座5丁目12番",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:10",
+   "name": "paspa西銀座",
+   "officialAddress": "東京都中央区銀座2丁目2番2号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "suspended",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:11",
+   "name": "paspa銀座トレーラー",
+   "officialAddress": "東京都中央区銀座3丁目7番13号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:12",
+   "name": "GINZA Smoking Room~Pocket of Time~",
+   "officialAddress": "東京都中央区銀座4丁目4番13号 銀座琉映ビル3階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:13",
+   "name": "GINZA KABUKIZA 地下2階 「木挽町広場」喫煙室",
+   "officialAddress": "東京都中央区銀座4丁目12番15号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:14",
+   "name": "GinzaNovo",
+   "officialAddress": "東京都中央区銀座5丁目2番1号 地下2階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:15",
+   "name": "GSパーク銀座5丁目駐車場内 三原橋側喫煙所",
+   "officialAddress": "東京都中央区銀座5丁目12番",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:16",
+   "name": "ギンザコマツ西館",
+   "officialAddress": "東京都中央区銀座6丁目9番5号 7階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:17",
+   "name": "ギンザシックス",
+   "officialAddress": "東京都中央区銀座6丁目10番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:18",
+   "name": "TTS（田中たばこ店）",
+   "officialAddress": "東京都中央区新富2丁目15番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:19",
+   "name": "ドルチェ銀座東弐番館",
+   "officialAddress": "東京都中央区入船2丁目2番7号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:20",
+   "name": "グランメゾンフヂノ",
+   "officialAddress": "東京都中央区築地3丁目3番9号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:21",
+   "name": "ホテル京阪築地銀座グランデ",
+   "officialAddress": "東京都中央区築地3丁目5番4号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:22",
+   "name": "ファミリーマート築地本願寺前店",
+   "officialAddress": "東京都中央区築地3丁目11番8号 3階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "suspended",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:23",
+   "name": "築六喫煙所",
+   "officialAddress": "東京都中央区築地6丁目21番8号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:24",
+   "name": "paspa八丁堀トレーラー",
+   "officialAddress": "東京都中央区八丁堀2丁目27番2号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "suspended",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:25",
+   "name": "paspa茅場町",
+   "officialAddress": "東京都中央区新川1丁目3番2号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:26",
+   "name": "paspa新川",
+   "officialAddress": "東京都中央区新川1丁目16番7号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:27",
+   "name": "paspa日本橋トレーラー",
+   "officialAddress": "東京都中央区日本橋本石町3丁目1番3号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:28",
+   "name": "THE TOBACCO MITSUKOSHIMAE",
+   "officialAddress": "東京都中央区日本橋室町2丁目4番3号 YUITO地下1階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:29",
+   "name": "日本橋室町三井タワー",
+   "officialAddress": "東京都中央区日本橋室町3丁目2番1号 地下1階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:30",
+   "name": "東山ビルディング",
+   "officialAddress": "東京都中央区日本橋本町4丁目4番2号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:31",
+   "name": "paspa小舟町",
+   "officialAddress": "東京都中央区日本橋小舟町3番5号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:32",
+   "name": "THE TOBACCO KODEMMACHO",
+   "officialAddress": "東京都中央区日本橋小伝馬町15番18号 EDGE小伝馬町1階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:33",
+   "name": "ファミリーマート堀留町二丁目店",
+   "officialAddress": "東京都中央区日本橋堀留町2丁目10番12号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:34",
+   "name": "paspa人形町2丁目",
+   "officialAddress": "東京都中央区日本橋人形町2丁目24番5号 2階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:35",
+   "name": "paspa人形町",
+   "officialAddress": "東京都中央区日本橋人形町3丁目4番11号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:36",
+   "name": "MIYATA",
+   "officialAddress": "東京都中央区日本橋箱崎町3-4",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:37",
+   "name": "オールドルーキーカフェ日本橋馬喰横山店",
+   "officialAddress": "東京都中央区日本橋横山町6番17号 杉本ビル2階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:38",
+   "name": "THE TOBACCO NIHOMBASHI SECOND",
+   "officialAddress": "東京都中央区日本橋2丁目1番14号 ローソン中央通り店喫煙室",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:39",
+   "name": "日本橋髙島屋三井ビルディング",
+   "officialAddress": "東京都中央区日本橋2丁目5番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:40",
+   "name": "THE TOBACCO NIHOMBASHI MK-238",
+   "officialAddress": "東京都中央区日本橋3丁目5番12号 FORYOU東京駅前ビル地下1階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:41",
+   "name": "ディーアイシービル",
+   "officialAddress": "東京都中央区日本橋3丁目7番20号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:42",
+   "name": "オンワードパークビルディング",
+   "officialAddress": "東京都中央区日本橋3丁目10番5号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:43",
+   "name": "赤札屋 田村商店",
+   "officialAddress": "東京都中央区日本橋茅場町3丁目5番8号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:44",
+   "name": "ファミリーマート日本橋茅場町店",
+   "officialAddress": "東京都中央区日本橋茅場町3丁目12番2号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:45",
+   "name": "KABUTO ONE",
+   "officialAddress": "東京都中央区日本橋兜町7番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:46",
+   "name": "MID TOWER GRAND",
+   "officialAddress": "東京都中央区月島1丁目22番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:47",
+   "name": "グランドシティタワー月島",
+   "officialAddress": "東京都中央区月島3丁目18番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:48",
+   "name": "月島荘",
+   "officialAddress": "東京都中央区月島3丁目26番4号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:49",
+   "name": "GRAND MARINA TOKYO パークタワー勝どきミッド",
+   "officialAddress": "東京都中央区勝どき4丁目6番2号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:50",
+   "name": "HARUMI WAVE GARDEN喫煙所",
+   "officialAddress": "東京都中央区晴海3丁目2番4号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:51",
+   "name": "三井ショッピングパーク ららテラス HARUMI FLAG",
+   "officialAddress": "東京都中央区晴海5丁目2番31号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:52",
+   "name": "HARUMI FLAG PORT VILLAGE A棟",
+   "officialAddress": "東京都中央区晴海5丁目3番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:53",
+   "name": "TOBACCO SPOT",
+   "officialAddress": "東京都中央区晴海5丁目5番7号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:54",
+   "name": "HARUMI FLAG PARK VILLAGE C棟 FLAG CORE",
+   "officialAddress": "東京都中央区晴海5丁目6番3号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:55",
+   "name": "東京消防庁臨港消防署",
+   "officialAddress": "東京都中央区晴海5丁目8番20号 有効空地内",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "suspended",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:56",
+   "name": "ファミリーマート日本橋本町2丁目店",
+   "officialAddress": "東京都中央区日本橋本町2丁目6番7号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:57",
+   "name": "TOFROM YAESU TOWER",
+   "officialAddress": "東京都中央区八重洲1丁目6番1号 2階・3階",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  },
+  {
+   "id": "chuo-private:58",
+   "name": "晴海客船ターミナル",
+   "officialAddress": "東京都中央区晴海5丁目7番1号",
+   "prefecture": "東京都",
+   "municipality": "中央区",
+   "operation": "listed",
+   "sourceUrl": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+  }
+ ]
+}
