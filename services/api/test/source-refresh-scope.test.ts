@@ -28,7 +28,7 @@ function memoryStore() {
 }
 const fetchOsaka = async () => new Response(OSAKA_BYTES);
 
-test("scheduled registry checks Taito but skips fifteen sources without refresh targets or fetches", async () => {
+test("scheduled registry checks Taito but skips sixteen sources without refresh targets or fetches", async () => {
   const db = new SqliteD1();
   await importTaito(db);
   for (const adapter of SOURCE_ADAPTERS.slice(1)) {
@@ -40,7 +40,7 @@ test("scheduled registry checks Taito but skips fifteen sources without refresh 
   const results = await runSourceChecks({ db, store: memoryStore().store, now,
     fetch: async () => { fetches++; return new Response(TAITO_BYTES); },
   }, "scope-scheduled", "scheduled");
-  assert.equal(results.length, 16);
+  assert.equal(results.length, 17);
   assert.equal(results[0].result.status === "recorded" && results[0].result.outcome, "unchanged");
   for (const [i, adapter] of SOURCE_ADAPTERS.slice(1).entries()) {
     const sourceId = adapter.registry.sourceId;

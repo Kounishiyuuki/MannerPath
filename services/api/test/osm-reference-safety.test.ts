@@ -73,7 +73,11 @@ test("OSM reference CLI cannot change approved corpus, fixtures, registry, tiles
  const fresh = new SqliteD1(migratedSqlite()); t.after(() => fresh.raw.close());
  applyPromotionBundle(fresh.raw, afterBundle.sql);
  assert.equal((await buildMultiSourcePromotionBundle(fresh)).sql, afterBundle.sql);
- assert.deepEqual(await generateCrossSourceCandidates(db, {now}), []);
+ // Recall only, never identity: the only candidates are three 区営 park / 民間 pairs within 100 m that the ward lists as
+ // separate designated places at different addresses (chuo-private PROVENANCE.md). None comes from the OSM reference.
+ assert.equal((await generateCrossSourceCandidates(db, {now})).length, 3);
+ assert.deepEqual(db.raw.prepare("SELECT DISTINCT source_a_id, source_b_id, reasons_json FROM cross_source_candidates").all().map(r => ({...r})),
+  [{source_a_id: "chuo-park-smoking-places", source_b_id: "chuo-private-smoking-places", reasons_json: '["proximity100m"]'}]);
  const tracked = spawnSync("git", ["ls-files"], {cwd: root, encoding: "utf8"});
  assert.equal(tracked.status, 0);
  assert.doesNotMatch(tracked.stdout, /\.(?:osm(?:\.pbf|\.gz|\.bz2)?|osc(?:\.gz)?)(?:\n|$)/);

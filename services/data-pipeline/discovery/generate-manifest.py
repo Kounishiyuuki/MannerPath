@@ -127,39 +127,42 @@ for t in targets:
 # Approved registry fixtures are historical implemented evidence, never automatic approval.
 reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designated-smoking-areas','ward-koto':'koto-station-smoking-areas','city-musashino':'musashino-public-smoking-areas','ward-minato':'minato-designated-smoking-areas','city-kyoto':'kyoto-public-smoking-places','city-sendai':'sendai-kaigan-park-smoking-areas','operator-komatsu-airport':'komatsu-airport-smoking-places'}
 reviewed.update({'operator-'+slug+'-airport':slug+'-airport-smoking-places' for slug,*_ in AIRPORT_OPERATORS})
-# ADR-0018 municipal page-fact source: 中央区's current smoking list, anchored at its own CC BY park list points.
-reviewed['ward-chuo']='chuo-park-smoking-places'
-PAGE_FACT_SOURCES={'chuo-park-smoking-places'}
+# ADR-0018 municipal page-fact sources: 中央区's current smoking list, its ward-run parks (CC BY park list points) and its
+# private places (official-address geocode anchors) as two reviewed sources of one target.
+reviewed['ward-chuo']=['chuo-park-smoking-places','chuo-private-smoking-places']
+PAGE_FACT_SOURCES={'chuo-park-smoking-places','chuo-private-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:
-  source=reviewed[t['id']];t['seedStatus']='implemented';t['reviewedSourceIds']=[source]
-  folder=ROOT/'services/data-pipeline/fixtures'/source
-  fetch_path=folder/'fetch.json'
-  metadata=json.loads(fetch_path.read_text()) if fetch_path.exists() else {}
-  page_fact=source.endswith('-airport-smoking-places') or source in PAGE_FACT_SOURCES
-  adapter_path=ROOT/'services/api/src/pipeline'/('taito.ts' if source.startswith('taito-') else source.removesuffix('-smoking-places')+'-adapter.ts' if page_fact else 'osaka-adapter.ts')
-  if page_fact:
-   # The release is MannerPath's reviewed fact sheet for one HTML page (ADR-0018 §4), not a publisher file: the hash
-   # is the sheet's, the URL the page's, and nothing is a raw resource.
-   code=adapter_path.read_text();url=re.search(r'PAGE_URL = "(https://[^"]+)"',code).group(1);sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='reviewedPageFactSheetBytesNotPageHtml'
-   metadata={'fetchedAt':re.search(r'fetchedAt: "([^"]+)"',code).group(1)}
-   fact_path=folder/(source.removesuffix('-smoking-places')+'-page-facts.csv')
-   assert hashlib.sha256(fact_path.read_bytes()).hexdigest()==sha, source
-   assert (folder/'PROVENANCE.md').exists(), source
-  elif metadata:
-   url=metadata['sourceUrl'];sha=metadata.get('archiveSha256',metadata.get('contentSha256'));scope='rawArchiveBytes' if metadata.get('archiveSha256') else 'rawResponseBytes'
-  else:
-   code=adapter_path.read_text();url=re.search(r'https://[^"\s]+\.csv',code).group();sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='rawResponseBytes'
-  entry={'reference':str((folder/'PROVENANCE.md').relative_to(ROOT)),'status':'implemented','sourceId':source,'blockerCodes':[],'rawUrls':[url],'sha256':sha,'reviewedHashScope':scope}
-  if source.startswith('musashino-'):
-   entry['extractedMemberSha256']=metadata['contentSha256'];entry['extractedMember']='doc.kml';entry['archiveMemberSha256']=metadata['memberSha256'];entry['archiveMember']=metadata['member']
-  if source.startswith('kyoto-'):entry['retrievalMethod']='POST';entry['retrievalDescription']=metadata['retrieval'];entry['reviewedHashScope']='POSTDownloadedCsvBytesNotResourcePageHtml'
-  if metadata.get('httpLastModified'):entry['lastModified']=metadata['httpLastModified']
-  if metadata.get('fetchedAt'):entry['fetchedAt']=metadata['fetchedAt']
-  if scope=='reviewedPageFactSheetBytesNotPageHtml' and url not in t['urls']:t['urls'].append(url)
-  t['priorResearch'].append(entry);reviewed_resources.append({'targetId':t['id'],**entry})
-  if scope!='reviewedPageFactSheetBytesNotPageHtml' and not any(r['url']==url for r in t['rawResources']):t['rawResources'].append({'url':url,'title':source,'sha256':sha,'reviewedHashScope':entry['reviewedHashScope']})
+  sources=reviewed[t['id']] if isinstance(reviewed[t['id']],list) else [reviewed[t['id']]]
+  t['seedStatus']='implemented';t['reviewedSourceIds']=sources
+  for source in sources:
+   folder=ROOT/'services/data-pipeline/fixtures'/source
+   fetch_path=folder/'fetch.json'
+   metadata=json.loads(fetch_path.read_text()) if fetch_path.exists() else {}
+   page_fact=source.endswith('-airport-smoking-places') or source in PAGE_FACT_SOURCES
+   adapter_path=ROOT/'services/api/src/pipeline'/('taito.ts' if source.startswith('taito-') else source.removesuffix('-smoking-places')+'-adapter.ts' if page_fact else 'osaka-adapter.ts')
+   if page_fact:
+    # The release is MannerPath's reviewed fact sheet for one HTML page (ADR-0018 §4), not a publisher file: the hash
+    # is the sheet's, the URL the page's, and nothing is a raw resource.
+    code=adapter_path.read_text();url=re.search(r'PAGE_URL = "(https://[^"]+)"',code).group(1);sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='reviewedPageFactSheetBytesNotPageHtml'
+    metadata={'fetchedAt':re.search(r'fetchedAt: "([^"]+)"',code).group(1)}
+    fact_path=folder/(source.removesuffix('-smoking-places')+'-page-facts.csv')
+    assert hashlib.sha256(fact_path.read_bytes()).hexdigest()==sha, source
+    assert (folder/'PROVENANCE.md').exists(), source
+   elif metadata:
+    url=metadata['sourceUrl'];sha=metadata.get('archiveSha256',metadata.get('contentSha256'));scope='rawArchiveBytes' if metadata.get('archiveSha256') else 'rawResponseBytes'
+   else:
+    code=adapter_path.read_text();url=re.search(r'https://[^"\s]+\.csv',code).group();sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='rawResponseBytes'
+   entry={'reference':str((folder/'PROVENANCE.md').relative_to(ROOT)),'status':'implemented','sourceId':source,'blockerCodes':[],'rawUrls':[url],'sha256':sha,'reviewedHashScope':scope}
+   if source.startswith('musashino-'):
+    entry['extractedMemberSha256']=metadata['contentSha256'];entry['extractedMember']='doc.kml';entry['archiveMemberSha256']=metadata['memberSha256'];entry['archiveMember']=metadata['member']
+   if source.startswith('kyoto-'):entry['retrievalMethod']='POST';entry['retrievalDescription']=metadata['retrieval'];entry['reviewedHashScope']='POSTDownloadedCsvBytesNotResourcePageHtml'
+   if metadata.get('httpLastModified'):entry['lastModified']=metadata['httpLastModified']
+   if metadata.get('fetchedAt'):entry['fetchedAt']=metadata['fetchedAt']
+   if scope=='reviewedPageFactSheetBytesNotPageHtml' and url not in t['urls']:t['urls'].append(url)
+   t['priorResearch'].append(entry);reviewed_resources.append({'targetId':t['id'],**entry})
+   if scope!='reviewedPageFactSheetBytesNotPageHtml' and not any(r['url']==url for r in t['rawResources']):t['rawResources'].append({'url':url,'title':source,'sha256':sha,'reviewedHashScope':entry['reviewedHashScope']})
  elif t['priorResearch']:
   t['seedStatus']='blocked';t['blockerCodes']=sorted({c for p in t['priorResearch'] for c in p['blockerCodes']})
 # Other survey references required by the batch are explicitly retained.
@@ -167,7 +170,7 @@ manifest={'version':1,'generatedBy':'generate-manifest.py','scope':'local-only d
 seed={'version':1,'note':'Imported prior raw inspections only; hashes do not replace raw bytes or grant reuse rights. URL skip applies to inspected unchanged releases only.','resources':seeds,'reviewedResources':reviewed_resources,'researchReferences':manifest['researchReferences']}
 # Jurisdiction boundaries prevent 津市 inheriting 大津市/草津市 or 港 inheriting 港区.
 assert not any('大津市' in p.get('evidence','') or '草津市' in p.get('evidence','') for t in targets if t['id']=='city-tsu' for p in t['priorResearch'])
-assert {r['sourceId'] for r in reviewed_resources}==set(reviewed.values())
+assert {r['sourceId'] for r in reviewed_resources}=={s for v in reviewed.values() for s in (v if isinstance(v,list) else [v])}
 assert all(r['rawUrls'] and len(r['sha256'])==64 for r in reviewed_resources)
 assert len({t['id'] for t in targets})==len(targets)
 assert sum('prefecturalCapital' in t['roles'] for t in targets)==47

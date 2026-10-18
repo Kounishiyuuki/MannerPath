@@ -393,10 +393,10 @@ test("19: every reviewed source's real pipeline: candidates change nothing, v3 b
   const db = new SqliteD1();
   await importAllReviewedSources(db, NOW);
   await publishTiles(db, { now: NOW });
-  // All sixteen repository-reviewed sources include Sendai, eight airport and 14 Chuo park facility anchors; two Taito rows stay unpublished.
-  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 538);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 536);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshots").n, 92);
+  // All seventeen repository-reviewed sources include Sendai, eight airport, 14 Chuo park and 47 Chuo private facility anchors; two Taito rows stay unpublished.
+  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 585);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 583);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshots").n, 93);
   const bundleBefore = await buildMultiSourcePromotionBundle(db);
   const before = canonical(db);
   await generateCrossSourceCandidates(db, { now: NOW });

@@ -518,6 +518,37 @@
           "reviewDueAt": "2027-01-18"
         }
       ]
+    },
+    {
+      "sourceId": "chuo-private-smoking-places",
+      "rightsReviewedAt": "2026-10-18",
+      "rightsEvidence": "このホームページの詳細情報「著作権について」; factReference under ADR-0018; anchors are the official address's ABR representative point (公共データ利用規約1.0, separate dataset).",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-18",
+      "reviewDueAt": "2027-01-18",
+      "reviewerNote": "Re-read the private (民間指定喫煙場所) list section, every 備考 suspension note, 晴海客船ターミナル's operation, paspa小舟町's 紙巻き suspension and the copyright clause. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "著作権について 区ホームページ",
+                "end": "免責事項"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権について"
+            ]
+          },
+          "reviewedFingerprint": "779124217efa382b00333efaf304e7cd869964c0680564f7f70436d293bd0f66",
+          "reviewedAt": "2026-10-18",
+          "reviewDueAt": "2027-01-18"
+        }
+      ]
     }
   ]
 }

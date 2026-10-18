@@ -1480,6 +1480,19 @@
       "sha256": "be67c5505848afc9dd1ae4c4194b10a99f04f6363b0f6e43b0c197488be06d9c",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-18T05:20:36Z"
+    },
+    {
+      "targetId": "ward-chuo",
+      "reference": "services/data-pipeline/fixtures/chuo-private-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "chuo-private-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+      ],
+      "sha256": "464673d8e558c1bc9f9429fd58b5762d8a123f70fd9eb9285294248056ef1442",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-18T10:56:21Z"
     }
   ],
   "researchReferences": [
