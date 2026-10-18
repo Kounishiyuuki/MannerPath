@@ -270,6 +270,29 @@ Reviewed 2026-10-18 under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet, exclu
 | Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-18; local DB only |
 | Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
 
+### 千代田区 無料喫煙所（公衆喫煙所） — ADR-0018 factReference page-fact source, address-geocode anchors
+
+Reviewed 2026-10-19 under ADR-0018 (D-A item 5, D-R, D-C). Normalized fact sheet, batch triage, exclusions, anchor and
+rights reading: `services/data-pipeline/fixtures/chiyoda-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `chiyoda-smoking-places` |
+| Name / publisher | 千代田区ホームページ「無料喫煙所（公衆喫煙所）のご案内」 / 千代田区 |
+| Kind | municipal |
+| Official source URL | https://www.city.chiyoda.lg.jp/koho/machizukuri/sekatsu/jore/muryokitsuenjo.html |
+| Rights basis | **factReference** (ADR-0018 §3). 千代田区ホームページ利用規約 allows copying and adaptation, commercial use included, with a source credit and an edited/processed statement; photos/illustrations excluded; the SMOKING AREA MAP images are excluded by the ward and not used. Only normalized names, hours, existence and the page's address lots are stored. Engineering classification, not legal clearance |
+| Anchor source | ABR representative point of each row's own address (abr-geocoder 2.3.1, pinned release `ADDRESS_ANCHOR_DATASET_RELEASE`, gate `address-anchor-gate.v2`, `residential_detail` only in this release). Supplies points only, never existence. No SRID stated; approximate pin only |
+| Required attribution text | `出典：千代田区ホームページ「無料喫煙所（公衆喫煙所）のご案内」（…）を加工して作成（2026-10-19確認）。位置の目安：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約 第1.0版）の住所代表点…` (full text in the adapter) |
+| Geographic scope / completeness | 30 spots from 31 of the 78 listed places (bulk-intake adoptable rows). 47 excluded: one suspended, one mobile trailer, 9 without a single lot or with an area remainder, 38 whose lot ABR resolves only at parcel/町字 level or with an unmatched remainder. Partial |
+| Location | `areaApproximate`, `locationArea.scope = facility`, kind `facility`: an address point, never the smoking room's own point. 三久ビル喫煙所 and paspa霞が関 share one address and are **one** spot |
+| Hours / access | Page 開放時間 kept verbatim and always unparsed. `accessType = public`, `spotType = publicSmokingRoom`, `environment = indoor` (the page's 助成施設 definition); tobacco types and host type unknown |
+| Observation date | `observedOn = 2026-10-19`, the day the current page was checked (D-C); not a site visit |
+| Current operation | Listed without suspension on the current page; source health re-checks the whole scoped list with the 助成施設 definition and the 利用規約 (review-metadata.json) |
+| Reviewed release | Fact sheet SHA-256 `535f8940d3551c3a218c4c8c500ad28bfe30a6536b074e5b6b10c595994a5d61`; 30 records → 30 published spots |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-19; local DB only |
+| Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
+
 ### 江東区 公共喫煙所一覧（公園） — blocked candidate
 
 Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv

@@ -129,7 +129,9 @@ reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designat
 reviewed.update({'operator-'+slug+'-airport':slug+'-airport-smoking-places' for slug,*_ in AIRPORT_OPERATORS})
 # ADR-0018 municipal page-fact source: 中央区's current smoking list, anchored at its own CC BY park list points.
 reviewed['ward-chuo']='chuo-park-smoking-places'
-PAGE_FACT_SOURCES={'chuo-park-smoking-places'}
+# 千代田区's current free smoking place list, anchored at ABR points of its own addresses (ADR-0018 item 5).
+reviewed['ward-chiyoda']='chiyoda-smoking-places'
+PAGE_FACT_SOURCES={'chuo-park-smoking-places','chiyoda-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:

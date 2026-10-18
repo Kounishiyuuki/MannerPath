@@ -16,6 +16,7 @@ import { MINATO_DATA_URL } from "../src/pipeline/minato-adapter.ts";
 import { KYOTO_DATA_URL } from "../src/pipeline/kyoto-adapter.ts";
 import { KOMATSU_AIRPORT_PAGE_URL } from "../src/pipeline/komatsu-airport-adapter.ts";
 import { CHUO_PARK_PAGE_URL } from "../src/pipeline/chuo-park-adapter.ts";
+import { CHIYODA_PAGE_URL } from "../src/pipeline/chiyoda-adapter.ts";
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -38,6 +39,7 @@ const repositoryReviewedResources: Record<string, { filename: string; url: strin
 
   "komatsu-airport-smoking-places": { filename: "komatsu-airport-page-facts.csv", url: KOMATSU_AIRPORT_PAGE_URL },
   "chuo-park-smoking-places": { filename: "chuo-park-page-facts.csv", url: CHUO_PARK_PAGE_URL },
+  "chiyoda-smoking-places": { filename: "chiyoda-page-facts.csv", url: CHIYODA_PAGE_URL },
 };
 // Reviewed sources with no health target, and why. Every SOURCE_ADAPTERS entry is exactly one of: deployed, repository-
 // reviewed, or listed here (test/source-health-unified.test.ts), so the --repository-reviewed count is never incidental.
@@ -65,6 +67,12 @@ const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
     scope: { kind: "htmlText", ranges: [{ start: "区営指定喫煙場所 1.楓川久安橋公園", end: "民間指定喫煙場所 1." }],
       requiredMarkers: ["楓川久安橋公園", "数寄屋橋公園", "楓川新富橋公園", "5.築地川公園", "築地川亀井橋公園", "築地川銀座公園", "築地川千代橋公園（東側）", "築地川千代橋公園（西側）", "楓川弾正橋公園", "地蔵橋公園", "蛎殻町公園", "浜町公園", "佃公園", "石川島公園（中央大橋側）", "石川島公園（相生橋側）", "新月島公園"] },
     reviewedFingerprint: "08010a782b9a99d16fe3fbf46ba05432c09f7016fb2f3dc2aa3bec420b85ae67",
+  },
+  // The whole list (区営 and 助成施設) through the page's definition of 助成施設, so a suspension note anywhere re-opens review.
+  "chiyoda-smoking-places": {
+    scope: { kind: "htmlText", ranges: [{ start: "秋葉原駅エリア 芳林公園喫煙所（区営）", end: "すべて助成施設となります。" }],
+      requiredMarkers: ["Smoking Place 木倉食品", "paspa秋葉原高架下", "AKIBA BREATH", "スモーキングプレイス・マツイ", "paspa内神田", "smoking room ohira", "神田駅西口商店街喫煙所", "セブン-イレブン神田駅西口通り店内喫煙所", "スモーキングスペース TeeTime", "paspa鍛冶町", "paspa小伝馬町", "THE TOBACCO IWAMOTOCHO", "paspa東神田", "朝陽ビル無料公衆喫煙所", "ヒライ商会", "Smo9 o2", "Smoking Room 九段北店", "九段会館テラス地下1階喫煙所", "paspa飯田橋西口", "paspa飯田橋東口", "ピュアウッドガーデン", "THE TOBACCO IIDABASHI", "一服（Ippuku）平河町店", "paspa 永田町", "三久ビル喫煙所", "paspa霞が関", "THE TABACCO 2:50.76", "THE TOBACCO HIBIYA", "paspa市ヶ谷", "喜助お茶の水ビル喫煙所", "paspa西神田"] },
+    reviewedFingerprint: "0e14537fd9368f9bcda25a69d11ddf0a34e58e3369fbd9c5e97cbd264b72f461",
   },
 };
 // Read ZIP central directory rather than trusting local headers/data descriptors. No files are written.
