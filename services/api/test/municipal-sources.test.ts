@@ -53,8 +53,9 @@ const SOURCES: readonly Row[] = [
 const n = (db: SqliteD1, sql: string, ...p: unknown[]) => (db.raw.prepare(sql).get(...p) as { n: number }).n;
 
 test("the bulk table covers exactly the reviewed municipal adapters", () => {
-  // Operator page-fact sources (ADR-0018) have no publisher coordinates to fail closed on; they have their own tests.
-  assert.deepEqual(SOURCES.map((s) => s.adapter), SOURCE_ADAPTERS.filter((a) => a.registry.kind === "municipal"));
+  // Page-fact sources (ADR-0018) have no publisher coordinates to fail closed on; they have their own tests.
+  assert.deepEqual(SOURCES.map((s) => s.adapter),
+    SOURCE_ADAPTERS.filter((a) => a.registry.kind === "municipal" && a.registry.rightsBasis?.kind !== "factReference"));
 });
 
 for (const s of SOURCES) {
