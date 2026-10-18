@@ -32,6 +32,7 @@ import { CHUO_PARK_ADAPTER, CHUO_PARK_FIXTURE_RELEASE, CHUO_PARK_SOURCE_ID } fro
 import { CHUO_PRIVATE_ADAPTER, CHUO_PRIVATE_FIXTURE_RELEASE, CHUO_PRIVATE_SOURCE_ID } from "../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_ADAPTER, CHIYODA_FIXTURE_RELEASE, CHIYODA_SOURCE_ID } from "../src/pipeline/chiyoda-adapter.ts";
 import { SHIBUYA_ADAPTER, SHIBUYA_FIXTURE_RELEASE, SHIBUYA_SOURCE_ID } from "../src/pipeline/shibuya-adapter.ts";
+import { TOSHIMA_ADAPTER, TOSHIMA_FIXTURE_RELEASE, TOSHIMA_SOURCE_ID } from "../src/pipeline/toshima-adapter.ts";
 import { MIYAZAKI_AIRPORT_ADAPTER, MIYAZAKI_AIRPORT_FIXTURE_RELEASE, MIYAZAKI_AIRPORT_SOURCE_ID } from "../src/pipeline/miyazaki-airport-adapter.ts";
 import { HIROSHIMA_AIRPORT_ADAPTER, HIROSHIMA_AIRPORT_FIXTURE_RELEASE, HIROSHIMA_AIRPORT_SOURCE_ID } from "../src/pipeline/hiroshima-airport-adapter.ts";
 
@@ -39,7 +40,7 @@ import { HIROSHIMA_AIRPORT_ADAPTER, HIROSHIMA_AIRPORT_FIXTURE_RELEASE, HIROSHIMA
 //   npm run local:pipeline -- osaka-designated-smoking-areas
 //   npm run local:pipeline -- koto-station-smoking-areas
 const sourceId = process.argv[2] ?? TAITO_SOURCE_ID;
-if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID, TAKAMATSU_AIRPORT_SOURCE_ID, KOCHI_AIRPORT_SOURCE_ID, MATSUYAMA_AIRPORT_SOURCE_ID, OITA_AIRPORT_SOURCE_ID, YONAGO_AIRPORT_SOURCE_ID, MIYAZAKI_AIRPORT_SOURCE_ID, HIROSHIMA_AIRPORT_SOURCE_ID, KOMATSU_AIRPORT_SOURCE_ID, CHUO_PARK_SOURCE_ID, CHUO_PRIVATE_SOURCE_ID, CHIYODA_SOURCE_ID, SHIBUYA_SOURCE_ID].includes(sourceId)) {
+if (process.argv.length > 3 || ![TAITO_SOURCE_ID, OSAKA_SOURCE_ID, KOTO_SOURCE_ID, MUSASHINO_SOURCE_ID, MINATO_SOURCE_ID, KYOTO_SOURCE_ID, SENDAI_SOURCE_ID, TAKAMATSU_AIRPORT_SOURCE_ID, KOCHI_AIRPORT_SOURCE_ID, MATSUYAMA_AIRPORT_SOURCE_ID, OITA_AIRPORT_SOURCE_ID, YONAGO_AIRPORT_SOURCE_ID, MIYAZAKI_AIRPORT_SOURCE_ID, HIROSHIMA_AIRPORT_SOURCE_ID, KOMATSU_AIRPORT_SOURCE_ID, CHUO_PARK_SOURCE_ID, CHUO_PRIVATE_SOURCE_ID, CHIYODA_SOURCE_ID, SHIBUYA_SOURCE_ID, TOSHIMA_SOURCE_ID].includes(sourceId)) {
   throw new Error(`local:pipeline: unreviewed source ${sourceId}`);
 }
 const selected = sourceId === HIROSHIMA_AIRPORT_SOURCE_ID ? {
@@ -51,6 +52,9 @@ const selected = sourceId === HIROSHIMA_AIRPORT_SOURCE_ID ? {
 } : sourceId === CHUO_PRIVATE_SOURCE_ID ? {
   adapter: CHUO_PRIVATE_ADAPTER, release: CHUO_PRIVATE_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/chuo-private-smoking-places/chuo-private-page-facts.csv",
+} : sourceId === TOSHIMA_SOURCE_ID ? {
+  adapter: TOSHIMA_ADAPTER, release: TOSHIMA_FIXTURE_RELEASE,
+  fixture: "../../data-pipeline/fixtures/toshima-smoking-places/toshima-page-facts.csv",
 } : sourceId === SHIBUYA_SOURCE_ID ? {
   adapter: SHIBUYA_ADAPTER, release: SHIBUYA_FIXTURE_RELEASE,
   fixture: "../../data-pipeline/fixtures/shibuya-smoking-places/shibuya-page-facts.csv",

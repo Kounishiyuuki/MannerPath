@@ -21,6 +21,7 @@ import { CHUO_PARK_ADAPTER } from "./chuo-park-adapter.ts";
 import { CHUO_PRIVATE_ADAPTER } from "./chuo-private-adapter.ts";
 import { CHIYODA_ADAPTER } from "./chiyoda-adapter.ts";
 import { SHIBUYA_ADAPTER } from "./shibuya-adapter.ts";
+import { TOSHIMA_ADAPTER } from "./toshima-adapter.ts";
 import { MIYAZAKI_AIRPORT_ADAPTER } from "./miyazaki-airport-adapter.ts";
 import { HIROSHIMA_AIRPORT_ADAPTER } from "./hiroshima-airport-adapter.ts";
 
@@ -32,4 +33,5 @@ export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
   CHUO_PARK_ADAPTER, CHUO_PRIVATE_ADAPTER,
   CHIYODA_ADAPTER,
   SHIBUYA_ADAPTER,
+  TOSHIMA_ADAPTER,
 ];

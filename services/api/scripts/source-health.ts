@@ -19,6 +19,7 @@ import { CHUO_PARK_PAGE_URL } from "../src/pipeline/chuo-park-adapter.ts";
 import { CHUO_PRIVATE_PAGE_URL } from "../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_PAGE_URL } from "../src/pipeline/chiyoda-adapter.ts";
 import { SHIBUYA_PAGE_URL } from "../src/pipeline/shibuya-adapter.ts";
+import { TOSHIMA_PAGE_URL } from "../src/pipeline/toshima-adapter.ts";
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -44,6 +45,7 @@ const repositoryReviewedResources: Record<string, { filename: string; url: strin
   "chuo-private-smoking-places": { filename: "chuo-private-page-facts.csv", url: CHUO_PRIVATE_PAGE_URL },
   "chiyoda-smoking-places": { filename: "chiyoda-page-facts.csv", url: CHIYODA_PAGE_URL },
   "shibuya-smoking-places": { filename: "shibuya-page-facts.csv", url: SHIBUYA_PAGE_URL },
+  "toshima-smoking-places": { filename: "toshima-page-facts.csv", url: TOSHIMA_PAGE_URL },
 };
 // Reviewed sources with no health target, and why. Every SOURCE_ADAPTERS entry is exactly one of: deployed, repository-
 // reviewed, or listed here (test/source-health-unified.test.ts), so the --repository-reviewed count is never incidental.
@@ -89,6 +91,12 @@ const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
     scope: { kind: "htmlText", ranges: [{ start: "台風や大雪などの気象状況により", end: "環境整備課きれいなまちづくり係" }],
       requiredMarkers: ["代々木駅東口喫煙所", "代々木駅西口喫煙所", "代々木二丁目あおい公園喫煙所", "神南1丁目香取屋ビル西側喫煙所", "paspa宮益坂", "クランクストリート加熱式たばこ喫煙所", "THE TOBACCO SHIBUYA SECOND", "THE TOBACCO DOGENZAKA", "THE TOBACCO DOGENZAKA SECOND", "THE TOBACCO AOYAMA", "ファミリーマート神宮前三丁目店喫煙所", "もこのたばこ（旧瀧島たばこ店）喫煙所", "渋谷キャスト", "渋谷ストリーム", "渋谷ソラスタ", "ラ・トゥール渋谷宇田川Abema Towers", "渋谷パルコ", "渋谷フクラス", "MIYASHITA PARK", "道玄坂通 dogenzaka-dori", "渋谷アクシュ", "関電不動産渋谷ビル", "BASE 1", "表参道ヒルズ", "WITH HARAJUKU", "東急プラザ原宿「ハラカド」", "アパホテル&リゾート西新宿五丁目タワー", "タイムズスクエアビル", "リンクスクエア新宿", "住友不動産新宿南口ビル", "ヒューリック将棋会館千駄ヶ谷ビル"] },
     reviewedFingerprint: "58e83b254ef67b8e1823fd389454d6a3a1e6d0e9a266d0b79b811117ef016b43",
+  },
+  // The whole 区指定喫煙所 list, including the suspended サンカクスクエア, so a new 休止 note or a removal re-opens review.
+  "toshima-smoking-places": {
+    scope: { kind: "htmlText", ranges: [{ start: "区指定喫煙所設置場所", end: "お問い合わせ" }],
+      requiredMarkers: ["池袋駅西口東京芸術劇場前喫煙所", "THETOBACCOIKEBUKURO", "ファミリーマート立教通り店", "THETOBACCOIKEBUKUROSECOND"] },
+    reviewedFingerprint: "39bf9e59d9bf09c1618cdbfeff97a2e0dfa4ff92b15a0bfebf950a2aeb8a30be",
   },
 };
 // Read ZIP central directory rather than trusting local headers/data descriptors. No files are written.

@@ -612,6 +612,37 @@
           "reviewDueAt": "2027-01-19"
         }
       ]
+    },
+    {
+      "sourceId": "toshima-smoking-places",
+      "rightsReviewedAt": "2026-10-19",
+      "rightsEvidence": "豊島区ホームページ サイトポリシー「著作権について」 (無断で複製・転用不可, expression only; no prohibition of information use); factReference under ADR-0018; anchors are ABR address points (abr-geocoder 2.3.1, pinned release).",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-19",
+      "reviewDueAt": "2027-01-19",
+      "reviewerNote": "Re-read the 区指定喫煙所 list and its 休止 notes (サンカクスクエア suspended from 8/26), the サイトポリシー copyright clause and each adopted row's address. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.toshima.lg.jp/012/kuse/koho/homepage/sitepolicy.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "当サイト上の文書や画像等の各ファイル",
+                "end": "文化庁：著作権制度に関する情報"
+              }
+            ],
+            "requiredMarkers": [
+              "無断で複製・転用することはできません"
+            ]
+          },
+          "reviewedFingerprint": "5ab21938b7b448f34b86a8b9525cd660bd31ed4396bb694a1312f0d5030c21a3",
+          "reviewedAt": "2026-10-19",
+          "reviewDueAt": "2027-01-19"
+        }
+      ]
     }
   ]
 }

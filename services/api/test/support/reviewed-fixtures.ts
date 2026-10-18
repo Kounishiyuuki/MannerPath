@@ -28,6 +28,7 @@ import { CHUO_PARK_FIXTURE_RELEASE, CHUO_PARK_SOURCE_ID } from "../../src/pipeli
 import { CHUO_PRIVATE_FIXTURE_RELEASE, CHUO_PRIVATE_SOURCE_ID } from "../../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_FIXTURE_RELEASE, CHIYODA_SOURCE_ID } from "../../src/pipeline/chiyoda-adapter.ts";
 import { SHIBUYA_FIXTURE_RELEASE, SHIBUYA_SOURCE_ID } from "../../src/pipeline/shibuya-adapter.ts";
+import { TOSHIMA_FIXTURE_RELEASE, TOSHIMA_SOURCE_ID } from "../../src/pipeline/toshima-adapter.ts";
 import { MIYAZAKI_AIRPORT_FIXTURE_RELEASE, MIYAZAKI_AIRPORT_SOURCE_ID } from "../../src/pipeline/miyazaki-airport-adapter.ts";
 import { HIROSHIMA_AIRPORT_FIXTURE_RELEASE, HIROSHIMA_AIRPORT_SOURCE_ID } from "../../src/pipeline/hiroshima-airport-adapter.ts";
 
@@ -41,6 +42,7 @@ export const REVIEWED_FIXTURES: Readonly<Record<string, { release: ReleaseMetada
   [CHUO_PRIVATE_SOURCE_ID]: { release: CHUO_PRIVATE_FIXTURE_RELEASE, file: "chuo-private-smoking-places/chuo-private-page-facts.csv" },
   [CHIYODA_SOURCE_ID]: { release: CHIYODA_FIXTURE_RELEASE, file: "chiyoda-smoking-places/chiyoda-page-facts.csv" },
   [SHIBUYA_SOURCE_ID]: { release: SHIBUYA_FIXTURE_RELEASE, file: "shibuya-smoking-places/shibuya-page-facts.csv" },
+  [TOSHIMA_SOURCE_ID]: { release: TOSHIMA_FIXTURE_RELEASE, file: "toshima-smoking-places/toshima-page-facts.csv" },
   [MIYAZAKI_AIRPORT_SOURCE_ID]: { release: MIYAZAKI_AIRPORT_FIXTURE_RELEASE, file: "miyazaki-airport-smoking-places/miyazaki-airport-page-facts.csv" },
   [HIROSHIMA_AIRPORT_SOURCE_ID]: { release: HIROSHIMA_AIRPORT_FIXTURE_RELEASE, file: "hiroshima-airport-smoking-places/hiroshima-airport-page-facts.csv" },
   [SENDAI_SOURCE_ID]: { release: SENDAI_FIXTURE_RELEASE, file: "sendai-kaigan-park-smoking-areas/041009_public_facility.csv" },

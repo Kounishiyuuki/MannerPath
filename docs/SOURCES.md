@@ -338,6 +338,29 @@ rights reading: `services/data-pipeline/fixtures/shibuya-smoking-places/PROVENAN
 | Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-19; local DB only |
 | Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
 
+### 豊島区 区指定喫煙所 — ADR-0018 factReference page-fact source, address-geocode anchors
+
+Reviewed 2026-10-19 under ADR-0018 (D-A item 5, D-R, D-C). Normalized fact sheet, batch triage, exclusions, anchor and
+rights reading: `services/data-pipeline/fixtures/toshima-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `toshima-smoking-places` |
+| Name / publisher | 豊島区ホームページ「区指定喫煙所」 / 豊島区 |
+| Kind | municipal |
+| Official source URL | https://www.city.toshima.lg.jp/152/machizukuri/sumai/bika/taisaku/025701.html |
+| Rights basis | **factReference** (ADR-0018 §3). サイトポリシー「著作権について」: 無断で複製・転用不可 (expression); no clause prohibits information use, data acquisition or databases. Only normalized names, hours, addresses and existence are stored. Engineering classification, not legal clearance |
+| Anchor source | ABR representative point of each row's own address (abr-geocoder 2.3.1, pinned release `ADDRESS_ANCHOR_DATASET_RELEASE`, gate `address-anchor-gate.v2`, all `residential_detail`). Supplies points only, never existence. No SRID stated; approximate pin only |
+| Required attribution text | `出典：豊島区ホームページ「区指定喫煙所」（…）（2026-10-19確認）。MannerPathが事実のみを正規化して作成。位置の目安：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約 第1.0版）の住所代表点…` (full text in the adapter) |
+| Geographic scope / completeness | 7 listed → 4 spots. Not published: 池袋駅東口・北口 (区営, frontage 「…番先」 only) and サンカクスクエア (休止). Partial |
+| Location | `areaApproximate`, `locationArea.scope = facility`, kind `facility`: an address point, never the smoking place, entrance or floor |
+| Hours / access | Page 時間 verbatim, always unparsed. `accessType = public`; `hostType = municipality` only for the 区営 place; spot type, environment and tobacco types unknown |
+| Observation date | `observedOn = 2026-10-19`, the day the current page was checked (D-C); not a site visit |
+| Current operation | Listed without suspension on the current page; source health re-checks the whole list, including the suspended row, and the copyright clause (review-metadata.json) |
+| Reviewed release | Fact sheet SHA-256 `feb1e8201a0839a3f24d61769da8fc5968aeca3c62062ec6a761fac901ddc31c`; 4 records → 4 published spots |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-19; local DB only |
+| Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
+
 ### 江東区 公共喫煙所一覧（公園） — blocked candidate
 
 Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv

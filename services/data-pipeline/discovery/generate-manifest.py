@@ -137,6 +137,9 @@ PAGE_FACT_SOURCES|={'chiyoda-smoking-places'}
 # 渋谷区's 区内公共喫煙所一覧, anchored at ABR points of its own addresses (ADR-0018 item 5).
 reviewed['ward-shibuya']='shibuya-smoking-places'
 PAGE_FACT_SOURCES|={'shibuya-smoking-places'}
+# 豊島区's 区指定喫煙所, anchored at ABR points of its own addresses (ADR-0018 item 5).
+reviewed['ward-toshima']='toshima-smoking-places'
+PAGE_FACT_SOURCES|={'toshima-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:
