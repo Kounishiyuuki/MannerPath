@@ -5,7 +5,8 @@
 // address's ABR representative point, never the smoking place, an entrance or a floor, so the spot stays
 // `areaApproximate` (scope `facility`). Anything the gate cannot accept is `reviewPending`: no point is invented.
 //
-// The geocoder runs outside the repository (abr-geocoder needs Node ≤23 and the ABR download); its JSON output is the
+// The geocoder runs outside the repository (abr-geocoder 2.3.1 does not run on Node 24; observed working on 23.3.0 and
+// 22.23.3, see scripts/address-anchor-candidates.ts) with the ABR download; its JSON output is the
 // input here, pinned by geocoder version and dataset release digest (scripts/address-anchor-candidates.ts).
 import { type GeocodeRun, REVIEWED_GEOCODERS, evaluateDerivedCoordinate } from "./derived-coordinate.ts";
 
@@ -84,6 +85,28 @@ export function buildingSuffix(address: string, run: GeocodeRun): string | null 
   if (/\d+\s*[-番号]/.test(text) || /^-/.test(text) || /^\d+(?!\d*階)/.test(text)) return null;
   const lot = address.slice(0, -suffix.length).trimEnd();
   return /[\d０-９]号?$/.test(lot) ? suffix : null;
+}
+
+const TOKYO_WARDS = ["千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区", "品川区", "目黒区", "大田区",
+  "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"];
+const PREFECTURE_PREFIX = /^(北海道|東京都|京都府|大阪府|[^\s\d]{2,3}県)/;
+
+/**
+ * The one reviewed completion of a listing's address cell (F3). A municipality's own list often omits 「東京都○○区」; the
+ * page's publisher IS that municipality, so its own name may be prefixed — nothing else. `scope` is the source's single
+ * publishing municipality, never a guess from the address. A cell that names another prefecture or another Tokyo ward,
+ * or the same prefecture with another municipality, is out of scope and returns null (never re-homed).
+ */
+export function completeOfficialAddress(cell: string, scope: { prefecture: string; municipality: string }):
+  { address: string; completed: "none" | "prefecture" | "prefectureAndMunicipality" } | null {
+  const text = cell.trim();
+  const { prefecture, municipality } = scope;
+  if (text === "") return null;
+  if (text.startsWith(prefecture + municipality)) return { address: text, completed: "none" };
+  if (PREFECTURE_PREFIX.test(text)) return null;
+  if (text.startsWith(municipality)) return { address: prefecture + text, completed: "prefecture" };
+  if (prefecture === "東京都" && TOKYO_WARDS.some((w) => text.startsWith(w))) return null;
+  return { address: prefecture + municipality + text, completed: "prefectureAndMunicipality" };
 }
 
 export function evaluateAddressAnchor(input: AddressAnchorInput): AddressAnchorResult {

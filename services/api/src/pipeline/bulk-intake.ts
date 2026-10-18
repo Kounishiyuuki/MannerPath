@@ -4,7 +4,7 @@
 // row, `adoptable` (could become an areaApproximate fact-sheet row once a maintainer pins it), `needsReview` or
 // `rejected`, with reasons, and the counts by reason. Nothing here records anchors, ingests or publishes: adopting rows
 // stays the reviewed adapter + fixture path (e.g. chuo-park-adapter.ts), so every existing gate still runs on them.
-import { type AddressAnchorResult, type GeocodeRun, evaluateAddressAnchor } from "./address-anchor.ts";
+import { type AddressAnchorResult, type GeocodeRun, completeOfficialAddress, evaluateAddressAnchor } from "./address-anchor.ts";
 import { REVIEWED_SOURCES, type ReviewedSource } from "./registry.ts";
 
 export const BULK_INTAKE_VERSION = "bulk-intake.v1";
@@ -13,8 +13,9 @@ export interface IntakeRow {
   /** Stable within the batch (e.g. `<ward>:<listing order>`). */
   id: string;
   name: string;
-  /** The publisher's address cell verbatim; null when the listing gives none. */
+  /** The publisher's address cell verbatim; null when the listing gives none. May omit the source's own 都道府県/区. */
   officialAddress: string | null;
+  /** The source's publishing municipality (its scope), not one read from the address. */
   prefecture: string;
   municipality: string;
   /** What the listing says at checkedAt: only `listed` is current operation. */
@@ -86,9 +87,12 @@ export function evaluateIntakeBatch(
     if (sourceLevel !== null) for (const r of sourceLevel.reasons) (sourceLevel.decision === "rejected" ? reject : review)(r);
 
     const hasAddress = (row.officialAddress ?? "").trim() !== "";
-    const geocode = geocodes.get(row.id) ?? null;
-    const anchor = evaluateAddressAnchor({ officialAddress: row.officialAddress, expectedPrefecture: row.prefecture,
-      expectedMunicipality: row.municipality, geocode: hasAddress ? geocode : null });
+    // F3: only the source's own prefecture/municipality may complete the cell; another jurisdiction is never re-homed.
+    const completed = hasAddress ? completeOfficialAddress(row.officialAddress!, row) : null;
+    const anchor: AddressAnchorResult = hasAddress && completed === null
+      ? { status: "reviewPending", reasons: ["outsideSourceScope"] }
+      : evaluateAddressAnchor({ officialAddress: completed?.address ?? null, expectedPrefecture: row.prefecture,
+        expectedMunicipality: row.municipality, geocode: completed === null ? null : geocodes.get(row.id) ?? null });
     if (anchor.status === "reviewPending") for (const r of anchor.reasons) review(`address:${r}`);
     return { id: row.id, decision, reasons, locationPrecision: anchor.status === "anchor" ? "areaApproximate" : null,
       anchor: anchor.status === "anchor" ? anchor : null, sameAnchorGroup: null };

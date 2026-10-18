@@ -66,7 +66,7 @@ test("a batch is triaged per row with reasons and counts; shared points count on
   ] };
   assert.equal(geocoderInput(batch).split("\n").filter(Boolean).length, 8);
   const abrOut = [PLAIN, FLOOR, FLOOR, SAKI, PLAIN, PLAIN, FLOOR, PLAIN];
-  const s = evaluateIntakeBatch(batch, geocodesByRow(batch, abrOut), [SOURCE]);
+  const s = evaluateIntakeBatch(batch, geocodesByRow(batch, abrOut, ADDRESS_ANCHOR_DATASET_RELEASE), [SOURCE]);
   const by = new Map(s.results.map((r) => [r.id, r]));
   assert.deepEqual(s.decisions, { adoptable: 3, needsReview: 3, rejected: 3 });
   assert.equal(s.adoptableSpots, 2, "b and c share the lot point: one spot");
@@ -84,7 +84,7 @@ test("a batch is triaged per row with reasons and counts; shared points count on
 
 test("source rights and publication come only from the reviewed registry", () => {
   const batch = (sourceId: string): IntakeBatch => ({ sourceId, checkedAt: "2026-10-18", rows: [row("a", PLAIN.query.input)] });
-  const geocodes = geocodesByRow(batch("x"), [PLAIN]);
+  const geocodes = geocodesByRow(batch("x"), [PLAIN], ADDRESS_ANCHOR_DATASET_RELEASE);
   assert.deepEqual(evaluateIntakeBatch(batch("unlisted"), geocodes, [SOURCE]).results[0].reasons, ["sourceNotReviewed"]);
   const blocked = evaluateIntakeBatch(batch("test-ward"), geocodes, [{ ...SOURCE, publicationStatus: "blocked" }]).results[0];
   assert.deepEqual([blocked.decision, blocked.reasons], ["rejected", ["sourceBlocked"]]);
@@ -96,8 +96,19 @@ test("source rights and publication come only from the reviewed registry", () =>
 
 test("geocoder output is paired by order and any misalignment is refused", () => {
   const b: IntakeBatch = { sourceId: "test-ward", checkedAt: "2026-10-18", rows: [row("a", PLAIN.query.input), row("b", null), row("c", FLOOR.query.input)] };
-  assert.equal(geocodesByRow(b, [PLAIN, FLOOR]).size, 2);
-  assert.throws(() => geocodesByRow(b, [FLOOR, PLAIN]), /is not its official address/);
-  assert.throws(() => geocodesByRow(b, [PLAIN]), /2 addressed rows but 1/);
+  assert.equal(geocodesByRow(b, [PLAIN, FLOOR], ADDRESS_ANCHOR_DATASET_RELEASE).size, 2);
+  assert.throws(() => geocodesByRow(b, [FLOOR, PLAIN], ADDRESS_ANCHOR_DATASET_RELEASE), /is not its official address/);
+  assert.throws(() => geocodesByRow(b, [PLAIN], ADDRESS_ANCHOR_DATASET_RELEASE), /2 addressed rows but 1/);
   assert.throws(() => geocoderInput({ ...b, rows: [row("x", "東京都中央区\n銀座")] }), /spans lines/);
+});
+
+test("F3 in a batch: a cell completes only with the source's own ward; another ward is outsideSourceScope and never geocoded", () => {
+  const b: IntakeBatch = { sourceId: "test-ward", checkedAt: "2026-10-18", rows: [
+    row("a", "京橋1丁目2番1号"), row("b", "千代田区丸の内1-1"), row("c", "東京都港区新橋1-1")] };
+  assert.equal(geocoderInput(b), `${PLAIN.query.input}\n`);
+  const s = evaluateIntakeBatch(b, geocodesByRow(b, [PLAIN], ADDRESS_ANCHOR_DATASET_RELEASE), [SOURCE]);
+  assert.deepEqual(s.results.map((r) => [r.id, r.decision, r.reasons]),
+    [["a", "adoptable", []], ["b", "needsReview", ["address:outsideSourceScope"]], ["c", "needsReview", ["address:outsideSourceScope"]]]);
+  // A release id that verifyDatasetDir did not return is not pinned: no row becomes adoptable.
+  assert.equal(evaluateIntakeBatch(b, geocodesByRow(b, [PLAIN], "abr-unverified"), [SOURCE]).decisions.adoptable, 0);
 });
