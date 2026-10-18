@@ -1,0 +1,797 @@
+{
+  "schema": "tokyo-major-stations-research.v1",
+  "checkedAt": "2026-10-17T16:53:58.635939+00:00",
+  "base": "ea54c9c814776c0bc77ade5815b35d87a4ae8b1e",
+  "publicationApproved": false,
+  "readyNewSpots": 0,
+  "implementation": "none",
+  "baseline": {
+    "kind": "local replay of six pinned reviewed fixtures, NOT remote production census",
+    "published": 513,
+    "tiles": 81,
+    "script": "importProductionBaselineSources(SqliteD1, now); publishTiles; assemble via v1TileRows",
+    "now": "2026-10-18T01:00:00Z",
+    "baselineSourceIds": [
+      "taito-public-smoking-areas",
+      "osaka-designated-smoking-areas",
+      "koto-station-smoking-areas",
+      "musashino-public-smoking-areas",
+      "minato-designated-smoking-areas",
+      "kyoto-public-smoking-places"
+    ],
+    "taitoLiveCsvMatchesPinnedBytes": true,
+    "taitoCsvSha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74",
+    "taitoRawRows": 34,
+    "taitoPublished": 32
+  },
+  "stationMethod": {
+    "purpose": "research-only distance analysis; never existence/spot provenance or a new registered anchor",
+    "catalog": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2025.html",
+    "license": "CC BY 4.0; processed from MLIT National Land Numerical Information railway data (2025)",
+    "terms": "https://nlftp.mlit.go.jp/ksj/other/agreement_01.html",
+    "archiveMember": "N02-25_GML/UTF-8/N02-25_Station.geojson",
+    "crs": "JGD2011 geographic latitude/longitude (publisher catalog); JSON axes longitude,latitude",
+    "selection": "Exact station+line+operator in recorded referenceFeatures. JR Yamanote at Shinjuku/Shibuya/Ikebukuro, JR Tohoku at Tokyo, Tokyo Metro Ginza at Asakusa. Include ALL features matching that triple; Asakusa TX is separate. Selection is a declared analysis convention, not an official central entrance.",
+    "center": "For every consecutive pair of vertices, compute segment length via haversine R=6371008.8m; length-weight coordinate midpoints across all selected segments. Linear midpoint of longitude/latitude; no official center Point claimed.",
+    "distance": "haversine R=6371008.8m, inclusive <=1000m against unrounded derived center; round displayed metres to one decimal AFTER filtering",
+    "caveat": "Straight-line screening, not walk route, exit accessibility or exact boundary guarantee. Station line vintages/spot position uncertainty remain; boundary-near rows require review. No rough two-decimal campaign seed reused as an exact station center.",
+    "attribution": "国土交通省 国土数値情報 鉄道データ（2025年度）を加工して作成、CC BY 4.0。駅中心は本調査の計算値。"
+  },
+  "stations": [
+    {
+      "station": "東京",
+      "referenceFeatures": [
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "東北線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "東京",
+            "N02_005c": "003766",
+            "N02_005g": "003766"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.76716,
+                35.68228
+              ],
+              [
+                139.76621,
+                35.67965
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "東北線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "東京",
+            "N02_005c": "003766",
+            "N02_005g": "003766"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.76778,
+                35.68294
+              ],
+              [
+                139.7678,
+                35.68112
+              ],
+              [
+                139.76708,
+                35.67945
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "東北線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "東京",
+            "N02_005c": "003766",
+            "N02_005g": "003766"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.76663,
+                35.67955
+              ],
+              [
+                139.76728,
+                35.68105
+              ],
+              [
+                139.76778,
+                35.68294
+              ]
+            ]
+          }
+        }
+      ],
+      "analyticalCenterLonLat": [
+        139.76723402751378,
+        35.68113435711794
+      ],
+      "existingPublishedCountWithin1km": 0,
+      "existingWithin1km": [],
+      "readyAdditions": 0,
+      "blockedWithin1kmCount": null
+    },
+    {
+      "station": "新宿",
+      "referenceFeatures": [
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "山手線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "新宿",
+            "N02_005c": "003701",
+            "N02_005g": "003700"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.70004,
+                35.69167
+              ],
+              [
+                139.70024,
+                35.68926
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "山手線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "新宿",
+            "N02_005c": "003701",
+            "N02_005g": "003700"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.7006,
+                35.68995
+              ],
+              [
+                139.70004,
+                35.69167
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "山手線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "新宿",
+            "N02_005c": "003701",
+            "N02_005g": "003700"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.70125,
+                35.6879
+              ],
+              [
+                139.70091,
+                35.68894
+              ],
+              [
+                139.70089,
+                35.68902
+              ],
+              [
+                139.70078,
+                35.68935
+              ],
+              [
+                139.7006,
+                35.68995
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "山手線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "新宿",
+            "N02_005c": "003701",
+            "N02_005g": "003700"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.70068,
+                35.69107
+              ],
+              [
+                139.70116,
+                35.68942
+              ],
+              [
+                139.70125,
+                35.68909
+              ],
+              [
+                139.70127,
+                35.68902
+              ],
+              [
+                139.70176,
+                35.68735
+              ]
+            ]
+          }
+        }
+      ],
+      "analyticalCenterLonLat": [
+        139.7007414025386,
+        35.689730191418874
+      ],
+      "existingPublishedCountWithin1km": 0,
+      "existingWithin1km": [],
+      "readyAdditions": 0,
+      "blockedWithin1kmCount": null
+    },
+    {
+      "station": "渋谷",
+      "referenceFeatures": [
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "山手線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "渋谷",
+            "N02_005c": "003932",
+            "N02_005g": "003922"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.70221,
+                35.65723
+              ],
+              [
+                139.70201,
+                35.65746
+              ],
+              [
+                139.70174,
+                35.65785
+              ],
+              [
+                139.70137,
+                35.6588
+              ],
+              [
+                139.70129,
+                35.65907
+              ]
+            ]
+          }
+        }
+      ],
+      "analyticalCenterLonLat": [
+        139.7016733093082,
+        35.658122137002444
+      ],
+      "existingPublishedCountWithin1km": 0,
+      "existingWithin1km": [],
+      "readyAdditions": 0,
+      "blockedWithin1kmCount": null
+    },
+    {
+      "station": "池袋",
+      "referenceFeatures": [
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "11",
+            "N02_002": "2",
+            "N02_003": "山手線",
+            "N02_004": "東日本旅客鉄道",
+            "N02_005": "池袋",
+            "N02_005c": "003390",
+            "N02_005g": "003390"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.71167,
+                35.73152
+              ],
+              [
+                139.7105,
+                35.72903
+              ]
+            ]
+          }
+        }
+      ],
+      "analyticalCenterLonLat": [
+        139.711085,
+        35.730275000000006
+      ],
+      "existingPublishedCountWithin1km": 0,
+      "existingWithin1km": [],
+      "readyAdditions": 0,
+      "blockedWithin1kmCount": null
+    },
+    {
+      "station": "浅草",
+      "referenceFeatures": [
+        {
+          "type": "Feature",
+          "properties": {
+            "N02_001": "12",
+            "N02_002": "4",
+            "N02_003": "3号線銀座線",
+            "N02_004": "東京地下鉄",
+            "N02_005": "浅草",
+            "N02_005c": "003522",
+            "N02_005g": "003522"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                139.79803,
+                35.71107
+              ],
+              [
+                139.79775,
+                35.71072
+              ],
+              [
+                139.79752,
+                35.71042
+              ]
+            ]
+          }
+        }
+      ],
+      "analyticalCenterLonLat": [
+        139.79777308391658,
+        35.71074598930546
+      ],
+      "existingPublishedCountWithin1km": 10,
+      "existingWithin1km": [
+        {
+          "name": "松葉公園内",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 951.0,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "浅草寺境内 ①「二尊仏前」東",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 320.5,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "浅草寺境内 ②「観音前警備派出所」北",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 376.9,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "浅草寺境内 ③「北側トイレ」南",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 542.5,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "浅草寺境内 ④「はとバス駐車場」西",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 529.8,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "台東リバーサイドスポーツセンター体育館前",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 983.4,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "隅田公園内",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 284.1,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "unparsed",
+            "raw": "7:00-19:00",
+            "parsed": null,
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "千束公園内",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 927.1,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "7:00-19:30",
+            "parsed": {
+              "v": 1,
+              "kind": "daily",
+              "opens": "07:00",
+              "closes": "19:30"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "セブン-イレブン　田原町駅前店",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 655.6,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "終日利用可能",
+            "parsed": {
+              "v": 1,
+              "kind": "allDay"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        },
+        {
+          "name": "SMOKING & COFFEE BAR SMOCO",
+          "sourceIds": [
+            "taito-public-smoking-areas"
+          ],
+          "distanceMetres": 52.5,
+          "supportsPaper": "unknown",
+          "supportsHeated": "unknown",
+          "hours": {
+            "status": "parsed",
+            "raw": "10:00-18:00",
+            "parsed": {
+              "v": 1,
+              "kind": "daily",
+              "opens": "10:00",
+              "closes": "18:00"
+            },
+            "timeZone": "Asia/Tokyo"
+          }
+        }
+      ],
+      "readyAdditions": 0,
+      "blockedWithin1kmCount": null
+    }
+  ],
+  "receipts": [
+    {
+      "id": "rail-catalog",
+      "url": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2025.html",
+      "retrievedAt": "2026-10-17T16:50:12.632066+00:00",
+      "status": "200 https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2025.html",
+      "exit": 0,
+      "bytes": 54968,
+      "sha256": "1db94a174fa3bbc52b07219becd5a69b3172249511b01e51951e695d95bdcbdb"
+    },
+    {
+      "id": "rail-terms",
+      "url": "https://nlftp.mlit.go.jp/ksj/other/agreement_01.html",
+      "retrievedAt": "2026-10-17T16:50:12.777800+00:00",
+      "status": "200 https://nlftp.mlit.go.jp/ksj/other/agreement_01.html",
+      "exit": 0,
+      "bytes": 62474,
+      "sha256": "1372b3fc973f3de1781f7d4267d4174e886d8a5e881826394c3465c5a6f9f606"
+    },
+    {
+      "id": "taito-catalog",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html",
+      "retrievedAt": "2026-10-17T16:50:12.998755+00:00",
+      "status": "200 https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.html",
+      "exit": 0,
+      "bytes": 37656,
+      "sha256": "536a8644f4197bdef376b5ea4e3260eb16e5c019f06418b04dc59a088f655a1a"
+    },
+    {
+      "id": "taito-terms",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/about/opd.html",
+      "retrievedAt": "2026-10-17T16:50:13.133092+00:00",
+      "status": "200 https://www.city.taito.lg.jp/kusei/online/opendata/about/opd.html",
+      "exit": 0,
+      "bytes": 23549,
+      "sha256": "b5396097fcfd2e42350cb9624bd2eb2eefde1781b2a64c5bd1a7846c1c178aa8"
+    },
+    {
+      "id": "taito-current",
+      "url": "https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+      "retrievedAt": "2026-10-17T16:50:13.276034+00:00",
+      "status": "200 https://www.city.taito.lg.jp/kenchiku/machibika/kosyu/webmap.html",
+      "exit": 0,
+      "bytes": 31737,
+      "sha256": "568269abd87ac50e646021452abef40247fedca65575b310efeacab3606fc3f9"
+    },
+    {
+      "id": "taito-csv",
+      "url": "https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "retrievedAt": "2026-10-17T16:50:13.415771+00:00",
+      "status": "200 https://www.city.taito.lg.jp/kusei/online/opendata/seikatu/shisethutizujouhou.files/20260818_koshukitsuenjo.csv",
+      "exit": 0,
+      "bytes": 7266,
+      "sha256": "5123ee41251bf22ebacfbcaee5d781c883ad8823f8861c4824a3deff012c6c74"
+    },
+    {
+      "id": "chuo-current",
+      "url": "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html",
+      "retrievedAt": "2026-10-17T16:53:11.260584+00:00",
+      "status": "200 https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html",
+      "exit": 0,
+      "bytes": 43670,
+      "sha256": "11e4797882ee96ee8d181d8cc69d33b484616675146831cb1298a27d2f853e50"
+    },
+    {
+      "id": "chuo-policy",
+      "url": "https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html",
+      "retrievedAt": "2026-10-17T16:53:11.241773+00:00",
+      "status": "200 https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html",
+      "exit": 0,
+      "bytes": 24047,
+      "sha256": "84a2dd309de8aeb7696ffe9a7977c9ec56b27fd8a9cf666ae7763fcf5a4cc62c"
+    },
+    {
+      "id": "chuo-od",
+      "url": "https://www.city.chuo.lg.jp/kusei/gaiyou/toukeidate/opendata.html",
+      "retrievedAt": "2026-10-17T16:53:11.234537+00:00",
+      "status": "200 https://www.city.chuo.lg.jp/kusei/gaiyou/toukeidate/opendata.html",
+      "exit": 0,
+      "bytes": 25271,
+      "sha256": "a3bd5a0b51d916a1db196c06b9ac5214ca24c2bd452fa53195a92b945bda2a47"
+    },
+    {
+      "id": "chuo-terms",
+      "url": "https://www.city.chuo.lg.jp/documents/984/02termsofuse.pdf",
+      "retrievedAt": "2026-10-17T16:53:11.425088+00:00",
+      "status": "200 https://www.city.chuo.lg.jp/documents/984/02termsofuse.pdf",
+      "exit": 0,
+      "bytes": 164630,
+      "sha256": "21e488605406cb74f656c36bce074b0631d957c4deaa3a7f310301e9b8c2045f"
+    },
+    {
+      "id": "chuo-parks",
+      "url": "https://www.city.chuo.lg.jp/documents/984/koenichiran.csv",
+      "retrievedAt": "2026-10-17T16:53:11.393977+00:00",
+      "status": "200 https://www.city.chuo.lg.jp/documents/984/koenichiran.csv",
+      "exit": 0,
+      "bytes": 3179,
+      "sha256": "4afdc6462d1186f0a24efd2f20cdd0e4620bb57ea0f0f858570f17acc7f66979"
+    },
+    {
+      "id": "chuo-park-metadata",
+      "url": "https://spec.api.metro.tokyo.lg.jp/spec/t131024d0000000011-5314da4ae5dcc72a4ec03f2b26261faa-0?lang=en",
+      "retrievedAt": "2026-10-17T16:53:11.465108+00:00",
+      "status": "200 https://spec.api.metro.tokyo.lg.jp/spec/t131024d0000000011-5314da4ae5dcc72a4ec03f2b26261faa-0?lang=en",
+      "exit": 0,
+      "bytes": 90104,
+      "sha256": "9d7262b17d7b4b82ffe8910c6b2fe4bbb007920bcbeeb766152bf2030abb9842"
+    },
+    {
+      "id": "shinjuku-current",
+      "url": "https://www.city.shinjuku.lg.jp/seikatsu/file11_01_00003.html",
+      "retrievedAt": "2026-10-17T16:53:11.682917+00:00",
+      "status": "200 https://www.city.shinjuku.lg.jp/seikatsu/file11_01_00003.html",
+      "exit": 0,
+      "bytes": 71320,
+      "sha256": "1fb8012d3d661e5d90ab49fceb0ba1674b238c26f9fad7373b3b0d0f48fe65c5"
+    },
+    {
+      "id": "shinjuku-assisted",
+      "url": "https://www.city.shinjuku.lg.jp/kenkou/eisei01_000001_00005.html",
+      "retrievedAt": "2026-10-17T16:53:11.671815+00:00",
+      "status": "200 https://www.city.shinjuku.lg.jp/kenkou/eisei01_000001_00005.html",
+      "exit": 0,
+      "bytes": 68981,
+      "sha256": "7399a80e772933351ae1de0c9cd905aea0c834f10bd119cb1a3fc9853e77028c"
+    },
+    {
+      "id": "shinjuku-policy",
+      "url": "https://www.city.shinjuku.lg.jp/kusei/about.html",
+      "retrievedAt": "2026-10-17T16:53:11.695757+00:00",
+      "status": "200 https://www.city.shinjuku.lg.jp/kusei/about.html",
+      "exit": 0,
+      "bytes": 67307,
+      "sha256": "89303d495db10507f68a65894ff69612242f38dbc32d62022bd955a267056784"
+    },
+    {
+      "id": "shinjuku-relocation",
+      "url": "https://www.shinjuku-kojiinfo.metro.tokyo.lg.jp/faq.html",
+      "retrievedAt": "2026-10-17T16:53:11.895975+00:00",
+      "status": "200 https://www.shinjuku-kojiinfo.metro.tokyo.lg.jp/faq.html",
+      "exit": 0,
+      "bytes": 60423,
+      "sha256": "4ce7962fadaf1dc85941900c1138accb25faec85ce7088130b6f3c16ceb8e204"
+    },
+    {
+      "id": "shinjuku-od",
+      "url": "https://www.city.shinjuku.lg.jp/content/000428573.csv",
+      "retrievedAt": "2026-10-17T16:53:11.901361+00:00",
+      "status": "200 https://www.city.shinjuku.lg.jp/content/000428573.csv",
+      "exit": 0,
+      "bytes": 51357,
+      "sha256": "47e018cb2b3badfef430a659354aefd37cc2b73ed6bc2159c2a5b1c4751a4da7"
+    },
+    {
+      "id": "shibuya-current",
+      "url": "https://www.city.shibuya.tokyo.jp/kankyo/machi-seiso/kitsuen/smokingplace.html",
+      "retrievedAt": "2026-10-17T16:53:12.036770+00:00",
+      "status": "200 https://www.city.shibuya.tokyo.jp/kankyo/machi-seiso/kitsuen/smokingplace.html",
+      "exit": 0,
+      "bytes": 87115,
+      "sha256": "3919a40bdaeca78d10e48edf9164a364de348727cf1d97df41f0a61b636a19f8"
+    },
+    {
+      "id": "shibuya-policy",
+      "url": "https://www.city.shibuya.tokyo.jp/guide/website/list/site_policy.html",
+      "retrievedAt": "2026-10-17T16:53:12.094273+00:00",
+      "status": "200 https://www.city.shibuya.tokyo.jp/guide/website/list/site_policy.html",
+      "exit": 0,
+      "bytes": 86623,
+      "sha256": "50610dc5f1fd12b4d09e9c306b6dcf4c9c69b200f3519564b073e420ffac36ac"
+    },
+    {
+      "id": "toshima-current",
+      "url": "https://www.city.toshima.lg.jp/152/machizukuri/sumai/bika/taisaku/025701.html",
+      "retrievedAt": "2026-10-17T16:53:12.151213+00:00",
+      "status": "200 https://www.city.toshima.lg.jp/152/machizukuri/sumai/bika/taisaku/025701.html",
+      "exit": 0,
+      "bytes": 18245,
+      "sha256": "fb9791143199d770f491241f4eaac8d6809e5ee19f92f6faa4b1b26152346109"
+    },
+    {
+      "id": "toshima-policy",
+      "url": "https://www.city.toshima.lg.jp/012/kuse/koho/homepage/sitepolicy.html",
+      "retrievedAt": "2026-10-17T16:53:12.178413+00:00",
+      "status": "200 https://www.city.toshima.lg.jp/012/kuse/koho/homepage/sitepolicy.html",
+      "exit": 0,
+      "bytes": 23449,
+      "sha256": "92d295e46837fbbdddfbe1cef8939b7b145f1b709bc54269c4d8830f6992edd0"
+    },
+    {
+      "id": "toshima-tobacco-types",
+      "url": "https://www.city.toshima.lg.jp/012/webkoho/articles/202512/feature.html",
+      "retrievedAt": "2026-10-17T16:53:12.231700+00:00",
+      "status": "200 https://www.city.toshima.lg.jp/012/webkoho/articles/202512/feature.html",
+      "exit": 0,
+      "bytes": 31909,
+      "sha256": "6b6a477ca9b79fe18f45e48cc3c74f1c7ddd9847fb6f2ad35328dab1aea00b05"
+    },
+    {
+      "id": "rail-archive",
+      "url": "https://nlftp.mlit.go.jp/ksj/gml/data/N02/N02-25/N02-25_GML.zip",
+      "retrievedAt": "2026-10-17T16:50:25.316737+00:00",
+      "status": 200,
+      "bytes": 14903774,
+      "sha256": "aaf76af133b2e771e538fabc4646d2e443dc1d5a67b221382a28d744e706cc9f"
+    }
+  ],
+  "externalContactMade": false,
+  "productionWrite": false
+}
