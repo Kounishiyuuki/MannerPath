@@ -35,6 +35,7 @@ export const SOURCE_PREFECTURES: Readonly<Record<string, PrefectureCode>> = {
   "matsuyama-airport-smoking-places": "38",
   "oita-airport-smoking-places": "44",
   "yonago-airport-smoking-places": "31",
+  "chuo-park-smoking-places": "13",
   "miyazaki-airport-smoking-places": "45",
   "hiroshima-airport-smoking-places": "34",
 };

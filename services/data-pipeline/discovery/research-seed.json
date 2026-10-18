@@ -1467,6 +1467,19 @@
       "sha256": "559617124dfa4b85f4439476c45165032be9bad8115cb1e352d97a9f16dfdb8b",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-13T17:59:57Z"
+    },
+    {
+      "targetId": "ward-chuo",
+      "reference": "services/data-pipeline/fixtures/chuo-park-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "chuo-park-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html"
+      ],
+      "sha256": "be67c5505848afc9dd1ae4c4194b10a99f04f6363b0f6e43b0c197488be06d9c",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-18T05:20:36Z"
     }
   ],
   "researchReferences": [

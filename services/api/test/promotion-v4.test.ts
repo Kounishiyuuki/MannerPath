@@ -182,7 +182,7 @@ test("v4 parser respects escaped quotes, Unicode, semicolons and stream boundari
   await assert.rejects(async () => { for await (const _ of sqlStatements(path)) { /* consume stream */ } }, /capacity policy/);
 });
 
-test("v4 bootstraps all fifteen reviewed sources including the Sendai and eight airport anchors and deterministically re-exports", async t => {
+test("v4 bootstraps all sixteen reviewed sources including the Sendai, eight airport and 14 Chuo park anchors and deterministically re-exports", async t => {
   const root = await mkdtemp(join(tmpdir(), "promotion-v4-reviewed-sources-"));
   const source = new SqliteD1(), target = migratedSqlite();
   t.after(async () => { source.raw.close(); target.close(); await rm(root, { recursive: true, force: true }); });
@@ -190,16 +190,30 @@ test("v4 bootstraps all fifteen reviewed sources including the Sendai and eight 
   await publishTiles(source, { now: NOW });
   const directory = join(root, "bundle");
   const manifest = await exportPromotionV4(source.raw, directory, { chunkBytes: 90_000 });
-  assert.equal(manifest.sources.length, 15);
-  assert.equal(manifest.rows.tile_snapshot_spots, 522);
-  assert.equal(manifest.rows.tile_snapshots, 90);
-  assert.equal(manifest.rows.area_location_anchors, 9);
-  assert.equal(manifest.rows.area_point_mappings, 9);
+  assert.equal(manifest.sources.length, 16);
+  assert.equal(manifest.rows.tile_snapshot_spots, 536);
+  assert.equal(manifest.rows.tile_snapshots, 92);
+  assert.equal(manifest.rows.area_location_anchors, 23);
+  assert.equal(manifest.rows.area_point_mappings, 10);
   assert.equal((await applyPromotionV4(target, directory, manifest.wholeBundleSha256)).status, "completed");
-  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 522);
-  // Sendai keeps its ADR-0017 v1 anchor (no scope/basis); all eight ADR-0018 facility anchors keep both through the bootstrap.
+  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 536);
+  // Sendai keeps its ADR-0017 v1 anchor (no scope/basis); all ADR-0018 facility anchors keep both through the bootstrap.
   assert.deepEqual(target.prepare("SELECT anchor_id, area_scope, anchor_basis FROM area_location_anchors ORDER BY anchor_id").all()
     .map(r => ({ ...(r as object) })), [
+    { anchor_id: "aa_chuoparkhamacho", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkishikawajima", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkjizobashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkkaedegawadanjobashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkkaedegawakyuanbashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkkaedegawashintomibashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkkakigaracho", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparkshintsukishima", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparksukiyabashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparktsukijigawa", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparktsukijigawachiyobashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparktsukijigawaginza", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparktsukijigawakameibashi", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_chuoparktsukuda", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_hiroshimaairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_kochiairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_komatsuairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },

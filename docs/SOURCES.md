@@ -247,6 +247,29 @@ Reviewed 2026-10-11 under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet, ancho
 | Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-11; local DB only |
 | Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial` |
 
+### 中央区 区営指定喫煙場所（公園） — ADR-0018 factReference page-fact source
+
+Reviewed 2026-10-18 under ADR-0018 (D-A, D-R, D-C). Normalized fact sheet, exclusions, anchor and rights reading:
+`services/data-pipeline/fixtures/chuo-park-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `chuo-park-smoking-places` |
+| Name / publisher | 中央区ホームページ「中央区内指定喫煙場所一覧」区営指定喫煙場所 / 中央区 |
+| Kind | municipal |
+| Official source URL | https://www.city.chuo.lg.jp/a0030/kenkouiryou/kenkou/tobacco/kitsuenbasho/kitsuenichiran.html |
+| Rights basis | **factReference** (ADR-0018 §3). No licence for the page. 「著作権について」 reserves copyright and forbids unauthorized 転載・改変; no clause prohibits information use, data acquisition or databases. Only normalized names, zones, hours and existence are stored; no text, map, PDF, image or logo. Engineering classification, not legal clearance |
+| Anchor source | 中央区オープンデータ 区内の公園一覧 (koenichiran.csv), CC BY 4.0 under 中央区オープンデータ利用規約; exact 名称 match, release SHA-256 `4afdc6462d1186f0a24efd2f20cdd0e4620bb57ea0f0f858570f17acc7f66979`. Supplies park points only, never existence. Datum unstated; used under the display lat/lon convention (assumption, as for 江東区) |
+| Required attribution text | `出典：中央区ホームページ「中央区内指定喫煙場所一覧」…（2026-10-18確認）。位置の目安：このデータベースは以下の著作物を改変して利用しています。区内の公園一覧、中央区、クリエイティブ・コモンズ・ライセンス 表示 4.0 国際 …` (full text in the adapter) |
+| Geographic scope / completeness | 14 of the 21 ward-run places (parks with a park-list point, not suspended). Private designated places excluded. Partial |
+| Location | `areaApproximate`, `locationArea.scope = facility`, kind `park`: park representative point, never the smoking place's own point. Two parks with two listed places each (千代橋 東/西, 石川島 中央大橋側/相生橋側) are **one** spot each |
+| Hours / access | Page 供用時間: unqualified 0:00-24:00 → all day; ranges with the cleaning qualifier or differing per zone → unparsed. `accessType = public` (ward-run designated place in a public park); tobacco types and environment unknown |
+| Observation date | `observedOn = 2026-10-18`, the day the current page was checked (D-C); not a site visit |
+| Current operation | Listed without suspension on the current page; source health re-checks the scoped 区営 section and the copyright clause (review-metadata.json). 築地川祝橋公園 (suspension from 2026-10-19) is excluded |
+| Reviewed release | Fact sheet SHA-256 `be67c5505848afc9dd1ae4c4194b10a99f04f6363b0f6e43b0c197488be06d9c`; 14 records → 14 published spots |
+| Reviewed by / date | Claude Code, AI-assisted primary-source review under maintainer decisions D-A/D-R/D-C, 2026-10-18; local DB only |
+| Publication status | approved for the pinned fact sheet only; `crossReleaseValidated=false`, `completeness=partial`; not deployed |
+
 ### 江東区 公共喫煙所一覧（公園） — blocked candidate
 
 Same package's raw https://www.opendata.metro.tokyo.lg.jp/koto/131083_237_public_smoking_area_park.csv

@@ -487,6 +487,37 @@
           "reviewDueAt": "2027-01-14"
         }
       ]
+    },
+    {
+      "sourceId": "chuo-park-smoking-places",
+      "rightsReviewedAt": "2026-10-18",
+      "rightsEvidence": "このホームページの詳細情報「著作権について」; factReference under ADR-0018; park anchors from the ward's CC BY 4.0 park list (separate resource).",
+      "sourceObservedAt": null,
+      "editionLabel": "Current first-party scope checked, not a site visit",
+      "editionObservedAt": "2026-10-18",
+      "reviewDueAt": "2027-01-18",
+      "reviewerNote": "Re-read the ward-run list section, suspension/relocation notes, the copyright clause and each park's point in koenichiran.csv. No automatic baseline update.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "著作権について 区ホームページ",
+                "end": "免責事項"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権について"
+            ]
+          },
+          "reviewedFingerprint": "779124217efa382b00333efaf304e7cd869964c0680564f7f70436d293bd0f66",
+          "reviewedAt": "2026-10-18",
+          "reviewDueAt": "2027-01-18"
+        }
+      ]
     }
   ]
 }

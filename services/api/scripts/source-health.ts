@@ -15,6 +15,7 @@ import { MUSASHINO_DATA_URL } from "../src/pipeline/musashino-adapter.ts";
 import { MINATO_DATA_URL } from "../src/pipeline/minato-adapter.ts";
 import { KYOTO_DATA_URL } from "../src/pipeline/kyoto-adapter.ts";
 import { KOMATSU_AIRPORT_PAGE_URL } from "../src/pipeline/komatsu-airport-adapter.ts";
+import { CHUO_PARK_PAGE_URL } from "../src/pipeline/chuo-park-adapter.ts";
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -36,6 +37,7 @@ const repositoryReviewedResources: Record<string, { filename: string; url: strin
   "yonago-airport-smoking-places": { filename: "yonago-airport-page-facts.csv", url: "https://www.yonago-air.com/faq" },
 
   "komatsu-airport-smoking-places": { filename: "komatsu-airport-page-facts.csv", url: KOMATSU_AIRPORT_PAGE_URL },
+  "chuo-park-smoking-places": { filename: "chuo-park-page-facts.csv", url: CHUO_PARK_PAGE_URL },
 };
 // Reviewed sources with no health target, and why. Every SOURCE_ADAPTERS entry is exactly one of: deployed, repository-
 // reviewed, or listed here (test/source-health-unified.test.ts), so the --repository-reviewed count is never incidental.
@@ -58,6 +60,11 @@ const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
   "komatsu-airport-smoking-places": {
     scope: { kind: "htmlText", ranges: [{ start: "[img:] 喫煙場所はどこですか。", end: "関連リンク" }], requiredMarkers: ["喫煙場所", "国際線２F出発ロビー", "バス乗り場付近"] },
     reviewedFingerprint: "e5fc9afb22df6e75a9d3b721c20b34d268443d073bc3d7df4f3223bb5b1f91c6",
+  },
+  "chuo-park-smoking-places": {
+    scope: { kind: "htmlText", ranges: [{ start: "区営指定喫煙場所 1.楓川久安橋公園", end: "民間指定喫煙場所 1." }],
+      requiredMarkers: ["楓川久安橋公園", "数寄屋橋公園", "楓川新富橋公園", "5.築地川公園", "築地川亀井橋公園", "築地川銀座公園", "築地川千代橋公園（東側）", "築地川千代橋公園（西側）", "楓川弾正橋公園", "地蔵橋公園", "蛎殻町公園", "浜町公園", "佃公園", "石川島公園（中央大橋側）", "石川島公園（相生橋側）", "新月島公園"] },
+    reviewedFingerprint: "08010a782b9a99d16fe3fbf46ba05432c09f7016fb2f3dc2aa3bec420b85ae67",
   },
 };
 // Read ZIP central directory rather than trusting local headers/data descriptors. No files are written.

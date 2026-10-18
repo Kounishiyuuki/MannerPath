@@ -127,6 +127,9 @@ for t in targets:
 # Approved registry fixtures are historical implemented evidence, never automatic approval.
 reviewed={'ward-taito':'taito-public-smoking-areas','city-osaka':'osaka-designated-smoking-areas','ward-koto':'koto-station-smoking-areas','city-musashino':'musashino-public-smoking-areas','ward-minato':'minato-designated-smoking-areas','city-kyoto':'kyoto-public-smoking-places','city-sendai':'sendai-kaigan-park-smoking-areas','operator-komatsu-airport':'komatsu-airport-smoking-places'}
 reviewed.update({'operator-'+slug+'-airport':slug+'-airport-smoking-places' for slug,*_ in AIRPORT_OPERATORS})
+# ADR-0018 municipal page-fact source: 中央区's current smoking list, anchored at its own CC BY park list points.
+reviewed['ward-chuo']='chuo-park-smoking-places'
+PAGE_FACT_SOURCES={'chuo-park-smoking-places'}
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:
@@ -134,8 +137,9 @@ for t in targets:
   folder=ROOT/'services/data-pipeline/fixtures'/source
   fetch_path=folder/'fetch.json'
   metadata=json.loads(fetch_path.read_text()) if fetch_path.exists() else {}
-  adapter_path=ROOT/'services/api/src/pipeline'/('taito.ts' if source.startswith('taito-') else source.removesuffix('-smoking-places')+'-adapter.ts' if source.endswith('-airport-smoking-places') else 'osaka-adapter.ts')
-  if source.endswith('-airport-smoking-places'):
+  page_fact=source.endswith('-airport-smoking-places') or source in PAGE_FACT_SOURCES
+  adapter_path=ROOT/'services/api/src/pipeline'/('taito.ts' if source.startswith('taito-') else source.removesuffix('-smoking-places')+'-adapter.ts' if page_fact else 'osaka-adapter.ts')
+  if page_fact:
    # The release is MannerPath's reviewed fact sheet for one HTML page (ADR-0018 §4), not a publisher file: the hash
    # is the sheet's, the URL the page's, and nothing is a raw resource.
    code=adapter_path.read_text();url=re.search(r'PAGE_URL = "(https://[^"]+)"',code).group(1);sha=re.search(r'FIXTURE_SHA256 = "([a-f0-9]{64})"',code).group(1);scope='reviewedPageFactSheetBytesNotPageHtml'

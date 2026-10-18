@@ -107,8 +107,9 @@ test("Sendai onboarding diagnoses the park anchor as approximate and never as a 
   assert.equal(result.pinnedRelease!.observedRows, 1);
   assert.equal(result.productionApproval, false);
   // Park and airport facility anchors stay approximate; exact municipal fixtures stay publisherPoint.
+  const facilityAnchored = (id: string) => id.endsWith("-airport-smoking-places") || id === "chuo-park-smoking-places";
   for (const other of inspectReviewedSources().filter(r => r.sourceId !== result.sourceId)) {
-    assert.equal(other.coordinates.kind, other.sourceId.endsWith("-airport-smoking-places") ? "areaApproximate" : "publisherPoint", other.sourceId);
+    assert.equal(other.coordinates.kind, facilityAnchored(other.sourceId) ? "areaApproximate" : "publisherPoint", other.sourceId);
   }
 });
 
