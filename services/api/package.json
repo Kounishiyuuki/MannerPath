@@ -40,6 +40,7 @@
     "capacity:latency": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-latency.ts",
     "capacity:matrix": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-matrix.ts",
     "campaign:progress": "node --experimental-strip-types --no-warnings scripts/campaign-progress.ts",
+    "promotion:id-preserving": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-id-preserving.ts",
     "promotion:v4:build": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts build",
     "promotion:v4:verify": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts verify",
     "promotion:v4:apply-local": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/promotion-v4.ts apply-local",
