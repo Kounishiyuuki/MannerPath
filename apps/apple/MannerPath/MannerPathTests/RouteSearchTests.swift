@@ -423,6 +423,23 @@ struct RouteSearchTests {
         #expect(model.searchingDestination)
     }
 
+    @Test func emptyAnswerIsShownAndClearedByTheNextSearch() async throws {
+        let search = ControlledDestinationSearch()
+        let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野駅")
+        #expect(await waitUntil { search.queries.count == 1 })
+        search.succeed(0, matches: [])
+        #expect(await waitUntil { model.destinationSearchFoundNothing && !model.searchingDestination })
+        #expect(!model.destinationSearchFailed)
+        model.scheduleDestinationSearch("上野")
+        #expect(!model.destinationSearchFoundNothing)
+        #expect(await waitUntil { search.queries.count == 2 })
+        search.succeed(1, matches: [place(SpotCoordinate(latitude: 35.7138, longitude: 139.7773))])
+        #expect(await waitUntil { !model.destinationSearchFoundNothing && model.destinationMatches.count == 1 })
+        model.scheduleDestinationSearch("")
+        #expect(!model.destinationSearchFoundNothing)
+    }
+
     @Test func failedLiveSearchIsShownAndCanBeRetried() async throws {
         let search = ControlledDestinationSearch()
         let model = try makeModel(spots: [], search: search, searchDebounce: .milliseconds(10))
