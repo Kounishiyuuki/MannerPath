@@ -83,6 +83,10 @@ test("47 places publish locally as official, facility-level areaApproximate spot
       ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"], s.name);
     assert.equal(s.lastVerifiedAt, "2026-10-18");
   }
+  // The ABR anchors are credited with their terms, as in the other ABR-anchored sources.
+  for (const t of v1TileRows(db).map((t) => TileBodyV1.parse(JSON.parse(t.body_json)))) {
+    assert.ok(t.sources.find((s) => s.id === CHUO_PRIVATE_SOURCE_ID)?.attributionText?.includes("アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約 第1.0版）"), t.tile);
+  }
   const byName = new Map(spots.map((s) => [s.name, s]));
   assert.equal(spots.filter((s) => s.openingHours.status === "parsed").length, 0, "every stated range carries a qualifier");
   assert.equal(byName.get("THE TOBACCO YAESU")!.openingHours.raw, "午前7時から午後9時\n土曜日・日曜日・祝日・年末年始を除く");

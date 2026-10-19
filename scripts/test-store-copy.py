@@ -77,6 +77,8 @@ class StoreCopyTests(unittest.TestCase):
         text = TOKYO_CANDIDATE.read_text(encoding="utf-8")
         self.assertEqual(copy_problems(text, TOKYO_AREAS), [])
         self.assertIn("**Status: 準備中.**", text.split("\n## ", 1)[0], "the candidate must say 準備中 before its first section")
+        # Some Tokyo places have unknown access conditions, so the copy must not claim every listed place has them confirmed.
+        self.assertNotIn("利用条件を確認できた場所", description(text))
 
     def test_live_copy_names_no_area_production_does_not_serve(self):
         # Until the switch, the live sheet must not name a Tokyo addition.

@@ -18,7 +18,7 @@ export const CHUO_PRIVATE_FIXTURE_RELEASE: ReleaseMetadata = {
 };
 export const CHUO_PRIVATE_ATTRIBUTION_TEXT = "出典：中央区ホームページ「中央区内指定喫煙場所一覧」"
   + `${CHUO_PRIVATE_PAGE_URL}（2026-10-18確認）。`
-  + "位置の目安：アドレス・ベース・レジストリ（デジタル庁）を abr-geocoder で照合した所在地の代表点。"
+  + "位置の目安：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約 第1.0版）を abr-geocoder で照合した所在地の代表点。"
   + "MannerPathが事実のみを正規化して作成。ピンは所在地の代表点で喫煙場所そのものの位置ではありません。中央区による推奨・保証を意味しません。";
 
 export const CHUO_PRIVATE_HEADER = ["fact_id", "place_name", "zones", "area_scope", "hours", "hours_note", "official_address", "page_url", "checked_at",
