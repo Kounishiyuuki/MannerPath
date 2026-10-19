@@ -3,7 +3,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  ADDRESS_ANCHOR_DATASET_RELEASE, abrJsonRun, canonicalAddress, completeOfficialAddress, evaluateAddressAnchor,
+  ADDRESS_ANCHOR_DATASET_RELEASE, ADDRESS_ANCHOR_DATASET_RELEASES, type AddressAnchorDatasetRelease, abrJsonRun,
+  addressAnchorDatasetRelease, canonicalAddress, completeOfficialAddress, evaluateAddressAnchor,
 } from "../src/pipeline/address-anchor.ts";
 import { AREA_ANCHOR_POLICY_VERSION, type ReviewedAreaAnchor, anchoredObservation, recordReviewedAnchors } from "../src/pipeline/area-anchor.ts";
 import { parseCsv } from "../src/pipeline/csv.ts";
@@ -14,7 +15,10 @@ import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
 import { TileBodyV1 } from "../src/tiles/dto.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { candidateAddresses, evaluateCandidates } from "../scripts/address-anchor-candidates.ts";
-import { datasetManifest, verifyDatasetDir } from "../scripts/address-anchor-dataset.ts";
+import { datasetManifest, verifyDatasetDir, verifyRegisteredDatasetDir } from "../scripts/address-anchor-dataset.ts";
+import { CHIYODA_ADAPTER, CHIYODA_FIXTURE_SHA256 } from "../src/pipeline/chiyoda-adapter.ts";
+import { SHIBUYA_ADAPTER, SHIBUYA_FIXTURE_SHA256 } from "../src/pipeline/shibuya-adapter.ts";
+import { TOSHIMA_ADAPTER, TOSHIMA_FIXTURE_SHA256 } from "../src/pipeline/toshima-adapter.ts";
 import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -142,6 +146,66 @@ test("F1: the dataset directory must reproduce the pinned release digest from it
   assert.throws(() => verifyDatasetDir(dir, pinned), /is not the pinned release/, "an extra file changes the digest");
   assert.throws(() => verifyDatasetDir(dir, "abr-test-without-digest"), /carries no digest/);
   assert.throws(() => verifyDatasetDir(mkdtempSync(join(tmpdir(), "abr-")), pinned));
+});
+
+// Several reviewed ABR releases side by side (append-only registry). TEST ONLY second release: a synthetic digest for
+// 世田谷区 (131121); no such download is registered in the repository.
+const SETAGAYA_TEST: AddressAnchorDatasetRelease = { releaseId: `abr-test-setagaya:sha256:${"cd".repeat(32)}`, fileCount: 2, lgCodes: ["131121"] };
+const BOTH = [...ADDRESS_ANCHOR_DATASET_RELEASES, SETAGAYA_TEST];
+const SANGENJAYA = { query: { input: "東京都世田谷区太子堂4丁目20番10号" }, result: { output: "東京都世田谷区太子堂4丁目20-10", others: [], score: 0.87,
+  match_level: "residential_detail", coordinate_level: "residential_detail", lat: 35.643, lon: 139.669, lg_code: "131121",
+  pref: "東京都", city: "世田谷区", ward: null } };
+const gate = (item: typeof KYOBASHI, municipality: string, release: string, releases: readonly AddressAnchorDatasetRelease[], lgCode?: string | null) =>
+  evaluateAddressAnchor({ officialAddress: item.query.input, expectedPrefecture: "東京都", expectedMunicipality: municipality,
+    geocode: { ...run(item, release), ...(lgCode === undefined ? {} : { lgCode }) } }, releases);
+
+test("registry: release ids are unique, carry a digest, and the first release is the one existing anchors name", () => {
+  assert.equal(ADDRESS_ANCHOR_DATASET_RELEASES[0].releaseId, ADDRESS_ANCHOR_DATASET_RELEASE);
+  assert.equal(new Set(ADDRESS_ANCHOR_DATASET_RELEASES.map((r) => r.releaseId)).size, ADDRESS_ANCHOR_DATASET_RELEASES.length);
+  for (const r of ADDRESS_ANCHOR_DATASET_RELEASES) assert.match(r.releaseId, /:sha256:[0-9a-f]{64}$/);
+  assert.equal(addressAnchorDatasetRelease(ADDRESS_ANCHOR_DATASET_RELEASE).fileCount, 27);
+  assert.throws(() => addressAnchorDatasetRelease(SETAGAYA_TEST.releaseId), /is not a registered ABR dataset release/);
+  assert.throws(() => addressAnchorDatasetRelease(SETAGAYA_TEST.releaseId, [SETAGAYA_TEST, SETAGAYA_TEST]), /not a registered/, "a duplicate id is ambiguous");
+});
+
+test("old and new releases in one environment: each answers only under its own id and for its own municipalities", () => {
+  // The existing release keeps giving the same anchor, with or without a second release registered.
+  const before = gate(KYOBASHI, "中央区", ADDRESS_ANCHOR_DATASET_RELEASE, ADDRESS_ANCHOR_DATASET_RELEASES);
+  assert.equal(before.status, "anchor");
+  assert.deepEqual(gate(KYOBASHI, "中央区", ADDRESS_ANCHOR_DATASET_RELEASE, BOTH), before);
+  const setagaya = gate(SANGENJAYA, "世田谷区", SETAGAYA_TEST.releaseId, BOTH);
+  assert.equal(setagaya.status, "anchor", JSON.stringify(setagaya));
+  if (setagaya.status === "anchor") assert.ok(setagaya.reference.startsWith(`abr-geocoder 2.3.1 ${SETAGAYA_TEST.releaseId} residential_detail`));
+  // Unregistered release: the default registry does not know the second release.
+  assert.deepEqual(gate(SANGENJAYA, "世田谷区", SETAGAYA_TEST.releaseId, ADDRESS_ANCHOR_DATASET_RELEASES),
+    { status: "reviewPending", reasons: ["datasetReleaseNotPinned"] });
+  // Mixed releases: a run labelled with the other release is outside that release's municipalities.
+  assert.deepEqual(gate(SANGENJAYA, "世田谷区", ADDRESS_ANCHOR_DATASET_RELEASE, BOTH), { status: "reviewPending", reasons: ["datasetReleaseOutOfScope"] });
+  assert.deepEqual(gate(KYOBASHI, "中央区", SETAGAYA_TEST.releaseId, BOTH), { status: "reviewPending", reasons: ["datasetReleaseOutOfScope"] });
+  // A run without lg_code is never in any release's scope.
+  assert.deepEqual(gate(KYOBASHI, "中央区", ADDRESS_ANCHOR_DATASET_RELEASE, BOTH, null), { status: "reviewPending", reasons: ["datasetReleaseOutOfScope"] });
+});
+
+test("every existing address anchor names the first release exactly once and a municipality it covers (no re-geocode)", () => {
+  const first = ADDRESS_ANCHOR_DATASET_RELEASES[0];
+  for (const [adapter, sha, lgCode, count] of [[CHIYODA_ADAPTER, CHIYODA_FIXTURE_SHA256, "131016", 30], [SHIBUYA_ADAPTER, SHIBUYA_FIXTURE_SHA256, "131130", 30],
+    [TOSHIMA_ADAPTER, TOSHIMA_FIXTURE_SHA256, "131164", 4]] as const) {
+    const anchors = adapter.reviewedAnchors!(sha);
+    assert.equal(anchors.length, count);
+    assert.ok(first.lgCodes.includes(lgCode));
+    for (const a of anchors) {
+      const named = ADDRESS_ANCHOR_DATASET_RELEASES.filter((r) => a.anchorBasis!.reference.includes(r.releaseId));
+      assert.deepEqual(named.map((r) => r.releaseId), [first.releaseId], a.anchorId);
+    }
+  }
+});
+
+test("a dataset directory is verified against the registered release: unknown id, wrong file count or wrong digest is refused", () => {
+  const dir = mkdtempSync(join(tmpdir(), "abr-"));
+  mkdirSync(join(dir, "download"));
+  writeFileSync(join(dir, "download", "a.csv.zip"), new Uint8Array([1]));
+  assert.throws(() => verifyRegisteredDatasetDir(dir, SETAGAYA_TEST.releaseId), /not a registered ABR dataset release/);
+  assert.throws(() => verifyRegisteredDatasetDir(dir), /has 1 ABR zip files, release .* has 27/);
 });
 
 // A TEST ONLY page-fact sheet whose one row carries a geocoded anchor, through the ordinary pipeline in a local DB.

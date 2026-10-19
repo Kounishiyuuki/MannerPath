@@ -7,12 +7,12 @@
 //      then  abrg addresses.txt -d <dir> -f json > abrg.json   (no --fuzzy).
 //      Observed 2026-10-18: download + geocode on Node 23.3.0; geocode on Node 22.23.3 (clean install) byte-identical to
 //      23.3.0 over 175 addresses. Download on Node 22 was not run. Node 24 fails (uWebSockets.js). No other version is claimed.
-//   4. npm run address:anchors -- evaluate candidates.json abrg.json --dataset <dir>
+//   4. npm run address:anchors -- evaluate candidates.json abrg.json --dataset <dir> [--release <id>]
 //      <dir> must reproduce the pinned release digest (scripts/address-anchor-dataset.ts), or nothing is evaluated.
 // Prints one evaluation per candidate; nothing is written to any database or fixture.
 import { readFileSync } from "node:fs";
 import { abrJsonRun, completeOfficialAddress, evaluateAddressAnchor } from "../src/pipeline/address-anchor.ts";
-import { verifyDatasetDir } from "./address-anchor-dataset.ts";
+import { verifyRegisteredDatasetDir } from "./address-anchor-dataset.ts";
 
 const GEOCODER_VERSION = "2.3.1";
 
@@ -48,10 +48,11 @@ export function evaluateCandidates(candidates: readonly Candidate[], abrOutput: 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [command, candidatesPath, abrPath] = process.argv.slice(2);
   const datasetDir = process.argv.includes("--dataset") ? process.argv[process.argv.indexOf("--dataset") + 1] : undefined;
+  const releaseArg = process.argv.includes("--release") ? process.argv[process.argv.indexOf("--release") + 1] : undefined;
   if (command === "addresses" && candidatesPath) {
     process.stdout.write(candidateAddresses(JSON.parse(readFileSync(candidatesPath, "utf8"))));
   } else if (command === "evaluate" && candidatesPath && abrPath && datasetDir) {
-    const release = verifyDatasetDir(datasetDir);
+    const release = verifyRegisteredDatasetDir(datasetDir, releaseArg);
     const results = evaluateCandidates(JSON.parse(readFileSync(candidatesPath, "utf8")), JSON.parse(readFileSync(abrPath, "utf8")), release);
     const pending: Record<string, number> = {};
     for (const r of results) if (r.status === "reviewPending") for (const reason of r.reasons) pending[reason] = (pending[reason] ?? 0) + 1;
