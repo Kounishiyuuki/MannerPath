@@ -29,7 +29,7 @@ were not re-fetched for this sheet.
 | --- | --- | --- | --- | --- | --- |
 | chiyoda-smoking-places (30) | 千代田区「無料喫煙所（公衆喫煙所）のご案内」 | 千代田区ホームページ利用規約: anyone may copy and adapt content, **commercial use included**, with a source credit and an "edited" statement | Photos, video and illustrations are excluded. The SMOKING AREA MAP page's map images may not be reused (not used) | 「出典：…を加工して作成（2026-10-19確認）」 + ABR credit + no-endorsement | Strongest of the 5: the terms expressly permit reuse, and the credit says 加工 |
 | chuo-park-smoking-places (14) | 中央区「中央区内指定喫煙場所一覧」(区営) | 「著作権について」: copyright reserved | **Unauthorized 転載・改変 forbidden**. No prohibition of information use or database incorporation found | 出典 page + CC BY 4.0 park-list modified-work credit + no-endorsement | Facts only. Relies on facts not being the page's protected expression |
-| chuo-private-smoking-places (47) | the same page (民間) | as chuo-park | as chuo-park | 出典 page + ABR named, but **no licence name for ABR** (the other ABR users name 公共データ利用規約 第1.0版) + no-endorsement | As chuo-park. Also see open points 4 and 5 |
+| chuo-private-smoking-places (47) | the same page (民間) | as chuo-park | as chuo-park | 出典 page + ABR credit with 公共データ利用規約 第1.0版 (added 2026-10-19) + no-endorsement | As chuo-park. Also see open points 4 and 5 |
 | shibuya-smoking-places (30) | 渋谷区「区内公共喫煙所一覧」 | サイトポリシー「著作権について」: the ward holds copyright in the information, images and figures | **転載・複製 without contacting the ward forbidden**. No prohibition of information use found | 出典 page + ABR credit + no-endorsement | Facts only. The terms point to contacting the ward |
 | toshima-smoking-places (4) | 豊島区「区指定喫煙所」 | サイトポリシー「著作権について」: the ward holds the rights in its documents and images | **無断で複製・転用 forbidden** outside private use or quotation. No prohibition of information use found | 出典 page + ABR credit + no-endorsement | Facts only. The terms list exceptions that do not obviously cover an app |
 
@@ -51,15 +51,12 @@ Reference pages and recorded SHA-256 values are in each
    ward lists. Ploom LOUNGE 渋谷 was already excluded under the no-brand-promotion rule. Decide whether ward-listed
    smoking spaces whose names include a retailer's name are acceptable for App Review (Guideline 1.4.3 risk),
    independent of rights.
-4. **chuo-private access.** Access type is unknown for 47 private places listed by the ward, some possibly
-   customer-only. This is shown honestly as unknown. Confirm that this is acceptable for the 1.0 claim
-   "利用条件を確認できた場所のみ".
-   - The store copy's wording was written for the open-data sources, whose terms of use were confirmed.
-   - For chuo-private, "利用条件" in the copy means the publisher's terms, not access to the place. The draft
-     uses that meaning; confirm it is not misleading.
-5. **chuo-private ABR credit.** The attribution names ABR but not its terms (公共データ利用規約 第1.0版). The other
-   four ABR-anchored sources name them. Adding them is a registry and attribution change (a separate small PR,
-   with tests), and it does not need a legal decision.
+4. **chuo-private access.** Access type is unknown for the 47 private places listed by the ward, some of which
+   may be customer-only. This is shown honestly as unknown. Resolved in wording on 2026-10-19: the 638 copy no longer
+   says 「利用条件を確認できた場所のみ」. It says conditions are shown when published and otherwise shown as 不明.
+   Still the maintainer's call: whether listing places with unknown access is acceptable for 1.0.
+5. **chuo-private ABR credit.** Fixed on 2026-10-19: the attribution now names ABR's terms (デジタル庁、公共データ利用規約 第1.0版),
+   like the other four ABR-anchored sources.
 6. **Publisher objection path.** ADR-0018 D-R fails closed on objection. Confirm that the support address is
    monitored and that a takedown can be released quickly: a source hold plus a promotion, not an app update.
 7. **App Store Content Rights answer.** It stays "Yes, contains third-party content". The necessary-rights

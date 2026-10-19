@@ -35,9 +35,9 @@ MannerPathは、喫煙が認められている場所の位置や利用条件を�
 ・Apple Watchで近くの場所や距離・方向を確認
 ・ウィジェットから保存済みの近くの場所情報を参照
 
-現在の掲載地域は、東京都の一部（千代田区、中央区、港区、台東区、渋谷区、豊島区、江東区、武蔵野市）、大阪市、京都市です。掲載しているのは、自治体がオープンデータや公式ウェブサイトで公開している情報のうち、利用条件を確認できた場所のみで、各地域でもすべての喫煙場所を網羅するものではありません。東京都のほかの区市町村など、掲載地域外では場所は表示されず、掲載がないことを表示します。
+現在の掲載地域は、東京都の一部（千代田区、中央区、港区、台東区、渋谷区、豊島区、江東区、武蔵野市）、大阪市、京都市です。掲載しているのは、自治体がオープンデータや公式ウェブサイトで公開している喫煙場所の情報で、各地域でもすべての喫煙場所を網羅するものではありません。東京都のほかの区市町村など、掲載地域外では場所は表示されず、掲載がないことを表示します。
 
-一部の場所は、自治体が公開する住所や施設名をもとにした「目安の位置」で表示します。目安の位置は建物や公園などの代表的な地点で、喫煙場所そのものの位置ではありません。場所の詳細などで「目安」であることを表示し、正確な位置の場所と区別します。営業時間や利用条件、たばこの種類が不明な場合は、不明として表示します。
+一部の場所は、自治体が公開する住所や施設名をもとにした「目安の位置」で表示します。目安の位置は建物や公園などの代表的な地点で、喫煙場所そのものの位置ではありません。場所の詳細などで「目安」であることを表示し、正確な位置の場所と区別します。利用できる人や時間などの条件は、公開情報に記載がある場合に表示します。営業時間や利用条件、たばこの種類が公開情報からわからない場合は、不明として表示します。
 
 掲載情報だけで、その時点の喫煙可否を保証するものではありません。現地の掲示、施設のルール、自治体の規則を優先してください。日本では20歳未満の方は喫煙できません。法令上喫煙が認められている方を対象としています。
 
@@ -54,6 +54,11 @@ Wording decisions:
 - **オープンデータや公式ウェブサイトで公開している情報**: true for both kinds of source, the CC BY open data and the
   5 factReference pages. The text does not claim a licence for either.
 - The widget bullet is kept only if the device check passes (G14), the same as in the 513 version.
+- **No 「利用条件を確認できた場所のみ」** (revised 2026-10-19). Access conditions are unknown for some places,
+  including all 47 chuo-private places. The copy says the app shows the conditions when they are published, and
+  shows 不明 when they are not. It also does not imply that MannerPath confirmed the publisher's terms, because
+  the G5 rights review for the Tokyo pages is still open. The support draft and the Review Notes draft use the
+  same meaning.
 
 ## 3. App Review notes (638 candidate, English)
 
@@ -62,7 +67,7 @@ open data" is replaced in both versions. In the 638 version, 5 of the 11 sources
 open-data files.
 
 ```text
-MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It shows places published by Japanese local governments (open-data files and official web pages), with access restrictions, source information and uncertainty; it does not guarantee that smoking is permitted at a place at any given time, and it instructs users to follow posted signs and local rules. It does not encourage tobacco consumption, sell tobacco, provide purchase links, promote brands or show tobacco/nicotine advertising. There are no payments, rewards, streaks or accounts. No sign-in is required.
+MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It shows places published by Japanese local governments (open-data files and official web pages), with access restrictions where the publisher states them (shown as unknown otherwise), source information and uncertainty; it does not guarantee that smoking is permitted at a place at any given time, and it instructs users to follow posted signs and local rules. It does not encourage tobacco consumption, sell tobacco, provide purchase links, promote brands or show tobacco/nicotine advertising. There are no payments, rewards, streaks or accounts. No sign-in is required.
 
 Location permission is When In Use. MannerPath uses the device location for nearby ranking, distance and bearing; requests to our service contain geographic tile IDs, not raw device GPS coordinates. We do not intentionally retain location history. Apple MapKit search/routing and Apple Maps operate through Apple's services. Our privacy policy (https://kounishiyuuki.github.io/MannerPath/privacy/) describes how network providers may process request information.
 
@@ -84,7 +89,7 @@ change that follows the production switch.
 Replace the first list item:
 
 ```html
-<li>MannerPath は、地方公共団体がオープンデータや公式ウェブサイトで公開している情報のうち、利用条件を確認できた場所だけを表示します。現在の掲載地域は、東京都の一部（千代田区、中央区、港区、台東区、渋谷区、豊島区、江東区、武蔵野市）、大阪市、京都市です。掲載地域内でも、すべての喫煙場所を掲載しているわけではありません。</li>
+<li>MannerPath は、地方公共団体がオープンデータや公式ウェブサイトで公開している喫煙場所の情報を表示します。利用できる人や営業時間などの条件は、公開情報に記載がない場合「不明」と表示します。現在の掲載地域は、東京都の一部（千代田区、中央区、港区、台東区、渋谷区、豊島区、江東区、武蔵野市）、大阪市、京都市です。掲載地域内でも、すべての喫煙場所を掲載しているわけではありません。</li>
 <li>一部の場所は、公開された住所や施設名から求めた「目安」の位置で表示します。目安の位置は建物や公園などの代表的な地点で、喫煙場所そのものの位置ではありません。現地では案内表示に従ってください。</li>
 ```
 
