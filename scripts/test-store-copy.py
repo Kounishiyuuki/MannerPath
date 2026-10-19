@@ -12,8 +12,12 @@ from pathlib import Path
 DOCS = Path(__file__).resolve().parent.parent / "docs"
 ENTRY = DOCS / "APP_STORE_CONNECT_ENTRY.md"
 GATE = DOCS / "V1_APP_STORE_RELEASE_GATE.md"
+# The 638-spot candidate (準備中). It replaces ENTRY's copy, and TOKYO_AREAS replaces AREAS, only in the PR that
+# follows the production switch to 638 (docs/release/V1_TOKYO_STORE_COPY.md §5).
+TOKYO_CANDIDATE = DOCS / "release" / "V1_TOKYO_STORE_COPY.md"
 AREAS = ["台東区", "港区", "江東区", "武蔵野市", "大阪市", "京都市"]
-BANNED = ["全国", "どこでも", "日本中", "すべての喫煙所", "全ての喫煙所"]
+TOKYO_AREAS = ["千代田区", "中央区", "港区", "台東区", "渋谷区", "豊島区", "江東区", "武蔵野市", "大阪市", "京都市"]
+BANNED = ["全国", "どこでも", "日本中", "すべての喫煙所", "全ての喫煙所", "東京都全域", "東京全域"]
 
 
 def description(text):
@@ -26,13 +30,13 @@ def entry_value(text, field):
     return row.group(1)
 
 
-def copy_problems(text):
+def copy_problems(text, areas=AREAS):
     found = []
     desc = description(text)
     if len(desc) > 4000:
         found.append(f"description {len(desc)} characters > 4000")
     found += [f"description claims {w!r}" for w in BANNED if w in desc]
-    found += [f"description does not name {a}" for a in AREAS if a not in desc]
+    found += [f"description does not name {a}" for a in areas if a not in desc]
     if len(entry_value(text, r"Subtitle \(ja\)")) > 30:
         found.append("subtitle > 30 characters")
     if len(entry_value(text, "Keywords").encode()) > 100:
@@ -68,6 +72,16 @@ def gate_problems(text):
 class StoreCopyTests(unittest.TestCase):
     def test_committed_copy(self):
         self.assertEqual(copy_problems(ENTRY.read_text(encoding="utf-8")), [])
+
+    def test_tokyo_candidate_is_valid_and_marked_not_live(self):
+        text = TOKYO_CANDIDATE.read_text(encoding="utf-8")
+        self.assertEqual(copy_problems(text, TOKYO_AREAS), [])
+        self.assertIn("**Status: 準備中.**", text.split("\n## ", 1)[0], "the candidate must say 準備中 before its first section")
+
+    def test_live_copy_names_no_area_production_does_not_serve(self):
+        # Until the switch, the live sheet must not name a Tokyo addition.
+        desc = description(ENTRY.read_text(encoding="utf-8"))
+        self.assertEqual([a for a in TOKYO_AREAS if a not in AREAS and a in desc], [])
 
     def test_committed_gate(self):
         found, rows = gate_problems(GATE.read_text(encoding="utf-8"))
