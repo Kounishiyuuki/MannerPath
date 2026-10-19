@@ -37,8 +37,9 @@ keeps existing *published* non-Tokyo data, and these were never published.
 | toshima-smoking-places | 4 | factReference (D-R) | no | areaApproximate (ABR address point) |
 
 factReference is an engineering classification (ADR-0018), **not legal clearance**: the App Store Content Rights
-answer for these 125 spots needs the maintainer's own sign-off (G5). In the 5 Tokyo sources, hours are always
-`unparsed` text, so openNow is never asserted, and tobacco type is unknown. chuo-private's access type is unknown.
+answer for these 125 spots needs the maintainer's own sign-off (G5). In the 5 Tokyo sources, hours stay `unparsed`
+text except an explicit 24-hour statement in the two Chuo sources, which parses as allDay. openNow is never guessed,
+and tobacco type is unknown. chuo-private's access type is unknown.
 
 Held, and not in v1: 世田谷区 (an inquiry has been drafted; terms forbid 二次利用), 目黒・文京・大田・中野 (the same class of terms),
 新宿区 (personal/non-commercial clause), 荒川区 (terms ambiguous) and 板橋区 (2 places; deferred).
@@ -78,10 +79,14 @@ in the 2026-10-15 evidence). The local pipeline issues new IDs on every run. The
 app has no favourites: its caches are keyed per tile and replaced, so the client impact is limited to cached
 selection state. Even so, the canonical history changes, and that must be a deliberate choice.
 
+Update (2026-10-19, after the 11-source target was set): the target is option (a), and it is implemented by
+`npm run promotion:id-preserving`. The live GREEN is sealed, so the tool rebuilds from the reviewed fixtures,
+reuses each live record's spot ID, and refuses anything that would change a live published spot. See the
+[runbook](ID_PRESERVING_PROMOTION_RUNBOOK.md), which also lists the read-only export and secret handling.
+
 Steps:
-1. Maintainer chooses: (a) **preserve IDs**, recommended. Take a read-only `wrangler d1 export --remote` of
-   production DATA_DB into a local file, apply the 5 Tokyo sources additively with the local pipeline, then build v4
-   from that file. (b) Accept re-ID'd spots and record the decision.
+1. Maintainer: take the read-only export and convert it to SQLite locally (runbook). Then run
+   `promotion:id-preserving --expect-added 125` on it. Option (b), accepting re-ID'd spots, is no longer needed.
 2. Build, verify and apply-local to a fresh local GREEN. Run `local:quality`, `release:data-audit` (local) and an
    independent digest review. Compare per-source counts against §2: 638 published, and the 513 existing rows
    unchanged in content.
