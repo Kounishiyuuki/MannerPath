@@ -4,7 +4,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ADDRESS_ANCHOR_DATASET_RELEASE } from "../src/pipeline/address-anchor.ts";
+import { ADDRESS_ANCHOR_DATASET_RELEASE, addressAnchorDatasetRelease } from "../src/pipeline/address-anchor.ts";
 
 export function datasetManifest(files: readonly { name: string; bytes: Uint8Array }[]): string {
   return [...files].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
@@ -24,4 +24,12 @@ export function verifyDatasetDir(dataDir: string, pinned: string = ADDRESS_ANCHO
     throw new Error(`address anchors: dataset in ${dir} (${names.length} files, sha256:${actual}) is not the pinned release ${pinned}`);
   }
   return pinned;
+}
+
+/** `--release <id>` (default: the first release) resolved against the registry, then verified; an unknown id is refused. */
+export function verifyRegisteredDatasetDir(dataDir: string, releaseId: string = ADDRESS_ANCHOR_DATASET_RELEASE): string {
+  const release = addressAnchorDatasetRelease(releaseId);
+  const count = readdirSync(join(dataDir, "download")).filter((n) => n.endsWith(".zip")).length;
+  if (count !== release.fileCount) throw new Error(`address anchors: ${dataDir} has ${count} ABR zip files, release ${releaseId} has ${release.fileCount}`);
+  return verifyDatasetDir(dataDir, release.releaseId);
 }

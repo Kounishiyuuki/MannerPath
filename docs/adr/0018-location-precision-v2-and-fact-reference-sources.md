@@ -173,6 +173,15 @@ hold below (migration 0033).
   (`completeOfficialAddress`); a cell naming another one is `outsideSourceScope` (F3). Adopting it is a
   separate source review (existence, rights, current operation, same-anchor rule). First source (2026-10-19):
   `chiyoda-smoking-places`, 30 spots from the 31 `adoptable` rows of a bulk-intake run over the ward's 78 listings.
+- **Several ABR releases (2026-10-19).** `ADDRESS_ANCHOR_DATASET_RELEASES` is an append-only registry: each entry is one
+  reviewed download (release id ending in its digest, zip count, the municipality codes it was downloaded for). A new
+  municipality outside every release gets a new release and a new registry entry; earlier releases are never replaced,
+  re-pointed or merged, and anchors already published keep the release named in their reference (no re-geocode). The
+  gate accepts a run only when its release is registered (`datasetReleaseNotPinned` otherwise) and the run's `lg_code`
+  is one of that release's municipalities (`datasetReleaseOutOfScope` otherwise, also when `lg_code` is absent), so a
+  run labelled with the wrong release fails closed. `--release <id>` on `address:anchors` / `bulk:intake` selects the
+  release (default: the first); the directory must hold that release's zip count and reproduce its digest. One batch is
+  geocoded under one release. `ADDRESS_ANCHOR_DATASET_RELEASE` remains the first release's id.
 - **Gate v2 and batch triage (2026-10-18).** `address-anchor-gate.v2` adds one reviewed split: when the lot matched at
   `residential_detail` and the geocoder's only remainder is the address's own trailing building name and/or floor, the
   lot alone is gated and the removed text is kept in the reference (`除外=`). A remainder holding another lot number or an

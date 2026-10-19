@@ -3,12 +3,12 @@
 //   1. batch.json: { "sourceId", "checkedAt", "rows": [{ id, name, officialAddress, prefecture, municipality, operation, sourceUrl }] }
 //   2. npm run bulk:intake -- addresses batch.json > addresses.txt     (one verbatim address per addressed row, in order)
 //   3. Outside the repository, with Node ≤23:  abrg addresses.txt -d <pinned ABR dir> -f json > abrg.json   (no --fuzzy)
-//   4. npm run bulk:intake -- evaluate batch.json abrg.json --dataset <pinned ABR dir> [--rows]
+//   4. npm run bulk:intake -- evaluate batch.json abrg.json --dataset <pinned ABR dir> [--release <id>] [--rows]
 //      The directory must reproduce the pinned release digest (scripts/address-anchor-dataset.ts), or nothing is evaluated.
 //   Row prefecture/municipality are the source's publishing municipality: a cell may be completed only with it (F3).
 import { readFileSync } from "node:fs";
 import { type GeocodeRun, abrJsonRun, completeOfficialAddress } from "../src/pipeline/address-anchor.ts";
-import { verifyDatasetDir } from "./address-anchor-dataset.ts";
+import { verifyRegisteredDatasetDir } from "./address-anchor-dataset.ts";
 import { type IntakeBatch, evaluateIntakeBatch } from "../src/pipeline/bulk-intake.ts";
 
 const GEOCODER_VERSION = "2.3.1";
@@ -39,13 +39,14 @@ export function geocodesByRow(batch: IntakeBatch, abrOutput: readonly unknown[],
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [command, batchPath, abrPath] = process.argv.slice(2);
   const datasetDir = process.argv.includes("--dataset") ? process.argv[process.argv.indexOf("--dataset") + 1] : undefined;
+  const releaseArg = process.argv.includes("--release") ? process.argv[process.argv.indexOf("--release") + 1] : undefined;
   if (!batchPath || (command !== "addresses" && command !== "evaluate") || (command === "evaluate" && (!abrPath || !datasetDir))) {
     throw new Error("usage: bulk-intake.ts addresses <batch.json> | evaluate <batch.json> <abrg.json> --dataset <abr dir> [--rows]");
   }
   const batch = JSON.parse(readFileSync(batchPath, "utf8")) as IntakeBatch;
   if (command === "addresses") process.stdout.write(geocoderInput(batch));
   else {
-    const release = verifyDatasetDir(datasetDir!);
+    const release = verifyRegisteredDatasetDir(datasetDir!, releaseArg);
     const summary = evaluateIntakeBatch(batch, geocodesByRow(batch, JSON.parse(readFileSync(abrPath!, "utf8")), release));
     const { results, ...counts } = summary;
     console.log(JSON.stringify(process.argv.includes("--rows") ? summary : { datasetRelease: release, ...counts }, null, 2));

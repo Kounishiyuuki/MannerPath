@@ -14,15 +14,35 @@ export type { GeocodeRun };
 
 export const ADDRESS_ANCHOR_GATE_VERSION = "address-anchor-gate.v2";
 
+/** One reviewed ABR download: its id (ending in the digest scripts/address-anchor-dataset.ts recomputes), the zip count
+ * and the municipality codes it was downloaded for. A geocode is accepted only under the release that produced it and
+ * only for a municipality that release covers; releases are never merged or re-pointed. */
+export interface AddressAnchorDatasetRelease {
+  readonly releaseId: string;
+  readonly fileCount: number;
+  readonly lgCodes: readonly string[];
+}
+
 /**
  * The reviewed ABR dataset release for anchors: `abrg download -c 131016 131024 131067 131041 131130 131164 --keep`
  * (千代田・中央・台東・新宿・渋谷・豊島), downloaded 2026-10-18; the digest is SHA-256 of the sorted
  * `shasum -a 256 *.zip` list (27 files). Pinned for this anchor lane only: ADR-0011's derived-coordinate lane keeps
- * its own (empty) release list and stays Proposed.
+ * its own (empty) release list and stays Proposed. Existing anchors name this release in their reference and keep it.
  */
 export const ADDRESS_ANCHOR_DATASET_RELEASE = "abr-tokyo-6wards-2026-10-18:sha256:30b45f8ae8ee7ffa159d535d7dd420e06563d1c1bfb8f41704668f84c01e6ac2";
-const ANCHOR_GEOCODERS = REVIEWED_GEOCODERS.map((g) => g.geocoderId === "abr-geocoder"
-  ? { ...g, datasetReleases: [ADDRESS_ANCHOR_DATASET_RELEASE] } : g);
+
+/** Every reviewed release, append-only: a new municipality gets a new release, and earlier anchors are not re-geocoded. */
+export const ADDRESS_ANCHOR_DATASET_RELEASES: readonly AddressAnchorDatasetRelease[] = [
+  { releaseId: ADDRESS_ANCHOR_DATASET_RELEASE, fileCount: 27, lgCodes: ["131016", "131024", "131067", "131041", "131130", "131164"] },
+];
+
+/** The registered release with this id, or a thrown error: an unknown id is never trusted. */
+export function addressAnchorDatasetRelease(releaseId: string,
+  releases: readonly AddressAnchorDatasetRelease[] = ADDRESS_ANCHOR_DATASET_RELEASES): AddressAnchorDatasetRelease {
+  const found = releases.filter((r) => r.releaseId === releaseId);
+  if (found.length !== 1) throw new Error(`address anchors: ${releaseId} is not a registered ABR dataset release`);
+  return found[0];
+}
 
 /** ABR coordinate levels accepted as an approximate facility anchor. Parcel points carry another licence and can sit
  * far from a building inside a large lot; coarser levels are a town or city, not a facility. */
@@ -109,7 +129,8 @@ export function completeOfficialAddress(cell: string, scope: { prefecture: strin
   return { address: prefecture + municipality + text, completed: "prefectureAndMunicipality" };
 }
 
-export function evaluateAddressAnchor(input: AddressAnchorInput): AddressAnchorResult {
+export function evaluateAddressAnchor(input: AddressAnchorInput,
+  releases: readonly AddressAnchorDatasetRelease[] = ADDRESS_ANCHOR_DATASET_RELEASES): AddressAnchorResult {
   const address = input.officialAddress?.trim() ?? "";
   if (address === "") return { status: "reviewPending", reasons: ["officialAddressMissing"] };
   if (AMBIGUOUS_LOCATION.test(address)) return { status: "reviewPending", reasons: ["ambiguousLocationWording"] };
@@ -120,7 +141,7 @@ export function evaluateAddressAnchor(input: AddressAnchorInput): AddressAnchorR
     const output = input.geocode.output?.endsWith(suffix) ? input.geocode.output.slice(0, -suffix.length).trimEnd() : null;
     if (output === null) return { status: "reviewPending", reasons: ["unmatchedRemainder"] };
     // The lot is a verbatim prefix of the official address; the gate re-checks it as if it had been the whole input.
-    const r = evaluateAddressAnchor({ ...input, officialAddress: lot, geocode: { ...input.geocode, input: lot, output, others: [] } });
+    const r = evaluateAddressAnchor({ ...input, officialAddress: lot, geocode: { ...input.geocode, input: lot, output, others: [] } }, releases);
     return r.status === "anchor" ? { ...r, reference: `${r.reference} 除外=${suffix}` } : r;
   }
   const run = input.geocode;
@@ -131,9 +152,12 @@ export function evaluateAddressAnchor(input: AddressAnchorInput): AddressAnchorR
     record: { recordId: 0, addressColumn: "address", officialAddress: address, addressSuppliedBy: "publisher", inputRule: "verbatim",
       expectedPrefecture: input.expectedPrefecture, expectedMunicipality: input.expectedMunicipality },
     geocode: run,
-  }, ANCHOR_GEOCODERS);
+  }, REVIEWED_GEOCODERS.map((g) => g.geocoderId === "abr-geocoder" ? { ...g, datasetReleases: releases.map((r) => r.releaseId) } : g));
   const notationOnly = run.output !== null && canonicalAddress(run.output) === canonicalAddress(address);
   const reasons: string[] = evaluation.rejections.filter((r) => !(r === "normalizationChangedMeaning" && notationOnly));
+  // A release answers only for the municipalities it was downloaded for; a missing lg_code is not in scope.
+  const release = releases.find((r) => r.releaseId === run.datasetReleaseId);
+  if (release !== undefined && (run.lgCode === null || !release.lgCodes.includes(run.lgCode))) reasons.push("datasetReleaseOutOfScope");
   const level = ANCHOR_LEVELS.find((l) => l === run.coordinateLevel);
   if (level === undefined && !reasons.includes("precisionTooLow")) reasons.push("precisionTooLow");
   if (reasons.length > 0 || level === undefined || run.latitude === null || run.longitude === null) {
