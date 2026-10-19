@@ -8,13 +8,14 @@ nothing here approves publication. Sending, and deciding what a reply means, is 
 | Ward | Terms page | SHA-256 now | vs. recorded in PROVENANCE | Copyright clause (verbatim) |
 | --- | --- | --- | --- | --- |
 | 中央区 | [このホームページの詳細情報](https://www.city.chuo.lg.jp/kusei/kouhoukouchou/kouhou/aboutwebsite/thissite.html) | `84a2dd30…cc62c` | **unchanged** | 「区ホームページに掲載されている内容（テキスト、画像、PDFその他のデータ）の著作権は中央区に帰属します。…著作権法上認められている行為を除き、無断で転載や改変などを行うことはできません。」 |
-| 渋谷区 | [サイトポリシー](https://www.city.shibuya.tokyo.jp/guide/website/list/site_policy.html) | `3a0c482e…7eada` | **page changed** (recorded `24fdef4c…`) | 「本サイト上の情報・画像・図表などは、特に明示がない限り、その著作権を渋谷区が保有します。引用・転載・複製を希望される場合は、広報コミュニケーション課まで、ご連絡ください。転載・複製はこれを禁じます。」 |
+| 渋谷区 | [サイトポリシー](https://www.city.shibuya.tokyo.jp/guide/website/list/site_policy.html) | `3a0c482e…7eada` | **raw hash differs; content unchanged** (recorded `24fdef4c…`; see notes) | 「本サイト上の情報・画像・図表などは、特に明示がない限り、その著作権を渋谷区が保有します。引用・転載・複製を希望される場合は、広報コミュニケーション課まで、ご連絡ください。転載・複製はこれを禁じます。」 |
 | 豊島区 | [サイトポリシー](https://www.city.toshima.lg.jp/012/kuse/koho/homepage/sitepolicy.html) | `92d295e4…2edd0` | **unchanged** | 「当サイト上の文書や画像等は、『私的使用のための複製』や『引用』など著作権法上認められた場合を除き、無断で複製・転用することはできません。」 |
 
 Notes:
-- The Shibuya copyright clause reads the same as the one recorded on 2026-10-18. The page's hash changed. The
-  changed part was not diffed; the Cookie policy and the tool list are the likely candidates. Before relying on
-  it, re-record the hash in `shibuya-smoking-places/PROVENANCE.md` with a reviewed diff.
+- Shibuya, diffed 2026-10-19: the recorded fetch, this fetch and a third one have identical visible text, the
+  same CMS policy body (`revisedAt` 2025-03-30) and the same rights-scope fingerprint `454d1cec…`. Only a
+  per-request search-box id and CMS state change, so the raw hash differs on every fetch. Recorded in
+  `shibuya-smoking-places/PROVENANCE.md`; no rights reading changes.
 - None of the three pages prohibits information use, data acquisition or database incorporation. Each forbids,
   or requires contact for, reproduction (転載・複製・改変・転用) beyond what copyright law allows.
 - Whether normalized facts amount to reproduction is the open legal question.
