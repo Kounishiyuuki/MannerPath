@@ -75,6 +75,8 @@ final class NearbyModel {
     private(set) var destinationMatches: [PlaceDestination] = []
     private(set) var destination: PlaceDestination?
     private(set) var destinationSearchFailed = false
+    /// The search answered with no place. Shown, so an empty answer is not mistaken for a search that never ran.
+    private(set) var destinationSearchFoundNothing = false
     private(set) var searchingDestination = false
     private(set) var routeState: RouteDataState = .idle
     private(set) var routeResults: [RouteRankedResult] = []
@@ -162,6 +164,7 @@ final class NearbyModel {
         searchTask?.cancel()
         activeSearchQuery = query
         destinationSearchFailed = false
+        destinationSearchFoundNothing = false
         searchingDestination = true
         searchTask = Task { [weak self] in
             if let delay {
@@ -172,6 +175,7 @@ final class NearbyModel {
                 let matches = try await destinationSearch.search(query, near: displayLocation?.coordinate)
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
                 destinationMatches = matches
+                destinationSearchFoundNothing = matches.isEmpty
             } catch {
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
                 destinationMatches = []
@@ -188,6 +192,7 @@ final class NearbyModel {
         activeSearchQuery = nil
         destinationMatches = []
         destinationSearchFailed = false
+        destinationSearchFoundNothing = false
         searchingDestination = false
     }
 

@@ -611,7 +611,8 @@ struct ContentView: View {
     }
 
     private var isShowingSearchResults: Bool {
-        model.searchingDestination || model.destinationSearchFailed || !model.destinationMatches.isEmpty
+        model.searchingDestination || model.destinationSearchFailed || model.destinationSearchFoundNothing
+            || !model.destinationMatches.isEmpty
     }
 
     private var searchResultsSection: some View {
@@ -624,6 +625,9 @@ struct ContentView: View {
             }
             if model.destinationSearchFailed {
                 compactStatus("Destination search unavailable. Saved nearby places remain available.", symbol: "wifi.exclamationmark", important: true)
+            }
+            if model.destinationSearchFoundNothing && !model.searchingDestination {
+                compactStatus("No matching destination. Try another name, such as a station.", symbol: "magnifyingglass")
             }
             ForEach(model.destinationMatches) { match in
                 DestinationSuggestionRow(match: match) {

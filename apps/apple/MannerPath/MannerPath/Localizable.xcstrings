@@ -26,6 +26,16 @@
     "Select a pin to see a summary in the Nearby list": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "ピンを選ぶと、近くの場所のリストに概要が表示されます" } } } },
     "MannerPath processing": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "MannerPathによる加工" } } } },
     "MannerPath extracts and normalizes smoking-place data from the original sources. Some access conditions and opening hours may be treated conservatively; unknown conditions are not confirmation.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "MannerPathは元データから喫煙場所の情報を抽出・正規化しています。一部の利用条件や営業時間等を保守的に扱う場合があります。不明な条件は、利用可能であることの確認を意味しません。" } } } },
+    "No matching destination. Try another name, such as a station.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一致する目的地が見つかりません。駅名など別の名前で検索してください。"
+          }
+        }
+      }
+    },
     "Recenter on destination": {
       "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "目的地付近に戻す" } } }
     },
