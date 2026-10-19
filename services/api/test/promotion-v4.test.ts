@@ -183,7 +183,7 @@ test("v4 parser respects escaped quotes, Unicode, semicolons and stream boundari
   await assert.rejects(async () => { for await (const _ of sqlStatements(path)) { /* consume stream */ } }, /capacity policy/);
 });
 
-test("v4 bootstraps all nineteen reviewed sources including the Sendai, eight airport, 14 Chuo park, 47 Chuo private, 30 Chiyoda and 30 Shibuya address anchors and deterministically re-exports", async t => {
+test("v4 bootstraps all twenty reviewed sources including the Sendai, eight airport, 14 Chuo park, 47 Chuo private, 30 Chiyoda, 30 Shibuya and 4 Toshima address anchors and deterministically re-exports", async t => {
   const root = await mkdtemp(join(tmpdir(), "promotion-v4-reviewed-sources-"));
   const source = new SqliteD1(), target = migratedSqlite();
   t.after(async () => { source.raw.close(); target.close(); await rm(root, { recursive: true, force: true }); });
@@ -191,13 +191,13 @@ test("v4 bootstraps all nineteen reviewed sources including the Sendai, eight ai
   await publishTiles(source, { now: NOW });
   const directory = join(root, "bundle");
   const manifest = await exportPromotionV4(source.raw, directory, { chunkBytes: 90_000 });
-  assert.equal(manifest.sources.length, 19);
-  assert.equal(manifest.rows.tile_snapshot_spots, 643);
-  assert.equal(manifest.rows.tile_snapshots, 101);
-  assert.equal(manifest.rows.area_location_anchors, 130);
-  assert.equal(manifest.rows.area_point_mappings, 13);
+  assert.equal(manifest.sources.length, 20);
+  assert.equal(manifest.rows.tile_snapshot_spots, 647);
+  assert.equal(manifest.rows.tile_snapshots, 103);
+  assert.equal(manifest.rows.area_location_anchors, 134);
+  assert.equal(manifest.rows.area_point_mappings, 14);
   assert.equal((await applyPromotionV4(target, directory, manifest.wholeBundleSha256)).status, "completed");
-  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 643);
+  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 647);
   // Sendai keeps its ADR-0017 v1 anchor (no scope/basis); all ADR-0018 facility anchors keep both through the bootstrap.
   assert.deepEqual(target.prepare("SELECT anchor_id, area_scope, anchor_basis FROM area_location_anchors ORDER BY anchor_id").all()
     .map(r => ({ ...(r as object) })), [
@@ -285,6 +285,10 @@ test("v4 bootstraps all nineteen reviewed sources including the Sendai, eight ai
     { anchor_id: "aa_shibuya41", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_shibuya42", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_takamatsuairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_toshima03", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_toshima04", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_toshima05", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_toshima06", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_yonagoairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
   ]);
   const reexport = await exportPromotionV4(target, join(root, "reexport"), { chunkBytes: 90_000 });

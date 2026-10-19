@@ -1519,6 +1519,19 @@
       "sha256": "68e26b09a7928b16264c178441b6a5bd40af7ac94fd1f8031beadfd5be03dbef",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-18T20:03:11Z"
+    },
+    {
+      "targetId": "ward-toshima",
+      "reference": "services/data-pipeline/fixtures/toshima-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "toshima-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.city.toshima.lg.jp/152/machizukuri/sumai/bika/taisaku/025701.html"
+      ],
+      "sha256": "feb1e8201a0839a3f24d61769da8fc5968aeca3c62062ec6a761fac901ddc31c",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-10-18T20:56:32Z"
     }
   ],
   "researchReferences": [

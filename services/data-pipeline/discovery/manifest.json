@@ -5330,13 +5330,22 @@
           ],
           "rawUrls": [],
           "evidence": "| 豊島 | https://www.city.toshima.lg.jp/152/machizukuri/sumai/bika/taisaku/025701.html | Direct official designated locations, including 2025-09-01 opening; no licensed coordinate dataset discovered. |"
+        },
+        {
+          "reference": "services/data-pipeline/fixtures/toshima-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "toshima-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.city.toshima.lg.jp/152/machizukuri/sumai/bika/taisaku/025701.html"
+          ],
+          "sha256": "feb1e8201a0839a3f24d61769da8fc5968aeca3c62062ec6a761fac901ddc31c",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-10-18T20:56:32Z"
         }
       ],
-      "seedStatus": "blocked",
-      "blockerCodes": [
-        "coordinatesMissing",
-        "licenseUnknown"
-      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
       "deepReview": {
         "status": "blocked",
         "deepReviewed": true,
@@ -5346,7 +5355,10 @@
           "licenseUnknown"
         ],
         "deepReviewedAt": "2026-09-30T16:00:40.147833Z"
-      }
+      },
+      "reviewedSourceIds": [
+        "toshima-smoking-places"
+      ]
     },
     {
       "id": "ward-kita",
