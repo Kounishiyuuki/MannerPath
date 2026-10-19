@@ -1,0 +1,403 @@
+{
+ "measuredAt": "2026-10-19",
+ "corpus": "local, all 20 reviewed sources, origin/main d88da06 fixtures; not production",
+ "method": "haversine from the station point below to each published spot point; counts include areaApproximate pins at their address point",
+ "stationPointsAreApproximate": true,
+ "stations": {
+  "東京": {
+   "point": [
+    35.6812,
+    139.7671
+   ],
+   "m500": {
+    "n": 7,
+    "approx": 7,
+    "hoursNotParsed": 7,
+    "accessNotPublic": 6,
+    "sources": [
+     "chiyoda-smoking-places",
+     "chuo-private-smoking-places"
+    ]
+   },
+   "m1000": {
+    "n": 17,
+    "approx": 17,
+    "hoursNotParsed": 15,
+    "accessNotPublic": 13,
+    "sources": [
+     "chiyoda-smoking-places",
+     "chuo-park-smoking-places",
+     "chuo-private-smoking-places"
+    ]
+   }
+  },
+  "新宿": {
+   "point": [
+    35.6896,
+    139.7006
+   ],
+   "m500": {
+    "n": 3,
+    "approx": 3,
+    "hoursNotParsed": 3,
+    "accessNotPublic": 0,
+    "sources": [
+     "shibuya-smoking-places"
+    ]
+   },
+   "m1000": {
+    "n": 6,
+    "approx": 6,
+    "hoursNotParsed": 6,
+    "accessNotPublic": 0,
+    "sources": [
+     "shibuya-smoking-places"
+    ]
+   }
+  },
+  "渋谷": {
+   "point": [
+    35.658,
+    139.7016
+   ],
+   "m500": {
+    "n": 10,
+    "approx": 10,
+    "hoursNotParsed": 10,
+    "accessNotPublic": 0,
+    "sources": [
+     "shibuya-smoking-places"
+    ]
+   },
+   "m1000": {
+    "n": 17,
+    "approx": 17,
+    "hoursNotParsed": 17,
+    "accessNotPublic": 0,
+    "sources": [
+     "shibuya-smoking-places"
+    ]
+   }
+  },
+  "池袋": {
+   "point": [
+    35.7295,
+    139.7109
+   ],
+   "m500": {
+    "n": 4,
+    "approx": 4,
+    "hoursNotParsed": 4,
+    "accessNotPublic": 0,
+    "sources": [
+     "toshima-smoking-places"
+    ]
+   },
+   "m1000": {
+    "n": 4,
+    "approx": 4,
+    "hoursNotParsed": 4,
+    "accessNotPublic": 0,
+    "sources": [
+     "toshima-smoking-places"
+    ]
+   }
+  },
+  "上野": {
+   "point": [
+    35.7138,
+    139.7773
+   ],
+   "m500": {
+    "n": 7,
+    "approx": 0,
+    "hoursNotParsed": 2,
+    "accessNotPublic": 7,
+    "sources": [
+     "taito-public-smoking-areas"
+    ]
+   },
+   "m1000": {
+    "n": 17,
+    "approx": 0,
+    "hoursNotParsed": 7,
+    "accessNotPublic": 17,
+    "sources": [
+     "taito-public-smoking-areas"
+    ]
+   }
+  },
+  "秋葉原": {
+   "point": [
+    35.6984,
+    139.7731
+   ],
+   "m500": {
+    "n": 2,
+    "approx": 2,
+    "hoursNotParsed": 2,
+    "accessNotPublic": 0,
+    "sources": [
+     "chiyoda-smoking-places"
+    ]
+   },
+   "m1000": {
+    "n": 20,
+    "approx": 17,
+    "hoursNotParsed": 19,
+    "accessNotPublic": 5,
+    "sources": [
+     "chiyoda-smoking-places",
+     "taito-public-smoking-areas",
+     "chuo-park-smoking-places",
+     "chuo-private-smoking-places"
+    ]
+   }
+  },
+  "品川": {
+   "point": [
+    35.6285,
+    139.7388
+   ],
+   "m500": {
+    "n": 5,
+    "approx": 0,
+    "hoursNotParsed": 5,
+    "accessNotPublic": 5,
+    "sources": [
+     "minato-designated-smoking-areas"
+    ]
+   },
+   "m1000": {
+    "n": 11,
+    "approx": 0,
+    "hoursNotParsed": 11,
+    "accessNotPublic": 11,
+    "sources": [
+     "minato-designated-smoking-areas"
+    ]
+   }
+  },
+  "新橋": {
+   "point": [
+    35.6663,
+    139.7583
+   ],
+   "m500": {
+    "n": 10,
+    "approx": 1,
+    "hoursNotParsed": 10,
+    "accessNotPublic": 9,
+    "sources": [
+     "chiyoda-smoking-places",
+     "minato-designated-smoking-areas"
+    ]
+   },
+   "m1000": {
+    "n": 29,
+    "approx": 11,
+    "hoursNotParsed": 27,
+    "accessNotPublic": 25,
+    "sources": [
+     "chuo-park-smoking-places",
+     "chuo-private-smoking-places",
+     "chiyoda-smoking-places",
+     "minato-designated-smoking-areas"
+    ]
+   }
+  },
+  "有楽町": {
+   "point": [
+    35.6749,
+    139.7628
+   ],
+   "m500": {
+    "n": 4,
+    "approx": 4,
+    "hoursNotParsed": 4,
+    "accessNotPublic": 2,
+    "sources": [
+     "chiyoda-smoking-places",
+     "chuo-park-smoking-places",
+     "chuo-private-smoking-places"
+    ]
+   },
+   "m1000": {
+    "n": 23,
+    "approx": 19,
+    "hoursNotParsed": 19,
+    "accessNotPublic": 16,
+    "sources": [
+     "chiyoda-smoking-places",
+     "chuo-park-smoking-places",
+     "chuo-private-smoking-places",
+     "minato-designated-smoking-areas"
+    ]
+   }
+  },
+  "恵比寿": {
+   "point": [
+    35.6467,
+    139.7101
+   ],
+   "m500": {
+    "n": 0,
+    "approx": 0,
+    "hoursNotParsed": 0,
+    "accessNotPublic": 0,
+    "sources": []
+   },
+   "m1000": {
+    "n": 1,
+    "approx": 1,
+    "hoursNotParsed": 1,
+    "accessNotPublic": 0,
+    "sources": [
+     "shibuya-smoking-places"
+    ]
+   }
+  }
+ },
+ "bySource": {
+  "miyazaki-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "oita-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "matsuyama-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "hiroshima-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "yonago-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "kochi-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "takamatsu-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "osaka-designated-smoking-areas": {
+   "n": 344,
+   "approx": 0,
+   "hoursUnknownOrUnparsed": 344,
+   "tobaccoUnknown": 344,
+   "accessUnknown": 344
+  },
+  "kyoto-public-smoking-places": {
+   "n": 17,
+   "approx": 0,
+   "hoursUnknownOrUnparsed": 17,
+   "tobaccoUnknown": 17,
+   "accessUnknown": 17
+  },
+  "komatsu-airport-smoking-places": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  },
+  "musashino-public-smoking-areas": {
+   "n": 3,
+   "approx": 0,
+   "hoursUnknownOrUnparsed": 3,
+   "tobaccoUnknown": 3,
+   "accessUnknown": 3
+  },
+  "shibuya-smoking-places": {
+   "n": 30,
+   "approx": 30,
+   "hoursUnknownOrUnparsed": 30,
+   "tobaccoUnknown": 30,
+   "accessUnknown": 0
+  },
+  "toshima-smoking-places": {
+   "n": 4,
+   "approx": 4,
+   "hoursUnknownOrUnparsed": 4,
+   "tobaccoUnknown": 4,
+   "accessUnknown": 0
+  },
+  "minato-designated-smoking-areas": {
+   "n": 114,
+   "approx": 0,
+   "hoursUnknownOrUnparsed": 114,
+   "tobaccoUnknown": 114,
+   "accessUnknown": 114
+  },
+  "chiyoda-smoking-places": {
+   "n": 30,
+   "approx": 30,
+   "hoursUnknownOrUnparsed": 30,
+   "tobaccoUnknown": 30,
+   "accessUnknown": 0
+  },
+  "taito-public-smoking-areas": {
+   "n": 32,
+   "approx": 0,
+   "hoursUnknownOrUnparsed": 12,
+   "tobaccoUnknown": 31,
+   "accessUnknown": 32
+  },
+  "chuo-park-smoking-places": {
+   "n": 14,
+   "approx": 14,
+   "hoursUnknownOrUnparsed": 7,
+   "tobaccoUnknown": 14,
+   "accessUnknown": 0
+  },
+  "chuo-private-smoking-places": {
+   "n": 47,
+   "approx": 47,
+   "hoursUnknownOrUnparsed": 47,
+   "tobaccoUnknown": 47,
+   "accessUnknown": 47
+  },
+  "koto-station-smoking-areas": {
+   "n": 3,
+   "approx": 0,
+   "hoursUnknownOrUnparsed": 3,
+   "tobaccoUnknown": 3,
+   "accessUnknown": 3
+  },
+  "sendai-kaigan-park-smoking-areas": {
+   "n": 1,
+   "approx": 1,
+   "hoursUnknownOrUnparsed": 1,
+   "tobaccoUnknown": 1,
+   "accessUnknown": 1
+  }
+ }
+}
