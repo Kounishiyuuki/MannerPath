@@ -17,6 +17,21 @@ struct RouteSearchTests {
         #expect(DestinationResultMerger.merge(query: " 上野　駅 ", nearby: nearby, nationwide: nationwide).first?.name == "上野駅")
     }
 
+    @Test func eightUnrelatedNearbyStationsNeverPushOutTheNamedDistantStation() {
+        // Device report from Kanazawa: eight local stations filled the list and 上野駅 was missing.
+        let local = ["金沢駅", "野々市駅", "野町駅", "松任駅", "西金沢駅", "押野駅", "北鉄金沢駅", "野々市工大前駅"]
+        let nearby = local.enumerated().map { place($1, 36.5 + Double($0) / 100, 136.6) }
+        #expect(!DestinationResultMerger.containsNameMatch(for: "上野駅", in: nearby))
+        let merged = DestinationResultMerger.merge(query: "上野駅", nearby: nearby, nationwide: [place("上野駅", 35.714, 139.777)])
+        #expect(merged.count == 8)
+        #expect(merged.first?.name == "上野駅")
+        // A query that names a nearby place keeps it first, and needs no extra search.
+        #expect(DestinationResultMerger.containsNameMatch(for: "金沢駅", in: nearby))
+        #expect(DestinationResultMerger.merge(query: "金沢駅", nearby: nearby, nationwide: []).first?.name == "金沢駅")
+        #expect(DestinationResultMerger.containsNameMatch(for: " 上野　駅 ", in: [place("上野駅", 35.714, 139.777)]))
+        #expect(!DestinationResultMerger.containsNameMatch(for: "", in: nearby))
+    }
+
     @Test func genericQueriesKeepNearbyResultsFirstAndDuplicatesCollapse() {
         let nearby = [place("Cafe A", 36.578, 136.648), place("金沢駅", 36.578, 136.648)]
         let nationwide = [place("Cafe B", 35.68, 139.76), place("金沢駅", 36.5785, 136.6482)]

@@ -44,6 +44,12 @@ enum DestinationResultMerger {
         return Array((named + rest).prefix(limit))
     }
 
+    /// Whether any answer is named for the query, which `merge` would rank first.
+    static func containsNameMatch(for query: String, in places: [PlaceDestination]) -> Bool {
+        let needle = normalized(query)
+        return !needle.isEmpty && places.contains { normalized($0.name).contains(needle) }
+    }
+
     private static func isSame(_ a: PlaceDestination, _ b: PlaceDestination) -> Bool {
         normalized(a.name) == normalized(b.name)
             && NearbySearch.straightLineDistance(from: a.coordinate, to: b.coordinate) <= duplicateMeters
