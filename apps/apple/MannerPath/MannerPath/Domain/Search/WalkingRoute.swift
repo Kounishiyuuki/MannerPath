@@ -31,17 +31,37 @@ enum DestinationResultMerger {
     /// Results this close with the same name are one place reported by both searches.
     static let duplicateMeters = 150.0
 
+    /// Names equal to the query, then starting with it, then containing it; within each, nearer first when `origin` is
+    /// known. Unnamed answers ("カフェ" finding "Starbucks") keep MapKit's order, nearby before nationwide. Distance
+    /// never removes a candidate, only orders equally named ones.
     static func merge(query: String, nearby: [PlaceDestination], nationwide: [PlaceDestination],
-                      limit: Int = 8) -> [PlaceDestination] {
+                      origin: SpotCoordinate? = nil, limit: Int = 8) -> [PlaceDestination] {
         var unique: [PlaceDestination] = []
         for candidate in nearby + nationwide where !unique.contains(where: { isSame($0, candidate) }) {
             unique.append(candidate)
         }
         let needle = normalized(query)
-        // Stable: a name containing the query first, then the original order (nearby before nationwide).
-        let named = unique.filter { !needle.isEmpty && normalized($0.name).contains(needle) }
-        let rest = unique.filter { needle.isEmpty || !normalized($0.name).contains(needle) }
-        return Array((named + rest).prefix(limit))
+        let ranked = unique.enumerated().sorted { a, b in
+            let first = matchTier(a.element, needle), second = matchTier(b.element, needle)
+            if first != second { return first < second }
+            if first < unnamedTier, let origin, origin.isValid {
+                let near = NearbySearch.straightLineDistance(from: origin, to: a.element.coordinate)
+                let far = NearbySearch.straightLineDistance(from: origin, to: b.element.coordinate)
+                if near != far { return near < far }
+            }
+            return a.offset < b.offset
+        }
+        return Array(ranked.map(\.element).prefix(limit))
+    }
+
+    private static let unnamedTier = 3
+
+    private static func matchTier(_ place: PlaceDestination, _ needle: String) -> Int {
+        guard !needle.isEmpty else { return unnamedTier }
+        let name = normalized(place.name)
+        if name == needle { return 0 }
+        if name.hasPrefix(needle) { return 1 }
+        return name.contains(needle) ? 2 : unnamedTier
     }
 
     /// Whether any answer is named for the query, which `merge` would rank first.

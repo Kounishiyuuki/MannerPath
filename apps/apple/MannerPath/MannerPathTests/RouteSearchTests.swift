@@ -46,6 +46,43 @@ struct RouteSearchTests {
         #expect(DestinationResultMerger.merge(query: "", nearby: nearby, nationwide: []).map(\.name) == ["Cafe A", "金沢駅"])
     }
 
+    @Test func fromKanazawaNamedPlacesAnywhereRankByMatchThenDistance() {
+        let kanazawa = SpotCoordinate(latitude: 36.578, longitude: 136.648)
+        let nearby = [place("金沢駅", 36.578, 136.648), place("上野本町", 36.57, 136.66),
+                      place("Cafe A", 36.58, 136.65), place("野町駅", 36.55, 136.64)]
+        let nationwide = [place("上野公園", 35.715, 139.773), place("上野駅", 35.714, 139.777),
+                          place("東京駅", 35.681, 139.767), place("大阪駅", 34.702, 135.496),
+                          place("京成上野駅", 35.711, 139.773), place("カフェ 東京", 35.68, 139.76)]
+        func names(_ query: String) -> [String] {
+            DestinationResultMerger.merge(query: query, nearby: nearby, nationwide: nationwide, origin: kanazawa)
+                .map(\.name)
+        }
+        // Prefix matches first, the nearer one ahead; then a name containing the query; distance never drops them.
+        #expect(Array(names("上野").prefix(4)) == ["上野本町", "上野公園", "上野駅", "京成上野駅"])
+        #expect(Array(names("上野駅").prefix(2)) == ["上野駅", "京成上野駅"])
+        #expect(names("東京駅").first == "東京駅")
+        #expect(names("大阪駅").first == "大阪駅")
+        #expect(names("金沢駅").first == "金沢駅")
+        // Generic: no exact name, so nearby answers keep MapKit's nearby-first order behind any named one.
+        #expect(Array(names("カフェ").prefix(3)) == ["カフェ 東京", "金沢駅", "上野本町"])
+        #expect(names("cafe").first == "Cafe A")
+    }
+
+    @Test func equallyNamedPlacesAreOrderedNearestFirstAndNamedOnesBeyondEightSurvive() {
+        let kanazawa = SpotCoordinate(latitude: 36.578, longitude: 136.648)
+        let nationwide = [place("イオン 東京", 35.68, 139.76), place("イオン 金沢", 36.58, 136.65)]
+        #expect(DestinationResultMerger.merge(query: "イオン", nearby: [], nationwide: nationwide, origin: kanazawa)
+            .map(\.name) == ["イオン 金沢", "イオン 東京"])
+        // Without an origin the order MapKit gave is kept.
+        #expect(DestinationResultMerger.merge(query: "イオン", nearby: [], nationwide: nationwide)
+            .map(\.name) == ["イオン 東京", "イオン 金沢"])
+        // Ten unrelated nearby answers ahead of a named nationwide one never hide it.
+        let filler = (0..<10).map { place("店\($0)", 36.5 + Double($0) / 100, 136.6) }
+        let merged = DestinationResultMerger.merge(query: "大阪駅", nearby: filler,
+                                                   nationwide: [place("大阪駅", 34.702, 135.496)], origin: kanazawa)
+        #expect(merged.count == 8 && merged.first?.name == "大阪駅")
+    }
+
     private func place(_ name: String, _ latitude: Double, _ longitude: Double) -> PlaceDestination {
         PlaceDestination(id: UUID(), name: name, coordinate: SpotCoordinate(latitude: latitude, longitude: longitude))
     }
@@ -492,6 +529,65 @@ struct RouteSearchTests {
         #expect(search.queries.isEmpty)
         #expect(model.destination == chosen)
         #expect(model.destinationMatches.isEmpty && !model.searchingDestination)
+    }
+
+    // On device a GPS fix arrives every few seconds while typing; each one must leave the search alone.
+    @Test func locationUpdateDuringDebounceStillSearchesAndShowsMatches() async throws {
+        let search = ControlledDestinationSearch()
+        let location = TestLocation(state: .usable(deviceLocation(origin)))
+        let model = try makeModel(spots: [], search: search, location: location, searchDebounce: .milliseconds(40))
+        model.scheduleDestinationSearch("上野")
+        location.send(.usable(deviceLocation(SpotCoordinate(latitude: 35.0001, longitude: 139.0001))))
+        #expect(model.searchingDestination)
+        #expect(await waitUntil { search.queries.map(\.text) == ["上野"] })
+        let ueno = place(SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
+        search.succeed(0, matches: [ueno])
+        #expect(await waitUntil { model.destinationMatches == [ueno] && !model.searchingDestination })
+    }
+
+    @Test func locationUpdateWhileMapKitAnswersKeepsTheAnswer() async throws {
+        let search = ControlledDestinationSearch()
+        let location = TestLocation(state: .usable(deviceLocation(origin)))
+        let model = try makeModel(spots: [], search: search, location: location, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野駅")
+        #expect(await waitUntil { search.queries.count == 1 })
+        location.send(.locating)
+        location.send(.usable(deviceLocation(SpotCoordinate(latitude: 35.0001, longitude: 139.0001))))
+        #expect(model.searchingDestination)
+        let ueno = place(SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
+        search.succeed(0, matches: [ueno])
+        #expect(await waitUntil { model.destinationMatches == [ueno] && !model.searchingDestination })
+        #expect(search.queries.count == 1)
+    }
+
+    @Test func locationUpdateAfterMatchesAreShownKeepsThemAndTheirStatus() async throws {
+        let search = ControlledDestinationSearch()
+        let location = TestLocation(state: .usable(deviceLocation(origin)))
+        let model = try makeModel(spots: [], search: search, location: location, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野")
+        #expect(await waitUntil { search.queries.count == 1 })
+        let ueno = place(SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
+        search.succeed(0, matches: [ueno])
+        #expect(await waitUntil { model.destinationMatches == [ueno] })
+        location.send(.usable(deviceLocation(SpotCoordinate(latitude: 35.0001, longitude: 139.0001))))
+        #expect(model.destinationMatches == [ueno])
+        // The same query is still the shown one: re-submitting it sends nothing.
+        model.searchDestination("上野")
+        try await Task.sleep(for: .milliseconds(40))
+        #expect(search.queries.count == 1)
+
+        model.scheduleDestinationSearch("x")
+        #expect(await waitUntil { search.queries.count == 2 })
+        search.fail(1)
+        #expect(await waitUntil { model.destinationSearchFailed })
+        location.send(.usable(deviceLocation(origin)))
+        #expect(model.destinationSearchFailed)
+        model.scheduleDestinationSearch("y")
+        #expect(await waitUntil { search.queries.count == 3 })
+        search.succeed(2, matches: [])
+        #expect(await waitUntil { model.destinationSearchFoundNothing })
+        location.send(.usable(deviceLocation(origin)))
+        #expect(model.destinationSearchFoundNothing)
     }
 
     private func deviceLocation(_ coordinate: SpotCoordinate) -> DeviceLocation {
