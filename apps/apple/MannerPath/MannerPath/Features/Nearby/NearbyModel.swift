@@ -263,7 +263,8 @@ final class NearbyModel {
             updateRoutes()
             return
         }
-        cancelDestinationSearch()
+        // A GPS fix arrives every few seconds while typing. The destination search does not depend on it, so it keeps
+        // running and its matches stay shown; only a new query or a choice ends it.
         invalidateRoutes()
         if case .usable(let deviceLocation) = state {
             lastUsableLocation = deviceLocation

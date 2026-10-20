@@ -1,8 +1,11 @@
 import MapKit
+import os
 
 @MainActor
 final class MapKitDestinationSearch: DestinationSearching {
     private var activeSearches: [MKLocalSearch] = []
+    // Diagnoses device-only search failures without showing extra errors; the query itself is never logged publicly.
+    private static let log = Logger(subsystem: "MannerPath", category: "DestinationSearch")
 
     /// A 20 km region alone makes MapKit answer only local places (from Kanazawa, "上野駅" returned Kanazawa
     /// stations), so the nearby search runs alongside a nationwide one and the results are merged.
@@ -30,6 +33,7 @@ final class MapKitDestinationSearch: DestinationSearching {
                 lists.append(Self.destinations(try await search.start()))
             } catch {
                 try Task.checkCancellation()
+                Self.log.error("Destination search failed: \(error.localizedDescription, privacy: .public)")
                 lastError = error
                 lists.append([])
             }
@@ -40,15 +44,22 @@ final class MapKitDestinationSearch: DestinationSearching {
         if !DestinationResultMerger.containsNameMatch(for: text, in: lists.flatMap { $0 }) {
             let strict = Self.makeSearch(text, in: Self.nationwideRegion, priority: .required)
             activeSearches.append(strict)
-            if let response = try? await strict.start() {
+            do {
+                let response = try await strict.start()
                 lists[lists.count - 1] = Self.destinations(response) + lists[lists.count - 1]
+            } catch {
+                try Task.checkCancellation()
+                // The earlier answers still stand; only when nothing answered does this become the shown error.
+                // MapKit reports "no result" as placemarkNotFound, which is an empty answer, not a failure.
+                Self.log.error("Required nationwide search failed: \(error.localizedDescription, privacy: .public)")
+                if (error as? MKError)?.code != .placemarkNotFound { lastError = lastError ?? error }
             }
             try Task.checkCancellation()
         }
         if let lastError, lists.allSatisfy(\.isEmpty) { throw lastError }
         return lists.count == 2
-            ? DestinationResultMerger.merge(query: text, nearby: lists[0], nationwide: lists[1])
-            : DestinationResultMerger.merge(query: text, nearby: [], nationwide: lists[0])
+            ? DestinationResultMerger.merge(query: text, nearby: lists[0], nationwide: lists[1], origin: origin)
+            : DestinationResultMerger.merge(query: text, nearby: [], nationwide: lists[0], origin: origin)
     }
 
     private static func makeSearch(_ text: String, in region: MKCoordinateRegion,
@@ -60,8 +71,9 @@ final class MapKitDestinationSearch: DestinationSearching {
         return MKLocalSearch(request: request)
     }
 
+    /// Every valid item MapKit returned (MapKit itself caps a response); the merger applies the shown limit.
     private static func destinations(_ response: MKLocalSearch.Response) -> [PlaceDestination] {
-        response.mapItems.prefix(8).compactMap { item in
+        response.mapItems.compactMap { item in
             let coordinate = SpotCoordinate(
                 latitude: item.placemark.coordinate.latitude,
                 longitude: item.placemark.coordinate.longitude
