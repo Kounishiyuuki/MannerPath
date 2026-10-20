@@ -20,12 +20,7 @@ final class MapKitDestinationSearch: DestinationSearching {
                 latitudinalMeters: 20_000, longitudinalMeters: 20_000
             ), at: 0)
         }
-        let searches = regions.map { region in
-            let request = MKLocalSearch.Request()
-            request.naturalLanguageQuery = text
-            request.region = region
-            return MKLocalSearch(request: request)
-        }
+        let searches = regions.map { Self.makeSearch(text, in: $0, priority: .default) }
         activeSearches = searches
         defer { if activeSearches.first === searches.first { activeSearches = [] } }
         var lists: [[PlaceDestination]] = []
@@ -40,10 +35,29 @@ final class MapKitDestinationSearch: DestinationSearching {
             }
         }
         try Task.checkCancellation()
+        // The region is only a hint: on a device in Kanazawa the nationwide search can still answer local stations for
+        // "上野駅". When no answer is named for the query, ask once more with the nationwide region required.
+        if !DestinationResultMerger.containsNameMatch(for: text, in: lists.flatMap { $0 }) {
+            let strict = Self.makeSearch(text, in: Self.nationwideRegion, priority: .required)
+            activeSearches.append(strict)
+            if let response = try? await strict.start() {
+                lists[lists.count - 1] = Self.destinations(response) + lists[lists.count - 1]
+            }
+            try Task.checkCancellation()
+        }
         if let lastError, lists.allSatisfy(\.isEmpty) { throw lastError }
         return lists.count == 2
             ? DestinationResultMerger.merge(query: text, nearby: lists[0], nationwide: lists[1])
             : DestinationResultMerger.merge(query: text, nearby: [], nationwide: lists[0])
+    }
+
+    private static func makeSearch(_ text: String, in region: MKCoordinateRegion,
+                                   priority: MKLocalSearchRegionPriority) -> MKLocalSearch {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = text
+        request.region = region
+        request.regionPriority = priority
+        return MKLocalSearch(request: request)
     }
 
     private static func destinations(_ response: MKLocalSearch.Response) -> [PlaceDestination] {
