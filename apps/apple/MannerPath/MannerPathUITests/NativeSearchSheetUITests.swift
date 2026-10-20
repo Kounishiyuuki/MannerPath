@@ -60,6 +60,33 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         assertNoDeveloperText()
     }
 
+    /// Live MapKit: each query shows candidates while typing (no search button), the one named for it is listed first
+    /// and above the keyboard, and choosing it switches the list to places near that destination.
+    func testTypedQueriesShowNamedCandidatesAboveKeyboardAndSelectionSwitchesDestination() {
+        launch()
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        let first = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        for query in ["上野駅", "東京駅", "大阪駅", "金沢駅"] {
+            field.tap()
+            clearSearch(field)
+            field.typeText(query)
+            let named = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label BEGINSWITH %@", query), object: first)
+            XCTAssertEqual(XCTWaiter().wait(for: [named], timeout: 40), .completed,
+                           "First candidate for \(query) must be named for it")
+            let keyboard = app.keyboards.firstMatch
+            XCTAssertTrue(keyboard.exists)
+            XCTAssertTrue(first.isHittable)
+            XCTAssertLessThanOrEqual(first.frame.maxY, keyboard.frame.minY, "\(query) candidate hidden by keyboard")
+            screenshot("13-candidates-\(query)")
+        }
+        first.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10))
+        scrollForegroundListTo(app.buttons["refreshDestination"])
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "金沢駅")).firstMatch.exists,
+                      "Selected destination stays shown")
+    }
+
     /// Real MapKit destination browsing remains usable when this Simulator has no GPS fix.
     private func establishPublishedArea() {
         // At accessibility sizes, List may not create a result row until it is scrolled into view.

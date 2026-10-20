@@ -32,10 +32,11 @@ enum DestinationResultMerger {
     static let duplicateMeters = 150.0
 
     /// Names equal to the query, then starting with it, then containing it; within each, nearer first when `origin` is
-    /// known. Unnamed answers ("カフェ" finding "Starbucks") keep MapKit's order, nearby before nationwide. Distance
-    /// never removes a candidate, only orders equally named ones.
+    /// known. Unnamed answers ("カフェ" finding "Starbucks") keep MapKit's order, nearby before nationwide, unless a
+    /// place is named exactly as the query: then they are unrelated places ("上野駅" answering local stations).
+    /// Distance never removes a candidate and there is no display cap; MapKit already limits each response.
     static func merge(query: String, nearby: [PlaceDestination], nationwide: [PlaceDestination],
-                      origin: SpotCoordinate? = nil, limit: Int = 8) -> [PlaceDestination] {
+                      origin: SpotCoordinate? = nil) -> [PlaceDestination] {
         var unique: [PlaceDestination] = []
         for candidate in nearby + nationwide where !unique.contains(where: { isSame($0, candidate) }) {
             unique.append(candidate)
@@ -51,7 +52,8 @@ enum DestinationResultMerger {
             }
             return a.offset < b.offset
         }
-        return Array(ranked.map(\.element).prefix(limit))
+        let hasExactName = ranked.contains { matchTier($0.element, needle) == 0 }
+        return ranked.map(\.element).filter { !hasExactName || matchTier($0, needle) < unnamedTier }
     }
 
     private static let unnamedTier = 3
