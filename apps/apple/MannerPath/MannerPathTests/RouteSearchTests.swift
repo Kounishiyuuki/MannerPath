@@ -12,19 +12,19 @@ struct RouteSearchTests {
         let nearby = [place("金沢駅", 36.578, 136.648), place("野町駅", 36.55, 136.64)]
         let nationwide = [place("上野駅", 35.714, 139.777)]
         let merged = DestinationResultMerger.merge(query: "上野駅", nearby: nearby, nationwide: nationwide)
-        #expect(merged.map(\.name) == ["上野駅", "金沢駅", "野町駅"])
+        // An exact name makes the unnamed local stations unrelated answers, not candidates.
+        #expect(merged.map(\.name) == ["上野駅"])
         // Full-width spaces and width differences do not hide the match.
         #expect(DestinationResultMerger.merge(query: " 上野　駅 ", nearby: nearby, nationwide: nationwide).first?.name == "上野駅")
     }
 
-    @Test func eightUnrelatedNearbyStationsNeverPushOutTheNamedDistantStation() {
+    @Test func unrelatedNearbyStationsNeverPushOutTheNamedDistantStation() {
         // Device report from Kanazawa: eight local stations filled the list and 上野駅 was missing.
         let local = ["金沢駅", "野々市駅", "野町駅", "松任駅", "西金沢駅", "押野駅", "北鉄金沢駅", "野々市工大前駅"]
         let nearby = local.enumerated().map { place($1, 36.5 + Double($0) / 100, 136.6) }
         #expect(!DestinationResultMerger.containsNameMatch(for: "上野駅", in: nearby))
         let merged = DestinationResultMerger.merge(query: "上野駅", nearby: nearby, nationwide: [place("上野駅", 35.714, 139.777)])
-        #expect(merged.count == 8)
-        #expect(merged.first?.name == "上野駅")
+        #expect(merged.map(\.name) == ["上野駅"])
         // A query that names a nearby place keeps it first, and needs no extra search.
         #expect(DestinationResultMerger.containsNameMatch(for: "金沢駅", in: nearby))
         #expect(DestinationResultMerger.merge(query: "金沢駅", nearby: nearby, nationwide: []).first?.name == "金沢駅")
@@ -42,7 +42,8 @@ struct RouteSearchTests {
                                                   nationwide: [place("Store", 35.6, 139.7)])
         #expect(chain.count == 2)
         let many = (0..<10).map { place("駅\($0)", 35, 139 + Double($0)) }
-        #expect(DestinationResultMerger.merge(query: "駅", nearby: many, nationwide: []).count == 8)
+        // No display cap: every valid answer MapKit returned stays selectable.
+        #expect(DestinationResultMerger.merge(query: "駅", nearby: many, nationwide: []).count == 10)
         #expect(DestinationResultMerger.merge(query: "", nearby: nearby, nationwide: []).map(\.name) == ["Cafe A", "金沢駅"])
     }
 
@@ -68,7 +69,7 @@ struct RouteSearchTests {
         #expect(names("cafe").first == "Cafe A")
     }
 
-    @Test func equallyNamedPlacesAreOrderedNearestFirstAndNamedOnesBeyondEightSurvive() {
+    @Test func equallyNamedPlacesAreOrderedNearestFirstAndNothingIsCapped() {
         let kanazawa = SpotCoordinate(latitude: 36.578, longitude: 136.648)
         let nationwide = [place("イオン 東京", 35.68, 139.76), place("イオン 金沢", 36.58, 136.65)]
         #expect(DestinationResultMerger.merge(query: "イオン", nearby: [], nationwide: nationwide, origin: kanazawa)
@@ -80,7 +81,10 @@ struct RouteSearchTests {
         let filler = (0..<10).map { place("店\($0)", 36.5 + Double($0) / 100, 136.6) }
         let merged = DestinationResultMerger.merge(query: "大阪駅", nearby: filler,
                                                    nationwide: [place("大阪駅", 34.702, 135.496)], origin: kanazawa)
-        #expect(merged.count == 8 && merged.first?.name == "大阪駅")
+        #expect(merged.map(\.name) == ["大阪駅"])
+        let partial = DestinationResultMerger.merge(query: "大阪", nearby: filler,
+                                                    nationwide: [place("大阪駅", 34.702, 135.496)], origin: kanazawa)
+        #expect(partial.count == 11 && partial.first?.name == "大阪駅")
     }
 
     private func place(_ name: String, _ latitude: Double, _ longitude: Double) -> PlaceDestination {

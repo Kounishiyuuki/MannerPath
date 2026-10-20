@@ -26,11 +26,13 @@ final class MapKitDestinationSearch: DestinationSearching {
         let searches = regions.map { Self.makeSearch(text, in: $0, priority: .default) }
         activeSearches = searches
         defer { if activeSearches.first === searches.first { activeSearches = [] } }
+        // Started together: one after another, each keystroke waited for both round trips before any candidate showed.
+        let responses = searches.map { search in Task { Self.destinations(try await search.start()) } }
         var lists: [[PlaceDestination]] = []
         var lastError: (any Error)?
-        for search in searches {
+        for response in responses {
             do {
-                lists.append(Self.destinations(try await search.start()))
+                lists.append(try await response.value)
             } catch {
                 try Task.checkCancellation()
                 Self.log.error("Destination search failed: \(error.localizedDescription, privacy: .public)")
