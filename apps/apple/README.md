@@ -226,3 +226,41 @@ deduplication, not proof that physical WC delivery works. Automated tests use sy
 injected request replies; paired Series 9 transport, background/reconnect delivery and WidgetKit
 reload timing must be rechecked on a separately distributed build containing this fix. No upload
 or production configuration change is part of this repair.
+
+## Typing-time destination candidates
+
+Destination suggestions use independent nearby (20 km) and nationwide MapKit completers.
+Nearby uses default region priority; nationwide requires the Japan region. Required priority limits
+geography, not relevance: a broad Japan region can still favor Osaka for `上野`. Each query owns its
+delegates, publishes subsequent candidate updates, and has an eight-second initial-response timeout.
+Canceled/older query updates cannot replace the active query. GPS updates do not restart typing-time
+search. The last displayed candidate lookup survives intervening requests that have not answered.
+
+If the nearby scope is missing/sparse, a nationwide station lookup (`fragment + 駅`, unless already
+station-shaped), followed if needed by an area lookup, can supply a temporary region for an
+additional completer. Only an actual single returned place supplies that region. If that still
+returns fewer than two candidates, or the nationwide scope is sparse, a supplementary
+`MKLocalSearch` with `.pointOfInterest` supplies concrete facilities. Its results remain temporary
+destination candidates; no Apple POI is persisted as a smoking-place record. Cached MannerPath
+smoking places still match locally and open their own detail in a separate section.
+
+Diagnostic comparison on 2026-10-22, using the same `上野` fragment and explicit Taito origin on
+Mac and an iOS 26.5 simulator: nearby completion returned 15 candidates including 上野駅,
+上野動物園 and 京成上野; nationwide default and required each returned 15 Osaka-biased candidates.
+No completion error or subsequent refinement was observed in that run. Unrestricted local/national
+search each returned the single 上野 area; local POI-only search returned 上野駅, while national
+POI-only search returned 25 mainly central-Japan results. This controlled run did not reproduce
+a platform-only failure. A later no-GPS adapter run resolved the bare area to Osaka, missing Tokyo's
+上野駅; a POI-only nationwide `上野駅` request returned the actual Taito station. Initial-only
+publication and nonempty area-only fallback suppression were
+separate application-level problems; live UI verification is required in addition to provider probes.
+
+`DestinationCompleter` debug logs record scope, count, elapsed time, region priority, and error
+domain/code without logging query text, returned place names or exact coordinates.
+
+The final adapter was exercised on Mac and iOS Simulator with both an explicit Taito origin and
+no GPS origin: both produced multiple concrete `上野` candidates and resolved 上野駅. Live iOS 26.4
+UI tests also verified typing `上野` and tapping 上野駅 without submitting, with location allowed
+and denied, plus successive 上野駅 / 東京駅 / 大阪駅 / 金沢駅 queries. A denied-location cold run
+initially timed out before finding the search field; the unchanged build passed after its UI
+was ready. Physical-device/IME marked-text validation remains separate from these committed-text tests.

@@ -3,6 +3,28 @@ import XCTest
 /// Same real app, public fixed test location and flow before/after. No app-only test hooks or search replacement.
 @MainActor
 final class NativeSearchSheetUITests: MannerPathUITestCase {
+    /// No local Worker or smoking-place fixture is needed: these are live MapKit destination candidates.
+    func testAreaFragmentShowsConcretePlacesAndSelectsWithoutSubmitting() {
+        launch()
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        field.tap()
+        field.typeText("上野")
+        let matches = app.buttons.matching(identifier: "destinationMatch")
+        let station = matches.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "上野駅", "台東")).firstMatch
+        XCTAssertTrue(station.waitForExistence(timeout: 40), "Actual Ueno station must be a typing-time candidate")
+        XCTAssertGreaterThanOrEqual(matches.count, 2, "A bare area alone does not satisfy completion")
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertTrue(station.isHittable)
+        screenshot("15-area-fragment-concrete-candidates")
+        station.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 15))
+        let selected = app.buttons["refreshDestination"]
+        scrollForegroundListTo(selected)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "上野駅")).firstMatch.exists)
+        screenshot("16-area-fragment-station-selected")
+    }
+
     override func screenshot(_ name: String) {
         // App-only captures can crop an iPhone compatibility window on iPad. Inspect the actual whole display.
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())

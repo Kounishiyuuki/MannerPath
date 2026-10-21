@@ -3089,6 +3089,8 @@
         }
       }
     },
+    "Listed smoking places": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "掲載喫煙所" } } } },
+    "Opening place…": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "場所を開いています…" } } } },
     "Walking destination": {
       "localizations": {
         "ja": {

@@ -25,6 +25,43 @@ protocol DestinationSearching {
     func search(_ text: String, near origin: SpotCoordinate?) async throws -> [PlaceDestination]
 }
 
+/// An ephemeral Apple Maps candidate. Completion candidates resolve on selection; supplementary facility searches
+/// can already know the coordinate. Neither kind is a canonical smoking-place record.
+struct DestinationSuggestion: Identifiable, Equatable, Sendable {
+    let id: String
+    let title: String
+    let subtitle: String?
+}
+
+@MainActor
+protocol DestinationCompleting {
+    func suggestions(for text: String, near origin: SpotCoordinate?) async throws -> [DestinationSuggestion]
+    func suggestions(for text: String, near origin: SpotCoordinate?,
+                     onUpdate: @escaping @MainActor ([DestinationSuggestion]) -> Void) async throws -> [DestinationSuggestion]
+    func resolve(_ suggestion: DestinationSuggestion, near origin: SpotCoordinate?) async throws -> PlaceDestination
+}
+
+extension DestinationCompleting {
+    func suggestions(for text: String, near origin: SpotCoordinate?,
+                     onUpdate: @escaping @MainActor ([DestinationSuggestion]) -> Void) async throws -> [DestinationSuggestion] {
+        try await suggestions(for: text, near: origin)
+    }
+}
+
+enum DestinationSuggestionRanker {
+    /// Titles equal to the query, then starting with it, then containing it; the provider's relevance order otherwise.
+    /// Nothing is dropped: "上野" keeps 上野駅, 京成上野駅, 上野恩賜公園 and the 上野 area together.
+    static func rank(query: String, _ suggestions: [DestinationSuggestion]) -> [DestinationSuggestion] {
+        let needle = DestinationResultMerger.normalized(query)
+        var seen = Set<String>()
+        return suggestions.filter { seen.insert($0.id).inserted }.enumerated().sorted { a, b in
+            let first = DestinationResultMerger.nameTier(a.element.title, needle)
+            let second = DestinationResultMerger.nameTier(b.element.title, needle)
+            return first != second ? first < second : a.offset < b.offset
+        }.map(\.element)
+    }
+}
+
 /// Merges a search biased to the user's surroundings with a nationwide one, so a named distant place ("上野駅" while
 /// in Kanazawa) is found without losing the nearby preference for generic queries ("カフェ").
 enum DestinationResultMerger {
@@ -59,8 +96,12 @@ enum DestinationResultMerger {
     private static let unnamedTier = 3
 
     private static func matchTier(_ place: PlaceDestination, _ needle: String) -> Int {
+        nameTier(place.name, needle)
+    }
+
+    static func nameTier(_ text: String, _ needle: String) -> Int {
         guard !needle.isEmpty else { return unnamedTier }
-        let name = normalized(place.name)
+        let name = normalized(text)
         if name == needle { return 0 }
         if name.hasPrefix(needle) { return 1 }
         return name.contains(needle) ? 2 : unnamedTier
@@ -77,7 +118,7 @@ enum DestinationResultMerger {
             && NearbySearch.straightLineDistance(from: a.coordinate, to: b.coordinate) <= duplicateMeters
     }
 
-    private static func normalized(_ text: String) -> String {
+    static func normalized(_ text: String) -> String {
         text.folding(options: [.caseInsensitive, .widthInsensitive, .diacriticInsensitive], locale: nil)
             .filter { !$0.isWhitespace }
     }

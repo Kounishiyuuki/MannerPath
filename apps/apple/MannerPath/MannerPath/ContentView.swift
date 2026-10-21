@@ -137,7 +137,7 @@ struct ContentView: View {
             // Live search: the model debounces and drops stale answers. Choosing a match writes its name into the
             // field; that echo is not a new query.
             .onChange(of: destinationQuery) { _, query in
-                guard model.destination?.name != query else { return }
+                guard model.destination?.name != query, model.resolvingSuggestion?.title != query else { return }
                 model.scheduleDestinationSearch(query)
             }
             // Searching needs the full sheet: at medium the keyboard covers the results. Focus alone is not reported
@@ -612,10 +612,25 @@ struct ContentView: View {
 
     private var isShowingSearchResults: Bool {
         model.searchingDestination || model.destinationSearchFailed || model.destinationSearchFoundNothing
-            || !model.destinationMatches.isEmpty
+            || !model.destinationMatches.isEmpty || !model.destinationSuggestions.isEmpty
+            || !model.publishedSpotMatches.isEmpty
     }
 
+    @ViewBuilder
     private var searchResultsSection: some View {
+        // Listed places and destinations never share a section: a destination is only where the user walks to.
+        if !model.publishedSpotMatches.isEmpty {
+            Section {
+                ForEach(model.publishedSpotMatches, id: \.spot.id) { result in
+                    PublishedSpotSuggestionRow(result: result) {
+                        searchFocused = false
+                        path.append(result.spot.id)
+                    }
+                }
+            } header: {
+                Text("Listed smoking places")
+            }
+        }
         Section {
             if model.searchingDestination {
                 ProgressView("Searching destinations…")
@@ -629,8 +644,16 @@ struct ContentView: View {
             if model.destinationSearchFoundNothing && !model.searchingDestination {
                 compactStatus("No matching destination. Try another name, such as a station.", symbol: "magnifyingglass")
             }
+            ForEach(model.destinationSuggestions) { suggestion in
+                DestinationSuggestionRow(title: suggestion.title, subtitle: suggestion.subtitle,
+                                         resolving: model.resolvingSuggestion?.id == suggestion.id) {
+                    destinationQuery = suggestion.title
+                    searchFocused = false
+                    model.selectSuggestion(suggestion)
+                }
+            }
             ForEach(model.destinationMatches) { match in
-                DestinationSuggestionRow(match: match) {
+                DestinationSuggestionRow(title: match.name, subtitle: match.subtitle) {
                     destinationQuery = match.name
                     searchFocused = false
                     selectDestination(match)
@@ -934,7 +957,9 @@ private struct NearbySheetSurface: ViewModifier {
 /// Reads the system search environment inside searchable content, so selection actually dismisses its keyboard.
 private struct DestinationSuggestionRow: View {
     @Environment(\.dismissSearch) private var dismissSearch
-    let match: PlaceDestination
+    let title: String
+    let subtitle: String?
+    var resolving = false
     let onSelect: () -> Void
 
     var body: some View {
@@ -947,10 +972,44 @@ private struct DestinationSuggestionRow: View {
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(match.name).font(.headline)
-                    if let subtitle = match.subtitle, subtitle != match.name {
+                    Text(title).font(.headline)
+                    if let subtitle, subtitle != title {
                         Text(subtitle).font(.footnote).foregroundStyle(.secondary)
                     }
+                }
+                Spacer()
+                if resolving { ProgressView().accessibilityLabel(Text("Opening place…")) }
+            }
+            .frame(minHeight: 44, alignment: .leading)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(resolving)
+        .accessibilityIdentifier("destinationMatch")
+    }
+}
+
+/// A MannerPath place matching the query; opens its detail, never becomes a walking destination.
+private struct PublishedSpotSuggestionRow: View {
+    @Environment(\.dismissSearch) private var dismissSearch
+    let result: NearbyResult
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button {
+            dismissSearch()
+            onSelect()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: SpotPresentation.existenceSymbol(result.spot.verification.existenceTier))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(SpotPresentation.name(result.spot)).font(.headline)
+                    // Confidence is never hidden, even in a suggestion (AGENTS.md).
+                    Text([SpotPresentation.distance(result), SpotPresentation.evidence(result.spot)].joined(separator: " · "))
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 Spacer()
             }
@@ -959,6 +1018,6 @@ private struct DestinationSuggestionRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("destinationMatch")
+        .accessibilityIdentifier("publishedSpotMatch")
     }
 }
