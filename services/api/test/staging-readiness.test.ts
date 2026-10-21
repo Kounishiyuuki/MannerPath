@@ -66,7 +66,8 @@ test("staging mirrors production except for names and IDs, and cannot be deploye
 test("migration order: the Worker's report routes fail closed until the store reaches 0005, then serve", async () => {
   const files = reportMigrationFiles();
   assert.deepEqual(files, ["0001_report_store.sql", "0002_scale_indexes.sql", "0003_evidence_photos.sql",
-    "0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql"], "update STAGING_VERIFICATION.md when the stream grows");
+    "0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql",
+    "0007_photo_deletion_attempts.sql"], "update STAGING_VERIFICATION.md when the stream grows");
   const now = new Date("2026-10-13T03:00:00Z");
   const pki = await testPki(now);
   const app = createApp({ appAttestTrustAnchor: pki.root, now: () => now });
