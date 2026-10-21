@@ -1,6 +1,6 @@
 import { type Db, type DbStatement, isoSeconds, sha256Hex } from "../db.ts";
 import { sanitizeEvidencePhoto } from "./photo-sanitizer.ts";
-import type { EvidencePhotoStorage } from "./photo-storage.ts";
+import { PHOTO_ERASURE_LEAD_MS, type EvidencePhotoStorage } from "./photo-storage.ts";
 
 export class PhotoAttachmentError extends Error {
   readonly code: string; readonly status: number;
@@ -18,6 +18,9 @@ export interface PhotoAttachmentOptions {
 }
 interface PhotoRow { photo_id: string; storage_key: string; content_sha256: string; lifecycle: string; moderation_status: string; }
 export interface PhotoAttachmentAccepted { photoId: string; reportId: string; state: "pending" | "approved" | "rejected"; }
+export class PhotoCleanupError extends Error {
+  constructor() { super("photo deletion incomplete"); }
+}
 
 export async function attachEvidencePhoto(db: Db, storage: EvidencePhotoStorage, input: PhotoAttachmentInput, opts: PhotoAttachmentOptions): Promise<PhotoAttachmentAccepted> {
   if (!opts.enabled) throw new PhotoAttachmentError("photoEvidenceDisabled", 403);
@@ -59,6 +62,8 @@ export async function attachEvidencePhoto(db: Db, storage: EvidencePhotoStorage,
     const row = await db.prepare("SELECT lifecycle FROM community_evidence_photos WHERE photo_id=?").bind(photoId).first<{lifecycle:string}>();
     if (row?.lifecycle !== "ready") { await storage.delete(key); throw new PhotoAttachmentError("reportExpired",410); }
   }
+  // Also validate ready retries: a fence, early erasure or failed storage must never confirm an absent photo.
+  if (!await storage.getMetadata(key)) throw new PhotoAttachmentError("photoExpired", 410);
   return {photoId,reportId:input.reportId,state:(same?.moderation_status ?? "pending") as PhotoAttachmentAccepted["state"]};
 }
 
@@ -79,10 +84,26 @@ export async function moderateEvidencePhoto(db: Db, photoId: string, state: "app
 /** Bounded durable tombstones survive report deletion and failed object deletes. */
 export async function cleanupEvidencePhotos(db: Db, storage: EvidencePhotoStorage, opts: {now:Date;limit?:number}): Promise<{deleted:number;hasMore:boolean}> {
   const now=isoSeconds(opts.now); const limit=Math.max(1,Math.min(opts.limit ?? 100,200));
-  const due=await db.prepare("SELECT photo_id,storage_key FROM community_evidence_photos WHERE delete_after<=? OR lifecycle='deleting' OR (lifecycle='uploading' AND upload_expires_at<=?) ORDER BY delete_after,photo_id LIMIT ?").bind(now,now,limit).all<{photo_id:string;storage_key:string}>();
+  const eraseBy=isoSeconds(new Date(opts.now.getTime()+PHOTO_ERASURE_LEAD_MS));
+  const due=await db.prepare("SELECT photo_id,storage_key FROM community_evidence_photos WHERE delete_after<=? OR lifecycle='deleting' OR (lifecycle='uploading' AND upload_expires_at<=?) ORDER BY delete_after,photo_id LIMIT ?").bind(eraseBy,now,limit).all<{photo_id:string;storage_key:string}>();
   if(due.results.length) await db.batch(due.results.map(row=>db.prepare("DELETE FROM community_evidence_photos WHERE photo_id=?").bind(row.photo_id)));
-  const queued=await db.prepare("SELECT storage_key FROM community_photo_deletions ORDER BY queued_at,storage_key LIMIT ?").bind(limit+1).all<{storage_key:string}>();
+  const queued=await db.prepare(`SELECT q.storage_key FROM community_photo_deletions q
+    LEFT JOIN community_photo_deletion_attempts a ON a.storage_key=q.storage_key
+    ORDER BY coalesce(a.last_attempt_at,q.queued_at),q.storage_key LIMIT ?`).bind(limit+1).all<{storage_key:string}>();
   let deleted=0;
-  for(const row of queued.results.slice(0,limit)) { await storage.delete(row.storage_key); await db.prepare("DELETE FROM community_photo_deletions WHERE storage_key=?").bind(row.storage_key).run(); deleted++; }
+  let failed=0;
+  for(const row of queued.results.slice(0,limit)) {
+    try {
+      await storage.delete(row.storage_key);
+      await db.prepare("DELETE FROM community_photo_deletions WHERE storage_key=?").bind(row.storage_key).run(); deleted++;
+    } catch {
+      failed++;
+      await db.prepare(`INSERT INTO community_photo_deletion_attempts(storage_key,attempts,last_attempt_at)
+        SELECT storage_key,1,? FROM community_photo_deletions WHERE storage_key=?
+        ON CONFLICT(storage_key) DO UPDATE SET attempts=attempts+1,last_attempt_at=excluded.last_attempt_at`)
+        .bind(now,row.storage_key).run();
+    }
+  }
+  if(failed) throw new PhotoCleanupError(); // Queues survive; fixed text only. Other keys still progress.
   return {deleted,hasMore:due.results.length===limit || queued.results.length>limit};
 }

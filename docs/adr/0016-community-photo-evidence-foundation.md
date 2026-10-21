@@ -14,9 +14,10 @@ an attachment from being interpreted as a report. Only a verified key whose pepp
 matches the unexpired, unredacted parent may attach. No client hash, dimensions or EXIF coordinate
 is trusted. A fresh challenge and assertion authorize every retry; replay protection remains intact.
 
-`photoEvidenceEnabled` is false in public config. The exported Worker has no photo storage binding
-or reviewed photo-consent version. Test-only constructor injection exercises the actual technical path;
-no environment switch grants rights. Current draft terms do not cover photo processing or publication.
+`photoEvidenceEnabled` is false in public config. No photo storage binding or reviewed photo-consent
+version is committed. P5 adds an R2 adapter and fail-closed configuration path, still disabled in every
+environment. Test-only constructor injection exercises the technical path; no environment switch
+grants rights. Current draft terms do not cover photo processing or publication.
 A later maintainer/legal decision must explicitly cover private photo processing under the exact
 accepted terms version before production intake. Publication still independently requires #124,
 approved source rights and ordinary reconciliation. This ADR grants no legal permission.
@@ -52,7 +53,8 @@ record a human decision; rejected, abandoned, expired and parent-deleted images 
 Deleting an attachment enqueues an independent tracking row. Fenced object deletion precedes deleting
 that tracking row. The storage delete contract must durably prevent in-flight or future writes from
 recreating its key; a plain R2 delete cannot meet it. The memory double retains opaque random-key fences,
-with no image hash/report metadata. A real fenced adapter is required before intake can be enabled.
+with no image hash/report metadata. P5 implements the R2 adapter described below; verified deployment
+configuration is still required before intake can be enabled.
 Report deletion/redaction preserves deletion work.
 
 At most three attachments per report are allowed. A report-scoped request UUID binds one sanitized
@@ -66,6 +68,30 @@ irrespective of moderation. Uploading late does not restart that clock. Cleanup 
 reservations after 15 minutes. Failed deletions stay tracked for retry and must alert operators before
 the deadline; enabling intake requires a working deletion scheduler/storage expiry, never backlog-based
 permanent retention. The current disabled deployment requires no remote scheduler changes.
+
+## P5 — R2 implementation (2026-10-22; intake remains disabled)
+
+The production adapter uses a dedicated private `PRIVATE_PHOTOS` bucket and live REPORTS_DB
+reservations. Sanitized image writes are create-only (`If-None-Match: *`), with R2 checksum validation;
+matching retries cannot overwrite content. Deletion overwrites the same key with a permanent empty
+marker containing no image/hash/report metadata. Atomic conditional writes cannot overwrite this
+marker, even after an uncertain response or process restart. Physical marker deletion, lifecycle rules
+that remove markers, other writers and historical-object restoration are incompatible with the fence.
+
+Erasure starts 24 hours before `minimize_after` to allow retries within the 90-day ceiling; the adapter
+also refuses access/writes in this early-erasure window. All approval states use the same deadline.
+The existing deletion queue is acknowledged only after the marker write succeeds. Separate attempt
+count/time diagnostics (REPORTS_DB migration 0007) preserve the existing queue shape and keep failed
+keys retryable without starving other selected jobs. Retention dispatch uses that adapter when configured
+and reports aggregate failures; no cron is activated here.
+
+The supported storage topology has no photo backups, replication, versions, public delivery or retained
+historical copies. `PHOTO_STORAGE_POLICY` attests the reviewed account configuration; it cannot inspect
+or guarantee provider-internal media erasure. Those deletion terms, schedule installation, alerts and
+capacity remain prerequisites. No current photo consent is approved; the reviewed terms allowlist is
+empty. Config and API use the same guard requiring covered terms, storage/policy, cleanup configuration
+and App Attest. All photos remain private, even approved ones. See
+[PHOTO_STORAGE_OPERATIONS](../PHOTO_STORAGE_OPERATIONS.md) for fence proof, recovery and activation conditions.
 
 ## Evidence and Apple boundary
 

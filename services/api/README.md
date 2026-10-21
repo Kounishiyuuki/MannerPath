@@ -76,6 +76,11 @@ Only sources listed in `REVIEWED_SOURCES` can be registered or approved by this 
 
 ## User reports (ADR-0007)
 
+P5's private R2 photo adapter and its bounded retention wiring are implemented but remain off.
+See [PHOTO_STORAGE_OPERATIONS](../../docs/PHOTO_STORAGE_OPERATIONS.md) for permanent fences,
+REPORTS_DB migration 0007, backup/version exclusions, diagnostics and the unconfigured launch gates.
+No photo bucket binding, scheduler or intake activation is committed.
+
 `POST /v1/reports` stores an immutable proposal with moderation state `pending` in the durable report
 store (`REPORTS_DB`, ADR-0014). It never writes the canonical database. A reviewer decides in the
 report store (`src/reports/review.ts`) and exports the decision as a sanitized, deterministic artifact;

@@ -14,6 +14,7 @@ import { DATA_TILE_ZOOM } from "../geo/tile.ts";
 import { type AttestationBindings, attestationConfig } from "../reports/attestation.ts";
 import { REPORT_BODY_MAX_BYTES, REPORT_NOTE_MAX, REPORT_SUBMISSION_MAX_BYTES, reportSchemaRange } from "../reports/dto.ts";
 import { CURRENT_REPORT_TERMS, TERMS_VERSION } from "../reports/terms.ts";
+import { photoIntakePolicy, type PhotoBindings } from "../reports/photo-policy.ts";
 import { MINIMUM_SPOT_DETAIL_SCHEMA_VERSION, SPOT_DETAIL_SCHEMA_VERSION } from "../spots/dto.ts";
 import { MINIMUM_TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION } from "../tiles/dto.ts";
 
@@ -62,8 +63,8 @@ export const ConfigBodyV1 = z.object({
     // ADR-0013: whether POST /v1/reports accepts the existing-spot finding types (`notFound`, `removed`,
     // `typeChanged`) and correction claims. A client sends them only when this is true.
     existingSpotFindings: z.boolean(),
-    // #147: no reviewed photo consent exists. Tests inject the technical path in createApp only.
-    photoEvidenceEnabled: z.literal(false),
+    // Same fail-closed derivation as intake. No reviewed photo consent exists, so currently always false.
+    photoEvidenceEnabled: z.boolean(),
   }).strict(),
 }).strict().refine(
   (c) => CONFIG_RESOURCES.every((r) => c.minimumSupportedSchemaVersions[r] <= c.schemaVersions[r]),
@@ -77,7 +78,7 @@ export type ConfigBodyV1 = z.infer<typeof ConfigBodyV1>;
  * are exposed — availability, protocol and schema range — never a configured value (the App ID
  * and environment in particular stay server-side).
  */
-export function configBody(env: AttestationBindings, opts: { reportStore?: boolean } = {}): ConfigBodyV1 {
+export function configBody(env: AttestationBindings & PhotoBindings, opts: { reportStore?: boolean } = {}): ConfigBodyV1 {
   const attestation = attestationConfig(env);
   const report = reportSchemaRange(attestation);
   return {
@@ -104,7 +105,7 @@ export function configBody(env: AttestationBindings, opts: { reportStore?: boole
       termsVersion: CURRENT_REPORT_TERMS.version,
       newSpotClaims: true,
       existingSpotFindings: true,
-      photoEvidenceEnabled: false,
+      photoEvidenceEnabled: opts.reportStore !== false && photoIntakePolicy(env).enabled,
     },
   };
 }

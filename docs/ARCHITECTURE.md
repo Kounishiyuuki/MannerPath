@@ -209,7 +209,10 @@ object write. Original metadata is not retained; no EXIF-derived location enters
 App Attest binds attachment identity and bytes; stored submitter-hash equality binds the parent report.
 Reservations precede writes, and deletion queues survive report deletion/redaction. Object deletion must
 durably fence late writes before its tracking key is acknowledged, not merely issue a normal R2 delete.
-The supplied memory double implements that contract; a production adapter remains a launch prerequisite.
+The memory double and P5 R2 adapter implement that contract. The R2 adapter uses create-only image PUTs
+and permanent same-key empty markers; live REPORTS_DB reservations control writes and retention.
+No photo R2 binding is committed. Verified private/no-copy storage configuration, covered consent and
+deletion operations remain launch prerequisites (see `PHOTO_STORAGE_OPERATIONS.md`).
 Photos stay outside community artifacts, promotion, canonical reconciliation and public tiles. Approved
 photo counts are an advisory reviewer signal, never independent corroboration or smoking permission.
 The iPhone has a default-off, injected memory-only picker/uploader foundation. #124 and explicit photo
