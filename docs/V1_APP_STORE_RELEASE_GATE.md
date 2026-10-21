@@ -16,7 +16,7 @@ store copy consistent.
 | Covered areas | Tokyo-focused. Still exactly what production publishes at submission. Production today: **6 sources / 513 spots** — 東京都 台東区 32, 港区 114, 江東区 3, 武蔵野市 3; 大阪市 344; 京都市 17 ([rights audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md)). **Proposed** (not approved): add the 5 Tokyo factReference sources, 千代田・中央(公園/民間)・渋谷・豊島, 125 spots, to give 11 sources / 638 ([plan §2](release/V1_TOKYO_RELEASE_PLAN.md)). Airports and Sendai (never in production) are deferred. Existing non-Tokyo published data stays. The 2026-10-15 freeze at 513 is withdrawn; whether the additions ship in 1.0 is the G19 decision |
 | Everywhere else | Honest empty state (`404 tileNotPublished` → 「この周辺に掲載中の場所はありません」) |
 | Price / storefront | Free, Japan only ([entry sheet §9](APP_STORE_CONNECT_ENTRY.md#9-pricing-and-availability)) |
-| Reports, App Attest registration, photos | Unavailable (`reports.available:false`) |
+| Reports, App Attest registration, photos | **P0 since 2026-10-22** ([plan](release/V1_PHOTO_PLACE_SUBMISSION.md)): photo-backed new-place submission must work on the Release build. Production stays `reports.available:false` until that plan's gates (incl. #124 terms) are met and the maintainer activates it |
 | External replies (モクログ, municipalities) | Not waited on (世田谷区 inquiry drafted, not sent). New source collection is paused until release; 47-prefecture coverage is not a release condition |
 | Copy | Names the covered areas and precision limits; never implies spots can be found anywhere in Japan |
 
