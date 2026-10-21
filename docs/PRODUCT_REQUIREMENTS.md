@@ -249,7 +249,11 @@ integrity, not on reaching a coverage number:
 the App Store with **limited covered areas** — the regions the production corpus actually publishes — instead of
 waiting for nationwide data:
 
-- free, Japan storefront only; reports, App Attest registration and photos stay unavailable;
+- free, Japan storefront only;
+- **amended 2026-10-22:** photo-backed new-place submission (standalone 「喫煙所を報告」 button, 1–3 private photos,
+  moderator review before any publication) is a v1.0 P0 requirement. It stays unavailable in production until every
+  gate in [`release/V1_PHOTO_PLACE_SUBMISSION.md`](release/V1_PHOTO_PLACE_SUBMISSION.md) is met, including the
+  terms/rights approval (#124); reports and App Attest registration follow the same gates;
 - no waiting on external data-provider replies (e.g. モクログ); nationwide data work continues after release;
 - store copy, screenshots and Review Notes name the covered areas and the location-precision limits, and never
   suggest a spot can be found anywhere in Japan;
