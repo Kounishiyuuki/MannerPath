@@ -47,13 +47,17 @@ Non-goals (unchanged rules):
 
 ### 3.1 Standalone map button
 
-- A floating, labelled button 「喫煙所を報告」 (SF Symbol `plus.circle.fill`) on the map, in the trailing safe-area
-  column with the existing map controls, above the Nearby sheet's medium detent and never over the search field.
-- Visible whenever the map is visible and `reportModel.availability == .available`; when reports are unavailable it
-  is hidden (no dead control), as today's bottom-bar item is.
-- ≥44 pt hit area, VoiceOver label 「喫煙所を報告」, hint 「地図にない喫煙所を運営に提案します。確認後に掲載されます。」
-- Replaces the bottom-bar `ToolbarItem` entry (one entry point, not two); the in-list entry stays.
-- Must not move with keyboard/search; hidden while the sheet is at `.large` (the sheet then owns the screen).
+- `.medium` (and whenever the map is visible): a floating, labelled button 「喫煙所を報告」 (SF Symbol
+  `plus.circle.fill`) at the map's top leading corner — the search field lives in the sheet, the compass sits top
+  trailing and the sheet covers the bottom half. It never overlaps the search field and does not move with the keyboard.
+- `.large` (the sheet covers the map): the map button leaves the screen and the accessibility tree, and the sheet's
+  bottom bar shows the same entry (`sheetReportButton`) in a fixed position. One visible entry at a time.
+- The in-list entry and the empty-state button (§3.2) stay; they open the same flow.
+- Visible only when `reportModel.availability == .available`; when reports are unavailable every entry is hidden
+  (no dead control).
+- ≥44 pt hit area on the map button, VoiceOver label 「喫煙所を報告」, hint 「地図にない喫煙所を運営に提案します。確認後に掲載されます。」
+- At the largest Dynamic Type sizes the empty-state invitation may sit below the medium detent; raising the sheet
+  shows it, and the map button stays reachable throughout.
 
 ### 3.2 Empty state
 
@@ -113,7 +117,7 @@ Exists (reuse):
 | `migrations-reports/0003_evidence_photos.sql`, deletion tracking, retention (`retain`) | Implemented |
 | `reports:moderate` incl. `photo-summary`, `photo-decide`, triage, duplicates, export/import | Implemented |
 | Community activation/publication pipeline, `COMMUNITY_LAUNCH_CHECKLIST.md` | Implemented, HOLD on #124 |
-| Bottom-bar and in-list 「Add a smoking place」 entries | Implemented, only when reports available |
+| Map button (medium), bottom-bar (large), in-list and empty-state 「喫煙所を報告」 entries | Implemented in P2, only when reports available |
 | Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 
 Missing (this plan):

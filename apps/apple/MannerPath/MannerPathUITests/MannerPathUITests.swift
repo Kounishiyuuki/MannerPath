@@ -680,11 +680,18 @@ final class B_OnlineUITests: MannerPathUITestCase {
         app.buttons["下書きを破棄"].tap()
 
         // Large sheet: the map button is covered, so the sheet's own bar offers the same entry. (While the search
-        // keyboard is up the bar is behind it; the search session is not where a report starts.)
+        // keyboard is up the bar is behind it; the search session is not where a report starts.) The iOS 26 bottom
+        // bar is not exposed as a Toolbar element, so the entry is found by identifier.
         app.navigationBars["近くの場所"].swipeUp()
-        let bar = app.toolbars.buttons["喫煙所を報告"]
+        let bar = app.buttons["sheetReportButton"]
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
+        XCTAssertEqual(bar.label, "喫煙所を報告")
+        XCTAssertTrue(bar.isHittable)
+        XCTAssertFalse(button.exists, "The covered map button leaves the accessibility tree at the large detent")
         screenshot("33-large-sheet-report-entry")
+        bar.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        app.buttons["下書きを破棄"].tap()
     }
 
     // §3.2: an area without published places invites a report with the approved copy.
@@ -694,7 +701,11 @@ final class B_OnlineUITests: MannerPathUITestCase {
             XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 35.7118, longitude: 139.7775))
         }
         launch()
-        XCTAssertTrue(text("この周辺に掲載中の場所はありません").waitForExistence(timeout: 40))
+        // At the largest text sizes the invitation sits below the medium detent; the user raises the sheet.
+        if !text("この周辺に掲載中の場所はありません").waitForExistence(timeout: 40) {
+            app.navigationBars["近くの場所"].swipeUp()
+        }
+        XCTAssertTrue(text("この周辺に掲載中の場所はありません").waitForExistence(timeout: 10))
         XCTAssertTrue(textContaining("まだ掲載されていない喫煙所を知っていますか？").exists)
         XCTAssertTrue(textContaining("場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。").exists)
         let action = app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告' AND identifier != 'mapReportButton'")).firstMatch

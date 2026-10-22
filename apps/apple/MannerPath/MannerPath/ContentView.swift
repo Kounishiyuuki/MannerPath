@@ -42,9 +42,10 @@ struct ContentView: View {
         }
         .ignoresSafeArea()
         // Top leading: the search field lives in the sheet, the compass appears top trailing, and the sheet covers the
-        // bottom half. At the large detent the sheet hides it; the sheet's bottom bar takes over (`reportToolbarItem`).
+        // bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and the sheet's
+        // bottom bar takes over; VoiceOver never meets two entries.
         .overlay(alignment: .topLeading) {
-            if reportEntryAvailable {
+            if reportEntryAvailable, sheetDetent != .large {
                 mapReportButton.padding(.leading, 16).padding(.top, 8)
             }
         }
@@ -180,6 +181,7 @@ struct ContentView: View {
                     if reportEntryAvailable, sheetDetent == .large {
                         Button("Report a smoking place", systemImage: "plus.circle.fill") { openReportEntry() }
                             .disabled(reportModel.isBusy)
+                            .accessibilityIdentifier("sheetReportButton")
                             .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
                     }
                 }
