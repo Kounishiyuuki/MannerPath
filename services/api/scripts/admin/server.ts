@@ -6,6 +6,7 @@ import type { Db } from '../../src/db.ts';
 import { getAdminReport, listAdminReports, applyAdminDecision, AdminReviewError } from '../../src/reports/admin-review.ts';
 import { readPrivateEvidencePhoto, PrivatePhotoViewError, type PrivatePhotoReader } from '../../src/reports/private-photo-view.ts';
 import { duplicateCandidates } from '../../src/pipeline/community-evidence.ts';
+import { adminDecisionSummary } from './ui-copy.js';
 
 const decisionSchema=z.object({reportId:z.string().regex(/^rp_[0-9A-HJKMNP-TV-Z]{26}$/),photoId:z.string().regex(/^ph_[0-9a-f]{64}$/).optional(),
   state:z.enum(['accepted','needsInfo','rejected','duplicate','approved']),reason:z.string().min(1).max(64),
@@ -32,6 +33,7 @@ export function createAdminServer(options:AdminServerOptions) {
     ['/',{type:'text/html; charset=utf-8',body:readFileSync(new URL('./ui.html',import.meta.url))}],
     ['/ui.css',{type:'text/css; charset=utf-8',body:readFileSync(new URL('./ui.css',import.meta.url))}],
     ['/ui.js',{type:'text/javascript; charset=utf-8',body:readFileSync(new URL('./ui.js',import.meta.url))}],
+    ['/ui-copy.js',{type:'text/javascript; charset=utf-8',body:readFileSync(new URL('./ui-copy.js',import.meta.url))}],
   ]);
   function respond(res:ServerResponse,status:number,value:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));}
   function refuse(res:ServerResponse,status:number,error:string){respond(res,status,{error});}
@@ -102,7 +104,7 @@ export function createAdminServer(options:AdminServerOptions) {
           if(session.confirmations.size>=32)return refuse(res,429,'confirmationLimit');
           const detail=await getAdminReport(options.reports,payload.reportId,now);if(detail.version!==payload.expectedVersion)return refuse(res,409,'staleDecision');
           const token=nonce();session.confirmations.set(token,{digest,expires:ms+120_000,used:false});
-          return respond(res,200,{confirmationToken:token,summary:`${payload.photoId?'写真':'投稿'} ${payload.reportId}\n状態：${payload.state}\n理由：${payload.reason}\n公開データは変更しません。`});
+          return respond(res,200,{confirmationToken:token,summary:adminDecisionSummary(payload)});
         }
         const confirmation=session.confirmations.get(confirmationToken!);
         if(!confirmation||confirmation.digest!==digest)return refuse(res,403,'confirmationRequired');

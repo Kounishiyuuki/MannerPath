@@ -20,6 +20,8 @@ test('localhost shell, auth, Origin, CSRF, host and no-store fences',async t=>{
   const f=await fixture(t);
   assert.equal((f.app.server.address() as any).address,'127.0.0.1');
   const shell=await f.call('/');assert.equal(shell.status,200);assert.match(shell.headers.get('content-security-policy')!,/frame-ancestors 'none'/);
+  assert.match(await shell.text(),/src="\/ui.js" type="module"/);
+  const copy=await f.call('/ui-copy.js');assert.equal(copy.status,200);assert.match(copy.headers.get('content-type')!,/javascript/);assert.match(await copy.text(),/adminErrorMessage/);
   assert.equal((await f.call('/api/reports')).status,401);
   assert.equal((await f.call('/api/reports',undefined,{...f.auth,Origin:'https://attacker.invalid'})).status,403);
   // Undici replaces Host; node:http is required to exercise the actual mismatched-host request.
@@ -53,6 +55,7 @@ test('explicit confirmed photo/report decisions, duplicate-click replay, hold/re
   let payload={reportId:f.ids[0],photoId:d.photos[0].photo_id,state:'approved',reason:'usableEvidence',expectedVersion:d.version,operationId:crypto.randomUUID(),privacyChecked:true};
   assert.equal((await f.call('/api/decide',{...payload,confirmationToken:'a'.repeat(64)},f.auth)).status,403);
   const prepared=await(await f.call('/api/confirm',payload,f.auth)).json() as any;
+  assert.match(prepared.summary,/状態：写真を承認/);assert.match(prepared.summary,/理由：審査資料として利用可能/);
   assert.equal((await f.call('/api/decide',{...payload,state:'rejected',confirmationToken:prepared.confirmationToken},f.auth)).status,403);
   const [a,b]=await Promise.all([f.call('/api/decide',{...payload,confirmationToken:prepared.confirmationToken},f.auth),f.call('/api/decide',{...payload,confirmationToken:prepared.confirmationToken},f.auth)]);
   assert.ok([a.status,b.status].includes(200));assert.ok([200,409].includes(b.status));

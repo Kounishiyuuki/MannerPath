@@ -1,4 +1,4 @@
-"use strict";
+import { adminErrorMessage } from './ui-copy.js';
 const labels = {pending:"審査待ち",accepted:"承認済み",needsInfo:"保留中",rejected:"却下",duplicate:"重複",awaitingPublication:"公開待ち",published:"公開済み",notApproved:"未承認",approved:"承認済み",uploaded:"送信済み",ready:"閲覧可能",expired:"期限切れ",deleted:"削除済み",uploading:"アップロード中",reserved:"未完了",failed:"失敗"};
 Object.assign(labels,{
   artifactExported:"artifact 作成済み・公開未照合",discarded:"公開対象外",
@@ -15,7 +15,7 @@ function el(tag, text, cls){const n=document.createElement(tag);if(text!==undefi
 function human(value){return value===null||value===undefined||value===""?"不明・記載なし":labels[value]||String(value);}
 function time(value){if(!value)return "不明";const d=new Date(value);return Number.isNaN(d.valueOf())?"不明":d.toLocaleString("ja-JP");}
 function message(value){$("message").textContent=value;}
-async function api(path, body){const r=await fetch(path,{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers:body?{"Content-Type":"application/json","X-CSRF-Token":session?.csrfToken||""}:{},...(body?{body:JSON.stringify(body)}:{})});let data;try{data=await r.json();}catch{throw new Error("応答を読み取れませんでした。");}if(!r.ok){if(r.status===401&&session)expireSession();const error=new Error(r.status===409?"別の操作で状態が変わりました。再読み込みして確認してください。":r.status===401?"認証が必要です。再読み込みしてログインしてください。":`操作できませんでした（${data.error||r.status}）。`);error.status=r.status;throw error;}return data;}
+async function api(path, body){let r;try{r=await fetch(path,{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers:body?{"Content-Type":"application/json","X-CSRF-Token":session?.csrfToken||""}:{},...(body?{body:JSON.stringify(body)}:{})});}catch{throw new Error("管理画面に接続できません。起動したターミナルと接続先を確認してください。");}let data;try{data=await r.json();}catch{throw new Error("応答を読み取れませんでした。再読み込みして確認してください。");}if(!r.ok){if(r.status===401&&session)expireSession();const error=new Error(adminErrorMessage(r.status,data?.error));error.status=r.status;throw error;}return data;}
 function expireSession(){clearTimeout(sessionTimer);session=undefined;detail=undefined;selected=undefined;requestEpoch++;queueEpoch++;releasePhotos();$("queue").replaceChildren();$("statuses").replaceChildren();$("more").hidden=true;if($("confirm").open)$("confirm").close("cancel");showLogin();}
 function scheduleSessionExpiry(){
   clearTimeout(sessionTimer);
