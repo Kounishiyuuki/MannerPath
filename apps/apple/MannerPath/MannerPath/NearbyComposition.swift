@@ -25,7 +25,8 @@ enum NearbyComposition {
         }
         return NearbyModel(
             location: DeviceLocationService(), repository: store, refresher: refresher,
-            destinationSearch: MapKitDestinationSearch(), walkingRouter: MapKitWalkingRouter()
+            destinationSearch: MapKitDestinationSearch(), destinationCompleter: MapKitDestinationCompleter(),
+            walkingRouter: MapKitWalkingRouter()
         )
     }
 

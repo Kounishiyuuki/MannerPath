@@ -535,6 +535,224 @@ struct RouteSearchTests {
         #expect(model.destinationMatches.isEmpty && !model.searchingDestination)
     }
 
+    private func suggestion(_ title: String, _ subtitle: String? = nil) -> DestinationSuggestion {
+        DestinationSuggestion(id: title + "|" + (subtitle ?? ""), title: title, subtitle: subtitle)
+    }
+
+    // Device report (#314): "上野" showed one area and nothing to tap. Typing alone must list the concrete places.
+    @Test func typingShowsSeveralConcreteSuggestionsWithoutSubmitting() async throws {
+        let search = ControlledDestinationSearch()
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: search, completer: completer, searchDebounce: .milliseconds(10))
+        for text in ["う", "うえ", "うえの", "上野"] { model.scheduleDestinationSearch(text) }
+        #expect(await waitUntil { completer.queries == ["上野"] })
+        completer.succeed(0, [suggestion("京成上野駅", "東京都台東区"), suggestion("上野恩賜公園", "東京都台東区"),
+                              suggestion("上野", "東京都台東区"), suggestion("上野駅", "東京都台東区")])
+        #expect(await waitUntil { !model.searchingDestination })
+        #expect(model.destinationSuggestions.map(\.title) == ["上野", "上野恩賜公園", "上野駅", "京成上野駅"])
+        #expect(search.queries.isEmpty, "Typing costs completions only; MKLocalSearch waits for a tap")
+    }
+
+    @Test func kanaSuggestionsKeepProviderOrderAndDuplicatesCollapse() {
+        let ranked = DestinationSuggestionRanker.rank(query: "うえの", [
+            suggestion("上野駅", "東京都台東区"), suggestion("上野駅", "東京都台東区"), suggestion("京成上野駅", "東京都台東区")
+        ])
+        #expect(ranked.map(\.title) == ["上野駅", "京成上野駅"])
+    }
+
+    @Test func progressiveSuggestionsShowConcretePlacesBeforeTheRequestFinishes() async throws {
+        let search = ControlledDestinationSearch()
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: search, completer: completer,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        let area = suggestion("上野", "東京都台東区")
+        let station = suggestion("上野駅", "東京都台東区")
+        let park = suggestion("上野恩賜公園", "東京都台東区")
+        completer.emit(0, [area])
+        #expect(model.destinationSuggestions == [area])
+        #expect(model.searchingDestination)
+        completer.emit(0, [area, station, park])
+        #expect(Set(model.destinationSuggestions.map(\.title)) == ["上野", "上野駅", "上野恩賜公園"])
+        #expect(model.searchingDestination)
+        #expect(!model.destinationSearchFoundNothing && !model.destinationSearchFailed)
+        completer.succeed(0, [area, station, park])
+        #expect(await waitUntil { !model.searchingDestination })
+        #expect(model.destinationSuggestions.count == 3)
+        #expect(search.queries.isEmpty)
+    }
+
+    @Test func progressiveUpdatesFromAnOlderQueryCannotReplaceCurrentSuggestions() async throws {
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("東京")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        completer.emit(0, [suggestion("東京")])
+        model.scheduleDestinationSearch("大阪")
+        #expect(await waitUntil { completer.queries.count == 2 })
+        let current = suggestion("大阪駅")
+        completer.emit(1, [current])
+        completer.emit(0, [suggestion("東京駅")])
+        #expect(model.destinationSuggestions == [current])
+        #expect(model.searchingDestination)
+        completer.succeed(0, [suggestion("東京駅")])
+        await Task.yield()
+        #expect(model.destinationSuggestions == [current])
+        #expect(model.searchingDestination)
+        completer.succeed(1, [current])
+        #expect(await waitUntil { !model.searchingDestination })
+        #expect(model.destinationSuggestions == [current])
+    }
+
+    @Test func gpsUpdatesKeepProgressiveSuggestionsAndTheirPendingRequest() async throws {
+        let completer = ControlledCompleter()
+        let location = TestLocation(state: .usable(deviceLocation(origin)))
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer, location: location,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        let area = suggestion("上野")
+        let station = suggestion("上野駅")
+        completer.emit(0, [area])
+        location.send(.locating)
+        location.send(.usable(deviceLocation(SpotCoordinate(latitude: 35.0001, longitude: 139.0001))))
+        #expect(model.destinationSuggestions == [area])
+        #expect(model.searchingDestination)
+        completer.emit(0, [area, station])
+        #expect(model.destinationSuggestions == [area, station])
+        location.send(.usable(deviceLocation(origin)))
+        completer.succeed(0, [area, station])
+        #expect(await waitUntil { !model.searchingDestination })
+        #expect(model.destinationSuggestions == [area, station])
+        #expect(completer.queries == ["上野"])
+    }
+
+    @Test func selectingAProgressiveSuggestionRejectsLateUpdatesAndFinalResults() async throws {
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        let station = suggestion("上野駅")
+        completer.emit(0, [station])
+        model.selectSuggestion(station)
+        #expect(await waitUntil { completer.resolved == [station] })
+        completer.emit(0, [suggestion("上野公園")])
+        #expect(model.resolvingSuggestion == station)
+        #expect(!model.destinationSuggestions.contains(suggestion("上野公園")))
+        let selected = place("上野駅", 35.7138, 139.7773)
+        completer.resolveWith(selected)
+        #expect(await waitUntil { model.destination == selected })
+        completer.emit(0, [suggestion("京成上野駅")])
+        completer.succeed(0, [suggestion("京成上野駅")])
+        await Task.yield()
+        #expect(model.destination == selected)
+        #expect(model.destinationSuggestions.isEmpty)
+        #expect(!model.searchingDestination)
+    }
+
+    @Test func oneTapOnASuggestionResolvesAndSelectsTheDestination() async throws {
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野駅")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        let station = suggestion("上野駅", "東京都台東区")
+        completer.succeed(0, [station])
+        #expect(await waitUntil { model.destinationSuggestions == [station] })
+        model.selectSuggestion(station)
+        #expect(model.resolvingSuggestion == station)
+        #expect(await waitUntil { completer.resolved.count == 1 })
+        let ueno = PlaceDestination(id: UUID(), name: "上野駅", coordinate: SpotCoordinate(latitude: 35.7138, longitude: 139.7773))
+        completer.resolveWith(ueno)
+        #expect(await waitUntil { model.destination == ueno })
+        #expect(completer.resolved == [station])
+        #expect(model.destinationSuggestions.isEmpty && model.resolvingSuggestion == nil)
+    }
+
+    @Test func failedResolveKeepsSuggestionsForAnotherTap() async throws {
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野駅")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        let station = suggestion("上野駅")
+        completer.succeed(0, [station])
+        #expect(await waitUntil { !model.destinationSuggestions.isEmpty })
+        model.selectSuggestion(station)
+        #expect(await waitUntil { completer.resolved.count == 1 })
+        completer.failResolve()
+        #expect(await waitUntil { model.destinationSearchFailed })
+        #expect(model.destination == nil && model.resolvingSuggestion == nil)
+        #expect(model.destinationSuggestions == [station])
+    }
+
+    @Test func lateOlderSuggestionsNeverReplaceNewerOnes() async throws {
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer,
+                                  searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("東京")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        model.scheduleDestinationSearch("大阪")
+        #expect(await waitUntil { completer.queries.count == 2 })
+        completer.succeed(1, [suggestion("大阪駅")])
+        #expect(await waitUntil { model.destinationSuggestions.map(\.title) == ["大阪駅"] })
+        completer.succeed(0, [suggestion("東京駅")])
+        await Task.yield()
+        #expect(model.destinationSuggestions.map(\.title) == ["大阪駅"])
+    }
+
+    @Test func emptyOrFailedCompletionFallsBackToTheFullSearch() async throws {
+        let search = ControlledDestinationSearch()
+        let completer = ControlledCompleter()
+        let model = try makeModel(spots: [], search: search, completer: completer, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("金沢")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        completer.fail(0)
+        #expect(await waitUntil { search.queries.map(\.text) == ["金沢"] })
+        search.fail(0)
+        #expect(await waitUntil { model.destinationSearchFailed && !model.searchingDestination })
+        #expect(model.destinationSuggestions.isEmpty)
+        model.scheduleDestinationSearch("金沢駅")
+        #expect(await waitUntil { completer.queries.count == 2 })
+        completer.succeed(1, [])
+        #expect(await waitUntil { search.queries.count == 2 })
+        let kanazawa = place("金沢駅", 36.578, 136.648)
+        search.succeed(1, matches: [kanazawa])
+        #expect(await waitUntil { model.destinationMatches == [kanazawa] && !model.destinationSearchFailed })
+    }
+
+    @Test func locationUpdateWhileCompletingKeepsTheSuggestions() async throws {
+        let completer = ControlledCompleter()
+        let location = TestLocation(state: .usable(deviceLocation(origin)))
+        let model = try makeModel(spots: [], search: ControlledDestinationSearch(), completer: completer,
+                                  location: location, searchDebounce: .milliseconds(10))
+        model.scheduleDestinationSearch("上野")
+        #expect(await waitUntil { completer.queries.count == 1 })
+        location.send(.usable(deviceLocation(SpotCoordinate(latitude: 35.0001, longitude: 139.0001))))
+        completer.succeed(0, [suggestion("上野駅")])
+        #expect(await waitUntil { model.destinationSuggestions.count == 1 && !model.searchingDestination })
+    }
+
+    @Test func listedSpotsMatchByNameApartFromDestinationsAndClear() async throws {
+        let model = try makeModel(spots: [spot("上野駅前喫煙所", offset: 0.002), spot("上野公園喫煙所", offset: 0.001),
+                                          spot("新宿", offset: 0.001)],
+                                  search: ControlledDestinationSearch(), completer: ControlledCompleter(),
+                                  searchDebounce: .seconds(10))
+        #expect(await waitUntil { model.results.count == 3 })
+        model.scheduleDestinationSearch("上野")
+        // Local data: shown before the debounce, nearest first, never mixed into destination candidates.
+        #expect(model.publishedSpotMatches.map(\.spot.id) == ["上野公園喫煙所", "上野駅前喫煙所"])
+        #expect(model.destinationSuggestions.isEmpty)
+        model.scheduleDestinationSearch("渋谷")
+        #expect(model.publishedSpotMatches.isEmpty)
+        model.scheduleDestinationSearch("上野")
+        model.scheduleDestinationSearch("")
+        #expect(model.publishedSpotMatches.isEmpty)
+    }
+
     // On device a GPS fix arrives every few seconds while typing; each one must leave the search alone.
     @Test func locationUpdateDuringDebounceStillSearchesAndShowsMatches() async throws {
         let search = ControlledDestinationSearch()
@@ -601,13 +819,15 @@ struct RouteSearchTests {
 
     private func makeModel(spots: [Spot], router: (any WalkingRouting)? = nil,
                            search: (any DestinationSearching)? = nil,
+                           completer: (any DestinationCompleting)? = nil,
                            location: TestLocation? = nil,
                            searchDebounce: Duration = .milliseconds(300)) throws -> NearbyModel {
         let tile = try SlippyTile.forCoordinate(latitude: origin.latitude,
             longitude: origin.longitude, zoom: SlippyTile.defaultDataZoom)
         return NearbyModel(location: location ?? TestLocation(state: .usable(deviceLocation(origin))),
             repository: TestCache(tileID: tile.id, spots: spots), refresher: nil,
-            destinationSearch: search, walkingRouter: router, searchDebounce: searchDebounce)
+            destinationSearch: search, destinationCompleter: completer, walkingRouter: router,
+            searchDebounce: searchDebounce)
     }
 
     private func waitUntil(_ condition: @escaping @MainActor () -> Bool) async -> Bool {
@@ -690,5 +910,48 @@ private final class ControlledDestinationSearch: DestinationSearching {
     }
     func fail(_ index: Int) {
         pending.removeValue(forKey: index)?.resume(throwing: TestRouteError.unavailable)
+    }
+}
+
+private enum TestCompletionError: Error { case unavailable }
+
+@MainActor
+private final class ControlledCompleter: DestinationCompleting {
+    private(set) var queries: [String] = []
+    private(set) var resolved: [DestinationSuggestion] = []
+    private var pending: [Int: CheckedContinuation<[DestinationSuggestion], Error>] = [:]
+    private var updates: [Int: @MainActor ([DestinationSuggestion]) -> Void] = [:]
+    private var pendingResolve: CheckedContinuation<PlaceDestination, Error>?
+    func suggestions(for text: String, near origin: SpotCoordinate?) async throws -> [DestinationSuggestion] {
+        let index = queries.count
+        queries.append(text)
+        return try await withCheckedThrowingContinuation { pending[index] = $0 }
+    }
+    func suggestions(for text: String, near origin: SpotCoordinate?,
+                     onUpdate: @escaping @MainActor ([DestinationSuggestion]) -> Void) async throws -> [DestinationSuggestion] {
+        updates[queries.count] = onUpdate
+        return try await suggestions(for: text, near: origin)
+    }
+    func emit(_ index: Int, _ suggestions: [DestinationSuggestion]) {
+        // Intentionally retain callbacks after cancellation to exercise stale-result guards.
+        updates[index]?(suggestions)
+    }
+    func resolve(_ suggestion: DestinationSuggestion, near origin: SpotCoordinate?) async throws -> PlaceDestination {
+        resolved.append(suggestion)
+        return try await withCheckedThrowingContinuation { pendingResolve = $0 }
+    }
+    func succeed(_ index: Int, _ suggestions: [DestinationSuggestion]) {
+        pending.removeValue(forKey: index)?.resume(returning: suggestions)
+    }
+    func fail(_ index: Int) {
+        pending.removeValue(forKey: index)?.resume(throwing: TestCompletionError.unavailable)
+    }
+    func resolveWith(_ place: PlaceDestination) {
+        pendingResolve?.resume(returning: place)
+        pendingResolve = nil
+    }
+    func failResolve() {
+        pendingResolve?.resume(throwing: TestCompletionError.unavailable)
+        pendingResolve = nil
     }
 }

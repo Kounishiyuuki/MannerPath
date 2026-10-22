@@ -562,6 +562,55 @@ final class B_OnlineUITests: MannerPathUITestCase {
         waitForDestinationResults()
     }
 
+    // Device report after #314: "上野" listed only the 上野 area. Typing alone must list several concrete places, one
+    // tap away, above the keyboard. Live MapKit: run where Apple Maps is reachable.
+    func testTypingListsSeveralConcretePlacesAndOneTapSelects() {
+        launch()
+        waitForResults()
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
+        field.tap()
+        field.typeText("上野")
+        let matches = app.buttons.matching(identifier: "destinationMatch")
+        XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 30), "Typing produced no candidate")
+        let several = NSPredicate(format: "count >= 2")
+        expectation(for: several, evaluatedWith: matches)
+        waitForExpectations(timeout: 15)
+        XCTAssertTrue(app.keyboards.firstMatch.exists, "Candidates appear while the keyboard is still shown")
+        screenshot("12-ueno-candidates")
+        let station = matches.matching(NSPredicate(format: "label BEGINSWITH '上野駅'")).firstMatch
+        XCTAssertTrue(station.waitForExistence(timeout: 15), "上野駅 is among the candidates: \(matches.allElementsBoundByIndex.map(\.label))")
+        XCTAssertTrue(station.isHittable, "The candidate is reachable above the keyboard")
+        station.tap()
+        waitForDestinationResults()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '上野駅'")).firstMatch.exists)
+        screenshot("13-ueno-selected")
+    }
+
+    func testCandidatesFollowEachNewQuery() {
+        launch()
+        waitForResults()
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
+        field.tap()
+        let matches = app.buttons.matching(identifier: "destinationMatch")
+        // typeText inserts committed text; it does not drive the IME's marked-text conversion.
+        for query in ["うえの", "東京", "大阪", "金沢"] {
+            if let current = field.value as? String, !current.isEmpty, current != field.placeholderValue {
+                field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+            }
+            field.typeText(query)
+            let fresh = NSPredicate(format: "count >= 2")
+            expectation(for: fresh, evaluatedWith: matches)
+            waitForExpectations(timeout: 30)
+            let labels = matches.allElementsBoundByIndex.map(\.label)
+            if query != "うえの" {
+                XCTAssertTrue(labels.contains { $0.contains(query) }, "\(query) candidates were not refreshed: \(labels)")
+            }
+            screenshot("14-live-\(query)")
+        }
+    }
+
     func testDestinationSearchCanBeOperated() {
         launch()
         waitForResults()
@@ -581,6 +630,8 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(anyOutcome.waitForExistence(timeout: 20))
         screenshot("10-destination")
         XCTAssertTrue(app.navigationBars["近くの場所"].exists)
+        // Several candidates now lead the sheet, so the saved rows sit below them rather than on the first screen.
+        scrollTo(resultRows.firstMatch)
         XCTAssertTrue(resultRows.firstMatch.exists, "Saved places stay listed during destination search")
     }
 

@@ -48,6 +48,7 @@ final class NearbyModel {
     private let repository: (any CachedSpotRepository)?
     private let refresher: (any NearbyTileRefreshing)?
     private let destinationSearch: (any DestinationSearching)?
+    private let destinationCompleter: (any DestinationCompleting)?
     private let walkingRouter: (any WalkingRouting)?
     private var loadTask: Task<Void, Never>?
     private var searchTask: Task<Void, Never>?
@@ -73,6 +74,13 @@ final class NearbyModel {
 
     private(set) var filters = NearbyFilters()
     private(set) var destinationMatches: [PlaceDestination] = []
+    /// Typing-time candidates from the completer; shown instead of `destinationMatches` whenever it has any.
+    private(set) var destinationSuggestions: [DestinationSuggestion] = []
+    /// The tapped suggestion while its coordinate is looked up; one tap is the whole selection.
+    private(set) var resolvingSuggestion: DestinationSuggestion?
+    /// Published places already cached on this device whose name matches the query. They are MannerPath data, not
+    /// destinations, so they are listed apart and open their own detail.
+    private(set) var publishedSpotMatches: [NearbyResult] = []
     private(set) var destination: PlaceDestination?
     private(set) var destinationSearchFailed = false
     /// The search answered with no place. Shown, so an empty answer is not mistaken for a search that never ran.
@@ -163,6 +171,9 @@ final class NearbyModel {
         let requestGeneration = searchGeneration
         searchTask?.cancel()
         activeSearchQuery = query
+        resolvingSuggestion = nil
+        // Local data only: no request, so these update on every keystroke without the debounce.
+        publishedSpotMatches = publishedSpots(matching: query)
         destinationSearchFailed = false
         destinationSearchFoundNothing = false
         searchingDestination = true
@@ -171,14 +182,34 @@ final class NearbyModel {
                 do { try await Task.sleep(for: delay) } catch { return }
             }
             guard let self, requestGeneration == searchGeneration, !Task.isCancelled else { return }
+            if let destinationCompleter {
+                // A failed or empty completion falls back to the full search below, which may still find a place.
+                let suggestions = try? await destinationCompleter.suggestions(for: query, near: displayLocation?.coordinate) { [weak self] update in
+                    guard let self, requestGeneration == self.searchGeneration, !Task.isCancelled else { return }
+                    guard !update.isEmpty else { return }
+                    self.destinationSuggestions = DestinationSuggestionRanker.rank(query: query, update)
+                    self.destinationMatches = []
+                    self.destinationSearchFailed = false
+                    self.destinationSearchFoundNothing = false
+                }
+                guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
+                if let suggestions, !suggestions.isEmpty {
+                    destinationSuggestions = DestinationSuggestionRanker.rank(query: query, suggestions)
+                    destinationMatches = []
+                    searchingDestination = false
+                    return
+                }
+            }
             do {
                 let matches = try await destinationSearch.search(query, near: displayLocation?.coordinate)
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
                 destinationMatches = matches
+                destinationSuggestions = []
                 destinationSearchFoundNothing = matches.isEmpty
             } catch {
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
                 destinationMatches = []
+                destinationSuggestions = []
                 destinationSearchFailed = true
                 activeSearchQuery = nil
             }
@@ -191,10 +222,52 @@ final class NearbyModel {
         searchTask?.cancel()
         activeSearchQuery = nil
         destinationMatches = []
+        destinationSuggestions = []
+        publishedSpotMatches = []
+        resolvingSuggestion = nil
         destinationSearchFailed = false
         destinationSearchFoundNothing = false
         searchingDestination = false
     }
+
+    /// Looks up the tapped suggestion's coordinate, then selects it. A newer query or selection supersedes it.
+    func selectSuggestion(_ suggestion: DestinationSuggestion) {
+        guard let destinationCompleter else { return }
+        searchGeneration += 1
+        let requestGeneration = searchGeneration
+        searchTask?.cancel()
+        resolvingSuggestion = suggestion
+        destinationSearchFailed = false
+        searchingDestination = false
+        searchTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let place = try await destinationCompleter.resolve(suggestion, near: displayLocation?.coordinate)
+                guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
+                selectDestination(place)
+            } catch {
+                guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
+                // The suggestions stay, so another tap can retry; the query is searched afresh on the next edit.
+                resolvingSuggestion = nil
+                activeSearchQuery = nil
+                destinationSearchFailed = true
+            }
+        }
+    }
+
+    /// Bounded by design: only spots already cached around the browsed area, so no query leaves the device and the
+    /// nationwide corpus is never fetched for search.
+    private func publishedSpots(matching query: String) -> [NearbyResult] {
+        guard let origin = resultsArea?.coordinate else { return [] }
+        let needle = DestinationResultMerger.normalized(query)
+        guard !needle.isEmpty else { return [] }
+        return Array(NearbySearch.rank(cachedSpots, from: origin, at: Date()).filter { result in
+            guard let name = result.spot.name else { return false }
+            return DestinationResultMerger.normalized(name).contains(needle)
+        }.prefix(Self.maximumPublishedSpotMatches))
+    }
+
+    static let maximumPublishedSpotMatches = 5
 
     func selectDestination(_ selected: PlaceDestination?) {
         cancelDestinationSearch()
@@ -217,6 +290,7 @@ final class NearbyModel {
         repository: (any CachedSpotRepository)?,
         refresher: (any NearbyTileRefreshing)?,
         destinationSearch: (any DestinationSearching)? = nil,
+        destinationCompleter: (any DestinationCompleting)? = nil,
         walkingRouter: (any WalkingRouting)? = nil,
         searchDebounce: Duration = .milliseconds(300)
     ) {
@@ -225,6 +299,7 @@ final class NearbyModel {
         self.repository = repository
         self.refresher = refresher
         self.destinationSearch = destinationSearch
+        self.destinationCompleter = destinationCompleter
         self.walkingRouter = walkingRouter
         locationState = location.state
         if case .usable(let deviceLocation) = locationState {
