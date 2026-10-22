@@ -41,6 +41,14 @@ struct ContentView: View {
             nearbyMap(bottomInset: proxy.size.height * 0.5)
         }
         .ignoresSafeArea()
+        // Top leading: the search field lives in the sheet, the compass appears top trailing, and the sheet covers the
+        // bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and the sheet's
+        // bottom bar takes over; VoiceOver never meets two entries.
+        .overlay(alignment: .topLeading) {
+            if reportEntryAvailable, sheetDetent != .large {
+                mapReportButton.padding(.leading, 16).padding(.top, 8)
+            }
+        }
         .sheet(isPresented: $showingNearbySheet) {
             nearbySheet
         }
@@ -158,6 +166,8 @@ struct ContentView: View {
                         .buttonStyle(.borderless)
                         .padding(.horizontal)
                         .background(.bar)
+                } else if showsSheetReportBar {
+                    sheetReportBar
                 }
             }
             .toolbar {
@@ -167,13 +177,6 @@ struct ContentView: View {
                         showingFilters = true
                     }
                     .accessibilityHint("Adjust nearby result filters")
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    if case .available = reportModel.availability {
-                        Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
-                            .disabled(!reportModel.canStartReport)
-                            .accessibilityHint("Pin a smoking place that is missing from the map. It is reviewed before it can appear.")
-                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(model.destination == nil ? "Recenter" : "Recenter on destination",
@@ -275,6 +278,55 @@ struct ContentView: View {
         showingReport = true
     }
 
+    /// The map and toolbar entries share the gate of the in-list entry: only when the deployment accepts reports.
+    private var reportEntryAvailable: Bool {
+        if case .available = reportModel.availability { return true }
+        return false
+    }
+
+    /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does.
+    private func openReportEntry() {
+        if reportModel.canStartReport { startAddingPlace() } else if reportModel.draft != nil { showingReport = true }
+    }
+
+    /// At `.large` the sheet covers the map button, so the same labelled entry sits in a fixed bar. A bottom-bar
+    /// ToolbarItem would collapse to its icon. Not while searching (the keyboard and suggestions own the bottom) and
+    /// not when the empty state already shows its own report button.
+    private var showsSheetReportBar: Bool {
+        reportEntryAvailable && sheetDetent == .large && !searchFocused && !isShowingSearchResults
+            && !(model.dataState == .refreshed && model.results.isEmpty && !model.hasUnfilteredResults)
+    }
+
+    private var sheetReportBar: some View {
+        Button { openReportEntry() } label: {
+            Label("Report a smoking place", systemImage: "plus.circle.fill")
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(reportModel.isBusy)
+        .accessibilityIdentifier("sheetReportButton")
+        .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(.bar)
+    }
+
+    private var mapReportButton: some View {
+        Button { openReportEntry() } label: {
+            Label("Report a smoking place", systemImage: "plus.circle.fill")
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .background(.regularMaterial, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.tint)
+        .disabled(reportModel.isBusy)
+        .accessibilityIdentifier("mapReportButton")
+        .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
+    }
+
     /// ADR-0013 nearby tasks: a light, ignorable prompt inside the Nearby screen — no push, no streaks, no tracking.
     /// Derived from the results already on screen (coverage-tasks.v1); nothing is sent to find them.
     @ViewBuilder
@@ -341,10 +393,9 @@ struct ContentView: View {
         }
         switch reportModel.availability {
         case .available:
+            // The button itself is the map button (medium) or the sheet's report bar (large); one entry at a time.
             if reportModel.draft == nil {
-                Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
-                    .buttonStyle(.bordered)
-                Text("Know a smoking place that isn't listed? Pin it and say what is there. It is reviewed before it can appear.")
+                Text("Know a smoking place that isn't listed yet? Send its location and photos. MannerPath reviews them and adds approved information to the map.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .unknown:
@@ -589,8 +640,8 @@ struct ContentView: View {
                 Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability))
             } actions: {
                 if case .available = reportModel.availability, reportModel.canStartReport {
-                    Button("Add a smoking place", systemImage: "plus.circle") { startAddingPlace() }
-                        .buttonStyle(.bordered)
+                    Button("Report a smoking place", systemImage: "plus.circle.fill") { startAddingPlace() }
+                        .buttonStyle(.borderedProminent)
                 }
             }
         case .refreshFailed:
@@ -798,7 +849,8 @@ private struct DetailSelection {
 enum NearbyEmptyStateCopy {
     static func description(for availability: ReportAvailability) -> String {
         if case .available = availability {
-            return String(localized: "If you know a smoking place here, you can add it for review.")
+            return String(localized: "Know a smoking place that isn't listed yet?") + "\n"
+                + String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")
         }
         return String(localized: "Coverage varies by area. Only published places are shown.")
     }
