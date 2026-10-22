@@ -166,6 +166,8 @@ struct ContentView: View {
                         .buttonStyle(.borderless)
                         .padding(.horizontal)
                         .background(.bar)
+                } else if showsSheetReportBar {
+                    sheetReportBar
                 }
             }
             .toolbar {
@@ -175,15 +177,6 @@ struct ContentView: View {
                         showingFilters = true
                     }
                     .accessibilityHint("Adjust nearby result filters")
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    // Only at the large detent, where the sheet covers the map button: one visible entry at a time.
-                    if reportEntryAvailable, sheetDetent == .large {
-                        Button("Report a smoking place", systemImage: "plus.circle.fill") { openReportEntry() }
-                            .disabled(reportModel.isBusy)
-                            .accessibilityIdentifier("sheetReportButton")
-                            .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
-                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(model.destination == nil ? "Recenter" : "Recenter on destination",
@@ -296,6 +289,28 @@ struct ContentView: View {
         if reportModel.canStartReport { startAddingPlace() } else if reportModel.draft != nil { showingReport = true }
     }
 
+    /// At `.large` the sheet covers the map button, so the same labelled entry sits in a fixed bar. A bottom-bar
+    /// ToolbarItem would collapse to its icon. Not while searching (the keyboard and suggestions own the bottom) and
+    /// not when the empty state already shows its own report button.
+    private var showsSheetReportBar: Bool {
+        reportEntryAvailable && sheetDetent == .large && !searchFocused && !isShowingSearchResults
+            && !(model.dataState == .refreshed && model.results.isEmpty && !model.hasUnfilteredResults)
+    }
+
+    private var sheetReportBar: some View {
+        Button { openReportEntry() } label: {
+            Label("Report a smoking place", systemImage: "plus.circle.fill")
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(reportModel.isBusy)
+        .accessibilityIdentifier("sheetReportButton")
+        .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(.bar)
+    }
+
     private var mapReportButton: some View {
         Button { openReportEntry() } label: {
             Label("Report a smoking place", systemImage: "plus.circle.fill")
@@ -378,9 +393,8 @@ struct ContentView: View {
         }
         switch reportModel.availability {
         case .available:
+            // The button itself is the map button (medium) or the sheet's report bar (large); one entry at a time.
             if reportModel.draft == nil {
-                Button("Report a smoking place", systemImage: "plus.circle.fill") { startAddingPlace() }
-                    .buttonStyle(.borderedProminent)
                 Text("Know a smoking place that isn't listed yet? Send its location and photos. MannerPath reviews them and adds approved information to the map.")
                     .font(.footnote).foregroundStyle(.secondary)
             }

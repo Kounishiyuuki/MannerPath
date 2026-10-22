@@ -679,19 +679,25 @@ final class B_OnlineUITests: MannerPathUITestCase {
         screenshot("32-map-report-form")
         app.buttons["下書きを破棄"].tap()
 
-        // Large sheet: the map button is covered, so the sheet's own bar offers the same entry. (While the search
-        // keyboard is up the bar is behind it; the search session is not where a report starts.) The iOS 26 bottom
-        // bar is not exposed as a Toolbar element, so the entry is found by identifier.
+        // Large sheet: the map button is covered, so the sheet's own labelled bar offers the same entry.
         app.navigationBars["近くの場所"].swipeUp()
         let bar = app.buttons["sheetReportButton"]
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
         XCTAssertEqual(bar.label, "喫煙所を報告")
         XCTAssertTrue(bar.isHittable)
+        // The text is on screen, not only the symbol: the labelled bar spans the sheet's width.
+        XCTAssertGreaterThan(bar.frame.width, app.windows.firstMatch.frame.width / 2, "The large entry shows its text")
+        XCTAssertGreaterThanOrEqual(bar.frame.height, 44)
         XCTAssertFalse(button.exists, "The covered map button leaves the accessibility tree at the large detent")
         screenshot("33-large-sheet-report-entry")
         bar.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         app.buttons["下書きを破棄"].tap()
+
+        // Searching owns the bottom of the sheet: the bar steps aside for the keyboard and suggestions.
+        destinationSearch.tap()
+        destinationSearch.typeText("上野")
+        XCTAssertTrue(app.buttons["sheetReportButton"].waitForNonExistence(timeout: 5), "The report bar competes with search")
     }
 
     // §3.2: an area without published places invites a report with the approved copy.
@@ -710,6 +716,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(textContaining("場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。").exists)
         let action = app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告' AND identifier != 'mapReportButton'")).firstMatch
         XCTAssertTrue(action.exists, "The empty state offers the report entry")
+        XCTAssertFalse(app.buttons["sheetReportButton"].exists, "The empty state's own button is the only one in the sheet")
         screenshot("34-empty-area-invitation")
         action.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))

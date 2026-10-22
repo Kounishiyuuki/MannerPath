@@ -50,9 +50,11 @@ Non-goals (unchanged rules):
 - `.medium` (and whenever the map is visible): a floating, labelled button 「喫煙所を報告」 (SF Symbol
   `plus.circle.fill`) at the map's top leading corner — the search field lives in the sheet, the compass sits top
   trailing and the sheet covers the bottom half. It never overlaps the search field and does not move with the keyboard.
-- `.large` (the sheet covers the map): the map button leaves the screen and the accessibility tree, and the sheet's
-  bottom bar shows the same entry (`sheetReportButton`) in a fixed position. One visible entry at a time.
-- The in-list entry and the empty-state button (§3.2) stay; they open the same flow.
+- `.large` (the sheet covers the map): the map button leaves the screen and the accessibility tree, and a fixed,
+  full-width labelled bar 「喫煙所を報告」 (`sheetReportButton`) sits at the bottom of the sheet (a bottom-bar
+  `ToolbarItem` would collapse to the bare symbol). It steps aside while the search field is focused or shows
+  suggestions, and when the empty state shows its own button. Every entry shows visible text, never a bare icon.
+- The in-list section keeps the explanatory text only; the empty-state button (§3.2) opens the same flow.
 - Visible only when `reportModel.availability == .available`; when reports are unavailable every entry is hidden
   (no dead control).
 - ≥44 pt hit area on the map button, VoiceOver label 「喫煙所を報告」, hint 「地図にない喫煙所を運営に提案します。確認後に掲載されます。」
@@ -117,7 +119,7 @@ Exists (reuse):
 | `migrations-reports/0003_evidence_photos.sql`, deletion tracking, retention (`retain`) | Implemented |
 | `reports:moderate` incl. `photo-summary`, `photo-decide`, triage, duplicates, export/import | Implemented |
 | Community activation/publication pipeline, `COMMUNITY_LAUNCH_CHECKLIST.md` | Implemented, HOLD on #124 |
-| Map button (medium), bottom-bar (large), in-list and empty-state 「喫煙所を報告」 entries | Implemented in P2, only when reports available |
+| Map button (medium), labelled sheet bar (large) and empty-state 「喫煙所を報告」 entries | Implemented in P2, only when reports available |
 | Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 
 Missing (this plan):
