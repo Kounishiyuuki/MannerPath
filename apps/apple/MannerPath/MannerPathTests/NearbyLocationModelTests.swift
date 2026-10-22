@@ -137,7 +137,10 @@ struct NearbyLocationModelTests {
             #expect(NearbyEmptyStateCopy.description(for: availability) == String(localized: "Coverage varies by area. Only published places are shown."))
         }
         let limits = ReportLimits(noteMaxLength: 280, maxBodyBytes: 4096)
-        #expect(NearbyEmptyStateCopy.description(for: .available(limits)) == String(localized: "If you know a smoking place here, you can add it for review."))
+        let invitation = NearbyEmptyStateCopy.description(for: .available(limits))
+        #expect(invitation.hasPrefix(String(localized: "Know a smoking place that isn't listed yet?")))
+        // The invitation says that photos are welcome and that nothing appears before review.
+        #expect(invitation.hasSuffix(String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")))
     }
 
     @Test func permissionIsRequestedOnlyByExplicitAction() async {
