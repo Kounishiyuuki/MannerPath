@@ -4560,7 +4560,38 @@
           }
         }
       }
-    }
+    },
+    "Avoid faces, vehicle plates and unrelated surroundings. A photo of an ashtray does not establish permission to smoke. Photos stay on this screen until submission; closing the app discards them.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "人の顔、車のナンバー、関係のない周囲が写らないようにしてください。灰皿の写真だけでは喫煙が許可されている根拠になりません。写真は送信までこの画面にだけ保持され、アプリを閉じると破棄されます。" } } } },
+    "The photo's location data is not used. The listed position is only the map pin you chose.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真の位置情報は使用しません。掲載地点は、地図で選んだピンだけで決まります。" } } } },
+    "Choose photos (up to 3)": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を選ぶ（最大3枚）" } } } },
+    "Add another photo": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を追加" } } } },
+    "Add test photo": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "テスト用写真を追加" } } } },
+    "Selected photo %lld preview": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "選択した写真 %lld のプレビュー" } } } },
+    "Uploading photo…": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を送信中…" } } } },
+    "Photo received for review": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を受け付けました（審査待ち）" } } } },
+    "Remove this photo": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この写真を削除" } } } },
+    "Retry unsent photos": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "未送信の写真を再送信" } } } },
+    "Photos (required, 1 to 3)": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真（必須・1〜3枚）" } } } },
+    "Evidence photos (optional)": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真（任意）" } } } },
+    "Add at least one photo of the smoking place to submit.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "送信するには、喫煙所の写真を1枚以上追加してください。" } } } },
+    "New smoking places are not being accepted right now.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "現在、新しい喫煙所の報告を受け付けていません。" } } } },
+    "The report was received. Sending photos…": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "報告を受け付けました。写真を送信しています…" } } } },
+    "The report was received, but %lld of %lld photos have not been sent. The report will not be sent again.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "報告は受け付けられましたが、写真%2$lld枚のうち%1$lld枚が未送信です。報告が重複して送信されることはありません。" } } } },
+    "The photo could not be sent because of a connection problem. You can retry it.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "通信の問題で写真を送信できませんでした。再送信できます。" } } } },
+    "Too many photos were sent. Wait a moment, then retry.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "短時間に送信が集中しました。少し待ってから再送信してください。" } } } },
+    "The security check for this photo did not pass. You can retry it.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真の安全確認（署名）に失敗しました。再送信できます。" } } } },
+    "This device can no longer add photos to this report. The report itself was received.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この端末からは、この報告に写真を追加できなくなりました。報告自体は受け付けられています。" } } } },
+    "Update the app to send photos.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を送信するには、アプリをアップデートしてください。" } } } },
+    "Photo intake is paused. The report itself was received.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真の受付は現在停止しています。報告自体は受け付けられています。" } } } },
+    "The time for adding photos to this report has ended.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この報告に写真を追加できる期限が過ぎました。" } } } },
+    "This photo is too large to send.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この写真はサイズが大きすぎるため送信できません。" } } } },
+    "This photo could not be accepted. Choose a different photo for your next report.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この写真は受け付けられませんでした。次の報告では別の写真を選んでください。" } } } },
+    "This report already has the maximum number of photos.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この報告に添付できる写真の上限に達しています。" } } } },
+    "This photo conflicts with an earlier upload and cannot be sent again.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この写真は以前の送信と矛盾するため、再送信できません。" } } } },
+    "The report terms have changed. Update the app to send photos.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "報告に関する規約が変更されました。写真を送信するには、アプリをアップデートしてください。" } } } },
+    "This photo could not be prepared. Choose a JPEG or PNG within the size limit.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この写真を準備できませんでした。サイズ上限内のJPEGまたはPNGを選んでください。" } } } },
+    "The selected photo could not be loaded. Try choosing it again.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "選択した写真を読み込めませんでした。もう一度選んでください。" } } } },
+    "Photos for the received report": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "受け付けた報告の写真" } } } }
   },
   "version": "1.0"
 }

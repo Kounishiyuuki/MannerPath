@@ -27,6 +27,11 @@ struct ReportFormView: View {
                             .font(.footnote)
                             .accessibilityIdentifier("report-unavailable-notice")
                     }
+                    if isMissing, case .available = model.availability, !model.acceptsNewSpotProposals {
+                        Label("New smoking places are not being accepted right now.", systemImage: "pause.circle")
+                            .font(.footnote)
+                            .accessibilityIdentifier("report-new-spot-closed")
+                    }
                     if model.usesIdempotentRetry {
                         Text("This saved submission is fixed for retry. To change it, discard this draft and start a separate report.")
                             .font(.footnote)
@@ -146,6 +151,12 @@ struct ReportFormView: View {
                         }
                     }
 
+                    // Photos are offered only while the deployment accepts them; for a new place the notice above
+                    // says why not. Chosen before consent and submit, which they gate.
+                    if model.photos.enabled && model.acceptsNewSpotProposals {
+                        ReportPhotoSection(photos: model.photos, required: isMissing)
+                    }
+
                     if let version = termsVersion {
                         Section {
                             Button("Read the report terms") { showingTerms = true }
@@ -166,7 +177,8 @@ struct ReportFormView: View {
                             TimelineView(.periodic(from: .now, by: 1)) { _ in
                                 Button("Submit for review") { Task { await model.submit() } }
                                     .disabled(isSubmitting || isAccepted || isAmbiguous || model.isTerminalReceipt || !termsAccepted ||
-                                              (model.retryAfterSecondsRemaining ?? 0) > 0)
+                                              newSpotNeedsPhotos || (model.retryAfterSecondsRemaining ?? 0) > 0)
+                                    .accessibilityIdentifier("report.submit")
                             }
                             if model.canRetryAmbiguous {
                                 Button(model.usesIdempotentRetry ? "Retry saved submission" : "Submit again despite possible duplicate") {
@@ -182,7 +194,10 @@ struct ReportFormView: View {
                         }
                     }
                 }
-                if model.photos.enabled { ReportPhotoSection(photos: model.photos) }
+                // After acceptance the draft is gone; its photos stay here until every one is sent or given up.
+                if model.draft == nil && model.photos.enabled && !model.photos.photos.isEmpty {
+                    ReportPhotoSection(photos: model.photos)
+                }
                 Section { status }
             }
             .navigationTitle(isMissing ? "Add a smoking place" : "Report place information")
@@ -226,6 +241,8 @@ struct ReportFormView: View {
     }
 
     private var isSubmitting: Bool { model.isBusy }
+
+    private var newSpotNeedsPhotos: Bool { isMissing && (!model.acceptsNewSpotProposals || model.photos.photos.isEmpty) }
 
     private var unavailableNotice: String? {
         switch model.availability {
@@ -274,7 +291,15 @@ struct ReportFormView: View {
             Text(message)
         case .accepted(let receipt):
             VStack(alignment: .leading) {
-                Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
+                if model.photos.photos.isEmpty || model.photos.allUploaded {
+                    Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
+                } else if model.photos.busy {
+                    Text("The report was received. Sending photos…")
+                } else {
+                    let unsent = model.photos.photos.count - model.photos.uploadedCount
+                    Text("The report was received, but \(unsent) of \(model.photos.photos.count) photos have not been sent. The report will not be sent again.")
+                        .accessibilityIdentifier("report-photos-unsent")
+                }
                 LabeledContent("Report reference", value: receipt.reportId)
                     .textSelection(.enabled)
                 if let cleanupError = model.cleanupError {
