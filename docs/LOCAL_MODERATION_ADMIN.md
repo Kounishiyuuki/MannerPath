@@ -43,6 +43,23 @@ History is append-only bounded metadata (migration `0008_admin_review_audit.sql`
 coordinates, photo keys, or submitter identifiers. Existing CLI decisions are not retroactively
 invented as history. Retention/minimization and the photo deletion queue remain authoritative.
 
+## UI readability revision (PR #321)
+
+The review layout now follows summary → STEP 1 private photo/privacy review → STEP 2 location,
+conditions, description, duplicates and report decision. Body copy is 16px and supporting copy is
+at least 14px; controls are at least 44px high. Technical IDs, history and publication instructions
+are expandable. The queue stays at the left on wide windows, with a single column below 800px.
+Light/dark palettes, wrapping and focus indicators are defined for both appearances. Photo approval
+still does not approve a report or publish anything. The next-report button uses the current queue.
+
+Before: small 11–13px supporting text, map/photo cards followed by a single review form, visible IDs.
+After: larger text, distinct review steps, photo-first layout, visible reason labels and queue navigation.
+These are implementation differences, not a substitute for screenshot evidence.
+
+Browser verification remains incomplete: the session's browser runtime reported no available browser
+and an empty browser list. No before/after screenshots, visual contrast measurement, zoom, keyboard
+or actual browser interaction results are claimed. Use the synthetic demo below for operator acceptance.
+
 ## Macでの画面受入確認（ブラウザー未確認）
 
 現在の自動検証はHTTP・審査ロジック・日本語メッセージの検証です。実ブラウザーでのクリック、
@@ -91,7 +108,7 @@ its private bucket, upload path, deletion job, and recovery fences before enabli
 PR #316 and #317 are merged, but merging alone does not prove the deployed infrastructure is ready.
 
 Apply the report migration stream through the existing maintainer procedure, including migration
-0008 (admin audit) and 0009 (new-spot photo export gate), to the report store only. Never apply
+0008 (admin audit), 0009 (new-spot photo export gate), and 0010 (early-erasure fence), to the report store only. Never apply
 this stream to canonical `DB`. Run retention and resolve outstanding deletion work before review.
 The launcher fails closed on missing report-store identity or audit schema.
 
@@ -126,14 +143,9 @@ starts; the UI labels that viewing/review deadline separately from the 90-day re
 Checks run before and after the private read and inside the decision transaction, even if cleanup
 has not run. Zero/pending/rejected/expired photos cannot satisfy Admin's new-report approval check.
 
-**Integration HOLD:** the merged `newSpotPhotoGate` and SQL trigger 0009 still compare against
-`delete_after`, not its 24-hour early-erasure boundary. Before cleanup, a ready approved photo can
-therefore pass the manual publication gate during a window when R2 already refuses it. They also
-omit the queued-deletion fence. Admin's stricter checks do not fix a previously accepted report used
-later by the CLI. A separate publication-gate fix PR is required before enabling that workflow:
-align proposal/export with early erasure and deletion fences, add a new additive migration to replace
-the trigger (never rewrite applied 0009), and test the exact boundary, delayed cleanup, direct SQL export
-and mixed-photo cases. This Admin PR deliberately does not change the merged publication policy/trigger.
+PR #323 is integrated from main. The publication gate and additive migration 0010 now enforce the
+24-hour early-erasure boundary and queued-deletion fences. Migrations 0008 and 0009 remain intact.
+This closes the code-level integration hold; it does not prove remote deployment or authorize publication.
 
 ## Manual publication remains separate
 

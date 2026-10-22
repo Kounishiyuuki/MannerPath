@@ -26,11 +26,11 @@ function scheduleSessionExpiry(){
 }
 function releasePhotos(){photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];photoTimers.forEach(clearTimeout);photoTimers=[];}
 function actionButton(text, handler, cls){const b=el("button",text,cls);b.type="button";b.disabled=busy||session?.readOnly;b.addEventListener("click",handler);return b;}
-function setBusy(value){busy=value;document.querySelectorAll("[data-write]").forEach(n=>{n.disabled=value||session?.readOnly||n.dataset.blocked==="true";});refreshApprovalEligibility();$("reload").disabled=value;$("confirm-save").disabled=value;}
+function setBusy(value){busy=value;document.querySelectorAll("[data-write]").forEach(n=>{n.disabled=value||session?.readOnly||n.dataset.blocked==="true";});refreshApprovalEligibility();refreshNextNavigation();$("reload").disabled=value;$("confirm-save").disabled=value;}
 function photoAvailable(photo){return photo.previewAvailable&&Number.isFinite(Date.parse(photo.view_until))&&Date.parse(photo.view_until)>Date.now();}
 function requiresApprovedPhoto(){return detail?.report.report_type==="missing"&&!(detail.photos||[]).some(p=>photoAvailable(p)&&p.moderation_status==="approved");}
 function refreshApprovalEligibility(){const button=document.querySelector("[data-report-accept]");if(button){button.dataset.blocked=String(requiresApprovedPhoto());button.disabled=busy||session?.readOnly||requiresApprovedPhoto();}const hint=$("approval-photo-hint");if(hint)hint.hidden=!requiresApprovedPhoto();}
-function picker(keys){const s=el("select");keys.forEach(key=>{const o=el("option",reasons[key]||key);o.value=key;s.append(o);});s.setAttribute("aria-label","審査理由");s.dataset.write="true";s.disabled=session.readOnly;return s;}
+function picker(keys,caption="審査理由"){const s=el("select");keys.forEach(key=>{const o=el("option",reasons[key]||key);o.value=key;s.append(o);});s.setAttribute("aria-label",caption);s.dataset.write="true";s.disabled=session.readOnly;return s;}
 function drawStatuses(counts={}){$("statuses").replaceChildren();statuses.forEach(key=>{const b=el("button",labels[key]);b.type="button";b.setAttribute("aria-pressed",String(status===key));b.append(el("span",key==="published"&&!publicationVerified?"未照合":counts[key]??"—","count"));b.addEventListener("click",()=>{if(busy)return;status=key;loadQueue();});$("statuses").append(b);});}
 async function loadQueue(append=false){
   const epoch=++queueEpoch;
@@ -41,16 +41,16 @@ async function loadQueue(append=false){
     publicationVerified=page.publicationVerified===true;
     drawStatuses(page.counts);if(!append)$("queue").replaceChildren();
     for(const report of page.items){
-      const b=el("button",undefined,"queue-item");b.type="button";b.setAttribute("aria-current",String(selected===report.report_id));
-      b.append(el("small",time(report.received_at)),el("strong",report.claim_host_name||human(report.claim_spot_type)),el("span",human(report.state),"pill"),el("small",report.report_id));
+      const b=el("button",undefined,"queue-item");b.type="button";b.dataset.reportId=report.report_id;b.setAttribute("aria-current",String(selected===report.report_id));
+      b.append(el("small",time(report.received_at)),el("strong",report.claim_host_name||human(report.claim_spot_type)),el("span",human(report.state),"pill"),el("small",human(report.report_type)));
       b.addEventListener("click",()=>{if(!busy)loadDetail(report.report_id);});$("queue").append(b);
     }
     if(!$("queue").children.length)$("queue").append(el("p",status==="published"&&!publicationVerified?"この接続では公開済みを照合できません。artifact export は公開の証明ではありません。":"該当する投稿はありません。","empty"));
-    cursor=page.nextCursor;$("more").hidden=!cursor;message("");
+    cursor=page.nextCursor;$("more").hidden=!cursor;refreshNextNavigation();message("");
   }catch(e){if(epoch===queueEpoch)message(e.message);}
   finally{if(epoch===queueEpoch)$("more").disabled=false;}
 }
-async function loadDetail(id){const epoch=++requestEpoch;selected=id;releasePhotos();$("detail").replaceChildren(el("p","投稿を読み込み中…","empty"));document.querySelectorAll(".queue-item").forEach(n=>n.setAttribute("aria-current",String(n.lastChild?.textContent===id)));try{const result=await api(`/api/reports/${encodeURIComponent(id)}`);if(epoch!==requestEpoch)return;detail=result;renderDetail();}catch(e){if(epoch===requestEpoch){$("detail").replaceChildren(el("p",e.message,"empty"));message(e.message);}}}
+async function loadDetail(id){const epoch=++requestEpoch;selected=id;releasePhotos();$("detail").replaceChildren(el("p","投稿を読み込み中…","empty"));document.querySelectorAll(".queue-item").forEach(n=>n.setAttribute("aria-current",String(n.dataset.reportId===id)));try{const result=await api(`/api/reports/${encodeURIComponent(id)}`);if(epoch!==requestEpoch)return;detail=result;renderDetail();}catch(e){if(epoch===requestEpoch){$("detail").replaceChildren(el("p",e.message,"empty"));message(e.message);}}}
 function panel(title,cls=""){const p=el("section",undefined,`panel ${cls}`);p.append(el("h3",title));return p;}
 function externalMapControl(container, schematic, lat, lon){
   const label=el("label",undefined,"map-consent");
@@ -90,9 +90,31 @@ function mapPanel(report,duplicates){
   else p.append(el("p","重複候補なし、または未照合。重複がないことの証明ではありません。","muted"));
   return p;
 }
-function renderDetail(){const r=detail.report;const root=$("detail");root.replaceChildren();const head=el("div",undefined,"detail-head");const title=el("div");title.append(el("p",`${human(r.state)} · ${time(r.received_at)}`,"muted"),el("h2",r.claim_host_name||"投稿詳細"),el("p",r.report_id,"code"));head.append(title,el("span",human(detail.publicationState),"pill"));root.append(head);const evidence=el("div",undefined,"evidence");evidence.append(mapPanel(r,detail.duplicates||[]),photosPanel());root.append(evidence);const facts=panel("利用条件・投稿内容");const dl=el("dl");[["投稿種別",r.report_type],["喫煙所の種類",r.claim_spot_type],["詳細分類",r.claim_spot_subtype],["利用条件",r.claim_access_type],["条件の詳細",r.claim_access_detail],["施設種別",r.claim_host_type],["屋内・屋外",r.claim_environment],["紙巻きたばこ",r.claim_supports_paper],["加熱式たばこ",r.claim_supports_heated],["利用時間",r.claim_hours_note],["観察日",r.observed_on]].forEach(([k,v])=>dl.append(el("dt",k),el("dd",human(v))));facts.append(dl,el("h3","投稿者の説明（非公開）"),el("p",r.note||"記載なし","note"));root.append(facts,reviewPanel(),historyPanel());const publication=panel("承認後の掲載フロー","publication");publication.append(el("p","承認だけでは一般公開されません。この画面から公開データへの書き込みはできません。"));const steps=el("ol");["既存 report-queue CLI で review を作成・確認する。","sanitized artifact を export し、ローカルの既存 ingest / resolve / 品質検証を通す。","既存の公開ゲートと運営手順に従い、別の明示操作で promotion する。"].forEach(s=>steps.append(el("li",s)));publication.append(steps,el("p","具体的なコマンド・公開条件は docs/COMMUNITY_LAUNCH_CHECKLIST.md と services/api/scripts/report-queue.ts 冒頭のコマンド説明 を確認してください。写真・投稿者情報・非公開メモは公開 artifact に含めません。","muted"));root.append(publication);}
+function nextQueueItem(){const rows=[...document.querySelectorAll(".queue-item")], index=rows.findIndex(n=>n.dataset.reportId===selected);return index<0?undefined:rows[index+1];}
+function refreshNextNavigation(){const next=$("next-report");if(next)next.disabled=busy||!nextQueueItem();}
+function disclosure(title,...content){const box=el("details",undefined,"panel");box.append(el("summary",title),...content);return box;}
+function renderDetail(){
+  const r=detail.report, root=$("detail");root.replaceChildren();
+  const head=el("div",undefined,"detail-head"), title=el("div");
+  const heading=el("h2",r.claim_host_name||"投稿詳細");heading.tabIndex=-1;heading.id="detail-title";
+  title.append(el("p",`${human(r.state)} · ${time(r.received_at)}`,"muted"),heading,el("p",`${human(r.report_type)} ／ ${human(r.claim_spot_type)} ／ ${human(r.claim_access_type)}`));
+  head.append(title,el("span",human(detail.publicationState),"pill"));root.append(head);
+  const navigation=el("div",undefined,"actions detail-navigation");
+  const back=el("button","投稿一覧へ");back.type="button";back.addEventListener("click",()=>document.querySelector('.queue-item[aria-current=true]')?.focus());
+  const next=el("button","次の投稿へ");next.type="button";
+  next.id="next-report";next.disabled=!nextQueueItem();next.addEventListener("click",async()=>{const target=nextQueueItem();if(busy||!target)return;await loadDetail(target.dataset.reportId);$("detail-title")?.focus();});navigation.append(back,next);root.append(navigation);
+  const step1=el("section",undefined,"review-step");step1.setAttribute("aria-label","STEP 1 写真の確認");
+  step1.append(el("p","STEP 1","step-label"),el("h2","写真の確認"),el("p","写真の内容とプライバシーを確認します。写真の承認だけでは投稿は承認・公開されません。","step-description"),photosPanel());
+  const step2=el("section",undefined,"review-step");step2.setAttribute("aria-label","STEP 2 喫煙所情報の確認");
+  step2.append(el("p","STEP 2","step-label"),el("h2","喫煙所情報の確認"),el("p","位置・利用条件・投稿内容と重複候補を確認して、投稿の審査結果を保存します。","step-description"));
+  const evidence=el("div",undefined,"evidence");
+  const facts=panel("利用条件・投稿内容");const dl=el("dl");[["投稿種別",r.report_type],["喫煙所の種類",r.claim_spot_type],["詳細分類",r.claim_spot_subtype],["利用条件",r.claim_access_type],["条件の詳細",r.claim_access_detail],["施設種別",r.claim_host_type],["屋内・屋外",r.claim_environment],["紙巻きたばこ",r.claim_supports_paper],["加熱式たばこ",r.claim_supports_heated],["利用時間",r.claim_hours_note],["観察日",r.observed_on]].forEach(([k,v])=>dl.append(el("dt",k),el("dd",human(v))));facts.append(dl,el("h3","投稿者の説明（非公開）"),el("p",r.note||"記載なし","note"));
+  evidence.append(mapPanel(r,detail.duplicates||[]),facts);step2.append(evidence,reviewPanel());root.append(step1,step2);
+  root.append(disclosure("投稿ID・技術情報",el("p",r.report_id,"code")),disclosure("審査履歴",historyPanel()),disclosure("承認後の掲載フロー",el("p","承認だけでは一般公開されません。既存CLIでレビュー・sanitized artifact の作成・品質検証を行い、別の明示操作で promotion します。この画面から公開データへの書き込みはできません。")));
+  refreshApprovalEligibility();
+}
 function photosPanel(){
-  const p=panel("非公開写真"), photos=detail.photos||[];
+  const p=panel("非公開写真・撮影情報"), photos=detail.photos||[];
   if(!photos.length){p.append(el("p","添付写真は0枚です。未送信・失敗・削除のいずれかは、この記録だけでは判別できません。","muted"));return p;}
   photos.slice(0,3).forEach((photo,i)=>{
     const card=el("div",undefined,"photo"), header=el("header");
@@ -104,10 +126,10 @@ function photosPanel(){
     else card.append(el("p",expired?"閲覧・審査期限を過ぎ、削除開始の対象です。写真は表示しません。":photo.moderation_status==="rejected"?"この写真は却下済みで、閲覧・審査の対象外です。":photo.lifecycle==="deleting"||photo.lifecycle==="deleted"?"削除処理中または削除済みのため表示できません。":photo.lifecycle==="uploading"?(uploadIncomplete?"アップロード未完了（送信期限切れ）。保存完了が確認できないため写真を表示できません。":"アップロード中／完了未確認。保存完了後に再読み込みしてください。"):"写真は閲覧対象外です。状態を再読み込みしてください。","muted"));
     card.append(el("p",`閲覧・審査期限（削除開始）：${time(photo.view_until)}`,"muted"),el("p",`保持上限：${time(photo.delete_after)}`,"muted"));
     if(photoAvailable(photo)&&photo.moderation_status==="pending"){
-      const reason=picker(["usableEvidence","privacyRisk","unrelated","unsafeContent","insufficientDetail"]);
+      const reason=picker(["usableEvidence","privacyRisk","unrelated","unsafeContent","insufficientDetail"],`写真 ${i+1} の審査理由`);
       const privacy=el("input");privacy.type="checkbox";privacy.disabled=session.readOnly;
       const label=el("label");label.append(privacy,document.createTextNode(" 顔・車両番号などのプライバシーリスクを確認しました。"));
-      card.append(reason,label);
+      const reasonLabel=el("label","写真の審査理由");reasonLabel.append(reason);card.append(reasonLabel,label);
       const actions=el("div",undefined,"actions");
       [["写真を承認","approved"],["写真を却下","rejected"]].forEach(([name,state])=>{
         const b=actionButton(name,()=>{if(state==="approved"&&!privacy.checked){message("写真の承認前にプライバシー確認欄をチェックしてください。");return;}decide(state,reason.value,photo.photo_id,privacy.checked);},state==="rejected"?"danger":"");
@@ -133,7 +155,7 @@ async function fetchPhoto(id,img,epoch,viewUntil){
     photoTimers.push(setTimeout(expire,Math.min(remaining,2147483647)));
   }catch{if(epoch===requestEpoch)img.replaceWith(el("p","写真を取得できませんでした。期限・削除状態を再確認してください。","muted"));}
 }
-function reviewPanel(){const p=panel("投稿の審査","review");const reason=picker(["confirmed","insufficientDetail","contradictedBySource","duplicateOfExistingReport","outOfScope","abuse","unspecified"]);p.append(reason);const label=el("label");const check=el("input");check.type="checkbox";check.id="privacy-check";label.append(check,document.createTextNode(" 写真内の顔・ナンバープレート、利用条件・喫煙許可を確認しました。"));p.append(label,el("p","灰皿の存在だけでは喫煙許可の根拠になりません。写真なしの新規投稿を自動承認しません。","muted"));const actions=el("div",undefined,"actions");[["承認","accepted","primary"],["保留","needsInfo",""],["却下","rejected","danger"],["重複として処理","duplicate",""]].forEach(([name,state,cls])=>{const b=actionButton(name,()=>{if(state==="needsInfo"&&reason.value==="confirmed")reason.value="insufficientDetail";decide(state,state==="duplicate"?"duplicateOfExistingReport":reason.value,undefined,check.checked);},cls);b.dataset.write="true";if(state==="accepted"){b.dataset.reportAccept="true";b.dataset.blocked=String(requiresApprovedPhoto());b.disabled=busy||session.readOnly||requiresApprovedPhoto();}actions.append(b);});const hint=el("p","新規地点の承認には、閲覧・審査期限内の承認済み写真が1枚以上必要です。写真が未審査の場合は先に写真を審査してください。","muted");hint.id="approval-photo-hint";hint.hidden=!requiresApprovedPhoto();p.append(actions,hint);if(session.readOnly)p.append(el("p","現在は読み取り専用です。","muted"));return p;}
+function reviewPanel(){const p=panel("投稿の審査","review");const reason=picker(["confirmed","insufficientDetail","contradictedBySource","duplicateOfExistingReport","outOfScope","abuse","unspecified"],"投稿の審査理由");const reasonLabel=el("label","投稿の審査理由");reasonLabel.append(reason);p.append(reasonLabel);const label=el("label");const check=el("input");check.type="checkbox";check.id="privacy-check";label.append(check,document.createTextNode(" 写真内の顔・ナンバープレート、利用条件・喫煙許可を確認しました。"));p.append(label,el("p","灰皿の存在だけでは喫煙許可の根拠になりません。写真なしの新規投稿を自動承認しません。","muted"));const actions=el("div",undefined,"actions");[["承認","accepted","primary"],["保留","needsInfo",""],["却下","rejected","danger"],["重複として処理","duplicate",""]].forEach(([name,state,cls])=>{const b=actionButton(name,()=>{if(state==="needsInfo"&&reason.value==="confirmed")reason.value="insufficientDetail";decide(state,state==="duplicate"?"duplicateOfExistingReport":reason.value,undefined,check.checked);},cls);b.dataset.write="true";if(state==="accepted"){b.dataset.reportAccept="true";b.dataset.blocked=String(requiresApprovedPhoto());b.disabled=busy||session.readOnly||requiresApprovedPhoto();}actions.append(b);});const hint=el("p","新規地点の承認には、閲覧・審査期限内の承認済み写真が1枚以上必要です。写真が未審査の場合は先に写真を審査してください。","muted");hint.id="approval-photo-hint";hint.hidden=!requiresApprovedPhoto();p.append(actions,hint);if(session.readOnly)p.append(el("p","現在は読み取り専用です。","muted"));return p;}
 function historyPanel(){const p=panel("審査履歴");const list=el("ol",undefined,"history");for(const h of detail.history||[]){list.append(el("li",`${time(h.decided_at||h.created_at||h.at)} · ${h.photo_id?`写真 ${h.photo_id}`:"投稿"} · ${human(h.state||h.to_state||h.moderation_status)} · ${reasons[h.reason||h.decision_reason]||human(h.reason||h.decision_reason)} · ${h.decided_by||h.actor||"操作者不明"}`));}p.append(list.children.length?list:el("p","審査履歴はありません。","muted"));return p;}
 async function decide(state,reason,photoId,privacyChecked=false){if(busy)return;if(state==="accepted"&&!privacyChecked){message("承認前にプライバシーと喫煙許可の確認欄をチェックしてください。");return;}const payload={reportId:selected,...(photoId?{photoId}:{}),state,reason,expectedVersion:detail.version,operationId:crypto.randomUUID(),privacyChecked};setBusy(true);try{const prepared=await api("/api/confirm",payload);$("confirm-summary").textContent=typeof prepared.summary==="string"?prepared.summary:JSON.stringify(prepared.summary,null,2);$("confirm-save").disabled=false;const dlg=$("confirm");const result=new Promise(resolve=>dlg.addEventListener("close",()=>resolve(dlg.returnValue),{once:true}));dlg.returnValue="cancel";dlg.showModal();if(await result!=="save")return;$("confirm-save").disabled=true;await api("/api/decide",{...payload,confirmationToken:prepared.confirmationToken});await loadQueue();await loadDetail(selected);message("審査結果を保存しました。公開データは変更していません。");}catch(e){message(e.message);}finally{setBusy(false);}}
 async function start(){try{session=await api("/api/session");scheduleSessionExpiry();if(!session)return;$("mode").textContent=`${session.mode} · ${session.readOnly?"読み取り専用":"審査操作可"} · ${session.actor}`;if(session.publicationNotice)$("notice").textContent=session.publicationNotice;await loadQueue();}catch(e){if(e.status===401)showLogin();else message(e.message);}}
