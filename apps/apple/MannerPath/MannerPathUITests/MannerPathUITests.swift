@@ -1,3 +1,4 @@
+import CoreLocation
 import XCTest
 
 // Drives the real app against a local Worker. Simulator state (location, permission,
@@ -653,6 +654,56 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertFalse(row.label.isEmpty)
         XCTAssertTrue(row.label != "nearbyResultRow")
     }
+
+    // docs/release/V1_PHOTO_PLACE_SUBMISSION.md §3.1: a standalone map entry, clear of the search field and the sheet.
+    func testMapReportButtonOpensNewPlaceReportWithoutBlockingSearch() {
+        launch()
+        waitForResults()
+        let saved = app.buttons["保存済みの報告を再開"]
+        if saved.exists {
+            saved.tap()
+            app.buttons["下書きを破棄"].tap()
+        }
+        let button = app.buttons["mapReportButton"]
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "No map report button while reports are available")
+        XCTAssertEqual(button.label, "喫煙所を報告")
+        XCTAssertTrue(button.isHittable)
+        XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+        let search = destinationSearch
+        XCTAssertTrue(search.exists)
+        XCTAssertFalse(button.frame.intersects(search.frame), "The map button overlaps the search field")
+        XCTAssertLessThan(button.frame.maxY, app.windows.firstMatch.frame.midY, "The map button sits above the medium sheet")
+        screenshot("31-map-report-button")
+        button.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        screenshot("32-map-report-form")
+        app.buttons["下書きを破棄"].tap()
+
+        // Large sheet: the map button is covered, so the sheet's own bar offers the same entry. (While the search
+        // keyboard is up the bar is behind it; the search session is not where a report starts.)
+        app.navigationBars["近くの場所"].swipeUp()
+        let bar = app.toolbars.buttons["喫煙所を報告"]
+        XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
+        screenshot("33-large-sheet-report-entry")
+    }
+
+    // §3.2: an area without published places invites a report with the approved copy.
+    func testEmptyAreaInvitesAPhotoReport() {
+        XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 43.0621, longitude: 141.3544))
+        addTeardownBlock {
+            XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 35.7118, longitude: 139.7775))
+        }
+        launch()
+        XCTAssertTrue(text("この周辺に掲載中の場所はありません").waitForExistence(timeout: 40))
+        XCTAssertTrue(textContaining("まだ掲載されていない喫煙所を知っていますか？").exists)
+        XCTAssertTrue(textContaining("場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。").exists)
+        let action = app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告' AND identifier != 'mapReportButton'")).firstMatch
+        XCTAssertTrue(action.exists, "The empty state offers the report entry")
+        screenshot("34-empty-area-invitation")
+        action.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        app.buttons["下書きを破棄"].tap()
+    }
 }
 
 final class C_OfflineWithCacheUITests: MannerPathUITestCase {
@@ -877,7 +928,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
             saved.tap()
             app.buttons["下書きを破棄"].tap()
         }
-        let add = app.buttons.matching(NSPredicate(format: "label == '喫煙場所を追加'")).firstMatch
+        let add = app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告'")).firstMatch
         XCTAssertTrue(add.waitForExistence(timeout: 10))
         add.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
@@ -981,7 +1032,7 @@ final class I_ProductionAPIUITests: MannerPathUITestCase {
         waitForResults()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30), "Live refresh did not succeed")
         screenshot("70-production-nearby")
-        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙場所を追加'")).firstMatch.exists,
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告'")).firstMatch.exists,
                        "Add-place must be hidden while production reports are unavailable")
 
         let first = resultRows.firstMatch
@@ -1010,7 +1061,7 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         launch()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 40))
         XCTAssertEqual(resultRows.count, 0)
-        XCTAssertFalse(text("この付近の喫煙場所を知っていれば、審査用に追加できます。").exists)
+        XCTAssertFalse(textContaining("まだ掲載されていない喫煙所を知っていますか").exists)
         let search = destinationSearch
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()

@@ -3091,6 +3091,11 @@
     },
     "Listed smoking places": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "掲載喫煙所" } } } },
     "Opening place…": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "場所を開いています…" } } } },
+    "Report a smoking place": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "喫煙所を報告" } } } },
+    "Know a smoking place that isn't listed yet?": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "まだ掲載されていない喫煙所を知っていますか？" } } } },
+    "Send its location and photos. MannerPath reviews them and adds approved information to the map.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。" } } } },
+    "Know a smoking place that isn't listed yet? Send its location and photos. MannerPath reviews them and adds approved information to the map.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "まだ掲載されていない喫煙所を知っていますか？場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。" } } } },
+    "Propose a smoking place missing from the map. It is reviewed before it can appear.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "地図にない喫煙所を運営に提案します。確認後に掲載されます。" } } } },
     "Walking destination": {
       "localizations": {
         "ja": {
