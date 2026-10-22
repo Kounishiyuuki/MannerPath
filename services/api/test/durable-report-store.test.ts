@@ -490,12 +490,12 @@ test("migration streams are separate, and the long-lived report stream is append
   const canonical25 = readFileSync(new URL("../migrations/0025_durable_report_store_boundary.sql", import.meta.url), "utf8").replace(/--.*$/gm, "");
   assert.doesNotMatch(canonical25, /DROP\s+TABLE|DELETE\s+FROM/i, "the legacy report tables are kept, not dropped");
   const reports = reportsD1();
-  assert.deepEqual(tables(reports), ["app_attest_challenges", "app_attest_key_revocations", "app_attest_keys", "community_evidence_photos", "community_photo_deletion_attempts", "community_photo_deletions", "community_photo_requests", "moderation_queue_revision",
+  assert.deepEqual(tables(reports), ["admin_review_audit", "app_attest_challenges", "app_attest_key_revocations", "app_attest_keys", "community_evidence_photos", "community_photo_deletion_attempts", "community_photo_deletions", "community_photo_requests", "moderation_queue_revision",
     "report_bulk_rejection_completions", "report_bulk_rejection_targets", "report_bulk_rejections", "report_bulk_store_identity",
     "report_idempotency", "report_moderation", "report_rate_windows", "report_review_evidence",
     "report_reviews", "report_store_meta", "report_terms_documents", "reports"], "REPORTS_DB holds no canonical table");
   const data = new SqliteD1();
-  for (const t of ["report_reviews", "report_review_evidence", "report_store_meta", "report_terms_documents", "moderation_queue_revision", "community_evidence_photos", "community_photo_deletion_attempts", "community_photo_deletions", "community_photo_requests",
+  for (const t of ["admin_review_audit", "report_reviews", "report_review_evidence", "report_store_meta", "report_terms_documents", "moderation_queue_revision", "community_evidence_photos", "community_photo_deletion_attempts", "community_photo_deletions", "community_photo_requests",
     "report_bulk_rejection_completions", "report_bulk_rejection_targets", "report_bulk_rejections", "report_bulk_store_identity"]) assert.equal(tables(data).includes(t), false, t);
 });
 
