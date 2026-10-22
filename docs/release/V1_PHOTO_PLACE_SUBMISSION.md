@@ -120,6 +120,7 @@ Exists (reuse):
 | `reports:moderate` incl. `photo-summary`, `photo-decide`, triage, duplicates, export/import | Implemented |
 | Community activation/publication pipeline, `COMMUNITY_LAUNCH_CHECKLIST.md` | Implemented, HOLD on #124 |
 | Map button (medium), labelled sheet bar (large) and empty-state 「喫煙所を報告」 entries | Implemented in P2, only when reports available |
+| New-spot photo publication gate: a `missing` report backs a new-spot review only with a ready, approved, unexpired photo (`newSpotPhotoGate`, checked at propose/export and by REPORTS_DB migration 0009); photo-less reports are held and minimize normally | Implemented; 0009 not applied to any remote store |
 | Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 
 Missing (this plan):

@@ -72,6 +72,35 @@ export async function photoEvidenceStrength(db: Db, reportId: string, now: Date 
   const row = await db.prepare("SELECT count(*) AS n FROM community_evidence_photos WHERE report_id=? AND lifecycle='ready' AND moderation_status='approved' AND delete_after>?").bind(reportId,isoSeconds(now)).first<{n:number}>();
   return {approvedPhotos:row?.n ?? 0,permissionToSmoke:false};
 }
+/**
+ * v1.0 publication gate for a new-spot (`missing`) report: why it may or may not back a new-spot review. Only a ready,
+ * moderator-approved photo inside the report's deadline opens it; every other state holds the report, which then
+ * minimizes on the ordinary 90-day clock. Opening the gate is necessary, never sufficient: it adds no permission to
+ * smoke, independence or terms rights, and every other review premise still applies.
+ *  - approved: at least one such photo.
+ *  - pending: a received photo awaits moderation.   - uploading: an upload is still inside its reservation window.
+ *  - rejected: every remaining photo was rejected (deleting).   - expired: photos existed but are past a deadline
+ *    or were cleaned up.   - none: no photo was ever attached (e.g. the app closed before uploading).
+ */
+export type NewSpotPhotoGate = "approved" | "pending" | "uploading" | "rejected" | "expired" | "none";
+export async function newSpotPhotoGate(db: Db, reportId: string, now: Date): Promise<NewSpotPhotoGate> {
+  const at = isoSeconds(now);
+  const row = await db.prepare(`SELECT
+      sum(lifecycle='ready' AND moderation_status='approved' AND delete_after>?) AS approved,
+      sum(lifecycle='ready' AND moderation_status='pending' AND delete_after>?) AS pending,
+      sum(lifecycle='uploading' AND upload_expires_at>? AND delete_after>?) AS uploading,
+      sum(moderation_status='rejected') AS rejected,
+      count(*) AS photos,
+      (SELECT count(*) FROM community_photo_requests WHERE report_id=?) AS requests
+    FROM community_evidence_photos WHERE report_id=?`).bind(at, at, at, at, reportId, reportId)
+    .first<{ approved: number | null; pending: number | null; uploading: number | null; rejected: number | null; photos: number; requests: number }>();
+  if ((row?.approved ?? 0) > 0) return "approved";
+  if ((row?.pending ?? 0) > 0) return "pending";
+  if ((row?.uploading ?? 0) > 0) return "uploading";
+  if ((row?.rejected ?? 0) > 0) return "rejected";
+  return (row?.photos ?? 0) > 0 || (row?.requests ?? 0) > 0 ? "expired" : "none";
+}
+
 export const PHOTO_DECISION_REASONS = ["usableEvidence", "privacyRisk", "unrelated", "unsafeContent", "insufficientDetail"] as const;
 export type PhotoDecisionReason = typeof PHOTO_DECISION_REASONS[number];
 export async function moderateEvidencePhoto(db: Db, photoId: string, state: "approved" | "rejected", opts: {now:Date;decidedBy:string;reason:PhotoDecisionReason}): Promise<void> {

@@ -93,6 +93,32 @@ empty. Config and API use the same guard requiring covered terms, storage/policy
 and App Attest. All photos remain private, even approved ones. See
 [PHOTO_STORAGE_OPERATIONS](../PHOTO_STORAGE_OPERATIONS.md) for fence proof, recovery and activation conditions.
 
+## New-spot photo gate (2026-10-22, v1.0)
+
+A new-spot (`missing`) report is received first and its photos follow (`POST /v1/reports/:id/photos`), so an
+accepted report can exist without photos: the app closed, an upload failed or was rejected. Intake order is
+unchanged. Publication is gated instead: a new-spot review is neither proposed nor exported unless every `missing`
+report it rests on has at least one photo that is `ready`, moderator-`approved` and before its `delete_after`
+(`newSpotPhotoGate`, `src/reports/photos.ts`). Without an exported review there is no evidence artifact, so no
+canonical application, release, tile or promotion bundle can carry the place.
+
+| Photo state of the report | Gate | Effect |
+| --- | --- | --- |
+| none ever attached | `none` | held: may be accepted and queued, never reviewed |
+| reservation inside its upload window | `uploading` | held |
+| ready, awaiting the photo moderator | `pending` | held |
+| every remaining photo rejected (deleting) | `rejected` | held; the app may attach another photo until the deadline |
+| abandoned reservation, cleaned-up attempt, or past `delete_after` | `expired` | held |
+| at least one ready, approved, unexpired photo | `approved` | the other review premises decide |
+
+The gate is necessary, never sufficient. It adds no permission to smoke, independence, consent or publication
+right; independence, terms, claims, pin, moderation and #124 still apply, and an approved photo of an ashtray is
+not permission. Existing-spot reports (`exists`, corrections, findings) never need a photo. A held report is
+minimized on its ordinary 90-day clock (ADR-0007) with its photos; nothing is published meanwhile. The check runs
+at proposal and again at export; REPORTS_DB migration 0009 re-checks it inside the export batch, so a direct SQL
+export is refused too. Photo retries keep their idempotency; the gate reads only stored state. The artifact, DATA_DB,
+tiles and promotion bundles carry no photo ID, key, hash or count.
+
 ## Evidence and Apple boundary
 
 Approved attachments are an advisory evidence-strength signal for review. They never accept a report,

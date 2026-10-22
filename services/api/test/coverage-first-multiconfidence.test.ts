@@ -40,6 +40,7 @@ import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./sup
 import { proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
 import { v1TileRows } from "./support/tiles.ts";
 import { v1TileBody } from "./support/tiles.ts";
+import { approveEvidencePhoto } from "./support/evidence-photo.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -99,6 +100,7 @@ async function acceptAndQueue(db: SqliteD1, ...ids: string[]) {
   for (const id of ids) {
     await recordModerationDecision(reportsOf(db), id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
     await setReconciliationState(reportsOf(db), id, "queued", RECEIVED);
+    await approveEvidencePhoto(reportsOf(db), id, RECEIVED);
   }
 }
 

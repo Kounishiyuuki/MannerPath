@@ -36,6 +36,7 @@ import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite } from "./support/sqlite-d1.ts";
 import { type Stores, proposeAbsence, proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf } from "./support/community.ts";
 import { v1TileRows } from "./support/tiles.ts";
+import { approveEvidencePhoto } from "./support/evidence-photo.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -152,6 +153,7 @@ async function accept(db: SqliteD1, ...ids: string[]) {
   for (const id of ids) {
     await recordModerationDecision(reportsOf(db), id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
     await setReconciliationState(reportsOf(db), id, "queued", RECEIVED);
+    await approveEvidencePhoto(reportsOf(db), id, RECEIVED);
   }
 }
 async function newSpot(db: SqliteD1, hash: string, at: { latitude: number; longitude: number }, prefix: string, consent: string | null = SIM_VERSION) {

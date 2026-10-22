@@ -19,6 +19,7 @@
 import { type Db, isoSeconds } from "../db.ts";
 import { withinJapan } from "../geo/japan.ts";
 import { haversineMeters } from "../geo/distance.ts";
+import { newSpotPhotoGate, type NewSpotPhotoGate } from "./photos.ts";
 import {
   ARTIFACT_KIND, ARTIFACT_SCHEMA_VERSION, type ArtifactContent, type ArtifactEvidence, INDEPENDENCE_VERSION, REPORT_STORE_SCHEMA,
   type SealedArtifact, sealArtifact,
@@ -137,6 +138,18 @@ function assertNewSpot(rows: readonly PremiseRow[], tier: CommunityTier): void {
   if (distinctSubmitters(rows) !== rows.length) throw new ReviewError("review: two reports come from the same submitter; they are not independent evidence");
 }
 
+/**
+ * v1.0: a new place is never published on words alone. Every `missing` report a new-spot review rests on needs an
+ * approved evidence photo (newSpotPhotoGate). Re-checked at export and by REPORTS_DB migration 0009 in the export batch.
+ */
+async function assertNewSpotPhotos(db: Db, rows: readonly PremiseRow[], now: Date): Promise<void> {
+  for (const r of rows) {
+    if (r.report_type !== "missing") continue;
+    const gate = await newSpotPhotoGate(db, r.report_id, now);
+    if (gate !== "approved") throw new ReviewError(`review: report ${r.report_id} has no approved evidence photo (photos: ${gate})`);
+  }
+}
+
 function assertEffect(rows: readonly PremiseRow[]): { spotId: string; reportType: EffectReportType } {
   const types = new Set(rows.map((r) => r.report_type));
   const spots = new Set(rows.map((r) => r.subject_spot_id));
@@ -202,6 +215,7 @@ export async function proposeNewSpotReview(db: Db, input: NewSpotReviewInput): P
   const rows = await readPremises(db, reportIds);
   assertCommon(rows, now, null);
   assertNewSpot(rows, tier);
+  await assertNewSpotPhotos(db, rows, input.now);
   const reviewId = (input.newReviewId ?? (() => newReviewId("ca")))();
   await insertReview(db, {
     reviewId, kind: "newSpot", key: `newSpot:${input.locationReportId}`, ruleVersion: NEW_SPOT_RULE_VERSION, subjectSpotId: null,
@@ -396,8 +410,10 @@ export async function exportReview(db: Db, reviewId: string, opts: { now: Date }
     return { status: "reExported", artifact };
   }
   assertCommon(rows, now, reviewId);
-  if (review.review_kind === "newSpot") assertNewSpot(rows, review.evidence_tier!);
-  else if (review.review_kind === "effect") assertEffect(rows);
+  if (review.review_kind === "newSpot") {
+    assertNewSpot(rows, review.evidence_tier!);
+    await assertNewSpotPhotos(db, rows, opts.now);
+  } else if (review.review_kind === "effect") assertEffect(rows);
   else assertAbsence(rows);
   const artifact = await sealArtifact(await artifactContent(db, review, rows));
   await db.batch([
@@ -418,6 +434,8 @@ export interface NewSpotCandidateGroup {
   distinctSubmitters: number;
   maxPairDistanceMetres: number;
   commonTermsVersion: string | null;
+  /** Photo gate per report; a review is refused until every report reads `approved`. States only, no image data. */
+  photoGates: { reportId: string; gate: NewSpotPhotoGate }[];
 }
 
 /**
@@ -459,6 +477,8 @@ export async function listNewSpotCandidates(db: Db, opts: { withinMetres: number
     if (!groups.has(id)) groups.set(id, []);
     groups.get(id)!.push(r);
   });
+  const gates = new Map<string, NewSpotPhotoGate>();
+  for (const r of results) gates.set(r.report_id, await newSpotPhotoGate(db, r.report_id, opts.now));
   return [...groups.values()].map((members) => {
     let max = 0;
     for (const a of members) for (const b of members) max = Math.max(max, haversineMeters(a, b));
@@ -470,6 +490,7 @@ export async function listNewSpotCandidates(db: Db, opts: { withinMetres: number
       distinctSubmitters: distinctSubmitters(members),
       maxPairDistanceMetres: Math.round(max * 10) / 10,
       commonTermsVersion: commonTermsVersion(members),
+      photoGates: members.map((m) => ({ reportId: m.report_id, gate: gates.get(m.report_id)! })),
     };
   });
 }

@@ -9,6 +9,7 @@ import { REPORT_RATE_LIMITS, consumeReportBudget } from "../src/reports/rate-lim
 import { proposeNewSpotReview } from "../src/reports/review.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { SqliteD1, migratedReportsSqlite, reportsD1 } from "./support/sqlite-d1.ts";
+import { approveEvidencePhoto } from "./support/evidence-photo.ts";
 const NOW = new Date("2026-10-02T03:30:00Z");
 const PIN = { latitude: 35.69001, longitude: 139.70001 };
 const INSTALL = "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f";
@@ -78,7 +79,7 @@ test("64 accepted repeated pins cannot create verified evidence; a distinct repo
   async function accepted(hash: string, id: string) {
     await missing(db, hash, id);
     await recordModerationDecision(db, id, { state: "accepted", decidedBy: "synthetic-reviewer", reason: "confirmed", now: NOW });
-    await setReconciliationState(db, id, "queued", NOW); return id;
+    await setReconciliationState(db, id, "queued", NOW); await approveEvidencePhoto(db, id, NOW); return id;
   }
   for (let i = 0; i < 64; i++) ids.push(await accepted("a".repeat(64), `rp_${String(i).padStart(26, "0")}`));
   await assert.rejects(proposeNewSpotReview(db, { reportIds: ids, locationReportId: ids[0], tier: "communityVerified", decidedBy: "synthetic-reviewer", now: NOW }), /not independent evidence/);

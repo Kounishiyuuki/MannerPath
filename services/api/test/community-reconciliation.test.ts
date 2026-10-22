@@ -30,6 +30,7 @@ import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
 import { type Stores, proposeNewSpot, stores } from "./support/community.ts";
 import { v1TileBody } from "./support/tiles.ts";
+import { approveEvidencePhoto } from "./support/evidence-photo.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -64,6 +65,7 @@ async function queuedReport(db: SqliteD1, hash: string, at = PIN, consent?: stri
   const id = await report(db, hash, at, "missing", consent);
   await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
   await setReconciliationState(db, id, "queued", RECEIVED);
+  await approveEvidencePhoto(db, id, RECEIVED);
   return id;
 }
 

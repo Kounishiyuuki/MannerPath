@@ -9,7 +9,8 @@ import { upgradeCommunityEvidence } from "../../src/pipeline/community-verificat
 import { proposeNewSpotReview, proposeEffectReview, exportReview } from "../../src/reports/review.ts";
 import { importCommunityArtifact } from "../../src/pipeline/community-artifact.ts";
 import { type Profile, syntheticSpots, syntheticId } from "./corpus.ts";
-import type { Db } from "../../src/db.ts";
+import { type Db, isoSeconds } from "../../src/db.ts";
+import { moderateEvidencePhoto } from "../../src/reports/photos.ts";
 export const BENCHMARK_NOW = "2026-10-01T03:00:00Z";
 export const PRIVATE_SENTINEL = "SYNTHETIC_PRIVATE_TEXT_MUST_NOT_EXPORT";
 /** Uses real intake, moderation, reconciliation and upgrade guards; approval is deliberately NOT changed here. */
@@ -49,6 +50,7 @@ export async function loadCommunityCorpus(db: Db, reportsDb: Db, profile: Profil
       if (j < initial || type !== "missing") {
         await recordModerationDecision(reportsDb, spec.reportIds[j], { state: "accepted", decidedBy: "synthetic-reviewer", reason: "confirmed", now: reportNow });
         await setReconciliationState(reportsDb, spec.reportIds[j], "queued", reportNow);
+        if (type === "missing") await syntheticApprovedPhoto(reportsDb, spec.reportIds[j], reportNow);
       }
       if (j === initial - 1) {
         const applicationId = await proposeNewSpotReview(reportsDb, { reportIds: spec.reportIds.slice(0, initial), locationReportId: spec.reportIds[0],
@@ -70,4 +72,20 @@ export async function loadCommunityCorpus(db: Db, reportsDb: Db, profile: Profil
     if ((spec.ordinal + 1) % 1000 === 0) progress?.(spec.ordinal + 1);
   }
   return { reports };
+}
+
+/**
+ * Synthetic corpora only: the v1.0 new-spot photo gate needs one ready, approved photo per `missing` report. This writes
+ * the reference row through the real lifecycle (reservation -> ready -> approved); no image bytes or storage exist.
+ */
+async function syntheticApprovedPhoto(db: Db, reportId: string, at: Date): Promise<void> {
+  const report = await db.prepare("SELECT minimize_after FROM reports WHERE report_id = ?").bind(reportId).first<{ minimize_after: string }>();
+  const photoId = `ph_synthetic_${reportId}`;
+  await db.prepare(`INSERT INTO community_evidence_photos (photo_id, report_id, storage_key, content_sha256, media_type, byte_length,
+      width, height, lifecycle, created_at, upload_expires_at, delete_after)
+    VALUES (?, ?, ?, ?, 'image/png', 1, 1, 1, 'uploading', ?, ?, ?)`)
+    .bind(photoId, reportId, `synthetic/${reportId}`, createHash("sha256").update(reportId).digest("hex"), isoSeconds(at),
+      isoSeconds(new Date(at.getTime() + 15 * 60_000)), report!.minimize_after).run();
+  await db.prepare("UPDATE community_evidence_photos SET lifecycle = 'ready' WHERE photo_id = ?").bind(photoId).run();
+  await moderateEvidencePhoto(db, photoId, "approved", { now: at, decidedBy: "synthetic-reviewer", reason: "usableEvidence" });
 }

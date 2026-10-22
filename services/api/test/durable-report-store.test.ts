@@ -35,6 +35,7 @@ import { type Stores, exportAndImport, proposeConfirmation, stores } from "./sup
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
+import { approveEvidencePhoto } from "./support/evidence-photo.ts";
 
 type Row = Record<string, any>;
 const one = (db: SqliteD1, sql: string, ...p: any[]) => ({ ...(db.raw.prepare(sql).get(...p) as Row) });
@@ -66,6 +67,7 @@ async function acceptAndQueue(db: SqliteD1, ...ids: string[]) {
   for (const id of ids) {
     await recordModerationDecision(db, id, { state: "accepted", decidedBy: "reviewer-1", reason: "confirmed", now: RECEIVED });
     await setReconciliationState(db, id, "queued", RECEIVED);
+    await approveEvidencePhoto(db, id, RECEIVED);
   }
 }
 async function canonicalWorld(): Promise<Stores> {
