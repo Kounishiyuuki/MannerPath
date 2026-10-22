@@ -13,8 +13,8 @@ nonisolated struct PhotoEvidencePolicy: Sendable {
     var maxAttachments = 3
 }
 
-/// Implementations must bind attachment bytes and report ownership to App Attest. There is no
-/// production implementation until the photo consent and transport contracts are approved.
+/// Implementations must bind attachment bytes and report ownership to App Attest. The production
+/// implementation is `AttestedEvidencePhotoUploader`; it is not wired in until photo consent is approved.
 nonisolated protocol EvidencePhotoUploading: Sendable {
     func upload(reportID: String, attachmentID: UUID, jpeg: Data, acceptedTermsVersion: String) async throws
 }
@@ -60,7 +60,7 @@ final class ReportPhotos {
         guard !busy else { return }
         photos.removeAll { $0.id == id && $0.state != .uploaded }
     }
-    func clear() { guard !busy else { return }; photos = []; acceptedReportID = nil; consentVersion = nil; error = nil }
+    func clear() { guard !busy else { return }; photos = []; failures = [:]; acceptedReportID = nil; consentVersion = nil; error = nil }
 
     func attach(to reportID: String, acceptedTermsVersion: String?) async {
         guard enabled, acceptedTermsVersion == policy.acceptedTermsVersion, !busy else { return }
@@ -69,15 +69,44 @@ final class ReportPhotos {
         await retry()
     }
 
+    /// Retries only what can still succeed. Each attempt reuses the photo's UUID as idempotency key, so a
+    /// photo the server already holds is answered with the same photo, never stored twice.
     func retry() async {
         guard enabled, !busy, let reportID = acceptedReportID, let consentVersion, let uploader else { return }
         for index in photos.indices where photos[index].state != .uploaded {
+            if let failure = failures[photos[index].id], !failure.isRetryable { continue }
             photos[index].state = .uploading
             do {
                 try await uploader.upload(reportID: reportID, attachmentID: photos[index].id,
                                           jpeg: photos[index].jpeg, acceptedTermsVersion: consentVersion)
                 photos[index].state = .uploaded
-            } catch { photos[index].state = .failed }
+                failures[photos[index].id] = nil
+            } catch {
+                photos[index].state = .failed
+                let failure = error as? EvidencePhotoUploadError ?? .temporarilyUnavailable
+                failures[photos[index].id] = failure
+                // Report-level refusals would refuse every remaining photo identically: stop sending.
+                if Self.endsReport(failure) {
+                    for rest in photos.indices where photos[rest].state == .selected {
+                        photos[rest].state = .failed
+                        failures[photos[rest].id] = failure
+                    }
+                    return
+                }
+            }
+        }
+    }
+
+    /// Why each failed photo failed (an unknown uploader error reads as retryable). Memory only.
+    private(set) var failures: [UUID: EvidencePhotoUploadError] = [:]
+    /// For P3: whether a retry action can still change anything.
+    var canRetry: Bool { photos.contains { $0.state == .failed && failures[$0.id]?.isRetryable != false } }
+
+    private static func endsReport(_ failure: EvidencePhotoUploadError) -> Bool {
+        switch failure {
+        case .disabled, .expired, .reportNotFound, .unauthorized, .updateRequired, .termsOutdated, .attachmentLimit,
+             .authorizationFailed(retryable: false): true
+        default: false
         }
     }
 
