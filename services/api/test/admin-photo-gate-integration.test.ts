@@ -57,7 +57,7 @@ test('real demo photo approval and report acceptance preserve canonical data and
   } finally { await demo.dispose(); }
 });
 
-test('withdrawn demo photo blocks proposal and export including the migration 0009 SQL guard', async () => {
+test('withdrawn demo photo blocks proposal and export including the migration 0010 SQL guard', async () => {
   const demo = await createAdminDemo(NOW);
   try {
     const id = demo.ids[0], photo = await approve(demo, id), before = canonicalSnapshot(demo);
@@ -72,7 +72,7 @@ test('withdrawn demo photo blocks proposal and export including the migration 00
     await assert.rejects(propose(demo, otherId), /no approved evidence photo/);
     await assert.rejects(exportReview(demo.reports, reviewId, {now: NOW}), /no approved evidence photo/);
     assert.throws(() => demo.reports.raw.prepare("UPDATE report_reviews SET state='exported',artifact_sha256=?,exported_at=? WHERE review_id=?")
-      .run('0'.repeat(64), NOW.toISOString().replace('.000Z', 'Z'), reviewId), /a new-spot report has no approved evidence photo/);
+      .run('0'.repeat(64), NOW.toISOString().replace('.000Z', 'Z'), reviewId), /a new-spot report has no viewable approved evidence photo/);
     assert.equal(demo.reports.raw.prepare('SELECT state FROM report_reviews WHERE review_id=?').get(reviewId)?.state, 'proposed');
     assert.equal(demo.reports.raw.prepare("SELECT count(*) n FROM report_moderation WHERE reconciliation_state='applied'").get()?.n, 0);
     assert.deepEqual(canonicalSnapshot(demo), before);
