@@ -65,6 +65,14 @@ final class ReportModel {
         }
         return true
     }
+    /// A new-place proposal is accepted only together with photos (v1.0 P0): the deployment must advertise photo
+    /// intake and this build must carry consent for the same terms version. Otherwise no new-place report is sent,
+    /// so a proposal can never be stored without its photos.
+    var acceptsNewSpotProposals: Bool {
+        guard case .available(let limits) = availability else { return false }
+        return limits.acceptsPhotoEvidence && photos.accepts(termsVersion: limits.termsVersion)
+    }
+
     /// A submission is in progress: preparing authorization counts, the draft must not change.
     var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission || photos.busy }
 
@@ -220,6 +228,20 @@ final class ReportModel {
               submission != .ambiguous, !isTerminalReceipt,
               (retryAfterSecondsRemaining ?? 0) == 0,
               case .available(let limits) = availability, var draft else { return }
+        if draft.type == .missing {
+            guard acceptsNewSpotProposals else {
+                submission = .failed(String(localized: "New smoking places are not being accepted right now."))
+                return
+            }
+            guard !photos.photos.isEmpty else {
+                submission = .failed(String(localized: "Add at least one photo of the smoking place to submit."))
+                return
+            }
+            guard draft.acceptedTermsVersion == limits.termsVersion else {
+                submission = .failed(Self.validationMessage(.termsNotAccepted))
+                return
+            }
+        }
         // One encoding, one immutable payload: these exact bytes are both hashed into the
         // assertion and base64-encoded into the envelope.
         let payload: Data
@@ -507,6 +529,11 @@ private nonisolated struct UnconfiguredReportClient: ReportConfigFetching, Repor
 @MainActor
 enum ReportComposition {
     static func makeModel() -> ReportModel {
+        #if DEBUG
+        if let scenario = UserDefaults.standard.string(forKey: "uiTestPhotoReport") {
+            return UITestPhotoReportStack.makeModel(scenario: scenario)
+        }
+        #endif
         let client: any ReportConfigFetching & ReportSubmitting
         if let baseURL = NearbyComposition.apiBaseURL {
             client = ReportAPIClient(baseURL: baseURL)
@@ -526,6 +553,11 @@ enum ReportComposition {
                            installIDs: UserDefaultsInstallID(),
                            attestedClient: client as? ReportAPIClient,
                            authorizer: authorizer,
-                           consent: UserDefaultsReportConsent())
+                           consent: UserDefaultsReportConsent(),
+                           // Photo intake stays closed (PhotoEvidencePolicy default) until the photo terms and
+                           // storage gates are approved; the uploader shares the report's App Attest key.
+                           photoUploader: (client as? ReportAPIClient).flatMap { api in
+                               authorizer.map { AttestedEvidencePhotoUploader(baseURL: api.baseURL, authorizer: $0) }
+                           })
     }
 }

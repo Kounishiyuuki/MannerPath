@@ -196,6 +196,8 @@ nonisolated struct ReportLimits: Equatable, Sendable {
     var acceptsNewSpotClaim = false
     /// Whether the deployment accepts the ADR-0013 finding types and correction claims.
     var acceptsExistingSpotFindings = false
+    /// Whether the deployment advertises photo intake (`photoEvidenceEnabled`; absent reads as false).
+    var acceptsPhotoEvidence = false
 }
 
 nonisolated enum ReportAvailability: Equatable, Sendable {

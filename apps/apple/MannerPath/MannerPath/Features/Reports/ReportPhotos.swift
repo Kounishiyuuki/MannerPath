@@ -38,6 +38,12 @@ final class ReportPhotos {
     private var consentVersion: String?
     var enabled: Bool { policy.enabled && policy.acceptedTermsVersion != nil && uploader != nil }
     var busy: Bool { photos.contains { $0.state == .uploading } }
+    var remainingSlots: Int { max(0, policy.maxAttachments - photos.count) }
+    /// Every selected photo is held by the server. False for an empty selection: nothing was sent.
+    var allUploaded: Bool { !photos.isEmpty && photos.allSatisfy { $0.state == .uploaded } }
+    var uploadedCount: Int { photos.filter { $0.state == .uploaded }.count }
+    /// Photos can be attached to a report recorded under `termsVersion`; `attach` refuses any other consent.
+    func accepts(termsVersion: String?) -> Bool { enabled && termsVersion != nil && termsVersion == policy.acceptedTermsVersion }
 
     init(policy: PhotoEvidencePolicy = PhotoEvidencePolicy(), uploader: (any EvidencePhotoUploading)? = nil) {
         self.policy = policy
@@ -97,8 +103,32 @@ final class ReportPhotos {
         }
     }
 
+    /// The user-facing reason for a failed photo, phrased for what the user can still do.
+    func failureMessage(for id: UUID) -> String? {
+        guard photos.first(where: { $0.id == id })?.state == .failed else { return nil }
+        switch failures[id] ?? .temporarilyUnavailable {
+        case .temporarilyUnavailable: return String(localized: "The photo could not be sent because of a connection problem. You can retry it.")
+        case .rateLimited: return String(localized: "Too many photos were sent. Wait a moment, then retry.")
+        case .authorizationFailed(retryable: true): return String(localized: "The security check for this photo did not pass. You can retry it.")
+        case .authorizationFailed(retryable: false), .unauthorized:
+            return String(localized: "This device can no longer add photos to this report. The report itself was received.")
+        case .updateRequired: return String(localized: "Update the app to send photos.")
+        case .disabled: return String(localized: "Photo intake is paused. The report itself was received.")
+        case .expired, .reportNotFound: return String(localized: "The time for adding photos to this report has ended.")
+        case .tooLarge: return String(localized: "This photo is too large to send.")
+        case .invalidImage: return String(localized: "This photo could not be accepted. Choose a different photo for your next report.")
+        case .attachmentLimit: return String(localized: "This report already has the maximum number of photos.")
+        case .idempotencyConflict: return String(localized: "This photo conflicts with an earlier upload and cannot be sent again.")
+        case .termsOutdated: return String(localized: "The report terms have changed. Update the app to send photos.")
+        }
+    }
+
     /// Why each failed photo failed (an unknown uploader error reads as retryable). Memory only.
     private(set) var failures: [UUID: EvidencePhotoUploadError] = [:]
+    #if DEBUG
+    /// Set only by the UI-test composition: the simulator photo library is not scriptable.
+    static var uiTestSample: Data?
+    #endif
     /// For P3: whether a retry action can still change anything.
     var canRetry: Bool { photos.contains { $0.state == .failed && failures[$0.id]?.isRetryable != false } }
 
@@ -168,42 +198,71 @@ final class ReportPhotos {
 
 struct ReportPhotoSection: View {
     @Bindable var photos: ReportPhotos
-    @State private var selection: PhotosPickerItem?
+    /// A new-place proposal needs at least one photo; other reports keep photos optional.
+    var required = false
+    @State private var selection: [PhotosPickerItem] = []
     var body: some View {
-        Section("Evidence photos (optional)") {
-            Text("Avoid people, vehicle plates and unrelated surroundings. A photo of an ashtray does not establish permission to smoke. Photos stay on this screen until submission; closing the app discards them.")
+        Section {
+            Text("Avoid faces, vehicle plates and unrelated surroundings. A photo of an ashtray does not establish permission to smoke. Photos stay on this screen until submission; closing the app discards them.")
                 .font(.footnote)
-            if photos.acceptedReportID == nil {
-                PhotosPicker(selection: $selection, matching: .images) { Label("Choose evidence photo", systemImage: "photo") }
-                    .disabled(photos.busy)
-                    .accessibilityIdentifier("report.photo.choose")
-            }
-            ForEach(photos.photos) { photo in
-                if let image = UIImage(data: photo.jpeg) {
-                    Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 180)
-                        .accessibilityLabel("Selected evidence photo preview")
+            Text("The photo's location data is not used. The listed position is only the map pin you chose.")
+                .font(.footnote).foregroundStyle(.secondary)
+            if photos.acceptedReportID == nil && photos.remainingSlots > 0 {
+                // Read outside the picker's Sendable label closure.
+                let title = photos.photos.isEmpty ? String(localized: "Choose photos (up to 3)") : String(localized: "Add another photo")
+                PhotosPicker(selection: $selection, maxSelectionCount: photos.remainingSlots,
+                             selectionBehavior: .ordered, matching: .images) {
+                    Label(title, systemImage: "photo.on.rectangle")
                 }
-                if photo.state == .uploading { ProgressView("Uploading evidence photo") }
-                if photo.state == .uploaded { Label("Photo received for review", systemImage: "checkmark") }
-                if photo.state == .failed { Text("Photo upload failed. Your selected photo remains available for retry.") }
-                if photo.state != .uploaded {
-                    Button("Remove evidence photo", role: .destructive) { photos.remove(photo.id) }
-                        .disabled(photos.busy).accessibilityIdentifier("report.photo.remove")
+                .disabled(photos.busy)
+                .accessibilityIdentifier("report.photo.choose")
+                #if DEBUG
+                if let sample = ReportPhotos.uiTestSample {
+                    Button("Add test photo") { photos.add(sample) }.accessibilityIdentifier("report.photo.addTest")
+                }
+                #endif
+            }
+            ForEach(Array(photos.photos.enumerated()), id: \.element.id) { index, photo in
+                VStack(alignment: .leading, spacing: 6) {
+                    if let image = UIImage(data: photo.jpeg) {
+                        Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 180)
+                            .accessibilityLabel("Selected photo \(index + 1) preview")
+                    }
+                    switch photo.state {
+                    case .selected: EmptyView()
+                    case .uploading: ProgressView("Uploading photo…")
+                    case .uploaded: Label("Photo received for review", systemImage: "checkmark.circle")
+                    case .failed:
+                        Label(photos.failureMessage(for: photo.id) ?? "", systemImage: "exclamationmark.triangle")
+                            .accessibilityIdentifier("report.photo.failure")
+                    }
+                    if photo.state != .uploaded && photos.acceptedReportID == nil {
+                        Button("Remove this photo", role: .destructive) { photos.remove(photo.id) }
+                            .disabled(photos.busy).accessibilityIdentifier("report.photo.remove")
+                    }
                 }
             }
-            if photos.photos.contains(where: { $0.state == .failed }) {
-                Button("Retry photo upload") { Task { await photos.retry() } }.disabled(photos.busy)
+            if photos.canRetry {
+                Button("Retry unsent photos") { Task { await photos.retry() } }.disabled(photos.busy)
                     .accessibilityIdentifier("report.photo.retry")
             }
             if let error = photos.error { Text(error).accessibilityLabel(error) }
+        } header: {
+            if photos.acceptedReportID != nil { Text("Photos for the received report") }
+            else { Text(required ? "Photos (required, 1 to 3)" : "Evidence photos (optional)") }
+        } footer: {
+            if required && photos.photos.isEmpty { Text("Add at least one photo of the smoking place to submit.") }
         }
-        .onChange(of: selection) { _, item in
+        .onChange(of: selection) { _, items in
+            guard !items.isEmpty else { return }
             Task {
-                do {
-                    if let data = try await item?.loadTransferable(type: Data.self) { photos.add(data) }
-                    else { photos.selectionFailed() }
-                } catch { photos.selectionFailed() }
-                selection = nil
+                for item in items {
+                    do {
+                        if let data = try await item.loadTransferable(type: Data.self) { photos.add(data) }
+                        else { photos.selectionFailed() }
+                    } catch { photos.selectionFailed() }
+                }
+                selection = []
             }
         }
     }

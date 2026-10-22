@@ -107,20 +107,20 @@ Exists (reuse):
 | --- | --- |
 | `ReportFormView`, `ReportModel`, `ReportPinPicker`, `NewSpotClaimSection`, `DuplicateCandidates` | Implemented, used for `missing` reports |
 | `ReportPhotos` + `EvidencePhotoUploading` protocol, `PhotoEvidencePolicy` (default off) | Foundation |
-| `AttestedEvidencePhotoUploader` (P4): schema-2 envelope, report-domain assertion per attempt, attachment UUID as idempotency key, `photoEvidenceEnabled` checked before signing, typed retryable/final failures; payload pinned by `contracts/app-attest/photo-upload-vectors.v1.json` | Implemented, not wired: `ReportComposition` still passes no uploader (P3) |
+| `AttestedEvidencePhotoUploader` (P4): schema-2 envelope, report-domain assertion per attempt, attachment UUID as idempotency key, `photoEvidenceEnabled` checked before signing, typed retryable/final failures; payload pinned by `contracts/app-attest/photo-upload-vectors.v1.json` | Implemented, wired by `ReportComposition` with the report's `AppAttestReportAuthorizer` (P3) |
 | App Attest (client + server), report-purpose challenge, schema-2 envelope | Implemented |
 | `POST /v1/reports/:id/photos`, sanitizer (re-encode to PNG, metadata dropped), `EvidencePhotoStorage` interface, memory double | Implemented, route returns 503 unless injected in tests |
 | `migrations-reports/0003_evidence_photos.sql`, deletion tracking, retention (`retain`) | Implemented |
 | `reports:moderate` incl. `photo-summary`, `photo-decide`, triage, duplicates, export/import | Implemented |
 | Community activation/publication pipeline, `COMMUNITY_LAUNCH_CHECKLIST.md` | Implemented, HOLD on #124 |
 | Bottom-bar and in-list 「Add a smoking place」 entries | Implemented, only when reports available |
+| Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 
 Missing (this plan):
 
 | Gap | Blocks | PR |
 | --- | --- | --- |
 | Standalone map button, empty-state copy | R1, R2 | P2 |
-| Photo step inside the submission flow (select before send, upload after acceptance), received state | R3 | P3 |
 | Production fenced storage adapter (R2 + durable fence) and expiry/backup cleanup, config wiring behind a reviewed switch | R5 | P5 |
 | `photoEvidenceEnabled` config path that is true only with storage + covered terms version | R5, R9 | P5 |
 | Moderator photo viewing (`photo-view`) | R11 | P6 |

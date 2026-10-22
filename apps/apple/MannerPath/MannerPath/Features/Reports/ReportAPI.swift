@@ -79,6 +79,8 @@ private nonisolated struct ConfigBody: Decodable {
         let newSpotClaims: Bool?
         /// Absent from a deployment that predates ADR-0013 findings: read as false.
         let existingSpotFindings: Bool?
+        /// Absent from a deployment without photo intake: read as false.
+        let photoEvidenceEnabled: Bool?
     }
 }
 
@@ -153,7 +155,8 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
                                        maxSubmissionBytes: maxSubmissionBytes,
                                        termsVersion: config.reports.termsVersion,
                                        acceptsNewSpotClaim: config.reports.newSpotClaims == true,
-                                       acceptsExistingSpotFindings: config.reports.existingSpotFindings == true))
+                                       acceptsExistingSpotFindings: config.reports.existingSpotFindings == true,
+                                       acceptsPhotoEvidence: config.reports.photoEvidenceEnabled == true))
     }
 
     func submit(_ body: Data) async throws -> AcceptedReport {
