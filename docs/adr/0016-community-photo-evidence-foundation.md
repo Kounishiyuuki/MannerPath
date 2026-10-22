@@ -138,9 +138,17 @@ public/signed URLs. `PrivatePhotoReader` is a read-only adapter, separate from t
 interface: bounded R2 streams are checked against metadata/digest and live retention/deletion fences
 before and after retrieval. Bytes exist only in process/browser memory, with authenticated no-store
 responses. Only live pending/approved ready photos can be previewed. Explicit per-photo review does
-not publish a photo. Existing 90-day deadlines, minimization and deletion work remain unchanged.
+not publish a photo. Admin previews and photo/report approval use the P5 access cutoff at exactly
+`delete_after - 24 hours`, not the 90-day ceiling; private reads recheck this cutoff after fetching.
+Existing 90-day deadlines, minimization and deletion work remain unchanged.
 Local synthetic tests do not establish real R2/staging readiness or production approval. Operator
 authentication, startup acknowledgements and limitations are in [local admin operations](../LOCAL_MODERATION_ADMIN.md).
+
+Integration finding (PR #321 after #322): the new-spot gate above and migration 0009 currently compare
+`delete_after > now`, omitting P5's 24-hour lead and deletion queue fence. Until a separate additive
+gate correction aligns proposal/export and direct SQL checks, delayed cleanup can leave an approved
+photo counted after R2 access ends. This is a release/integration HOLD, not a relaxation of P5's
+privacy boundary. Do not alter already-applied migration 0009 or infer that Admin approval fixes it.
 
 ## Consequences
 

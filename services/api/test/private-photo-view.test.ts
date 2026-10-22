@@ -5,7 +5,7 @@ import { reportsD1 } from './support/sqlite-d1.ts';
 import { createReport, minimizeAfter } from '../src/reports/create.ts';
 import { CURRENT_REPORT_TERMS } from '../src/reports/terms.ts';
 import { attachEvidencePhoto, moderateEvidencePhoto } from '../src/reports/photos.ts';
-import { MemoryEvidencePhotoStorage } from '../src/reports/photo-storage.ts';
+import { MemoryEvidencePhotoStorage, PHOTO_ERASURE_LEAD_MS } from '../src/reports/photo-storage.ts';
 import { MAX_PRIVATE_PHOTO_BYTES, PrivatePhotoViewError, R2PrivatePhotoReader, readPrivateEvidencePhoto, type PrivatePhotoReader } from '../src/reports/private-photo-view.ts';
 
 const now = new Date('2026-10-01T00:00:00Z');
@@ -62,6 +62,18 @@ test('missing objects, corrupt bytes, wrong length and storage failures are type
   const tampered = x.object.bytes.slice(); tampered[20] ^= 1;
   await assert.rejects(readPrivateEvidencePhoto(x.db, { read: async () => tampered }, x.photo.photoId, () => now), (error: unknown) => error instanceof PrivatePhotoViewError && error.code === 'photoInvalidBody');
   await assert.rejects(readPrivateEvidencePhoto(x.db, { read: async () => { throw Error('private key or payload'); } }, x.photo.photoId, () => now), (error: unknown) => error instanceof PrivatePhotoViewError && !error.message.includes('private key'));
+});
+test('private viewing stops exactly 24 hours before retention, including a boundary crossed during reading', async () => {
+  const x=await setup();
+  const boundary=minimizeAfter(now).getTime()-PHOTO_ERASURE_LEAD_MS;
+  assert.ok((await readPrivateEvidencePhoto(x.db,x.reader,x.photo.photoId,()=>new Date(boundary-1000))).bytes.length);
+  for(const offset of [0,1000]){
+    let reads=0;
+    await assert.rejects(readPrivateEvidencePhoto(x.db,{read:async()=>{reads++;return x.object.bytes;}},x.photo.photoId,()=>new Date(boundary+offset)),unavailable);
+    assert.equal(reads,0,'cleanup need not have run for erasure to fence viewing');
+  }
+  let time=new Date(boundary-1000);
+  await assert.rejects(readPrivateEvidencePhoto(x.db,{read:async()=>{time=new Date(boundary);return x.object.bytes;}},x.photo.photoId,()=>time),unavailable);
 });
 test('read-only R2 reader bounds declared and streamed sizes and cancels oversized bodies', async () => {
   let cancelled = false;

@@ -33,6 +33,12 @@ Issue #242 (full erase versus permanent receipt FK) remains unresolved; this wor
 alternate privacy policy nor implements full erasure. Photos and community publication stay disabled;
 Issue #124 remains separate. Staging smoke success is not production or App Store activation approval.
 
+Admin/PR #322 integration is also on HOLD: Admin and R2 stop access at `delete_after - 24h`, while
+the merged new-spot proposal/export predicate and trigger 0009 still use `delete_after`. A separate
+additive publication-gate correction must cover early erasure and queued deletion before publication
+rehearsal/activation. Applying 0008/0009 alone does not close this finding. See
+[local Admin integration notes](LOCAL_MODERATION_ADMIN.md#pr-322-integration-and-early-erasure-finding).
+
 ## Staging / production comparison
 
 Named environments repeat their own bindings; do not inherit top-level local `disabled` attestation.

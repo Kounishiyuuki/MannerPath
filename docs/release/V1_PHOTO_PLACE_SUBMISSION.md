@@ -106,6 +106,10 @@ upload, rate limited, large text, VoiceOver, dark mode.
   `areaApproximate`, ADR-0017), stated conditions, photo relevance and sensitivity (faces/plates → reject photo).
 - Approved photos only strengthen the reviewer's decision (`photo-summary`); publication still needs the
   existing reconciliation and the community activation gate.
+- Admin displays the viewing/review cutoff (`delete_after - 24h`) separately from the retention ceiling.
+  The PR #322 proposal/export gate is retained, but its current `delete_after` comparison does not yet
+  match early erasure or deletion fences. A separate additive gate fix is required before publication;
+  see [the integration HOLD](../LOCAL_MODERATION_ADMIN.md#pr-322-integration-and-early-erasure-finding).
 
 ## 5. Audit — what exists and what is missing
 

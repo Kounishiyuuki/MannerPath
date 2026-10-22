@@ -2,6 +2,7 @@
 import { type Db, isoSeconds, sha256Hex } from '../db.ts';
 import { DECISION_REASONS, type ModerationState, type ModerationQueueRow, decodeReportCursor, encodeReportCursor, pageLimit } from './moderation.ts';
 import { PHOTO_DECISION_REASONS } from './photos.ts';
+import { PHOTO_ERASURE_LEAD_MS } from './photo-storage.ts';
 
 export class AdminReviewError extends Error {
   code: string;
@@ -10,7 +11,7 @@ export class AdminReviewError extends Error {
 }
 export interface AdminPhoto {
   photo_id: string; lifecycle: string; moderation_status: string;
-  created_at: string; upload_expires_at: string; delete_after: string;
+  created_at: string; upload_expires_at: string; delete_after: string; view_until: string;
   width: number; height: number; byte_length: number; decision_reason: string | null;
   previewAvailable: boolean;
 }
@@ -45,15 +46,15 @@ function safeReport(row: AdminReport, at: string): AdminReport {
     claim_environment:null,claim_supports_paper:null,claim_supports_heated:null,claim_host_name:null,claim_hours_note:null,finding:null };
 }
 export async function getAdminReport(db: Db, reportId: string, now: Date): Promise<AdminReportDetail> {
-  const at = isoSeconds(now);
+  const at = isoSeconds(now), eraseBy = isoSeconds(new Date(now.getTime()+PHOTO_ERASURE_LEAD_MS));
   const row = await db.prepare(`SELECT ${COLUMNS}, ${VERSION} version ${FROM} WHERE r.report_id=?`).bind(reportId).first<AdminReport & {version:string}>();
   if (!row) throw new AdminReviewError('reportNotFound',404);
   const {version,...report} = row;
   const photos = await db.prepare(`SELECT photo_id,lifecycle,moderation_status,created_at,upload_expires_at,delete_after,width,height,byte_length,decision_reason,
     CASE WHEN lifecycle='ready' AND moderation_status<>'rejected' AND delete_after>? AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key) THEN 1 ELSE 0 END available
-    FROM community_evidence_photos p WHERE report_id=? ORDER BY created_at,photo_id`).bind(at,reportId).all<Omit<AdminPhoto,'previewAvailable'> & {available:number}>();
+    FROM community_evidence_photos p WHERE report_id=? ORDER BY created_at,photo_id`).bind(eraseBy,reportId).all<Omit<AdminPhoto,'previewAvailable'|'view_until'> & {available:number}>();
   const history = await db.prepare(`SELECT operation_id,report_id,photo_id,state,reason,decided_by,decided_at,privacy_checked FROM admin_review_audit WHERE report_id=? ORDER BY decided_at,operation_id`).bind(reportId).all<AdminHistory>();
-  return {report:safeReport(report,at),version,photos:photos.results.map(({available,...p})=>({...p,previewAvailable:!!available && !row.redacted_at && row.minimize_after>at})),history:history.results,
+  return {report:safeReport(report,at),version,photos:photos.results.map(({available,...p})=>({...p,view_until:isoSeconds(new Date(Date.parse(p.delete_after)-PHOTO_ERASURE_LEAD_MS)),previewAvailable:!!available && !row.redacted_at && row.minimize_after===p.delete_after && row.minimize_after>eraseBy})),history:history.results,
     publicationState:row.state!=='accepted'?'notApproved':row.reconciliation_state==='applied'?'artifactExported':row.reconciliation_state==='discarded'?'discarded':'awaitingPublication',publicationVerified:false};
 }
 export async function listAdminReports(db: Db, opts: {status?: ModerationState | 'awaitingPublication' | 'published'; cursor?:string;limit?:number} = {}, now = new Date()) {
@@ -81,7 +82,7 @@ export async function applyAdminDecision(db: Db, input: AdminDecision, now: Date
   const hash=await sha256Hex(JSON.stringify([input.reportId,input.photoId??null,input.state,input.reason,input.expectedVersion,input.privacyChecked,input.decidedBy]));
   const prior=await db.prepare('SELECT request_hash FROM admin_review_audit WHERE operation_id=?').bind(input.operationId).first<{request_hash:string}>();
   if(prior){if(prior.request_hash!==hash)throw new AdminReviewError('operationConflict',409);return {detail:await getAdminReport(db,input.reportId,now),replayed:true};}
-  const current=await getAdminReport(db,input.reportId,now);const at=isoSeconds(now);
+  const current=await getAdminReport(db,input.reportId,now);const at=isoSeconds(now),eraseBy=isoSeconds(new Date(now.getTime()+PHOTO_ERASURE_LEAD_MS));
   if(current.version!==input.expectedVersion)throw new AdminReviewError('staleDecision',409);
   if(current.report.redacted_at || current.report.minimize_after<=at)throw new AdminReviewError('reportExpired',410);
   if((photo && input.state==='approved' || !photo && input.state==='accepted') && !input.privacyChecked)throw new AdminReviewError('privacyCheckRequired',400);
@@ -91,11 +92,11 @@ export async function applyAdminDecision(db: Db, input: AdminDecision, now: Date
   if(!photo && current.report.reconciliation_state!=='notQueued')throw new AdminReviewError('reconciliationLocked',409);
   // The legacy recordModerationDecision overwrites unconditionally. These same-table updates are
   // guarded with an audit insertion in one D1 transaction to preserve CAS and immutable history.
-  const guardPhoto = photo ? `AND EXISTS(SELECT 1 FROM community_evidence_photos p WHERE p.report_id=r.report_id AND p.photo_id=? AND p.lifecycle='ready' AND p.moderation_status='pending' AND p.delete_after>? AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key))` : '';
-  const guardAccept = !photo && input.state==='accepted' && current.report.report_type==='missing' ? `AND EXISTS(SELECT 1 FROM community_evidence_photos p WHERE p.report_id=r.report_id AND p.lifecycle='ready' AND p.moderation_status='approved' AND p.delete_after>? AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key))` : '';
+  const guardPhoto = photo ? `AND EXISTS(SELECT 1 FROM community_evidence_photos p WHERE p.report_id=r.report_id AND p.photo_id=? AND p.lifecycle='ready' AND p.moderation_status='pending' AND p.delete_after=r.minimize_after AND p.delete_after>? AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key))` : '';
+  const guardAccept = !photo && input.state==='accepted' && current.report.report_type==='missing' ? `AND EXISTS(SELECT 1 FROM community_evidence_photos p WHERE p.report_id=r.report_id AND p.lifecycle='ready' AND p.moderation_status='approved' AND p.delete_after=r.minimize_after AND p.delete_after>? AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key))` : '';
   const insert=db.prepare(`INSERT INTO admin_review_audit(operation_id,report_id,photo_id,state,reason,decided_by,decided_at,privacy_checked,request_hash)
     SELECT ?,?,?,?,?,?,?,?,? ${FROM} WHERE r.report_id=? AND ${VERSION}=? AND r.redacted_at IS NULL AND r.minimize_after>? ${guardPhoto} ${guardAccept}`)
-    .bind(input.operationId,input.reportId,input.photoId??null,input.state,input.reason,input.decidedBy,at,input.privacyChecked?1:0,hash,input.reportId,input.expectedVersion,at,...(photo?[input.photoId,at]:[]),...(guardAccept?[at]:[]));
+    .bind(input.operationId,input.reportId,input.photoId??null,input.state,input.reason,input.decidedBy,at,input.privacyChecked?1:0,hash,input.reportId,input.expectedVersion,at,...(photo?[input.photoId,eraseBy]:[]),...(guardAccept?[eraseBy]:[]));
   const auditGuard='EXISTS(SELECT 1 FROM admin_review_audit WHERE operation_id=? AND request_hash=? AND report_id=? AND photo_id IS ? AND state=? AND reason=? AND decided_by=? AND decided_at=? AND privacy_checked=?)';
   const auditBindings=[input.operationId,hash,input.reportId,input.photoId??null,input.state,input.reason,input.decidedBy,at,input.privacyChecked?1:0];
   const update=photo ? db.prepare(`UPDATE community_evidence_photos SET moderation_status=?,decided_at=?,decided_by=?,decision_reason=?,lifecycle=? WHERE photo_id=? AND ${auditGuard}`)

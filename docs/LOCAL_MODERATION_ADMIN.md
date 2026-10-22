@@ -51,7 +51,7 @@ its private bucket, upload path, deletion job, and recovery fences before enabli
 PR #316 and #317 are merged, but merging alone does not prove the deployed infrastructure is ready.
 
 Apply the report migration stream through the existing maintainer procedure, including migration
-0008, to the report store only. Number 0007 is reserved for the separate R2 integration. Never apply
+0008 (admin audit) and 0009 (new-spot photo export gate), to the report store only. Never apply
 this stream to canonical `DB`. Run retention and resolve outstanding deletion work before review.
 The launcher fails closed on missing report-store identity or audit schema.
 
@@ -76,6 +76,24 @@ parent retention and deletion fences after the read. Photos stay in server/brows
 responses are no-store and previews are revoked on selection/session/expiry changes. No raw image,
 photo key, passphrase, token, request body, or unfiltered exception is logged. This does not protect
 against a compromised operator Mac, browser extensions, or manually saving a displayed image.
+
+### PR #322 integration and early-erasure finding
+
+The merged photo gate is preserved at review proposal/export and by migration 0009. Approving a photo
+or report in Admin does not run any of these operations, change canonical data, or publish a place.
+Admin viewing and approval stop at `delete_after - 24 hours`, exactly when R2 access stops and cleanup
+starts; the UI labels that viewing/review deadline separately from the 90-day retention ceiling.
+Checks run before and after the private read and inside the decision transaction, even if cleanup
+has not run. Zero/pending/rejected/expired photos cannot satisfy Admin's new-report approval check.
+
+**Integration HOLD:** the merged `newSpotPhotoGate` and SQL trigger 0009 still compare against
+`delete_after`, not its 24-hour early-erasure boundary. Before cleanup, a ready approved photo can
+therefore pass the manual publication gate during a window when R2 already refuses it. They also
+omit the queued-deletion fence. Admin's stricter checks do not fix a previously accepted report used
+later by the CLI. A separate publication-gate fix PR is required before enabling that workflow:
+align proposal/export with early erasure and deletion fences, add a new additive migration to replace
+the trigger (never rewrite applied 0009), and test the exact boundary, delayed cleanup, direct SQL export
+and mixed-photo cases. This Admin PR deliberately does not change the merged publication policy/trigger.
 
 ## Manual publication remains separate
 

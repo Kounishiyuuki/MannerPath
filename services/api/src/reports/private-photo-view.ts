@@ -1,5 +1,6 @@
 import { type Db, isoSeconds, sha256Hex } from '../db.ts';
 import { MAX_PHOTO_PIXELS } from './photo-sanitizer.ts';
+import { PHOTO_ERASURE_LEAD_MS } from './photo-storage.ts';
 
 // Fresh RGBA PNG: pixels + per-row filters + generous deflate/chunk overhead.
 // Bound derivatives independently of the (smaller) incoming compressed upload limit.
@@ -54,9 +55,9 @@ async function eligible(db: Db, photoId: string, now: Date): Promise<PhotoRow> {
   const row = await db.prepare(`SELECT p.storage_key,p.byte_length,p.content_sha256,p.media_type
     FROM community_evidence_photos p JOIN reports r ON r.report_id=p.report_id
     WHERE p.photo_id=? AND p.lifecycle='ready' AND p.moderation_status IN ('pending','approved')
-    AND p.delete_after>? AND r.redacted_at IS NULL AND r.minimize_after>?
+    AND p.delete_after>? AND r.redacted_at IS NULL AND r.minimize_after=p.delete_after
     AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key)`)
-    .bind(photoId, isoSeconds(now), isoSeconds(now)).first<PhotoRow>();
+    .bind(photoId, isoSeconds(new Date(now.getTime()+PHOTO_ERASURE_LEAD_MS))).first<PhotoRow>();
   if (!row) throw new PrivatePhotoViewError('photoUnavailable', 404);
   if (row.media_type !== 'image/png' || !Number.isSafeInteger(row.byte_length) || row.byte_length < 8 || row.byte_length > MAX_PRIVATE_PHOTO_BYTES)
     throw new PrivatePhotoViewError('photoInvalidBody', 422);
