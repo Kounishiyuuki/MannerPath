@@ -32,6 +32,8 @@
   "vars": { "REPORT_ATTESTATION": "disabled" },
   // Content-addressed raw source artifacts (src/refresh/artifact-store.ts). Each environment names its own
   // bucket; creating it is a maintainer's action (docs/OPERATIONS.md). A check never writes elsewhere.
+  // P5 photos require a SEPARATE PRIVATE_PHOTOS bucket; none is created/bound here. Never reuse RAW_ARTIFACTS.
+  // PHOTO_EVIDENCE and PHOTO_STORAGE_POLICY remain unset; see docs/PHOTO_STORAGE_OPERATIONS.md.
   "r2_buckets": [{ "binding": "RAW_ARTIFACTS", "bucket_name": "mannerpath-raw-artifacts" }],
   // Source checks fetch, fingerprint and retain only; they never apply data. Still, no environment commits a
   // schedule: enabling one is a maintainer's action (docs/OPERATIONS.md), and test/deploy-config.test.ts holds it.

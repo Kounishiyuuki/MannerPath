@@ -2,8 +2,9 @@
 import type { Db } from "./db.ts";
 import { scheduled as sourceScheduled, type RefreshEnv } from "./refresh/scheduled.ts";
 import { runRetentionMaintenance } from "./reports/retention-automation.ts";
+import { configuredPhotoStorage, type PhotoBindings, validRetentionCron } from "./reports/photo-policy.ts";
 
-export interface MaintenanceEnv extends RefreshEnv {
+export interface MaintenanceEnv extends RefreshEnv, PhotoBindings {
   REPORTS_DB?: Db;
   REPORT_RETENTION?: string;
   REPORT_RETENTION_CRON?: string;
@@ -18,7 +19,7 @@ const defaults: ScheduledDeps = { now: () => new Date(), source: sourceScheduled
 export async function dispatchScheduled(controller: ScheduledController, env: MaintenanceEnv, deps: ScheduledDeps = defaults): Promise<void> {
   const mode = env.REPORT_RETENTION ?? "off";
   const cron = env.REPORT_RETENTION_CRON;
-  const validCron = typeof cron === "string" && cron.split(" ").length === 5 && cron.split(" ").every((field) => /^[0-9*,/\-]+$/.test(field));
+  const validCron = validRetentionCron(cron);
   if (!["off", "monitor", "cleanup"].includes(mode) || ((cron !== undefined || mode !== "off") && !validCron)) {
     deps.log(JSON.stringify({ event: "reportRetention", outcome: "failed", reason: "configuration" }));
     throw new Error("Report retention maintenance failed");
@@ -32,7 +33,9 @@ export async function dispatchScheduled(controller: ScheduledController, env: Ma
       deps.log(JSON.stringify({ event: "reportRetention", outcome: "failed", reason: "storeUnavailable" }));
       throw new Error("Report retention maintenance failed");
     }
-    const result = await runRetentionMaintenance(env.REPORTS_DB, { now: deps.now(), mode: mode as "monitor" | "cleanup" });
+    const result = await runRetentionMaintenance(env.REPORTS_DB, {
+      now: deps.now(), mode: mode as "monitor" | "cleanup", photoStorage: configuredPhotoStorage(env, deps.now),
+    });
     deps.log(JSON.stringify(result));
     // Failure/unfinished work is visible in Cron invocation status as well as counts-only logs.
     if (result.outcome !== "complete") throw new Error("Report retention maintenance incomplete");

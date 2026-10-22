@@ -1,6 +1,8 @@
 import { type Db, isoSeconds } from "../db.ts";
 import { REPORT_STORE_SCHEMA } from "./evidence-artifact.ts";
 import { applyReportRetention } from "./retention.ts";
+import { PHOTO_ERASURE_LEAD_MS, type EvidencePhotoStorage } from "./photo-storage.ts";
+import { PhotoCleanupError } from "./photos.ts";
 
 export interface RetentionStatus {
   dueReports: number;
@@ -33,7 +35,7 @@ export async function retentionStatus(db: Db, now: Date): Promise<RetentionStatu
         WHERE delete_after <= ? OR lifecycle = 'deleting' OR (lifecycle = 'uploading' AND upload_expires_at <= ?)
       UNION SELECT storage_key FROM community_photo_deletions
     )) AS pendingPhotoCleanup`)
-    .bind(timestamp, timestamp, timestamp, timestamp, timestamp).first<RetentionStatus>();
+    .bind(timestamp, timestamp, timestamp, isoSeconds(new Date(now.getTime()+PHOTO_ERASURE_LEAD_MS)), timestamp).first<RetentionStatus>();
   if (!status || [status.dueReports, status.expiredRateWindows, status.expiredChallenges, status.inconsistentReceipts, status.pendingPhotoCleanup].some((count) => !Number.isSafeInteger(count) || count < 0)) {
     throw new Error("Report retention status unavailable");
   }
@@ -58,10 +60,10 @@ export async function validateReportRetentionStore(db: Db): Promise<void> {
   await retentionStatus(db, new Date(0));
 }
 
-/** One bounded pass stays below the Free plan's 50-query budget, including validation and fresh status. */
+/** Reserve subrequest budget for D1 cleanup plus R2 fences when photo storage is configured. */
 export async function runRetentionMaintenance(
   db: Db,
-  opts: { now: Date; mode: "cleanup" | "monitor" },
+  opts: { now: Date; mode: "cleanup" | "monitor"; photoStorage?: EvidencePhotoStorage },
 ): Promise<RetentionMaintenanceResult> {
   let batches = 0;
   try {
@@ -77,14 +79,15 @@ export async function runRetentionMaintenance(
         batches, remaining: before,
       };
     }
-    // No production photo-storage adapter is configured. Report minimization still proceeds;
-    // queued object deletion remains visible and cannot be reported as successful cleanup.
-    await applyReportRetention(db, { now: opts.now, limit: 10 });
+    // Absent storage never acknowledges photo cleanup; report minimization can still progress.
+    let deletionFailed = false;
+    try { await applyReportRetention(db, { now: opts.now, limit: opts.photoStorage ? 5 : 10, photoStorage: opts.photoStorage }); }
+    catch (error) { if (!(error instanceof PhotoCleanupError)) throw error; deletionFailed = true; }
     batches = 1;
     const remaining = await retentionStatus(db, opts.now);
     return {
       event: "reportRetention", mode: opts.mode,
-      outcome: remaining.inconsistentReceipts > 0 || remaining.pendingPhotoCleanup > 0
+      outcome: deletionFailed || remaining.inconsistentReceipts > 0 || remaining.pendingPhotoCleanup > 0
         ? "failed" : Object.values(remaining).some((count) => count > 0) ? "overdue" : "complete",
       batches, remaining,
     };

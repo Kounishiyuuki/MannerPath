@@ -8,6 +8,11 @@ Local 50k/100k capacity measurements do not establish remote D1 duration or auth
 
 ## Disabled private photo foundation (#147)
 
+P5 adds the private R2 adapter and retention wiring, still disabled. The authoritative storage,
+permanent deletion-fence, retry, backup/version exclusion and activation procedure is
+[PHOTO_STORAGE_OPERATIONS](PHOTO_STORAGE_OPERATIONS.md). No photo bucket, binding or schedule is
+created by that implementation; current terms still cannot enable intake.
+
 No photo R2 bucket, binding, scheduler or deploy is created by this change. `photoEvidenceEnabled`
 remains false and the production attachment route refuses requests. #124 remains unapproved. Do not
 enable intake using current draft consent. ADR-0016 records the future review/activation prerequisites.
@@ -26,13 +31,13 @@ Reasons are `usableEvidence`, `privacyRisk`, `unrelated`, `unsafeContent`, `insu
 Decisions record bounded reviewer/time/reason fields, with no free text; rejection queues deletion.
 Approved-photo counts never change report acceptance, independence or reconciliation/publication gates.
 
-Before any later production intake: implement and verify a private object-storage adapter whose delete
+Before any later production intake: deploy and verify the private object-storage adapter whose delete
 durably fences in-flight/future puts to the same key. A naive R2 `delete` is insufficient: a delayed put
 could recreate an orphan after the cleanup row is removed. Supply enforced object expiry at the report
 deadline, a bounded scheduler and deletion-error alerts; include backup/version retention in the ceiling.
 Wire that storage into every erase/retention workflow and exercise failure/recovery. Review photo consent
 and rights separately, test real-device App Attest transport, and measure decoder CPU/memory on the
-intended Workers plan. There is no production adapter in this foundation. Never publish a photo through
+intended Workers plan. The P5 adapter is implemented but not provisioned or activated. Never publish a photo through
 tiles or treat an ashtray photo as proof of permission to smoke.
 V2/v3 remain available; their whole-file transaction procedure below does not apply to v4 payloads.
 Before a DATA_DB binding cutover, GREEN must pass `/v1/readiness` and remote smoke. An unfinished

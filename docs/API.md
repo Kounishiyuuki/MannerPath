@@ -9,6 +9,12 @@ The shipped Worker answers `503 photoEvidenceDisabled` to `POST /v1/reports/:rep
 before reading its body. No current terms version grants photo consent; #124 remains a publication gate.
 Existing report creation and App Attest contracts are unchanged. No public photo read endpoint exists.
 
+The P5 storage/configuration path remains disabled: there is no approved photo-consent version or
+committed photo bucket binding. Its guard additionally requires a dedicated private store, reviewed
+storage-policy attestation and cleanup configuration. Config and route use the same derivation; no
+environment flag grants consent. Erasure begins 24 hours before the parent's maximum deadline to allow
+retries; photos in that erasure window are unavailable. See [storage operations](PHOTO_STORAGE_OPERATIONS.md).
+
 The constructor-injected technical test path requires App Attest even where local reports allow schema 1.
 It reuses the schema-2 envelope and report-purpose challenge/signing domain described below. Its exact
 signed JSON payload is `{schemaVersion:2,reportId,idempotencyKey,acceptedTermsVersion,mediaType,image}`:

@@ -45,6 +45,7 @@ import { PHOTO_PAYLOAD_MAX_BYTES, PHOTO_SUBMISSION_MAX_BYTES, PhotoPayloadV2, Ph
 import { attachEvidencePhoto, PhotoAttachmentError } from "./reports/photos.ts";
 import { PhotoSanitizationError } from "./reports/photo-sanitizer.ts";
 import type { EvidencePhotoStorage } from "./reports/photo-storage.ts";
+import { photoIntakePolicy, type PhotoBindings } from "./reports/photo-policy.ts";
 import { SPOT_ID } from "./spot-id.ts";
 import { readPublishedSpot } from "./spots/detail.ts";
 import { TILE_SCHEMA_VERSION, TILE_SCHEMA_VERSION_V1, TileManifestV2, tileEtag } from "./tiles/dto.ts";
@@ -54,7 +55,7 @@ import { READ_CACHE_CONTROL } from "./edge-cache.ts";
 import { registrationPolicy, type RegistrationBindings } from "./attest/registration-policy.ts";
 import { challengeBudget } from "./attest/challenge-budget.ts";
 
-export interface Env extends RegistrationBindings {
+export interface Env extends RegistrationBindings, PhotoBindings {
   /** The canonical DATA_DB (tiles, spots, provenance, publication). Swapped by blue/green cutover. */
   DB: Db;
   /** The durable report store (reports, moderation, App Attest, anti-abuse). Never swapped by a cutover (ADR-0014). */
@@ -168,7 +169,7 @@ export interface AppOptions {
   appAttestTrustAnchor?: Uint8Array;
   /** Clock override for tests of expiry. */
   now?: () => Date;
-  /** Technical tests only. The exported Worker has neither storage nor reviewed photo consent. */
+  /** Technical tests only; production policy derives from bindings and the reviewed consent list. */
   photoEvidence?: { storage: EvidencePhotoStorage; enabled: boolean; photoTermsCovered: (version: string) => boolean };
 }
 
@@ -392,11 +393,13 @@ export function createApp(options: AppOptions = {}) {
   app.post("/v1/reports", (c) => withReportStore(c.env, (reports) => report(c.req.raw, c.env, reports)));
 
   app.post("/v1/reports/:reportId/photos", (c) => {
-    if (!options.photoEvidence?.enabled) return problem(503, "photoEvidenceDisabled", "photo intake is not enabled");
-    return withReportStore(c.env, (reports) => photo(c.req.raw, c.req.param("reportId"), c.env, reports));
+    const policy = options.photoEvidence ?? photoIntakePolicy(c.env, clock);
+    if (!policy.enabled || !policy.storage) return problem(503, "photoEvidenceDisabled", "photo intake is not enabled");
+    return withReportStore(c.env, (reports) => photo(c.req.raw, c.req.param("reportId"), c.env, reports,
+      { storage: policy.storage!, photoTermsCovered: policy.photoTermsCovered }));
   });
 
-  async function photo(req: Request, reportId: string, env: Env, reports: Db): Promise<Response> {
+  async function photo(req: Request, reportId: string, env: Env, reports: Db, photoPolicy: { storage: EvidencePhotoStorage; photoTermsCovered: (version: string) => boolean }): Promise<Response> {
     const policy = attestationConfig(env);
     if (policy.kind !== "appAttest") return attestationUnavailable(policy);
     // Read incrementally: a hostile chunked body cannot allocate unbounded memory before rejection.
@@ -447,9 +450,9 @@ export function createApp(options: AppOptions = {}) {
     if (bytes === null) return problem(400, "invalidPhoto", "image: invalid_base64");
     const hash = await submitterHash(attestedSubmitter(material.keyId), policy.submitterPepper);
     try {
-      const accepted = await attachEvidencePhoto(reports, options.photoEvidence!.storage, {
+      const accepted = await attachEvidencePhoto(reports, photoPolicy.storage, {
         ...input.data, bytes, submitterHash: hash,
-      }, { now, enabled: true, photoTermsCovered: options.photoEvidence!.photoTermsCovered,
+      }, { now, enabled: true, photoTermsCovered: photoPolicy.photoTermsCovered,
         guards: [advanceCounterStatement(reports, material.keyId, verified.counter)] });
       return created({ schemaVersion: 2, ...accepted });
     } catch (error) {

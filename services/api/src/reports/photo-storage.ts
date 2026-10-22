@@ -1,4 +1,7 @@
-/** Private sanitized objects only. Implementations must overwrite a key atomically and never expose a public URL. */
+/** Start erasure a day before the parent's maximum 90-day deadline, leaving time for retries. */
+export const PHOTO_ERASURE_LEAD_MS = 24 * 60 * 60_000;
+
+/** Private sanitized objects only. Keys are immutable; identical retries are allowed. Never expose a public URL. */
 export interface EvidencePhotoStorage {
   put(key: string, bytes: Uint8Array, metadata: { mediaType: "image/png"; contentSha256: string; byteLength: number; width: number; height: number }): Promise<void>;
   getMetadata(key: string): Promise<{ byteLength: number; mediaType: string } | null>;
