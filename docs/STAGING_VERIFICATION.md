@@ -1,6 +1,6 @@
 # Staging verification of the security-hardened write path
 
-Scope: report-store migrations 0003 → 0004 → 0005 → 0006 → 0007 → 0008 → 0009, App Attest registration/assertion,
+Scope: report-store migrations 0003 → 0004 → 0005 → 0006 → 0007 → 0008 → 0009 → 0010, App Attest registration/assertion,
 schema v3 ownership/idempotency/atomic budget, revocation, bulk rejection, retention/overdue detection,
 registration pause and challenge limiter. This is readiness for a **separately authorized maintainer run**.
 No remote deploy, migration, Secret registration/change or Cloudflare production operation is performed
@@ -12,7 +12,7 @@ by this work. Production report intake stays disabled. Do not use real personal 
 | --- | --- | --- |
 | Staging config | `required` attestation, `paused` registration, invocation logs off, empty crons; mirrors production behavior | Placeholder D1 IDs: not provisioned/verified here |
 | 0003 recovery | Explicit staging support with typed target confirmation, configured UUID, exact digest, interactive writes outside CI | Import parser/acceptance remains unverified; never infer remote success from local |
-| 0004/0005/0006/0007/0008/0009 | Normal additive migration stream after the 0003 checkpoint; 0007 adds private-photo deletion attempt diagnostics; 0008 adds bounded admin review audit; 0009 adds the new-spot photo publication gate trigger | Apply only after schema/ledger verification and separate authorization |
+| 0004/0005/0006/0007/0008/0009/0010 | Normal additive migration stream after the 0003 checkpoint; 0007 adds private-photo deletion attempt diagnostics; 0008 adds bounded admin review audit; 0009 adds the new-spot photo publication gate trigger; 0010 enforces the early-erasure and deletion-queue fences | Apply only after schema/ledger verification and separate authorization |
 | v3 security flows | Worker route handler + local workerd D1 rehearsal and existing SQLite fault/concurrency suites | Real Apple/device, provider limiter and network E2E not run |
 | Activation | No cap, limiter binding, IDs, Secret or cron added | Blocked on B1–B4 below |
 
@@ -90,14 +90,14 @@ replace or switch REPORTS_DB to recover. Never modify already applied migration 
    exactly 0001–0003. Any partial/mismatched state or transport failure: STOP, investigate read-only; never
    blindly replay. A completed import is not replayed even after a lost response.
 4. Then apply normal 0004 (idempotency/atomic budget), 0005 (key revocation), 0006 (bulk audit),
-   0007 (photo deletion attempts), 0008 (admin review audit), 0009 (new-spot photo gate) in order.
+   0007 (photo deletion attempts), 0008 (admin review audit), 0009 (new-spot photo gate), 0010 (early-erasure fence) in order.
    Verify full ledger, FK checks and tested constraints. The 0003 verifier deliberately refuses the later
    full schema; use the migration ledger and full-stream checks at this point. It must not be called as a
    post-full-stream verifier. See [recovery runbook](../services/api/REPORTS_MIGRATION_RECOVERY.md).
 5. Deploy the Worker only after 0005 for App Attest/report routes. Below it, routes fail closed with
    `503 reportStoreUnavailable`. Bulk rejection needs 0006; retention receipt cleanup needs 0004;
    photo cleanup needs 0007; the optional loopback Admin requires 0008 and fails closed without it.
-   Exporting a new-spot review needs 0009 (code checks the same gate first).
+   Exporting a new-spot review needs 0009 and 0010 (code checks the same gate first).
    This does not authorize remote migration or moderation writes. Photo storage/consent/scheduler remain disabled; see
    [PHOTO_STORAGE_OPERATIONS](PHOTO_STORAGE_OPERATIONS.md).
 
@@ -119,7 +119,7 @@ node --experimental-strip-types --experimental-sqlite --no-warnings --test \
 ```
 
 The new local D1 test creates only its own temporary config/storage, forces `--local` and
-`remoteBindings:false`, rehearses 0001/0002 → exact 0003 import → 0004–0009, checks ledger/FKs and
+`remoteBindings:false`, rehearses 0001/0002 → exact 0003 import → 0004–0010, checks ledger/FKs and
 uses the real workerd D1 binding from the Node-executed Worker route handler. It does **not** run the
 complete deployed Worker/edge stack or Cloudflare remote D1. Generated PKI and low test budgets are
 synthetic and do not authorize staging values. SQL-trigger failure and batch rollback are checked locally.
@@ -158,7 +158,7 @@ reviewed staging resources and a staging-targeted client. Stop at the first unex
 
 1. Confirm account, Worker name, environment and distinct IDs without logging credentials; review B1/B2
    configuration. Stage only 0001/0002 for a new report store, use the guarded 0003 import sequence above,
-   then apply 0004–0009. Complete reviewed canonical promotion separately. Do not copy production data.
+   then apply 0004–0010. Complete reviewed canonical promotion separately. Do not copy production data.
 2. Deploy staging with registration paused, retention off and no App Attest activation Secrets. Readiness
    must be complete and GET-only smoke must say unavailable. Verify no invocation/request-body logging.
 3. A maintainer sets separate staging peppers and actual client App Attest values interactively; validates

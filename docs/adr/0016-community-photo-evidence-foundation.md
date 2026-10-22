@@ -98,7 +98,7 @@ and App Attest. All photos remain private, even approved ones. See
 A new-spot (`missing`) report is received first and its photos follow (`POST /v1/reports/:id/photos`), so an
 accepted report can exist without photos: the app closed, an upload failed or was rejected. Intake order is
 unchanged. Publication is gated instead: a new-spot review is neither proposed nor exported unless every `missing`
-report it rests on has at least one photo that is `ready`, moderator-`approved` and before its `delete_after`
+report it rests on has at least one photo that is `ready`, moderator-`approved` and still viewable: at least 24 h (`PHOTO_ERASURE_LEAD_MS`, when R2 erasure may begin) before its `delete_after` and not queued in `community_photo_deletions`
 (`newSpotPhotoGate`, `src/reports/photos.ts`). Without an exported review there is no evidence artifact, so no
 canonical application, release, tile or promotion bundle can carry the place.
 
@@ -108,14 +108,14 @@ canonical application, release, tile or promotion bundle can carry the place.
 | reservation inside its upload window | `uploading` | held |
 | ready, awaiting the photo moderator | `pending` | held |
 | every remaining photo rejected (deleting) | `rejected` | held; the app may attach another photo until the deadline |
-| abandoned reservation, cleaned-up attempt, or past `delete_after` | `expired` | held |
-| at least one ready, approved, unexpired photo | `approved` | the other review premises decide |
+| abandoned reservation, cleaned-up attempt, or inside the 24 h erasure lead, or queued for deletion | `expired` | held |
+| at least one ready, approved, viewable photo | `approved` | the other review premises decide |
 
 The gate is necessary, never sufficient. It adds no permission to smoke, independence, consent or publication
 right; independence, terms, claims, pin, moderation and #124 still apply, and an approved photo of an ashtray is
 not permission. Existing-spot reports (`exists`, corrections, findings) never need a photo. A held report is
 minimized on its ordinary 90-day clock (ADR-0007) with its photos; nothing is published meanwhile. The check runs
-at proposal and again at export; REPORTS_DB migration 0009 re-checks it inside the export batch, so a direct SQL
+at proposal and again at export; REPORTS_DB migrations 0009 and 0010 (erasure lead + deletion queue, compared with `julianday`) re-check it inside the export batch, so a direct SQL
 export is refused too. Photo retries keep their idempotency; the gate reads only stored state. The artifact, DATA_DB,
 tiles and promotion bundles carry no photo ID, key, hash or count.
 

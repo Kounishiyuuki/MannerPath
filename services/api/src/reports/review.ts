@@ -140,7 +140,7 @@ function assertNewSpot(rows: readonly PremiseRow[], tier: CommunityTier): void {
 
 /**
  * v1.0: a new place is never published on words alone. Every `missing` report a new-spot review rests on needs an
- * approved evidence photo (newSpotPhotoGate). Re-checked at export and by REPORTS_DB migration 0009 in the export batch.
+ * approved evidence photo (newSpotPhotoGate). Re-checked at export and by REPORTS_DB migrations 0009 and 0010 in the export batch.
  */
 async function assertNewSpotPhotos(db: Db, rows: readonly PremiseRow[], now: Date): Promise<void> {
   for (const r of rows) {
