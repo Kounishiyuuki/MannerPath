@@ -104,9 +104,9 @@ test("a photo that stops being usable after the proposal blocks the export, in c
   // The photo is withdrawn (deleting) before export: the code check refuses.
   db.raw.prepare("UPDATE community_evidence_photos SET lifecycle = 'deleting' WHERE photo_id = ?").run(photo);
   await assert.rejects(exportReview(db, reviewId, { now: APPLY }), new RegExp(`report ${a} has no approved evidence photo`));
-  // A direct SQL export (bypassing the code) is refused by migration 0009 inside REPORTS_DB.
+  // A direct SQL export (bypassing the code) is refused inside REPORTS_DB (migrations 0009/0010).
   assert.throws(() => db.raw.prepare("UPDATE report_reviews SET state = 'exported', artifact_sha256 = ?, exported_at = ? WHERE review_id = ?")
-    .run("0".repeat(64), "2026-09-25T03:00:00Z", reviewId), /a new-spot report has no approved evidence photo/);
+    .run("0".repeat(64), "2026-09-25T03:00:00Z", reviewId), /a new-spot report has no (viewable )?approved evidence photo/);
   assert.equal(db.raw.prepare("SELECT state FROM report_reviews WHERE review_id = ?").get(reviewId)?.state, "proposed");
   assert.equal(db.raw.prepare("SELECT count(*) AS n FROM report_moderation WHERE reconciliation_state = 'applied'").get()?.n, 0);
 });

@@ -68,13 +68,22 @@ export async function attachEvidencePhoto(db: Db, storage: EvidencePhotoStorage,
 }
 
 /** Private reviewer signal only. Photo approval never contributes permission or publication rights. */
+/**
+ * A photo stops counting as evidence once its R2 erasure may start (PHOTO_ERASURE_LEAD_MS before delete_after, see
+ * cleanupEvidencePhotos) or once its key is queued for deletion; an operator could no longer view it. julianday()
+ * compares instants, not strings, so stored timestamp spellings cannot widen the window. Bind photoUsableUntil(now).
+ * REPORTS_DB migration 0010 applies the same premise at export.
+ */
+const PHOTO_USABLE = `julianday(p.delete_after) > julianday(?)
+  AND NOT EXISTS (SELECT 1 FROM community_photo_deletions d WHERE d.storage_key = p.storage_key)`;
+const photoUsableUntil = (now: Date) => isoSeconds(new Date(now.getTime() + PHOTO_ERASURE_LEAD_MS));
 export async function photoEvidenceStrength(db: Db, reportId: string, now: Date = new Date()): Promise<{ approvedPhotos: number; permissionToSmoke: false }> {
-  const row = await db.prepare("SELECT count(*) AS n FROM community_evidence_photos WHERE report_id=? AND lifecycle='ready' AND moderation_status='approved' AND delete_after>?").bind(reportId,isoSeconds(now)).first<{n:number}>();
+  const row = await db.prepare(`SELECT count(*) AS n FROM community_evidence_photos p WHERE report_id=? AND lifecycle='ready' AND moderation_status='approved' AND ${PHOTO_USABLE}`).bind(reportId,photoUsableUntil(now)).first<{n:number}>();
   return {approvedPhotos:row?.n ?? 0,permissionToSmoke:false};
 }
 /**
  * v1.0 publication gate for a new-spot (`missing`) report: why it may or may not back a new-spot review. Only a ready,
- * moderator-approved photo inside the report's deadline opens it; every other state holds the report, which then
+ * moderator-approved photo still viewable (outside the erasure lead, not queued for deletion) opens it; every other state holds the report, which then
  * minimizes on the ordinary 90-day clock. Opening the gate is necessary, never sufficient: it adds no permission to
  * smoke, independence or terms rights, and every other review premise still applies.
  *  - approved: at least one such photo.
@@ -84,15 +93,15 @@ export async function photoEvidenceStrength(db: Db, reportId: string, now: Date 
  */
 export type NewSpotPhotoGate = "approved" | "pending" | "uploading" | "rejected" | "expired" | "none";
 export async function newSpotPhotoGate(db: Db, reportId: string, now: Date): Promise<NewSpotPhotoGate> {
-  const at = isoSeconds(now);
+  const at = isoSeconds(now), until = photoUsableUntil(now);
   const row = await db.prepare(`SELECT
-      sum(lifecycle='ready' AND moderation_status='approved' AND delete_after>?) AS approved,
-      sum(lifecycle='ready' AND moderation_status='pending' AND delete_after>?) AS pending,
-      sum(lifecycle='uploading' AND upload_expires_at>? AND delete_after>?) AS uploading,
+      sum(lifecycle='ready' AND moderation_status='approved' AND ${PHOTO_USABLE}) AS approved,
+      sum(lifecycle='ready' AND moderation_status='pending' AND ${PHOTO_USABLE}) AS pending,
+      sum(lifecycle='uploading' AND upload_expires_at>? AND ${PHOTO_USABLE}) AS uploading,
       sum(moderation_status='rejected') AS rejected,
       count(*) AS photos,
       (SELECT count(*) FROM community_photo_requests WHERE report_id=?) AS requests
-    FROM community_evidence_photos WHERE report_id=?`).bind(at, at, at, at, reportId, reportId)
+    FROM community_evidence_photos p WHERE report_id=?`).bind(until, until, at, until, reportId, reportId)
     .first<{ approved: number | null; pending: number | null; uploading: number | null; rejected: number | null; photos: number; requests: number }>();
   if ((row?.approved ?? 0) > 0) return "approved";
   if ((row?.pending ?? 0) > 0) return "pending";

@@ -183,7 +183,7 @@ test("0003 recovery checkpoint rejects later migrations instead of claiming full
     const bytes = importArtifact();
     applyLocal(database, bytes, sha256(bytes));
     verifySnapshot(sqliteSnapshot(database), true);
-    for (const name of ["0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql", "0007_photo_deletion_attempts.sql", "0009_new_spot_photo_gate.sql"]) {
+    for (const name of ["0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql", "0007_photo_deletion_attempts.sql", "0009_new_spot_photo_gate.sql", "0010_new_spot_photo_erasure_window.sql"]) {
       // The normal stream owns these migrations, never the recovery artifact.
       applyMigration(database, readFileSync(new URL(`../migrations-reports/${name}`, import.meta.url), "utf8"));
       database.prepare("INSERT INTO d1_migrations(name) VALUES (?)").run(name);
