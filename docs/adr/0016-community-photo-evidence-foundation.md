@@ -131,6 +131,17 @@ the existing report draft and accepted report ID. Attachment retries do not crea
 photo is written into the durable draft or copied to Watch; no library EXIF coordinate is used. A real
 attested network adapter and approved consent are prerequisites for a future production-enabled flow.
 
+## Amendment: private operator viewing
+
+The optional loopback-only MannerPath Admin supplies P6 viewing without temporary photo files or
+public/signed URLs. `PrivatePhotoReader` is a read-only adapter, separate from the upload storage
+interface: bounded R2 streams are checked against metadata/digest and live retention/deletion fences
+before and after retrieval. Bytes exist only in process/browser memory, with authenticated no-store
+responses. Only live pending/approved ready photos can be previewed. Explicit per-photo review does
+not publish a photo. Existing 90-day deadlines, minimization and deletion work remain unchanged.
+Local synthetic tests do not establish real R2/staging readiness or production approval. Operator
+authentication, startup acknowledgements and limitations are in [local admin operations](../LOCAL_MODERATION_ADMIN.md).
+
 ## Consequences
 
 Pinned, pure JavaScript image codecs add bounded decoding/encoding work to Workers. CPU/memory limits

@@ -1,0 +1,137 @@
+"use strict";
+const labels = {pending:"審査待ち",accepted:"承認済み",needsInfo:"保留中",rejected:"却下",duplicate:"重複",awaitingPublication:"公開待ち",published:"公開済み",notApproved:"未承認",approved:"承認済み",uploaded:"送信済み",ready:"閲覧可能",expired:"期限切れ",deleted:"削除済み",uploading:"アップロード中",reserved:"未完了",failed:"失敗"};
+Object.assign(labels,{
+  artifactExported:"artifact 作成済み・公開未照合",discarded:"公開対象外",
+  unknown:"不明",yes:"対応あり",no:"対応なし",public:"一般利用可",customerOnly:"店舗利用者のみ",facilityOnly:"施設利用者のみ",ticketedUsersOnly:"乗車券・入場券の保有者のみ",
+  indoor:"屋内",outdoor:"屋外",covered:"屋根あり",designatedOutdoorArea:"指定屋外喫煙所",publicSmokingRoom:"公衆喫煙室",facilitySmokingRoom:"施設内喫煙室",ashtray:"灰皿",smokingPermittedVenue:"喫煙可能な店舗・施設",smokingCorner:"喫煙コーナー",tobaccoShopSmokingSpace:"たばこ店の喫煙スペース",
+  municipality:"自治体施設",station:"駅",airport:"空港",commercialBuilding:"商業施設",convenienceStore:"コンビニエンスストア",tobaccoShop:"たばこ店",restaurantOrCafe:"飲食店・カフェ",other:"その他",
+  exists:"存在の確認",missing:"新しい地点の提案",moved:"位置の修正",hoursChanged:"利用時間の修正",tobaccoTypeChanged:"対応たばこの修正",accessChanged:"利用条件の修正",prohibited:"喫煙禁止の報告",typeChanged:"種類の修正",removed:"撤去の報告",notFound:"見つからない",wrongType:"種類の相違",deleting:"削除処理中"
+});
+const reasons = {confirmed:"確認できた",contradictedBySource:"根拠と矛盾",insufficientDetail:"情報不足",duplicateOfExistingReport:"既存投稿と重複",outOfScope:"対象外",abuse:"不適切な投稿",unspecified:"その他（未指定）",usableEvidence:"審査資料として利用可能",privacyRisk:"顔・車両番号などのプライバシーリスク",unrelated:"無関係",unsafeContent:"不適切な写真"};
+const statuses = ["pending","accepted","needsInfo","rejected","duplicate","awaitingPublication","published"];
+let session, status="pending", selected, detail, cursor, busy=false, requestEpoch=0, queueEpoch=0, photoUrls=[], photoTimers=[], sessionTimer, publicationVerified=false;
+const $=id=>document.getElementById(id);
+function el(tag, text, cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(cls)n.className=cls;return n;}
+function human(value){return value===null||value===undefined||value===""?"不明・記載なし":labels[value]||String(value);}
+function time(value){if(!value)return "不明";const d=new Date(value);return Number.isNaN(d.valueOf())?"不明":d.toLocaleString("ja-JP");}
+function message(value){$("message").textContent=value;}
+async function api(path, body){const r=await fetch(path,{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers:body?{"Content-Type":"application/json","X-CSRF-Token":session?.csrfToken||""}:{},...(body?{body:JSON.stringify(body)}:{})});let data;try{data=await r.json();}catch{throw new Error("応答を読み取れませんでした。");}if(!r.ok){if(r.status===401&&session)expireSession();const error=new Error(r.status===409?"別の操作で状態が変わりました。再読み込みして確認してください。":r.status===401?"認証が必要です。再読み込みしてログインしてください。":`操作できませんでした（${data.error||r.status}）。`);error.status=r.status;throw error;}return data;}
+function expireSession(){clearTimeout(sessionTimer);session=undefined;detail=undefined;selected=undefined;requestEpoch++;queueEpoch++;releasePhotos();$("queue").replaceChildren();$("statuses").replaceChildren();$("more").hidden=true;if($("confirm").open)$("confirm").close("cancel");showLogin();}
+function scheduleSessionExpiry(){
+  clearTimeout(sessionTimer);
+  if(!session?.expiresAt)return;
+  const remaining=Date.parse(session.expiresAt)-Date.now();
+  if(!Number.isFinite(remaining)||remaining<=0){expireSession();return;}
+  sessionTimer=setTimeout(scheduleSessionExpiry,Math.min(remaining,2147483647));
+}
+function releasePhotos(){photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];photoTimers.forEach(clearTimeout);photoTimers=[];}
+function actionButton(text, handler, cls){const b=el("button",text,cls);b.type="button";b.disabled=busy||session?.readOnly;b.addEventListener("click",handler);return b;}
+function setBusy(value){busy=value;document.querySelectorAll("[data-write]").forEach(n=>{n.disabled=value||session?.readOnly;});$("reload").disabled=value;$("confirm-save").disabled=value;}
+function picker(keys){const s=el("select");keys.forEach(key=>{const o=el("option",reasons[key]||key);o.value=key;s.append(o);});s.setAttribute("aria-label","審査理由");s.dataset.write="true";s.disabled=session.readOnly;return s;}
+function drawStatuses(counts={}){$("statuses").replaceChildren();statuses.forEach(key=>{const b=el("button",labels[key]);b.type="button";b.setAttribute("aria-pressed",String(status===key));b.append(el("span",key==="published"&&!publicationVerified?"未照合":counts[key]??"—","count"));b.addEventListener("click",()=>{if(busy)return;status=key;loadQueue();});$("statuses").append(b);});}
+async function loadQueue(append=false){
+  const epoch=++queueEpoch;
+  message("読み込み中…");$("more").disabled=true;
+  try{
+    const page=await api(`/api/reports?status=${encodeURIComponent(status)}${append&&cursor?`&cursor=${encodeURIComponent(cursor)}`:""}`);
+    if(epoch!==queueEpoch)return;
+    publicationVerified=page.publicationVerified===true;
+    drawStatuses(page.counts);if(!append)$("queue").replaceChildren();
+    for(const report of page.items){
+      const b=el("button",undefined,"queue-item");b.type="button";b.setAttribute("aria-current",String(selected===report.report_id));
+      b.append(el("small",time(report.received_at)),el("strong",report.claim_host_name||human(report.claim_spot_type)),el("span",human(report.state),"pill"),el("small",report.report_id));
+      b.addEventListener("click",()=>{if(!busy)loadDetail(report.report_id);});$("queue").append(b);
+    }
+    if(!$("queue").children.length)$("queue").append(el("p",status==="published"&&!publicationVerified?"この接続では公開済みを照合できません。artifact export は公開の証明ではありません。":"該当する投稿はありません。","empty"));
+    cursor=page.nextCursor;$("more").hidden=!cursor;message("");
+  }catch(e){if(epoch===queueEpoch)message(e.message);}
+  finally{if(epoch===queueEpoch)$("more").disabled=false;}
+}
+async function loadDetail(id){const epoch=++requestEpoch;selected=id;releasePhotos();$("detail").replaceChildren(el("p","投稿を読み込み中…","empty"));document.querySelectorAll(".queue-item").forEach(n=>n.setAttribute("aria-current",String(n.lastChild?.textContent===id)));try{const result=await api(`/api/reports/${encodeURIComponent(id)}`);if(epoch!==requestEpoch)return;detail=result;renderDetail();}catch(e){if(epoch===requestEpoch){$("detail").replaceChildren(el("p",e.message,"empty"));message(e.message);}}}
+function panel(title,cls=""){const p=el("section",undefined,`panel ${cls}`);p.append(el("h3",title));return p;}
+function externalMapControl(container, schematic, lat, lon){
+  const label=el("label",undefined,"map-consent");
+  const consent=el("input");consent.type="checkbox";
+  label.append(consent,document.createTextNode(" 外部地図に提案位置を送信することを確認しました"));
+  const button=el("button","地図をこの画面で表示");button.type="button";button.disabled=true;
+  consent.addEventListener("change",()=>{button.disabled=!consent.checked;});
+  button.addEventListener("click",()=>{
+    if(!consent.checked)return;
+    const frame=el("iframe");frame.className="map external-map";
+    frame.title="提案位置の地図";frame.referrerPolicy="no-referrer";
+    frame.setAttribute("sandbox","allow-scripts allow-same-origin");
+    const west=Math.max(-180,lon-.006),east=Math.min(180,lon+.006),south=Math.max(-90,lat-.004),north=Math.min(90,lat+.004);
+    const query=new URLSearchParams({bbox:[west,south,east,north].join(","),layer:"mapnik",marker:`${lat},${lon}`});
+    frame.src=`https://www.openstreetmap.org/export/embed.html?${query}`;
+    schematic.replaceWith(frame);button.remove();label.remove();
+  });
+  container.append(label,button);
+}
+function mapPanel(report,duplicates){
+  const p=panel("提案位置と重複候補");
+  const lat=report.proposed_latitude,lon=report.proposed_longitude;
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)){p.append(el("p","提案座標はありません。","muted"));return p;}
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox","0 0 360 240");svg.setAttribute("role","img");svg.setAttribute("aria-label","提案位置を中心とした座標概略図。背景地図ではありません。");svg.classList.add("map");
+  const make=(name,attrs,text)=>{const n=document.createElementNS(svg.namespaceURI,name);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,String(v)));if(text)n.textContent=text;svg.append(n);};
+  for(let x=30;x<=330;x+=50)make("line",{x1:x,y1:25,x2:x,y2:215,stroke:"#d7e3da"});
+  for(let y=40;y<=200;y+=40)make("line",{x1:20,y1:y,x2:340,y2:y,stroke:"#d7e3da"});
+  make("text",{x:170,y:17},"北 ↑");
+  const valid=duplicates.filter(d=>Number.isFinite(d.latitude??d.proposed_latitude)&&Number.isFinite(d.longitude??d.proposed_longitude));
+  const span=Math.max(.004,...valid.map(d=>Math.max(Math.abs((d.latitude??d.proposed_latitude)-lat),Math.abs((d.longitude??d.proposed_longitude)-lon))))*1.2;
+  valid.forEach((d,i)=>{const x=180+((d.longitude??d.proposed_longitude)-lon)/span*135,y=120-((d.latitude??d.proposed_latitude)-lat)/span*85;make("circle",{cx:x,cy:y,r:6,fill:"#c58c40"});make("text",{x:x+8,y:y+4},String(i+1));});
+  make("circle",{cx:180,cy:120,r:9,fill:"#176b58",stroke:"white","stroke-width":3});make("text",{x:193,y:124},"提案位置");
+  p.append(svg,el("p",`緯度 ${lat.toFixed(6)} / 経度 ${lon.toFixed(6)}`,"coords"),el("p","初期表示は座標の概略図です。地図を表示すると位置・IPアドレスが OpenStreetMap に送信されます。","muted"));
+  externalMapControl(p,svg,lat,lon);
+  if(duplicates.length){const list=el("ol");duplicates.forEach(d=>list.append(el("li",`${d.name||d.claim_host_name||d.report_id||d.spot_id||"名称不明"}${d.distanceMeters!==undefined?`（約 ${Math.round(d.distanceMeters)} m）`:""}`)));p.append(list);}
+  else p.append(el("p","重複候補なし、または未照合。重複がないことの証明ではありません。","muted"));
+  return p;
+}
+function renderDetail(){const r=detail.report;const root=$("detail");root.replaceChildren();const head=el("div",undefined,"detail-head");const title=el("div");title.append(el("p",`${human(r.state)} · ${time(r.received_at)}`,"muted"),el("h2",r.claim_host_name||"投稿詳細"),el("p",r.report_id,"code"));head.append(title,el("span",human(detail.publicationState),"pill"));root.append(head);const evidence=el("div",undefined,"evidence");evidence.append(mapPanel(r,detail.duplicates||[]),photosPanel());root.append(evidence);const facts=panel("利用条件・投稿内容");const dl=el("dl");[["投稿種別",r.report_type],["喫煙所の種類",r.claim_spot_type],["詳細分類",r.claim_spot_subtype],["利用条件",r.claim_access_type],["条件の詳細",r.claim_access_detail],["施設種別",r.claim_host_type],["屋内・屋外",r.claim_environment],["紙巻きたばこ",r.claim_supports_paper],["加熱式たばこ",r.claim_supports_heated],["利用時間",r.claim_hours_note],["観察日",r.observed_on]].forEach(([k,v])=>dl.append(el("dt",k),el("dd",human(v))));facts.append(dl,el("h3","投稿者の説明（非公開）"),el("p",r.note||"記載なし","note"));root.append(facts,reviewPanel(),historyPanel());const publication=panel("承認後の掲載フロー","publication");publication.append(el("p","承認だけでは一般公開されません。この画面から公開データへの書き込みはできません。"));const steps=el("ol");["既存 report-queue CLI で review を作成・確認する。","sanitized artifact を export し、ローカルの既存 ingest / resolve / 品質検証を通す。","既存の公開ゲートと運営手順に従い、別の明示操作で promotion する。"].forEach(s=>steps.append(el("li",s)));publication.append(steps,el("p","具体的なコマンド・公開条件は docs/COMMUNITY_LAUNCH_CHECKLIST.md と services/api/scripts/report-queue.ts 冒頭のコマンド説明 を確認してください。写真・投稿者情報・非公開メモは公開 artifact に含めません。","muted"));root.append(publication);}
+function photosPanel(){
+  const p=panel("非公開写真"), photos=detail.photos||[];
+  if(!photos.length){p.append(el("p","写真を確認できません。未送信・失敗・削除のいずれかは、この記録だけでは判別できません。","muted"));return p;}
+  photos.slice(0,3).forEach((photo,i)=>{
+    const card=el("div",undefined,"photo"), header=el("header");
+    const uploadIncomplete=photo.lifecycle==="uploading"&&Date.parse(photo.upload_expires_at)<=Date.now();
+    const lifecycleLabel=photo.lifecycle==="uploading"?(uploadIncomplete?"アップロード未完了（送信期限切れ）":"アップロード中／完了未確認"):human(photo.lifecycle);
+    header.append(el("strong",`写真 ${i+1}`),el("span",`${lifecycleLabel} / ${human(photo.moderation_status)}`,"pill"));card.append(header);
+    const expired=photo.delete_after&&Date.parse(photo.delete_after)<=Date.now();
+    if(photo.previewAvailable&&!expired){const img=el("img");img.alt=`投稿写真 ${i+1}：審査対象`;card.append(img);fetchPhoto(photo.photo_id,img,requestEpoch,photo.delete_after);}
+    else card.append(el("p",expired?"保持期限を過ぎた写真は表示しません。":photo.lifecycle==="uploading"?(uploadIncomplete?"アップロード未完了（送信期限切れ）。保存完了が確認できないため写真を表示できません。":"アップロード中／完了未確認。保存完了後に再読み込みしてください。"):"写真は未送信・処理中・失敗・削除済み、または閲覧対象外です。","muted"));
+    card.append(el("p",`保持期限：${time(photo.delete_after)}`,"muted"));
+    if(photo.previewAvailable&&!expired&&photo.moderation_status==="pending"){
+      const reason=picker(["usableEvidence","privacyRisk","unrelated","unsafeContent","insufficientDetail"]);
+      const privacy=el("input");privacy.type="checkbox";privacy.disabled=session.readOnly;
+      const label=el("label");label.append(privacy,document.createTextNode(" 顔・車両番号などのプライバシーリスクを確認しました。"));
+      card.append(reason,label);
+      const actions=el("div",undefined,"actions");
+      [["写真を承認","approved"],["写真を却下","rejected"]].forEach(([name,state])=>{
+        const b=actionButton(name,()=>{if(state==="approved"&&!privacy.checked){message("写真の承認前にプライバシー確認欄をチェックしてください。");return;}decide(state,reason.value,photo.photo_id,privacy.checked);},state==="rejected"?"danger":"");
+        b.dataset.write="true";actions.append(b);
+      });card.append(actions);
+    }p.append(card);
+  });return p;
+}
+async function fetchPhoto(id,img,epoch,deleteAfter){
+  try{
+    const r=await fetch(`/api/photos/${encodeURIComponent(id)}`,{credentials:"same-origin",cache:"no-store"});if(r.status===401&&session)expireSession();if(!r.ok)throw new Error();
+    const blob=await r.blob();if(epoch!==requestEpoch)return;
+    const remaining=Date.parse(deleteAfter)-Date.now();
+    if(blob.type!=="image/png"||!Number.isFinite(remaining)||remaining<=0)throw new Error();
+    const url=URL.createObjectURL(blob);photoUrls.push(url);img.src=url;
+    const expire=()=>{
+      const left=Date.parse(deleteAfter)-Date.now();
+      if(left>0){photoTimers.push(setTimeout(expire,Math.min(left,2147483647)));return;}
+      URL.revokeObjectURL(url);photoUrls=photoUrls.filter(u=>u!==url);
+      img.replaceWith(el("p","保持期限を過ぎたため写真を非表示にしました。","muted"));
+    };
+    photoTimers.push(setTimeout(expire,Math.min(remaining,2147483647)));
+  }catch{if(epoch===requestEpoch)img.replaceWith(el("p","写真を取得できませんでした。期限・削除状態を再確認してください。","muted"));}
+}
+function reviewPanel(){const p=panel("投稿の審査","review");const reason=picker(["confirmed","insufficientDetail","contradictedBySource","duplicateOfExistingReport","outOfScope","abuse","unspecified"]);p.append(reason);const label=el("label");const check=el("input");check.type="checkbox";check.id="privacy-check";label.append(check,document.createTextNode(" 写真内の顔・ナンバープレート、利用条件・喫煙許可を確認しました。"));p.append(label,el("p","灰皿の存在だけでは喫煙許可の根拠になりません。写真なしの新規投稿を自動承認しません。","muted"));const actions=el("div",undefined,"actions");[["承認","accepted","primary"],["保留","needsInfo",""],["却下","rejected","danger"],["重複として処理","duplicate",""]].forEach(([name,state,cls])=>{const b=actionButton(name,()=>{if(state==="needsInfo"&&reason.value==="confirmed")reason.value="insufficientDetail";decide(state,state==="duplicate"?"duplicateOfExistingReport":reason.value,undefined,check.checked);},cls);b.dataset.write="true";actions.append(b);});p.append(actions);if(session.readOnly)p.append(el("p","現在は読み取り専用です。","muted"));return p;}
+function historyPanel(){const p=panel("審査履歴");const list=el("ol",undefined,"history");for(const h of detail.history||[]){list.append(el("li",`${time(h.decided_at||h.created_at||h.at)} · ${h.photo_id?`写真 ${h.photo_id}`:"投稿"} · ${human(h.state||h.to_state||h.moderation_status)} · ${reasons[h.reason||h.decision_reason]||human(h.reason||h.decision_reason)} · ${h.decided_by||h.actor||"操作者不明"}`));}p.append(list.children.length?list:el("p","審査履歴はありません。","muted"));return p;}
+async function decide(state,reason,photoId,privacyChecked=false){if(busy)return;if(state==="accepted"&&!privacyChecked){message("承認前にプライバシーと喫煙許可の確認欄をチェックしてください。");return;}const payload={reportId:selected,...(photoId?{photoId}:{}),state,reason,expectedVersion:detail.version,operationId:crypto.randomUUID(),privacyChecked};setBusy(true);try{const prepared=await api("/api/confirm",payload);$("confirm-summary").textContent=typeof prepared.summary==="string"?prepared.summary:JSON.stringify(prepared.summary,null,2);$("confirm-save").disabled=false;const dlg=$("confirm");const result=new Promise(resolve=>dlg.addEventListener("close",()=>resolve(dlg.returnValue),{once:true}));dlg.returnValue="cancel";dlg.showModal();if(await result!=="save")return;$("confirm-save").disabled=true;await api("/api/decide",{...payload,confirmationToken:prepared.confirmationToken});await loadQueue();await loadDetail(selected);message("審査結果を保存しました。公開データは変更していません。");}catch(e){message(e.message);}finally{setBusy(false);}}
+async function start(){try{session=await api("/api/session");scheduleSessionExpiry();if(!session)return;$("mode").textContent=`${session.mode} · ${session.readOnly?"読み取り専用":"審査操作可"} · ${session.actor}`;if(session.publicationNotice)$("notice").textContent=session.publicationNotice;await loadQueue();}catch(e){if(e.status===401)showLogin();else message(e.message);}}
+function showLogin(){const p=panel("運営者の確認");const form=el("form");const label=el("label","起動時に設定したパスフレーズ ");const input=el("input");input.type="password";input.autocomplete="off";input.required=true;input.setAttribute("aria-label","管理画面のパスフレーズ");label.append(input);const button=el("button","接続する","primary");button.type="submit";form.append(label,button);form.addEventListener("submit",async e=>{e.preventDefault();const token=input.value;input.value="";button.disabled=true;try{await api("/session",{token});p.remove();await start();}catch{message("認証できませんでした。パスフレーズを確認してください。");}finally{button.disabled=false;}});p.append(form,el("p","パスフレーズは保存しません。この画面はローカル端末専用です。","muted"));$("detail").replaceChildren(p);$("mode").textContent="未認証";}
+$("reload").addEventListener("click",async()=>{if(busy)return;if(!session){await start();return;}await loadQueue();if(selected)await loadDetail(selected);});$("more").addEventListener("click",()=>loadQueue(true));window.addEventListener("pagehide",releasePhotos);window.addEventListener("focus",scheduleSessionExpiry);document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleSessionExpiry();});start();

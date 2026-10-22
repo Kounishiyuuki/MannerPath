@@ -222,6 +222,15 @@ consent remain required; `photoEvidenceEnabled` stays false in the exported Work
 
 The first optimization axis is data partitioning + caching, not adding infrastructure.
 
+### Local moderation operator boundary
+
+`services/api/scripts/report-admin.ts` is an optional loopback-only Node process, not a Worker route.
+Its thin vanilla web UI reuses report moderation states, private photo metadata/deletion fences and
+the existing explicit remote terminal guard. Only the operator's explicitly selected REPORTS_DB/R2
+are remote; canonical duplicate lookup is a read-only local snapshot. Authenticated photo previews
+are transient in memory. Confirmed decisions append bounded audit metadata but never write canonical
+spots, produce artifacts or promote releases. See [local admin operations](LOCAL_MODERATION_ADMIN.md).
+
 Move to PostGIS only if the migration triggers in `TECH_STACK.md` occur.
 
 Promotion v4 carries the ADR-0015 canonical representation unchanged: `tile_snapshots` manifest/head rows

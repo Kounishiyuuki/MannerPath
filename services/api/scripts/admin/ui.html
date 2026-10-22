@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>MannerPath Admin · 投稿審査</title><link rel="stylesheet" href="/ui.css"><script src="/ui.js" defer></script></head>
+<body>
+<header class="top"><div><span class="brand">MannerPath <b>Admin</b></span><span class="tag">非公開・運営者専用</span></div><span id="mode">接続を確認中</span></header>
+<main>
+<div class="intro"><div><p class="eyebrow">COMMUNITY REVIEW</p><h1>投稿を確認する</h1><p>位置・写真・利用条件を確認して、ひとつずつ審査します。</p></div><button id="reload" type="button">再読み込み</button></div>
+<p id="notice" class="notice">承認は公開ではありません。公開には既存のレビュー・品質検証・promotion が必要です。</p>
+<p id="message" role="status" aria-live="polite"></p>
+<nav id="statuses" aria-label="投稿の状態"></nav>
+<div class="workspace"><aside class="queue"><div class="section-title"><h2>投稿一覧</h2><span>新しい順</span></div><div id="queue"></div><button id="more" type="button" hidden>続きを表示</button></aside><section id="detail" class="detail" aria-label="投稿詳細"><div class="empty">一覧から投稿を選択してください。</div></section></div>
+</main>
+<dialog id="confirm" aria-labelledby="confirm-title"><form method="dialog"><p class="eyebrow">操作の確認</p><h2 id="confirm-title">この審査結果を保存しますか？</h2><p id="confirm-summary"></p><p class="muted">審査履歴に操作と日時が残ります。承認しても公開データは変更されません。</p><div class="actions"><button value="cancel">キャンセル</button><button id="confirm-save" class="primary" value="save">確認して保存</button></div></form></dialog>
+<footer>写真はこの画面でのみ閲覧します。画面の保存・第三者への共有は避けてください。</footer>
+</body></html>

@@ -95,9 +95,11 @@ upload, rate limited, large text, VoiceOver, dark mode.
 
 ## 4. Moderation specification
 
-- `reports:moderate` stays the only moderation tool (maintainer terminal, `--remote`).
-- New: `photo-view <reportId>` writes the sanitized derivatives to a local temp directory for viewing and deletes
-  them afterwards; no public URL, no signed URL in logs.
+- `reports:moderate` remains the publication/reconciliation tool (maintainer terminal, `--remote`).
+  The optional [MannerPath Admin](../LOCAL_MODERATION_ADMIN.md) wraps existing moderation states behind
+  an authenticated loopback-only UI and preserves the same explicit remote startup guards.
+- P6 private viewing is provided by bounded, authenticated in-memory photo previews in that UI, not
+  temporary photo files. No public or signed URL is produced; real R2/staging readiness remains a maintainer gate.
 - Report decisions: `accepted` / `needsInfo` (保留) / `rejected` / `duplicate` (existing `ModerationState`).
   Photo decisions: `approved` / `rejected` (existing); pending is the hold state.
 - Review checklist per submission: duplicate candidates (`duplicates`), location precision (exact vs
@@ -145,7 +147,7 @@ Missing (this plan):
 | P3 | Flow order and received/pending state; photo step in form | `ReportModel` tests (photo failure keeps report, no duplicate report), UI test with fixture uploader |
 | P4 | `AttestedEvidencePhotoUploader` (App Attest bound) | client tests against local Worker with injected memory storage |
 | P5 | R2 fenced adapter + expiry + enablement guard (still off in every deployed env) | API tests: fence, expiry, failure recovery, guard refuses without terms coverage |
-| P6 | `reports:moderate photo-view`, review checklist in `OPERATIONS.md` | script tests; no URL/bytes in logs |
+| P6 | local Admin private photo preview and review checklist | local domain/server/photo tests; real R2 E2E still required; no URL/bytes in logs |
 | P7 | Terms photo clause candidate, App Privacy inventory, privacy policy draft | `make contract`; maintainer approval recorded on #124 |
 | P8 | Staging E2E runbook + evidence; device checklist | staging run log, device run record |
 

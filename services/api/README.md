@@ -89,8 +89,10 @@ proposed application, which the existing apply steps turn into a sanitized `user
 currently **blocked** `mannerpath-community-reports` source.
 
 Moderation and retention run against the report store, local by default (`npm run local:reports`);
-remote only via `npm run reports:moderate -- --remote …` from a maintainer's terminal. There is no
-authenticated admin HTTP surface. The full command list is at the top of `scripts/report-queue.ts`.
+remote only through the existing explicit remote guards from a maintainer's terminal. There is no
+public admin HTTP surface. `npm run reports:admin -- --demo` starts the optional loopback-only
+operator UI; see [local admin operations](../../docs/LOCAL_MODERATION_ADMIN.md). The existing CLI
+command list is at the top of `scripts/report-queue.ts`.
 
 ```sh
 npm run local:reports                                         # pending queue (never shows the submitter key)

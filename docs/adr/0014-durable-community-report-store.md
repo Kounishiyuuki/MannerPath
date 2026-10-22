@@ -70,11 +70,24 @@ The Worker uses two D1 databases with separate responsibilities and separate lif
 10. **Blue/green and rollback.** A cutover changes the `DB` binding only. A rollback restores the previous canonical
     database, so **published community state can roll back with its release; raw evidence and moderation history
     never do**. Reports keep arriving during a cutover as long as REPORTS_DB is healthy.
-11. **Moderation location.** REPORTS_DB is the moderation source of truth; raw reports are not exported to a
+11. **Moderation location.** REPORTS_DB is the moderation source of truth; raw reports are not durably exported to a
     moderator's laptop. `npm run local:reports` stays local by default. `npm run reports:moderate -- --remote --env
     <staging|production> --database-id <uuid> [--confirm-production mannerpath-production-reports]` reaches a remote
     report store only with every flag, only from an interactive terminal outside CI, binds only `REPORTS_DB`, checks
     the store identity row first and never falls back. Canonical work always runs on the local pipeline database.
+
+### Amendment: loopback operator review
+
+`reports:admin` is an optional Node operator process, not a deployed Worker/admin API. It binds only
+127.0.0.1 and requires a passphrase session, strict Host/Origin and CSRF checks, validated input and
+explicit short-lived confirmation for writes. Remote startup reuses the interactive-terminal/CI/env/
+database/production guards above, is read-only by default, and needs a separate `--enable-decisions`
+acknowledgement. Its optional private R2 binding is read-only in this tool; the canonical database is
+local and read-only. Raw report/photo inspection is transient RAM/browser display, not a durable export.
+Migration 0008 adds an append-only bounded review audit without private report content. Approval never
+queues/applies/publishes automatically. Artifact export is not evidence of public promotion. Existing
+retention/deletion fences and every sanitized artifact/publication gate remain unchanged. See
+[local admin operations](../LOCAL_MODERATION_ADMIN.md) for the threat boundary and readiness limits.
 
 ## Failure modes
 
