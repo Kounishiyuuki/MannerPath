@@ -1,6 +1,7 @@
 # v1.0 P8 — photo-backed new-place report: E2E verification
 
-Status: synthetic E2E automated (`services/api/test/v1-photo-report-e2e.test.ts`). **No staging or production run has
+Status: synthetic E2E automated (`services/api/test/v1-photo-report-e2e.test.ts`, and for promotion v4
+`services/api/test/v1-photo-report-promotion-v4.test.ts`). **No staging or production run has
 happened.** A synthetic pass proves the code path on local SQLite, the in-process Worker, a memory photo store and a
 synthetic App Attest PKI; it says nothing about deployed bindings, real R2, real Apple attestation or the iPhone.
 
@@ -11,7 +12,7 @@ synthetic App Attest PKI; it says nothing about deployed bindings, real R2, real
 | 1 Intake | attested v3 `missing` report with pin, `spotType`/`hostType`/`environment`/`accessType`; same draft resent → one report; 3 photos (JPEG with EXIF location/device text) → stored PNG without `Exif`/`GPS`/device text; storage failure then retry with the same photo key → one object; identical retry → same photo; 4th photo refused; another device's photo refused | `photo-api`, `photo-sanitizer`, `app-attest-api`, `report-idempotency` tests |
 | 2 Operator | report in the pending queue (no storage keys in it); private photo bytes exist (read from the test store — see gap G1); photo approve/reject; report `needsInfo` / `rejected` / `accepted`; duplicate candidates (`photoGates`, distinct submitters) and discarding the duplicate | `review-queue`, `new-spot-photo-gate` |
 | 3 Gate | none / pending / rejected → refused; approved but no `spotType` → refused; lone report never `communityVerified`; erasure lead (`delete_after − 24 h`) and deletion queue close the gate between proposal and export, in code and by direct SQL | `new-spot-photo-gate`, `new-spot-photo-erasure-window` |
-| 4 Pipeline | review → sealed artifact → DATA_DB import → apply → blocked publish (#124) → **simulated** rights approval → tiles, `analyzeCorpus`, `/v1/spots/:id` → promotion bundle (v3 multi-source) → fresh target. Note, install ID, submitter hash, photo IDs, storage keys and EXIF text are absent from the artifact, every DATA_DB table, tiles, detail and the bundle | `community-publication-readiness`, `coverage-first-multiconfidence`; promotion v4 not exercised here |
+| 4 Pipeline | review → sealed artifact → DATA_DB import → apply → blocked publish (#124) → **simulated** rights approval → tiles, `analyzeCorpus`, `/v1/spots/:id` → promotion bundle (v3 multi-source) → fresh target. Note, install ID, submitter hash, photo IDs, storage keys and EXIF text are absent from the artifact, every DATA_DB table, tiles, detail and the bundle | `community-publication-readiness`, `coverage-first-multiconfidence` |
 
 ## Can one report be listed? (investigation)
 
@@ -50,9 +51,19 @@ report-queue apply <applicationId>        # then the normal publish / quality / 
 - **G2 — no operator path to a report's photo IDs.** `photo-decide` needs a `photoId`, but `photo-summary` returns
   only `{approvedPhotos, permissionToSmoke}` and no CLI command or queue item lists photo IDs. The test reads them
   from SQL. Expected to be covered by #321; otherwise a read-only CLI listing is needed.
-- **G3 — duplicates after queueing.** A queued report cannot be re-moderated as `duplicate` (DB CHECK); the operator
-  discards it from reconciliation instead. Decide duplicates before queueing, or accept `discarded` as the record.
-- **G4 — promotion v4** is not part of this test; it is covered with synthetic photos in `promotion-v4` tests only.
+- **G3 — duplicate policy (decided).** Before queueing, moderate the report `duplicate`
+  (`decide <id> duplicate <reviewer> duplicateOfExistingReport`). After queueing, the DB CHECK refuses `duplicate`, so
+  `queue <id> discarded`; the moderation row keeps its `accepted` decision, decider, reason and time. There is no
+  append-only moderation history on `main` — `report_moderation` holds the current decision only (the admin audit
+  table is #321's 0008).
+- **G4 — promotion v4 (covered).** `v1-photo-report-promotion-v4.test.ts` adds the photo-backed `communityReported`
+  spot to the full reviewed corpus and promotes it with v4: every previously published spot keeps its ID, canonical
+  row and tile entry (in the source and on GREEN, compared with a GREEN promoted before the report); the only new tile
+  entry is the community spot. Without the simulated registry v4 refuses to export the published community spot.
+- **G5 — provenance IDs in promotion (existing design, v3 and v4).** The community `source_releases` and
+  `source_records` rows carry the review ID and evidence report IDs as provenance, so a v4 bundle names them. They
+  are opaque IDs, absent from tiles and spot detail, and the bundle is operator-only; no note, photo, storage key,
+  submitter hash or install ID travels. Decide before #124 whether that provenance may live in production DATA_DB.
 
 ## Staging manual checklist (each step needs separate authorization; nothing here is approved)
 
