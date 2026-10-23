@@ -685,6 +685,7 @@ struct ContentView: View {
         Section {
             if model.searchingDestination {
                 ProgressView("Searching destinations…")
+                    .accessibilityIdentifier("destinationSearchProgress")
                     .controlSize(.small)
                     .font(.footnote)
                     .foregroundStyle(.secondary)

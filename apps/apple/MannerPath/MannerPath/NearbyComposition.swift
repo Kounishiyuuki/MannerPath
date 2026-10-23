@@ -3,6 +3,10 @@ import Foundation
 @MainActor
 enum NearbyComposition {
     static func makeModel() -> NearbyModel {
+        #if DEBUG
+        if let scenario = UserDefaults.standard.string(forKey: "uiTestDestinationSearch"),
+           let model = UITestDestinationSearch.makeModel(scenario: scenario) { return model }
+        #endif
         let store: GRDBTileStore?
         do {
             let support = try FileManager.default.url(

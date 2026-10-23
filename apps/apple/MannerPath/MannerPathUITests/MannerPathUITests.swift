@@ -100,6 +100,30 @@ class MannerPathUITestCase: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: 30), .completed, "No nearby results", file: file, line: line)
     }
 
+    func assertDestinationCandidateAboveKeyboard(_ element: XCUIElement,
+                                                 file: StaticString = #filePath, line: UInt = #line) {
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let keyboard = self.app.keyboards.firstMatch
+            guard keyboard.exists, element.exists, element.isHittable else { return false }
+            return element.frame.height >= 44 && element.frame.minY >= self.destinationSearch.frame.maxY
+                && element.frame.maxY <= keyboard.frame.minY
+        }, object: nil)
+        let result = XCTWaiter().wait(for: [ready], timeout: 15)
+        if result != .completed {
+            screenshot("destination-candidate-layout-failure")
+            let candidateFrame = element.exists ? String(describing: element.frame) : "missing"
+            let keyboard = app.keyboards.firstMatch
+            let keyboardFrame = keyboard.exists ? String(describing: keyboard.frame) : "missing"
+            let tree = XCTAttachment(string: "candidate=\(candidateFrame), field=\(destinationSearch.frame), "
+                + "keyboard=\(keyboardFrame)\n\(app.debugDescription)")
+            tree.name = "destination-candidate-layout-failure-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+        }
+        XCTAssertEqual(result, .completed, "The entire candidate must be visible and tappable above the open keyboard",
+                       file: file, line: line)
+    }
+
     /// After choosing a destination: its Refresh leads the destination list, and the first place row may sit below a
     /// long note at large text sizes (List creates rows only near the visible part), so scroll to it.
     func waitForDestinationResults(file: StaticString = #filePath, line: UInt = #line) {
@@ -542,99 +566,6 @@ final class B_OnlineUITests: MannerPathUITestCase {
         scrollTo(app.buttons["この場所の情報を報告"])
     }
 
-    func testDestinationSuggestionsAppearWhileTyping() {
-        launch()
-        waitForResults()
-        let field = destinationSearch
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
-        field.tap()
-        // No search key: suggestions must come from typing alone, with the keyboard still up.
-        field.typeText("上野駅")
-        let match = app.buttons.matching(identifier: "destinationMatch").firstMatch
-        let failed = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label CONTAINS '目的地を検索できません'")).firstMatch
-        XCTAssertTrue(match.waitForExistence(timeout: 30) || failed.exists, "Typing produced no live search outcome")
-        guard match.exists else { return } // MapKit unavailable here: the failure state is the honest outcome.
-        XCTAssertTrue(app.keyboards.firstMatch.exists, "Suggestions appear while the keyboard is still shown")
-        XCTAssertTrue(match.isHittable, "A suggestion is reachable above the keyboard (large sheet)")
-        XCTAssertFalse(match.label.isEmpty, "VoiceOver reads the suggestion's name")
-        screenshot("11-live-destination")
-        match.tap()
-        waitForDestinationResults()
-    }
-
-    // Device report after #314: "上野" listed only the 上野 area. Typing alone must list several concrete places, one
-    // tap away, above the keyboard. Live MapKit: run where Apple Maps is reachable.
-    func testTypingListsSeveralConcretePlacesAndOneTapSelects() {
-        launch()
-        waitForResults()
-        let field = destinationSearch
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
-        field.tap()
-        field.typeText("上野")
-        let matches = app.buttons.matching(identifier: "destinationMatch")
-        XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 30), "Typing produced no candidate")
-        let several = NSPredicate(format: "count >= 2")
-        expectation(for: several, evaluatedWith: matches)
-        waitForExpectations(timeout: 15)
-        XCTAssertTrue(app.keyboards.firstMatch.exists, "Candidates appear while the keyboard is still shown")
-        screenshot("12-ueno-candidates")
-        let station = matches.matching(NSPredicate(format: "label BEGINSWITH '上野駅'")).firstMatch
-        XCTAssertTrue(station.waitForExistence(timeout: 15), "上野駅 is among the candidates: \(matches.allElementsBoundByIndex.map(\.label))")
-        XCTAssertTrue(station.isHittable, "The candidate is reachable above the keyboard")
-        station.tap()
-        waitForDestinationResults()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '上野駅'")).firstMatch.exists)
-        screenshot("13-ueno-selected")
-    }
-
-    func testCandidatesFollowEachNewQuery() {
-        launch()
-        waitForResults()
-        let field = destinationSearch
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
-        field.tap()
-        let matches = app.buttons.matching(identifier: "destinationMatch")
-        // typeText inserts committed text; it does not drive the IME's marked-text conversion.
-        for query in ["うえの", "東京", "大阪", "金沢"] {
-            if let current = field.value as? String, !current.isEmpty, current != field.placeholderValue {
-                field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
-            }
-            field.typeText(query)
-            let fresh = NSPredicate(format: "count >= 2")
-            expectation(for: fresh, evaluatedWith: matches)
-            waitForExpectations(timeout: 30)
-            let labels = matches.allElementsBoundByIndex.map(\.label)
-            if query != "うえの" {
-                XCTAssertTrue(labels.contains { $0.contains(query) }, "\(query) candidates were not refreshed: \(labels)")
-            }
-            screenshot("14-live-\(query)")
-        }
-    }
-
-    func testDestinationSearchCanBeOperated() {
-        launch()
-        waitForResults()
-        let field = destinationSearch
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
-        XCTAssertEqual(app.textFields.matching(NSPredicate(format: "placeholderValue == 'Appleマップで目的地を検索'")).count, 0,
-                       "The inline destination text field is replaced by the system search field")
-        field.tap()
-        field.typeText("上野駅")
-        // Submit from the keyboard: the keyboard's own search key shares the "検索" label.
-        field.typeText("\n")
-        // MapKit search is live and not deterministic here; accept any of its honest outcomes.
-        let outcome = NSPredicate(format: """
-            label CONTAINS '目的地を検索できません' OR label CONTAINS '目的地を検索中' OR label CONTAINS '上野'
-            """)
-        let anyOutcome = app.descendants(matching: .any).matching(outcome).firstMatch
-        XCTAssertTrue(anyOutcome.waitForExistence(timeout: 20))
-        screenshot("10-destination")
-        XCTAssertTrue(app.navigationBars["近くの場所"].exists)
-        // Several candidates now lead the sheet, so the saved rows sit below them rather than on the first screen.
-        scrollTo(resultRows.firstMatch)
-        XCTAssertTrue(resultRows.firstMatch.exists, "Saved places stay listed during destination search")
-    }
 
     func testDataAndPrivacyFullPage() {
         launch()

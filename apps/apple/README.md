@@ -149,8 +149,56 @@ another active Xcode build and stops only its own tracked Worker. Fixture images
 part of `make apple-validate` because it needs a running local Worker. Run
 `./scripts/run-iphone-ui-tests.sh`: it creates and deletes its own simulator, prepares the local
 data, starts and stops the Worker, and sets location, permission, appearance and text size with
-`simctl`. No signing team or device is needed. The app has no test-only code paths; the tests
-use accessibility labels plus two identifiers (`nearbyMap`, `nearbyResultRow`).
+`simctl`. No signing team or device is needed. Most tests use the normal app; explicitly selected
+DEBUG-only photo/search providers supply synthetic fixtures and are excluded from Release.
+
+### Deterministic destination UI versus live MapKit
+
+`DestinationSearchUITests` runs in the local runner's `destination-search` phase. It injects existing
+`DestinationSearching`/`DestinationCompleting` protocols at the Debug composition boundary, keeping the
+real debounce, generation checks, ranking, SwiftUI list and system keyboard. It needs no Worker/GPS.
+It covers typing `上野` → concrete station/park candidates → one tap (no Search key), progressive area
+then facility responses, query replacement, a single candidate, empty/unavailable responses and the keyboard
+Search key with a full-search fallback after empty completion.
+The entire chosen row must be visible/hittable between the search field and the open keyboard.
+Known fixture names are assertions; a live service's count or XCUI's lazy visible-row count is not.
+
+Use one Xcode workload at a time and a lane-owned Simulator; first check `pgrep -x xcodebuild`.
+For standalone execution (Debug, no MannerPath backend):
+
+```sh
+xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj -scheme MannerPathUITests \
+  -destination 'platform=iOS Simulator,id=<owned-iphone-uuid>' -parallel-testing-enabled NO \
+  MANNERPATH_API_BASE_URL= MANNERPATH_PUBLIC_SITE_URL= \
+  -only-testing:MannerPathUITests/DestinationSearchUITests
+```
+
+Repeat `testOneCandidateIsSelectableWithKeyboardOpen` after setting **only that Simulator's** content size to
+`accessibility-extra-extra-extra-large`, then restore `large`. `simctl ui` requires a booted device:
+boot the owned UUID if shut down, wait with `simctl bootstatus <uuid> -b`, and query
+`simctl ui <uuid> content_size` to verify the setting before testing. If Xcode shuts it down afterward,
+boot that same UUID before restoring; do not count a failed settings command as an accessibility run.
+This checks the visible first candidate,
+not that every candidate fits on one screen. Japanese IME marked-text conversion still needs device testing;
+XCTest `typeText` inserts committed text.
+
+The separate opt-in `NativeSearchSheetUITests/testLiveMapKitTypingAndOneTapSelectionSmoke` uses real
+MapKit, without the Debug provider or a smoking-place backend. Run the same command with only that
+test selected. It waits for a terminal outcome, makes no minimum result-count/specific-station/rank assumption,
+and verifies an actual candidate above the keyboard can be selected in one tap. Empty/unavailable provider
+responses produce an explicit **SKIP**, not a product-requirement PASS; a timeout, clipped candidate or
+broken selection is a failure. Other NativeSearchSheet visual journeys may need published data and are
+not part of this hermetic suite or this smoke. The old `testDestinationSearchCanBeOperated` journey
+(keyboard Search and saved rows retained during search) is preserved in that opt-in class, rather than
+silently deleting its assertions. No live API/capture class is included automatically.
+
+Initial diagnosis of the old `B_OnlineUITests/testTypingListsSeveralConcretePlacesAndOneTapSelects`:
+it coupled a Worker/GPS corpus wait with live `count >= 2`, a specific `上野駅` answer and immediate row
+hittability. Provider cardinality, incremental updates and lazy List generation were indistinguishable.
+Those checks now live in the deterministic class without weakening the concrete-candidate requirement.
+Existing `RouteSearchTests` cover debounce, fallback, late callbacks, query generations and selection.
+No production MapKit algorithm, ranking, candidate cap, debounce or keyboard layout was changed.
+Fixture captures are never store assets; the Release artifact checker rejects the search fixture hook.
 
 ## Report schema v3 client (Lane 4)
 
