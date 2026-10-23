@@ -95,15 +95,21 @@ upload, rate limited, large text, VoiceOver, dark mode.
 
 ## 4. Moderation specification
 
-- `reports:moderate` stays the only moderation tool (maintainer terminal, `--remote`).
-- New: `photo-view <reportId>` writes the sanitized derivatives to a local temp directory for viewing and deletes
-  them afterwards; no public URL, no signed URL in logs.
+- `reports:moderate` remains the publication/reconciliation tool (maintainer terminal, `--remote`).
+  The optional [MannerPath Admin](../LOCAL_MODERATION_ADMIN.md) wraps existing moderation states behind
+  an authenticated loopback-only UI and preserves the same explicit remote startup guards.
+- P6 private viewing is provided by bounded, authenticated in-memory photo previews in that UI, not
+  temporary photo files. No public or signed URL is produced; real R2/staging readiness remains a maintainer gate.
 - Report decisions: `accepted` / `needsInfo` (保留) / `rejected` / `duplicate` (existing `ModerationState`).
   Photo decisions: `approved` / `rejected` (existing); pending is the hold state.
 - Review checklist per submission: duplicate candidates (`duplicates`), location precision (exact vs
   `areaApproximate`, ADR-0017), stated conditions, photo relevance and sensitivity (faces/plates → reject photo).
 - Approved photos only strengthen the reviewer's decision (`photo-summary`); publication still needs the
   existing reconciliation and the community activation gate.
+- Admin displays the viewing/review cutoff (`delete_after - 24h`) separately from the retention ceiling.
+  The PR #322 proposal/export gate is retained, but its current `delete_after` comparison does not yet
+  match early erasure or deletion fences. A separate additive gate fix is required before publication;
+  see [the integration HOLD](../LOCAL_MODERATION_ADMIN.md#pr-322-integration-and-early-erasure-finding).
 
 ## 5. Audit — what exists and what is missing
 
@@ -145,7 +151,7 @@ Missing (this plan):
 | P3 | Flow order and received/pending state; photo step in form | `ReportModel` tests (photo failure keeps report, no duplicate report), UI test with fixture uploader |
 | P4 | `AttestedEvidencePhotoUploader` (App Attest bound) | client tests against local Worker with injected memory storage |
 | P5 | R2 fenced adapter + expiry + enablement guard (still off in every deployed env) | API tests: fence, expiry, failure recovery, guard refuses without terms coverage |
-| P6 | `reports:moderate photo-view`, review checklist in `OPERATIONS.md` | script tests; no URL/bytes in logs |
+| P6 | local Admin private photo preview and review checklist | local domain/server/photo tests; real R2 E2E still required; no URL/bytes in logs |
 | P7 | Terms photo clause candidate, App Privacy inventory, privacy policy draft — candidate in [PHOTO_TERMS_CANDIDATE](../legal/PHOTO_TERMS_CANDIDATE.md), review/decisions in [PHOTO_PRIVACY_REVIEW](../legal/PHOTO_PRIVACY_REVIEW.md) (not approved) | `make contract`; maintainer approval recorded on #124 |
 | P8 | Staging E2E runbook + evidence; device checklist | staging run log, device run record |
 

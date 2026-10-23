@@ -67,7 +67,7 @@ test("migration order: the Worker's report routes fail closed until the store re
   const files = reportMigrationFiles();
   assert.deepEqual(files, ["0001_report_store.sql", "0002_scale_indexes.sql", "0003_evidence_photos.sql",
     "0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql",
-    "0007_photo_deletion_attempts.sql", "0009_new_spot_photo_gate.sql", "0010_new_spot_photo_erasure_window.sql"], "update STAGING_VERIFICATION.md when the stream grows");
+    "0007_photo_deletion_attempts.sql", "0008_admin_review_audit.sql", "0009_new_spot_photo_gate.sql", "0010_new_spot_photo_erasure_window.sql"], "update STAGING_VERIFICATION.md when the stream grows");
   const now = new Date("2026-10-13T03:00:00Z");
   const pki = await testPki(now);
   const app = createApp({ appAttestTrustAnchor: pki.root, now: () => now });

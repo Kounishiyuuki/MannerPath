@@ -543,3 +543,13 @@ App Attest keys and does not resolve Issue #242's full-erase decision.
 
 `docs/OPERATIONS.md` specifies separate activation, heartbeat/overdue alerts, query bounds and
 partial-failure recovery. The new code supplies no production cadence and performs no deployment.
+
+## Amendment: optional loopback review tool
+
+The earlier CLI-only operator boundary now permits `reports:admin`, an authenticated operator-local
+process bound only to 127.0.0.1, not a public or deployed admin API. ADR-0014's loopback amendment and
+[local admin operations](../LOCAL_MODERATION_ADMIN.md) define passphrase/CSRF/Origin/confirmation
+controls and unchanged explicit remote guards. Inspection is transient in memory; no raw report or
+photo export is introduced. Migration 0008 records only append-only bounded decision metadata and
+an opaque request digest, without raw report fields. It cannot reconstruct pre-existing CLI history.
+Retention, minimization, physical deletion and publication gates are not changed or bypassed.

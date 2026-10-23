@@ -88,6 +88,11 @@ The Watch only needs a compact nearby snapshot. A Codable file cache minimizes d
 
 ## Project-file policy
 
+The optional local moderation UI uses the existing Node 24 toolchain, built-in HTTP server and
+vanilla HTML/CSS/JavaScript. It adds no web framework, production service, account system or public
+API. Wrangler's existing explicit remote binding proxy is used only after operator startup guards;
+this does not change the Worker runtime or authorize resource creation/deployment.
+
 Use a normal Xcode project created by Xcode. Prefer modern synchronized source folders so adding Swift files does not require frequent project-file edits. AI agents must not rewrite `project.pbxproj` casually.
 
 Project generators are intentionally not required in v1 because watchOS/Xcode project compatibility is release-critical and the application graph is small.
