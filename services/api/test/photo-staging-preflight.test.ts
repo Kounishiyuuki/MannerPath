@@ -188,6 +188,8 @@ test('specific checks report intended failures rather than relying on other BLOC
   f.config.d1_databases[1].database_id='22222222-2222-4222-8222-222222222222';
   f.config.vars.PHOTO_EVIDENCE='on';
   assert.equal(f.run().checks.find(c=>c.id==='initial-policy')?.status,'BLOCKED');
+  f.config.r2_buckets=[];
+  assert.equal(f.run().checks.find(c=>c.id==='bucket-isolation')?.status,'BLOCKED');
   f.config.vars.PHOTO_EVIDENCE='off';f.config.routes=[{pattern:'staging.production.example.com',custom_domain:true}];
   assert.equal(f.run().checks.find(c=>c.id==='routes-isolation')?.status,'BLOCKED');
 });

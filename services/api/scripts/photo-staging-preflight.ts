@@ -124,7 +124,7 @@ export function photoStagingPreflight(input: { configPath: string; productionOri
       && !p.d1_databases.some(prod => prod.database_id.toLowerCase() === d.database_id.toLowerCase() || prod.database_name === d.database_name))
       && new Set(c.d1_databases.map(d => d.database_id)).size === 2 && new Set(c.d1_databases.map(d => d.database_name)).size === 2,
       'D1 IDs must be non-placeholder, distinct from each other and production; names must identify staging.');
-    check('bucket-isolation', c.r2_buckets.every(b => b.bucket_name.includes('staging') && !p.r2_buckets.some(prod => prod.bucket_name === b.bucket_name)), 'Private bucket must identify staging and differ from all committed production buckets.');
+    check('bucket-isolation', c.r2_buckets.length === 1 && c.r2_buckets.every(b => b.bucket_name.includes('staging') && !p.r2_buckets.some(prod => prod.bucket_name === b.bucket_name)), 'Private bucket must identify staging and differ from all committed production buckets.');
     const origins = input.productionOrigins.map(host);
     const inventoryValid = origins.length > 0 && origins.every(h => h !== undefined);
     check('production-origins', inventoryValid, 'Explicit complete reviewed production HTTPS origin inventory is required; completeness needs operator verification.');
