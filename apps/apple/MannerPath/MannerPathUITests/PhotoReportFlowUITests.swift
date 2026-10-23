@@ -9,11 +9,33 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func openNewPlaceForm(_ scenario: String) {
         launch(extraArguments: ["-uiTestPhotoReport", scenario])
         // The entry copy can differ from the form title; use the shipped map-entry contract.
-        let add = app.buttons["mapReportButton"]
         // Launch reads availability from the stack; a loaded Simulator can take well over 30 s to show the entry.
-        XCTAssertTrue(add.waitForExistence(timeout: 90))
-        add.tap()
+        tapMapEntryWhenSettled()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+    }
+
+    /// The map entry appears as soon as availability loads, which can be while the Nearby sheet is still being
+    /// presented; a tap in that transition can be lost. Tap only once the sheet is up and the button has stopped moving.
+    func tapMapEntryWhenSettled(file: StaticString = #filePath, line: UInt = #line) {
+        let add = app.buttons["mapReportButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 90), file: file, line: line)
+        XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 30), file: file, line: line)
+        waitUntilSettled(add, file: file, line: line)
+        add.tap()
+    }
+
+    /// Waits until the element is enabled, hittable and its frame is unchanged between two reads. A tap that lands
+    /// while a list is still decelerating or a sheet is still animating only stops the motion; nothing is activated.
+    func waitUntilSettled(_ element: XCUIElement, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+        let deadline = Date().addingTimeInterval(timeout)
+        var last = CGRect.null
+        while Date() < deadline {
+            let frame = element.exists ? element.frame : .null
+            if frame == last, element.isEnabled, element.isHittable { return }
+            last = frame
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        XCTFail("\(element) did not settle within \(timeout) s; last frame \(last)", file: file, line: line)
     }
 
     func choosePinAndAgree() {
@@ -24,8 +46,15 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         scrollTo(confirm)
         confirm.tap()
         let agree = app.switches["報告に関する規約に同意する"]
+        // The pin sheet's dismissal reflows the Form; scrolling then leaves it decelerating. Tap the switch only once
+        // it is still, then require the toggle to report ON: every later step depends on consent.
+        XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForNonExistence(timeout: 10))
         scrollTo(agree)
-        agree.switches.firstMatch.exists ? agree.switches.firstMatch.tap() : agree.tap()
+        let control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        waitUntilSettled(control)
+        control.tap()
+        let on = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: agree)
+        XCTAssertEqual(XCTWaiter().wait(for: [on], timeout: 5), .completed, "consent toggle must be ON after one tap")
     }
 
     var submit: XCUIElement { app.buttons["report.submit"] }
@@ -62,8 +91,11 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func addPhotos(_ count: Int) {
         let add = app.buttons["report.photo.addTest"]
         for _ in 0..<count {
-            // Photos precede consent/submit and the growing preview list.
+            // Photos precede consent/submit and the growing preview list. A tap during the scroll's deceleration
+            // only stops it, so tap once the button is still. Previews below the fold are not in the tree, so the
+            // count is checked by the callers' visible outcomes (no fourth add, enabled submit).
             scrollTo(add, upwards: true)
+            waitUntilSettled(add)
             add.tap()
         }
     }
@@ -179,9 +211,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     /// Submits a new place with one photo whose upload never finishes, then terminates the app mid-upload.
     func submitAndTerminateDuringUpload(_ scenario: String = "hang") {
         launchPersistent(scenario, reset: true)
-        let add = app.buttons["mapReportButton"]
-        XCTAssertTrue(add.waitForExistence(timeout: 90))
-        add.tap()
+        tapMapEntryWhenSettled()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         choosePinAndAgree()
         addPhotos(1)
@@ -193,9 +223,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     /// The map entry after a relaunch: with a report still waiting for photos, the form opens on a choice.
     func tapMapEntryAndExpectChoice(file: StaticString = #filePath, line: UInt = #line) {
-        let add = app.buttons["mapReportButton"]
-        XCTAssertTrue(add.waitForExistence(timeout: 90), file: file, line: line)
-        add.tap()
+        tapMapEntryWhenSettled(file: file, line: line)
         XCTAssertTrue(text("前回の報告が残っています").waitForExistence(timeout: 10), file: file, line: line)
         // Form rows below the fold are absent from the accessibility tree until scrolled to (large text sizes).
         scrollTo(app.buttons["report.followUp.resume"], file: file, line: line)
@@ -205,8 +233,16 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     func continuePreviousReport() {
         tapMapEntryAndExpectChoice()
-        app.buttons["report.followUp.resume"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["report-photo-follow-up"].waitForExistence(timeout: 10))
+        resumeFollowUp()
+        scrollTo(app.descendants(matching: .any)["report-photo-follow-up"], upwards: true)
+    }
+
+    /// One tap on "resume" once it is still; the choice must then leave. The follow-up form's rows may be off-screen.
+    func resumeFollowUp() {
+        let resume = app.buttons["report.followUp.resume"]
+        waitUntilSettled(resume)
+        resume.tap()
+        XCTAssertTrue(resume.waitForNonExistence(timeout: 10))
     }
 
     func testRelaunchOffersResumeAndSendsPhotoToTheSameReport() {
@@ -297,9 +333,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     func testUnsavedFollowUpWarnsToKeepTheAppOpen() {
         launchPersistent("unsaved", reset: true)
-        let add = app.buttons["mapReportButton"]
-        XCTAssertTrue(add.waitForExistence(timeout: 90))
-        add.tap()
+        tapMapEntryWhenSettled()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         choosePinAndAgree()
         addPhotos(1)
@@ -323,9 +357,9 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
             XCTAssertFalse(button.label.isEmpty, "\(id) needs a spoken label")
         }
         screenshot("78-photo-resume-choice-xxxl")
-        app.buttons["report.followUp.resume"].tap()
-        // At this size the form keeps its offset, so the explanation sits above the visible rows until scrolled to.
-        XCTAssertTrue(app.buttons["report.photo.endFollowUp"].waitForExistence(timeout: 10))
+        resumeFollowUp()
+        // The choice leaves and the follow-up form takes its place. Depending on the retained offset its rows can sit
+        // above or below the visible area at this size, and off-screen rows are absent from the tree: scroll to them.
         scrollTo(app.descendants(matching: .any)["report-photo-follow-up"], upwards: true)
         // Top to bottom: "end follow-up" sits above the photo section.
         for id in ["report.photo.endFollowUp", "report.photo.addTest"] {

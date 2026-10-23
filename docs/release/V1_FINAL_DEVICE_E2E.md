@@ -117,18 +117,27 @@ reachable by scrolling. Reduce Motion and Reduce Transparency: sheet and map tra
 | 5 | Search P0 rows D1–D5, L1, L2, L5, U1–U3 on the RC (§3.1) | submission | maintainer device run | Build 3 rows never filled; #318 completion changed since |
 | 6 | G1–G3, G5–G8, G10–G12, G19 (store record, privacy, rights, screenshots, data) | submission | Lanes 1/4, maintainer | Unchanged by this run; see [release gate](../V1_APP_STORE_RELEASE_GATE.md) |
 
-No app defect was confirmed in this run; one intermittent UI test failure remains unexplained (§5).
+No app defect was confirmed in this run; the intermittent photo-form UI test failure was traced to the test (§5).
 
 ## 5. Findings of this run
 
-- **Intermittent UI test, `I_PhotoReportFlowUITests/testNewPlaceRequiresPhotosThenSendsReportAndPhotos`
-  (unresolved, cause not proven).** Runner: FAIL at `PhotoReportFlowUITests.swift:16` — after tapping `mapReportButton`
-  the map stayed on screen and the form never opened. Isolated reruns on the owned iPhone 16 Pro simulator: PASS,
-  FAIL (`submit.isEnabled` false right after re-adding the third photo and one scroll drag), PASS, then 5/5 PASS with
-  a new diagnostic. Two different symptoms, both after synthesized taps/drags; consistent with the swallowed-tap
-  instability in matrix §10, but not proven. The test now attaches the consent value, photo count and full tree when
-  submit is unexpectedly disabled, so the next occurrence has a cause. **Device check:** §3.4 step 1 on hardware —
-  submit must be enabled after remove → re-add, and 「喫煙所を報告」 must open the form on the first tap.
+- **Intermittent UI test, `I_PhotoReportFlowUITests/testNewPlaceRequiresPhotosThenSendsReportAndPhotos` — cause
+  found 2026-10-24, test-side.** The `submit.isEnabled` failure was not caused by photo remove/re-add: the
+  `60-photo-required` screenshot of the failed run, taken right after `choosePinAndAgree()`, already shows the consent
+  toggle OFF. The single consent tap landed while the Form was still moving (pin-sheet dismissal reflow, then a drag
+  scroll), which only stops the motion, and the test never checked the toggle. The `:16` failure (form not opening)
+  is the same class: the map entry is tapped as soon as it exists, which can be during the Nearby sheet's launch
+  presentation. Fix (`fix/v1-photo-report-ui-reliability`): tap only after the pin sheet is gone / the Nearby sheet is
+  up and the element's frame is unchanged between two reads, and assert the toggle reads ON. No fixed sleeps, no
+  repeated taps. The same wait now guards the "add test photo" and follow-up "resume" taps (a run with the first fix
+  lost one add tap: `:132` "no fourth photo can be added"). Separately, `testResumeScreenWorksAtLargestTextSizeWithLabels`
+  failed 2/2 on unmodified `main` at `:328`: the resumed form opens at the top at AX5, so `report.photo.endFollowUp`
+  is below the fold and absent from the tree; the test now scrolls to it instead of assuming a retained offset. No app
+  state machine defect found; **device check** §3.4 step 1 still applies.
+- **Still open (simulator, iOS 26.5 runner):** `B_OnlineUITests/testMapPinOpensDetail` ("Spot Detail did not open")
+  fails on unmodified `main` and on the fix branch; `testNativePhotosPickerCancelReturnsToUnchangedForm` failed once in
+  a full runner (system picker still present after Cancel, `:112`) and passed 3/3 in isolation. Neither is touched
+  by this fix.
 - Fresh worktrees need `npm ci` in `services/api` before `run-iphone-ui-tests.sh`; the runner fails with exit 127.
 
 ## 6. Final checklist before TestFlight and App Store
@@ -147,3 +156,19 @@ App Store submission:
       release decision formally changed. Store copy and Review Notes match what actually ships.
 - [ ] G1–G13, G19–G21 per [release gate](../V1_APP_STORE_RELEASE_GATE.md); screenshots from the RC (G10).
 - [ ] Maintainer sign-off. Submission is a maintainer action; no lane submits.
+
+## 7. Non-destructive device connection check (operator)
+
+Read-only checks; never unpair, reset trust, erase, or change signing. State on 2026-10-24
+(`xcrun devicectl list devices --json-output`): iPhone 16 Pro `yk` iOS 26.6.1 `paired / connected / wired`,
+Developer Mode enabled, DDI available. Apple Watch Series 9 watchOS 26.6 `paired / unavailable`, **Developer Mode
+disabled** — the likely reason it is unavailable.
+
+1. Mac: `xcrun devicectl list devices` and `xcrun xctrace list devices`. iPhone must be under `== Devices ==`.
+2. iPhone shows Offline: unlock it, keep it on the screen, connect by cable, answer any "Trust this computer" prompt
+   (answering Trust is fine; do not use Reset Location & Privacy). Reopen Xcode → Window → Devices and Simulators and
+   wait for "Preparing" to finish.
+3. Watch unavailable: on the Watch, Settings → Privacy & Security → Developer Mode → On (Watch restarts and asks to
+   confirm). Keep the Watch unlocked, on the wrist or charger, near the unlocked iPhone with Bluetooth and Wi-Fi on.
+   In Devices and Simulators, select the Watch under the iPhone and wait for it to finish preparing (can take minutes).
+4. Re-run step 1. Record the four states (pairing, tunnel, Developer Mode, DDI) in the device matrix before §3.
