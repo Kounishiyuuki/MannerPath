@@ -1,5 +1,7 @@
 # v1.0 P8 — photo-backed new-place report: E2E verification
 
+[Photo staging preparation and operator runbook](V1_PHOTO_STAGING_RUNBOOK.md) consolidates isolated settings, migration checkpoints, physical-device scenarios and rollback; remote execution still requires separate approval.
+
 Status: synthetic E2E automated (`services/api/test/v1-photo-report-e2e.test.ts`, and for promotion v4
 `services/api/test/v1-photo-report-promotion-v4.test.ts`). **No staging or production run has
 happened.** A synthetic pass proves the code path on local SQLite, the in-process Worker, a memory photo store and a

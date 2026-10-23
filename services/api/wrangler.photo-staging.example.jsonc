@@ -1,0 +1,26 @@
+// PREPARATION ONLY. Never deploy this placeholder template. See docs/release/V1_PHOTO_STAGING_RUNBOOK.md.
+// Copy to the ignored .wrangler/photo-staging/ directory and replace ONLY newly approved staging IDs.
+// No env block, production fallback, raw artifact bucket, routes or public photo endpoint.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mannerpath-api-photo-staging",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+  "vars": {
+    "REPORT_ATTESTATION": "required",
+    "REPORT_REGISTRATION": "paused",
+    "PHOTO_EVIDENCE": "off",
+    "REPORT_RETENTION": "off"
+  },
+  "triggers": { "crons": [] },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "mannerpath-photo-staging", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" },
+    { "binding": "REPORTS_DB", "database_name": "mannerpath-staging-reports", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations-reports" }
+  ],
+  "r2_buckets": [
+    { "binding": "PRIVATE_PHOTOS", "bucket_name": "mannerpath-photo-staging-private" }
+  ]
+}

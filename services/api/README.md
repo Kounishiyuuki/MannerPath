@@ -74,6 +74,8 @@ npm run local:pipeline   # republish so the tiles reflect the new status
 
 Only sources listed in `REVIEWED_SOURCES` can be registered or approved by this code; anything else throws. Approving a new source is a repository change (`docs/SOURCES.md` + that list), reviewed in a PR.
 
+See [photo staging readiness](../../docs/release/V1_PHOTO_STAGING_RUNBOOK.md) for the preparation-only isolated config template and operator approval sequence. `npm run test:photo-staging` runs the focused synthetic rehearsal.
+
 ## User reports (ADR-0007)
 
 P5's private R2 photo adapter and its bounded retention wiring are implemented but remain off.

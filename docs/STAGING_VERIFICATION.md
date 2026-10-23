@@ -1,5 +1,7 @@
 # Staging verification of the security-hardened write path
 
+[Photo staging preparation and operator runbook](release/V1_PHOTO_STAGING_RUNBOOK.md) consolidates isolated settings, migration checkpoints, physical-device scenarios and rollback; remote execution still requires separate approval.
+
 Scope: report-store migrations 0003 → 0004 → 0005 → 0006 → 0007 → 0008 → 0009 → 0010, App Attest registration/assertion,
 schema v3 ownership/idempotency/atomic budget, revocation, bulk rejection, retention/overdue detection,
 registration pause and challenge limiter. This is readiness for a **separately authorized maintainer run**.
