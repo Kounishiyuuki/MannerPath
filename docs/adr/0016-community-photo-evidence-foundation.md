@@ -131,6 +131,17 @@ the existing report draft and accepted report ID. Attachment retries do not crea
 photo is written into the durable draft or copied to Watch; no library EXIF coordinate is used. A real
 attested network adapter and approved consent are prerequisites for a future production-enabled flow.
 
+Interrupted uploads: once a report with photos is accepted, the app writes one protected file
+(`Reports/photo-follow-up.json`: report ID, consent version, estimated upload deadline = `receivedAt` + 89
+days, count of photos the server confirmed). It holds no photo bytes, key, challenge or assertion. After a
+restart the user may choose photos again for that same report, signed by the same App Attest key; the
+report is never resent and no new report can start until the follow-up ends (all sent, server refusal such
+as 410/404/403, the user stops, or the deadline passes). Re-chosen photos get new idempotency keys, so a
+photo whose earlier upload succeeded without an answer may be stored twice, bounded by the attachment limit.
+A saved new-place submission whose answer was lost is retried (same payload and key) only after photos are
+chosen again. If the app ends between the report's acceptance and that file being written, the report
+reference is lost and photos cannot be re-attached from the app.
+
 ## Amendment: private operator viewing
 
 The optional loopback-only MannerPath Admin supplies P6 viewing without temporary photo files or

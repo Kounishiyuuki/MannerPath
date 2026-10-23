@@ -47,6 +47,10 @@ final class ReportModel {
     private var retryAllowedAt: Date?
     private var acceptedCleanupPending = false
     private var recoveredSubmissionAttempt = false
+    private let photoFollowUps: (any ReportPhotoFollowUpStoring)?
+
+    /// A report received earlier (possibly in a previous launch) whose photos are not all on the server yet.
+    private(set) var photoFollowUp: ReportPhotoFollowUp?
 
     private(set) var availability: ReportAvailability = .unknown
     private(set) var draft: ReportDraft?
@@ -58,7 +62,7 @@ final class ReportModel {
         submission == .idempotencyConflict || submission == .idempotencyRetired || submission == .attestationOwnerChanged
     }
     var canRetryAmbiguous: Bool {
-        guard submission == .ambiguous, !recoveredSubmissionAttempt else { return false }
+        guard submission == .ambiguous, !recoveredSubmissionAttempt, !ambiguousRetryNeedsPhotos else { return false }
         if usesIdempotentRetry {
             guard case .available(let limits) = availability else { return false }
             return limits.submissionProtocol == .appAttestV3
@@ -72,6 +76,10 @@ final class ReportModel {
         guard case .available(let limits) = availability else { return false }
         return limits.acceptsPhotoEvidence && photos.accepts(termsVersion: limits.termsVersion)
     }
+
+    /// Photos live only in memory: after a restart, a saved new-place submission is retried only once the user has
+    /// chosen its photos again, so the report is never accepted without photos to follow it.
+    var ambiguousRetryNeedsPhotos: Bool { draft?.type == .missing && photos.photos.isEmpty }
 
     /// A submission is in progress: preparing authorization counts, the draft must not change.
     var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission || photos.busy }
@@ -87,8 +95,10 @@ final class ReportModel {
          authorizer: (any ReportAuthorizing)? = nil,
          consent: (any ReportConsentRemembering)? = nil,
          photoPolicy: PhotoEvidencePolicy = PhotoEvidencePolicy(),
-         photoUploader: (any EvidencePhotoUploading)? = nil) {
+         photoUploader: (any EvidencePhotoUploading)? = nil,
+         photoFollowUps: (any ReportPhotoFollowUpStoring)? = nil) {
         photos = ReportPhotos(policy: photoPolicy, uploader: photoUploader)
+        self.photoFollowUps = photoFollowUps
         self.consent = consent
         self.configClient = configClient
         self.reportClient = reportClient
@@ -131,6 +141,47 @@ final class ReportModel {
             recoveredSubmissionAttempt = true
             submission = .failed(String(localized: "Saved report could not be read safely."))
         }
+        photos.onProgress = { [weak self] in self?.recordPhotoProgress() }
+        // An unreadable record only loses the chance to re-attach photos; it never blocks reporting.
+        if let saved = try? photoFollowUps?.load() {
+            photoFollowUp = saved
+            if saved.isExpired() {
+                // Kept in memory only, to say once that the time ended; nothing is left to send.
+                try? photoFollowUps?.delete()
+            } else {
+                photos.resume(reportID: saved.reportId, acceptedTermsVersion: saved.acceptedTermsVersion,
+                              alreadyUploaded: saved.uploadedCount)
+            }
+        }
+    }
+
+    /// An unexpired earlier report still waits for photos: a new report would discard that chance, so none starts.
+    var hasPendingPhotoFollowUp: Bool { photoFollowUp.map { !$0.isExpired() } ?? false }
+
+    /// Whether an earlier report's photos can still be sent from this device.
+    var canResumePhotos: Bool {
+        guard let photoFollowUp, !photoFollowUp.isExpired() else { return false }
+        return photos.resumed && photos.acceptedReportID == photoFollowUp.reportId && !photos.closedForPhotos
+    }
+
+    /// The user stops adding photos (or the time ran out): the received report stays as it is.
+    func endPhotoFollowUp() {
+        guard !photos.busy else { return }
+        try? photoFollowUps?.delete()
+        photoFollowUp = nil
+        photos.clear()
+    }
+
+    private func recordPhotoProgress() {
+        guard var followUp = photoFollowUp, photos.acceptedReportID == followUp.reportId else { return }
+        if photos.allUploaded || photos.closedForPhotos {
+            try? photoFollowUps?.delete()
+            photoFollowUp = nil
+            return
+        }
+        followUp.uploadedCount = photos.totalUploaded
+        try? photoFollowUps?.save(followUp)
+        photoFollowUp = followUp
     }
 
     /// The protocol comes from /v1/config alone. A deployment that requires App Attest on a device
@@ -149,7 +200,8 @@ final class ReportModel {
     }
 
     func start(type: ReportType, spotId: String?, subjectName: String? = nil) {
-        guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy, draft == nil else { return }
+        guard canStartReport else { return }
+        photoFollowUp = nil
         photos.clear()
         let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId,
                                    subjectName: type == .missing ? nil : subjectName)
@@ -157,11 +209,12 @@ final class ReportModel {
     }
 
     /// Whether a new report can be started right now (one draft at a time, nothing in flight).
-    var canStartReport: Bool { !acceptedCleanupPending && !recoveredSubmissionAttempt && !isBusy && draft == nil }
+    var canStartReport: Bool { !acceptedCleanupPending && !recoveredSubmissionAttempt && !isBusy && draft == nil && !hasPendingPhotoFollowUp }
 
     /// ADR-0013 "add a smoking place": a new-spot draft, optionally with a pin the user already placed on the map.
     func startNewSpot(pin: ReportCoordinate?) {
         guard canStartReport else { return }
+        photoFollowUp = nil
         photos.clear()
         var newDraft = ReportDraft(type: .missing, proposedLocation: pin?.quantized)
         newDraft.claim = ReportClaim()
@@ -172,6 +225,7 @@ final class ReportModel {
     /// the exact version the user agreed to before; otherwise the confirmation sheet asks.
     func startQuickConfirm(spotId: String, subjectName: String?) {
         guard canStartReport else { return }
+        photoFollowUp = nil
         photos.clear()
         var newDraft = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName)
         if case .available(let limits) = availability, let version = limits.termsVersion, consent?.agreedVersion() == version {
@@ -342,6 +396,14 @@ final class ReportModel {
             do { try store.markAcceptedForCleanup() }
             catch { cleanupError = String(localized: "Report was received, but its local draft could not be removed.") }
             retryAcceptedCleanup()
+            if !photos.photos.isEmpty, let version = draft.acceptedTermsVersion, photos.accepts(termsVersion: version) {
+                // Written before the first photo is sent, so a restart mid-upload can still re-attach photos to
+                // this report. Failing to write it only loses that recovery.
+                let followUp = ReportPhotoFollowUp(reportId: accepted.reportId, acceptedTermsVersion: version,
+                                                   receivedAt: accepted.receivedAt)
+                try? photoFollowUps?.save(followUp)
+                photoFollowUp = followUp
+            }
             await photos.attach(to: accepted.reportId, acceptedTermsVersion: draft.acceptedTermsVersion)
         } catch let error as ReportAPIError {
             switch error {
@@ -558,6 +620,7 @@ enum ReportComposition {
                            // storage gates are approved; the uploader shares the report's App Attest key.
                            photoUploader: (client as? ReportAPIClient).flatMap { api in
                                authorizer.map { AttestedEvidencePhotoUploader(baseURL: api.baseURL, authorizer: $0) }
-                           })
+                           },
+                           photoFollowUps: FileReportPhotoFollowUpStore(directory: directory.appending(path: "Reports", directoryHint: .isDirectory)))
     }
 }

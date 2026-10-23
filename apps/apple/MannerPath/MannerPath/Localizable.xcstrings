@@ -4596,7 +4596,15 @@
     "The report terms have changed. Update the app to send photos.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "報告に関する規約が変更されました。写真を送信するには、アプリをアップデートしてください。" } } } },
     "This photo could not be prepared. Choose a JPEG or PNG within the size limit.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この写真を準備できませんでした。サイズ上限内のJPEGまたはPNGを選んでください。" } } } },
     "The selected photo could not be loaded. Try choosing it again.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "選択した写真を読み込めませんでした。もう一度選んでください。" } } } },
-    "Photos for the received report": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "受け付けた報告の写真" } } } }
+    "Photos for the received report": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "受け付けた報告の写真" } } } },
+    "No more photos can be added to this report. The report itself was received.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この報告にはこれ以上写真を追加できません。報告そのものは受け付けられています。" } } } },
+    "This report was received, but not all of its photos were. Photos are not kept on this device, so choose them again to send them to the same report. The report itself will not be sent again.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この報告は受け付けられましたが、写真の一部またはすべてが届いていません。写真は端末に保存されないため、もう一度選ぶと同じ報告に送信できます。報告そのものが再送信されることはありません。" } } } },
+    "Until a photo is received, a new place stays out of review for listing.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真が届くまで、新しい場所は掲載の審査対象になりません。" } } } },
+    "Dismiss": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "閉じる" } } } },
+    "Stop adding photos": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真の追加をやめる" } } } },
+    "Photos are not kept on this device. Choose the photos again to retry this saved submission.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真は端末に保存されていません。保存された送信を再試行するには、写真をもう一度選んでください。" } } } },
+    "Send chosen photos": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "選んだ写真を送信" } } } },
+    "Send photos for your received report": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "受け付け済みの報告に写真を送る" } } } }
   },
   "version": "1.0"
 }

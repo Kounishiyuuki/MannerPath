@@ -180,6 +180,11 @@ struct ReportFormView: View {
                                               newSpotNeedsPhotos || (model.retryAfterSecondsRemaining ?? 0) > 0)
                                     .accessibilityIdentifier("report.submit")
                             }
+                            if isAmbiguous && model.ambiguousRetryNeedsPhotos {
+                                Text("Photos are not kept on this device. Choose the photos again to retry this saved submission.")
+                                    .font(.footnote)
+                                    .accessibilityIdentifier("report-retry-needs-photos")
+                            }
                             if model.canRetryAmbiguous {
                                 Button(model.usesIdempotentRetry ? "Retry saved submission" : "Submit again despite possible duplicate") {
                                     confirmingRetry = true
@@ -195,7 +200,33 @@ struct ReportFormView: View {
                     }
                 }
                 // After acceptance the draft is gone; its photos stay here until every one is sent or given up.
-                if model.draft == nil && model.photos.enabled && !model.photos.photos.isEmpty {
+                // Also shown right after acceptance, so unsent photos never block a new report until a restart; the
+                // explanation is only for a later launch, where the accepted status below is gone.
+                if model.draft == nil, let followUp = model.photoFollowUp {
+                    Section {
+                        if followUp.isExpired() {
+                            Text("The time for adding photos to this report has ended.")
+                        } else if model.photos.closedForPhotos {
+                            Text("No more photos can be added to this report. The report itself was received.")
+                        } else if case .idle = model.submission {
+                            Text("This report was received, but not all of its photos were. Photos are not kept on this device, so choose them again to send them to the same report. The report itself will not be sent again.")
+                            Text("Until a photo is received, a new place stays out of review for listing.")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                        if case .idle = model.submission {
+                            LabeledContent("Report reference", value: followUp.reportId)
+                                .textSelection(.enabled)
+                        }
+                        Button(followUp.isExpired() ? "Dismiss" : "Stop adding photos", role: followUp.isExpired() ? nil : .destructive) {
+                            model.endPhotoFollowUp()
+                            dismiss()
+                        }
+                        .disabled(model.photos.busy)
+                        .accessibilityIdentifier("report.photo.endFollowUp")
+                    }
+                    .accessibilityIdentifier("report-photo-follow-up")
+                }
+                if model.draft == nil && model.photos.enabled && (!model.photos.photos.isEmpty || model.canResumePhotos) {
                     ReportPhotoSection(photos: model.photos)
                 }
                 Section { status }

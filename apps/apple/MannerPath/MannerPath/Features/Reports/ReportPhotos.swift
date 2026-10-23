@@ -36,12 +36,21 @@ final class ReportPhotos {
     private(set) var error: String?
     private(set) var acceptedReportID: String?
     private var consentVersion: String?
+    /// Photos of a received report that the server already held before the app restarted (`resume`).
+    private(set) var previouslyUploaded = 0
+    /// Re-attaching to a report received in an earlier launch: new photos may still be chosen for it.
+    private(set) var resumed = false
+    /// Called after every upload pass so the caller can record progress. Never passed photo bytes.
+    var onProgress: (@MainActor () -> Void)?
     var enabled: Bool { policy.enabled && policy.acceptedTermsVersion != nil && uploader != nil }
     var busy: Bool { photos.contains { $0.state == .uploading } }
-    var remainingSlots: Int { max(0, policy.maxAttachments - photos.count) }
+    var remainingSlots: Int { max(0, policy.maxAttachments - photos.count - previouslyUploaded) }
     /// Every selected photo is held by the server. False for an empty selection: nothing was sent.
     var allUploaded: Bool { !photos.isEmpty && photos.allSatisfy { $0.state == .uploaded } }
     var uploadedCount: Int { photos.filter { $0.state == .uploaded }.count }
+    var totalUploaded: Int { previouslyUploaded + uploadedCount }
+    /// New photos can still be chosen: before submission, or when re-attaching after a restart.
+    var acceptsNewPhotos: Bool { acceptedReportID == nil || resumed }
     /// Photos can be attached to a report recorded under `termsVersion`; `attach` refuses any other consent.
     func accepts(termsVersion: String?) -> Bool { enabled && termsVersion != nil && termsVersion == policy.acceptedTermsVersion }
 
@@ -53,7 +62,7 @@ final class ReportPhotos {
     /// Raw picker data exists only during this call. Nothing is written to the report draft,
     /// filesystem, logs or API; server sanitization is still mandatory.
     func add(_ raw: Data) {
-        guard enabled, !busy, acceptedReportID == nil, photos.count < policy.maxAttachments else { return }
+        guard enabled, !busy, acceptsNewPhotos, remainingSlots > 0 else { return }
         do {
             let jpeg = try Self.normalize(raw)
             photos.append(ReportPhoto(id: UUID(), jpeg: jpeg))
@@ -66,7 +75,11 @@ final class ReportPhotos {
         guard !busy else { return }
         photos.removeAll { $0.id == id && $0.state != .uploaded }
     }
-    func clear() { guard !busy else { return }; photos = []; failures = [:]; acceptedReportID = nil; consentVersion = nil; error = nil }
+    func clear() {
+        guard !busy else { return }
+        photos = []; failures = [:]; acceptedReportID = nil; consentVersion = nil; error = nil
+        previouslyUploaded = 0; resumed = false
+    }
 
     func attach(to reportID: String, acceptedTermsVersion: String?) async {
         guard enabled, acceptedTermsVersion == policy.acceptedTermsVersion, !busy else { return }
@@ -75,10 +88,36 @@ final class ReportPhotos {
         await retry()
     }
 
+    /// After a restart the photos are gone from memory: the user chooses them again for the same report, under the
+    /// same consent version and App Attest key. The new photos get new idempotency keys, so a photo whose earlier
+    /// upload succeeded without an answer can be stored twice; the server's attachment limit still bounds the count.
+    func resume(reportID: String, acceptedTermsVersion: String, alreadyUploaded: Int) {
+        guard enabled, acceptedTermsVersion == policy.acceptedTermsVersion, !busy else { return }
+        photos = []
+        failures = [:]
+        error = nil
+        acceptedReportID = reportID
+        consentVersion = acceptedTermsVersion
+        previouslyUploaded = min(max(0, alreadyUploaded), policy.maxAttachments)
+        resumed = true
+    }
+
+    /// The server will refuse every further photo for this report, so there is nothing left to resume.
+    var closedForPhotos: Bool {
+        failures.values.contains { failure in
+            switch failure {
+            case .expired, .reportNotFound, .unauthorized, .authorizationFailed(retryable: false), .attachmentLimit,
+                 .termsOutdated: true
+            default: false
+            }
+        }
+    }
+
     /// Retries only what can still succeed. Each attempt reuses the photo's UUID as idempotency key, so a
     /// photo the server already holds is answered with the same photo, never stored twice.
     func retry() async {
         guard enabled, !busy, let reportID = acceptedReportID, let consentVersion, let uploader else { return }
+        defer { onProgress?() }
         for index in photos.indices where photos[index].state != .uploaded {
             if let failure = failures[photos[index].id], !failure.isRetryable { continue }
             photos[index].state = .uploading
@@ -207,7 +246,7 @@ struct ReportPhotoSection: View {
                 .font(.footnote)
             Text("The photo's location data is not used. The listed position is only the map pin you chose.")
                 .font(.footnote).foregroundStyle(.secondary)
-            if photos.acceptedReportID == nil && photos.remainingSlots > 0 {
+            if photos.acceptsNewPhotos && photos.remainingSlots > 0 {
                 // Read outside the picker's Sendable label closure.
                 let title = photos.photos.isEmpty ? String(localized: "Choose photos (up to 3)") : String(localized: "Add another photo")
                 PhotosPicker(selection: $selection, maxSelectionCount: photos.remainingSlots,
@@ -236,11 +275,15 @@ struct ReportPhotoSection: View {
                         Label(photos.failureMessage(for: photo.id) ?? "", systemImage: "exclamationmark.triangle")
                             .accessibilityIdentifier("report.photo.failure")
                     }
-                    if photo.state != .uploaded && photos.acceptedReportID == nil {
+                    if photo.state != .uploaded && photos.acceptsNewPhotos {
                         Button("Remove this photo", role: .destructive) { photos.remove(photo.id) }
                             .disabled(photos.busy).accessibilityIdentifier("report.photo.remove")
                     }
                 }
+            }
+            if photos.resumed && photos.photos.contains(where: { $0.state == .selected }) {
+                Button("Send chosen photos") { Task { await photos.retry() } }.disabled(photos.busy)
+                    .accessibilityIdentifier("report.photo.sendResumed")
             }
             if photos.canRetry {
                 Button("Retry unsent photos") { Task { await photos.retry() } }.disabled(photos.busy)

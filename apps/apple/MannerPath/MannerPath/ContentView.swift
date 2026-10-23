@@ -286,7 +286,7 @@ struct ContentView: View {
 
     /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does.
     private func openReportEntry() {
-        if reportModel.canStartReport { startAddingPlace() } else if reportModel.draft != nil { showingReport = true }
+        if reportModel.canStartReport { startAddingPlace() } else if reportModel.draft != nil || reportModel.photoFollowUp != nil { showingReport = true }
     }
 
     /// At `.large` the sheet covers the map button, so the same labelled entry sits in a fixed bar. A bottom-bar
@@ -390,6 +390,10 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
             Text("Review or discard your saved proposal. It stays on this device until submitted or discarded.")
                 .font(.footnote).foregroundStyle(.secondary)
+        } else if reportModel.photoFollowUp != nil {
+            Button("Send photos for your received report") { showingReport = true }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("resumeReportPhotos")
         }
         switch reportModel.availability {
         case .available:
