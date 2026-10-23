@@ -58,7 +58,7 @@ governs. This document does not edit that file.
 
 | ASC data type | Proposal | Linked | Tracking | Purpose | Basis |
 | --- | --- | --- | --- | --- | --- |
-| User Content → Photos or Videos | **Collected** | Linked (conservative; D6) | No | App Functionality | §1 Store/Review; retained up to 90 days |
+| User Content → Photos or Videos | **Collected** | **Linked** (recommended; Not Linked would need the device-key hash removed before storage — [decision pack §3](PHOTO_LEGAL_DECISION_PACK.md)) | No | App Functionality | §1 Store/Review; retained up to 90 days |
 | User Content → Other User Content | Collected (already proposed for report claims/note) | Linked | No | App Functionality | `APP_PRIVACY_INVENTORY.md` |
 | Location → Precise Location | Unchanged by photos: the photo's GPS is removed on device and on the server; the report pin stays as already proposed | — | No | — | §1; `ReportPhotoTests`, `photo-sanitizer.test.ts` |
 | Identifiers → Device ID | Unchanged (App Attest key / submitter hash already proposed) | Linked | No | App Functionality | §2 |
@@ -145,7 +145,7 @@ Nothing below is decided by this document. "Owner" names who must sign off.
 | D3 | APPI: third-party personal data visible in photos — purpose notice, handling of objections, whether a privacy policy statement suffices | **Legal** | Counsel review recommended |
 | D4 | Withdrawal policy (A/B/C in `COMMUNITY_PUBLICATION_DECISION.md` §5). Keep the 90-day automatic deletion as the only promise until ADR-0021 is implemented | Maintainer (+ legal) | Do not promise on-request erase before it exists |
 | D5 | Wording of "deletion" given provider-internal erasure cannot be verified (`PHOTO_STORAGE_OPERATIONS.md`) | **Legal** | Disclose the limit as in candidate §6-2.3 |
-| D6 | App Privacy: Linked vs Not linked for Photos | Maintainer | Linked (conservative), §2–3 |
+| D6 | App Privacy: Linked vs Not linked for Photos | Maintainer | Linked, §2–3; Not Linked is a design change, not a label choice ([decision pack](PHOTO_LEGAL_DECISION_PACK.md) M7) |
 | D7 | Whether to name Cloudflare as storage provider / processor in the policy | Maintainer (+ legal) | Name it (§6) |
 | D8 | Liability limitation wording (consumer contract law) — existing candidate §10 | **Legal** | Counsel review recommended |
 | D9 | Q1: photos required for new places | Maintainer | Required (current implementation) |

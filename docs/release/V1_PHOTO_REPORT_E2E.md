@@ -64,6 +64,8 @@ report-queue apply <applicationId>        # then the normal publish / quality / 
   row and tile entry (in the source and on GREEN, compared with a GREEN promoted before the report); the only new tile
   entry is the community spot. Without the simulated registry v4 refuses to export the published community spot.
 - **G5 — report and review IDs in promotion: investigated, awaiting an operator decision.** Nothing was changed.
+  Privacy evaluation and recommendation (keep plain IDs for v1.0, operator-only access):
+  [decision pack §5](../legal/PHOTO_LEGAL_DECISION_PACK.md), decision M9.
 
   | Where | What | Public? |
   | --- | --- | --- |

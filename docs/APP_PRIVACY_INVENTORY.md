@@ -85,7 +85,9 @@ SDK, no IDFA, no `identifierForVendor`.
    enabled; retained fields and account/provider/export retention remain UNKNOWN ([audit](PRODUCTION_PRIVACY_AUDIT.md)).
 2. **Linked to user?** There is no account, but `installId` hash and App Attest key id let several reports from
    one install be correlated. Whether that counts as "linked to the user's identity" for App Store purposes is a
-   maintainer/legal decision; the conservative answer is "linked" for report-related rows.
+   maintainer/legal decision; the conservative answer is "linked" for report-related rows. For the photos-on build
+   the recommended answers (Photos or Videos: collected, linked, not tracking) and their basis are in
+   [the photo decision pack §3](legal/PHOTO_LEGAL_DECISION_PACK.md).
 3. Report-related rows only apply when the report feature is enabled in the shipped build/deployment
    (`/v1/config` `reports.available`), and App Attest registration must be assessed independently.
    Photos are disabled in the shipping composition regardless of dormant photo code.

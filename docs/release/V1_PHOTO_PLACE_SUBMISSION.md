@@ -37,7 +37,7 @@ Non-goals (unchanged rules):
 | R7 | Privacy care for faces/plates: picker reminder, reviewer rejection reason, no automatic redaction claim | Code + moderation policy |
 | R8 | App Attest required, per-key application limits, edge IP rate-limit rule, bounded photo bytes per key | Code + maintainer (edge rule) |
 | R9 | Terms covering photo processing, rights and publication of derived facts; explicit consent per version | **Maintainer/legal (#124)** |
-| R10 | App Privacy answers and privacy policy updated for photos (User Content → Photos, not linked, not tracking) | **Maintainer** (+ doc PR) |
+| R10 | App Privacy answers and privacy policy updated for photos (User Content → Photos: collected, **linked** — the photo reaches a device-key-derived submitter hash through its report for 90 days — not tracking; [decision pack §3](../legal/PHOTO_LEGAL_DECISION_PACK.md)) | **Maintainer** (+ doc PR) |
 | R11 | Moderator can view private photos, decide approve / hold / reject for report and photos, review duplicates, location precision and conditions | Code |
 | R12 | Approved facts only go through existing activation, quality and promotion gates (`COMMUNITY_LAUNCH_CHECKLIST.md`) | Existing process |
 | R13 | E2E: intake → moderation → export/import → pipeline → promotion → tile, on staging | Code + maintainer (staging) |
