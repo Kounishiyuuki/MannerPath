@@ -12,6 +12,12 @@ cd "$(dirname "$0")/.."
 
 project=apps/apple/MannerPath/MannerPath.xcodeproj
 bundle_id=com.kounishiyuuki.MannerPath
+ui_port="${MANNERPATH_UI_PORT:-8787}"
+if [[ ! "$ui_port" =~ ^[0-9]{4,5}$ ]] || (( 10#$ui_port < 1024 || 10#$ui_port > 65535 )); then
+  echo "MANNERPATH_UI_PORT must be an unprivileged local TCP port" >&2
+  exit 2
+fi
+ui_origin="http://127.0.0.1:$ui_port"
 results="${MANNERPATH_UI_RESULTS:-$(mktemp -d -t mannerpath-ui)}"
 derived="$results/DerivedData"
 worker_log="$results/worker.log"
@@ -48,9 +54,13 @@ bounded() {
 
 # A concurrent xcodebuild test run starves this one: queries time out and fixture results arrive late, which
 # reads as app failures (first-launch, report draft, data/privacy in the v1 RC run). Refuse instead of reporting them.
-if other=$(pgrep -fl 'xcodebuild.* test' 2>/dev/null); then
+if other=$(pgrep -x xcodebuild 2>/dev/null); then
   echo "Another xcodebuild test run is active; wait for it to finish (it is not stopped here):" >&2
   echo "$other" >&2
+  exit 3
+fi
+if lsof -nP -iTCP:"$ui_port" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "UI-test port is already in use; leave its owner running and select MANNERPATH_UI_PORT" >&2
   exit 3
 fi
 
@@ -67,10 +77,10 @@ xcrun simctl spawn "$sim" defaults write -g AppleLocale ja_JP
 xcrun simctl location "$sim" set 35.7118,139.7775
 
 start_worker() {
-  (cd services/api && npm run --silent dev -- "$@" >>"$worker_log" 2>&1) &
+  (cd services/api && npm run --silent dev -- --port "$ui_port" "$@" >>"$worker_log" 2>&1) &
   worker_pid=$!
   for _ in $(seq 60); do
-    curl -fsS http://127.0.0.1:8787/v1/config >/dev/null 2>&1 && return 0
+    curl -fsS "$ui_origin/v1/config" >/dev/null 2>&1 && return 0
     sleep 1
   done
   echo "Local Worker did not start; see $worker_log" >&2
@@ -79,7 +89,6 @@ start_worker() {
 
 stop_worker() {
   [[ -n "$worker_pid" ]] && kill_tree "$worker_pid"
-  pkill -f "wrangler dev --local" 2>/dev/null || true
   worker_pid=""
   sleep 2
 }
@@ -94,7 +103,7 @@ bounded 300 "Local data setup" setup_data >"$results/setup.log" 2>&1 </dev/null
 bounded 1200 "build-for-testing" xcodebuild build-for-testing -quiet \
   -project "$project" -scheme MannerPathUITests \
   -destination "id=$sim" -derivedDataPath "$derived" \
-  MANNERPATH_API_BASE_URL=http://127.0.0.1:8787
+  MANNERPATH_API_BASE_URL="$ui_origin"
 
 app_path=$(find "$derived/Build/Products" -maxdepth 2 -name MannerPath.app -path "*iphonesimulator*" | head -1)
 
@@ -168,7 +177,7 @@ done
 (cd services/api && node --experimental-strip-types --experimental-sqlite --no-warnings \
   scripts/local-ui-fixture.ts "${fixture_db#services/api/}") >>"$results/setup.log" 2>&1
 start_worker --persist-to .wrangler/state.ui-fixture
-if ! curl -fsS http://127.0.0.1:8787/v1/tiles/14/14553/6449 | grep -q '"locationPrecision":"areaApproximate"'; then
+if ! curl -fsS "$ui_origin/v1/tiles/14/14553/6449" | grep -q '"locationPrecision":"areaApproximate"'; then
   echo "Fixture Worker does not serve the areaApproximate fixture spot; see $results/setup.log" >&2
   exit 1
 fi

@@ -159,8 +159,9 @@ PUBLIC_KEYS = {"MannerPathAPIBaseURL", "MannerPathPublicSiteURL", "CFBundleIdent
 # Any URL embedded in a plist string, not only whole-value URLs.
 URL_IN_TEXT = re.compile(r"(?i)\b[a-z][a-z0-9+.-]*://[^\s\"'<>]*")
 WEB_SCHEMES = {"http", "https", "ws", "wss", "ftp"}
-# Present only in #if DEBUG UI-test hooks (WatchNearbyModel / MannerPathWatchApp); a Release binary must not carry them.
-DEBUG_MARKERS = (b"--mannerpath-watch-ui-test", b"MANNERPATH_WATCH_UI_TEST")
+# Present only in #if DEBUG Watch/photo UI-test hooks; a Release binary must not carry them.
+DEBUG_MARKERS = (b"--mannerpath-watch-ui-test", b"MANNERPATH_WATCH_UI_TEST",
+                 b"uiTestPhotoReport", b"report.photo.addTest")
 LOCATION_ALWAYS = ("NSLocationAlwaysUsageDescription", "NSLocationAlwaysAndWhenInUseUsageDescription")
 PROJECT = ROOT / "apps/apple/MannerPath/MannerPath.xcodeproj/project.pbxproj"
 
