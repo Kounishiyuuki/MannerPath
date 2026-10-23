@@ -140,6 +140,11 @@ entitlement before device distribution.
 
 ## iPhone UI tests
 
+Final-RC evidence, dedicated-lane test execution, device records and screenshot capture are tracked in
+[`V1_APPLE_RELEASE_READINESS`](../../docs/release/V1_APPLE_RELEASE_READINESS.md).
+Use `MANNERPATH_UI_PORT` to select a free local UI-fixture port; the runner refuses an occupied port or
+another active Xcode build and stops only its own tracked Worker. Fixture images are never store assets.
+
 `MannerPathUITests` (scheme `MannerPathUITests`) drives the real app with XCUITest. It is not
 part of `make apple-validate` because it needs a running local Worker. Run
 `./scripts/run-iphone-ui-tests.sh`: it creates and deletes its own simulator, prepares the local

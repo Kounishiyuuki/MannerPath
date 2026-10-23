@@ -152,7 +152,7 @@ Missing (this plan):
 | P4 | `AttestedEvidencePhotoUploader` (App Attest bound) | client tests against local Worker with injected memory storage |
 | P5 | R2 fenced adapter + expiry + enablement guard (still off in every deployed env) | API tests: fence, expiry, failure recovery, guard refuses without terms coverage |
 | P6 | local Admin private photo preview and review checklist | local domain/server/photo tests; real R2 E2E still required; no URL/bytes in logs |
-| P7 | Terms photo clause candidate, App Privacy inventory, privacy policy draft | `make contract`; maintainer approval recorded on #124 |
+| P7 | Terms photo clause candidate, App Privacy inventory, privacy policy draft — candidate in [PHOTO_TERMS_CANDIDATE](../legal/PHOTO_TERMS_CANDIDATE.md), review/decisions in [PHOTO_PRIVACY_REVIEW](../legal/PHOTO_PRIVACY_REVIEW.md) (not approved) | `make contract`; maintainer approval recorded on #124 |
 | P8 | Staging E2E runbook + evidence; device checklist | staging run log, device run record |
 
 Activation (switching production on) is **not** one of these PRs; it follows `COMMUNITY_LAUNCH_CHECKLIST.md` and is

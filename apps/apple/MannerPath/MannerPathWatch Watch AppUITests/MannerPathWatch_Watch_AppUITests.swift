@@ -63,9 +63,13 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
         XCTAssertFalse(app.buttons["watch-spot-fourth"].exists)
         attach(app, named: "watch-nearby-current-location")
 
-        app.swipeUp()
-        XCTAssertTrue(app.buttons["watch-spot-third"].exists)
-        XCTAssertTrue(app.buttons["watch-quick-filters"].exists)
+        // List rows are lazy; a single swipe need not materialize the third, multi-line result.
+        let third = app.buttons["watch-spot-third"]
+        scrollUntilHittable(third, in: app)
+        XCTAssertTrue(third.exists)
+        let quickFilters = app.buttons["watch-quick-filters"]
+        scrollUntilHittable(quickFilters, in: app)
+        XCTAssertTrue(quickFilters.exists)
         XCTAssertFalse(app.buttons["watch-spot-fourth"].exists)
         attach(app, named: "watch-nearby-last-action")
     }
@@ -134,13 +138,16 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
 
         app.navigationBars.buttons.firstMatch.tap()
         let noResults = app.staticTexts["No saved places match these filters."]
-        XCTAssertTrue(noResults.waitForExistence(timeout: 5))
+        // Returning from the scrolled filter form can preserve an off-screen List position.
         scrollUntilHittable(noResults, in: app, direction: .down)
+        XCTAssertTrue(noResults.waitForExistence(timeout: 5))
         attach(app, named: "watch-filters-no-results")
         let clear = app.buttons["watch-clear-empty-filters"]
         scrollUntilHittable(clear, in: app)
         clear.tap()
-        XCTAssertTrue(app.buttons["watch-spot-first"].waitForExistence(timeout: 5))
+        let first = app.buttons["watch-spot-first"]
+        scrollUntilHittable(first, in: app, direction: .down)
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
         attach(app, named: "watch-filters-cleared")
     }
 

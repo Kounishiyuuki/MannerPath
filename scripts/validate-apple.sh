@@ -9,6 +9,8 @@
 #      Watch app as shipped (Debug run configuration, with its embedded Watch widget extension) builds, independent
 #      of what the test action happens to build.
 # Override the simulators with MANNERPATH_IOS_DESTINATION / MANNERPATH_WATCH_DESTINATION.
+# Keep each test destination serial: extra Xcode Simulator clones compete with other lanes and make
+# app-install stalls harder to distinguish from a test failure. Swift test logic is unchanged.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -25,13 +27,15 @@ echo "==> iOS tests (${ios_destination})"
 xcodebuild test \
   -project "$project" \
   -scheme "MannerPath" \
-  -destination "$ios_destination"
+  -destination "$ios_destination" \
+  -parallel-testing-enabled NO
 
 echo "==> watchOS unit tests (${watch_destination})"
 xcodebuild test \
   -project "$project" \
   -scheme "MannerPathWatch Watch App" \
   -destination "$watch_destination" \
+  -parallel-testing-enabled NO \
   -only-testing:"MannerPathWatch Watch AppTests"
 
 echo "==> watchOS build (${watch_destination})"
