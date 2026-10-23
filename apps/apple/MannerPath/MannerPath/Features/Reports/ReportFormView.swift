@@ -7,18 +7,25 @@ struct ReportFormView: View {
     let visualCenter: SpotCoordinate?
     /// Places already on the map near the user, for "is it one of these?" before adding a new one (ADR-0013).
     var nearbySpots: [Spot] = []
+    /// Opened from a new-report entry while an earlier report still waits for photos: ask before anything changes.
+    var opensWithFollowUpChoice = false
 
     @State private var observedDate = Date()
     @State private var hasObservedDate = false
     @State private var choosingPin = false
     @State private var confirmingRetry = false
     @State private var showingTerms = false
+    @State private var followUpChoiceMade = false
+    @State private var confirmingNewReport = false
 
     private var isMissing: Bool { model.draft?.type == .missing }
 
     var body: some View {
         NavigationStack {
             Form {
+                if choosingFollowUp, let followUp = model.photoFollowUp {
+                    followUpChoice(followUp)
+                }
                 Section {
                     Text("This is a proposal for review. Submitting it does not immediately change the listing.")
                     // Said first, not only beside the hidden submit button: nothing here can be submitted right now.
@@ -180,6 +187,11 @@ struct ReportFormView: View {
                                               newSpotNeedsPhotos || (model.retryAfterSecondsRemaining ?? 0) > 0)
                                     .accessibilityIdentifier("report.submit")
                             }
+                            if isAmbiguous && model.ambiguousRetryNeedsPhotos {
+                                Text("Photos are not kept on this device. Choose the photos again to retry this saved submission.")
+                                    .font(.footnote)
+                                    .accessibilityIdentifier("report-retry-needs-photos")
+                            }
                             if model.canRetryAmbiguous {
                                 Button(model.usesIdempotentRetry ? "Retry saved submission" : "Submit again despite possible duplicate") {
                                     confirmingRetry = true
@@ -195,7 +207,52 @@ struct ReportFormView: View {
                     }
                 }
                 // After acceptance the draft is gone; its photos stay here until every one is sent or given up.
-                if model.draft == nil && model.photos.enabled && !model.photos.photos.isEmpty {
+                // Also shown right after acceptance, so unsent photos never block a new report until a restart; the
+                // explanation is only for a later launch, where the accepted status below is gone.
+                if model.draft == nil, !choosingFollowUp, let followUp = model.photoFollowUp {
+                    Section("Received report") {
+                        if followUp.isExpired() {
+                            Text("The time for adding photos to this report has ended.")
+                                .accessibilityIdentifier("report-photo-follow-up-expired")
+                        } else if model.photos.closedForPhotos {
+                            Text("No more photos can be added to this report. The report itself was received.")
+                        } else {
+                            if case .idle = model.submission {
+                                Text("This report was received, but not all of its photos were. Photos are not kept on this device, so choose them again to send them to the same report. The report itself will not be sent again.")
+                                    .accessibilityIdentifier("report-photo-follow-up")
+                                Text("Until a photo is received, a new place stays out of review for listing.")
+                                    .font(.footnote).foregroundStyle(.secondary)
+                                // A photo whose answer was lost may already be on the server; only confirmed ones count here.
+                                LabeledContent("Photos confirmed as received", value: "\(model.photos.totalUploaded) / \(model.photos.maxAttachments)")
+                                Text("A photo sent just before the app closed may already have been received without being confirmed here. It counts toward the limit of 3.")
+                                    .font(.footnote).foregroundStyle(.secondary)
+                            }
+                            if photoIntakePaused {
+                                Label("Photo intake is paused. This report keeps waiting for photos; try again later.", systemImage: "pause.circle")
+                                    // One element: icon and text are read together and found by one identifier.
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityIdentifier("report-photo-intake-paused")
+                            }
+                            if model.photoFollowUpNotSaved {
+                                Label("This report could not be saved for adding photos later. Keep the app open until the photos are sent; if it closes, they cannot be added to this report.", systemImage: "exclamationmark.triangle")
+                                    // One element: icon and text are read together and found by one identifier.
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityIdentifier("report-photo-follow-up-not-saved")
+                            }
+                        }
+                        if case .idle = model.submission {
+                            LabeledContent("Report reference", value: followUp.reportId)
+                                .textSelection(.enabled)
+                        }
+                        Button(followUp.isExpired() ? "Dismiss" : "Stop adding photos", role: followUp.isExpired() ? nil : .destructive) {
+                            model.endPhotoFollowUp()
+                            dismiss()
+                        }
+                        .disabled(model.photos.busy)
+                        .accessibilityIdentifier("report.photo.endFollowUp")
+                    }
+                }
+                if model.draft == nil, !choosingFollowUp, model.photos.enabled, !model.photos.photos.isEmpty || model.canResumePhotos {
                     ReportPhotoSection(photos: model.photos)
                 }
                 Section { status }
@@ -241,6 +298,45 @@ struct ReportFormView: View {
     }
 
     private var isSubmitting: Bool { model.isBusy }
+
+    private var choosingFollowUp: Bool {
+        opensWithFollowUpChoice && !followUpChoiceMade && model.draft == nil && model.hasPendingPhotoFollowUp
+    }
+
+    /// Nothing changes until the user picks; closing the form keeps the follow-up. Ending it never deletes the
+    /// received report, only the chance to add photos to it.
+    private func followUpChoice(_ followUp: ReportPhotoFollowUp) -> some View {
+        Section {
+            Text("A previous report is still here")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("report.followUp.choiceTitle")
+            Text("It was received, but not all of its photos have been confirmed. Choose what to do next.")
+            LabeledContent("Report reference", value: followUp.reportId)
+            if confirmingNewReport {
+                Text("Adding photos to the previous report will end. The previous report itself stays received and is not deleted.")
+                    .accessibilityIdentifier("report.followUp.newReportNotice")
+                Button("End adding photos and report a new place", role: .destructive) {
+                    model.endPhotoFollowUp()
+                    model.startNewSpot(pin: nil)
+                }
+                .disabled(model.photos.busy)
+                .accessibilityIdentifier("report.followUp.confirmNewReport")
+                Button("Back") { confirmingNewReport = false }
+                    .accessibilityIdentifier("report.followUp.back")
+            } else {
+                Button("Add photos to the previous report") { followUpChoiceMade = true }
+                    .accessibilityIdentifier("report.followUp.resume")
+                Button("Report a new smoking place") { confirmingNewReport = true }
+                    .accessibilityIdentifier("report.followUp.newReport")
+            }
+        }
+    }
+
+    private var photoIntakePaused: Bool {
+        if case .available(let limits) = model.availability { return !limits.acceptsPhotoEvidence }
+        return false
+    }
 
     private var newSpotNeedsPhotos: Bool { isMissing && (!model.acceptsNewSpotProposals || model.photos.photos.isEmpty) }
 
@@ -297,7 +393,7 @@ struct ReportFormView: View {
                     Text("The report was received. Sending photos…")
                 } else {
                     let unsent = model.photos.photos.count - model.photos.uploadedCount
-                    Text("The report was received, but \(unsent) of \(model.photos.photos.count) photos have not been sent. The report will not be sent again.")
+                    Text("The report was received, but \(unsent) of \(model.photos.photos.count) photos are not confirmed as received. The report will not be sent again.")
                         .accessibilityIdentifier("report-photos-unsent")
                 }
                 LabeledContent("Report reference", value: receipt.reportId)

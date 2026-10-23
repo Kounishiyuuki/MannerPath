@@ -159,7 +159,7 @@ struct ReportPhotoFormFlowTests {
         let failed = model.photos.photos.filter { $0.state == .failed }
         #expect(failed.count == 2)
         #expect(model.photos.failureMessage(for: failed[0].id)
-                == String(localized: "The photo could not be sent because of a connection problem. You can retry it."))
+                == String(localized: "Receipt of this photo could not be confirmed because of a connection problem. Retrying is safe: the same photo is not stored twice."))
         await model.submit()
         await model.photos.retry()
         #expect(model.photos.allUploaded)
