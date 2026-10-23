@@ -1,5 +1,17 @@
 # App Store Connect entry sheet — MannerPath v1.0
 
+**2026-10-24 final-assets reconciliation (`origin/main` `eb4ed96`): submission remains BLOCKED.**
+Use [the final-assets packet](release/V1_APPSTORE_FINAL_ASSETS.md) for the submission-day sequence,
+capture plan, activation-dependent wording and G1–G21 handoff. No ASC screen, production API or
+provider setting was accessed in this reconciliation. Values below are prepared, **not entered**.
+The six-source/513-spot inventory and disabled-intake observations below are dated historical evidence,
+not a fresh measurement. New data additions require separate approval; do not use the 638 candidate.
+Photo-backed reports are a v1.0 P0, but code merged is not production activation: §3/§5 describe
+the last observed disabled state only. They are **not submission-ready** until the final runtime,
+signed-device, privacy/terms and moderation gates agree. Do not ship read-only as a silent P0 waiver.
+For enabled photos, §0.2/§0.4/§4's old disabled-flow answers must be re-decided using
+[PHOTO_PRIVACY_REVIEW](legal/PHOTO_PRIVACY_REVIEW.md); in particular, no automatic “not linked” answer.
+
 What to type into App Store Connect (ASC), in order, and what cannot be typed yet. Rationale, Apple references and
 evidence live in [APP_STORE_SUBMISSION.md](APP_STORE_SUBMISSION.md) (§ numbers below point there); privacy
 evidence classifications are owned by [PRODUCTION_PRIVACY_AUDIT.md](PRODUCTION_PRIVACY_AUDIT.md) (#178/#185).
@@ -19,7 +31,7 @@ Status legend:
 
 ## 0. v1.0 最終入力チェック表（日本語・2026-10-15）
 
-（2026-10-19 更新：東京重点対応へ変更。513 地点の凍結は撤回し、掲載範囲は [東京リリース計画](release/V1_TOKYO_RELEASE_PLAN.md) と G19 で決める。下の文面は本番の 513 地点に合わせたままで、掲載範囲が決まったら更新する。）旧方針：本番 6 ソース / 513 地点の掲載地域限定、日本のみ、無料、Apple 標準 EULA の方向、投稿・写真・App Attest 登録は無効。
+（2026-10-24 更新：データ追加は別承認まで行わず、現行 production の掲載範囲を基準とする。下の地域文は過去の 6 ソース / 513 地点観測に合わせた準備値で、当日の再確認が必要。[G19](V1_APP_STORE_RELEASE_GATE.md) と [最終素材 packet](release/V1_APPSTORE_FINAL_ASSETS.md) を参照。写真投稿 P0 は維持し、有効化前の機能を利用可能とは記載しない。）日本のみ・無料・Apple 標準 EULA の既存方針は維持。
 **ASC の画面はこのリポジトリ作業では見ていません。** 下表の「状態」は入力値の準備状況であり、ASC 入力済みを意味しません。
 入力済みかどうかは ASC で確認し、入力済みの項目は再入力しないでください。個人情報（氏名・電話番号）はここに書きません。
 
@@ -156,7 +168,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | --- | --- | --- |
 | Bundle ID (iPhone app) | `com.kounishiyuuki.MannerPath` | CONFIRMED |
 | Embedded bundles | `….widgets`, `….watchkitapp`, `….watchkitapp.widgets` | CONFIRMED |
-| Version / build | `MARKETING_VERSION 1.0`, `CURRENT_PROJECT_VERSION 1` (raise the build number for each upload) | CONFIRMED |
+| Version / build | `MARKETING_VERSION 1.0`, `CURRENT_PROJECT_VERSION 6` at `eb4ed96`; final selected RC may differ | SOURCE-CONFIRMED only; processed/signed build not checked here. Lane 3 alone changes the build number |
 | Display name | `MannerPath` | CONFIRMED |
 | Minimum OS | iOS 18.0, watchOS 11.0 | CONFIRMED |
 | Device families | iPhone app and iPhone widget `1` (iPhone only), Watch app `4`; no native iPad target. iPad users run the iPhone app in compatibility mode ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | CONFIRMED (maintainer decision 2026-10-05) |
@@ -209,13 +221,13 @@ MannerPathは、喫煙が認められている場所の位置や利用条件を�
 ・Apple Watchで近くの場所や距離・方向を確認
 ・ウィジェットから保存済みの近くの場所情報を参照
 
-現在の掲載地域は、東京都の一部（台東区、港区、江東区、武蔵野市）、大阪市、京都市です。各地域でも、公的機関が公開し利用条件を確認できた場所のみを掲載しており、すべての喫煙場所を網羅するものではありません。掲載地域外では場所は表示されず、掲載がないことを表示します。営業時間や利用条件が不明な場合は、不明として表示します。施設内の目安位置は、正確な喫煙場所の位置と区別します。
+現在の掲載地域は、東京都の一部（台東区、港区、江東区、武蔵野市）、大阪市、京都市です。各地域でも、公的機関の公開データを出典とする場所の一部を掲載しており、すべての喫煙場所を網羅するものではありません。掲載地域外では場所は表示されず、掲載がないことを表示します。営業時間や利用条件が不明な場合は、不明として表示します。施設内の目安位置は、正確な喫煙場所の位置と区別します。
 
 掲載情報だけで、その時点の喫煙可否を保証するものではありません。現地の掲示、施設のルール、自治体の規則を優先してください。日本では20歳未満の方は喫煙できません。法令上喫煙が認められている方を対象としています。
 
 アカウント登録は不要です。端末の現在地は近くの場所の順位や距離・方向の計算に使用します。オフラインでの徒歩経路案内には対応していません。
 
-この初回バージョンでは、場所の報告と写真の送信は利用できません。
+現在、場所の報告と写真の送信は利用できません。
 ```
 
 Each bullet matches behavior verified on the simulator in #176 (list/map, detail evidence and approximate
@@ -251,7 +263,7 @@ MannerPath is a navigation and local-rule compliance utility for adults legally 
 
 Location permission is When In Use. MannerPath uses the device location for nearby ranking, distance and bearing; requests to our service contain geographic tile IDs, not raw device GPS coordinates. We do not intentionally retain location history. Apple MapKit search/routing and Apple Maps operate through Apple's services. Our privacy policy (https://kounishiyuuki.github.io/MannerPath/privacy/) describes how network providers may process request information.
 
-Reports, report device registration and photo uploads are unavailable in this initial version. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
+Reports, report device registration and photo uploads are currently unavailable. This describes the last observed disabled deployment, not a waiver of the v1.0 photo-submission release gate. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
 
 Coverage is limited to places that local governments publish as open data. In version 1.0, places are published only for parts of Tokyo (Taito, Minato, Koto and Musashino), Osaka City and Kyoto City; other areas show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results from outside Japan, search for “浅草駅 東京” in destination search and select the result, then open a published place's details and sources. This displays the selected destination's area, not your current location. Walking routes may be unavailable far from the destination; straight-line distance and bearing remain available. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
 ```
