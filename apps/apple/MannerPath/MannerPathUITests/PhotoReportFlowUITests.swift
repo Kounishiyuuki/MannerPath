@@ -2,12 +2,14 @@ import XCTest
 
 // v1.0 photo-report form flow against the DEBUG-only UI-test report stack (`-uiTestPhotoReport <scenario>`): a
 // deployment that advertises photo intake, a fake App Attest authorizer and a scripted uploader. Needs no Worker,
-// and never reaches a real report or photo endpoint. The photo library is not scriptable, so photos come from the
-// stack's "add test photo" button, which exists only in that DEBUG composition.
+// and never reaches a real report or photo endpoint. Selection/upload tests use the stack's "add test photo"
+// button, which exists only in that DEBUG composition; the native picker smoke test opens and cancels without
+// reading, selecting or changing library photos. These diagnostic captures are fixtures, not submission assets.
 final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func openNewPlaceForm(_ scenario: String) {
         launch(extraArguments: ["-uiTestPhotoReport", scenario])
-        let add = app.buttons.matching(NSPredicate(format: "label == '喫煙場所を追加'")).firstMatch
+        // The entry copy can differ from the form title; use the shipped map-entry contract.
+        let add = app.buttons["mapReportButton"]
         // Launch reads availability from the stack; a loaded Simulator can take well over 30 s to show the entry.
         XCTAssertTrue(add.waitForExistence(timeout: 90))
         add.tap()
@@ -28,19 +30,71 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     var submit: XCUIElement { app.buttons["report.submit"] }
 
+    func submitOnceAndWaitForReceipt(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(app.buttons["下書きを破棄"].exists, file: file, line: line)
+        // XCTest can call a partially clipped last Form row hittable (observed y=836, h=44 on an 852pt screen).
+        // Move the entire button clear of the home-indicator edge before the one and only submit tap.
+        let safeFrame = app.frame.insetBy(dx: 0, dy: 44)
+        for _ in 0..<4 where !safeFrame.contains(submit.frame) {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.75)).press(forDuration: 0.05,
+                thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.35)))
+        }
+        let frame = submit.frame
+        guard safeFrame.contains(frame), submit.isEnabled, submit.isHittable else {
+            screenshot("fixture-only-submit-clipped-not-for-submission")
+            XCTFail("Submit must be fully visible before tapping. Frame: \(frame)", file: file, line: line)
+            return
+        }
+        submit.tap()
+        // Acceptance removes the draft toolbar action. Observe that transition before scrolling a reflowed Form;
+        // never hide a missed action or an unresolved submission by blindly tapping submit again.
+        guard app.buttons["下書きを破棄"].waitForNonExistence(timeout: 15) else {
+            screenshot("fixture-only-submission-no-receipt-not-for-submission")
+            let tree = XCTAttachment(string: app.debugDescription)
+            tree.name = "fixture-only-submission-no-receipt-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+            XCTFail("A single submit tap did not reach receipt state. Submit frame: \(frame)", file: file, line: line)
+            return
+        }
+    }
+
     func addPhotos(_ count: Int) {
         let add = app.buttons["report.photo.addTest"]
         for _ in 0..<count {
-            scrollTo(add)
+            // Photos precede consent/submit and the growing preview list.
+            scrollTo(add, upwards: true)
             add.tap()
         }
+    }
+
+    func testNativePhotosPickerCancelReturnsToUnchangedForm() {
+        openNewPlaceForm("success")
+        choosePinAndAgree()
+        let choose = app.buttons["report.photo.choose"]
+        scrollTo(choose, upwards: true)
+        choose.tap()
+        let cancel = app.buttons.matching(NSPredicate(format: "label == 'キャンセル' OR label == 'Cancel'")).firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 20), "The real system photo picker must offer cancellation")
+        cancel.tap()
+        XCTAssertTrue(cancel.waitForNonExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].exists)
+        scrollTo(choose, upwards: true)
+        XCTAssertTrue(choose.isEnabled && choose.isHittable, "The form must remain usable after cancellation")
+        XCTAssertFalse(app.buttons["report.photo.remove"].exists)
+        XCTAssertFalse(textContaining("選択した写真").exists)
+        XCTAssertFalse(textContaining("Selected photo").exists)
+        scrollTo(submit)
+        XCTAssertFalse(submit.isEnabled, "Cancelling must not satisfy the required photo selection")
+        // Capture only the fixture form after dismissal; do not capture any existing library contents.
+        screenshot("fixture-only-native-photo-picker-cancelled-not-for-submission")
     }
 
     func testNewPlaceRequiresPhotosThenSendsReportAndPhotos() {
         openNewPlaceForm("success")
         choosePinAndAgree()
         let required = text("写真（必須・1〜3枚）")
-        scrollTo(required)
+        scrollTo(required, upwards: true)
         scrollTo(textContaining("位置情報は使用しません"))
         scrollTo(submit)
         XCTAssertFalse(submit.isEnabled, "a new place cannot be submitted without a photo")
@@ -55,10 +109,10 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         addPhotos(1)
         scrollTo(submit)
         XCTAssertTrue(submit.isEnabled)
-        submit.tap()
-        // Photos, then the status row, sit below the submit button; the Form lays out only what is near the screen, so
-        // scrolling down to each is the wait. The thanks copy is shown only once every photo is received.
-        scrollTo(text("写真を受け付けました（審査待ち）"))
+        submitOnceAndWaitForReceipt()
+        // Acceptance removes the draft/submit section. Return to the photos above the retained scroll position,
+        // then continue down to the thanks copy, shown only once every photo is received.
+        scrollTo(text("写真を受け付けました（審査待ち）"), upwards: true)
         let thanks = textContaining("報告ありがとうございます")
         scrollTo(thanks)
         XCTAssertFalse(app.buttons["report.photo.retry"].exists)
@@ -70,9 +124,9 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         choosePinAndAgree()
         addPhotos(2)
         scrollTo(submit)
-        submit.tap()
+        submitOnceAndWaitForReceipt()
         let retry = app.buttons["report.photo.retry"]
-        scrollTo(textContaining("通信の問題で写真を送信できませんでした"))
+        scrollTo(textContaining("通信の問題で写真を送信できませんでした"), upwards: true)
         scrollTo(textContaining("2枚のうち2枚が未送信"))
         XCTAssertFalse(textContaining("報告ありがとうございます").exists)
         scrollTo(retry, upwards: true)
@@ -88,7 +142,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         choosePinAndAgree()
         addPhotos(1)
         scrollTo(submit)
-        submit.tap()
+        submitOnceAndWaitForReceipt()
         XCTAssertTrue(textContaining("写真を追加できる期限が過ぎました").waitForExistence(timeout: 20))
         XCTAssertFalse(app.buttons["report.photo.retry"].exists)
         XCTAssertTrue(textContaining("1枚のうち1枚が未送信").exists)

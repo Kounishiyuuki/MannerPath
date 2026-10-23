@@ -327,6 +327,17 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Debug-only UI-test hook"):
             self.check()
 
+    def test_photo_and_watch_test_hooks_fail_in_every_shipping_bundle(self):
+        for bundle in self.paths:
+            binary = bundle / "Binary"
+            original = binary.read_bytes()
+            for marker in preflight.DEBUG_MARKERS:
+                with self.subTest(bundle=bundle.name, marker=marker):
+                    binary.write_bytes(b"release prefix " + marker)
+                    with self.assertRaisesRegex(ValueError, "Debug-only UI-test hook"):
+                        preflight.check_release_binary(bundle, {"CFBundleExecutable": "Binary"}, bundle.name)
+            binary.write_bytes(original)
+
     def test_debug_dylib_fails(self):
         for name in ("Binary.debug.dylib", "__preview.dylib"):
             with self.subTest(name=name):
