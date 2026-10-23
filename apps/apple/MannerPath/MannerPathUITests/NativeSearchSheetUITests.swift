@@ -4,25 +4,65 @@ import XCTest
 @MainActor
 final class NativeSearchSheetUITests: MannerPathUITestCase {
     /// No local Worker or smoking-place fixture is needed: these are live MapKit destination candidates.
-    func testAreaFragmentShowsConcretePlacesAndSelectsWithoutSubmitting() {
+    func testLiveMapKitTypingAndOneTapSelectionSmoke() throws {
         launch()
         let field = destinationSearch
         XCTAssertTrue(field.waitForExistence(timeout: 10))
         field.tap()
         field.typeText("上野")
         let matches = app.buttons.matching(identifier: "destinationMatch")
-        let station = matches.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "上野駅", "台東")).firstMatch
-        XCTAssertTrue(station.waitForExistence(timeout: 40), "Actual Ueno station must be a typing-time candidate")
-        XCTAssertGreaterThanOrEqual(matches.count, 2, "A bare area alone does not satisfy completion")
-        XCTAssertTrue(app.keyboards.firstMatch.exists)
-        XCTAssertTrue(station.isHittable)
+        let unavailable = textContaining("目的地を検索できません")
+        let empty = textContaining("一致する目的地")
+        let terminal = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !self.app.progressIndicators["destinationSearchProgress"].exists
+                && (matches.firstMatch.exists || unavailable.exists || empty.exists)
+        }, object: nil)
+        guard XCTWaiter().wait(for: [terminal], timeout: 45) == .completed else {
+            screenshot("live-mapkit-timeout-not-for-submission")
+            XCTFail("Live MapKit never reached an outcome")
+            return
+        }
+        guard matches.firstMatch.exists else {
+            screenshot("live-mapkit-no-candidates-not-for-submission")
+            throw XCTSkip("Live MapKit returned no candidate or was unavailable; this is not a product-requirement PASS")
+        }
+        // Integration smoke: provider cardinality, identity and ordering vary. Concrete multi-result UX is tested
+        // separately with the deterministic provider; never demand a fixed station or minimum live result count.
+        let station = matches.firstMatch
+        XCTAssertFalse(station.label.isEmpty)
+        assertDestinationCandidateAboveKeyboard(station)
         screenshot("15-area-fragment-concrete-candidates")
         station.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 15))
         let selected = app.buttons["refreshDestination"]
         scrollForegroundListTo(selected)
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "上野駅")).firstMatch.exists)
+        XCTAssertTrue(selected.exists && selected.isHittable)
         screenshot("16-area-fragment-station-selected")
+    }
+
+    // Preserved opt-in live integration journey: requires the local published corpus as well as MapKit.
+    func testDestinationSearchCanBeOperated() {
+        launch()
+        waitForResults()
+        let field = destinationSearch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "No system search field")
+        XCTAssertEqual(app.textFields.matching(NSPredicate(format: "placeholderValue == 'Appleマップで目的地を検索'")).count, 0,
+                       "The inline destination text field is replaced by the system search field")
+        field.tap()
+        field.typeText("上野駅")
+        // Submit from the keyboard: the keyboard's own search key shares the "検索" label.
+        field.typeText("\n")
+        // MapKit search is live and not deterministic here; accept any of its honest outcomes.
+        let outcome = NSPredicate(format: """
+            label CONTAINS '目的地を検索できません' OR label CONTAINS '目的地を検索中' OR label CONTAINS '上野'
+            """)
+        let anyOutcome = app.descendants(matching: .any).matching(outcome).firstMatch
+        XCTAssertTrue(anyOutcome.waitForExistence(timeout: 20))
+        screenshot("10-destination")
+        XCTAssertTrue(app.navigationBars["近くの場所"].exists)
+        // Several candidates now lead the sheet, so the saved rows sit below them rather than on the first screen.
+        scrollTo(resultRows.firstMatch)
+        XCTAssertTrue(resultRows.firstMatch.exists, "Saved places stay listed during destination search")
     }
 
     override func screenshot(_ name: String) {
