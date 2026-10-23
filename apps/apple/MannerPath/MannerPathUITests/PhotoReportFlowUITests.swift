@@ -126,8 +126,8 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         scrollTo(submit)
         submitOnceAndWaitForReceipt()
         let retry = app.buttons["report.photo.retry"]
-        scrollTo(textContaining("通信の問題で写真を送信できませんでした"), upwards: true)
-        scrollTo(textContaining("2枚のうち2枚が未送信"))
+        scrollTo(textContaining("通信の問題で、この写真が届いたか確認できませんでした"), upwards: true)
+        scrollTo(textContaining("2枚のうち2枚は受信を確認できていません"))
         XCTAssertFalse(textContaining("報告ありがとうございます").exists)
         scrollTo(retry, upwards: true)
         screenshot("63-photo-failed")
@@ -145,7 +145,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         submitOnceAndWaitForReceipt()
         XCTAssertTrue(textContaining("写真を追加できる期限が過ぎました").waitForExistence(timeout: 20))
         XCTAssertFalse(app.buttons["report.photo.retry"].exists)
-        XCTAssertTrue(textContaining("1枚のうち1枚が未送信").exists)
+        XCTAssertTrue(textContaining("1枚のうち1枚は受信を確認できていません").exists)
         screenshot("65-photo-expired")
     }
 
@@ -158,5 +158,172 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         choosePinAndAgree()
         scrollTo(submit)
         XCTAssertFalse(submit.isEnabled)
+    }
+
+    // MARK: Interrupted uploads (resume after relaunch)
+
+    func launchPersistent(_ scenario: String, reset: Bool = false, extraArguments: [String] = []) {
+        launch(extraArguments: ["-uiTestPhotoReport", scenario, "-uiTestReportPersistent", "YES"]
+               + (reset ? ["-uiTestReportReset", "YES"] : []) + extraArguments)
+    }
+
+    /// Submits a new place with one photo whose upload never finishes, then terminates the app mid-upload.
+    func submitAndTerminateDuringUpload(_ scenario: String = "hang") {
+        launchPersistent(scenario, reset: true)
+        let add = app.buttons["mapReportButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 90))
+        add.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        choosePinAndAgree()
+        addPhotos(1)
+        scrollTo(submit)
+        submitOnceAndWaitForReceipt()
+        XCTAssertTrue(textContaining("写真を送信").waitForExistence(timeout: 10), "terminated while the photo is in flight")
+        app.terminate()
+    }
+
+    /// The map entry after a relaunch: with a report still waiting for photos, the form opens on a choice.
+    func tapMapEntryAndExpectChoice(file: StaticString = #filePath, line: UInt = #line) {
+        let add = app.buttons["mapReportButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 90), file: file, line: line)
+        add.tap()
+        XCTAssertTrue(text("前回の報告が残っています").waitForExistence(timeout: 10), file: file, line: line)
+        // Form rows below the fold are absent from the accessibility tree until scrolled to (large text sizes).
+        scrollTo(app.buttons["report.followUp.resume"], file: file, line: line)
+        scrollTo(app.buttons["report.followUp.newReport"], file: file, line: line)
+        XCTAssertFalse(app.buttons["report.submit"].exists, "nothing is started before the user chooses", file: file, line: line)
+    }
+
+    func continuePreviousReport() {
+        tapMapEntryAndExpectChoice()
+        app.buttons["report.followUp.resume"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["report-photo-follow-up"].waitForExistence(timeout: 10))
+    }
+
+    func testRelaunchOffersResumeAndSendsPhotoToTheSameReport() {
+        submitAndTerminateDuringUpload()
+        launchPersistent("success")
+        tapMapEntryAndExpectChoice()
+        XCTAssertTrue(textContaining("rp_UITEST1").exists)
+        screenshot("70-photo-resume-choice")
+        // Closing without a choice keeps the follow-up.
+        app.buttons["閉じる"].firstMatch.tap()
+        XCTAssertTrue(text("前回の報告が残っています").waitForNonExistence(timeout: 10))
+        scrollTo(app.buttons["resumeReportPhotos"])
+        continuePreviousReport()
+        XCTAssertTrue(textContaining("写真は端末に保存されないため").exists)
+        XCTAssertTrue(textContaining("rp_UITEST1").exists, "the follow-up keeps the received report's reference")
+        XCTAssertTrue(textContaining("0 / 3").exists, "no photo was confirmed before the app closed")
+        XCTAssertTrue(textContaining("確認できないまま届いている場合があります").exists, "a lost answer is explained, not counted")
+        screenshot("71-photo-resume-offered")
+        scrollTo(app.buttons["report.photo.addTest"])
+        addPhotos(1)
+        let send = app.buttons["report.photo.sendResumed"]
+        scrollTo(send)
+        send.tap()
+        XCTAssertTrue(text("写真を受け付けました（審査待ち）").waitForExistence(timeout: 20))
+        XCTAssertFalse(textContaining("rp_UITEST2").exists, "resending photos never creates a second report")
+        XCTAssertFalse(app.buttons["report.submit"].exists, "the report itself is not offered for resubmission")
+        screenshot("72-photo-resume-sent")
+    }
+
+    func testStoppingTheFollowUpStartsANewReport() {
+        submitAndTerminateDuringUpload()
+        launchPersistent("success")
+        tapMapEntryAndExpectChoice()
+        app.buttons["report.followUp.newReport"].tap()
+        let notice = app.descendants(matching: .any)["report.followUp.newReportNotice"]
+        XCTAssertTrue(notice.waitForExistence(timeout: 10))
+        XCTAssertTrue(notice.label.contains("削除されません"), "ending photo follow-up never reads as deleting the report")
+        screenshot("73-photo-resume-new-report-confirm")
+        app.buttons["report.followUp.confirmNewReport"].tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        XCTAssertFalse(text("前回の報告が残っています").exists)
+        choosePinAndAgree()
+        addPhotos(1)
+        scrollTo(submit)
+        submitOnceAndWaitForReceipt()
+        scrollTo(textContaining("rp_UITEST2"))
+        XCTAssertFalse(textContaining("rp_UITEST3").exists)
+    }
+
+    func testResumeExplainsPausedIntakeAndConnectionFailure() {
+        submitAndTerminateDuringUpload()
+        launchPersistent("closed")
+        continuePreviousReport()
+        let paused = app.descendants(matching: .any)["report-photo-intake-paused"].firstMatch
+        XCTAssertTrue(paused.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.frame.contains(paused.frame), "the pause is explained on the first screen")
+        XCTAssertTrue(paused.label.contains("写真の受付を一時停止しています"))
+        screenshot("74-photo-resume-paused")
+        app.terminate()
+
+        launchPersistent("offline")
+        continuePreviousReport()
+        XCTAssertTrue(textContaining("rp_UITEST1").exists, "a paused intake kept the follow-up")
+        scrollTo(app.buttons["report.photo.addTest"])
+        addPhotos(1)
+        let send = app.buttons["report.photo.sendResumed"]
+        scrollTo(send)
+        send.tap()
+        let failure = textContaining("通信の問題で、この写真が届いたか確認できませんでした")
+        XCTAssertTrue(failure.waitForExistence(timeout: 20))
+        XCTAssertTrue(textContaining("二重に保存されることはありません").exists)
+        scrollTo(app.buttons["report.photo.retry"])
+        screenshot("75-photo-resume-offline")
+    }
+
+    func testExpiredFollowUpSaysSoAndOffersNoSending() {
+        submitAndTerminateDuringUpload("old")
+        launchPersistent("success")
+        let entry = app.buttons["resumeReportPhotos"]
+        scrollTo(entry)
+        entry.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["report-photo-follow-up-expired"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["report.photo.addTest"].exists)
+        XCTAssertFalse(app.buttons["report.photo.sendResumed"].exists)
+        scrollTo(app.buttons["report.photo.endFollowUp"])
+        screenshot("76-photo-resume-expired")
+    }
+
+    func testUnsavedFollowUpWarnsToKeepTheAppOpen() {
+        launchPersistent("unsaved", reset: true)
+        let add = app.buttons["mapReportButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 90))
+        add.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        choosePinAndAgree()
+        addPhotos(1)
+        scrollTo(submit)
+        submitOnceAndWaitForReceipt()
+        let warning = app.descendants(matching: .any)["report-photo-follow-up-not-saved"].firstMatch
+        XCTAssertTrue(warning.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.frame.contains(warning.frame), "the warning is on screen right after acceptance")
+        XCTAssertTrue(warning.label.contains("アプリを閉じないでください"))
+        screenshot("77-photo-follow-up-not-saved")
+    }
+
+    func testResumeScreenWorksAtLargestTextSizeWithLabels() {
+        submitAndTerminateDuringUpload()
+        launchPersistent("success", extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        tapMapEntryAndExpectChoice()
+        // VoiceOver reads each control by its visible text; none may be icon-only. The title is checked by the helper.
+        for id in ["report.followUp.resume", "report.followUp.newReport"] {
+            let button = app.buttons[id]
+            scrollTo(button)
+            XCTAssertFalse(button.label.isEmpty, "\(id) needs a spoken label")
+        }
+        screenshot("78-photo-resume-choice-xxxl")
+        app.buttons["report.followUp.resume"].tap()
+        // At this size the form keeps its offset, so the explanation sits above the visible rows until scrolled to.
+        XCTAssertTrue(app.buttons["report.photo.endFollowUp"].waitForExistence(timeout: 10))
+        scrollTo(app.descendants(matching: .any)["report-photo-follow-up"], upwards: true)
+        // Top to bottom: "end follow-up" sits above the photo section.
+        for id in ["report.photo.endFollowUp", "report.photo.addTest"] {
+            let button = app.buttons[id]
+            scrollTo(button)
+            XCTAssertFalse(button.label.isEmpty, "\(id) needs a spoken label")
+        }
+        screenshot("79-photo-resume-xxxl")
     }
 }

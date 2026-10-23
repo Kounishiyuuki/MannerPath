@@ -51,6 +51,8 @@ final class ReportModel {
 
     /// A report received earlier (possibly in a previous launch) whose photos are not all on the server yet.
     private(set) var photoFollowUp: ReportPhotoFollowUp?
+    /// The follow-up exists only in memory: closing the app now would lose the way back to this report's photos.
+    private(set) var photoFollowUpNotSaved = false
 
     private(set) var availability: ReportAvailability = .unknown
     private(set) var draft: ReportDraft?
@@ -169,6 +171,7 @@ final class ReportModel {
         guard !photos.busy else { return }
         try? photoFollowUps?.delete()
         photoFollowUp = nil
+        photoFollowUpNotSaved = false
         photos.clear()
     }
 
@@ -177,11 +180,15 @@ final class ReportModel {
         if photos.allUploaded || photos.closedForPhotos {
             try? photoFollowUps?.delete()
             photoFollowUp = nil
+            photoFollowUpNotSaved = false
             return
         }
         followUp.uploadedCount = photos.totalUploaded
-        try? photoFollowUps?.save(followUp)
         photoFollowUp = followUp
+        do {
+            try photoFollowUps?.save(followUp)
+            photoFollowUpNotSaved = false
+        } catch { photoFollowUpNotSaved = true }
     }
 
     /// The protocol comes from /v1/config alone. A deployment that requires App Attest on a device
@@ -398,11 +405,11 @@ final class ReportModel {
             retryAcceptedCleanup()
             if !photos.photos.isEmpty, let version = draft.acceptedTermsVersion, photos.accepts(termsVersion: version) {
                 // Written before the first photo is sent, so a restart mid-upload can still re-attach photos to
-                // this report. Failing to write it only loses that recovery.
+                // this report. Failing to write it only loses that recovery, which the form then says.
                 let followUp = ReportPhotoFollowUp(reportId: accepted.reportId, acceptedTermsVersion: version,
                                                    receivedAt: accepted.receivedAt)
-                try? photoFollowUps?.save(followUp)
                 photoFollowUp = followUp
+                do { try photoFollowUps?.save(followUp) } catch { photoFollowUpNotSaved = true }
             }
             await photos.attach(to: accepted.reportId, acceptedTermsVersion: draft.acceptedTermsVersion)
         } catch let error as ReportAPIError {

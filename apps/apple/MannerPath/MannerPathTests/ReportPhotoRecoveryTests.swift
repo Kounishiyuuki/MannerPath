@@ -67,11 +67,18 @@ private actor RecoveryPhotoTransport: ReportHTTPTransport {
             let body = #"{"schemaVersion":2,"photoId":"ph_\#(posts.count)","reportId":"\#(recoveryReportID)","state":"pending"}"#
             return ReportHTTPResponse(statusCode: 201, body: Data(body.utf8), retryAfter: nil)
         default:
-            let error = [410: "reportExpired", 503: "photoEvidenceDisabled"][status] ?? "reportStoreUnavailable"
+            let error = [409: "photoAttachmentLimit", 410: "reportExpired", 503: "photoEvidenceDisabled"][status] ?? "reportStoreUnavailable"
             return ReportHTTPResponse(statusCode: status, body: Data(#"{"error":"\#(error)"}"#.utf8), retryAfter: nil)
         }
     }
     func sent() -> [(reportId: String, keyId: String, idempotencyKey: String)] { posts }
+}
+
+/// A device whose protected storage refuses the follow-up record (full disk, protection error).
+private struct UnwritableFollowUpStore: ReportPhotoFollowUpStoring {
+    func load() throws -> ReportPhotoFollowUp? { nil }
+    func save(_ followUp: ReportPhotoFollowUp) throws { throw CocoaError(.fileWriteOutOfSpace) }
+    func delete() throws {}
 }
 
 @MainActor
@@ -87,7 +94,8 @@ struct ReportPhotoRecoveryTests {
     }
 
     /// One launch of the app: a fresh model over the same on-device directory.
-    private func launch(reports: RecoveryReports = RecoveryReports(), photos: RecoveryPhotoTransport = RecoveryPhotoTransport()) async -> ReportModel {
+    private func launch(reports: RecoveryReports = RecoveryReports(), photos: RecoveryPhotoTransport = RecoveryPhotoTransport(),
+                        followUps: (any ReportPhotoFollowUpStoring)? = nil) async -> ReportModel {
         let authorizer = RecoveryAuthorizer()
         let uploader = AttestedEvidencePhotoUploader(baseURL: URL(string: "https://example.test")!, authorizer: authorizer,
                                                      transport: photos)
@@ -96,7 +104,7 @@ struct ReportPhotoRecoveryTests {
                                 attestedClient: reports, authorizer: authorizer,
                                 photoPolicy: PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: recoveryTerms),
                                 photoUploader: uploader,
-                                photoFollowUps: FileReportPhotoFollowUpStore(directory: directory))
+                                photoFollowUps: followUps ?? FileReportPhotoFollowUpStore(directory: directory))
         await model.refreshAvailability()
         return model
     }
@@ -248,5 +256,52 @@ struct ReportPhotoRecoveryTests {
         #expect(sent.count == 2 && sent[0] == sent[1], "the retry resends the identical payload and idempotency key")
         #expect(second.photos.allUploaded)
         #expect(await photos.sent().first?.reportId == recoveryReportID)
+    }
+
+    @Test func unsavedFollowUpIsSaidAndStillSendsPhotosInSession() async {
+        let reports = RecoveryReports()
+        let photos = RecoveryPhotoTransport([0])
+        let model = await launch(reports: reports, photos: photos, followUps: UnwritableFollowUpStore())
+        await submitNewSpot(model, photos: 1)
+        guard case .accepted = model.submission else { Issue.record("not accepted: \(model.submission)"); return }
+        #expect(model.photoFollowUpNotSaved, "the form must say a restart would lose these photos")
+        await model.photos.retry()
+        #expect(model.photos.allUploaded)
+        #expect(!model.photoFollowUpNotSaved && model.photoFollowUp == nil)
+        #expect(await reports.sent().count == 1)
+
+        // A restart after a failed write has nothing to resume, and blocks nothing.
+        let second = await launch(reports: reports, followUps: UnwritableFollowUpStore())
+        #expect(second.photoFollowUp == nil && !second.canResumePhotos && second.canStartReport)
+    }
+
+    @Test func lostAnswerForAReceivedPhotoIsNotCountedAsReceivedOrAsMissing() async {
+        // The server stored the photo but the answer was lost: in session the same key is resent and answered
+        // with the same photo, so it is counted once.
+        let photos = RecoveryPhotoTransport([0])
+        let model = await launch(photos: photos)
+        await submitNewSpot(model, photos: 1)
+        #expect(model.photos.uploadedCount == 0, "an unanswered photo is never shown as received")
+        #expect(model.photos.failureMessage(for: model.photos.photos[0].id) == String(localized:
+            "Receipt of this photo could not be confirmed because of a connection problem. Retrying is safe: the same photo is not stored twice."))
+        await model.photos.retry()
+        let keys = await photos.sent().map(\.idempotencyKey)
+        #expect(Set(keys).count == 1 && model.photos.totalUploaded == 1)
+    }
+
+    @Test func uncountedPhotosThatFillTheLimitEndTheFollowUpWithAReason() async {
+        // Three photos arrived but every answer was lost before a restart; the server refuses a fourth.
+        let reports = RecoveryReports()
+        let first = await launch(reports: reports, photos: RecoveryPhotoTransport([0, 0, 0]))
+        await submitNewSpot(first, photos: 3)
+        let second = await launch(reports: reports, photos: RecoveryPhotoTransport([409]))
+        #expect(second.photos.previouslyUploaded == 0 && second.photos.remainingSlots == 3)
+        second.photos.add(image())
+        await second.photos.retry()
+        #expect(second.photos.closedForPhotos && !second.photos.canRetry)
+        #expect(second.photos.failureMessage(for: second.photos.photos[0].id)
+                == String(localized: "This report already has the maximum number of photos."))
+        #expect(second.photoFollowUp == nil)
+        #expect(await reports.sent().count == 1)
     }
 }

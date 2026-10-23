@@ -131,16 +131,28 @@ the existing report draft and accepted report ID. Attachment retries do not crea
 photo is written into the durable draft or copied to Watch; no library EXIF coordinate is used. A real
 attested network adapter and approved consent are prerequisites for a future production-enabled flow.
 
-Interrupted uploads: once a report with photos is accepted, the app writes one protected file
-(`Reports/photo-follow-up.json`: report ID, consent version, estimated upload deadline = `receivedAt` + 89
-days, count of photos the server confirmed). It holds no photo bytes, key, challenge or assertion. After a
-restart the user may choose photos again for that same report, signed by the same App Attest key; the
-report is never resent and no new report can start until the follow-up ends (all sent, server refusal such
-as 410/404/403, the user stops, or the deadline passes). Re-chosen photos get new idempotency keys, so a
-photo whose earlier upload succeeded without an answer may be stored twice, bounded by the attachment limit.
-A saved new-place submission whose answer was lost is retried (same payload and key) only after photos are
-chosen again. If the app ends between the report's acceptance and that file being written, the report
-reference is lost and photos cannot be re-attached from the app.
+### Interrupted uploads (client)
+
+Once a report with photos is accepted, the app writes one protected file (`Reports/photo-follow-up.json`,
+complete file protection): report ID, consent version, estimated upload deadline (`receivedAt` + 89 days,
+the 90-day parent deadline less the 24-hour erasure window) and the count of photos the server confirmed.
+The maintainer approved keeping exactly this on the device for at most 89 days. It never holds photo bytes,
+an App Attest key, a challenge or an assertion, and it is never sent.
+
+- After a restart the user may choose photos again for that report; they are signed by the same App Attest
+  key and the report is never resent.
+- Only one report is in progress at a time. Starting another while photos are pending asks the user to
+  continue the previous report or to stop adding its photos; nothing is dropped without that choice.
+- The record is deleted when every photo is confirmed; when the server refuses further photos
+  (410/404/403, attachment limit, terms); when the user stops; or at the first launch after the deadline.
+  Paused photo intake keeps it.
+- If the record cannot be written, the form tells the user to keep the app open until the photos are sent.
+- Re-chosen photos get new idempotency keys. A photo whose upload succeeded without an answer is not
+  counted as received, may be stored twice, and still counts toward the server's limit of three.
+- A saved new-place submission whose answer was lost is retried, with the same payload and key, only after
+  photos are chosen again.
+- If the app ends between acceptance and the write, the reference is lost, and photos cannot be
+  re-attached from the app.
 
 ## Amendment: private operator viewing
 

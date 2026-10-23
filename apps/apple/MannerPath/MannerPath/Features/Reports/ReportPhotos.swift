@@ -49,6 +49,7 @@ final class ReportPhotos {
     var allUploaded: Bool { !photos.isEmpty && photos.allSatisfy { $0.state == .uploaded } }
     var uploadedCount: Int { photos.filter { $0.state == .uploaded }.count }
     var totalUploaded: Int { previouslyUploaded + uploadedCount }
+    var maxAttachments: Int { policy.maxAttachments }
     /// New photos can still be chosen: before submission, or when re-attaching after a restart.
     var acceptsNewPhotos: Bool { acceptedReportID == nil || resumed }
     /// Photos can be attached to a report recorded under `termsVersion`; `attach` refuses any other consent.
@@ -146,7 +147,7 @@ final class ReportPhotos {
     func failureMessage(for id: UUID) -> String? {
         guard photos.first(where: { $0.id == id })?.state == .failed else { return nil }
         switch failures[id] ?? .temporarilyUnavailable {
-        case .temporarilyUnavailable: return String(localized: "The photo could not be sent because of a connection problem. You can retry it.")
+        case .temporarilyUnavailable: return String(localized: "Receipt of this photo could not be confirmed because of a connection problem. Retrying is safe: the same photo is not stored twice.")
         case .rateLimited: return String(localized: "Too many photos were sent. Wait a moment, then retry.")
         case .authorizationFailed(retryable: true): return String(localized: "The security check for this photo did not pass. You can retry it.")
         case .authorizationFailed(retryable: false), .unauthorized:

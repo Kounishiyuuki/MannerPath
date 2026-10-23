@@ -12,6 +12,9 @@ struct ContentView: View {
     @State private var reportModel = ReportComposition.makeModel()
     @State private var showingReport = false
     @State private var showingQuickConfirm = false
+    /// The report form opened from a new-report entry while an earlier report still waits for photos: it first asks
+    /// whether to add photos to that report or to report a new place.
+    @State private var reportOpensWithFollowUpChoice = false
     @AppStorage("nearbyConfirmationTasksHidden") private var nearbyTasksHidden = false
     @State private var path: [String] = []
     @State private var mapRegion: MKCoordinateRegion?
@@ -207,14 +210,18 @@ struct ContentView: View {
                         distanceFromDestination: selection.area.isDestination,
                         cacheNotice: detailCacheNotice(for: selection.area),
                         onReport: { type in
-                            reportModel.start(type: type, spotId: selection.result.spot.id,
-                                              subjectName: SpotPresentation.name(selection.result.spot))
-                            showingReport = true
+                            beginNewReport {
+                                reportModel.start(type: type, spotId: selection.result.spot.id,
+                                                  subjectName: SpotPresentation.name(selection.result.spot))
+                                showingReport = true
+                            }
                         },
                         onConfirmStillHere: {
-                            reportModel.startQuickConfirm(spotId: selection.result.spot.id,
-                                                          subjectName: SpotPresentation.name(selection.result.spot))
-                            if reportModel.draft?.type == .exists { showingQuickConfirm = true }
+                            beginNewReport {
+                                reportModel.startQuickConfirm(spotId: selection.result.spot.id,
+                                                              subjectName: SpotPresentation.name(selection.result.spot))
+                                if reportModel.draft?.type == .exists { showingQuickConfirm = true }
+                            }
                         }
                     )
                 } else {
@@ -224,7 +231,8 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingReport) {
             ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate,
-                           nearbySpots: model.results.map(\.spot))
+                           nearbySpots: model.results.map(\.spot),
+                           opensWithFollowUpChoice: reportOpensWithFollowUpChoice)
         }
         .sheet(isPresented: $showingQuickConfirm) {
             QuickConfirmView(model: reportModel)
@@ -286,7 +294,22 @@ struct ContentView: View {
 
     /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does.
     private func openReportEntry() {
-        if reportModel.canStartReport { startAddingPlace() } else if reportModel.draft != nil || reportModel.photoFollowUp != nil { showingReport = true }
+        if reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
+            beginNewReport { startAddingPlace() }
+        } else if reportModel.draft != nil || reportModel.photoFollowUp != nil {
+            showingReport = true
+        }
+    }
+
+    /// An earlier report still waiting for photos is never dropped silently: the form opens on a choice between
+    /// adding its photos and reporting a new place, and closing it without choosing keeps everything.
+    private func beginNewReport(_ start: () -> Void) {
+        guard reportModel.hasPendingPhotoFollowUp else {
+            reportOpensWithFollowUpChoice = false
+            return start()
+        }
+        reportOpensWithFollowUpChoice = true
+        showingReport = true
     }
 
     /// At `.large` the sheet covers the map button, so the same labelled entry sits in a fixed bar. A bottom-bar
@@ -391,7 +414,10 @@ struct ContentView: View {
             Text("Review or discard your saved proposal. It stays on this device until submitted or discarded.")
                 .font(.footnote).foregroundStyle(.secondary)
         } else if reportModel.photoFollowUp != nil {
-            Button("Send photos for your received report") { showingReport = true }
+            Button("Send photos for your received report") {
+                reportOpensWithFollowUpChoice = false
+                showingReport = true
+            }
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("resumeReportPhotos")
         }
@@ -643,8 +669,8 @@ struct ContentView: View {
             } description: {
                 Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability))
             } actions: {
-                if case .available = reportModel.availability, reportModel.canStartReport {
-                    Button("Report a smoking place", systemImage: "plus.circle.fill") { startAddingPlace() }
+                if case .available = reportModel.availability, reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
+                    Button("Report a smoking place", systemImage: "plus.circle.fill") { beginNewReport { startAddingPlace() } }
                         .buttonStyle(.borderedProminent)
                 }
             }
