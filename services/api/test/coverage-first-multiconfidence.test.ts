@@ -38,6 +38,7 @@ import { SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
 import { proposeConfirmation, proposeEffect, proposeNewSpot, reportsOf, storesOf } from "./support/community.ts";
+import { assertNothingPrivate, publicSurface } from "./support/public-surface.ts";
 import { v1TileRows } from "./support/tiles.ts";
 import { v1TileBody } from "./support/tiles.ts";
 import { approveEvidencePhoto } from "./support/evidence-photo.ts";
@@ -396,6 +397,11 @@ test("an independent `exists` confirmation upgrades communityReported to communi
   const t = await tileSpot(db, spotId);
   assert.deepEqual([t.id, t.evidenceQuality, t.verification.existence, t.verification.confirmations, t.verification.lastReviewedMonth],
     [spotId, "communityVerified", "communityVerified", 2, "2026-10"], "same identity, upgraded evidence");
+  // Privacy boundary (docs/PRIVACY_BOUNDARY.md): the upgrade publishes a count, never whose reports or which reviews.
+  const reportIds = (reportsOf(db).raw.prepare("SELECT report_id FROM reports").all() as Row[]).map((r) => r.report_id as string);
+  const reviewIds = (db.raw.prepare("SELECT review_id FROM community_artifact_ledger").all() as Row[]).map((r) => r.review_id as string);
+  assert.ok(reportIds.length === 3 && reviewIds.includes(effect.applicationId));
+  assertNothingPrivate(await publicSurface(db, [spotId]), [NOTE, INSTALL, HASHES[0], HASHES[1], ...reportIds, ...reviewIds], "after upgrade");
   await assert.rejects(upgradeCommunityEvidence(db, effect.applicationId, { decidedBy: "r", now: LATER }), /not a live communityReported spot/);
   assert.throws(() => db.raw.prepare("DELETE FROM community_evidence_upgrades").run(), /never deleted/);
 });

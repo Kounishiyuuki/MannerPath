@@ -26,6 +26,7 @@ import { type PromotionRegistry, buildMultiSourcePromotionBundle } from "../src/
 import { reviewedSource } from "../src/pipeline/registry.ts";
 import { analyzeCorpus } from "../src/quality/analyze.ts";
 import { minimizeAfter } from "../src/reports/create.ts";
+import { runReportRetention } from "../src/reports/retention.ts";
 import { moderationQueuePage, recordModerationDecision, setReconciliationState } from "../src/reports/moderation.ts";
 import { moderateEvidencePhoto, newSpotPhotoGate, photoEvidenceStrength } from "../src/reports/photos.ts";
 import { MemoryEvidencePhotoStorage, PHOTO_ERASURE_LEAD_MS } from "../src/reports/photo-storage.ts";
@@ -36,6 +37,7 @@ import { publishTiles } from "../src/tiles/publish.ts";
 import { assert as makeAssertion, attest, testDevice, testPki, type TestDevice } from "./support/app-attest-fixture.ts";
 import { sequentialSpotIds } from "./support/fixture.ts";
 import { importAllReviewedSources } from "./support/reviewed-fixtures.ts";
+import { assertNothingPrivate, publicSurface } from "./support/public-surface.ts";
 import { SqliteD1, applyPromotionBundle, migratedSqlite, reportsD1 } from "./support/sqlite-d1.ts";
 import { v1TileBody, v1TileRows } from "./support/tiles.ts";
 
@@ -333,4 +335,28 @@ test("STEP 4: one approved, photo-backed report becomes a communityReported list
   const target = new SqliteD1(migratedSqlite());
   applyPromotionBundle(target.raw, bundle.sql);
   assert.equal(one(target, "SELECT count(*) AS n FROM tile_snapshot_spots WHERE spot_id = ?", spotId).n, 1);
+
+  // Privacy boundary (docs/PRIVACY_BOUNDARY.md): every public read route, on the pipeline DB and on the promoted one,
+  // names no photo, key, submitter, note, report ID or review ID.
+  const key = one(h.reports, "SELECT key_id, public_key FROM app_attest_keys LIMIT 1");
+  const NEEDLES = [NOTE, INSTALL, submitter, key.key_id, key.public_key, ...photoIds, ...storageKeys, EXIF_TEXT, "PRIVATE-PHONE", reportId, reviewId];
+  for (const [label, db] of [["pipeline", data], ["promoted", target]] as const) {
+    assertNothingPrivate(await publicSurface(db, [spotId]), NEEDLES, label);
+    // G5 (unchanged): the promoted source rows keep the review and report IDs internally, for audit.
+    const internal = JSON.stringify(db.raw.prepare(`SELECT r.upstream_row_ref, r.raw_values_json, rel.source_url FROM source_records r
+      JOIN source_releases rel ON rel.release_id = r.release_id WHERE rel.source_id = ?`).all(COMMUNITY_SOURCE_ID));
+    assert.ok(internal.includes(reviewId) && internal.includes(reportId), `${label}: G5 internal IDs kept in source_records`);
+    for (const needle of [NOTE, INSTALL, submitter, key.key_id, ...photoIds, ...storageKeys]) assert.equal(internal.includes(needle), false, `${label}: source_records carry ${needle}`);
+  }
+
+  // After the 90-day minimization and photo deletion the published facts stay and still name nothing private.
+  const LATE = new Date(minimizeAfter(RECEIVED).getTime() + 1000);
+  await runReportRetention(h.reports, { now: LATE, photoStorage: h.storage });
+  assert.equal(h.storage.objects.size, 0, "every photo object deleted");
+  assert.equal(one(h.reports, "SELECT count(*) AS n FROM community_evidence_photos").n, 0);
+  assert.deepEqual({ ...one(h.reports, "SELECT note, submitter_hash, proposed_latitude FROM reports WHERE report_id = ?", reportId) },
+    { note: null, submitter_hash: null, proposed_latitude: null });
+  await publishTiles(data, { now: isoSeconds(LATE) });
+  assert.equal(published(), true, "a reviewed fact outlives the report's minimization");
+  assertNothingPrivate(await publicSurface(data, [spotId]), NEEDLES, "after retention");
 });
