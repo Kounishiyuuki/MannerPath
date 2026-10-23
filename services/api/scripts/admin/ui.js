@@ -133,7 +133,7 @@ function photosPanel(){
       const actions=el("div",undefined,"actions");
       [["写真を承認","approved"],["写真を却下","rejected"]].forEach(([name,state])=>{
         const b=actionButton(name,()=>{if(state==="approved"&&!privacy.checked){message("写真の承認前にプライバシー確認欄をチェックしてください。");return;}decide(state,reason.value,photo.photo_id,privacy.checked);},state==="rejected"?"danger":"");
-        b.dataset.write="true";actions.append(b);
+        if(state==="approved"){b.dataset.photoApprove="true";b.dataset.blocked="true";b.disabled=true;}b.dataset.write="true";actions.append(b);
       });card.append(actions);
     }p.append(card);
   });return p;
@@ -144,7 +144,14 @@ async function fetchPhoto(id,img,epoch,viewUntil){
     const blob=await r.blob();if(epoch!==requestEpoch)return;
     const remaining=Date.parse(viewUntil)-Date.now();
     if(blob.type!=="image/png"||!Number.isFinite(remaining)||remaining<=0)throw new Error();
-    const url=URL.createObjectURL(blob);photoUrls.push(url);img.src=url;
+    const url=URL.createObjectURL(blob);photoUrls.push(url);
+    img.addEventListener("load",()=>{
+      if(epoch!==requestEpoch||Date.parse(viewUntil)<=Date.now())return;
+      const approve=img.closest(".photo")?.querySelector("[data-photo-approve]");
+      if(approve){approve.dataset.blocked="false";approve.disabled=busy||session?.readOnly;}
+    },{once:true});
+    img.addEventListener("error",()=>{URL.revokeObjectURL(url);},{once:true});
+    img.src=url;
     const expire=()=>{
       const left=Date.parse(viewUntil)-Date.now();
       if(left>0){photoTimers.push(setTimeout(expire,Math.min(left,2147483647)));return;}

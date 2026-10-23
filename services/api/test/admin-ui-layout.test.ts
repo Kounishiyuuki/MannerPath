@@ -18,12 +18,15 @@ class Node {
   setAttribute(name:string,value:string){this.attrs[name]=value;}
   addEventListener(name:string,fn:Function){(this.listeners[name]??=[]).push(fn);}
   async click(){if(!this.disabled)for(const fn of this.listeners.click??[])await fn();}
+  closest(selector:string):Node|undefined{return selector==='.photo'&&this.className==='photo'?this:this.parentNode?.closest(selector);}
+  replaceWith(_node?:Node){}
   focus(){this.focused=true;}
   get classList(){return {add:(name:string)=>{this.className+=' '+name;}};}
   querySelectorAll(selector:string):Node[]{return this.children.flatMap(n=>[...(matches(n,selector)?[n]:[]),...n.querySelectorAll(selector)]);}
   querySelector(selector:string){return this.querySelectorAll(selector)[0];}
 }
 function matches(n:Node,selector:string){
+  if(selector==='[data-photo-approve]')return n.dataset.photoApprove!==undefined;
   if(selector==='[data-write]')return n.dataset.write!==undefined;
   if(selector==='[data-report-accept]')return n.dataset.reportAccept!==undefined;
   if(selector.startsWith('.queue-item'))return n.className==='queue-item'&&(!selector.includes('aria-current')||n.attrs['aria-current']==='true');
@@ -40,7 +43,7 @@ function harness(photos:object[]=[],readOnly=false){
   const document={createElement:(tag:string)=>new Node(tag),createTextNode:(s:string)=>{const n=new Node('#text');n.text=s;return n;},getElementById:(id:string)=>all(page).find(n=>n.id===id),querySelectorAll:(s:string)=>page.querySelectorAll(s),querySelector:(s:string)=>page.querySelector(s),addEventListener:()=>{}};
   const report={report_id:'report-a',report_type:'missing',state:'pending',claim_host_name:'駅前の施設',claim_access_detail:'店舗利用者は営業時間内に利用できます。',note:'長い日本語の説明です。',received_at:'2026-01-01T00:00:00Z'};
   const context={document,window:{addEventListener:()=>{}},URL,Date,Number,setTimeout,clearTimeout,fetch:async()=>({ok:true,blob:async()=>({type:'image/png'})}),adminErrorMessage:()=>'',calls,fixture:{report,photos,duplicates:[],history:[],version:3},readOnly};
-  runInNewContext(source+`\nsession={readOnly};selected='report-a';detail=fixture;fetchPhoto=()=>{};decide=(...args)=>calls.push(args);renderDetail();`,context);
+  runInNewContext(source+`\nsession={readOnly};selected='report-a';detail=fixture;originalFetchPhoto=fetchPhoto;fetchPhoto=()=>{};decide=(...args)=>calls.push(args);renderDetail();`,context);
   const root=document.getElementById('detail')!;
   return {root,page,calls,get:(id:string)=>document.getElementById(id)!,run:(js:string)=>runInNewContext(js,context),button:(name:string)=>root.querySelectorAll('button').find(n=>n.textContent===name)!};
 }
@@ -54,6 +57,8 @@ test('photo and report decisions belong to separate labelled review steps',async
   assert.equal(steps[0].querySelectorAll('button').some(n=>n.textContent==='承認'),false);
   assert.equal(steps[1].querySelectorAll('button').some(n=>n.textContent==='写真を承認'),false);
   assert.ok(steps[1].textContent.includes('店舗利用者は営業時間内に利用できます。'));
+  assert.equal(ui.button('写真を承認').disabled,true);
+  ui.run('document.querySelector("[data-photo-approve]").dataset.blocked="false";setBusy(false);');
   await ui.button('写真を承認').click();
   assert.equal(ui.calls.length,0);
   assert.match(ui.get('message').textContent,/プライバシー/);
@@ -112,3 +117,28 @@ test('next navigation follows refreshed queue order and is blocked during saves'
   ui.run('refreshNextNavigation();');
   assert.equal(ui.button('次の投稿へ').disabled,true);
 });
+
+ test('photo approval remains blocked before preview load and through busy resets; rejection remains available',async()=>{
+  const ui=harness([photo()]);
+  ui.root.querySelectorAll('input')[0].checked=true;
+  ui.run('setBusy(true);setBusy(false);');
+  await ui.button('写真を承認').click();
+  assert.equal(ui.calls.length,0);
+  assert.equal(ui.button('写真を承認').disabled,true);
+  assert.equal(ui.button('写真を却下').disabled,false);
+ });
+
+ test('preview load enables approval, while failed requests and decode errors keep it blocked',async()=>{
+  for(const result of ['load','error','fetchFailure']){
+    const ui=harness([photo()]);
+    ui.run('URL={createObjectURL:()=>"blob:synthetic",revokeObjectURL:()=>{}};setTimeout=()=>0;');
+    if(result==='fetchFailure')ui.run('fetch=async()=>{throw new Error("unavailable");};');
+    // The failed-preview replacement is irrelevant to approval eligibility.
+    ui.root.querySelectorAll('img')[0].replaceWith=()=>{};
+    await ui.run('originalFetchPhoto("photo-a",document.querySelector("img"),requestEpoch,fixture.photos[0].view_until);');
+    for(const fn of ui.root.querySelectorAll('img')[0].listeners[result]??[])fn();
+    ui.run('setBusy(true);setBusy(false);');
+    assert.equal(ui.button('写真を承認').disabled,result!=='load');
+    assert.equal(ui.button('写真を却下').disabled,false);
+  }
+ });

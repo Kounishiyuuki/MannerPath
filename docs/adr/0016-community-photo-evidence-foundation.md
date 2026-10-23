@@ -144,11 +144,10 @@ Existing 90-day deadlines, minimization and deletion work remain unchanged.
 Local synthetic tests do not establish real R2/staging readiness or production approval. Operator
 authentication, startup acknowledgements and limitations are in [local admin operations](../LOCAL_MODERATION_ADMIN.md).
 
-Integration finding (PR #321 after #322): the new-spot gate above and migration 0009 currently compare
-`delete_after > now`, omitting P5's 24-hour lead and deletion queue fence. Until a separate additive
-gate correction aligns proposal/export and direct SQL checks, delayed cleanup can leave an approved
-photo counted after R2 access ends. This is a release/integration HOLD, not a relaxation of P5's
-privacy boundary. Do not alter already-applied migration 0009 or infer that Admin approval fixes it.
+Integration finding closed by PR #323: proposal/export and additive migration 0010 enforce
+P5's `delete_after - 24 hours` access cutoff and deletion queue fence. Migration 0009 remains
+unchanged. This closes the source-level integration hold; real R2/staging readiness and
+production approval remain unverified. Admin approval never bypasses publication gates.
 
 ## Consequences
 
