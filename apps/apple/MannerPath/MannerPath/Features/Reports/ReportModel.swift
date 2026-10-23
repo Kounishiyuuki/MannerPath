@@ -623,8 +623,9 @@ enum ReportComposition {
                            attestedClient: client as? ReportAPIClient,
                            authorizer: authorizer,
                            consent: UserDefaultsReportConsent(),
-                           // Photo intake stays closed (PhotoEvidencePolicy default) until the photo terms and
-                           // storage gates are approved; the uploader shares the report's App Attest key.
+                           // Photo intake stays closed until a photo terms version is reviewed on both sides
+                           // (PhotoEvidencePolicy.reviewedPhotoTerms); the uploader shares the report's App Attest key.
+                           photoPolicy: .reviewed(),
                            photoUploader: (client as? ReportAPIClient).flatMap { api in
                                authorizer.map { AttestedEvidencePhotoUploader(baseURL: api.baseURL, authorizer: $0) }
                            },

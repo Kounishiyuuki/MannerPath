@@ -7,7 +7,8 @@ import { R2EvidencePhotoStorage, type PhotoBucket } from "./r2-photo-storage.ts"
 export const PHOTO_STORAGE_POLICY = "private-no-copies-permanent-fences.v1";
 export const PHOTO_RETENTION_CRON = "*/5 * * * *";
 /** Only a later reviewed legal/maintainer change may add an exact photo-processing consent version. */
-const REVIEWED_PHOTO_TERMS: readonly string[] = [];
+/** The app mirrors this list (`PhotoEvidencePolicy.reviewedPhotoTerms`); test/photo-activation-readiness.test.ts keeps them equal. */
+export const REVIEWED_PHOTO_TERMS: readonly string[] = [];
 export interface PhotoBindings extends AttestationBindings {
   REPORTS_DB?: Db;
   PRIVATE_PHOTOS?: PhotoBucket;
@@ -23,9 +24,10 @@ export function configuredPhotoStorage(env: PhotoBindings, clock?: () => Date): 
   return new R2EvidencePhotoStorage(env.PRIVATE_PHOTOS, env.REPORTS_DB, clock);
 }
 
-export function photoIntakePolicy(env: PhotoBindings, clock?: () => Date) {
+/** `reviewed` is a test seam for the approved state; production always uses REVIEWED_PHOTO_TERMS. */
+export function photoIntakePolicy(env: PhotoBindings, clock?: () => Date, reviewed: readonly string[] = REVIEWED_PHOTO_TERMS) {
   const storage = configuredPhotoStorage(env, clock);
-  const photoTermsCovered = (version: string) => REVIEWED_PHOTO_TERMS.includes(version);
+  const photoTermsCovered = (version: string) => reviewed.includes(version);
   const enabled = env.PHOTO_EVIDENCE === "on" && storage !== undefined
     && attestationConfig(env).kind === "appAttest"
     && env.REPORT_RETENTION === "cleanup" && env.REPORT_RETENTION_CRON === PHOTO_RETENTION_CRON

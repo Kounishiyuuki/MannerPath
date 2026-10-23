@@ -107,7 +107,10 @@ struct ReportPhotoFormFlowTests {
     @Test func closedPhotoIntakeBlocksNewPlacesBeforeAnythingIsSigned() async {
         for (intake, policy) in [(false, PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: flowTerms)),
                                  (true, PhotoEvidencePolicy()),
-                                 (true, PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: "report-terms.other"))] {
+                                 (true, PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: "report-terms.other")),
+                                 // The Release policy: no photo terms version is reviewed yet.
+                                 (true, PhotoEvidencePolicy.reviewed()),
+                                 (true, PhotoEvidencePolicy.reviewed(["report-terms.other"], current: flowTerms))] {
             let (model, reports, authorizer) = await model(photoIntake: intake, policy: policy)
             #expect(!model.acceptsNewSpotProposals)
             newSpot(model, photos: 1)
@@ -116,6 +119,16 @@ struct ReportPhotoFormFlowTests {
             #expect(await reports.count() == 0, "no photo-less report is stored")
             #expect(await authorizer.signed().isEmpty)
         }
+    }
+
+    @Test func reviewedPhotoTermsOpenTheReleasePolicyOnlyForTheBundledVersion() async {
+        #expect(PhotoEvidencePolicy.reviewedPhotoTerms.isEmpty)
+        #expect(!PhotoEvidencePolicy.reviewed().enabled)
+        #expect(!PhotoEvidencePolicy.reviewed([flowTerms], current: nil).enabled)
+        let approved = PhotoEvidencePolicy.reviewed([flowTerms], current: flowTerms)
+        #expect(approved.enabled && approved.acceptedTermsVersion == flowTerms)
+        let (model, _, _) = await model(policy: approved)
+        #expect(model.acceptsNewSpotProposals)
     }
 
     @Test func newPlaceNeedsAPhotoAndConsentBeforeSubmitting() async {
