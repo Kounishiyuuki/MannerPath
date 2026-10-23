@@ -174,7 +174,11 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj -scheme Mann
 ```
 
 Repeat `testOneCandidateIsSelectableWithKeyboardOpen` after setting **only that Simulator's** content size to
-`accessibility-extra-extra-extra-large`, then restore `large`. This checks the visible first candidate,
+`accessibility-extra-extra-extra-large`, then restore `large`. `simctl ui` requires a booted device:
+boot the owned UUID if shut down, wait with `simctl bootstatus <uuid> -b`, and query
+`simctl ui <uuid> content_size` to verify the setting before testing. If Xcode shuts it down afterward,
+boot that same UUID before restoring; do not count a failed settings command as an accessibility run.
+This checks the visible first candidate,
 not that every candidate fits on one screen. Japanese IME marked-text conversion still needs device testing;
 XCTest `typeText` inserts committed text.
 

@@ -28,16 +28,16 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         }
         // Integration smoke: provider cardinality, identity and ordering vary. Concrete multi-result UX is tested
         // separately with the deterministic provider; never demand a fixed station or minimum live result count.
-        let station = matches.firstMatch
-        XCTAssertFalse(station.label.isEmpty)
-        assertDestinationCandidateAboveKeyboard(station)
-        screenshot("15-area-fragment-concrete-candidates")
-        station.tap()
+        let candidate = matches.firstMatch
+        XCTAssertFalse(candidate.label.isEmpty)
+        assertDestinationCandidateAboveKeyboard(candidate)
+        screenshot("live-mapkit-candidates-not-for-submission")
+        candidate.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 15))
         let selected = app.buttons["refreshDestination"]
         scrollForegroundListTo(selected)
         XCTAssertTrue(selected.exists && selected.isHittable)
-        screenshot("16-area-fragment-station-selected")
+        screenshot("live-mapkit-destination-selected-not-for-submission")
     }
 
     // Preserved opt-in live integration journey: requires the local published corpus as well as MapKit.
