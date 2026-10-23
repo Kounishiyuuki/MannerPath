@@ -108,6 +108,15 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         XCTAssertEqual(app.buttons.matching(identifier: "report.photo.remove").count, 2)
         addPhotos(1)
         scrollTo(submit)
+        if !submit.isEnabled {
+            // Say why before failing: consent, photo count and the whole form, so an intermittent miss has a cause.
+            let consent = app.switches["報告に関する規約に同意する"]
+            let tree = XCTAttachment(string: "consent=\(consent.exists ? String(describing: consent.value) : "absent") " +
+                "photos=\(app.buttons.matching(identifier: "report.photo.remove").count)\n" + app.debugDescription)
+            tree.name = "submit-disabled-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+        }
         XCTAssertTrue(submit.isEnabled)
         submitOnceAndWaitForReceipt()
         // Acceptance removes the draft/submit section. Return to the photos above the retained scroll position,

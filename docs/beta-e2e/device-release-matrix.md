@@ -8,6 +8,8 @@ for v1 (production, nationwide, read-only; reports unavailable).
 
 Audited 2026-10-09 on `main` `a37fdcf`; device results for TestFlight 1.0 (2) recorded 2026-10-14 (§0).
 Writing this file ran nothing on a device and changed nothing in Apple Developer / App Store Connect / Cloudflare.
+Additions for 1.0 (6) on `main` `eb4ed96` (Kanazawa → 上野 completion, photo form and PhotosPicker, #330 interrupted
+upload, open P0 list, final checklist): [`V1_FINAL_DEVICE_E2E.md`](../release/V1_FINAL_DEVICE_E2E.md). Its results are Simulator only.
 
 **Result column.** Only `PASS 1.0 (N)`, `FAIL 1.0 (N)`, `PARTIAL 1.0 (N)` (some expectations observed; the
 note says which are still open) or empty (not run). A result always names the build it was observed on, and a
