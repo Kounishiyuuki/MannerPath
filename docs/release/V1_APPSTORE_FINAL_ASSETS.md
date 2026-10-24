@@ -4,6 +4,9 @@ Prepared 2026-10-24 against `origin/main` `eb4ed96` (PR #330 included).
 Integration-reviewed after rebase onto `245c81d`: #331 legal/privacy decisions, #332 staging preparation,
 #336 physical-device procedures and #335 public privacy-boundary regression coverage.
 G1–G23 remain in the canonical Gate; no gate is newly DONE.
+Final integration check against main `fe8bda6` (#334/#337/#338): `merge-tree` is clean, so no further
+rebase was needed. The linked latest-main evidence below is pinned to that revision; it is not a new
+production observation, legal approval or physical-device PASS.
 **SUBMISSION: BLOCKED. Assets prepared as instructions, not final approved media.**
 Authority: [Release Gate](../V1_APP_STORE_RELEASE_GATE.md) is the sole go/no-go list;
 [ASC entry sheet](../APP_STORE_CONNECT_ENTRY.md) holds pasteable metadata and field values.
@@ -47,10 +50,14 @@ Replace only the reports-disabled sentences in entry §5, retaining coverage/pri
 New-place proposals require 1–3 photos, a user-selected map pin and consent to the approved report terms. No account or sign-in is required; report submission uses Apple App Attest on a supported physical device. Photos are private review evidence, never public images. Metadata is removed, but faces and vehicle plates are not automatically redacted. Operators review reports and photos; only approved place information may proceed through publication checks. Submission or photo approval does not automatically publish a place. If a photo upload fails after the report is accepted, retry sends the remaining photos for that same report.
 ```
 
-Code blocker at this baseline: `ReportComposition.makeModel()` uses the default disabled `PhotoEvidencePolicy`
-(`ReportModel.swift`, `ReportPhotos.swift`). The uploader is wired but server activation alone does not make
-new-place photo submission available; an approved-policy client build is also required. Failed photos stay
-in memory only; after app restart the user reselects them for the existing report, not a new report.
+Updated by [#337's activation handoff](https://github.com/Kounishiyuuki/MannerPath/blob/fe8bda6/docs/release/V1_PHOTO_ACTIVATION_HANDOFF.md):
+the normal composition now uses `PhotoEvidencePolicy.reviewed()`, not an unwired default policy. Both
+`PhotoEvidencePolicy.reviewedPhotoTerms` (app) and `REVIEWED_PHOTO_TERMS` (server) remain `[]`.
+The terms are **not approved; photo intake remains disabled**. The lists must match the approved current
+server/bundled terms version, and server config, private storage, attestation, retention/cron and publication
+rights must all pass. A config flag or the merged preparation code alone cannot enable photos.
+Do not add a version or enable intake in this assets PR. Failed photo bytes stay in memory only; after app
+restart the user reselects them for the existing report, not a new report.
 
 Prerequisites: [photo plan R1–R14](V1_PHOTO_PLACE_SUBMISSION.md), #124 approved terms bundled and
 server-reviewed byte/version match, production intake/storage/attestation readiness, deletion monitoring,
@@ -168,6 +175,16 @@ use the genuine current-location corpus: its §3.2 destination-selection shortcu
 Watch corpus change, because destination results do not sync. Do not record that shortcut as a device PASS.
 Real photo E2E follows [#332's isolated staging runbook](V1_PHOTO_STAGING_RUNBOOK.md) and separate approval;
 its remote operations were not run, and this document authorizes none of them.
+
+Latest-main updates to use at execution time:
+
+- [#338's revised device sheet](https://github.com/Kounishiyuuki/MannerPath/blob/fe8bda6/docs/release/V1_FINAL_DEVICE_E2E.md)
+  §5 traces the intermittent photo-form failure to taps during reflow and records the stable-frame/consent-state
+  test fix. It does not prove a device PASS. Map-pin detail and PhotosPicker-cancel failures remain separately
+  open; §7 adds non-destructive device-connection checks. A connected device is not a completed E2E run.
+- [#334's staging preparation/preflight](https://github.com/Kounishiyuuki/MannerPath/blob/fe8bda6/docs/release/V1_PHOTO_STAGING_RUNBOOK.md)
+  is an offline safety check, not proof of actual account/resource isolation or permission to run remote steps.
+  Follow that reviewed version only under separate staging authorization, never with production resources.
 
 1. Use entry §5 steps on the selected RC: fresh install/eligibility, When In Use or deny, type 浅草駅 東京,
    select destination without a separate Search button, loaded map/list, detail/source/license, filters/clear.
