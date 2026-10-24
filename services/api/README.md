@@ -74,7 +74,7 @@ npm run local:pipeline   # republish so the tiles reflect the new status
 
 Only sources listed in `REVIEWED_SOURCES` can be registered or approved by this code; anything else throws. Approving a new source is a repository change (`docs/SOURCES.md` + that list), reviewed in a PR.
 
-See [photo staging readiness](../../docs/release/V1_PHOTO_STAGING_RUNBOOK.md) for the preparation-only isolated config template and operator approval sequence. `npm run test:photo-staging` runs the focused synthetic rehearsal.
+See [photo staging readiness](../../docs/release/V1_PHOTO_STAGING_RUNBOOK.md) for the preparation-only isolated config template and operator approval sequence. `npm run test:photo-staging` runs the focused synthetic rehearsal. Before resource creation, run `npm run --silent photo-staging:preflight -- --config <local-jsonc> --production-origin <reviewed-https-origin>` (repeat origin for the complete production inventory). It is offline/read-only; placeholders and unknown settings are BLOCKED. Offline PASS never verifies ownership or authorizes execution. `npm run test:photo-staging-preflight` runs adversarial CLI regressions.
 
 ## User reports (ADR-0007)
 

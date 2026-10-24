@@ -73,6 +73,89 @@ Shared local repositories' `security-secret-scan --history` walks all refs: unre
 can trigger it. Preserve those refs; if necessary repeat the same gate in a single-branch isolated clone,
 installing the pinned dependencies. Never weaken the scanner to obtain a pass.
 
+## Offline safety preflight (before resource creation and again before each approved phase)
+
+From `services/api`, Node 24, run the validator **without** Cloudflare credentials or remote access.
+It reads only the explicitly supplied JSONC, the committed production resource inventory, reviewed
+Worker entrypoint and migration files, plus the repository's photo-consent policy. It never invokes
+Wrangler, reads credential files/environment Secrets, creates resources, writes DB/R2, applies
+migrations, deploys or enables intake. It does not modify its input config.
+
+```sh
+npm run --silent photo-staging:preflight -- --config wrangler.photo-staging.example.jsonc --production-origin https://<reviewed-production-origin>
+npm run test:photo-staging-preflight
+```
+
+Replace the origin placeholder with **every** production HTTPS origin from the privately reviewed
+manifest, repeating `--production-origin` for each. Do not guess a production origin from the Worker
+name: committed Wrangler does not contain a complete domain inventory. An omitted/malformed inventory
+is BLOCKED. Completeness is an operator claim and cannot be established offline.
+The shipped template's placeholder UUIDs deliberately produce BLOCKED (`database-identities`), even
+when all other initial-state checks pass. Before creation, no real target UUIDs exist: **do not invent
+IDs to obtain PASS**. This result is expected and does not authorize creation. The resource creation
+manifest/approval remains the first remote checkpoint. After approved creation, inspect the ignored
+full `worker.jsonc` with the real staging IDs and absolute paths using the same command:
+
+```sh
+npm run --silent photo-staging:preflight -- --config .wrangler/photo-staging/worker.jsonc --production-origin https://<reviewed-production-origin>
+```
+
+The CLI emits only fixed check IDs/statuses/messages and an operator checklist, never input values,
+paths, config bodies, parse exceptions or Secrets. Always use the documented `npm run --silent`
+invocation: npm without `--silent` echoes original arguments before the CLI can redact them. Never
+put Secrets in command arguments. The silent invocation is required for this output guarantee.
+
+```json
+{
+  "offlineStatus": "PASS",
+  "executionStatus": "BLOCKED",
+  "checks": [{"id": "worker-isolation", "status": "PASS", "message": "..."}],
+  "operatorChecks": ["Cloudflare resource existence, account ownership and complete production resource/origin inventory: NOT VERIFIED."]
+}
+```
+
+This is an abbreviated example, **not** an actual resource acceptance result. Exit **0** means only
+that supported initial-state offline checks passed; exit **2** means BLOCKED (missing/invalid/unknown
+configuration, placeholders, I/O/parse failure or unsafe condition). `executionStatus` is **always
+BLOCKED**: offline PASS is neither deployment permission nor a claim that the environment is safe.
+Never turn a BLOCKED item into PASS by deleting the check, inventing IDs or replacing the production
+inventory. Re-run against the exact reviewed file after any edit; later cloud mutations are outside
+this CLI's protection, and it is not automatically interposed on Wrangler or Admin commands.
+
+Supported input is a **full initial-state config**, not a bootstrap subset or an activated deployment:
+exactly canonical `DB` (the DATA_DB role), `REPORTS_DB`, `PRIVATE_PHOTOS`; required App Attest;
+registration/photo/retention off; explicit empty crons; invocation URL logging off; workers.dev and
+preview URLs off. Worker/DB/bucket names must explicitly identify staging, D1 IDs and names must be
+mutually distinct and not match committed production resources. Placeholder IDs are unknown, not safe.
+The Worker entrypoint and compatibility date must match the reviewed implementation. Both full
+migration streams must retain original filenames, contiguous numerical order and bytes, including
+0008/0009/0010. This does **not** prove remote migration applicability or ledger state; the 0003
+file-import checkpoints below remain mandatory. A full offline PASS is not permission to run a
+full-stream migration on an empty remote report store.
+
+Strict JSONC allows comments but rejects duplicate (including escaped-duplicate) keys, trailing commas,
+unknown keys and extra bindings. `env`, service/build fallbacks, origin aliases, preview resources,
+activation flags and unrecognized options are BLOCKED rather than guessed. Only exact staging
+custom-domain `routes` with `custom_domain: true` are supported; wildcard/path/shorthand routes,
+production-host overlaps and unreviewed production route additions are BLOCKED. No routes is valid
+for an initial non-public config; it does not prove a protected test origin exists. Secrets, limiter
+and activated cleanup settings belong to later separately reviewed phases; this initial-state CLI
+will intentionally block such later configs. There is no remote/action/enable/force override.
+
+Before any remote execution, the CLI always lists these unresolved operator checks:
+
+- Actual account/resource existence and ownership; complete production identity/domain inventory.
+- Token/IAM scope, inability to access production, and independently checked Admin UUID/bucket targets.
+- Dedicated staging DNS/certificate/edge protection and absence of alternate reachable ingress.
+- R2 privacy, exclusive writers, no copies and permanent fence/provider erasure guarantees.
+- Remote schema/ledger, deployed code, Secrets, flags and actual Cron state.
+- Exact consent approval, installed iPhone origin/App Attest and operator acceptance.
+
+The runtime photo-consent guard is inspected without changing its private approval list; currently
+unreviewed terms cannot enable photos even with simulated complete prerequisites. A PASS for that
+check grants neither photo consent nor community publication rights. Production configuration,
+photo approval lists and all migrations are untouched by this tool.
+
 ## Operator-only execution order (after separate approval)
 
 Run one reviewed command at a time, not this whole document as a script. Commands below assume
