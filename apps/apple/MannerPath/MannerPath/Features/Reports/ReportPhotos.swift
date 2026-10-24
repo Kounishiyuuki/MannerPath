@@ -11,6 +11,19 @@ nonisolated struct PhotoEvidencePolicy: Sendable {
     var enabled = false
     var acceptedTermsVersion: String? = nil
     var maxAttachments = 3
+
+    /// Report terms versions whose photo processing the maintainer approved. Mirrors the server's
+    /// REVIEWED_PHOTO_TERMS (services/api test/photo-activation-readiness.test.ts keeps them equal); empty until
+    /// the photo terms are approved, so Release never offers photos.
+    static let reviewedPhotoTerms: [String] = []
+
+    /// The Release policy: open only when the newest bundled terms version is a reviewed photo version. The server
+    /// must still advertise `photoEvidenceEnabled` for that same version before any photo is sent.
+    static func reviewed(_ reviewed: [String] = reviewedPhotoTerms,
+                         current: String? = ReportTerms.documents.last?.version) -> PhotoEvidencePolicy {
+        guard let current, reviewed.contains(current) else { return PhotoEvidencePolicy() }
+        return PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: current)
+    }
 }
 
 /// Implementations must bind attachment bytes and report ownership to App Attest. The production
