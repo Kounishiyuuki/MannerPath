@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "sourceId": "kanazawa-station-east-smoking-research",
+      "publicationStatus": "blocked",
+      "resource": {
+        "rawUrl": "https://www4.city.kanazawa.lg.jp/material/files/group/78/kanazawaekipdf1.pdf",
+        "publisher": "金沢市",
+        "licenseMetadata": "No reuse approval. Expression reserved; applicable terms and factReference scope require human review: https://www4.city.kanazawa.lg.jp/11790.html",
+        "attributionMetadata": "Proposed attribution only: 金沢市「金沢駅・金沢駅東広場」（確認日2026-10-25、URLを併記）",
+        "matchingRowCount": null,
+        "coordinateAvailability": "unknown",
+        "coordinateColumns": [],
+        "blockerCodes": [
+          "smokingPointNotIdentified",
+          "rightsReviewRequired",
+          "locationUnconfirmed"
+        ]
+      },
+      "review": {
+        "approvalGate": {},
+        "coordinateKind": "unknown"
+      }
+    },
+    {
+      "sourceId": "kanazawa-station-west-smoking-research",
+      "publicationStatus": "blocked",
+      "resource": {
+        "rawUrl": "https://www4.city.kanazawa.lg.jp/material/files/group/78/kanazawaekipdf2.pdf",
+        "publisher": "金沢市",
+        "licenseMetadata": "No reuse approval. Expression reserved; applicable terms and factReference scope require human review: https://www4.city.kanazawa.lg.jp/11790.html",
+        "attributionMetadata": "Proposed attribution only: 金沢市「金沢駅・金沢駅西広場」（確認日2026-10-25、URLを併記）",
+        "matchingRowCount": null,
+        "coordinateAvailability": "unknown",
+        "coordinateColumns": [],
+        "blockerCodes": [
+          "smokingPointNotIdentified",
+          "rightsReviewRequired",
+          "locationUnconfirmed"
+        ]
+      },
+      "review": {
+        "approvalGate": {},
+        "coordinateKind": "unknown"
+      }
+    },
+    {
+      "sourceId": "kanazawa-castle-smoking-research",
+      "publicationStatus": "blocked",
+      "resource": {
+        "rawUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+        "publisher": "石川県金沢城・兼六園管理事務所",
+        "licenseMetadata": "No reuse approval. Expression reserved; applicable terms and factReference scope require human review: https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+        "attributionMetadata": "Proposed attribution only: 石川県金沢城・兼六園管理事務所「よくある質問」（確認日2026-10-25、URLを併記）",
+        "matchingRowCount": null,
+        "coordinateAvailability": "unknown",
+        "coordinateColumns": [],
+        "blockerCodes": [
+          "rightsReviewRequired",
+          "locationUnconfirmed",
+          "accessReviewRequired"
+        ]
+      },
+      "review": {
+        "approvalGate": {},
+        "coordinateKind": "unknown"
+      }
+    },
+    {
+      "sourceId": "kanazawa21-smoking-research",
+      "publicationStatus": "blocked",
+      "resource": {
+        "rawUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+        "publisher": "金沢21世紀美術館",
+        "licenseMetadata": "No reuse approval. Expression reserved; applicable terms and factReference scope require human review: https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+        "attributionMetadata": "Proposed attribution only: 金沢21世紀美術館「入館時のお願い」（確認日2026-10-25、URLを併記）",
+        "matchingRowCount": null,
+        "coordinateAvailability": "unknown",
+        "coordinateColumns": [],
+        "blockerCodes": [
+          "rightsReviewRequired",
+          "locationUnconfirmed",
+          "plannedClosureReviewRequired"
+        ]
+      },
+      "review": {
+        "approvalGate": {},
+        "coordinateKind": "unknown"
+      }
+    }
+  ]
+}

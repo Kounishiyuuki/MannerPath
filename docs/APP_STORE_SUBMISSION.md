@@ -1,5 +1,11 @@
 # MannerPath v1 — App Store submission / compliance
 
+**2026-10-24 current handoff:** [final-assets packet](release/V1_APPSTORE_FINAL_ASSETS.md) and
+[Release Gate](V1_APP_STORE_RELEASE_GATE.md) supersede this page's historical read-only release
+recommendation. Photo-backed proposals are P0 but not currently established as enabled; submission remains
+BLOCKED. Do not copy older disabled-flow privacy/UGC answers into an activated-photo release.
+No new data addition is authorized. Use the dated evidence and final RC checks, not “production today” shorthand.
+
 **APP STORE COMPLIANCE: READY FOR MAINTAINER INPUT** (packet prepared; not authorization to submit).
 Target: mid-October 2026. Checked 2026-10-04 against `origin/main` **d511f1a**,
 which includes #170 / #171 / #172. Apple rules can change: recheck the linked pages at submission.

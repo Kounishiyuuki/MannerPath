@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "scope": "Research receipts only; raw content outside repository; no observation acceptance or rights approval",
+  "resources": [
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/soshikikarasagasu/dorokanrika/gyomuannai/30/28323.html",
+      "finalUrl": "https://www4.city.kanazawa.lg.jp/soshikikarasagasu/dorokanrika/gyomuannai/30/28323.html",
+      "httpStatus": 200,
+      "contentSha256": "d8134a536d969ac56cc2b41f7290e6e99ad6be6654b57c4db54ee6efd1f5a902",
+      "fetchedAt": "2026-10-25T04:15:52.166237+00:00",
+      "bytes": 54549
+    },
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/11790.html",
+      "finalUrl": "https://www4.city.kanazawa.lg.jp/11790.html",
+      "httpStatus": 200,
+      "contentSha256": "0e3ad0b1fba991599bb708876b278faec53f39fdb8d1ea0ce473b86371a87781",
+      "fetchedAt": "2026-10-25T04:15:52.623199+00:00",
+      "bytes": 42326
+    },
+    {
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+      "httpStatus": 200,
+      "contentSha256": "9a4e434b5634835d65e89afe38ce56e155261f23e6654ce88336db890be40f99",
+      "fetchedAt": "2026-10-25T04:15:52.874860+00:00",
+      "bytes": 61715
+    },
+    {
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/request.php",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/request.php",
+      "httpStatus": 200,
+      "contentSha256": "44251252dafa25a494a0b3314e597ae38711a10ad67657d61a9b76b76e426e45",
+      "fetchedAt": "2026-10-25T04:15:53.073314+00:00",
+      "bytes": 33982
+    },
+    {
+      "url": "https://www.pref.ishikawa.lg.jp/about_site/sitepolicy/index.html",
+      "finalUrl": "https://www.pref.ishikawa.lg.jp/about_site/sitepolicy/index.html",
+      "httpStatus": 200,
+      "contentSha256": "65729eb03353bf09467ae7c3b0500692b6f1bc363cf810be1f0dd45fc0c0f291",
+      "fetchedAt": "2026-10-25T04:15:53.357568+00:00",
+      "bytes": 21105
+    },
+    {
+      "url": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "httpStatus": 200,
+      "contentSha256": "3cc603538b15bdcaed2164a9dbaab5d14950f8cff525c1141becfc7608d3a9ce",
+      "fetchedAt": "2026-10-25T04:15:53.931839+00:00",
+      "bytes": 26079
+    },
+    {
+      "url": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+      "httpStatus": 200,
+      "contentSha256": "10fecc08136104eff35550034ef2cb138b46f2bb47f8d90b9081c2bd21877fa2",
+      "fetchedAt": "2026-10-25T04:15:54.459376+00:00",
+      "bytes": 23637
+    },
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/material/files/group/78/kanazawaekipdf1.pdf",
+      "finalUrl": "https://www4.city.kanazawa.lg.jp/material/files/group/78/kanazawaekipdf1.pdf",
+      "httpStatus": 200,
+      "contentSha256": "2af0285cd87acef6a4f209810097736a26a2f755a6fcd34ea478593052702e6a",
+      "fetchedAt": "2026-10-25T04:15:54.760810+00:00",
+      "bytes": 836240
+    },
+    {
+      "url": "https://www4.city.kanazawa.lg.jp/material/files/group/78/kanazawaekipdf2.pdf",
+      "finalUrl": "https://www4.city.kanazawa.lg.jp/material/files/group/78/kanazawaekipdf2.pdf",
+      "httpStatus": 200,
+      "contentSha256": "2106f22b3993b6cc29f48761813df795f7bc4427811ec7c722088df4a924776d",
+      "fetchedAt": "2026-10-25T04:15:55.198940+00:00",
+      "bytes": 1121053
+    },
+    {
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/_wp/wp-content/uploads/2026/01/f4c27a94991b730588a36dd3b7447b22.pdf",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/_wp/wp-content/uploads/2026/01/f4c27a94991b730588a36dd3b7447b22.pdf",
+      "httpStatus": 200,
+      "contentSha256": "729cba59d8f8160b447e13fe11b0dd062d3177fb54f2d47a58af5a3ab3325bf5",
+      "fetchedAt": "2026-10-25T04:15:55.722357+00:00",
+      "bytes": 587096
+    }
+  ]
+}

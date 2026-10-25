@@ -24,7 +24,7 @@ struct ContentView: View {
                 if eligibilityNoticeAccepted && model.snapshot == nil {
                     // No snapshot means nothing was synced yet — not that no smoking place exists nearby.
                     ContentUnavailableView("No saved data", systemImage: "iphone.and.arrow.forward",
-                                           description: Text("Nothing is saved on this Watch yet. This does not mean there are no places nearby. Open MannerPath on iPhone once to send nearby data to this Watch."))
+                                           description: Text("Nothing is saved on this Watch yet. This does not mean there are no places nearby. On iPhone, use your current location and refresh nearby places, then sync here. Destination searches are not sent to Watch."))
                 } else if eligibilityNoticeAccepted {
                     Section(model.snapshotIsOld ? "Saved places · old data" : "Saved nearby places") {
                         ForEach(model.results, id: \.spot.id) { result in
@@ -92,11 +92,29 @@ struct ContentView: View {
                     Button("Sync saved data from iPhone") { model.requestSync() }
                         .accessibilityIdentifier("watch-sync-from-iphone")
                         .disabled(model.isSyncing)
-                    Text("Refresh nearby places on iPhone first. This requests its saved data, not Watch location.")
+                    Text("Refresh current-location places on iPhone first. Destination searches are not sent to Watch. Sync requests saved data without refreshing its age.")
                         .font(.footnote).foregroundStyle(.secondary)
+                    if model.phoneHasNoSnapshot {
+                        Text("iPhone connected, but has no saved nearby data to send. On iPhone, return to your current location and refresh nearby places.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("watch-phone-no-snapshot")
+                    }
                     if model.syncRequestFailed {
                         Text("Could not sync with iPhone. Open the iPhone app and try again. Saved data is unchanged.")
                             .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    if let snapshot = model.snapshot {
+                        Section("Saved data status") {
+                            Text("Revision \(snapshot.revision)")
+                            if snapshot.generatedAt != .distantPast {
+                                Text(snapshot.generatedAt, format: .dateTime.year().month().day().hour().minute())
+                            } else {
+                                Text("Refresh time unavailable")
+                            }
+                            Text("This is the iPhone data refresh time, not the time received by Watch.")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                        .accessibilityIdentifier("watch-snapshot-status")
                     }
                 }
             }

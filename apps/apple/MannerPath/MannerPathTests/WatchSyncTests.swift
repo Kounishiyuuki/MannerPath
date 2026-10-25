@@ -5,14 +5,21 @@ import Testing
 struct WatchSyncTests {
     private let now = Date(timeIntervalSince1970: 1_700_000_000)
 
-    @Test func preferenceUpdatePreservesPreviouslyTransferredSnapshot() {
-        let snapshot = Data("snapshot".utf8)
+    @Test func preferenceUpdatePreservesPreviouslyTransferredSnapshot() throws {
+        let snapshot = try WatchCodec.encode(candidate(at: now, sources: []))
         let preferences = Data("preferences".utf8)
         let context = PhoneWatchSync.updatedContext(
             previous: ["snapshotV1": snapshot], snapshotData: nil, preferenceData: preferences
         )
         #expect(context["snapshotV1"] as? Data == snapshot)
         #expect(context["preferencesV1"] as? Data == preferences)
+    }
+
+    @Test func preferenceUpdateDropsRejectedPersistedContext() {
+        let context = PhoneWatchSync.updatedContext(previous: ["snapshotV1": Data("invalid".utf8)],
+                                                   snapshotData: nil, preferenceData: Data())
+        #expect(context["snapshotV1"] == nil)
+        #expect(context["preferencesV1"] != nil)
     }
 
     @Test func producerRevisionPersistsAndAdvancesOnlyForChangedContent() throws {
@@ -139,7 +146,7 @@ struct WatchSyncTests {
         let reply = PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true], snapshot: saved)
         let data = try #require(reply["snapshotV1"] as? Data)
         #expect(try WatchCodec.snapshot(data) == saved)
-        #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true], snapshot: nil).isEmpty)
+        #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true], snapshot: nil)["snapshotUnavailableV1"] as? Bool == true)
         #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": false], snapshot: saved).isEmpty)
         #expect(PhoneWatchSync.snapshotReply(for: ["other": true], snapshot: saved).isEmpty)
         #expect(PhoneWatchSync.snapshotReply(for: ["requestSnapshotV1": true, "extra": true], snapshot: saved).isEmpty)
@@ -164,6 +171,26 @@ struct WatchSyncTests {
         #expect(fresh.spots.count == 500 && cached.spots == fresh.spots)
         #expect(cached.generatedAt == .distantPast && fresh.generatedAt == date)
     }
+
+    #if DEBUG
+    @Test func explicitDeveloperFixtureUsesValidatedJournalAndNeverClaimsEvidence() throws {
+        let fixture = try PhoneWatchSync.togashiWatchFixture(at: now).validated()
+        let spot = try #require(fixture.spots.first)
+        #expect(fixture.spots.count == 1 && fixture.sources.isEmpty)
+        #expect(spot.name?.hasPrefix("テストデータ") == true)
+        #expect(spot.existenceTier == "unknown" && spot.lastVerifiedAt == nil)
+        #expect(spot.openingHours == nil && spot.supportsPaper == "unknown")
+        #expect(spot.latitude == 36.536 && spot.longitude == 136.646)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PhoneWatchSnapshotStore(directory: directory)
+        let saved = try store.prepare(fixture, confirmedRefresh: true)
+        #expect(store.snapshot() == saved)
+        let normal = try store.prepare(candidate(at: now.addingTimeInterval(1), sources: []), confirmedRefresh: true)
+        #expect(normal.revision > saved.revision && normal.spots.isEmpty)
+    }
+    #endif
 
     private func candidate(at date: Date, sources: [WatchSource]) -> WatchSnapshot {
         WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: date, snapshotID: UUID(),

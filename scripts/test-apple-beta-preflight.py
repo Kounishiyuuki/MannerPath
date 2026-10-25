@@ -327,7 +327,7 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Debug-only UI-test hook"):
             self.check()
 
-    def test_photo_and_watch_test_hooks_fail_in_every_shipping_bundle(self):
+    def test_photo_watch_and_physical_fixture_hooks_fail_in_every_shipping_bundle(self):
         for bundle in self.paths:
             binary = bundle / "Binary"
             original = binary.read_bytes()
@@ -337,6 +337,12 @@ class PreflightTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Debug-only UI-test hook"):
                         preflight.check_release_binary(bundle, {"CFBundleExecutable": "Binary"}, bundle.name)
             binary.write_bytes(original)
+
+    def test_physical_fixture_markers_are_in_release_denylist(self):
+        self.assertIn(b"publishTogashiWatchFixture", preflight.DEBUG_MARKERS)
+        self.assertIn("テストデータ・富樫".encode("utf-8"), preflight.DEBUG_MARKERS)
+        # This prefix is deliberately retained by Release's defensive payload rejection.
+        self.assertNotIn(b"debug-watch-fixture-", preflight.DEBUG_MARKERS)
 
     def test_debug_dylib_fails(self):
         for name in ("Binary.debug.dylib", "__preview.dylib"):

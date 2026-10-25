@@ -317,3 +317,101 @@ UI tests also verified typing `上野` and tapping 上野駅 without submitting,
 and denied, plus successive 上野駅 / 東京駅 / 大阪駅 / 金沢駅 queries. A denied-location cold run
 initially timed out before finding the search field; the unchanged build passed after its UI
 was ready. Physical-device/IME marked-text validation remains separate from these committed-text tests.
+
+## Series 9 physical sync audit / Kanazawa (Lane 2)
+
+This is a device procedure, not a claim of completed physical verification. No signing settings,
+production API writes, public DB writes, or real-time route sync are involved.
+
+### What sends current-location data
+
+`ContentView.activateNearby` installs cached/confirmed corpus callbacks. `NearbyModel.publish`
+only records a Watch corpus when the browsing area has a **device** location. Destination browsing
+(including Tokyo/Ueno while in Kanazawa) suspends that publication. Clear the destination to resume.
+Terminal location/permission failures invalidate replay; an old destination/device corpus must not
+be relabelled as a fresh current location. The producer selects at most 500 unfiltered candidates;
+the Watch applies its own filters and calculates distance/bearing with its own valid location fix.
+
+Automatic WC delivery needs activated session, pairing and installed Watch app. Application context
+supports deferred delivery; reachable foreground delivery also sends a message. An explicit Watch
+request needs reachability and only replays the persisted iPhone snapshot. It never fetches API data.
+A request times out after 15 seconds; late callbacks cannot complete a later request. A newer
+application-context snapshot can complete the pending request. The new `snapshotUnavailableV1: true`
+response means the phone answered but has no validated saved snapshot; an empty/malformed response or transport/save failure is a sync failure. A valid snapshot
+with zero spots is a successful empty sync. No snapshot means not saved, not proof of no locations.
+More than one hour (or future/unknown timestamp) means stale; saved places remain usable. Revision
+orders payloads across launches; identical-revision conflicts and older revisions are rejected.
+The status section shows revision and the original iPhone refresh timestamp, never receipt time.
+
+Watch app and Watch Widget share `group.com.kounishiyuuki.MannerPath` on the **Watch**. App Groups
+never move files between iPhone and Watch. WC does that. Missing group access falls back to the
+Watch app's private cache; a Widget can therefore remain unavailable. Check artifact entitlements
+with existing beta preflight rather than changing capabilities or signing to hide this failure.
+
+### Explicit Debug fixture
+
+Build both apps and embedded Widget with **Debug**. On iPhone open **Data & Privacy → 開発用 Watch
+実機検証 → テストデータをWatchへ送信… → テストデータ送信を有効化**. This deliberate confirmation
+queues one made-up point at 36.536, 136.646 near Togashi, named **テストデータ・富樫（実在しません）**.
+It is an arbitrary test coordinate, not evidence of a real smoking place: do not travel there or use
+it as a permitted location. Unknown hours, tobacco support, access and evidence stay unknown.
+
+This sends a snapshot through the normal durable revision journal, codec, WC and Watch App Group;
+it does not add a Spot to iPhone tiles, reports, glance cache, API or any DB. The iPhone's displayed
+status means queued, not delivered. The fixture timestamp is fixture creation time, not a source
+verification. A normal nearby refresh may replace it: send the fixture after iPhone loading settles.
+It replaces the outgoing Watch corpus deliberately, so use the dedicated test device/install.
+Release compilation removes the action/factory. Release codec rejects its reserved ID prefix even
+from old files/application context. Preflight rejects fixture code/name in every shipping binary;
+`apple-validate` exercises Debug acceptance and Release rejection plus nested Release binary checks.
+
+To remove it, return iPhone to current location and refresh the genuine nearby corpus, then sync
+Watch again. The greater revision must replace the fixture, including with a genuine zero result.
+If Debug has no API origin, configure the documented development origin first; cache-only replay
+is not a confirmed empty API response. If data cannot refresh, uninstall both test apps and reinstall
+without triggering the Debug action. Do not call a failed API refresh successful cleanup. Release
+always rejects residual fixture files, regardless of whether cleanup was possible.
+
+### Operator matrix (record build, OS, result, revision and time for each row)
+
+Run Xcode workloads serially across lanes; check `pgrep -x xcodebuild` before starting. Do not stop
+another lane's process. Use `make apple-validate`, then `make contract` and `git diff --check`.
+Automated WC tests inject callbacks; they cannot establish physical radio/background delivery.
+
+1. Clean Watch install: accept eligibility; verify no-saved-data copy. Open phone, permit When In Use
+   location, clear destination, refresh. With phone foreground/reachable request Watch sync. Record
+   whether it is missing phone corpus, transport failure, valid zero spots, or saved results.
+2. Send the explicit fixture above. Clear Watch filters. Verify exactly one test-named result,
+   unknown evidence/hours/support, and matching revision. Open detail: test name stays visible.
+   Enable Watch location; distance and bearing should match the actual Watch-to-test-coordinate
+   straight line (not walking route). Move a safe short distance and refresh location; verify change.
+   Deny location / let the fix age over 60 seconds: saved item remains, current distance disappears.
+3. Add the rectangular Nearby Watch Widget. Verify the same test name and unknown verification,
+   including after app close/reopen. A missing Widget with an app result is an App Group/Widget
+   issue, not a WC success claim. WidgetKit reload is scheduled, not instantaneous.
+4. Disconnect phone, request sync: show failure and preserve saved revision/time. Reconnect, open
+   phone, retry: identical reply succeeds without changing time/revision. Kill/relaunch both apps:
+   revision remains. Queue a changed fixture while Watch is disconnected; reconnect to check deferred
+   application-context delivery. Inspect revision; never infer delivery from iPhone build success.
+5. Wait over an hour: app and Widget show old data while retaining test identity. No receipt or
+   location refresh may make it fresh. Repeat with genuine successful zero nearby data: it must show
+   a saved empty corpus with revision/time, rather than never-synced or failed transport.
+6. While Kanazawa fixture is saved, select Ueno on phone; verify destination results never replace it.
+   Clear destination, refresh genuine current-location data: higher revision clears/replaces fixture.
+7. Install Release on the same test devices after Debug (without deleting caches), then request sync
+   and inspect Widget: synthetic place must be absent. Run `make apple-beta-preflight` on the intended
+   signed Release archive before TestFlight; signing/provisioning and physical checks remain operator
+   gates. Do not change signing configuration as part of this task.
+
+### Future destination handoff — design only, outside v1.0
+
+Keep destination handoff separate from `snapshotV1` and its current-location revision. A future
+versioned, explicit user action could send an expiring destination candidate (request UUID, candidate
+coordinate, issued/expiry time and display label) for Watch confirmation. It must be labelled a
+**destination**, never a smoking-place record or existence evidence, and never stored in tiles,
+canonical DB, nearby snapshots or Widgets. Dismiss/expiry should discard it; older request UUIDs
+must not overwrite the latest confirmed selection. MapKit licensing/privacy review is required
+before adding persistence. Watch should offer its own Maps handoff after confirmation; no live
+position stream, turn-by-turn route state or real-time route synchronization is proposed for v1.0.
+Current-location smoking-place discovery remains the priority. This branch implements none of
+that future destination protocol.
