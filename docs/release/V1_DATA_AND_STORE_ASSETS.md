@@ -1,5 +1,10 @@
 # v1.0 production data and store asset preparation — Lane 4
 
+**2026-10-24 handoff:** [final-assets packet](V1_APPSTORE_FINAL_ASSETS.md) updates the final RC,
+activation-dependent copy and G1–G21 checklist. This page's counts/config are the dated 2026-10-15 observation,
+not a new current/global inventory. No data additions until separately approved. Public-GET commands below
+are procedures for a separately authorized operator, not permission under the current no-production-API task.
+
 Prepared 2026-10-15 from main `e7a465468cfdeb6a3400ad37e74c9b89fa5b58cf`.
 **Preparation complete; final screenshots NOT produced or approved. Submission remains blocked.**
 No production writes, Cloudflare operation, source addition, UI/build-number change, archive,
