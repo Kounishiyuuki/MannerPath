@@ -1,0 +1,52 @@
+[
+  {
+    "candidateId": "kanazawa21-hirosaka",
+    "name": "金沢21世紀美術館 喫煙コーナー",
+    "prefecture": "石川県",
+    "municipality": "金沢市",
+    "sourceUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "evidenceRelationship": "facilityOperator",
+    "locationDescription": "美術館の広坂口周辺・館外",
+    "placement": "outsideBuilding",
+    "environment": "unknown",
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "accessType": "unknown",
+    "accessDetail": null,
+    "latitude": null,
+    "longitude": null,
+    "locationPrecision": "areaApproximate",
+    "locationAnchorCandidate": {
+      "name": "金沢21世紀美術館",
+      "latitude": 36.560867,
+      "longitude": 136.658258,
+      "kind": "facility",
+      "scope": "facility",
+      "basis": "referenceDatasetPoint",
+      "reviewStatus": "UNREVIEWED",
+      "publisher": "金沢市",
+      "resourceId": "51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66",
+      "recordId": "AA0000001260",
+      "recordNumber": 6,
+      "sourceUrl": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/datastore_search?resource_id=51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66&limit=1000",
+      "catalogUrl": "https://catalog-data.city.kanazawa.ishikawa.jp/dataset/172014-tourism/resource/51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66",
+      "contentSha256": "9c3ef65cd0383d21cccf34bc7e181691e15ad8c49a35bfcd3ef59ada1556274c",
+      "coordinateColumns": [
+        "緯度",
+        "経度"
+      ],
+      "crs": "unknown",
+      "rightsStatus": "unreviewed",
+      "licenseMetadata": "Catalog label: Creative Commons Attribution; version/resource-specific terms not approved",
+      "attributionProposal": "出典：金沢市「金沢市 観光施設一覧」ID AA0000001260 の施設代表座標を加工。喫煙地点の正確な位置ではありません。"
+    },
+    "publicationStatus": "blocked"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "candidateId": "kanazawa-castle-office",
+    "name": "金沢城公園 喫煙所",
+    "prefecture": "石川県",
+    "municipality": "金沢市",
+    "sourceUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "evidenceRelationship": "facilityOperator",
+    "locationDescription": "金沢城・兼六園管理事務所の周辺",
+    "placement": "unknown",
+    "environment": "unknown",
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "accessType": "unknown",
+    "accessDetail": null,
+    "latitude": null,
+    "longitude": null,
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked"
+  }
+]

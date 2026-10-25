@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "publicationStatus": "blocked",
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "humanReviewRequired": true,
+  "receipt": {
+    "version": 1,
+    "sourceId": "kanazawa21-smoking-candidates",
+    "publisher": "金沢21世紀美術館",
+    "publisherUrl": "https://www.kanazawa21.jp/",
+    "resourceUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+    "receivedOn": "2026-10-26",
+    "evidenceReference": "Locally normalized factual candidate sheet, not publisher delivery; PROVENANCE.md and fetch-ledger.json; checkedAt 2026-10-26",
+    "rightsReference": "PROVENANCE.md: terms observations only; source and anchor rights unapproved; G5 open",
+    "attributionText": "出典：金沢21世紀美術館 公式案内（2026-10-26確認、正規化候補・未承認） https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+    "licenseName": null,
+    "licenseUrl": null,
+    "coordinateMeaning": "facility",
+    "operationClaim": "unknown",
+    "operationEvidenceReference": "Current page listing only; no accepted operation review; see PROVENANCE.md",
+    "reviewStatus": "UNREVIEWED"
+  },
+  "inspection": {
+    "sha256": "c9b71629ef379aa5257792be9e2d7a05aad8cfd067be726fa71b3e865bec612d",
+    "format": "json",
+    "encoding": "utf-8",
+    "header": [
+      "accessDetail",
+      "accessType",
+      "candidateId",
+      "checkedAt",
+      "environment",
+      "evidenceRelationship",
+      "existence",
+      "latitude",
+      "locationAnchorCandidate",
+      "locationDescription",
+      "locationPrecision",
+      "longitude",
+      "municipality",
+      "name",
+      "openingHours",
+      "placement",
+      "prefecture",
+      "publicationStatus",
+      "sourceUrl",
+      "supportsHeated",
+      "supportsPaper"
+    ],
+    "rawRowCount": 1,
+    "missingFieldCount": 0,
+    "nullFieldCount": 3,
+    "identicalRowCount": 0,
+    "scanner": {
+      "reviewStatus": "UNREVIEWED",
+      "matchingRowCount": 1,
+      "coordinateAvailability": "all",
+      "blockerCodes": [
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ]
+    },
+    "reviewHints": [
+      "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW",
+      "MISSING_OR_NULL_FIELDS_REMAIN_UNKNOWN",
+      "PARTIAL_FIELDS_REVIEW_REQUIRED"
+    ]
+  },
+  "onboarding": {
+    "sourceId": "kanazawa21-smoking-candidates",
+    "state": "BLOCKED",
+    "approvalAutomated": false,
+    "productionApproval": false,
+    "publicationStatus": "blocked",
+    "publisher": "金沢21世紀美術館",
+    "resourceUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+    "smokingEvidence": {
+      "status": "unknown",
+      "reference": null
+    },
+    "rights": {
+      "status": "RIGHTS_REVIEW_REQUIRED",
+      "licenseName": null,
+      "licenseUrl": null,
+      "metadata": null,
+      "commercialReuse": "unknown"
+    },
+    "attribution": "出典：金沢21世紀美術館 公式案内（2026-10-26確認、正規化候補・未承認） https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+    "provider": {
+      "id": null,
+      "role": null,
+      "rights": null,
+      "catalogObservations": []
+    },
+    "coordinates": {
+      "status": "COORDINATE_AUTHORITY_REQUIRED",
+      "kind": "unknown",
+      "requestedKind": "unknown",
+      "columns": []
+    },
+    "operation": "unknown",
+    "review": {
+      "reviewedBy": null,
+      "reviewedOn": null
+    },
+    "adapter": false,
+    "fixture": false,
+    "registryEntry": false,
+    "tests": false,
+    "pinnedRelease": null,
+    "latestLiveRelease": "unknown",
+    "quality": "notEvaluated",
+    "promotion": "notEvaluated",
+    "discovery": {
+      "classification": "RIGHTS_AND_COORDINATES_UNKNOWN",
+      "priority": "P2",
+      "smokingEvidence": "keyword-signal",
+      "rights": "unknown",
+      "coordinates": "unknown",
+      "licenseMetadata": null,
+      "attributionMetadata": "出典：金沢21世紀美術館 公式案内（2026-10-26確認、正規化候補・未承認） https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "coordinateColumns": [],
+      "geometryTypes": [],
+      "blockerCodes": [
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ],
+      "approvalAutomated": false
+    },
+    "drift": {
+      "status": "notObserved",
+      "changes": []
+    },
+    "blockers": [
+      "licenseUnknown",
+      "currentOperationUnknown",
+      "officialPublisherReviewRequired",
+      "smokingExistenceReviewRequired",
+      "rightsReviewRequired",
+      "coordinateAuthorityReviewRequired",
+      "operationReviewRequired"
+    ],
+    "nextAction": "Resolve listed human review gates; do not implement or publish from signals."
+  },
+  "adapterPreview": null,
+  "diff": null,
+  "reviewHints": [
+    "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW",
+    "MISSING_OR_NULL_FIELDS_REMAIN_UNKNOWN",
+    "PARTIAL_FIELDS_REVIEW_REQUIRED"
+  ],
+  "scope": "Offline advisory receipt only; no import, deduplication, entity matching, lifecycle update or approval."
+}
