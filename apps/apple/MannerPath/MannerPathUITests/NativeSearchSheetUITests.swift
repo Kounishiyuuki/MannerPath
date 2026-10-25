@@ -75,25 +75,57 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
 
     func testNativeSheetDetentsKeepMapAndSearchReachable() {
         launch()
-        let title = app.navigationBars["近くの場所"]
-        XCTAssertTrue(title.waitForExistence(timeout: 10))
-        let height = app.windows.firstMatch.frame.height
-        XCTAssertGreaterThan(title.frame.minY, height * 0.3)
+        XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
+        waitForSheet(Self.mediumSheet, "Sheet does not start at medium")
         XCTAssertTrue(destinationSearch.isHittable)
         XCTAssertTrue(nearbyMap.exists)
         screenshot("07-sheet-medium")
-        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
-        sleep(1)
-        XCTAssertLessThan(title.frame.minY, height * 0.25)
+        dragSheet(to: 0.05, settlingIn: Self.largeSheet, "Sheet did not expand")
         XCTAssertTrue(destinationSearch.isHittable)
         screenshot("08-sheet-large")
-        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
-        sleep(1)
-        XCTAssertGreaterThan(title.frame.minY, height * 0.3)
+        dragSheet(to: 0.55, settlingIn: Self.mediumSheet, "Sheet did not return to medium")
         XCTAssertTrue(nearbyMap.exists)
         screenshot("09-sheet-medium-restored")
+    }
+
+    /// Collapsed: the map has the screen, search and Show List stay whole and tappable, panning the map leaves the
+    /// sheet alone, and search expands it above the keyboard; pulling it down again puts the keyboard away.
+    func testCollapsedSheetKeepsSearchAndListReachable() {
+        launch()
+        XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
+        dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse")
+        let window = app.windows.firstMatch.frame
+        let showList = app.buttons["showNearbyList"]
+        for element in [destinationSearch, showList] {
+            XCTAssertTrue(element.waitForExistence(timeout: 5) && element.isHittable, "\(element) is not reachable")
+            XCTAssertTrue(window.contains(element.frame), "\(element) is clipped at \(element.frame)")
+            XCTAssertGreaterThanOrEqual(element.frame.height, 36)
+        }
+        XCTAssertGreaterThanOrEqual(showList.frame.height, 44)
+        XCTAssertFalse(resultRows.firstMatch.exists && resultRows.firstMatch.isHittable, "Collapsed sheet still shows the list")
+        screenshot("20-sheet-collapsed")
+
+        // Panning the map must not grow the sheet.
+        nearbyMap.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+            .press(forDuration: 0.05, thenDragTo: nearbyMap.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.2)))
+        waitForSheet(Self.collapsedSheet, "Panning the map expanded the sheet")
+
+        showList.tap()
+        waitForSheet(Self.mediumSheet, "Show List did not return to medium")
+        XCTAssertFalse(showList.exists)
+
+        dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse again")
+        destinationSearch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+        waitForSheet(Self.largeSheet, "Search did not expand the sheet above the keyboard")
+        // The detent itself is large, not a collapsed sheet lifted by the keyboard.
+        XCTAssertTrue(showList.waitForNonExistence(timeout: 5), "Search left the sheet at the collapsed detent")
+        screenshot("21-collapsed-search-focused")
+        // Put the keyboard away by pulling the sheet down, as a reader would; the Cancel control differs by iOS version.
+        dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse after search")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10), "Collapsing left the keyboard up")
+        XCTAssertTrue(destinationSearch.isHittable && showList.isHittable)
+        screenshot("22-collapsed-after-search")
     }
 
     func testSearchSheetVisualJourney() throws {

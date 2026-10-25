@@ -27,11 +27,15 @@ struct ContentView: View {
     @State private var showingFilters = false
     @State private var showingNearbySheet = false
     @State private var sheetDetent: PresentationDetent = .medium
+    /// The detent before search expanded the sheet, restored when search ends with nothing to show.
+    @State private var detentBeforeSearch: PresentationDetent?
     @State private var selectedSpotID: String?
     /// Bumped on every pin selection, including a re-tap of the selected pin, so the sheet scrolls back to the summary
     /// even when the selection itself does not change (#208 review).
     @State private var summaryScrollRequest = 0
     @FocusState private var searchFocused: Bool
+    /// Whether system search is active. Unlike focus, reported reliably for the drawer field, also from collapsed.
+    @State private var searchPresented = false
 
     private static let summaryAnchor = "nearbySheetSummaryAnchor"
     private static let destinationListAnchor = "nearbyDestinationListAnchor"
@@ -41,7 +45,7 @@ struct ContentView: View {
     // The sheet holds its own NavigationStack, so details and every other sheet are presented from inside it.
     var body: some View {
         GeometryReader { proxy in
-            nearbyMap(bottomInset: proxy.size.height * 0.5)
+            nearbyMap(bottomInset: mapBottomInset(screenHeight: proxy.size.height))
         }
         .ignoresSafeArea()
         // Top leading: the search field lives in the sheet, the compass appears top trailing, and the sheet covers the
@@ -122,6 +126,10 @@ struct ContentView: View {
                 .scrollContentBackground(.hidden)
                 .scrollDismissesKeyboard(.interactively)
                 .listSectionSpacing(.compact)
+                // Collapsed, only search and Show List fit; the list would show through behind them half-cut, and
+                // VoiceOver would reach rows off screen. Show List brings it back.
+                .opacity(sheetDetent == .collapsedNearby ? 0 : 1)
+                .accessibilityHidden(sheetDetent == .collapsedNearby)
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
                 .onChange(of: summaryScrollRequest) { _, _ in
                     guard selectedSpotID != nil else { return }
@@ -138,7 +146,8 @@ struct ContentView: View {
             }
             // docs/DESIGN.md §5.9: the system search field; MapKit search behind it is unchanged (ADR-0001), and the
             // query never reaches MannerPath's backend.
-            .searchable(text: $destinationQuery, placement: .navigationBarDrawer(displayMode: .always),
+            .searchable(text: $destinationQuery, isPresented: $searchPresented,
+                        placement: .navigationBarDrawer(displayMode: .always),
                         prompt: Text("Search a destination in Apple Maps"))
             .searchFocused($searchFocused)
             .onSubmit(of: .search) {
@@ -151,20 +160,22 @@ struct ContentView: View {
                 guard model.destination?.name != query, model.resolvingSuggestion?.title != query else { return }
                 model.scheduleDestinationSearch(query)
             }
-            // Searching needs the full sheet: at medium the keyboard covers the results. Focus alone is not reported
-            // reliably for a drawer search field, so showing results also expands the sheet.
-            .onChange(of: searchFocused) { _, focused in
-                if focused { sheetDetent = .large }
+            // Searching needs the full sheet: below it the keyboard covers the results. Showing results also expands
+            // the sheet, for results that arrive after search was put away.
+            .onChange(of: searchPresented) { _, presented in
+                if presented { expandForSearch() } else { endSearchExpansionIfIdle() }
             }
             .onChange(of: isShowingSearchResults) { _, showing in
-                if showing { sheetDetent = .large }
+                if showing { expandForSearch() } else { endSearchExpansionIfIdle() }
             }
             .navigationTitle("Nearby")
             .navigationBarTitleDisplayMode(.inline)
             // A selected List row can scroll under navigation chrome after a detail pop. Keep its dismissal outside
             // the scroll content, inside the root destination, and above the system keyboard safe area.
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                if selectedResult != nil {
+                if sheetDetent == .collapsedNearby {
+                    showListButton
+                } else if selectedResult != nil {
                     clearSelectionButton
                         .buttonStyle(.borderless)
                         .padding(.horizontal)
@@ -251,17 +262,56 @@ struct ContentView: View {
             // The filters are a full Form of sections; open it at full height so every section is reachable.
             .presentationDetents([.large])
         }
-        // System detents only (Codex P2 #203): a fixed small fraction clipped the summary at large text sizes. Medium
-        // keeps the map in view and starts with the summary; large holds the full list, search and details.
-        .presentationDetents([.medium, .large], selection: $sheetDetent)
+        // Collapsed leaves the map to the reader with only search and Show List; medium starts with the summary; large
+        // holds the full list, search and details. Collapsed scales with text size (Codex P2 #203: a fixed small
+        // fraction clipped content at large text sizes).
+        .presentationDetents([.collapsedNearby, .medium, .large], selection: $sheetDetent)
         .presentationDragIndicator(.visible)
         .modifier(NearbySheetSurface())
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .interactiveDismissDisabled()
+        .onChange(of: sheetDetent) { _, detent in
+            // Collapsing while typing puts the keyboard away; the field stays on screen to resume.
+            if detent == .collapsedNearby { searchFocused = false }
+        }
         .onChange(of: path) { _, newPath in
             // A pushed detail needs the full height; coming back returns to the list over the map.
             sheetDetent = newPath.isEmpty ? .medium : .large
         }
+    }
+
+    private func expandForSearch() {
+        guard sheetDetent != .large else { return }
+        detentBeforeSearch = sheetDetent
+        sheetDetent = .large
+    }
+
+    /// Search over with nothing left to show: return to the size the reader had chosen, so the map comes back.
+    private func endSearchExpansionIfIdle() {
+        guard !searchPresented, !isShowingSearchResults, let previous = detentBeforeSearch else { return }
+        detentBeforeSearch = nil
+        guard sheetDetent == .large, path.isEmpty, destinationQuery.isEmpty, model.destination == nil else { return }
+        withAnimation(reduceMotion ? nil : .default) { sheetDetent = previous }
+    }
+
+    /// Programmatic camera moves fit above the sheet. At large the map is covered, so keep the medium framing.
+    private func mapBottomInset(screenHeight: CGFloat) -> CGFloat {
+        guard sheetDetent == .collapsedNearby else { return screenHeight * 0.5 }
+        return CollapsedNearbyDetent.height(dynamicTypeSize: dynamicTypeSize, maxHeight: screenHeight)
+    }
+
+    private var showListButton: some View {
+        Button {
+            withAnimation(reduceMotion ? nil : .default) { sheetDetent = .medium }
+        } label: {
+            Label("Show List", systemImage: "list.bullet")
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("showNearbyList")
+        .accessibilityHint("Shows nearby places")
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
 
     private func activateNearby() {
@@ -1018,6 +1068,26 @@ private struct SelectedSpotSummary: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("selectedSpotSummary")
     }
+}
+
+/// The smallest Nearby sheet: navigation bar, search field and Show List, scaled with the text size and never more
+/// than half the screen, so the map stays usable even at accessibility sizes.
+private struct CollapsedNearbyDetent: CustomPresentationDetent {
+    static let baseHeight: CGFloat = 180
+
+    static func height(in context: Context) -> CGFloat? {
+        height(dynamicTypeSize: context.dynamicTypeSize, maxHeight: context.maxDetentValue)
+    }
+
+    static func height(dynamicTypeSize: DynamicTypeSize, maxHeight: CGFloat) -> CGFloat {
+        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize))
+        let scaled = UIFontMetrics(forTextStyle: .body).scaledValue(for: baseHeight, compatibleWith: traits)
+        return min(scaled, maxHeight * 0.5)
+    }
+}
+
+extension PresentationDetent {
+    static let collapsedNearby = PresentationDetent.custom(CollapsedNearbyDetent.self)
 }
 
 /// Let modern sheets own their Liquid Glass; legacy sheets use a standard system Material.

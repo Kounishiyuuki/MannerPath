@@ -157,6 +157,34 @@ class MannerPathUITestCase: XCTestCase {
 
     var nearbyMap: XCUIElement { app.descendants(matching: .any)["nearbyMap"] }
 
+    /// Sheet heights as the Nearby title's top edge, in fractions of the window: collapsed, medium and large.
+    static let collapsedSheet: ClosedRange<CGFloat> = 0.7...1
+    static let mediumSheet: ClosedRange<CGFloat> = 0.3...0.7
+    static let largeSheet: ClosedRange<CGFloat> = 0...0.25
+
+    /// Waits, without a fixed delay, until the Nearby title settles in `band`.
+    func waitForSheet(_ band: ClosedRange<CGFloat>, _ message: String, file: StaticString = #filePath, line: UInt = #line) {
+        let title = app.navigationBars["近くの場所"]
+        let settled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard title.exists else { return false }
+            return band.contains(title.frame.minY / self.app.windows.firstMatch.frame.height)
+        }, object: nil)
+        if XCTWaiter().wait(for: [settled], timeout: 10) != .completed {
+            screenshot("sheet-height-failure")
+        }
+        XCTAssertTrue(title.exists && band.contains(title.frame.minY / app.windows.firstMatch.frame.height),
+                      "\(message): title at \(title.frame.minY) of \(app.windows.firstMatch.frame.height)",
+                      file: file, line: line)
+    }
+
+    /// Drags the Nearby sheet by its title to `dy` (fraction of the window) and waits for it to settle in `band`.
+    func dragSheet(to dy: CGFloat, settlingIn band: ClosedRange<CGFloat>, _ message: String,
+                   file: StaticString = #filePath, line: UInt = #line) {
+        app.navigationBars["近くの場所"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: dy)))
+        waitForSheet(band, message, file: file, line: line)
+    }
+
     /// The system search field (`.searchable`) of the Nearby sheet.
     var destinationSearch: XCUIElement { app.searchFields.firstMatch }
 
@@ -331,11 +359,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
         if returnToMedium {
-            let title = app.navigationBars["近くの場所"]
-            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
-            sleep(1)
-            XCTAssertGreaterThan(title.frame.minY, app.windows.firstMatch.frame.height * 0.3)
+            dragSheet(to: 0.55, settlingIn: Self.mediumSheet, "Sheet did not return to medium")
         } else {
             let title = app.navigationBars["近くの場所"]
             title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
@@ -378,9 +402,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         let title = app.navigationBars["近くの場所"]
         for _ in 0..<3 { app.collectionViews.firstMatch.swipeUp() }
         if title.frame.minY < window.height * 0.3 {
-            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
-            sleep(1)
+            dragSheet(to: 0.55, settlingIn: Self.mediumSheet, "Sheet did not return to medium")
         }
         let directions = app.buttons["selectedSpotDirections"]
         XCTAssertFalse(directions.exists && directions.isHittable, "Summary was not scrolled away")
@@ -411,20 +433,14 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(resultRows.firstMatch.isHittable, "Expanded sheet does not show the nearby list")
         XCTAssertTrue(nearbyMap.exists)
         screenshot("17-sheet-large")
-        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
-        sleep(1)
-        XCTAssertTrue(title.exists, "Sheet was dismissed")
-        XCTAssertGreaterThan(title.frame.minY, window.height * 0.3, "Sheet did not return to medium")
+        dragSheet(to: 0.55, settlingIn: Self.mediumSheet, "Sheet was dismissed or did not return to medium")
         screenshot("16-sheet-medium")
 
         // Scroll the list, then select: the summary must come back into view (Codex P2 #203).
         scrollTo(resultRows.element(boundBy: 4))
         // Scrolling can grow the sheet to large; bring it back to medium so pins are reachable, keeping the scroll.
         if title.frame.minY < window.height * 0.3 {
-            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
-            sleep(1)
+            dragSheet(to: 0.55, settlingIn: Self.mediumSheet, "Sheet did not return to medium")
         }
         try selectPin()
         let summary = app.descendants(matching: .any)["selectedSpotSummary"]
