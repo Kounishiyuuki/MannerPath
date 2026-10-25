@@ -27,14 +27,14 @@ struct ContentView: View {
     @State private var showingFilters = false
     @State private var showingNearbySheet = false
     @State private var sheetDetent: PresentationDetent = .medium
-    /// The detent before search expanded the sheet, restored when search ends with nothing to show.
-    @State private var detentBeforeSearch: PresentationDetent?
     @State private var selectedSpotID: String?
     /// Bumped on every pin selection, including a re-tap of the selected pin, so the sheet scrolls back to the summary
     /// even when the selection itself does not change (#208 review).
     @State private var summaryScrollRequest = 0
     @FocusState private var searchFocused: Bool
     /// Whether system search is active. Unlike focus, reported reliably for the drawer field, also from collapsed.
+    /// iOS lifts the sheet above the keyboard by itself and restores the reader's detent afterwards; forcing `.large`
+    /// here left the screen at full height while the selection said collapsed.
     @State private var searchPresented = false
 
     private static let summaryAnchor = "nearbySheetSummaryAnchor"
@@ -128,8 +128,8 @@ struct ContentView: View {
                 .listSectionSpacing(.compact)
                 // Collapsed, only search and Show List fit; the list would show through behind them half-cut, and
                 // VoiceOver would reach rows off screen. Show List brings it back.
-                .opacity(sheetDetent == .collapsedNearby ? 0 : 1)
-                .accessibilityHidden(sheetDetent == .collapsedNearby)
+                .opacity(isCollapsed ? 0 : 1)
+                .accessibilityHidden(isCollapsed)
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
                 .onChange(of: summaryScrollRequest) { _, _ in
                     guard selectedSpotID != nil else { return }
@@ -160,20 +160,12 @@ struct ContentView: View {
                 guard model.destination?.name != query, model.resolvingSuggestion?.title != query else { return }
                 model.scheduleDestinationSearch(query)
             }
-            // Searching needs the full sheet: below it the keyboard covers the results. Showing results also expands
-            // the sheet, for results that arrive after search was put away.
-            .onChange(of: searchPresented) { _, presented in
-                if presented { expandForSearch() } else { endSearchExpansionIfIdle() }
-            }
-            .onChange(of: isShowingSearchResults) { _, showing in
-                if showing { expandForSearch() } else { endSearchExpansionIfIdle() }
-            }
             .navigationTitle("Nearby")
             .navigationBarTitleDisplayMode(.inline)
             // A selected List row can scroll under navigation chrome after a detail pop. Keep its dismissal outside
             // the scroll content, inside the root destination, and above the system keyboard safe area.
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                if sheetDetent == .collapsedNearby {
+                if isCollapsed {
                     showListButton
                 } else if selectedResult != nil {
                     clearSelectionButton
@@ -270,32 +262,15 @@ struct ContentView: View {
         .modifier(NearbySheetSurface())
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .interactiveDismissDisabled()
-        .onChange(of: sheetDetent) { _, detent in
-            // Pulling the sheet down ends search: active search holds the sheet at full height on iOS 26 whatever the
-            // detent says, and below it the keyboard would cover the candidates. The field stays on screen to resume.
-            if detent != .large {
-                searchFocused = false
-                searchPresented = false
-            }
-        }
         .onChange(of: path) { _, newPath in
             // A pushed detail needs the full height; coming back returns to the list over the map.
             sheetDetent = newPath.isEmpty ? .medium : .large
         }
     }
 
-    private func expandForSearch() {
-        guard sheetDetent != .large else { return }
-        detentBeforeSearch = sheetDetent
-        sheetDetent = .large
-    }
-
-    /// Search over with nothing left to show: return to the size the reader had chosen, so the map comes back.
-    private func endSearchExpansionIfIdle() {
-        guard !searchPresented, !isShowingSearchResults, let previous = detentBeforeSearch else { return }
-        detentBeforeSearch = nil
-        guard sheetDetent == .large, path.isEmpty, destinationQuery.isEmpty, model.destination == nil else { return }
-        withAnimation(reduceMotion ? nil : .default) { sheetDetent = previous }
+    /// Collapsed and not searching: only search and Show List are on screen. While searching, iOS lifts the sheet.
+    private var isCollapsed: Bool {
+        sheetDetent == .collapsedNearby && !searchPresented
     }
 
     /// Programmatic camera moves fit above the sheet. At large the map is covered, so keep the medium framing.

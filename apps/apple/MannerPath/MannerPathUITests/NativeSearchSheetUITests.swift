@@ -89,7 +89,7 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
     }
 
     /// Collapsed: the map has the screen, search and Show List stay whole and tappable, panning the map leaves the
-    /// sheet alone, and search expands it above the keyboard; pulling it down again puts the keyboard away.
+    /// sheet alone, search candidates stay above the keyboard, and the sheet on screen collapses again after search.
     func testCollapsedSheetKeepsSearchAndListReachable() {
         launch()
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
@@ -114,32 +114,57 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         waitForSheet(Self.mediumSheet, "Show List did not return to medium")
         XCTAssertFalse(showList.exists)
 
+        // Search from collapsed: iOS lifts the sheet over the keyboard and the candidates stay usable above it.
         dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse again")
-        destinationSearch.tap()
-        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
-        waitForSheet(Self.largeSheet, "Search did not expand the sheet above the keyboard")
-        // The detent itself is large, not a collapsed sheet lifted by the keyboard.
-        XCTAssertTrue(showList.waitForNonExistence(timeout: 5), "Search left the sheet at the collapsed detent")
-        screenshot("21-collapsed-search-focused")
-        // Pulling the sheet down from its grabber ends search and puts the keyboard away.
-        dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse after search")
-        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10), "Collapsing left the keyboard up")
-        XCTAssertTrue(destinationSearch.isHittable && showList.isHittable)
+        searchUeno()
+        screenshot("21-collapsed-search-candidates")
+        endSearch()
+        waitForSheet(Self.collapsedSheet, "Ending search did not bring back the collapsed sheet on screen")
+        XCTAssertTrue(showList.waitForExistence(timeout: 5) && showList.isHittable)
         screenshot("22-collapsed-after-search")
 
-        // The same with a query typed and candidates possibly shown: the sheet still collapses for the map.
-        destinationSearch.tap()
-        waitForSheet(Self.largeSheet, "Search did not expand the sheet again")
-        destinationSearch.typeText("上野")
-        screenshot("23-search-with-query")
+        // Search from medium, end it, then drag the sheet down to collapsed by hand.
+        showList.tap()
+        waitForSheet(Self.mediumSheet, "Show List did not return to medium")
+        searchUeno()
+        endSearch()
+        waitForSheet(Self.mediumSheet, "Ending search did not bring back the medium sheet on screen")
+        dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse after search ended")
+        XCTAssertTrue(showList.waitForExistence(timeout: 5) && showList.isHittable)
+
+        // A query still in the field: pulling the sheet down from its grabber puts the keyboard away and collapses it.
+        showList.tap()
+        waitForSheet(Self.mediumSheet, "Show List did not return to medium")
+        searchUeno()
         dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet with a query did not collapse")
-        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10))
-        XCTAssertTrue(destinationSearch.isHittable && showList.isHittable)
-        let after = XCTAttachment(string: "query after collapse: \(String(describing: destinationSearch.value))")
-        after.name = "\(phase)-query-after-collapse"
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10), "Collapsing left the keyboard up")
+        XCTAssertTrue(destinationSearch.isHittable)
+        let after = XCTAttachment(string: "query after collapse: \(String(describing: destinationSearch.value)), "
+            + "showList: \(showList.exists)\n\(app.debugDescription)")
+        after.name = "\(phase)-collapsed-with-query-tree"
         after.lifetime = .keepAlways
         add(after)
-        screenshot("24-collapsed-with-query")
+        screenshot("23-collapsed-with-query")
+    }
+
+    /// Types a destination and waits for a live MapKit candidate fully above the keyboard.
+    private func searchUeno(file: StaticString = #filePath, line: UInt = #line) {
+        destinationSearch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), file: file, line: line)
+        clearSearch(destinationSearch)
+        destinationSearch.typeText("上野")
+        let candidate = app.buttons.matching(identifier: "destinationMatch").firstMatch
+        XCTAssertTrue(candidate.waitForExistence(timeout: 45), "No live MapKit candidate", file: file, line: line)
+        assertDestinationCandidateAboveKeyboard(candidate, file: file, line: line)
+    }
+
+    /// The system control that ends search: Cancel on iOS 18, a Close button on iOS 26 (both in the accessibility tree).
+    private func endSearch(file: StaticString = #filePath, line: UInt = #line) {
+        let end = app.navigationBars["近くの場所"].buttons
+            .matching(NSPredicate(format: "label == 'キャンセル' OR label == '閉じる'")).firstMatch
+        XCTAssertTrue(end.waitForExistence(timeout: 5), "No system control to end search", file: file, line: line)
+        end.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10), file: file, line: line)
     }
 
     func testSearchSheetVisualJourney() throws {
