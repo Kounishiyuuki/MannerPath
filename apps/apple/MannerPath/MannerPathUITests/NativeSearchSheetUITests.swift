@@ -121,11 +121,25 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         // The detent itself is large, not a collapsed sheet lifted by the keyboard.
         XCTAssertTrue(showList.waitForNonExistence(timeout: 5), "Search left the sheet at the collapsed detent")
         screenshot("21-collapsed-search-focused")
-        // Put the keyboard away by pulling the sheet down, as a reader would; the Cancel control differs by iOS version.
+        // Pulling the sheet down from its grabber ends search and puts the keyboard away.
         dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet did not collapse after search")
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10), "Collapsing left the keyboard up")
         XCTAssertTrue(destinationSearch.isHittable && showList.isHittable)
         screenshot("22-collapsed-after-search")
+
+        // The same with a query typed and candidates possibly shown: the sheet still collapses for the map.
+        destinationSearch.tap()
+        waitForSheet(Self.largeSheet, "Search did not expand the sheet again")
+        destinationSearch.typeText("上野")
+        screenshot("23-search-with-query")
+        dragSheet(to: 0.98, settlingIn: Self.collapsedSheet, "Sheet with a query did not collapse")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10))
+        XCTAssertTrue(destinationSearch.isHittable && showList.isHittable)
+        let after = XCTAttachment(string: "query after collapse: \(String(describing: destinationSearch.value))")
+        after.name = "\(phase)-query-after-collapse"
+        after.lifetime = .keepAlways
+        add(after)
+        screenshot("24-collapsed-with-query")
     }
 
     func testSearchSheetVisualJourney() throws {

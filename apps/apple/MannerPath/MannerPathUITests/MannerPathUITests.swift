@@ -171,6 +171,10 @@ class MannerPathUITestCase: XCTestCase {
         }, object: nil)
         if XCTWaiter().wait(for: [settled], timeout: 10) != .completed {
             screenshot("sheet-height-failure")
+            let tree = XCTAttachment(string: app.debugDescription)
+            tree.name = "\(phase)-sheet-height-failure-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
         }
         XCTAssertTrue(title.exists && band.contains(title.frame.minY / app.windows.firstMatch.frame.height),
                       "\(message): title at \(title.frame.minY) of \(app.windows.firstMatch.frame.height)",
@@ -180,7 +184,10 @@ class MannerPathUITestCase: XCTestCase {
     /// Drags the Nearby sheet by its title to `dy` (fraction of the window) and waits for it to settle in `band`.
     func dragSheet(to dy: CGFloat, settlingIn band: ClosedRange<CGFloat>, _ message: String,
                    file: StaticString = #filePath, line: UInt = #line) {
-        app.navigationBars["近くの場所"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        // The system grabber is the sheet's own handle; while search is active the title is hidden behind the field.
+        let grabber = app.buttons["シートグラバー"]
+        let handle = grabber.exists ? grabber : app.navigationBars["近くの場所"]
+        handle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: dy)))
         waitForSheet(band, message, file: file, line: line)
     }

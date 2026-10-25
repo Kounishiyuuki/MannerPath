@@ -271,8 +271,12 @@ struct ContentView: View {
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .interactiveDismissDisabled()
         .onChange(of: sheetDetent) { _, detent in
-            // Collapsing while typing puts the keyboard away; the field stays on screen to resume.
-            if detent == .collapsedNearby { searchFocused = false }
+            // Pulling the sheet down ends search: active search holds the sheet at full height on iOS 26 whatever the
+            // detent says, and below it the keyboard would cover the candidates. The field stays on screen to resume.
+            if detent != .large {
+                searchFocused = false
+                searchPresented = false
+            }
         }
         .onChange(of: path) { _, newPath in
             // A pushed detail needs the full height; coming back returns to the list over the map.
