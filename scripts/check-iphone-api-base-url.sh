@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+python3 scripts/test-watch-fixture-build-boundary.py
+
 project=apps/apple/MannerPath/MannerPath.xcodeproj
 derived_data=$(mktemp -d)
 trap 'rm -rf "$derived_data"' EXIT
@@ -55,5 +57,22 @@ xcodebuild build -quiet -project "$project" -scheme MannerPath -configuration Re
   -destination 'generic/platform=iOS Simulator' -derivedDataPath "$derived_data" \
   CODE_SIGNING_ALLOWED=NO
 check_plist https://mannerpath-api-production.happywestyuki.workers.dev https://kounishiyuuki.github.io/MannerPath/ Release
+# Scan the actual Release executables, including both widgets and the embedded Watch app.
+# Unlike full archive preflight this gate needs no signing/provisioning profile.
+python3 - "$derived_data/Build/Products/Release-iphonesimulator/MannerPath.app" <<'PYTHON'
+import importlib.util
+import pathlib
+import plistlib
+import sys
+
+spec = importlib.util.spec_from_file_location("preflight", "scripts/check-apple-beta-artifact.py")
+preflight = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(preflight)
+app = pathlib.Path(sys.argv[1])
+for bundle in [app, *preflight.embedded_bundles(app)]:
+    info = plistlib.loads((bundle / "Info.plist").read_bytes())
+    preflight.check_release_binary(bundle, info, str(bundle.relative_to(app.parent)))
+print("Release embedded binaries: no Debug fixture hooks")
+PYTHON
 echo "Release MannerPathAPIBaseURL: https://mannerpath-api-production.happywestyuki.workers.dev"
 echo "Release MannerPathPublicSiteURL: https://kounishiyuuki.github.io/MannerPath/"

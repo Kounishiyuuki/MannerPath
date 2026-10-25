@@ -67,6 +67,51 @@ struct MannerPathWatch_Watch_AppTests {
         #expect(WatchWidgetState.evaluate(snapshot([spot("a")], at: now.addingTimeInterval(1)), at: now) == .stale)
     }
 
+    #if DEBUG
+    @Test func togashiTestSnapshotSharesIdentityAndOfflineGeometryWithWidgetReader() throws {
+        let privateStore = try store()
+        let groupStore = try store()
+        defer {
+            try? FileManager.default.removeItem(at: privateStore.directory)
+            try? FileManager.default.removeItem(at: groupStore.directory)
+        }
+        let synthetic = WatchSpot(
+            id: "debug-watch-fixture-togashi", name: "テストデータ・富樫（実在しません）",
+            latitude: 36.536, longitude: 136.646,
+            spotType: "unknown", accessType: "unknown", supportsPaper: "unknown",
+            supportsHeated: "unknown", lifecycle: "active", evidenceQuality: nil,
+            evidenceQualityVersion: nil, lastVerifiedAt: nil, openingHours: nil, sourceIDs: [])
+        let sent = WatchSnapshot(schemaVersion: 1, revision: 7, generatedAt: now,
+                                 snapshotID: UUID(), spots: [synthetic], sources: [])
+        let appStore = WatchStore.migrate(privateDirectory: privateStore.directory,
+                                          groupDirectory: groupStore.directory)
+        try appStore.acceptSnapshot(WatchCodec.encode(sent))
+
+        // A second process sees the same file rather than an in-memory app snapshot.
+        let widgetReader = WatchStore(directory: groupStore.directory)
+        let saved = try #require(widgetReader.snapshot())
+        #expect(saved == sent)
+        #expect(saved.spots.first?.name == "テストデータ・富樫（実在しません）")
+        #expect(saved.spots.first?.existenceTier == "unknown")
+        #expect(saved.spots.first?.lastVerifiedAt == nil)
+        #expect(WatchWidgetState.evaluate(saved, at: now) == .saved)
+        #expect(WatchWidgetState.evaluate(saved, at: now.addingTimeInterval(3_601)) == .stale)
+        #expect(widgetReader.snapshot()?.spots.first?.name == synthetic.name)
+
+        // About 89 metres due east at this latitude; no route service is needed.
+        let result = try #require(WatchRanking.topThree(
+            saved, latitude: 36.536, longitude: 136.645,
+            preferences: preferences(), at: now).first)
+        #expect(result.spot == synthetic)
+        #expect(result.distanceMeters > 85 && result.distanceMeters < 95)
+        #expect(result.bearingDegrees > 89 && result.bearingDegrees < 91)
+        let noLocation = try #require(WatchRanking.topThree(
+            saved, latitude: nil, longitude: nil, preferences: preferences(), at: now).first)
+        #expect(noLocation.spot.name == synthetic.name)
+        #expect(noLocation.distanceMeters.isNaN)
+    }
+    #endif
+
     @Test func groupMigrationKeepsNewestStateAndSurvivesMissingOrCorruptOldFiles() throws {
         let privateStore = try store()
         let groupStore = try store()

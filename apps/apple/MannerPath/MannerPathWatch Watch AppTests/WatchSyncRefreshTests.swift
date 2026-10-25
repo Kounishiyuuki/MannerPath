@@ -103,6 +103,87 @@ struct WatchSyncRefreshTests {
         #expect(!model.syncRequestFailed && !model.isSyncing && model.snapshot == fresh)
     }
 
+    @Test func neverSyncedProducerWithoutDataAndSuccessfulZeroPlacesAreDistinct() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        let model = WatchNearbyModel(store: store, activateConnectivity: false, snapshotRequester: { _ in }, widgetReloader: {})
+        #expect(model.snapshot == nil && !model.syncRequestFailed && !model.phoneHasNoSnapshot)
+        model.requestSync()
+        model.completeSyncReply(snapshotData: nil, unavailable: true)
+        #expect(!model.isSyncing && model.phoneHasNoSnapshot && !model.syncRequestFailed)
+        #expect(model.snapshot == nil && store.snapshot() == nil)
+        model.requestSync()
+        model.completeSyncReply(snapshotData: nil, unavailable: false)
+        #expect(model.syncRequestFailed && !model.phoneHasNoSnapshot)
+        let empty = payload(revision: 1, at: .now)
+        model.requestSync()
+        model.completeSyncReply(snapshotData: try WatchCodec.encode(empty), unavailable: false)
+        #expect(!model.syncRequestFailed && !model.phoneHasNoSnapshot)
+        #expect(model.snapshot == empty && model.results.isEmpty && !model.snapshotIsOld)
+        #expect(WatchWidgetState.evaluate(store.snapshot(), at: .now) == .empty)
+    }
+
+    @Test func producerWithoutSnapshotNeverErasesSavedDataOrOverridesNewerContext() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        let old = payload(revision: 1, at: .now.addingTimeInterval(-7_200))
+        try store.acceptSnapshot(WatchCodec.encode(old))
+        let model = WatchNearbyModel(store: store, activateConnectivity: false, snapshotRequester: { _ in }, widgetReloader: {})
+        model.requestSync()
+        model.completeSyncReply(snapshotData: nil, unavailable: true)
+        #expect(model.phoneHasNoSnapshot && !model.syncRequestFailed)
+        #expect(model.snapshot == old && model.snapshotIsOld && store.snapshot() == old)
+        model.requestSync()
+        let fresh = payload(revision: 2, at: .now)
+        #expect(model.receive(snapshotData: try WatchCodec.encode(fresh), preferenceData: nil))
+        model.completeSyncReply(snapshotData: nil, unavailable: true)
+        #expect(!model.phoneHasNoSnapshot && !model.syncRequestFailed && !model.isSyncing)
+        #expect(model.snapshot == fresh && store.snapshot() == fresh)
+    }
+
+    @Test func timeoutAllowsRetryAndLateRepliesAndTimersCannotCompleteAnotherRequest() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        var completions: [@MainActor (Data?) -> Void] = []
+        var timeouts: [@MainActor () -> Void] = []
+        let model = WatchNearbyModel(store: store, activateConnectivity: false,
+                                    snapshotRequester: { completions.append($0) }, widgetReloader: {},
+                                    syncTimeoutScheduler: { timeouts.append($0) })
+        model.requestSync()
+        #expect(model.isSyncing && completions.count == 1 && timeouts.count == 1)
+        timeouts[0]()
+        #expect(!model.isSyncing && model.syncRequestFailed && model.snapshot == nil)
+        model.requestSync()
+        #expect(model.isSyncing && !model.syncRequestFailed && completions.count == 2)
+        let first = payload(revision: 1, at: .now)
+        completions[0](try WatchCodec.encode(first))
+        timeouts[0]()
+        #expect(model.isSyncing && model.snapshot == nil && !model.syncRequestFailed)
+        let second = payload(revision: 2, at: .now)
+        completions[1](try WatchCodec.encode(second))
+        #expect(!model.isSyncing && !model.syncRequestFailed && model.snapshot == second)
+        timeouts[1]()
+        completions[0](nil)
+        #expect(!model.syncRequestFailed && model.snapshot == second && store.snapshot() == second)
+    }
+
+    @Test func newerContextCompletesRequestBeforeTimeoutOrTransportFailure() throws {
+        let store = try cache()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        var completion: (@MainActor (Data?) -> Void)?
+        var timeout: (@MainActor () -> Void)?
+        let model = WatchNearbyModel(store: store, activateConnectivity: false,
+                                    snapshotRequester: { completion = $0 }, widgetReloader: {},
+                                    syncTimeoutScheduler: { timeout = $0 })
+        model.requestSync()
+        let fresh = payload(revision: 1, at: .now)
+        #expect(model.receive(snapshotData: try WatchCodec.encode(fresh), preferenceData: nil))
+        #expect(!model.isSyncing)
+        timeout?()
+        completion?(nil)
+        #expect(!model.syncRequestFailed && !model.phoneHasNoSnapshot && model.snapshot == fresh)
+    }
+
     @Test func failedDiskWriteNeverClaimsSuccessfulSync() throws {
         let store = try cache()
         try FileManager.default.removeItem(at: store.directory)

@@ -4,6 +4,11 @@ struct AboutPrivacyView: View {
     let sources: [SpotSource]
     let reportModel: ReportModel
 
+    #if DEBUG
+    @State private var confirmWatchFixture = false
+    @State private var watchFixtureStatus = ""
+    #endif
+
     var body: some View {
         List {
             Section {
@@ -49,6 +54,26 @@ struct AboutPrivacyView: View {
             Section("Apple Watch") {
                 Text("The iPhone sends the Watch a compact cached set of nearby places, source information, and filter preferences. The Watch uses its own current location for distance and direction.")
             }
+
+            #if DEBUG
+            Section("開発用 Watch 実機検証") {
+                Text("富樫付近の合成地点1件をWatchへ送ります。実在する喫煙所ではありません。API・公開DB・iPhoneの地点キャッシュには保存しません。")
+                Button("テストデータをWatchへ送信…") { confirmWatchFixture = true }
+                Text(watchFixtureStatus).font(.footnote)
+                Text("解除：iPhoneで現在地に戻り周辺データを更新してください。Watchのフィルタも解除してください。")
+            }
+            .confirmationDialog("合成地点をWatchへ送信しますか？", isPresented: $confirmWatchFixture,
+                                titleVisibility: .visible) {
+                Button("テストデータ送信を有効化") {
+                    do {
+                        try PhoneWatchSync.shared.publishTogashiWatchFixture()
+                        watchFixtureStatus = "テストデータを送信待ちにしました。Watchで保存データを同期し、名称・revisionを確認してください。受信完了は未確認です。"
+                    } catch {
+                        watchFixtureStatus = "テストデータを保存できませんでした。"
+                    }
+                }
+            }
+            #endif
 
             Section("Reports") {
                 ForEach(AboutPrivacyCopy.reportParagraphs(for: reportModel.availability), id: \.self) { paragraph in
