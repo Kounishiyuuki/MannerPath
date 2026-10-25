@@ -31,8 +31,14 @@ struct DestinationSuggestion: Identifiable, Equatable, Sendable {
     let id: String
     let title: String
     let subtitle: String?
+    /// Known only for facility-search answers; a completion stays unlocated until it is tapped.
+    var coordinate: SpotCoordinate? = nil
+    /// Answered by a completer centred on the area the query names ("上野" → Taito). Its order is MapKit's relevance
+    /// there; no distance is guessed for it.
+    var inResolvedArea = false
 }
 
+/// Answers and updates arrive already ranked (`DestinationSuggestionRanker`) and are shown in that order.
 @MainActor
 protocol DestinationCompleting {
     func suggestions(for text: String, near origin: SpotCoordinate?) async throws -> [DestinationSuggestion]
@@ -49,16 +55,121 @@ extension DestinationCompleting {
 }
 
 enum DestinationSuggestionRanker {
-    /// Titles equal to the query, then starting with it, then containing it; the provider's relevance order otherwise.
-    /// Nothing is dropped: "上野" keeps 上野駅, 京成上野駅, 上野恩賜公園 and the 上野 area together.
-    static func rank(query: String, _ suggestions: [DestinationSuggestion]) -> [DestinationSuggestion] {
+    /// Located candidates this close to the focus count as "in the area the query names".
+    static let focusRadiusMeters = 20_000.0
+
+    /// Concrete places in the area the query names come first once there are enough of them
+    /// (`focusedFacilityMinimum`): located ones nearest first, then the resolved-area completer's in MapKit's
+    /// relevance order, then that area's own row. From Kanazawa, "上野" lists 上野駅, 上野動物園, 上野恩賜公園… ahead of
+    /// the 上野 area and of 上野 rows in Ishikawa or Toyama. The focus is the resolved area, or the user's surroundings
+    /// when the query names a nearby place ("金沢駅"), so a far place never wins merely by being named.
+    /// Everything else follows by title match (equal, prefix, contains), then nearer located candidates, then the
+    /// provider's order: a completion has no coordinate until it is tapped and its distance is never guessed.
+    /// Once a title equals the query, unnamed answers are unrelated places and are dropped.
+    static func rank(query: String, _ suggestions: [DestinationSuggestion],
+                     focus: SpotCoordinate? = nil) -> [DestinationSuggestion] {
         let needle = DestinationResultMerger.normalized(query)
+        let focus = focus?.isValid == true ? focus : nil
         var seen = Set<String>()
-        return suggestions.filter { seen.insert($0.id).inserted }.enumerated().sorted { a, b in
-            let first = DestinationResultMerger.nameTier(a.element.title, needle)
-            let second = DestinationResultMerger.nameTier(b.element.title, needle)
-            return first != second ? first < second : a.offset < b.offset
-        }.map(\.element)
+        let entries = suggestions.filter { seen.insert($0.id).inserted }.enumerated().map { entry in
+            Entry(offset: entry.offset, suggestion: entry.element,
+                  tier: DestinationResultMerger.nameTier(entry.element.title, needle),
+                  distance: focusDistance(entry.element, focus))
+        }
+        let hasNamed = entries.contains { $0.tier < DestinationResultMerger.unnamedTier }
+        func focusRank(_ entry: Entry) -> Int? {
+            guard !hasNamed || entry.tier < DestinationResultMerger.unnamedTier else { return nil }
+            if entry.distance != nil { return 0 }
+            guard entry.suggestion.inResolvedArea else { return nil }
+            return entry.tier == 0 ? 2 : 1
+        }
+        let concrete = entries.filter { (focusRank($0) ?? 2) < 2 }.count
+        let leadsWithFocus = concrete >= focusedFacilityMinimum
+        let ranked = entries.sorted { a, b in
+            if leadsWithFocus {
+                switch (focusRank(a), focusRank(b)) {
+                case let (first?, second?):
+                    if first != second { return first < second }
+                    if first == 0, let near = a.distance, let far = b.distance, near != far { return near < far }
+                    return a.offset < b.offset
+                case (_?, nil): return true
+                case (nil, _?): return false
+                case (nil, nil): break
+                }
+            }
+            if a.tier != b.tier { return a.tier < b.tier }
+            switch (a.distance, b.distance) {
+            case let (first?, second?): if first != second { return first < second }
+            case (_?, nil): return true
+            case (nil, _?): return false
+            case (nil, nil): break
+            }
+            return a.offset < b.offset
+        }
+        let hasExactTitle = entries.contains { $0.tier == 0 }
+        var kept: [DestinationSuggestion] = []
+        for entry in ranked where !(hasExactTitle && entry.tier == DestinationResultMerger.unnamedTier)
+            && !kept.contains(where: { isSame($0, entry.suggestion) }) {
+            kept.append(entry.suggestion)
+        }
+        return kept
+    }
+
+    private struct Entry {
+        let offset: Int
+        let suggestion: DestinationSuggestion
+        let tier: Int
+        let distance: Double?
+    }
+
+    /// One concrete match is not "enough": a lone station would otherwise push the area row and every other
+    /// candidate down on the strength of a single answer.
+    static let focusedFacilityMinimum = 2
+
+    private static func focusDistance(_ suggestion: DestinationSuggestion, _ focus: SpotCoordinate?) -> Double? {
+        guard let focus, let coordinate = suggestion.coordinate, coordinate.isValid else { return nil }
+        let distance = NearbySearch.straightLineDistance(from: focus, to: coordinate)
+        return distance <= focusRadiusMeters ? distance : nil
+    }
+
+    /// The same place answered by a completion and a facility search. Same-named places with different addresses
+    /// ("上野駅" in Tokyo and elsewhere) stay apart, so their subtitles tell them apart.
+    private static func isSame(_ a: DestinationSuggestion, _ b: DestinationSuggestion) -> Bool {
+        guard DestinationResultMerger.normalized(a.title) == DestinationResultMerger.normalized(b.title) else { return false }
+        if let first = a.coordinate, let second = b.coordinate {
+            return NearbySearch.straightLineDistance(from: first, to: second) <= DestinationResultMerger.duplicateMeters
+        }
+        // Completions write "東京都台東区, 上野", placemarks "東京都台東区 上野": compare letters and digits only.
+        func address(_ text: String?) -> String? {
+            text.map { DestinationResultMerger.normalized($0).filter { $0.isLetter || $0.isNumber } }
+        }
+        guard let first = address(a.subtitle), let second = address(b.subtitle),
+              !first.isEmpty, !second.isEmpty else { return false }
+        return first.contains(second) || second.contains(first)
+    }
+}
+
+/// The place a typed name refers to ("上野" → 上野駅 in Taito), so candidates around it rank ahead of same-named
+/// places near the user. Temporary destination data only, never smoking evidence or a device location.
+enum DestinationAnchor {
+    /// Close enough to the user that an exactly named place there is the one meant ("本町" typed in Kanazawa).
+    /// Smaller than the ranking focus: 上野 in Tsubata, about 12 km from Kanazawa Station, must not displace
+    /// Tokyo's 上野.
+    static let localPreferenceMeters = 5_000.0
+
+    /// The answer named exactly as `query`, preferring one right around `origin`; a lone answer otherwise.
+    /// Anything else is ambiguous and leaves the ranking unanchored.
+    static func pick(query: String, from places: [PlaceDestination], near origin: SpotCoordinate?) -> SpotCoordinate? {
+        let needle = DestinationResultMerger.normalized(query)
+        let exact = places.filter { DestinationResultMerger.normalized($0.name) == needle && $0.coordinate.isValid }
+        if let local = exact.first(where: { isLocal($0.coordinate, to: origin) }) { return local.coordinate }
+        if let first = exact.first { return first.coordinate }
+        return places.count == 1 && places[0].coordinate.isValid ? places[0].coordinate : nil
+    }
+
+    static func isLocal(_ coordinate: SpotCoordinate, to origin: SpotCoordinate?) -> Bool {
+        guard let origin, origin.isValid else { return false }
+        return NearbySearch.straightLineDistance(from: origin, to: coordinate) <= localPreferenceMeters
     }
 }
 
@@ -93,7 +204,7 @@ enum DestinationResultMerger {
         return ranked.map(\.element).filter { !hasExactName || matchTier($0, needle) < unnamedTier }
     }
 
-    private static let unnamedTier = 3
+    static let unnamedTier = 3
 
     private static func matchTier(_ place: PlaceDestination, _ needle: String) -> Int {
         nameTier(place.name, needle)
