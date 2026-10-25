@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "publicationStatus": "blocked",
+  "humanReviewRequired": true,
+  "sources": [
+    {
+      "sourceId": "kanazawa-station-smoking-candidates",
+      "factsFile": "station-facts.json",
+      "receiptFile": "station-receipt.json",
+      "expectedRows": 2,
+      "factsSha256": "c01074ec8cd7881c0906c5a092274097b1f3a69f5bf9884783787665a7afc298"
+    },
+    {
+      "sourceId": "kanazawa21-smoking-candidates",
+      "factsFile": "museum-facts.json",
+      "receiptFile": "museum-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "c9b71629ef379aa5257792be9e2d7a05aad8cfd067be726fa71b3e865bec612d"
+    },
+    {
+      "sourceId": "kanazawa-castle-smoking-candidates",
+      "factsFile": "castle-facts.json",
+      "receiptFile": "castle-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "b292d537fe1e8e7c2fae2b889e6372d59cb6409a45f5cc99110e474b40398439"
+    }
+  ]
+}

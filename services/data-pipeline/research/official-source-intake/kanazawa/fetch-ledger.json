@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "scope": "Public resource receipt hashes only; normalized candidate facts are not rights approval; raw HTML/maps stay outside repository",
+  "resources": [
+    {
+      "key": "station",
+      "url": "https://www.100bangai.co.jp/info/index.php",
+      "finalUrl": "https://www.100bangai.co.jp/info/index.php",
+      "httpStatus": 200,
+      "contentSha256": "3890006c4a99116103a7b767edeb1be989cdaa7161370e2b7426a53b111c76e4",
+      "fetchedAt": "2026-10-25T16:57:59.527909+00:00",
+      "byteLength": 36555
+    },
+    {
+      "key": "stationFaq",
+      "url": "https://www.100bangai.co.jp/faq/",
+      "finalUrl": "https://www.100bangai.co.jp/faq/",
+      "httpStatus": 200,
+      "contentSha256": "639574b21886983ddab7e59a47466340766c5f625889459c54177b085a39a191",
+      "fetchedAt": "2026-10-25T16:57:59.792767+00:00",
+      "byteLength": 30145
+    },
+    {
+      "key": "stationFloor",
+      "url": "https://www.100bangai.co.jp/floor/index.php",
+      "finalUrl": "https://www.100bangai.co.jp/floor/index.php",
+      "httpStatus": 200,
+      "contentSha256": "a93c6d5c28324b6764f8f7bdc6f92f357169d4a726baa091573a66d983cc69c3",
+      "fetchedAt": "2026-10-25T16:58:00.229450+00:00",
+      "byteLength": 73680
+    },
+    {
+      "key": "stationCompany",
+      "url": "https://www.100bangai.co.jp/company/",
+      "finalUrl": "https://www.100bangai.co.jp/company/",
+      "httpStatus": 200,
+      "contentSha256": "2e62351ad4c4ca2f11b22321169733f6060258a15413a7f042cdbd269c7d198f",
+      "fetchedAt": "2026-10-25T16:58:00.426682+00:00",
+      "byteLength": 31662
+    },
+    {
+      "key": "stationPrivacy",
+      "url": "https://www.100bangai.co.jp/privacy/",
+      "finalUrl": "https://www.100bangai.co.jp/privacy/",
+      "httpStatus": 200,
+      "contentSha256": "5ae2b9e95ab6f0002e0a1dfe3b63e6263331b0e49e47f154bceb07f3c9c40ee4",
+      "fetchedAt": "2026-10-25T16:58:00.655621+00:00",
+      "byteLength": 30219
+    },
+    {
+      "key": "museum",
+      "url": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+      "httpStatus": 200,
+      "contentSha256": "3cc603538b15bdcaed2164a9dbaab5d14950f8cff525c1141becfc7608d3a9ce",
+      "fetchedAt": "2026-10-25T16:58:01.326733+00:00",
+      "byteLength": 26079
+    },
+    {
+      "key": "museumPolicy",
+      "url": "https://www.kanazawa21.jp/data_list.php?d=1&g=60",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=60",
+      "httpStatus": 200,
+      "contentSha256": "53ba4066743a11b00bec43ea13e7c9720b987d8881f93b1ff36d689bc8aa44ca",
+      "fetchedAt": "2026-10-25T16:58:01.906850+00:00",
+      "byteLength": 55293
+    },
+    {
+      "key": "museumClosure",
+      "url": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?d=503&g=61",
+      "httpStatus": 200,
+      "contentSha256": "10fecc08136104eff35550034ef2cb138b46f2bb47f8d90b9081c2bd21877fa2",
+      "fetchedAt": "2026-10-25T16:58:02.554593+00:00",
+      "byteLength": 23637
+    },
+    {
+      "key": "museumFloor",
+      "url": "https://www.kanazawa21.jp/data_list.php?g=9",
+      "finalUrl": "https://www.kanazawa21.jp/data_list.php?g=9",
+      "httpStatus": 200,
+      "contentSha256": "e8adf055dda73407e2380d2112430797e69ac9dcf1e484584859ad5fc230ec8d",
+      "fetchedAt": "2026-10-25T16:58:04.137738+00:00",
+      "byteLength": 87914
+    },
+    {
+      "key": "castle",
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+      "httpStatus": 200,
+      "contentSha256": "9a4e434b5634835d65e89afe38ce56e155261f23e6654ce88336db890be40f99",
+      "fetchedAt": "2026-10-25T16:58:04.449540+00:00",
+      "byteLength": 61715
+    },
+    {
+      "key": "castleRules",
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/request.php",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/request.php",
+      "httpStatus": 200,
+      "contentSha256": "44251252dafa25a494a0b3314e597ae38711a10ad67657d61a9b76b76e426e45",
+      "fetchedAt": "2026-10-25T16:58:04.676226+00:00",
+      "byteLength": 33982
+    },
+    {
+      "key": "castleTerms",
+      "url": "https://www.pref.ishikawa.lg.jp/about_site/sitepolicy/index.html",
+      "finalUrl": "https://www.pref.ishikawa.lg.jp/about_site/sitepolicy/index.html",
+      "httpStatus": 200,
+      "contentSha256": "65729eb03353bf09467ae7c3b0500692b6f1bc363cf810be1f0dd45fc0c0f291",
+      "fetchedAt": "2026-10-25T16:58:04.873867+00:00",
+      "byteLength": 21105
+    },
+    {
+      "key": "castleLeaflet",
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/download/leaflet.php",
+      "finalUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/download/leaflet.php",
+      "httpStatus": 200,
+      "contentSha256": "3d7733341742e43f01ad79ddbb6f8f39271e8d64bf14f35806fab18e672ead38",
+      "fetchedAt": "2026-10-25T16:58:06.243479+00:00",
+      "byteLength": 85222
+    },
+    {
+      "key": "museumAnchorCatalog",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/dataset/172014-tourism/resource/51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66",
+      "finalUrl": "https://catalog-data.city.kanazawa.ishikawa.jp/dataset/172014-tourism/resource/51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66",
+      "httpStatus": 200,
+      "contentSha256": "b3acae6f96357a369bf34389e1729f14ea6d483ac01b6081a19a1449eb74dc4c",
+      "fetchedAt": "2026-10-25T16:58:06.591193+00:00",
+      "byteLength": 27042
+    },
+    {
+      "key": "museumAnchorMetadata",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/package_show?id=172014-tourism",
+      "finalUrl": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/package_show?id=172014-tourism",
+      "httpStatus": 200,
+      "contentSha256": "260804d63954c655dc2d699b94ac9f6874c486acb952409ad2533df30bb9426c",
+      "fetchedAt": "2026-10-25T16:58:06.724066+00:00",
+      "byteLength": 2041
+    },
+    {
+      "key": "museumAnchorRecords",
+      "url": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/datastore_search?resource_id=51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66&limit=1000",
+      "finalUrl": "https://catalog-data.city.kanazawa.ishikawa.jp/api/3/action/datastore_search?resource_id=51a0ab9e-e702-40c2-bc0e-1c5ce1da4e66&limit=1000",
+      "httpStatus": 200,
+      "contentSha256": "9c3ef65cd0383d21cccf34bc7e181691e15ad8c49a35bfcd3ef59ada1556274c",
+      "fetchedAt": "2026-10-25T16:58:07.389970+00:00",
+      "byteLength": 65495
+    },
+    {
+      "key": "cityOpenDataPortal",
+      "url": "https://portal-data.city.kanazawa.ishikawa.jp/",
+      "httpStatus": 200,
+      "contentSha256": "5639fe95ff64783434a32f9c7d21a7b2abfd7883c98e68d86805f4f8ed581a45",
+      "fetchedAt": "2026-10-25T17:01:01.388523+00:00",
+      "byteLength": 63618
+    },
+    {
+      "key": "cityOpenDataTerms",
+      "url": "https://portal-data.city.kanazawa.ishikawa.jp/pdf/opendata_rule.pdf",
+      "httpStatus": 200,
+      "contentSha256": "9d3988a95af44cfd0d31bab45e8fb3812b7a68153e5baa2e90dc47bfc95e86d0",
+      "fetchedAt": "2026-10-25T17:01:02.034275+00:00",
+      "byteLength": 138058
+    },
+    {
+      "key": "museumFloorPdf",
+      "url": "https://www.kanazawa21.jp/tmpImages/videoFiles/file-9-1-file.pdf",
+      "httpStatus": 200,
+      "contentSha256": "e37e344f40e89ca01d0cf57899372a060601f152d3fe7cfe8be13904631dd409",
+      "fetchedAt": "2026-10-25T17:01:05.050517+00:00",
+      "byteLength": 361894
+    },
+    {
+      "key": "togashiBallfield",
+      "url": "https://www.kanazawa-sports.jp/use/search/686/",
+      "httpStatus": 503,
+      "contentSha256": null,
+      "fetchedAt": "2026-10-25T17:03:17.070443+00:00",
+      "note": "Web tool page text was available; direct HTTP retry returned 503. No raw-content digest recorded for this reference. No candidate derived."
+    }
+  ]
+}

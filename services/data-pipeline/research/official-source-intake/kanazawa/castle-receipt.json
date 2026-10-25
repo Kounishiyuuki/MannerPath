@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sourceId": "kanazawa-castle-smoking-candidates",
+  "publisher": "石川県金沢城・兼六園管理事務所",
+  "publisherUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/",
+  "resourceUrl": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+  "receivedOn": "2026-10-26",
+  "evidenceReference": "Locally normalized factual candidate sheet, not publisher delivery; PROVENANCE.md and fetch-ledger.json; checkedAt 2026-10-26",
+  "rightsReference": "PROVENANCE.md: terms observations only; source and anchor rights unapproved; G5 open",
+  "attributionText": "出典：石川県金沢城・兼六園管理事務所 公式案内（2026-10-26確認、正規化候補・未承認） https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/question.php",
+  "licenseName": null,
+  "licenseUrl": null,
+  "coordinateMeaning": "unknown",
+  "operationClaim": "unknown",
+  "operationEvidenceReference": "Current page listing only; no accepted operation review; see PROVENANCE.md"
+}

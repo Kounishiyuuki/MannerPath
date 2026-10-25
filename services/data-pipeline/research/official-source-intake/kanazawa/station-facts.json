@@ -1,0 +1,56 @@
+[
+  {
+    "candidateId": "kanazawa-station-west",
+    "name": "金沢駅西口 喫煙所",
+    "prefecture": "石川県",
+    "municipality": "金沢市",
+    "sourceUrl": "https://www.100bangai.co.jp/info/index.php",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "evidenceRelationship": "neighboringOperatorReferral",
+    "locationDescription": "あんと・金沢かつぞう側の入口付近",
+    "placement": "outsideBuilding",
+    "environment": "unknown",
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "accessType": "unknown",
+    "accessDetail": null,
+    "latitude": null,
+    "longitude": null,
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked"
+  },
+  {
+    "candidateId": "kanazawa-station-east",
+    "name": "金沢駅東口 喫煙所",
+    "prefecture": "石川県",
+    "municipality": "金沢市",
+    "sourceUrl": "https://www.100bangai.co.jp/info/index.php",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "evidenceRelationship": "neighboringOperatorReferral",
+    "locationDescription": "石川県立音楽堂の向かい側",
+    "placement": "outsideBuilding",
+    "environment": "unknown",
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "accessType": "unknown",
+    "accessDetail": null,
+    "latitude": null,
+    "longitude": null,
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked"
+  }
+]

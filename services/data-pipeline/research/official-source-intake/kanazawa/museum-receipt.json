@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sourceId": "kanazawa21-smoking-candidates",
+  "publisher": "金沢21世紀美術館",
+  "publisherUrl": "https://www.kanazawa21.jp/",
+  "resourceUrl": "https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+  "receivedOn": "2026-10-26",
+  "evidenceReference": "Locally normalized factual candidate sheet, not publisher delivery; PROVENANCE.md and fetch-ledger.json; checkedAt 2026-10-26",
+  "rightsReference": "PROVENANCE.md: terms observations only; source and anchor rights unapproved; G5 open",
+  "attributionText": "出典：金沢21世紀美術館 公式案内（2026-10-26確認、正規化候補・未承認） https://www.kanazawa21.jp/data_list.php?d=1&g=35",
+  "licenseName": null,
+  "licenseUrl": null,
+  "coordinateMeaning": "facility",
+  "operationClaim": "unknown",
+  "operationEvidenceReference": "Current page listing only; no accepted operation review; see PROVENANCE.md"
+}

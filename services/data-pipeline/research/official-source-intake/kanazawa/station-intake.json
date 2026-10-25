@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "publicationStatus": "blocked",
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "humanReviewRequired": true,
+  "receipt": {
+    "version": 1,
+    "sourceId": "kanazawa-station-smoking-candidates",
+    "publisher": "金沢ターミナル開発株式会社（金沢百番街）",
+    "publisherUrl": "https://www.100bangai.co.jp/",
+    "resourceUrl": "https://www.100bangai.co.jp/info/index.php",
+    "receivedOn": "2026-10-26",
+    "evidenceReference": "Locally normalized factual candidate sheet, not publisher delivery; PROVENANCE.md and fetch-ledger.json; checkedAt 2026-10-26",
+    "rightsReference": "PROVENANCE.md: terms observations only; source and anchor rights unapproved; G5 open",
+    "attributionText": "出典：金沢ターミナル開発株式会社（金沢百番街） 公式案内（2026-10-26確認、正規化候補・未承認） https://www.100bangai.co.jp/info/index.php",
+    "licenseName": null,
+    "licenseUrl": null,
+    "coordinateMeaning": "unknown",
+    "operationClaim": "unknown",
+    "operationEvidenceReference": "Current page listing only; no accepted operation review; see PROVENANCE.md",
+    "reviewStatus": "UNREVIEWED"
+  },
+  "inspection": {
+    "sha256": "c01074ec8cd7881c0906c5a092274097b1f3a69f5bf9884783787665a7afc298",
+    "format": "json",
+    "encoding": "utf-8",
+    "header": [
+      "accessDetail",
+      "accessType",
+      "candidateId",
+      "checkedAt",
+      "environment",
+      "evidenceRelationship",
+      "existence",
+      "latitude",
+      "locationAnchorCandidate",
+      "locationDescription",
+      "locationPrecision",
+      "longitude",
+      "municipality",
+      "name",
+      "openingHours",
+      "placement",
+      "prefecture",
+      "publicationStatus",
+      "sourceUrl",
+      "supportsHeated",
+      "supportsPaper"
+    ],
+    "rawRowCount": 2,
+    "missingFieldCount": 0,
+    "nullFieldCount": 8,
+    "identicalRowCount": 0,
+    "scanner": {
+      "reviewStatus": "UNREVIEWED",
+      "matchingRowCount": 2,
+      "coordinateAvailability": "all",
+      "blockerCodes": [
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ]
+    },
+    "reviewHints": [
+      "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW",
+      "MISSING_OR_NULL_FIELDS_REMAIN_UNKNOWN",
+      "PARTIAL_FIELDS_REVIEW_REQUIRED"
+    ]
+  },
+  "onboarding": {
+    "sourceId": "kanazawa-station-smoking-candidates",
+    "state": "BLOCKED",
+    "approvalAutomated": false,
+    "productionApproval": false,
+    "publicationStatus": "blocked",
+    "publisher": "金沢ターミナル開発株式会社（金沢百番街）",
+    "resourceUrl": "https://www.100bangai.co.jp/info/index.php",
+    "smokingEvidence": {
+      "status": "unknown",
+      "reference": null
+    },
+    "rights": {
+      "status": "RIGHTS_REVIEW_REQUIRED",
+      "licenseName": null,
+      "licenseUrl": null,
+      "metadata": null,
+      "commercialReuse": "unknown"
+    },
+    "attribution": "出典：金沢ターミナル開発株式会社（金沢百番街） 公式案内（2026-10-26確認、正規化候補・未承認） https://www.100bangai.co.jp/info/index.php",
+    "provider": {
+      "id": null,
+      "role": null,
+      "rights": null,
+      "catalogObservations": []
+    },
+    "coordinates": {
+      "status": "COORDINATE_AUTHORITY_REQUIRED",
+      "kind": "unknown",
+      "requestedKind": "unknown",
+      "columns": []
+    },
+    "operation": "unknown",
+    "review": {
+      "reviewedBy": null,
+      "reviewedOn": null
+    },
+    "adapter": false,
+    "fixture": false,
+    "registryEntry": false,
+    "tests": false,
+    "pinnedRelease": null,
+    "latestLiveRelease": "unknown",
+    "quality": "notEvaluated",
+    "promotion": "notEvaluated",
+    "discovery": {
+      "classification": "RIGHTS_AND_COORDINATES_UNKNOWN",
+      "priority": "P2",
+      "smokingEvidence": "keyword-signal",
+      "rights": "unknown",
+      "coordinates": "unknown",
+      "licenseMetadata": null,
+      "attributionMetadata": "出典：金沢ターミナル開発株式会社（金沢百番街） 公式案内（2026-10-26確認、正規化候補・未承認） https://www.100bangai.co.jp/info/index.php",
+      "coordinateColumns": [],
+      "geometryTypes": [],
+      "blockerCodes": [
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ],
+      "approvalAutomated": false
+    },
+    "drift": {
+      "status": "notObserved",
+      "changes": []
+    },
+    "blockers": [
+      "licenseUnknown",
+      "currentOperationUnknown",
+      "officialPublisherReviewRequired",
+      "smokingExistenceReviewRequired",
+      "rightsReviewRequired",
+      "coordinateAuthorityReviewRequired",
+      "operationReviewRequired"
+    ],
+    "nextAction": "Resolve listed human review gates; do not implement or publish from signals."
+  },
+  "adapterPreview": null,
+  "diff": null,
+  "reviewHints": [
+    "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW",
+    "MISSING_OR_NULL_FIELDS_REMAIN_UNKNOWN",
+    "PARTIAL_FIELDS_REVIEW_REQUIRED"
+  ],
+  "scope": "Offline advisory receipt only; no import, deduplication, entity matching, lifecycle update or approval."
+}
