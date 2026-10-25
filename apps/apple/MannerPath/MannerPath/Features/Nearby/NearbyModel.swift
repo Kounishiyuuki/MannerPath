@@ -187,14 +187,15 @@ final class NearbyModel {
                 let suggestions = try? await destinationCompleter.suggestions(for: query, near: displayLocation?.coordinate) { [weak self] update in
                     guard let self, requestGeneration == self.searchGeneration, !Task.isCancelled else { return }
                     guard !update.isEmpty else { return }
-                    self.destinationSuggestions = DestinationSuggestionRanker.rank(query: query, update)
+                    // Already ranked by the completer, which alone knows the resolved area; re-ranking here would lose it.
+                    self.destinationSuggestions = update
                     self.destinationMatches = []
                     self.destinationSearchFailed = false
                     self.destinationSearchFoundNothing = false
                 }
                 guard requestGeneration == searchGeneration, !Task.isCancelled else { return }
                 if let suggestions, !suggestions.isEmpty {
-                    destinationSuggestions = DestinationSuggestionRanker.rank(query: query, suggestions)
+                    destinationSuggestions = suggestions
                     destinationMatches = []
                     searchingDestination = false
                     return

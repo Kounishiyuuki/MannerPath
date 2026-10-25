@@ -564,18 +564,53 @@ struct RouteSearchTests {
     // around the area the query names rank ahead of same-tier local rows; unlocated completions keep provider order.
     @Test func fromKanazawaUenoFacilitiesAroundTheNamedAreaRankAheadOfLocalRows() {
         let ueno = SpotCoordinate(latitude: 35.714, longitude: 139.777)
-        func located(_ title: String, _ latitude: Double, _ longitude: Double) -> DestinationSuggestion {
-            DestinationSuggestion(id: "facility:\(title)", title: title, subtitle: nil,
-                                  coordinate: SpotCoordinate(latitude: latitude, longitude: longitude))
-        }
         let ranked = DestinationSuggestionRanker.rank(query: "上野", [
             suggestion("上野", "東京都台東区"), suggestion("上野本町", "石川県金沢市"),
             located("上野本町バス停", 36.57, 136.66), located("上野恩賜公園", 35.715, 139.773),
             located("上野駅", 35.714, 139.777), located("京成上野駅", 35.711, 139.773),
             suggestion("金沢駅", "石川県金沢市")
         ], focus: ueno)
-        #expect(ranked.map(\.title) == ["上野", "上野駅", "上野恩賜公園", "上野本町", "上野本町バス停", "京成上野駅"],
-                "Unrelated nearby 金沢駅 is dropped once a title equals the query")
+        #expect(ranked.map(\.title) == ["上野駅", "上野恩賜公園", "京成上野駅", "上野", "上野本町", "上野本町バス停"],
+                "Tokyo facilities lead, nearest first; the area row stays; unrelated 金沢駅 is dropped")
+    }
+
+    private func located(_ title: String, _ latitude: Double, _ longitude: Double,
+                         _ subtitle: String? = nil) -> DestinationSuggestion {
+        DestinationSuggestion(id: "facility:\(title):\(latitude)", title: title, subtitle: subtitle,
+                              coordinate: SpotCoordinate(latitude: latitude, longitude: longitude))
+    }
+
+    @Test func nearbyNamedPlaceKeepsTheLocalFocusAheadOfFarSameNamedPlaces() {
+        // "金沢駅" resolved near the user: the focus is Kanazawa, so Kanazawa's candidates lead.
+        let kanazawaStation = SpotCoordinate(latitude: 36.578, longitude: 136.648)
+        let ranked = DestinationSuggestionRanker.rank(query: "金沢駅", [
+            located("金沢駅", 37.4, 136.9, "far"), suggestion("金沢駅", "石川県金沢市木ノ新保町"),
+            located("金沢駅", 36.578, 136.648, "石川県金沢市木ノ新保町1"), located("金沢駅西口", 36.577, 136.646)
+        ], focus: kanazawaStation)
+        #expect(ranked.map(\.subtitle) == ["石川県金沢市木ノ新保町1", nil, "far"],
+                "The completion for the same station collapses into the located one; the far 金沢駅 stays, last")
+    }
+
+    @Test func distinctPlacesSharingANameAreNeverCollapsed() {
+        let ranked = DestinationSuggestionRanker.rank(query: "東京駅", [
+            located("東京駅", 35.681, 139.767, "東京都千代田区丸の内1"), located("東京駅", 35.0, 135.7, "京都府"),
+            suggestion("東京駅", "大阪府大阪市"), suggestion("東京駅", "東京都千代田区丸の内")
+        ], focus: SpotCoordinate(latitude: 35.681, longitude: 139.767))
+        #expect(ranked.map(\.subtitle) == ["東京都千代田区丸の内1", "京都府", "大阪府大阪市"])
+    }
+
+    @Test func aLoneFocusedAnswerDoesNotOverrideTitleMatchOrRelevance() {
+        let ranked = DestinationSuggestionRanker.rank(query: "金沢市富樫", [
+            suggestion("金沢市富樫", "石川県"), suggestion("富樫", "石川県金沢市"), located("富樫郵便局", 36.53, 136.66)
+        ], focus: SpotCoordinate(latitude: 36.53, longitude: 136.66))
+        #expect(ranked.map(\.title) == ["金沢市富樫"], "One located answer is not enough; unrelated rows drop after an exact title")
+    }
+
+    @Test func completionsWithoutCoordinatesKeepProviderRelevanceWithinATier() {
+        let ranked = DestinationSuggestionRanker.rank(query: "上野", [
+            suggestion("上野駅前", "B"), suggestion("上野駅", "A"), suggestion("京成上野駅", "C")
+        ], focus: SpotCoordinate(latitude: 35.714, longitude: 139.777))
+        #expect(ranked.map(\.title) == ["上野駅前", "上野駅", "京成上野駅"])
     }
 
     @Test func completionAndFacilityForOnePlaceCollapseButSameNamesElsewhereStay() {
@@ -596,6 +631,11 @@ struct RouteSearchTests {
         let localHonmachi = place("本町駅", 36.57, 136.65)
         #expect(DestinationAnchor.pick(query: "本町駅", from: [place("本町駅", 34.682, 135.501), localHonmachi],
                                        near: kanazawa) == localHonmachi.coordinate)
+        let tsubataUeno = place("上野", 36.67, 136.73)
+        #expect(!DestinationAnchor.isLocal(tsubataUeno.coordinate, to: kanazawa),
+                "上野 in Tsubata is beyond the local preference, so Tokyo's 上野 stays the anchor")
+        #expect(DestinationAnchor.pick(query: "上野", from: [place("上野", 35.712, 139.776), tsubataUeno],
+                                       near: kanazawa) == SpotCoordinate(latitude: 35.712, longitude: 139.776))
         let togashi = place("富樫", 36.53, 136.66)
         #expect(DestinationAnchor.pick(query: "金沢市富樫", from: [togashi], near: kanazawa) == togashi.coordinate)
         #expect(DestinationAnchor.pick(query: "カフェ", from: [place("Cafe A", 36.58, 136.65), place("Cafe B", 35.6, 139.7)],
@@ -976,14 +1016,15 @@ private final class ControlledCompleter: DestinationCompleting {
     }
     func emit(_ index: Int, _ suggestions: [DestinationSuggestion]) {
         // Intentionally retain callbacks after cancellation to exercise stale-result guards.
-        updates[index]?(suggestions)
+        updates[index]?(DestinationSuggestionRanker.rank(query: queries[index], suggestions))
     }
     func resolve(_ suggestion: DestinationSuggestion, near origin: SpotCoordinate?) async throws -> PlaceDestination {
         resolved.append(suggestion)
         return try await withCheckedThrowingContinuation { pendingResolve = $0 }
     }
     func succeed(_ index: Int, _ suggestions: [DestinationSuggestion]) {
-        pending.removeValue(forKey: index)?.resume(returning: suggestions)
+        // Like the real completer, answers arrive ranked.
+        pending.removeValue(forKey: index)?.resume(returning: DestinationSuggestionRanker.rank(query: queries[index], suggestions))
     }
     func fail(_ index: Int) {
         pending.removeValue(forKey: index)?.resume(throwing: TestCompletionError.unavailable)
