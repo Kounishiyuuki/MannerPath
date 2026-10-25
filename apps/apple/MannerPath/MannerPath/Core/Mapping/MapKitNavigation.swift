@@ -80,7 +80,7 @@ final class MapKitDestinationSearch: DestinationSearching {
     }
 
     /// Every valid item MapKit returned (MapKit itself caps a response); the merger applies the shown limit.
-    private static func destinations(_ response: MKLocalSearch.Response) -> [PlaceDestination] {
+    static func destinations(_ response: MKLocalSearch.Response) -> [PlaceDestination] {
         response.mapItems.compactMap { item in
             let coordinate = SpotCoordinate(
                 latitude: item.placemark.coordinate.latitude,
@@ -113,6 +113,8 @@ final class MapKitDestinationCompleter: DestinationCompleting {
     private var currentPlaces: [String: PlaceDestination] = [:]
     private var previousPlaces: [String: PlaceDestination] = [:]
     private var facilitySuggestions: [DestinationSuggestion] = []
+    /// The area the query names when resolved, else the user's surroundings; located candidates there rank first.
+    private var focus: SpotCoordinate?
     private var activeResolve: MKLocalSearch?
     fileprivate static let log = Logger(subsystem: "MannerPath", category: "DestinationCompleter")
 
@@ -152,92 +154,111 @@ final class MapKitDestinationCompleter: DestinationCompleting {
         let nationwide = CompletionSession(label: "nationwide", priority: .required)
         self.nearby = nearby
         self.nationwide = nationwide
+        focus = origin?.isValid == true ? origin : nil
         let publish: @MainActor () -> Void = { [weak self, weak nearby, weak nationwide] in
             guard let self, self.generation == requestGeneration else { return }
             let completions = (nearby?.shown ?? [:]).merging(nationwide?.shown ?? [:]) { first, _ in first }
             self.currentCompletions.merge(completions) { _, latest in latest }
             self.currentCompletions.merge(self.focused?.shown ?? [:]) { _, latest in latest }
-            let candidates = (nearby?.suggestions ?? []) + (self.focused?.suggestions ?? [])
-                + (nationwide?.suggestions ?? [])
-                + self.facilitySuggestions
-            onUpdate(DestinationSuggestionRanker.rank(query: text, candidates))
+            onUpdate(self.ranked(text, nearby: nearby, nationwide: nationwide))
         }
         nearby.onUpdate = publish
         nationwide.onUpdate = publish
         async let nearbyAnswer = Self.answer(nearby, text, local)
         async let nationwideAnswer = Self.answer(nationwide, text, MapKitDestinationSearch.nationwideRegion)
+        // Device report: from Kanazawa, "上野" completed to the Tokyo 上野 area plus local 上野… rows. Those were
+        // two or more rows, which used to skip this lookup, so 上野駅 and 上野恩賜公園 never appeared until the area was
+        // tapped. Concrete places are now always looked up, around the area the query names.
+        let anchor = await resolveAnchor(text, near: origin, generation: requestGeneration)
+        try Task.checkCancellation()
+        guard generation == requestGeneration else { throw CancellationError() }
+        // The station lookup also answers unrelated stations; only those named for the query are candidates.
+        let needle = DestinationResultMerger.normalized(text)
+        addFacilities(anchor.places.filter {
+            DestinationResultMerger.nameTier($0.name, needle) < DestinationResultMerger.unnamedTier
+        })
+        if let coordinate = anchor.coordinate {
+            focus = coordinate
+            let focused = CompletionSession(label: "resolved-area", priority: .default)
+            self.focused = focused
+            focused.onUpdate = publish
+            publish()
+            async let answer = Self.answer(focused, text, MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
+                latitudinalMeters: 20_000, longitudinalMeters: 20_000
+            ))
+            await searchFacilities(text, near: coordinate, generation: requestGeneration, publish: publish)
+            _ = await answer
+        } else {
+            await searchFacilities(text, near: origin, generation: requestGeneration, publish: publish)
+        }
         let (first, second) = await (nearbyAnswer, nationwideAnswer)
         try Task.checkCancellation()
         guard generation == requestGeneration else { throw CancellationError() }
-        // A region-only answer is not evidence that there are no concrete facilities. Ask the POI endpoint rather
-        // than repeating the unrestricted search, which answers a bare area name with that same area again.
-        let localCount = ((try? first.get()) ?? []).count
-        let nationalCount = ((try? second.get()) ?? []).count
-        var facilityOrigin = origin
-        if local == nil || localCount < 2 || nationalCount < 2 {
-            // Broad-area completion and area lookup can both favor Osaka for "上野" without GPS. A concrete
-            // station lookup resolves "上野駅" nationwide; its returned location then biases another completer.
-            // This remains temporary destination data, never smoking evidence or a fabricated device location.
-            if local == nil || localCount < 2 {
-                let anchorQueries = text.count >= 2 && !text.hasSuffix("駅") ? [text + "駅", text] : [text]
-                for anchorQuery in anchorQueries {
-                    try Task.checkCancellation()
-                    guard generation == requestGeneration else { throw CancellationError() }
-                    let request = MKLocalSearch.Request()
-                    request.naturalLanguageQuery = anchorQuery
-                    request.region = MapKitDestinationSearch.nationwideRegion
-                    request.regionPriority = .required
-                    if anchorQuery != text { request.resultTypes = .pointOfInterest }
-                    let search = MKLocalSearch(request: request)
-                    areaSearch = search
-                    do {
-                        let response = try await search.start()
-                        try Task.checkCancellation()
-                        guard generation == requestGeneration else { throw CancellationError() }
-                        if response.mapItems.count == 1, let item = response.mapItems.first,
-                           CLLocationCoordinate2DIsValid(item.placemark.coordinate) {
-                            facilityOrigin = SpotCoordinate(latitude: item.placemark.coordinate.latitude,
-                                                            longitude: item.placemark.coordinate.longitude)
-                            self.focused?.cancel()
-                            let focused = CompletionSession(label: "resolved-area", priority: .default)
-                            self.focused = focused
-                            focused.onUpdate = publish
-                            _ = try? await focused.complete(text, in: MKCoordinateRegion(
-                                center: item.placemark.coordinate, latitudinalMeters: 20_000, longitudinalMeters: 20_000
-                            ))
-                            if focused.suggestions.count >= 2 { break }
-                        }
-                    } catch {
-                        try Task.checkCancellation()
-                        Self.log.error("Area search failed: \((error as NSError).domain, privacy: .public) \((error as NSError).code)")
-                    }
-                }
-            }
-            try Task.checkCancellation()
-            guard generation == requestGeneration else { throw CancellationError() }
-            if (focused?.suggestions.count ?? 0) < 2 {
-                do {
-                    let places = try await facilitySearch.search(text, near: facilityOrigin)
-                    try Task.checkCancellation()
-                    guard generation == requestGeneration else { throw CancellationError() }
-                    for place in places { currentPlaces[Self.placeID(place)] = place }
-                    facilitySuggestions = places.map { DestinationSuggestion(id: Self.placeID($0), title: $0.name, subtitle: $0.subtitle) }
-                    publish()
-                } catch {
-                    try Task.checkCancellation()
-                    Self.log.error("Supplementary facility search failed: \((error as NSError).domain, privacy: .public) \((error as NSError).code)")
-                }
-            }
-        }
-        try Task.checkCancellation()
-        guard generation == requestGeneration else { throw CancellationError() }
-        let candidates = nearby.suggestions + (focused?.suggestions ?? []) + nationwide.suggestions
-            + facilitySuggestions
-        if candidates.isEmpty {
+        let result = ranked(text, nearby: nearby, nationwide: nationwide)
+        if result.isEmpty {
             if case .failure(let error) = first, case .failure = second { throw error }
             if local == nil, case .failure(let error) = second { throw error }
         }
-        return DestinationSuggestionRanker.rank(query: text, candidates)
+        return result
+    }
+
+    /// Area-focused completions, then located facilities, then nearby and nationwide completions; the ranker then
+    /// orders by title match and by distance from `focus` where a coordinate is known.
+    private func ranked(_ text: String, nearby: CompletionSession?, nationwide: CompletionSession?) -> [DestinationSuggestion] {
+        let candidates = (focused?.suggestions ?? []) + facilitySuggestions
+            + (nearby?.suggestions ?? []) + (nationwide?.suggestions ?? [])
+        return DestinationSuggestionRanker.rank(query: text, candidates, focus: focus)
+    }
+
+    /// Located places selectable with one tap and no further request.
+    private func addFacilities(_ places: [PlaceDestination]) {
+        for place in places {
+            let id = Self.placeID(place)
+            currentPlaces[id] = place
+            facilitySuggestions.append(DestinationSuggestion(id: id, title: place.name, subtitle: place.subtitle,
+                                                             coordinate: place.coordinate))
+        }
+    }
+
+    private func searchFacilities(_ text: String, near origin: SpotCoordinate?, generation requestGeneration: Int,
+                                  publish: @MainActor () -> Void) async {
+        do {
+            let places = try await facilitySearch.search(text, near: origin)
+            guard !Task.isCancelled, generation == requestGeneration else { return }
+            addFacilities(places)
+            publish()
+        } catch {
+            Self.log.error("Supplementary facility search failed: \((error as NSError).domain, privacy: .public) \((error as NSError).code)")
+        }
+    }
+
+    /// One nationwide lookup of the station named by the query ("上野" → "上野駅"), then of the query itself
+    /// ("金沢市富樫"). Its answers are returned as candidates too, so the lookup is never a wasted request.
+    private func resolveAnchor(_ text: String, near origin: SpotCoordinate?, generation requestGeneration: Int) async
+        -> (coordinate: SpotCoordinate?, places: [PlaceDestination]) {
+        guard text.count >= 2 else { return (nil, []) }
+        var found: [PlaceDestination] = []
+        for anchorQuery in text.hasSuffix("駅") ? [text] : [text + "駅", text] {
+            guard !Task.isCancelled, generation == requestGeneration else { break }
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = anchorQuery
+            request.region = MapKitDestinationSearch.nationwideRegion
+            request.regionPriority = .required
+            if anchorQuery != text { request.resultTypes = .pointOfInterest }
+            let search = MKLocalSearch(request: request)
+            areaSearch = search
+            do {
+                let places = MapKitDestinationSearch.destinations(try await search.start())
+                found += places
+                if let anchor = DestinationAnchor.pick(query: anchorQuery, from: places, near: origin) {
+                    return (anchor, found)
+                }
+            } catch {
+                Self.log.error("Area search failed: \((error as NSError).domain, privacy: .public) \((error as NSError).code)")
+            }
+        }
+        return (nil, found)
     }
 
     private static func placeID(_ place: PlaceDestination) -> String { "facility:\(place.id)" }

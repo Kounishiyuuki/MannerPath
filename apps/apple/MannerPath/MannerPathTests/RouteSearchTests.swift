@@ -560,6 +560,48 @@ struct RouteSearchTests {
         #expect(ranked.map(\.title) == ["上野駅", "京成上野駅"])
     }
 
+    // Device report: from Kanazawa, "上野" listed the Tokyo area and local 上野… rows, never 上野駅. Located facilities
+    // around the area the query names rank ahead of same-tier local rows; unlocated completions keep provider order.
+    @Test func fromKanazawaUenoFacilitiesAroundTheNamedAreaRankAheadOfLocalRows() {
+        let ueno = SpotCoordinate(latitude: 35.714, longitude: 139.777)
+        func located(_ title: String, _ latitude: Double, _ longitude: Double) -> DestinationSuggestion {
+            DestinationSuggestion(id: "facility:\(title)", title: title, subtitle: nil,
+                                  coordinate: SpotCoordinate(latitude: latitude, longitude: longitude))
+        }
+        let ranked = DestinationSuggestionRanker.rank(query: "上野", [
+            suggestion("上野", "東京都台東区"), suggestion("上野本町", "石川県金沢市"),
+            located("上野本町バス停", 36.57, 136.66), located("上野恩賜公園", 35.715, 139.773),
+            located("上野駅", 35.714, 139.777), located("京成上野駅", 35.711, 139.773),
+            suggestion("金沢駅", "石川県金沢市")
+        ], focus: ueno)
+        #expect(ranked.map(\.title) == ["上野", "上野駅", "上野恩賜公園", "上野本町", "上野本町バス停", "京成上野駅"],
+                "Unrelated nearby 金沢駅 is dropped once a title equals the query")
+    }
+
+    @Test func completionAndFacilityForOnePlaceCollapseButSameNamesElsewhereStay() {
+        let ranked = DestinationSuggestionRanker.rank(query: "上野駅", [
+            suggestion("上野駅", "東京都台東区上野7丁目"),
+            DestinationSuggestion(id: "facility:1", title: "上野駅", subtitle: "日本、〒110-0005 東京都台東区上野７丁目１",
+                                  coordinate: SpotCoordinate(latitude: 35.714, longitude: 139.777)),
+            suggestion("上野駅", "三重県伊賀市")
+        ])
+        #expect(ranked.map(\.subtitle) == ["東京都台東区上野7丁目", "三重県伊賀市"])
+    }
+
+    @Test func anchorPrefersTheExactNameNearTheUserThenTheFirstExactThenALoneAnswer() {
+        let kanazawa = SpotCoordinate(latitude: 36.578, longitude: 136.648)
+        let tokyoUeno = place("上野駅", 35.714, 139.777)
+        #expect(DestinationAnchor.pick(query: "上野駅", from: [place("上野本町駅", 36.57, 136.66), tokyoUeno],
+                                       near: kanazawa) == tokyoUeno.coordinate)
+        let localHonmachi = place("本町駅", 36.57, 136.65)
+        #expect(DestinationAnchor.pick(query: "本町駅", from: [place("本町駅", 34.682, 135.501), localHonmachi],
+                                       near: kanazawa) == localHonmachi.coordinate)
+        let togashi = place("富樫", 36.53, 136.66)
+        #expect(DestinationAnchor.pick(query: "金沢市富樫", from: [togashi], near: kanazawa) == togashi.coordinate)
+        #expect(DestinationAnchor.pick(query: "カフェ", from: [place("Cafe A", 36.58, 136.65), place("Cafe B", 35.6, 139.7)],
+                                       near: kanazawa) == nil, "Ambiguous answers leave the ranking unanchored")
+    }
+
     @Test func progressiveSuggestionsShowConcretePlacesBeforeTheRequestFinishes() async throws {
         let search = ControlledDestinationSearch()
         let completer = ControlledCompleter()
