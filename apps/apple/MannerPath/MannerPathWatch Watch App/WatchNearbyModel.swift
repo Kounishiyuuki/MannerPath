@@ -9,10 +9,14 @@ import WatchConnectivity
 final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDelegate {
     private let locationManager = CLLocationManager()
     typealias SnapshotRequester = (@escaping @MainActor (Data?) -> Void) -> Void
+    typealias SyncTimeoutScheduler = (@escaping @MainActor () -> Void) -> Void
     private let store: WatchStore?
     private let snapshotRequester: SnapshotRequester?
     private let widgetReloader: () -> Void
+    private let syncTimeoutScheduler: SyncTimeoutScheduler
+    private var activeRequestID: UUID?
     private(set) var syncRequestFailed = false
+    private(set) var phoneHasNoSnapshot = false
     private(set) var isSyncing = false
     private var requestedRevision: UInt64 = 0
     private(set) var snapshot: WatchSnapshot?
@@ -54,10 +58,17 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     }
 
     init(store: WatchStore?, activateConnectivity: Bool, snapshotRequester: SnapshotRequester? = nil,
-         widgetReloader: @escaping () -> Void = { WidgetCenter.shared.reloadTimelines(ofKind: "WatchNearby") }) {
+         widgetReloader: @escaping () -> Void = { WidgetCenter.shared.reloadTimelines(ofKind: "WatchNearby") },
+         syncTimeoutScheduler: @escaping SyncTimeoutScheduler = { completion in
+             Task { @MainActor in
+                 try? await Task.sleep(for: .seconds(15))
+                 completion()
+             }
+         }) {
         self.store = store
         self.snapshotRequester = snapshotRequester
         self.widgetReloader = widgetReloader
+        self.syncTimeoutScheduler = syncTimeoutScheduler
         super.init()
         snapshot = store?.snapshot()
         preferences = store?.preferences() ?? .defaults()
@@ -173,35 +184,59 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
     // The toolbar's location action remains independent of iPhone data synchronization.
     func requestSync() {
         guard !isSyncing else { return }
+        let requestID = UUID()
+        activeRequestID = requestID
         isSyncing = true
+        syncRequestFailed = false
+        phoneHasNoSnapshot = false
         requestedRevision = snapshot?.revision ?? 0
+        syncTimeoutScheduler { [weak self] in
+            self?.completeSyncReply(snapshotData: nil, unavailable: false, requestID: requestID)
+        }
         if let snapshotRequester {
-            snapshotRequester { [weak self] data in self?.completeSyncRequest(data) }
+            snapshotRequester { [weak self] data in
+                self?.completeSyncReply(snapshotData: data, unavailable: false, requestID: requestID)
+            }
             return
         }
         guard WCSession.isSupported(), WCSession.default.activationState == .activated,
               WCSession.default.isReachable else {
-            isSyncing = false
-            syncRequestFailed = true
+            completeSyncReply(snapshotData: nil, unavailable: false, requestID: requestID)
             return
         }
         WCSession.default.sendMessage(["requestSnapshotV1": true], replyHandler: { [weak self] reply in
             let data = reply["snapshotV1"] as? Data
-            Task { @MainActor in self?.completeSyncRequest(data) }
+            let unavailable = reply.count == 1 && reply["snapshotUnavailableV1"] as? Bool == true
+            Task { @MainActor in
+                self?.completeSyncReply(snapshotData: data, unavailable: unavailable, requestID: requestID)
+            }
         }, errorHandler: { [weak self] _ in
-            Task { @MainActor in self?.completeSyncRequest(nil) }
+            Task { @MainActor in
+                self?.completeSyncReply(snapshotData: nil, unavailable: false, requestID: requestID)
+            }
         })
     }
 
-    private func completeSyncRequest(_ data: Data?) {
+    // An explicit no-snapshot reply proves connectivity worked; it is distinct from a zero-place
+    // snapshot and from a missing/malformed reply. Keep any saved corpus and its original clock.
+    func completeSyncReply(snapshotData: Data?, unavailable: Bool) {
+        guard let requestID = activeRequestID else { return }
+        completeSyncReply(snapshotData: snapshotData, unavailable: unavailable, requestID: requestID)
+    }
+
+    private func completeSyncReply(snapshotData: Data?, unavailable: Bool, requestID: UUID) {
+        // A timeout or a newer context can finish a request before its WC reply arrives. Never
+        // let that reply (or its timeout) complete a subsequent request or change its status.
+        guard activeRequestID == requestID else { return }
+        activeRequestID = nil
         isSyncing = false
-        guard let data else { syncRequestFailed = true; return }
-        if let incoming = try? WatchCodec.snapshot(data), let snapshot,
-           snapshot.revision > requestedRevision, incoming.revision < snapshot.revision {
-            // A newer application context won the race. Do not replace it or report a false failure.
+        if unavailable && snapshotData == nil {
+            phoneHasNoSnapshot = true
+            syncRequestFailed = false
             return
         }
-        syncRequestFailed = !receive(snapshotData: data, preferenceData: nil)
+        guard let snapshotData else { syncRequestFailed = true; return }
+        syncRequestFailed = !receive(snapshotData: snapshotData, preferenceData: nil)
     }
 
     @discardableResult
@@ -221,7 +256,14 @@ final class WatchNearbyModel: NSObject, CLLocationManagerDelegate, WCSessionDele
                 }
             } catch { /* Preserve saved data and timestamps after malformed/conflicting payloads. */ }
         }
-        if received { syncRequestFailed = false }
+        if received {
+            syncRequestFailed = false
+            phoneHasNoSnapshot = false
+            if isSyncing, (snapshot?.revision ?? 0) > requestedRevision {
+                activeRequestID = nil
+                isSyncing = false
+            }
+        }
         if let data = preferenceData,
            let accepted = try? store?.acceptPreferences(data) { preferences = accepted }
         return received

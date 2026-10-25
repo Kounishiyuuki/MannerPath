@@ -1,6 +1,13 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Nothing is saved on this Watch yet. This does not mean there are no places nearby. On iPhone, use your current location and refresh nearby places, then sync here. Destination searches are not sent to Watch.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "このWatchにはまだデータが保存されていません。近くに場所がないという意味ではありません。iPhoneで現在地に戻って近くの場所を更新し、こちらで同期してください。目的地の検索結果はWatchには送信されません。"}}}},
+    "Refresh current-location places on iPhone first. Destination searches are not sent to Watch. Sync requests saved data without refreshing its age.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "先にiPhoneで現在地周辺の場所を更新してください。目的地の検索結果はWatchには送信されません。同期では保存済みデータを取得し、データの更新日時は変えません。"}}}},
+    "iPhone connected, but has no saved nearby data to send. On iPhone, return to your current location and refresh nearby places.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneに接続できましたが、送信できる保存済みの周辺データがありません。iPhoneで現在地に戻り、近くの場所を更新してください。"}}}},
+    "Saved data status": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "保存済みデータの状態"}}}},
+    "Revision %llu": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "リビジョン %llu"}}}},
+    "Refresh time unavailable": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "更新日時は不明です"}}}},
+    "This is the iPhone data refresh time, not the time received by Watch.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneでデータを更新した日時です。Watchで受信した日時ではありません。"}}}},
     "Sync saved data from iPhone": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneの保存済みデータを同期"}}}},
     "Refresh nearby places on iPhone first. This requests its saved data, not Watch location.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "先にiPhoneで近くの場所を更新してください。Watchの現在地ではなく、iPhoneの保存済みデータを取得します。"}}}},
     "Could not sync with iPhone. Open the iPhone app and try again. Saved data is unchanged.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "iPhoneと同期できませんでした。iPhoneアプリを開いて再試行してください。保存済みデータは変更されていません。"}}}},

@@ -168,6 +168,27 @@ final class PhoneWatchSync: NSObject, WCSessionDelegate {
         send()
     }
 
+    #if DEBUG
+    // Explicit developer action only. This never enters a tile cache, report, API or canonical DB.
+    // Use the real producer journal and WC transport so physical tests exercise revision ordering.
+    func publishTogashiWatchFixture() throws {
+        guard let producerStore else { throw WatchPayloadError.invalid }
+        let snapshot = try producerStore.prepare(Self.togashiWatchFixture(), confirmedRefresh: true)
+        snapshotData = try WatchCodec.encode(snapshot)
+        send()
+    }
+
+    static func togashiWatchFixture(at now: Date = Date()) -> WatchSnapshot {
+        WatchSnapshot(schemaVersion: 1, revision: 1, generatedAt: now, snapshotID: UUID(), spots: [
+            WatchSpot(id: "debug-watch-fixture-togashi", name: "テストデータ・富樫（実在しません）",
+                      latitude: 36.536, longitude: 136.646,
+                      spotType: "unknown", accessType: "unknown", supportsPaper: "unknown",
+                      supportsHeated: "unknown", lifecycle: "active", evidenceQuality: nil,
+                      evidenceQualityVersion: nil, lastVerifiedAt: nil, openingHours: nil, sourceIDs: [])
+        ], sources: [])
+    }
+    #endif
+
     func publish(preferences: WatchPreferences) {
         guard (try? preferences.validated()) != nil else { return }
         preferenceData = try? WatchCodec.encode(preferences)
@@ -190,7 +211,13 @@ final class PhoneWatchSync: NSObject, WCSessionDelegate {
     static func updatedContext(previous: [String: Any], snapshotData: Data?,
                                preferenceData: Data?) -> [String: Any] {
         var payload = previous
-        if let snapshotData { payload["snapshotV1"] = snapshotData }
+        // WC context survives upgrades too. Never forward bytes the current build rejects.
+        if let data = payload["snapshotV1"] as? Data {
+            if (try? WatchCodec.snapshot(data)) == nil { payload.removeValue(forKey: "snapshotV1") }
+        } else { payload.removeValue(forKey: "snapshotV1") }
+        if let snapshotData, (try? WatchCodec.snapshot(snapshotData)) != nil {
+            payload["snapshotV1"] = snapshotData
+        }
         if let preferenceData { payload["preferencesV1"] = preferenceData }
         return payload
     }
@@ -204,8 +231,9 @@ final class PhoneWatchSync: NSObject, WCSessionDelegate {
     }
 
     nonisolated static func snapshotReply(for message: [String: Any], snapshot: WatchSnapshot?) -> [String: Any] {
-        guard message.count == 1, message["requestSnapshotV1"] as? Bool == true,
-              let snapshot, (try? snapshot.validated()) != nil,
+        guard message.count == 1, message["requestSnapshotV1"] as? Bool == true else { return [:] }
+        guard let snapshot else { return ["snapshotUnavailableV1": true] }
+        guard (try? snapshot.validated()) != nil,
               let data = try? WatchCodec.encode(snapshot) else { return [:] }
         return ["snapshotV1": data]
     }

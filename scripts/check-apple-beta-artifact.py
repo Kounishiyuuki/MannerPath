@@ -161,7 +161,8 @@ URL_IN_TEXT = re.compile(r"(?i)\b[a-z][a-z0-9+.-]*://[^\s\"'<>]*")
 WEB_SCHEMES = {"http", "https", "ws", "wss", "ftp"}
 # Present only in #if DEBUG Watch/photo/search UI-test hooks; a Release binary must not carry them.
 DEBUG_MARKERS = (b"--mannerpath-watch-ui-test", b"MANNERPATH_WATCH_UI_TEST",
-                 b"uiTestPhotoReport", b"report.photo.addTest", b"uiTestDestinationSearch")
+                 b"uiTestPhotoReport", b"report.photo.addTest", b"uiTestDestinationSearch",
+                 b"publishTogashiWatchFixture", "テストデータ・富樫".encode("utf-8"))
 LOCATION_ALWAYS = ("NSLocationAlwaysUsageDescription", "NSLocationAlwaysAndWhenInUseUsageDescription")
 PROJECT = ROOT / "apps/apple/MannerPath/MannerPath.xcodeproj/project.pbxproj"
 

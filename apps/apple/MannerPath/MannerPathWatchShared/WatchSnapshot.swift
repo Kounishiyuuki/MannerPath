@@ -19,6 +19,13 @@ nonisolated struct WatchSnapshot: Codable, Sendable, Equatable {
         let sourceIDs = Set(sources.map(\.id))
         guard sources.allSatisfy({ !$0.id.isEmpty }),
               Set(sources).count == sources.count else { throw WatchPayloadError.invalid }
+        #if !DEBUG
+        // A Debug install can leave files and WC context behind under the same bundle ID.
+        // Reject the entire payload in distribution builds, including on disk and in widgets.
+        guard !spots.contains(where: { $0.id.hasPrefix("debug-watch-fixture-") }) else {
+            throw WatchPayloadError.invalid
+        }
+        #endif
         for spot in spots {
             guard !spot.id.isEmpty, ids.insert(spot.id).inserted,
                   spot.latitude.isFinite, (-90...90).contains(spot.latitude),
