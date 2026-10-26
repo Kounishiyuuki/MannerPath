@@ -89,3 +89,45 @@ test("unapproved south sources cannot register and existing canonical IDs and co
     assert.deepEqual(snapshot(), before);
   } finally { db.raw.close(); }
 });
+
+test("publication plan covers the original 12 without counting subquestion resolution as publishable places", () => {
+  const survey = json("survey.json");
+  const facilities = survey.facilities as { id: string; decision: string }[];
+  const count = (decision: string) => facilities.filter(f => f.decision === decision).length;
+  assert.equal(facilities.length, 28);
+  assert.equal(new Set(facilities.map(f => f.id)).size, 28);
+  assert.equal(count("operatorEquipmentConfirmed"), 9);
+  assert.equal(count("restrictedEquipmentListing"), 3);
+  assert.equal(count("unconfirmed"), 12);
+  assert.equal(count("excludedNoSmoking"), 4);
+  const observed = facilities.filter(f => ["operatorEquipmentConfirmed", "restrictedEquipmentListing"].includes(f.decision));
+  const plan = json("publication-plan.json");
+  assert.equal(plan.investigated, 28);
+  assert.equal(plan.equipmentSeenInOriginalSurvey, 12);
+  assert.equal(plan.existingIntakeRows, 6);
+  assert.equal(plan.newIntakeRows, 0);
+  assert.equal(plan.newPublishable, 0);
+  assert.equal(plan.canonicalAdded, 0);
+  assert.equal(plan.publishedAdded, 0);
+  assert.equal(plan.inquirySent, false);
+  assert.equal(plan.promotionPerformed, false);
+  assert.deepEqual(plan.facilities.map((f: { id: string }) => f.id).sort(), observed.map(f => f.id).sort());
+  assert.deepEqual([...plan.priority].sort(), observed.map(f => f.id).sort());
+  const intakeIds = inputs.map(input => input.sourceId).sort();
+  assert.deepEqual(plan.facilities.flatMap((f: { intakeSourceId: string | null }) => f.intakeSourceId ? [f.intakeSourceId] : []).sort(), intakeIds);
+  for (const facility of plan.facilities) {
+    assert.equal(facility.publicationStatus, "blocked");
+    assert.equal(facility.formalAdapterReady, false);
+    assert.equal(facility.rightsReview.status, "sourceReviewPending");
+    assert.ok(facility.blockingReasons.includes("eligibleFacilityAnchorMissing"));
+    assert.ok(facility.resolutionSteps.length > 0);
+    assert.equal(facility.firstPartyUrls.some((url: string) => /p-world|clubjt|openstreetmap/i.test(url)), false);
+  }
+  for (const id of ["sanmarco", "omega", "keiz"]) {
+    const lead = plan.facilities.find((f: { id: string }) => f.id === id);
+    assert.equal(lead.independentEquipmentEvidenceStatus, "notObtained");
+    assert.equal(lead.intakeSourceId, null, "host identity must not promote restricted equipment into intake");
+  }
+  assert.equal(plan.facilities.find((f: { id: string }) => f.id === "kaikatsu").independentEquipmentEvidenceStatus,
+               "chainFAQWithCurrentStore");
+});

@@ -127,3 +127,13 @@ parcelや町字点をareaApproximateへ昇格せず、候補の位置はunknown�
 
 既存fixture corpusを構成してID・tile本文・hash・revision・parts・membershipの完全一致を確認した。
 本番を読み取った/本番IDを検証したという意味ではない。本番D1、Cloudflare、promotionコマンド、問い合わせ送信は実施せず、mainへmergeしない。
+
+
+## 追補：最終監査と正式掲載への移行計画
+
+[PR #343最終監査/掲載判定](2026-10-26-kanazawa-publication-readiness.md) と
+[12施設の8項目審査](../../services/data-pipeline/research/official-source-intake/kanazawa-south/publication-plan.json) を追加。
+初回28件・12記載・6受付という履歴は保持する。今回の新規intake/正式掲載可能/公開追加は0/0/0。
+既存6件の位置ブロッカーは未解決。飛行船の運営者ポリシー、星乃の親会社方針、満天の宿泊約款・客室階立入制限、
+オメガの独立運営者/住所出典を具体的に確認し、単なる調査先数ではなく解除すべき不足資料を個別化した。
+現在の優先順位は既存intake6件→残る6件→富樫周辺の新規探索。初回調査でのサンマルコ優先と混同しない。
