@@ -1,0 +1,58 @@
+{
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "candidates": 6,
+  "anchors": 0,
+  "pendingReasons": {
+    "unmatchedRemainder": 3,
+    "precisionTooLow": 6,
+    "coordinateCoarserThanMatch": 1
+  },
+  "results": [
+    {
+      "id": "homerun-nonoichi-smoking-place",
+      "status": "reviewPending",
+      "reasons": [
+        "unmatchedRemainder",
+        "precisionTooLow"
+      ]
+    },
+    {
+      "id": "shiawasenoyu-smoking-place",
+      "status": "reviewPending",
+      "reasons": [
+        "unmatchedRemainder",
+        "precisionTooLow"
+      ]
+    },
+    {
+      "id": "hikousen-koudaimae-smoking-place",
+      "status": "reviewPending",
+      "reasons": [
+        "unmatchedRemainder",
+        "precisionTooLow"
+      ]
+    },
+    {
+      "id": "kurashiki-okyozuka-smoking-place",
+      "status": "reviewPending",
+      "reasons": [
+        "precisionTooLow"
+      ]
+    },
+    {
+      "id": "hoshino-oshino-smoking-place",
+      "status": "reviewPending",
+      "reasons": [
+        "precisionTooLow",
+        "coordinateCoarserThanMatch"
+      ]
+    },
+    {
+      "id": "manten-hakusan-smoking-place",
+      "status": "reviewPending",
+      "reasons": [
+        "precisionTooLow"
+      ]
+    }
+  ]
+}

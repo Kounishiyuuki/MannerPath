@@ -1,0 +1,38 @@
+[
+  {
+    "id": "homerun-nonoichi-smoking-place",
+    "officialAddress": "石川県野々市市横宮町3-6",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "shiawasenoyu-smoking-place",
+    "officialAddress": "石川県野々市市横宮町6-3",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "hikousen-koudaimae-smoking-place",
+    "officialAddress": "石川県野々市市扇が丘４－８",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "kurashiki-okyozuka-smoking-place",
+    "officialAddress": "石川県野々市市御経塚２ー５",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "hoshino-oshino-smoking-place",
+    "officialAddress": "石川県野々市市押野6-6",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "manten-hakusan-smoking-place",
+    "officialAddress": "石川県野々市市柳町460番地",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  }
+]

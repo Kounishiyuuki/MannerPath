@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sourceId": "kurashiki-okyozuka-smoking-place",
+  "publisher": "倉式珈琲店 御経塚店（運営者公式）",
+  "publisherUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+  "resourceUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+  "receivedOn": "2026-10-26",
+  "evidenceReference": "Locally normalized operator facts; PROVENANCE.md and fetch-ledger.json; not a publisher-delivered dataset",
+  "rightsReference": "PROVENANCE.md; source review is independent from failed address-anchor review; no rights/G5 approval",
+  "attributionText": "出典：倉式珈琲店 御経塚店（運営者公式） https://www.saint-marc-hd.com/kurashiki/shop/19/（2026-10-26確認、正規化した未承認候補）",
+  "licenseName": null,
+  "licenseUrl": null,
+  "coordinateMeaning": "unknown",
+  "operationClaim": "unknown",
+  "operationEvidenceReference": "Current-page listing only; no accepted current-operation review"
+}

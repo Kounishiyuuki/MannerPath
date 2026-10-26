@@ -1,0 +1,38 @@
+[
+  {
+    "candidateId": "hoshino-oshino-smoking-place",
+    "name": "星乃珈琲店 金沢押野店 喫煙ブース",
+    "prefecture": "石川県",
+    "municipality": "野々市市",
+    "officialAddress": "石川県野々市市押野6-6",
+    "addressUrl": "https://www.hoshinocoffee.com/shop.html",
+    "sourceUrl": "https://www.hoshinocoffee.com/shop.html",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "zones": "喫煙ブース・客席禁煙",
+    "spotType": "unknown",
+    "environment": "unknown",
+    "accessType": "unknown",
+    "accessDetail": null,
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked",
+    "blockers": [
+      "sourceRightsReviewRequired",
+      "noEligibleAreaAnchor"
+    ],
+    "geocodeEvidence": {
+      "file": "abrg-output.json",
+      "recordIndex": 4,
+      "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+      "usableAsAnchor": false
+    }
+  }
+]

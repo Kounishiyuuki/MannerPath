@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sourceId": "homerun-nonoichi-smoking-place",
+  "publisher": "ホームランGOGO野々市店（運営者公式）",
+  "publisherUrl": "https://homerun.co.jp/shop_nonoichi.html",
+  "resourceUrl": "https://homerun.co.jp/shop_nonoichi.html",
+  "receivedOn": "2026-10-26",
+  "evidenceReference": "Locally normalized operator facts; PROVENANCE.md and fetch-ledger.json; not a publisher-delivered dataset",
+  "rightsReference": "PROVENANCE.md; source review is independent from failed address-anchor review; no rights/G5 approval",
+  "attributionText": "出典：ホームランGOGO野々市店（運営者公式） https://homerun.co.jp/shop_nonoichi.html（2026-10-26確認、正規化した未承認候補）",
+  "licenseName": null,
+  "licenseUrl": null,
+  "coordinateMeaning": "unknown",
+  "operationClaim": "unknown",
+  "operationEvidenceReference": "Current-page listing only; no accepted current-operation review"
+}
