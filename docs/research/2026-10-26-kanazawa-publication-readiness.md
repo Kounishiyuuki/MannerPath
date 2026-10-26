@@ -65,6 +65,11 @@
 - 金沢国際ホテル：[公式FAQ](https://www.kanazawakokusaihotel.co.jp/question/)は館内喫煙コーナー、[婚礼ゲスト案内](https://www.kanazawakokusaihotel.co.jp/wedding/guest/)は披露宴会場フロアの設備を明示。しかし[アクセス](https://www.kanazawakokusaihotel.co.jp/access/)はGoogle埋込で、確認した運営者HTMLに独立した数値施設点なし。[市AED313行](https://catalog-data.city.kanazawa.ishikawa.jp/dataset/172014-aed)・[都市圏AED736行](https://catalog-data.city.kanazawa.ishikawa.jp/dataset/ishikawa-central-aed)・[市観光20行](https://catalog-data.city.kanazawa.ishikawa.jp/dataset/172014-tourism)にも対象名/住所の一致を得られず。権利・非宿泊客/非婚礼客の利用資格も未承認で、掲載readyは0。施設存在/設備記載だけでintakeやfixtureを増やさない。
 - 金沢歌劇座：[現行利用案内](https://www.kagekiza.gr.jp/info/)と[運営財団FAQ](https://www.kanazawa-arts.or.jp/faq/)から現行の喫煙場所を裏付けできず。古い第三者イベント図や一般的な「所定場所以外禁止」という規則を存在証拠にしない。設備不存在という判定でもない。追加取込なし。
 
+金沢国際ホテルは、公式住所「金沢市大額町ル8番地」に出典の県名だけを既存`completeOfficialAddress`で補い、同じ実ABR releaseでも評価した。
+Node23.3.0/abr-geocoder2.3.1、既存15 ZIPの`abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d`を使用（再downloadなし、no fuzzy）。
+実結果は`lg_code=172014`、`match_level=parcel`、`coordinate_level=parcel`。既存`address:anchors evaluate --dataset ... --release ...`がZIP digestを検証後、`anchors=0 / reviewPending / precisionTooLow`と拒否した。
+生結果SHA-256 `57b7518720435ecbda834e7717f711b560a4542ed17cb819aa003aca7cfebda4`はrepo外の`/private/tmp/lane4-kokusai-abrg.json`に対応する。粗い数値位置を正式fixtureや計画JSONへ転記しない。
+
 いずれも正式掲載条件を揃えられていない。既存28件の集計へ足さず、6件の代表点取得を先に解決する。
 
 ## 権利と位置を独立に解消する受入条件
