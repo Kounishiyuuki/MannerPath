@@ -48,7 +48,7 @@ struct ContentView: View {
         // bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and the sheet's
         // bottom bar takes over; VoiceOver never meets two entries.
         .overlay(alignment: .topLeading) {
-            if reportEntryAvailable, sheetDetent != .large {
+            if reportEntryAvailable, sheetDetent != .large, !searchFocused, !isShowingSearchResults {
                 mapReportButton.padding(.leading, 16).padding(.top, 8)
             }
         }
@@ -292,6 +292,17 @@ struct ContentView: View {
         return false
     }
 
+    private var reportEntryTitle: LocalizedStringKey {
+        if reportModel.draft != nil { return "Continue saved report" }
+        if reportModel.hasPendingPhotoFollowUp { return "Send photos for your received report" }
+        return reportModel.acceptsNewSpotProposals ? "Add a smoking place to the map" : "New place submissions paused"
+    }
+
+    private var reportEntrySymbol: String {
+        if reportModel.draft != nil || reportModel.hasPendingPhotoFollowUp { return "square.and.pencil" }
+        return reportModel.acceptsNewSpotProposals ? "plus.circle.fill" : "pause.circle"
+    }
+
     /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does.
     private func openReportEntry() {
         if reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
@@ -322,13 +333,13 @@ struct ContentView: View {
 
     private var sheetReportBar: some View {
         Button { openReportEntry() } label: {
-            Label("Report a smoking place", systemImage: "plus.circle.fill")
+            Label(reportEntryTitle, systemImage: reportEntrySymbol)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
         .disabled(reportModel.isBusy)
         .accessibilityIdentifier("sheetReportButton")
-        .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
+        .accessibilityHint("Check submission availability and saved drafts")
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(.bar)
@@ -336,7 +347,7 @@ struct ContentView: View {
 
     private var mapReportButton: some View {
         Button { openReportEntry() } label: {
-            Label("Report a smoking place", systemImage: "plus.circle.fill")
+            Label(reportEntryTitle, systemImage: reportEntrySymbol)
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 14)
                 .frame(minHeight: 44)
@@ -347,7 +358,7 @@ struct ContentView: View {
         .foregroundStyle(.tint)
         .disabled(reportModel.isBusy)
         .accessibilityIdentifier("mapReportButton")
-        .accessibilityHint("Propose a smoking place missing from the map. It is reviewed before it can appear.")
+        .accessibilityHint("Check submission availability and saved drafts")
     }
 
     /// ADR-0013 nearby tasks: a light, ignorable prompt inside the Nearby screen — no push, no streaks, no tracking.
@@ -424,8 +435,12 @@ struct ContentView: View {
         switch reportModel.availability {
         case .available:
             // The button itself is the map button (medium) or the sheet's report bar (large); one entry at a time.
-            if reportModel.draft == nil {
+            if reportModel.draft == nil, reportModel.acceptsNewSpotProposals {
                 Text("Know a smoking place that isn't listed yet? Send its location and photos. MannerPath reviews them and adds approved information to the map.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            if !reportModel.acceptsNewSpotProposals {
+                Text("New smoking places are not being accepted right now.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .unknown:
@@ -667,10 +682,12 @@ struct ContentView: View {
             ContentUnavailableView {
                 Label("No published spots in this nearby area", systemImage: "mappin.slash")
             } description: {
-                Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability))
+                Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability, acceptsNewSpotProposals: reportModel.acceptsNewSpotProposals))
             } actions: {
                 if case .available = reportModel.availability, reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
-                    Button("Report a smoking place", systemImage: "plus.circle.fill") { beginNewReport { startAddingPlace() } }
+                    Button { beginNewReport { startAddingPlace() } } label: {
+                        Label(reportEntryTitle, systemImage: reportEntrySymbol)
+                    }
                         .buttonStyle(.borderedProminent)
                 }
             }
@@ -878,8 +895,8 @@ private struct DetailSelection {
 
 @MainActor
 enum NearbyEmptyStateCopy {
-    static func description(for availability: ReportAvailability) -> String {
-        if case .available = availability {
+    static func description(for availability: ReportAvailability, acceptsNewSpotProposals: Bool = false) -> String {
+        if case .available = availability, acceptsNewSpotProposals {
             return String(localized: "Know a smoking place that isn't listed yet?") + "\n"
                 + String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")
         }

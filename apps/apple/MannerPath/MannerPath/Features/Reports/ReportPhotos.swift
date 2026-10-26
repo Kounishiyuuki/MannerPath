@@ -306,7 +306,7 @@ struct ReportPhotoSection: View {
             if let error = photos.error { Text(error).accessibilityLabel(error) }
         } header: {
             if photos.acceptedReportID != nil { Text("Photos for the received report") }
-            else { Text(required ? "Photos (required, 1 to 3)" : "Evidence photos (optional)") }
+            else { Text(required ? "3. Add photos (required, 1 to 3)" : "Evidence photos (optional)") }
         } footer: {
             if required && photos.photos.isEmpty { Text("Add at least one photo of the smoking place to submit.") }
         }

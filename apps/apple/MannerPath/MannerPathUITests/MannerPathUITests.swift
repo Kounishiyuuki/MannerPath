@@ -68,6 +68,13 @@ class MannerPathUITestCase: XCTestCase {
         XCTAssertTrue(element.exists && element.isHittable, "Could not scroll to \(element)", file: file, line: line)
     }
 
+    func discardReportDraft() {
+        app.buttons["下書きを破棄"].tap()
+        let confirm = app.buttons["report.discard.confirm"].firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+    }
+
     func assertNoDeveloperText(file: StaticString = #filePath, line: UInt = #line) {
         let leak = NSPredicate(format: """
             label CONTAINS[c] '127.0.0.1' OR label CONTAINS[c] 'localhost' OR label CONTAINS[c] 'debug' \
@@ -561,7 +568,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(app.buttons["地図でピンを選ぶ"].exists, "Draft type survived closing")
         // Submit stays available but is never tapped here; checked with the keyboard down so the row can be reached.
         scrollTo(app.buttons["審査用に送信"])
-        app.buttons["下書きを破棄"].tap()
+        discardReportDraft()
         waitForDetail()
         scrollTo(app.buttons["この場所の情報を報告"])
     }
@@ -593,11 +600,11 @@ final class B_OnlineUITests: MannerPathUITestCase {
         let saved = app.buttons["保存済みの報告を再開"]
         if saved.exists {
             saved.tap()
-            app.buttons["下書きを破棄"].tap()
+            discardReportDraft()
         }
         let button = app.buttons["mapReportButton"]
         XCTAssertTrue(button.waitForExistence(timeout: 10), "No map report button while reports are available")
-        XCTAssertEqual(button.label, "喫煙所を報告")
+        XCTAssertEqual(button.label, "新規申請の受付停止中")
         XCTAssertTrue(button.isHittable)
         XCTAssertGreaterThanOrEqual(button.frame.height, 44)
         let search = destinationSearch
@@ -608,13 +615,13 @@ final class B_OnlineUITests: MannerPathUITestCase {
         button.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         screenshot("32-map-report-form")
-        app.buttons["下書きを破棄"].tap()
+        discardReportDraft()
 
         // Large sheet: the map button is covered, so the sheet's own labelled bar offers the same entry.
         app.navigationBars["近くの場所"].swipeUp()
         let bar = app.buttons["sheetReportButton"]
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
-        XCTAssertEqual(bar.label, "喫煙所を報告")
+        XCTAssertEqual(bar.label, "新規申請の受付停止中")
         XCTAssertTrue(bar.isHittable)
         // The text is on screen, not only the symbol: the labelled bar spans the sheet's width.
         XCTAssertGreaterThan(bar.frame.width, app.windows.firstMatch.frame.width / 2, "The large entry shows its text")
@@ -623,7 +630,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         screenshot("33-large-sheet-report-entry")
         bar.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
-        app.buttons["下書きを破棄"].tap()
+        discardReportDraft()
 
         // Searching owns the bottom of the sheet: the bar steps aside for the keyboard and suggestions.
         destinationSearch.tap()
@@ -643,15 +650,15 @@ final class B_OnlineUITests: MannerPathUITestCase {
             app.navigationBars["近くの場所"].swipeUp()
         }
         XCTAssertTrue(text("この周辺に掲載中の場所はありません").waitForExistence(timeout: 10))
-        XCTAssertTrue(textContaining("まだ掲載されていない喫煙所を知っていますか？").exists)
-        XCTAssertTrue(textContaining("場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。").exists)
-        let action = app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告' AND identifier != 'mapReportButton'")).firstMatch
+        XCTAssertTrue(textContaining("掲載範囲は地域によって異なります").exists)
+        XCTAssertFalse(textContaining("場所と写真を送ってください。").exists, "Paused intake must not invite a submission")
+        let action = app.buttons.matching(NSPredicate(format: "label == '新規申請の受付停止中' AND identifier != 'mapReportButton'")).firstMatch
         XCTAssertTrue(action.exists, "The empty state offers the report entry")
         XCTAssertFalse(app.buttons["sheetReportButton"].exists, "The empty state's own button is the only one in the sheet")
         screenshot("34-empty-area-invitation")
         action.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
-        app.buttons["下書きを破棄"].tap()
+        discardReportDraft()
     }
 }
 
@@ -875,9 +882,9 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         let saved = app.buttons["保存済みの報告を再開"]
         if saved.exists {
             saved.tap()
-            app.buttons["下書きを破棄"].tap()
+            discardReportDraft()
         }
-        let add = app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告'")).firstMatch
+        let add = app.buttons.matching(NSPredicate(format: "label == '新規申請の受付停止中'")).firstMatch
         XCTAssertTrue(add.waitForExistence(timeout: 10))
         add.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
@@ -902,7 +909,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         XCTAssertTrue(app.navigationBars["報告に関する規約"].waitForExistence(timeout: 10))
         screenshot("34-report-terms")
         app.buttons["完了"].tap()
-        app.buttons["下書きを破棄"].tap()
+        discardReportDraft()
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
     }
 }
@@ -981,7 +988,9 @@ final class I_ProductionAPIUITests: MannerPathUITestCase {
         waitForResults()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30), "Live refresh did not succeed")
         screenshot("70-production-nearby")
-        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告'")).firstMatch.exists,
+        XCTAssertFalse(app.buttons["mapReportButton"].exists)
+        XCTAssertFalse(app.buttons["sheetReportButton"].exists)
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙所を追加する' OR label == '新規申請の受付停止中'")).firstMatch.exists,
                        "Add-place must be hidden while production reports are unavailable")
 
         let first = resultRows.firstMatch

@@ -17,6 +17,7 @@ struct ReportFormView: View {
     @State private var showingTerms = false
     @State private var followUpChoiceMade = false
     @State private var confirmingNewReport = false
+    @State private var confirmingDiscard = false
 
     private var isMissing: Bool { model.draft?.type == .missing }
 
@@ -27,7 +28,14 @@ struct ReportFormView: View {
                     followUpChoice(followUp)
                 }
                 Section {
-                    Text("This is a proposal for review. Submitting it does not immediately change the listing.")
+                    if isMissing {
+                        Text("Know a smoking place missing from the map? Choose its location, add photos and tell us what you know. Approved information is added after review.")
+                            .accessibilityIdentifier("report.newPlace.introduction")
+                        Text("Location, 1–3 photos and agreement to the terms are required. Other details can stay unknown. Closing this form keeps your draft; photos stay only until the app closes.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    } else if model.draft != nil {
+                        Text("This is a proposal for review. Submitting it does not immediately change the listing.")
+                    }
                     // Said first, not only beside the hidden submit button: nothing here can be submitted right now.
                     if let unavailableNotice {
                         Label(unavailableNotice, systemImage: "info.circle")
@@ -68,16 +76,16 @@ struct ReportFormView: View {
                             }
                             .disabled(!model.canEditDraft)
                         }
-                    } else {
-                        Section("What needs review?") { Text(ReportType.missing.title) }
                     }
 
                     if draft.type == .moved || draft.type == .missing {
-                        Section("Proposed place") {
+                        Section(isMissing ? "1. Choose the location (required)" : "Proposed place") {
                             Button(draft.proposedLocation == nil ? "Choose a map pin" : "Change proposed pin") {
                                 choosingPin = true
                             }
                             .disabled(!model.canEditDraft)
+                            .frame(minHeight: 44)
+                            .accessibilityIdentifier("report.pin.choose")
                             if let pin = draft.proposedLocation {
                                 Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
                                     .font(.footnote).foregroundStyle(.secondary)
@@ -89,28 +97,45 @@ struct ReportFormView: View {
                         }
                     }
 
-                    if isMissing, let pin = draft.proposedLocation {
-                        let candidates = DuplicateCandidates.near(pin, in: nearbySpots)
-                        if !candidates.isEmpty {
-                            Section {
-                                ForEach(candidates, id: \.spot.id) { candidate in
-                                    Button {
-                                        model.confirmExistingInstead(spotId: candidate.spot.id, subjectName: SpotPresentation.name(candidate.spot))
-                                    } label: {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(SpotPresentation.name(candidate.spot))
-                                            Text("About \(Int(candidate.distanceMeters.rounded())) m from your pin · tap to confirm it is still here instead")
-                                                .font(.footnote).foregroundStyle(.secondary)
+                    if isMissing {
+                        Section {
+                            if let pin = draft.proposedLocation {
+                                let candidates = DuplicateCandidates.near(pin, in: nearbySpots)
+                                if candidates.isEmpty {
+                                    Text("No nearby match was found in the map data saved on this device. This is not a complete duplicate check.")
+                                        .font(.footnote)
+                                        .accessibilityIdentifier("report.duplicates.noMatch")
+                                } else {
+                                    Text("Is it one of these?")
+                                        .font(.headline)
+                                    ForEach(candidates, id: \.spot.id) { candidate in
+                                        Button {
+                                            model.confirmExistingInstead(spotId: candidate.spot.id, subjectName: SpotPresentation.name(candidate.spot))
+                                        } label: {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(SpotPresentation.name(candidate.spot))
+                                                Text("About \(Int(candidate.distanceMeters.rounded())) m from your pin · tap to confirm it is still here instead")
+                                                    .font(.footnote).foregroundStyle(.secondary)
+                                            }
                                         }
+                                        .disabled(!model.canEditDraft)
                                     }
-                                    .disabled(!model.canEditDraft)
                                 }
-                            } header: {
-                                Text("Is it one of these?")
-                            } footer: {
-                                Text("Before adding a new place, check whether it is already listed. If it is a different place nearby, keep adding it.")
+                            } else {
+                                Text("Choose a pin first to see nearby places already saved on this device.")
+                                    .font(.footnote).foregroundStyle(.secondary)
                             }
+                        } header: {
+                            Text("2. Check for an existing place")
+                        } footer: {
+                            Text("Before adding a new place, check whether it is already listed. If it is a different place nearby, keep adding it.")
                         }
+                    }
+
+                    // New-place photos come before optional details. The deployment/consent gate is unchanged.
+                    if isMissing, model.photos.enabled && model.acceptsNewSpotProposals {
+                        ReportPhotoSection(photos: model.photos, required: true)
+                            .disabled(isSubmitting)
                     }
 
                     if !isMissing, acceptsFindings, let kind = CorrectionKind(draft.type) {
@@ -160,8 +185,20 @@ struct ReportFormView: View {
 
                     // Photos are offered only while the deployment accepts them; for a new place the notice above
                     // says why not. Chosen before consent and submit, which they gate.
-                    if model.photos.enabled && model.acceptsNewSpotProposals {
-                        ReportPhotoSection(photos: model.photos, required: isMissing)
+                    if !isMissing, model.photos.enabled && model.acceptsNewSpotProposals {
+                        ReportPhotoSection(photos: model.photos)
+                            .disabled(isSubmitting)
+                    }
+
+                    if isMissing {
+                        Section("5. Review before sending") {
+                            Label(draft.proposedLocation == nil ? "Location still needed" : "Proposed map pin selected",
+                                  systemImage: draft.proposedLocation == nil ? "circle" : "checkmark.circle")
+                            LabeledContent("Photos chosen", value: "\(model.photos.photos.count) / 3")
+                            Text("Review the location, photos and details above. You can leave information you do not know as unknown.")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                        .accessibilityIdentifier("report.review.summary")
                     }
 
                     if let version = termsVersion {
@@ -173,7 +210,7 @@ struct ReportFormView: View {
                             ))
                             .disabled(!model.canEditDraft)
                         } header: {
-                            Text("Report terms")
+                            Text(isMissing ? "Terms (required)" : "Report terms")
                         } footer: {
                             Text("Required before submitting. Terms version \(version)")
                         }
@@ -181,10 +218,18 @@ struct ReportFormView: View {
 
                     Section {
                         if case .available = model.availability {
+                            if let message = model.submissionReadinessMessage, !isAmbiguous {
+                                Label(message, systemImage: "info.circle")
+                                    .font(.footnote)
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityIdentifier("report.readiness")
+                            }
                             TimelineView(.periodic(from: .now, by: 1)) { _ in
                                 Button("Submit for review") { Task { await model.submit() } }
                                     .disabled(isSubmitting || isAccepted || isAmbiguous || model.isTerminalReceipt || !termsAccepted ||
-                                              newSpotNeedsPhotos || (model.retryAfterSecondsRemaining ?? 0) > 0)
+                                              newSpotNeedsPhotos || model.submissionReadinessMessage != nil ||
+                                              (model.retryAfterSecondsRemaining ?? 0) > 0)
+                                    .frame(minHeight: 44)
                                     .accessibilityIdentifier("report.submit")
                             }
                             if isAmbiguous && model.ambiguousRetryNeedsPhotos {
@@ -192,11 +237,7 @@ struct ReportFormView: View {
                                     .font(.footnote)
                                     .accessibilityIdentifier("report-retry-needs-photos")
                             }
-                            if model.canRetryAmbiguous {
-                                Button(model.usesIdempotentRetry ? "Retry saved submission" : "Submit again despite possible duplicate") {
-                                    confirmingRetry = true
-                                }
-                            }
+
                         } else if case .attestationUnsupported = model.availability {
                             Text("Secure reporting isn't supported on this device. Your draft remains saved.")
                                 .font(.footnote)
@@ -257,7 +298,37 @@ struct ReportFormView: View {
                 }
                 Section { status }
             }
-            .navigationTitle(isMissing ? "Add a smoking place" : "Report place information")
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if isAccepted {
+                    receivedHeading
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.bar)
+                } else if isAmbiguous {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Delivery could not be confirmed. Review the saved submission. It has not been retried automatically.",
+                              systemImage: "exclamationmark.triangle")
+                            .font(.footnote)
+                            .accessibilityElement(children: .combine)
+                        if case .available = model.availability, model.canRetryAmbiguous {
+                            Button {
+                                confirmingRetry = true
+                            } label: {
+                                Text(model.usesIdempotentRetry ? String(localized: "Retry saved submission") : String(localized: "Submit again despite possible duplicate"))
+                                    .frame(minHeight: 44)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("report.retrySaved")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(.bar)
+                }
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .interactiveDismissDisabled(model.isBusy)
+            .navigationTitle(isAccepted ? "Report received" : isMissing ? "Add a place" : "Report place information")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -266,8 +337,7 @@ struct ReportFormView: View {
                 if model.draft != nil {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Discard draft", role: .destructive) {
-                            model.cancel()
-                            if model.draft == nil { dismiss() }
+                            confirmingDiscard = true
                         }
                         .disabled(isSubmitting)
                     }
@@ -281,11 +351,23 @@ struct ReportFormView: View {
                     editDraft { $0.proposedLocation = pin.quantized }
                 }
             }
+            .confirmationDialog("Discard this saved draft?", isPresented: $confirmingDiscard) {
+                Button("Discard draft", role: .destructive) {
+                    model.cancel()
+                    if model.draft == nil { dismiss() }
+                }
+                .accessibilityIdentifier("report.discard.confirm")
+                Button("Keep draft") {}
+                    .accessibilityIdentifier("report.discard.cancel")
+            } message: {
+                Text("The saved draft and in-app photo selections will be discarded. Originals in your photo library and reports already received by MannerPath are not deleted.")
+            }
             .confirmationDialog(model.usesIdempotentRetry
                                 ? "Retry the same saved submission? A new security check will be performed."
                                 : "The report may already have been received. Submitting again may create a duplicate.",
                                 isPresented: $confirmingRetry) {
                 Button("Submit again") { Task { await model.retryAmbiguous() } }
+                    .accessibilityIdentifier("report.retrySaved.confirm")
             }
             .onAppear {
                 if let value = model.draft?.observedOn,
@@ -386,15 +468,21 @@ struct ReportFormView: View {
         case .authorizationFailed(let message):
             Text(message)
         case .accepted(let receipt):
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 8) {
                 if model.photos.photos.isEmpty || model.photos.allUploaded {
                     Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
                 } else if model.photos.busy {
                     Text("The report was received. Sending photos…")
+                    Text("Until a photo is received, a new place stays out of review for listing.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 } else {
                     let unsent = model.photos.photos.count - model.photos.uploadedCount
                     Text("The report was received, but \(unsent) of \(model.photos.photos.count) photos are not confirmed as received. The report will not be sent again.")
                         .accessibilityIdentifier("report-photos-unsent")
+                    if model.photos.canRetry {
+                        Text("Retry only the unsent photos. Do not submit a new report for the same place.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
                 LabeledContent("Report reference", value: receipt.reportId)
                     .textSelection(.enabled)
@@ -431,6 +519,18 @@ struct ReportFormView: View {
         case .failed(let message):
             Text(message)
         }
+    }
+
+    // Keep the report receipt visible even when several photo previews fill the form.
+    private var receivedHeading: some View {
+        Label(model.photos.photos.isEmpty || model.photos.allUploaded
+              ? "Received — awaiting review" : "Report received — photos still pending",
+              systemImage: "checkmark.circle")
+            .font(.headline)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier(model.photos.photos.isEmpty || model.photos.allUploaded
+                                     ? "report.pendingReview" : "report.pendingPhotos")
     }
 
     private func editDraft(_ edit: (inout ReportDraft) -> Void) {
@@ -503,11 +603,15 @@ private struct ReportPinPicker: View {
                         .accessibilityHint("Move the map, then use the map center button. Coordinate controls are available after selection.")
                     }
                     .frame(height: 280)
-                    Button("Use map center") {
+                    .padding(.horizontal, 16)
+                    Button {
                         if let cameraCenter { candidate = cameraCenter.quantized }
+                    } label: {
+                        Text("Use map center").frame(minHeight: 44)
                     }
                     .buttonStyle(.bordered)
                     .disabled(cameraCenter == nil)
+                    .accessibilityIdentifier("report.pin.useCenter")
                     if let candidate {
                         Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
                             .font(.footnote)
@@ -516,11 +620,14 @@ private struct ReportPinPicker: View {
                                 value: candidateBinding(\.latitude), in: -90...90, step: 0.0001)
                         Stepper("Longitude \(candidate.longitude.formatted(.number.precision(.fractionLength(5))))",
                                 value: candidateBinding(\.longitude), in: -180...180, step: 0.0001)
-                        Button("Confirm proposed pin") {
+                        Button {
                             onConfirm(candidate)
                             dismiss()
+                        } label: {
+                            Text("Confirm proposed pin").frame(minHeight: 44)
                         }
                         .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("report.pin.confirm")
                     } else {
                         Text("No pin selected")
                             .foregroundStyle(.secondary)
@@ -534,6 +641,7 @@ private struct ReportPinPicker: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
             }
             .onAppear {
+                candidate = initial
                 let latitude = initial?.latitude ?? center?.latitude ?? 35.68
                 let longitude = initial?.longitude ?? center?.longitude ?? 139.76
                 position = .region(MKCoordinateRegion(
@@ -568,6 +676,8 @@ private struct NewSpotClaimSection: View {
 
     var body: some View {
         Section {
+            Text("Choose what you observed. If you do not know a detail, leave it as Not sure or Not stated; do not guess from the shop or facility alone.")
+                .font(.footnote).foregroundStyle(.secondary)
             Picker("Kind of smoking place", selection: $claim.spotType) {
                 Text("Not sure").tag("unknown")
                 Text("Ashtray").tag("ashtray")
@@ -641,7 +751,7 @@ private struct NewSpotClaimSection: View {
                 set: { claim.hoursNote = $0.isEmpty ? nil : String($0.prefix(ReportClaim.hoursNoteMaxLength)) }
             ))
         } header: {
-            Text("About this place")
+            Text("4. Describe the smoking place")
         } footer: {
             Text("Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and hours are only for the reviewer and are deleted after 90 days.")
         }

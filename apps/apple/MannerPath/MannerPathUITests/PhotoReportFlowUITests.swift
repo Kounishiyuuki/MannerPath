@@ -125,7 +125,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func testNewPlaceRequiresPhotosThenSendsReportAndPhotos() {
         openNewPlaceForm("success")
         choosePinAndAgree()
-        let required = text("写真（必須・1〜3枚）")
+        let required = text("3. 写真を添付（必須・1〜3枚）")
         scrollTo(required, upwards: true)
         scrollTo(textContaining("位置情報は使用しません"))
         scrollTo(submit)
