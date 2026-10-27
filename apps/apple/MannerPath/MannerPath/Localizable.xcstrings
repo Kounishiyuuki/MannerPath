@@ -1,6 +1,8 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Finish editing additional detail": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "補足情報の入力を完了" } } } },
+    "Photos were received for private review. Photos are not displayed on the public map.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を審査用に受け付けました。写真は公開地図には表示されません。" } } } },
     "Retry saved submission": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "保存した申請を再送信"}}}},
     "Retry the same saved submission? A new security check will be performed.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "同じ申請内容を再送信しますか？新しいセキュリティ確認を行います。"}}}},
     "Delivery could not be confirmed. The same saved submission can be retried when reporting is available.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "申請が届いたか確認できませんでした。受付が利用できるときに、保存した同じ内容を再送信できます。"}}}},

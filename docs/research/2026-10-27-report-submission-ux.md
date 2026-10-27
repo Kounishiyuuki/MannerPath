@@ -31,10 +31,10 @@ memory-only、再エンコード、同意版一致は既存仕様を維持。
 通信結果不明の案内と既存の明示的な再送を上部に表示し、再送前の確認とavailability gateを維持。
 送信準備中は写真編集も無効にする。英語ナビタイトルは短い「Add a place」、日本語の再送・期限切れ・競合案内も整備。
 
-## 検証記録
+## 既存commit `2e3171f` の検証記録
 
 - `make contract`：PASS。
-- `make apple-validate`：最終ソースでPASS（iPhone310/310件、Watch37/37件、Watch build、Debug/Release境界、Release埋込バイナリ検査）。
+- `make apple-validate`：同commitのソースでPASS（iPhone310/310件、Watch37/37件、Watch build、Debug/Release境界、Release埋込バイナリ検査）。
 - iOS 26.5 / iPhone 17 Pro / dark：新規UI7件＋既存写真再送1件 = **8/8 PASS**。
 - iOS 18.6 / iPhone 16 Pro / light：新規UI **7/7 PASS**。
 - 最終の日本語再送ラベル・収納状態追加後、iOS26.5の該当2件を再実行：**2/2 PASS**。
@@ -74,6 +74,9 @@ xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj -scheme Mann
 | 受付完了・審査待ち / iOS26.5 dark | [受付](../assets/research/report-submission-ux/received-ios26-dark.png) |
 | 通信結果不明・明示再送 / iOS26.5 dark | [再送](../assets/research/report-submission-ux/retry-ios26-dark.png) |
 | 最大文字サイズとキーボード / iOS26.5 dark | [入力](../assets/research/report-submission-ux/keyboard-ios26-axxxl.png) |
+| 最大文字サイズ・入力完了 / iOS26.5 dark | [完了](../assets/research/report-submission-ux/note-done-ios26-axxxl.png) |
+| 最大文字サイズ・スクロール可能な再送 / iOS26.5 dark | [再送](../assets/research/report-submission-ux/retry-ios26-axxxl.png) |
+| 最大文字サイズ・位置調整 / iOS26.5 dark | [ピン](../assets/research/report-submission-ux/pin-ios26-axxxl.png) |
 | 受付停止 / iOS18.6 light | [停止](../assets/research/report-submission-ux/paused-ios18-light.png) |
 | 英語・短いタイトル / iOS26.5 dark | [English](../assets/research/report-submission-ux/english-ios26-dark.png) |
 
@@ -86,3 +89,49 @@ VoiceOver用の名前・要素の結合・到達可能性を自動テスト/ア�
 mainへmergeしない。
 
 開始および最終確認のbaseはorigin/main `3b5fd608dab2b3e97be18931836c3f7839ea7450`。Lane 3の検索シート変更は、この確認時点では未統合。ContentViewは入口・説明・表示条件だけに限定した。
+
+## 再開後の独立フォーム改善
+
+既存PR #344 / `2e3171f`を継続。ContentViewは同commitから追加編集していない。Lane 3の検索シートがmainへ統合された後、入口の位置・検索/キーボードとの共存を再確認する。
+
+- 写真が全件受信済みで、追加の写真選択も提供していない場合だけ、送信前の長い注意を「写真を審査用に受付済み・公開地図に写真は表示されない」という短い説明へ切り替える。受付番号と完了状態を見つけやすくする。
+- 写真追送を再開した画面で追加写真を選べる間は、全件送信済みでも顔・ナンバー等の注意を保持する。同じ選択条件を説明とPhotosPickerで参照し、後から選ぶ写真の注意を消さない。
+- 補足情報TextEditorにFocusStateと「完了」ボタンを追加。入力内容を変えずにキーボードを閉じ、送信確認へ進める。VoiceOver用の名前は「補足情報の入力を完了」。
+- アクセシビリティ文字サイズでは通信結果不明の案内・再送操作をフォーム内に置き、一緒にスクロールできるようにする。通常文字サイズの固定案内は維持し、同じmodel gateと再送確認を使う。
+- ピン選択の縦スタック全体へ16ptの横余白を揃える。地図幅を維持し、最大文字サイズの座標調整欄が画面端へ寄りすぎないようにする。
+- 新規UI検証は最大文字サイズでの入力→キーボード完了→通信結果不明→同じ保存済み申請の再送、通常受付後の短い説明、再起動後の写真追送と注意文保持。
+- XCTestの`performAccessibilityAudit`で名前の不足と役割/traitを、フォーム・選択済みピン・送信確認・受付完了に対して検査する。監査の失敗を無視するフィルタは追加しない。
+
+最初の追加最大文字サイズテストは`Could not scroll to "report.submit" Button`で失敗した。画像とツリーには入力済みメモが残り、キーボードが開いていた。
+テストの75%高さからのドラッグがキーボード領域に当たっていたためで、再送状態の破損や入力消失の証拠ではない。スワイプ回数や待ち時間は増やさず、明示的な「完了」を押してキーボード消失を確認してから送信へ進むよう修正した。
+次の検証は送信後の`Could not scroll to TextView (First Match)`で失敗。キーボードは消えていたが、固定再送案内が画面の約2/3を占め、テストのドラッグも案内内に当たっていた。アクセシビリティ文字サイズの案内をフォーム内へ移し、読み取り専用の保存済みメモは有効/タップ可能性ではなく表示領域と値で確認する。入力消失や自動再送の成功/失敗とは混同しない。
+
+### 実VoiceOverの手動確認（未実施）
+
+自動監査/アクセシビリティツリーの成功を、実際の音声・フォーカス順・ジェスチャーの成功とは扱わない。iOS18.6/26.5それぞれ、VoiceOverを有効にした端末で次を確認し、OS・文字サイズ・読み上げ順・結果を記録する。本番への申請は送らず、DEBUGの検証stackまたは未送信の下書きで行う。
+
+1. 追加入口/下書き再開/写真追送/受付停止の名前が状態に合う。説明から必要な位置・写真・規約と審査待ちの意味を理解できる。
+2. ピン選択の地図・「地図の中心を使用」・緯度/経度調整・確定/閉じるに順に到達して操作できる。位置が自動的に提案済みにならず、明示確定して戻れる。
+3. 写真選択前の注意、必須1〜3枚、任意/不明の項目を読み取れる。写真の追加・削除の対象が分かり、システムPhotosPickerのキャンセルで下書きを失わない。
+4. 補足入力後に「補足情報の入力を完了」を操作してキーボードを閉じられる。メモを保持し、内容確認と規約、送信へ移れる。フォームを閉じて再開しても保存済みメモを読める。
+5. 通信結果不明の説明と保存済み申請の再送に到達でき、確認前に自動送信されない。受理後は受付見出し・参照番号・非公開写真の説明が読め、同じ申請の通常送信が残らない。
+6. 写真だけの追送では元の参照番号が維持され、追加選択が可能な間はプライバシー注意が残る。読み上げが画像プレビューだけに閉じ込められない。
+
+実App Attest・実サービスへの配送・署名済み実機送信も引き続き別の検証。API、Web管理、承認、受付有効化/公開ゲートは変更しない。
+
+### 再開後の検証記録
+
+- `make apple-validate`：PASS。iPhone **310/310**、Watch **37/37**、Watch build、Debug/Release fixture境界、Release埋込バイナリ検査が成功。
+- `make contract`、`git diff --check`：PASS。
+- iOS26.5 dark：最大文字サイズの入力/再送 **1/1**、通常受付・写真追送・名前/trait監査 **3/3 PASS**。
+- iOS18.6 light：通常受付・写真追送・名前/trait監査 **3/3 PASS**。最大文字サイズは最初の実行で同意スイッチの操作前に停止した。
+- iOS18.6の記録映像では、同意の親行がhittableになっても子スイッチ本体は画面外だった。親行だけでなく実際にタップする子へ`scrollTo`してから操作するようテストを修正した。待ち時間やスワイプ上限は増やしていない。
+- 同意修正後は入力/送信まで進み、保存済みメモの検証で停止。iOS18が背面の検索シートもCollectionViewとして公開し、firstMatchがそちらを選んでいた。前面のCollectionViewを選び、その中に再送ボタンがあることをassertしてから読み取り確認するよう修正。入力消失の証拠とはしない。
+- 次のiOS18実行では送信ボタンの端だけが露出しているのにhittableとなり、タップ後も同意済みフォームに留まった。送信・再送の対象全体が前面フォームの表示領域内に入ることを確認して操作するよう対象テストを修正した。
+- コードレビュー・最終の完了/再送画面レビューにブロッキング指摘なし。実VoiceOverの手動検証は上記の通り未実施。
+
+受付完了画像を再開後の成功runで更新し、入力完了・位置調整・スクロール可能な再送の最大文字サイズ画像3枚を追加した。その他の画像は既存commitの証跡。
+
+最終iOS18.6最大文字サイズケースは **1/1 PASS**。同意スイッチ・送信/再送の全体表示、保存済みメモの表示と値、同じ申請の明示再送から受付完了まで確認した。通常3件と合わせ、対象4ケースがそれぞれ成功。
+iOS18.6のxcresultには `Invalid frame dimension (negative or non-finite)` のruntime warningが1件記録されている。テスト失敗・クラッシュはなく、警告の発生源特定は未実施。
+iOS26.5はproductionコードが同一の先行runで対象4ケース成功。テスト操作修正後の追加再確認は他LaneのXcode実行を検出して自分のプロセスだけを中断し、成功扱いにしていない。

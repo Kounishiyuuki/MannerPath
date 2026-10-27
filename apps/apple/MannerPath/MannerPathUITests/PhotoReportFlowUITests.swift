@@ -269,6 +269,10 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         XCTAssertTrue(text("写真を受け付けました（審査待ち）").waitForExistence(timeout: 20))
         XCTAssertFalse(textContaining("rp_UITEST2").exists, "resending photos never creates a second report")
         XCTAssertFalse(app.buttons["report.submit"].exists, "the report itself is not offered for resubmission")
+        scrollTo(app.buttons["report.photo.choose"], upwards: true)
+        XCTAssertTrue(app.descendants(matching: .any)["report.photo.preparationNotice"].exists,
+                      "Resumed uploads retain the privacy reminder while more photos can still be selected")
+        XCTAssertFalse(app.descendants(matching: .any)["report.photo.receivedSummary"].exists)
         screenshot("72-photo-resume-sent")
     }
 

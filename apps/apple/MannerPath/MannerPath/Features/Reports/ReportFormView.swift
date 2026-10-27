@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ReportFormView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Bindable var model: ReportModel
     let visualCenter: SpotCoordinate?
     /// Places already on the map near the user, for "is it one of these?" before adding a new one (ADR-0013).
@@ -18,6 +19,7 @@ struct ReportFormView: View {
     @State private var followUpChoiceMade = false
     @State private var confirmingNewReport = false
     @State private var confirmingDiscard = false
+    @FocusState private var additionalDetailFocused: Bool
 
     private var isMissing: Bool { model.draft?.type == .missing }
 
@@ -175,6 +177,7 @@ struct ReportFormView: View {
                             set: { value in editDraft { $0.note = value.isEmpty ? nil : value } }
                         ))
                         .disabled(!model.canEditDraft)
+                        .focused($additionalDetailFocused)
                         .frame(minHeight: 100)
                         .accessibilityLabel("Additional report detail")
                         if case .available(let limits) = model.availability {
@@ -217,6 +220,7 @@ struct ReportFormView: View {
                     }
 
                     Section {
+                        if usesScrollableRetryNotice { ambiguousNotice }
                         if case .available = model.availability {
                             if let message = model.submissionReadinessMessage, !isAmbiguous {
                                 Label(message, systemImage: "info.circle")
@@ -224,13 +228,15 @@ struct ReportFormView: View {
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("report.readiness")
                             }
-                            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                                Button("Submit for review") { Task { await model.submit() } }
-                                    .disabled(isSubmitting || isAccepted || isAmbiguous || model.isTerminalReceipt || !termsAccepted ||
-                                              newSpotNeedsPhotos || model.submissionReadinessMessage != nil ||
-                                              (model.retryAfterSecondsRemaining ?? 0) > 0)
-                                    .frame(minHeight: 44)
-                                    .accessibilityIdentifier("report.submit")
+                            if !usesScrollableRetryNotice {
+                                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                                    Button("Submit for review") { Task { await model.submit() } }
+                                        .disabled(isSubmitting || isAccepted || isAmbiguous || model.isTerminalReceipt || !termsAccepted ||
+                                                  newSpotNeedsPhotos || model.submissionReadinessMessage != nil ||
+                                                  (model.retryAfterSecondsRemaining ?? 0) > 0)
+                                        .frame(minHeight: 44)
+                                        .accessibilityIdentifier("report.submit")
+                                }
                             }
                             if isAmbiguous && model.ambiguousRetryNeedsPhotos {
                                 Text("Photos are not kept on this device. Choose the photos again to retry this saved submission.")
@@ -304,26 +310,10 @@ struct ReportFormView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                         .background(.bar)
-                } else if isAmbiguous {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Delivery could not be confirmed. Review the saved submission. It has not been retried automatically.",
-                              systemImage: "exclamationmark.triangle")
-                            .font(.footnote)
-                            .accessibilityElement(children: .combine)
-                        if case .available = model.availability, model.canRetryAmbiguous {
-                            Button {
-                                confirmingRetry = true
-                            } label: {
-                                Text(model.usesIdempotentRetry ? String(localized: "Retry saved submission") : String(localized: "Submit again despite possible duplicate"))
-                                    .frame(minHeight: 44)
-                            }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("report.retrySaved")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(.bar)
+                } else if isAmbiguous && !usesScrollableRetryNotice {
+                    ambiguousNotice
+                        .padding()
+                        .background(.bar)
                 }
             }
             .scrollDismissesKeyboard(.interactively)
@@ -331,6 +321,14 @@ struct ReportFormView: View {
             .navigationTitle(isAccepted ? "Report received" : isMissing ? "Add a place" : "Report place information")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    if additionalDetailFocused {
+                        Spacer()
+                        Button("Done") { additionalDetailFocused = false }
+                            .accessibilityLabel("Finish editing additional detail")
+                            .accessibilityIdentifier("report.note.done")
+                    }
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }.disabled(model.photos.enabled && model.isBusy)
                 }
@@ -456,6 +454,30 @@ struct ReportFormView: View {
         return false
     }
 
+    private var usesScrollableRetryNotice: Bool { isAmbiguous && dynamicTypeSize.isAccessibilitySize }
+
+    // At accessibility sizes this panel belongs to the Form: a fixed multiline notice otherwise leaves very
+    // little room for reviewing the saved inputs. The retry still uses the same model gate and confirmation.
+    private var ambiguousNotice: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Delivery could not be confirmed. Review the saved submission. It has not been retried automatically.",
+                  systemImage: "exclamationmark.triangle")
+                .font(.footnote)
+                .accessibilityElement(children: .combine)
+            if case .available = model.availability, model.canRetryAmbiguous {
+                Button {
+                    confirmingRetry = true
+                } label: {
+                    Text(model.usesIdempotentRetry ? String(localized: "Retry saved submission") : String(localized: "Submit again despite possible duplicate"))
+                        .frame(minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("report.retrySaved")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     @ViewBuilder
     private var status: some View {
         switch model.submission {
@@ -576,7 +598,6 @@ private struct ReportPinPicker: View {
                 VStack(spacing: 12) {
                     Text("Tap the proposed place on the map, or move the map and use its center. Confirm the selected pin before returning.")
                         .font(.footnote)
-                        .padding(.horizontal)
                     MapReader { proxy in
                         Map(position: $position) {
                             // The provisional pin being proposed: a standard MapKit marker in MannerPath Yellow (the one
@@ -603,7 +624,6 @@ private struct ReportPinPicker: View {
                         .accessibilityHint("Move the map, then use the map center button. Coordinate controls are available after selection.")
                     }
                     .frame(height: 280)
-                    .padding(.horizontal, 16)
                     Button {
                         if let cameraCenter { candidate = cameraCenter.quantized }
                     } label: {
@@ -633,6 +653,7 @@ private struct ReportPinPicker: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .padding(.horizontal, 16)
                 .padding(.bottom)
             }
             .navigationTitle("Choose proposed pin")

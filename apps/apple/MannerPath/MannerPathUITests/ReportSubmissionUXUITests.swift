@@ -41,6 +41,9 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         let confirm = app.buttons["report.pin.confirm"]
         scrollTo(confirm)
         settle(confirm)
+        if app.launchArguments.contains("UICTContentSizeCategoryAccessibilityXXXL") {
+            screenshot("report-ux-19-pin-large-text-fixture")
+        }
         confirm.tap()
         XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForNonExistence(timeout: 10))
     }
@@ -53,6 +56,8 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         let agree = app.switches["報告に関する規約に同意する"]
         scrollTo(agree)
         let control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        // At accessibility sizes iOS 18 can expose the row before its nested switch is on screen.
+        scrollTo(control)
         settle(control)
         control.tap()
         let on = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: agree)
@@ -80,6 +85,10 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         scrollTo(pending)
         XCTAssertFalse(pending.label.isEmpty)
         XCTAssertFalse(submit.exists, "The accepted report must not be offered for submission again")
+        let photoReceipt = app.descendants(matching: .any)["report.photo.receivedSummary"]
+        scrollTo(photoReceipt)
+        XCTAssertFalse(app.descendants(matching: .any)["report.photo.preparationNotice"].exists,
+                       "Already received photos use the receipt explanation, not preparation instructions")
         screenshot("report-ux-04-pending-review-fixture")
     }
 
@@ -154,6 +163,102 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         XCTAssertFalse(textContaining("rp_UITEST2").exists)
         XCTAssertFalse(submit.exists)
         screenshot("report-ux-09-retry-received-fixture")
+    }
+
+    // Audits accessible names and roles; this does not replace listening to VoiceOver or testing its gestures.
+    func testReportFormAccessibilityNamesAndTraits() throws {
+        launch(extraArguments: ["-uiTestPhotoReport", "success"])
+        openEntry()
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .trait])
+        pinButton.tap()
+        let center = app.buttons["report.pin.useCenter"]
+        XCTAssertTrue(center.waitForExistence(timeout: 10))
+        settle(center)
+        center.tap()
+        let confirm = app.buttons["report.pin.confirm"]
+        scrollTo(confirm)
+        settle(confirm)
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .trait])
+        confirm.tap()
+        XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForNonExistence(timeout: 10))
+        addPhotoAndAgree()
+        scrollTo(submit)
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .trait])
+        settle(submit)
+        submit.tap()
+        let pending = app.descendants(matching: .any)["report.pendingReview"]
+        XCTAssertTrue(pending.waitForExistence(timeout: 15))
+        let photoReceipt = app.descendants(matching: .any)["report.photo.receivedSummary"]
+        scrollTo(photoReceipt)
+        try app.performAccessibilityAudit(for: [.sufficientElementDescription, .trait])
+    }
+
+    // A partially exposed row can be hittable on iOS 18 while its center lies below the viewport.
+    private func fullyRevealInFrontmostForm(_ control: XCUIElement) {
+        let form = app.collectionViews.element(boundBy: app.collectionViews.count - 1)
+        var drags = 0
+        while (!control.exists || !form.frame.contains(control.frame)) && drags < 10 {
+            let start = form.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.8))
+            start.press(forDuration: 0.05, thenDragTo: form.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.3)))
+            drags += 1
+        }
+        XCTAssertTrue(control.exists && form.frame.contains(control.frame), "Control must be fully visible before tapping")
+    }
+
+    func testLargestTextKeepsUnconfirmedSubmissionAndRetryReachable() {
+        launch(extraArguments: ["-uiTestPhotoReport", "reportRetry",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        openEntry()
+        choosePin()
+        addPhotoAndAgree()
+        let note = app.textViews.firstMatch
+        scrollTo(note, upwards: true)
+        settle(note)
+        note.tap()
+        note.typeText("Saved before retry")
+        let done = app.buttons["report.note.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        settle(done)
+        screenshot("report-ux-20-note-done-fixture")
+        done.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        scrollTo(submit)
+        fullyRevealInFrontmostForm(submit)
+        settle(submit)
+        submit.tap()
+        let retry = app.buttons["report.retrySaved"]
+        XCTAssertTrue(submit.waitForNonExistence(timeout: 15), "Unconfirmed delivery uses its dedicated retry instead")
+        scrollTo(retry)
+        fullyRevealInFrontmostForm(retry)
+        settle(retry)
+        XCTAssertFalse(retry.label.isEmpty)
+        XCTAssertGreaterThanOrEqual(retry.frame.height, 44)
+        screenshot("report-ux-17-large-text-unconfirmed-fixture")
+        // Frozen inputs are reviewed, not edited: require a visible value, not an enabled/hittable editor.
+        // iOS 18 also exposes the underlying search sheet; the presented Form is frontmost.
+        XCTAssertGreaterThan(app.collectionViews.count, 0)
+        let form = app.collectionViews.element(boundBy: app.collectionViews.count - 1)
+        XCTAssertTrue(form.buttons["report.retrySaved"].exists)
+        let savedNote = app.textViews.firstMatch
+        var reviewDrags = 0
+        while (!savedNote.exists || savedNote.frame.intersection(form.frame).height < 44) && reviewDrags < 10 {
+            form.swipeDown()
+            reviewDrags += 1
+        }
+        XCTAssertTrue(savedNote.exists)
+        XCTAssertGreaterThanOrEqual(savedNote.frame.intersection(form.frame).height, 44)
+        XCTAssertTrue((savedNote.value as? String)?.contains("Saved before retry") == true)
+        scrollTo(retry)
+        fullyRevealInFrontmostForm(retry)
+        settle(retry)
+        retry.tap()
+        let confirm = app.buttons["report.retrySaved.confirm"].firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+        let pending = app.descendants(matching: .any)["report.pendingReview"]
+        XCTAssertTrue(pending.waitForExistence(timeout: 15))
+        XCTAssertFalse(submit.exists)
+        screenshot("report-ux-18-large-text-received-fixture")
     }
 
     func testPausedIntakeDoesNotAdvertiseAddingAPlace() {
