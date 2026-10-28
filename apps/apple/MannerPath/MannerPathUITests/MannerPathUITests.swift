@@ -324,6 +324,49 @@ final class B_OnlineUITests: MannerPathUITestCase {
         try checkMapPinDetailDismissal(returnToMedium: true)
     }
 
+    /// Which pin the map lists first varies between runs, so check every place pin on screen, short and wrapped long
+    /// names alike: each reaches its details from the medium sheet without scrolling.
+    func testEveryVisiblePinReachesDetailsAtMedium() throws {
+        launch()
+        waitForResults()
+        try selectPin()
+        let pins = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'の詳細を表示'"))
+        let labels = pins.allElementsBoundByIndex.filter(\.isHittable).map(\.label)
+        XCTAssertGreaterThanOrEqual(labels.count, 2, "Too few place pins on screen to compare")
+        // The wrapped-name case that hid details: a name of 18 or more characters is among the checked pins.
+        XCTAssertTrue(labels.contains { $0.count - "の詳細を表示".count >= 18 }, "No long-named pin on screen: \(labels)")
+        for label in labels {
+            let pin = pins.matching(NSPredicate(format: "label == %@", label)).firstMatch
+            XCTAssertTrue(pin.isHittable, "\(label) is no longer on screen after returning from details")
+            pin.tap()
+            waitForSheet(Self.mediumSheet, "Selecting \(label) did not show the medium sheet")
+            assertDetailsReachableAtMedium(spot: label)
+            app.buttons["selectedSpotDetails"].tap()
+            waitForDetail()
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+            XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 10))
+            waitForSheet(Self.mediumSheet, "Returning from \(label) did not restore the medium sheet")
+        }
+    }
+
+    /// At medium, without scrolling: the details button is whole, tappable and above the Clear bar.
+    private func assertDetailsReachableAtMedium(spot: String, file: StaticString = #filePath, line: UInt = #line) {
+        let details = app.buttons["selectedSpotDetails"]
+        let clear = app.buttons["clearSelectedSpot"]
+        XCTAssertTrue(details.waitForExistence(timeout: 5) && clear.exists, "\(spot): summary is incomplete",
+                      file: file, line: line)
+        let reachable = details.isHittable && details.frame.maxY <= clear.frame.minY && details.frame.height >= 44
+        if !reachable {
+            screenshot("details-hidden")
+            let tree = XCTAttachment(string: "details=\(details.frame), clear=\(clear.frame)\n\(app.debugDescription)")
+            tree.name = "\(phase)-details-hidden-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+        }
+        XCTAssertTrue(reachable, "\(spot): details \(details.frame) is hidden behind Clear \(clear.frame)",
+                      file: file, line: line)
+    }
+
     func testMapPinCanBeClearedAfterDetailAtLarge() throws {
         try checkMapPinDetailDismissal(returnToMedium: false)
     }
@@ -348,7 +391,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         launch()
         waitForResults()
         // A pin selects first (docs/DESIGN.md §5.5): a summary in the sheet, details one explicit step further.
-        try selectPin()
+        let pin = try selectPin()
         let summary = app.descendants(matching: .any)["selectedSpotSummary"]
         XCTAssertFalse(app.descendants(matching: .any)["spot-detail"].exists)
         XCTAssertTrue(text("選択中の場所").exists)
@@ -358,6 +401,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         XCTAssertTrue(["この場所へ案内", "この付近へ案内"].contains(directions.label), directions.label)
         let ctaLabel = directions.label
         screenshot("15-selected-spot")
+        assertDetailsReachableAtMedium(spot: pin.label)
         app.buttons["selectedSpotDetails"].tap()
         waitForDetail()
         let detailDirections = app.buttons["open-walking-directions"]

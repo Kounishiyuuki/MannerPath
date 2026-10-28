@@ -128,8 +128,8 @@ struct ContentView: View {
                 .listSectionSpacing(.compact)
                 // Collapsed, only search and Show List fit; the list would show through behind them half-cut, and
                 // VoiceOver would reach rows off screen. Show List brings it back.
-                .opacity(isCollapsed ? 0 : 1)
-                .accessibilityHidden(isCollapsed)
+                // `hidden()`, not opacity with accessibilityHidden: List cells stayed in the accessibility tree that way.
+                .hidden(isCollapsed)
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
                 .onChange(of: summaryScrollRequest) { _, _ in
                     guard selectedSpotID != nil else { return }
@@ -629,16 +629,25 @@ struct ContentView: View {
 
     private var listSection: some View {
         Section {
+            if dynamicTypeSize.isAccessibilitySize {
+                listSectionTitle
+                    .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+            }
             // The summary is the section's first row, not its own section, so the medium detent still reaches the
             // nearest result.
             sheetSummary
                 .id(Self.summaryAnchor)
             dataStatus
-            if model.destination != nil {
+            if let destination = model.destination {
+                // Named here, beside its results: ending system search empties the visible field (the bound text is
+                // kept), and the destination section with Clear sits further down the list.
+                Label(destination.name, systemImage: "flag.checkered")
+                    .font(.subheadline)
+                    .id(Self.destinationListAnchor)
                 Text("Straight-line distances and bearings below are from the selected destination, not your device location.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .id(Self.destinationListAnchor)
                 Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("refreshDestination")
@@ -680,8 +689,14 @@ struct ContentView: View {
                 }
             }
         } header: {
-            Text(model.destination == nil ? "Nearby places" : "Places near your destination")
+            if !dynamicTypeSize.isAccessibilitySize { listSectionTitle }
         }
+    }
+
+    /// At accessibility sizes the title wraps to about 125pt; pinned as a plain-List header it covered whole rows, such
+    /// as the destination's Refresh, at the medium detent (iOS 18.6, AX5). There it scrolls with the list instead.
+    private var listSectionTitle: some View {
+        Text(model.destination == nil ? "Nearby places" : "Places near your destination")
     }
 
     @ViewBuilder
@@ -784,6 +799,7 @@ struct ContentView: View {
                     Spacer()
                     Button("Clear") { selectDestination(nil) }
                         .buttonStyle(.borderless)
+                        .accessibilityIdentifier("clearDestination")
                 }
                 .font(.subheadline)
             } header: {
@@ -1026,26 +1042,36 @@ private struct SelectedSpotSummary: View {
             // Black on MannerPath Yellow: white text on #F5A623 is about 2:1, black is about 10:1.
             // Text only, no symbol: 「この場所へ案内」 vs 「この付近へ案内」 is the exact/approximate distinction itself, and an
             // icon beside it truncated the wording at the largest text sizes.
-            Button(action: onDirections) {
-                Text(SpotPresentation.navigationTitle(result.spot))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .foregroundStyle(.black)
+            // Side by side when both fit, so at medium the details button stays above the Clear bar even under a long,
+            // wrapped name. Stacked at large text sizes, where a row would truncate them.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { actionButtons }
+                VStack(spacing: 8) { actionButtons }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("MannerPathYellow"))
-            .accessibilityHint("Opens walking directions in Apple Maps")
-            .accessibilityIdentifier("selectedSpotDirections")
-            Button(action: onShowDetails) {
-                Text("Show place details")
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("selectedSpotDetails")
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("selectedSpotSummary")
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
+        Button(action: onDirections) {
+            Text(SpotPresentation.navigationTitle(result.spot))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .foregroundStyle(.black)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Color("MannerPathYellow"))
+        .accessibilityHint("Opens walking directions in Apple Maps")
+        .accessibilityIdentifier("selectedSpotDirections")
+        Button(action: onShowDetails) {
+            Text("Show place details")
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("selectedSpotDetails")
     }
 }
 
@@ -1059,7 +1085,9 @@ private struct CollapsedNearbyDetent: CustomPresentationDetent {
     }
 
     static func height(dynamicTypeSize: DynamicTypeSize, maxHeight: CGFloat) -> CGFloat {
-        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize))
+        // The navigation bar and search field grow far less than body text: measured at the largest size they need
+        // about 1.65x the default, which is body scaling at accessibility1. Full body scaling filled half the screen.
+        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(min(dynamicTypeSize, .accessibility1)))
         let scaled = UIFontMetrics(forTextStyle: .body).scaledValue(for: baseHeight, compatibleWith: traits)
         return min(scaled, maxHeight * 0.5)
     }
@@ -1067,6 +1095,14 @@ private struct CollapsedNearbyDetent: CustomPresentationDetent {
 
 extension PresentationDetent {
     static let collapsedNearby = PresentationDetent.custom(CollapsedNearbyDetent.self)
+}
+
+private extension View {
+    /// Hidden keeps the layout but removes the view, cells included, from the accessibility tree.
+    @ViewBuilder
+    func hidden(_ isHidden: Bool) -> some View {
+        if isHidden { hidden() } else { self }
+    }
 }
 
 /// Let modern sheets own their Liquid Glass; legacy sheets use a standard system Material.
