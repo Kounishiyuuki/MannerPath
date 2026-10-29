@@ -39,6 +39,8 @@
     "Retry only the unsent photos. Do not submit a new report for the same place.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "写真欄から未送信の写真だけを再送してください。同じ場所を新たに申請する必要はありません。"}}}},
     "Choose what you observed. If you do not know a detail, leave it as Not sure or Not stated; do not guess from the shop or facility alone.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "実際に確認した内容を選んでください。分からない項目は「わからない」「未回答」のままでかまいません。店舗や施設があるだけで喫煙可能と判断しないでください。"}}}},
     "Check submission availability and saved drafts": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "申請の受付状況や保存した下書きを確認します"}}}},
+    "Show List": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "一覧を表示" } } } },
+    "Shows nearby places": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "近くの場所の一覧を表示します" } } } },
     "Navigate into this facility": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "この施設内へ案内" } } } },
     "The smoking place is confirmed to be inside this facility. Its position inside the facility is not confirmed; the pin marks the facility.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "喫煙場所はこの施設内にあることが確認されています。施設内の詳しい位置は確認できていません。ピンは施設の位置を示します。" } } } },
     "Tobacco": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "たばこ" } } } },
