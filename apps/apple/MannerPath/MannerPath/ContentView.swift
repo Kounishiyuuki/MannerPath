@@ -32,6 +32,10 @@ struct ContentView: View {
     /// even when the selection itself does not change (#208 review).
     @State private var summaryScrollRequest = 0
     @FocusState private var searchFocused: Bool
+    /// Whether system search is active. Unlike focus, reported reliably for the drawer field, also from collapsed.
+    /// iOS lifts the sheet above the keyboard by itself and restores the reader's detent afterwards; forcing `.large`
+    /// here left the screen at full height while the selection said collapsed.
+    @State private var searchPresented = false
 
     private static let summaryAnchor = "nearbySheetSummaryAnchor"
     private static let destinationListAnchor = "nearbyDestinationListAnchor"
@@ -41,7 +45,7 @@ struct ContentView: View {
     // The sheet holds its own NavigationStack, so details and every other sheet are presented from inside it.
     var body: some View {
         GeometryReader { proxy in
-            nearbyMap(bottomInset: proxy.size.height * 0.5)
+            nearbyMap(bottomInset: mapBottomInset(screenHeight: proxy.size.height))
         }
         .ignoresSafeArea()
         // Top leading: the search field lives in the sheet, the compass appears top trailing, and the sheet covers the
@@ -122,6 +126,10 @@ struct ContentView: View {
                 .scrollContentBackground(.hidden)
                 .scrollDismissesKeyboard(.interactively)
                 .listSectionSpacing(.compact)
+                // Collapsed, only search and Show List fit; the list would show through behind them half-cut, and
+                // VoiceOver would reach rows off screen. Show List brings it back.
+                // `hidden()`, not opacity with accessibilityHidden: List cells stayed in the accessibility tree that way.
+                .hidden(isCollapsed)
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
                 .onChange(of: summaryScrollRequest) { _, _ in
                     guard selectedSpotID != nil else { return }
@@ -138,7 +146,8 @@ struct ContentView: View {
             }
             // docs/DESIGN.md §5.9: the system search field; MapKit search behind it is unchanged (ADR-0001), and the
             // query never reaches MannerPath's backend.
-            .searchable(text: $destinationQuery, placement: .navigationBarDrawer(displayMode: .always),
+            .searchable(text: $destinationQuery, isPresented: $searchPresented,
+                        placement: .navigationBarDrawer(displayMode: .always),
                         prompt: Text("Search a destination in Apple Maps"))
             .searchFocused($searchFocused)
             .onSubmit(of: .search) {
@@ -151,20 +160,14 @@ struct ContentView: View {
                 guard model.destination?.name != query, model.resolvingSuggestion?.title != query else { return }
                 model.scheduleDestinationSearch(query)
             }
-            // Searching needs the full sheet: at medium the keyboard covers the results. Focus alone is not reported
-            // reliably for a drawer search field, so showing results also expands the sheet.
-            .onChange(of: searchFocused) { _, focused in
-                if focused { sheetDetent = .large }
-            }
-            .onChange(of: isShowingSearchResults) { _, showing in
-                if showing { sheetDetent = .large }
-            }
             .navigationTitle("Nearby")
             .navigationBarTitleDisplayMode(.inline)
             // A selected List row can scroll under navigation chrome after a detail pop. Keep its dismissal outside
             // the scroll content, inside the root destination, and above the system keyboard safe area.
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                if selectedResult != nil {
+                if isCollapsed {
+                    showListButton
+                } else if selectedResult != nil {
                     clearSelectionButton
                         .buttonStyle(.borderless)
                         .padding(.horizontal)
@@ -251,9 +254,10 @@ struct ContentView: View {
             // The filters are a full Form of sections; open it at full height so every section is reachable.
             .presentationDetents([.large])
         }
-        // System detents only (Codex P2 #203): a fixed small fraction clipped the summary at large text sizes. Medium
-        // keeps the map in view and starts with the summary; large holds the full list, search and details.
-        .presentationDetents([.medium, .large], selection: $sheetDetent)
+        // Collapsed leaves the map to the reader with only search and Show List; medium starts with the summary; large
+        // holds the full list, search and details. Collapsed scales with text size (Codex P2 #203: a fixed small
+        // fraction clipped content at large text sizes).
+        .presentationDetents([.collapsedNearby, .medium, .large], selection: $sheetDetent)
         .presentationDragIndicator(.visible)
         .modifier(NearbySheetSurface())
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
@@ -262,6 +266,31 @@ struct ContentView: View {
             // A pushed detail needs the full height; coming back returns to the list over the map.
             sheetDetent = newPath.isEmpty ? .medium : .large
         }
+    }
+
+    /// Collapsed and not searching: only search and Show List are on screen. While searching, iOS lifts the sheet.
+    private var isCollapsed: Bool {
+        sheetDetent == .collapsedNearby && !searchPresented
+    }
+
+    /// Programmatic camera moves fit above the sheet. At large the map is covered, so keep the medium framing.
+    private func mapBottomInset(screenHeight: CGFloat) -> CGFloat {
+        guard sheetDetent == .collapsedNearby else { return screenHeight * 0.5 }
+        return CollapsedNearbyDetent.height(dynamicTypeSize: dynamicTypeSize, maxHeight: screenHeight)
+    }
+
+    private var showListButton: some View {
+        Button {
+            withAnimation(reduceMotion ? nil : .default) { sheetDetent = .medium }
+        } label: {
+            Label("Show List", systemImage: "list.bullet")
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("showNearbyList")
+        .accessibilityHint("Shows nearby places")
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
 
     private func activateNearby() {
@@ -600,16 +629,25 @@ struct ContentView: View {
 
     private var listSection: some View {
         Section {
+            if dynamicTypeSize.isAccessibilitySize {
+                listSectionTitle
+                    .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+            }
             // The summary is the section's first row, not its own section, so the medium detent still reaches the
             // nearest result.
             sheetSummary
                 .id(Self.summaryAnchor)
             dataStatus
-            if model.destination != nil {
+            if let destination = model.destination {
+                // Named here, beside its results: ending system search empties the visible field (the bound text is
+                // kept), and the destination section with Clear sits further down the list.
+                Label(destination.name, systemImage: "flag.checkered")
+                    .font(.subheadline)
+                    .id(Self.destinationListAnchor)
                 Text("Straight-line distances and bearings below are from the selected destination, not your device location.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .id(Self.destinationListAnchor)
                 Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("refreshDestination")
@@ -651,8 +689,14 @@ struct ContentView: View {
                 }
             }
         } header: {
-            Text(model.destination == nil ? "Nearby places" : "Places near your destination")
+            if !dynamicTypeSize.isAccessibilitySize { listSectionTitle }
         }
+    }
+
+    /// At accessibility sizes the title wraps to about 125pt; pinned as a plain-List header it covered whole rows, such
+    /// as the destination's Refresh, at the medium detent (iOS 18.6, AX5). There it scrolls with the list instead.
+    private var listSectionTitle: some View {
+        Text(model.destination == nil ? "Nearby places" : "Places near your destination")
     }
 
     @ViewBuilder
@@ -755,6 +799,7 @@ struct ContentView: View {
                     Spacer()
                     Button("Clear") { selectDestination(nil) }
                         .buttonStyle(.borderless)
+                        .accessibilityIdentifier("clearDestination")
                 }
                 .font(.subheadline)
             } header: {
@@ -997,26 +1042,66 @@ private struct SelectedSpotSummary: View {
             // Black on MannerPath Yellow: white text on #F5A623 is about 2:1, black is about 10:1.
             // Text only, no symbol: 「この場所へ案内」 vs 「この付近へ案内」 is the exact/approximate distinction itself, and an
             // icon beside it truncated the wording at the largest text sizes.
-            Button(action: onDirections) {
-                Text(SpotPresentation.navigationTitle(result.spot))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .foregroundStyle(.black)
+            // Side by side when both fit, so at medium the details button stays above the Clear bar even under a long,
+            // wrapped name. Stacked at large text sizes, where a row would truncate them.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { actionButtons }
+                VStack(spacing: 8) { actionButtons }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("MannerPathYellow"))
-            .accessibilityHint("Opens walking directions in Apple Maps")
-            .accessibilityIdentifier("selectedSpotDirections")
-            Button(action: onShowDetails) {
-                Text("Show place details")
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityIdentifier("selectedSpotDetails")
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("selectedSpotSummary")
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
+        Button(action: onDirections) {
+            Text(SpotPresentation.navigationTitle(result.spot))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .foregroundStyle(.black)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Color("MannerPathYellow"))
+        .accessibilityHint("Opens walking directions in Apple Maps")
+        .accessibilityIdentifier("selectedSpotDirections")
+        Button(action: onShowDetails) {
+            Text("Show place details")
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("selectedSpotDetails")
+    }
+}
+
+/// The smallest Nearby sheet: navigation bar, search field and Show List, scaled with the text size and never more
+/// than half the screen, so the map stays usable even at accessibility sizes.
+private struct CollapsedNearbyDetent: CustomPresentationDetent {
+    static let baseHeight: CGFloat = 180
+
+    static func height(in context: Context) -> CGFloat? {
+        height(dynamicTypeSize: context.dynamicTypeSize, maxHeight: context.maxDetentValue)
+    }
+
+    static func height(dynamicTypeSize: DynamicTypeSize, maxHeight: CGFloat) -> CGFloat {
+        // The navigation bar and search field grow far less than body text: measured at the largest size they need
+        // about 1.65x the default, which is body scaling at accessibility1. Full body scaling filled half the screen.
+        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(min(dynamicTypeSize, .accessibility1)))
+        let scaled = UIFontMetrics(forTextStyle: .body).scaledValue(for: baseHeight, compatibleWith: traits)
+        return min(scaled, maxHeight * 0.5)
+    }
+}
+
+extension PresentationDetent {
+    static let collapsedNearby = PresentationDetent.custom(CollapsedNearbyDetent.self)
+}
+
+private extension View {
+    /// Hidden keeps the layout but removes the view, cells included, from the accessibility tree.
+    @ViewBuilder
+    func hidden(_ isHidden: Bool) -> some View {
+        if isHidden { hidden() } else { self }
     }
 }
 
