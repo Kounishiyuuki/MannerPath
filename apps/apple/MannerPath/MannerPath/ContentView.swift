@@ -52,7 +52,7 @@ struct ContentView: View {
         // bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and the sheet's
         // bottom bar takes over; VoiceOver never meets two entries.
         .overlay(alignment: .topLeading) {
-            if reportEntryAvailable, sheetDetent != .large, !searchFocused, !isShowingSearchResults {
+            if reportEntryAvailable, sheetDetent != .large, !searchPresented, !searchFocused, !isShowingSearchResults {
                 mapReportButton.padding(.leading, 16).padding(.top, 8)
             }
         }
@@ -356,7 +356,7 @@ struct ContentView: View {
     /// ToolbarItem would collapse to its icon. Not while searching (the keyboard and suggestions own the bottom) and
     /// not when the empty state already shows its own report button.
     private var showsSheetReportBar: Bool {
-        reportEntryAvailable && sheetDetent == .large && !searchFocused && !isShowingSearchResults
+        reportEntryAvailable && sheetDetent == .large && !searchPresented && !searchFocused && !isShowingSearchResults
             && !(model.dataState == .refreshed && model.results.isEmpty && !model.hasUnfilteredResults)
     }
 

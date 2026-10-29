@@ -254,8 +254,13 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         // Closing without a choice keeps the follow-up.
         app.buttons["閉じる"].firstMatch.tap()
         XCTAssertTrue(text("前回の報告が残っています").waitForNonExistence(timeout: 10))
-        scrollTo(app.buttons["resumeReportPhotos"])
-        continuePreviousReport()
+        // Scrolling this row may expand Nearby to large, where the map entry correctly disappears.
+        // Resume from the in-list entry we just revealed instead of waiting for the hidden map entry.
+        let resume = app.buttons["resumeReportPhotos"]
+        scrollTo(resume)
+        waitUntilSettled(resume)
+        resume.tap()
+        scrollTo(app.descendants(matching: .any)["report-photo-follow-up"], upwards: true)
         XCTAssertTrue(textContaining("写真は端末に保存されないため").exists)
         XCTAssertTrue(textContaining("rp_UITEST1").exists, "the follow-up keeps the received report's reference")
         XCTAssertTrue(textContaining("0 / 3").exists, "no photo was confirmed before the app closed")

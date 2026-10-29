@@ -290,32 +290,128 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
     }
 
     func testEntryMovesWithSheetAndStepsAsideForSearch() {
-        launch(extraArguments: ["-uiTestPhotoReport", "success"])
+        verifyEntryAcrossDetents(largeText: false)
+    }
+
+    func testLargestTextEntryWorksAcrossThreeDetents() {
+        verifyEntryAcrossDetents(largeText: true)
+    }
+
+    private func verifyEntryAcrossDetents(largeText: Bool) {
+        var arguments = ["-uiTestPhotoReport", "success"]
+        if largeText {
+            arguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        }
+        launch(extraArguments: arguments)
         let mapEntry = app.buttons["mapReportButton"]
         XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
-        let navigation = app.navigationBars["近くの場所"]
-        XCTAssertTrue(navigation.waitForExistence(timeout: 30))
-        settle(mapEntry)
-        XCTAssertGreaterThanOrEqual(mapEntry.frame.height, 44)
-        screenshot("report-ux-13-map-entry-fixture")
-        navigation.swipeDown()
-        settle(mapEntry)
-        XCTAssertGreaterThanOrEqual(mapEntry.frame.height, 44)
-        screenshot("report-ux-16-collapsed-sheet-entry-fixture")
-        navigation.swipeUp()
+        waitForSheet(Self.mediumSheet, "Initial medium sheet")
+        let collapsed = ((app.navigationBars["近くの場所"].frame.minY + 60) / app.windows.firstMatch.frame.height)...1
+        checkEntry(mapEntry, screenshotName: "integration-medium", opensForm: true)
+        dragSheet(to: 0.98, settlingIn: collapsed, "Collapsed sheet")
+        let showList = app.buttons["showNearbyList"]
+        XCTAssertTrue(showList.waitForExistence(timeout: 5) && showList.isHittable)
+        checkEntry(mapEntry, screenshotName: "integration-collapsed", opensForm: true)
+        showList.tap()
+        waitForSheet(Self.mediumSheet, "Show List restores medium")
+        checkEntry(mapEntry, screenshotName: "integration-medium-restored", opensForm: false)
+        dragSheet(to: 0.05, settlingIn: Self.largeSheet, "Large sheet")
         let bar = app.buttons["sheetReportButton"]
-        if !bar.waitForExistence(timeout: 3) { navigation.swipeUp() }
         XCTAssertTrue(bar.waitForExistence(timeout: 10))
-        settle(bar)
-        XCTAssertGreaterThanOrEqual(bar.frame.height, 44)
         XCTAssertFalse(mapEntry.exists)
-        screenshot("report-ux-14-large-sheet-entry-fixture")
+        checkEntry(bar, screenshotName: "integration-large", opensForm: true)
+        destinationSearch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(bar.waitForNonExistence(timeout: 10), "Search takes priority even before typing")
+        XCTAssertFalse(mapEntry.exists)
+        let endSearch = app.navigationBars["近くの場所"].buttons
+            .matching(NSPredicate(format: "label == 'キャンセル' OR label == '閉じる'")).firstMatch
+        XCTAssertTrue(endSearch.waitForExistence(timeout: 5))
+        endSearch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10))
+        XCTAssertTrue(bar.waitForExistence(timeout: 10), "Ending empty search restores the entry")
+        settle(bar)
         destinationSearch.tap()
         destinationSearch.typeText("上野")
-        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
-        XCTAssertTrue(bar.waitForNonExistence(timeout: 10))
+        screenshot("integration-search-keyboard")
+        XCTAssertFalse(bar.exists)
         XCTAssertFalse(mapEntry.exists)
-        screenshot("report-ux-15-search-keyboard-fixture")
+    }
+
+    private func checkEntry(_ entry: XCUIElement, screenshotName: String, opensForm: Bool) {
+        settle(entry)
+        XCTAssertTrue(entry.label.contains("喫煙所を追加する"))
+        XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
+        XCTAssertTrue(app.windows.firstMatch.frame.contains(entry.frame), "Entry must not be clipped")
+        screenshot(screenshotName)
+        if opensForm {
+            entry.tap()
+            XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.descendants(matching: .any)["report.newPlace.introduction"].exists)
+            discardReportDraft()
+            XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForNonExistence(timeout: 10))
+        }
+    }
+
+    func testPausedEntryStaysHonestAcrossThreeDetents() {
+        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+        let mapEntry = app.buttons["mapReportButton"]
+        XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
+        waitForSheet(Self.mediumSheet, "Initial medium sheet")
+        let collapsed = ((app.navigationBars["近くの場所"].frame.minY + 60) / app.windows.firstMatch.frame.height)...1
+        XCTAssertTrue(mapEntry.label.contains("新規申請の受付停止中"))
+        dragSheet(to: 0.98, settlingIn: collapsed, "Collapsed paused sheet")
+        settle(mapEntry)
+        XCTAssertTrue(app.buttons["showNearbyList"].isHittable)
+        XCTAssertTrue(mapEntry.label.contains("新規申請の受付停止中"))
+        screenshot("integration-paused-collapsed")
+        app.buttons["showNearbyList"].tap()
+        waitForSheet(Self.mediumSheet, "Paused medium sheet")
+        dragSheet(to: 0.05, settlingIn: Self.largeSheet, "Paused large sheet")
+        let bar = app.buttons["sheetReportButton"]
+        XCTAssertTrue(bar.waitForExistence(timeout: 10))
+        settle(bar)
+        XCTAssertTrue(bar.label.contains("新規申請の受付停止中"))
+        screenshot("integration-paused-large")
+        bar.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["report-new-spot-closed"].waitForExistence(timeout: 10))
+        scrollTo(submit)
+        XCTAssertFalse(submit.exists && submit.isEnabled)
+    }
+
+    func testMapEntryYieldsToEmptySearchAtMediumAndCollapsed() {
+        for largeText in [false, true] {
+            var arguments = ["-uiTestPhotoReport", "success"]
+            if largeText {
+                arguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+            }
+            launch(extraArguments: arguments)
+            let mapEntry = app.buttons["mapReportButton"]
+            XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
+            waitForSheet(Self.mediumSheet, "Initial medium sheet")
+            let collapsed = ((app.navigationBars["近くの場所"].frame.minY + 60) / app.windows.firstMatch.frame.height)...1
+            func verifySearchReturns(to band: ClosedRange<CGFloat>, state: String) {
+                settle(mapEntry)
+                destinationSearch.tap()
+                XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+                XCTAssertTrue(mapEntry.waitForNonExistence(timeout: 10), "Map entry yields before any query is typed")
+                XCTAssertFalse(app.buttons["sheetReportButton"].exists)
+                screenshot("integration-map-search-\(state)-\(largeText ? "ax5" : "normal")")
+                let endSearch = app.navigationBars["近くの場所"].buttons
+                    .matching(NSPredicate(format: "label == 'キャンセル' OR label == '閉じる'")).firstMatch
+                XCTAssertTrue(endSearch.waitForExistence(timeout: 5))
+                endSearch.tap()
+                XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10))
+                waitForSheet(band, "Empty search restores the previous detent")
+                XCTAssertTrue(mapEntry.waitForExistence(timeout: 10))
+                settle(mapEntry)
+            }
+            verifySearchReturns(to: Self.mediumSheet, state: "medium")
+            dragSheet(to: 0.98, settlingIn: collapsed, "Collapsed sheet")
+            XCTAssertTrue(app.buttons["showNearbyList"].isHittable)
+            verifySearchReturns(to: collapsed, state: "collapsed")
+            XCTAssertTrue(app.buttons["showNearbyList"].isHittable)
+        }
     }
 
 }
