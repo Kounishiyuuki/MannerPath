@@ -502,10 +502,10 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-        A00000000000000000000111 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 6; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
-        A00000000000000000000112 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 6; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
-        A00000000000000000000211 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 6; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Debug; };
-        A00000000000000000000212 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 6; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Release; };
+        A00000000000000000000111 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 7; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
+        A00000000000000000000112 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = MannerPathWidgets/MannerPathWidgets.entitlements; WIDGET_INFO_PLIST = MannerPathWidgets-Info.plist; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 7; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(WIDGET_INFO_PLIST)"; IPHONEOS_DEPLOYMENT_TARGET = 18.0; MARKETING_VERSION = 1.0; PRODUCT_NAME = MannerPathWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.widgets; SDKROOT = iphoneos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
+        A00000000000000000000211 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 7; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Debug; };
+        A00000000000000000000212 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 7; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MannerPathWatchWidgets-Info.plist; MARKETING_VERSION = 1.0; CODE_SIGN_ENTITLEMENTS = MannerPathWatchWidgets/MannerPathWatchWidgets.entitlements; PRODUCT_NAME = MannerPathWatchWidgets; PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitapp.widgets; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 6.0; WATCHOS_DEPLOYMENT_TARGET = 11.0; }; name = Release; };
 		000000000000000011000000 /* Debug configuration for PBXProject "MannerPath" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -646,7 +646,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MannerPath.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -692,7 +692,7 @@
 				MANNERPATH_PUBLIC_SITE_URL = "https://kounishiyuuki.github.io/MannerPath/";
 				CODE_SIGN_ENTITLEMENTS = MannerPath.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -735,7 +735,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
@@ -758,7 +758,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
@@ -783,7 +783,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MannerPath;
@@ -816,7 +816,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MannerPath;
@@ -849,7 +849,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitappTests;
@@ -871,7 +871,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitappTests;
@@ -893,7 +893,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitappUITests;
@@ -914,7 +914,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath.watchkitappUITests;
@@ -936,7 +936,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
@@ -957,7 +957,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
