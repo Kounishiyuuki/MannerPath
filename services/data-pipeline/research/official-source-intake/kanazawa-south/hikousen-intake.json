@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "publicationStatus": "blocked",
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "humanReviewRequired": true,
+  "receipt": {
+    "version": 1,
+    "sourceId": "hikousen-koudaimae-smoking-place",
+    "publisher": "カラオケスタジオ飛行船 工大前店（運営者公式）",
+    "publisherUrl": "https://hikaricorp.jp/karaoke/koudaimae.html",
+    "resourceUrl": "https://hikaricorp.jp/karaoke/koudaimae.html",
+    "receivedOn": "2026-10-26",
+    "evidenceReference": "Locally normalized operator facts; PROVENANCE.md and fetch-ledger.json; not a publisher-delivered dataset",
+    "rightsReference": "PROVENANCE.md; source review is independent from failed address-anchor review; no rights/G5 approval",
+    "attributionText": "出典：カラオケスタジオ飛行船 工大前店（運営者公式） https://hikaricorp.jp/karaoke/koudaimae.html（2026-10-26確認、正規化した未承認候補）",
+    "licenseName": null,
+    "licenseUrl": null,
+    "coordinateMeaning": "unknown",
+    "operationClaim": "unknown",
+    "operationEvidenceReference": "Current-page listing only; no accepted current-operation review",
+    "reviewStatus": "UNREVIEWED"
+  },
+  "inspection": {
+    "sha256": "a3afe66d42bc3807b40447403a0fe436c697082ad3bb026c9012c2270d0fa3bd",
+    "format": "json",
+    "encoding": "utf-8",
+    "header": [
+      "accessDetail",
+      "accessType",
+      "addressUrl",
+      "blockers",
+      "candidateId",
+      "checkedAt",
+      "environment",
+      "existence",
+      "geocodeEvidence",
+      "locationAnchorCandidate",
+      "locationPrecision",
+      "municipality",
+      "name",
+      "officialAddress",
+      "openingHours",
+      "prefecture",
+      "publicationStatus",
+      "sourceUrl",
+      "spotType",
+      "supportsHeated",
+      "supportsPaper",
+      "zones"
+    ],
+    "rawRowCount": 1,
+    "missingFieldCount": 0,
+    "nullFieldCount": 2,
+    "identicalRowCount": 0,
+    "scanner": {
+      "reviewStatus": "UNREVIEWED",
+      "matchingRowCount": 1,
+      "coordinateAvailability": "missing",
+      "blockerCodes": [
+        "coordinatesMissing",
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ]
+    },
+    "reviewHints": [
+      "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW",
+      "MISSING_OR_NULL_FIELDS_REMAIN_UNKNOWN",
+      "PARTIAL_FIELDS_REVIEW_REQUIRED"
+    ]
+  },
+  "onboarding": {
+    "sourceId": "hikousen-koudaimae-smoking-place",
+    "state": "BLOCKED",
+    "approvalAutomated": false,
+    "productionApproval": false,
+    "publicationStatus": "blocked",
+    "publisher": "カラオケスタジオ飛行船 工大前店（運営者公式）",
+    "resourceUrl": "https://hikaricorp.jp/karaoke/koudaimae.html",
+    "smokingEvidence": {
+      "status": "unknown",
+      "reference": null
+    },
+    "rights": {
+      "status": "RIGHTS_REVIEW_REQUIRED",
+      "licenseName": null,
+      "licenseUrl": null,
+      "metadata": null,
+      "commercialReuse": "unknown"
+    },
+    "attribution": "出典：カラオケスタジオ飛行船 工大前店（運営者公式） https://hikaricorp.jp/karaoke/koudaimae.html（2026-10-26確認、正規化した未承認候補）",
+    "provider": {
+      "id": null,
+      "role": null,
+      "rights": null,
+      "catalogObservations": []
+    },
+    "coordinates": {
+      "status": "COORDINATE_AUTHORITY_REQUIRED",
+      "kind": "unknown",
+      "requestedKind": "unknown",
+      "columns": []
+    },
+    "operation": "unknown",
+    "review": {
+      "reviewedBy": null,
+      "reviewedOn": null
+    },
+    "adapter": false,
+    "fixture": false,
+    "registryEntry": false,
+    "tests": false,
+    "pinnedRelease": null,
+    "latestLiveRelease": "unknown",
+    "quality": "notEvaluated",
+    "promotion": "notEvaluated",
+    "discovery": {
+      "classification": "RIGHTS_AND_COORDINATES_UNKNOWN",
+      "priority": "P2",
+      "smokingEvidence": "keyword-signal",
+      "rights": "unknown",
+      "coordinates": "unknown",
+      "licenseMetadata": null,
+      "attributionMetadata": "出典：カラオケスタジオ飛行船 工大前店（運営者公式） https://hikaricorp.jp/karaoke/koudaimae.html（2026-10-26確認、正規化した未承認候補）",
+      "coordinateColumns": [],
+      "geometryTypes": [],
+      "blockerCodes": [
+        "coordinatesMissing",
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ],
+      "approvalAutomated": false
+    },
+    "drift": {
+      "status": "notObserved",
+      "changes": []
+    },
+    "blockers": [
+      "coordinatesMissing",
+      "licenseUnknown",
+      "currentOperationUnknown",
+      "officialPublisherReviewRequired",
+      "smokingExistenceReviewRequired",
+      "rightsReviewRequired",
+      "coordinateAuthorityReviewRequired",
+      "operationReviewRequired"
+    ],
+    "nextAction": "Resolve listed human review gates; do not implement or publish from signals."
+  },
+  "adapterPreview": null,
+  "diff": null,
+  "reviewHints": [
+    "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW",
+    "MISSING_OR_NULL_FIELDS_REMAIN_UNKNOWN",
+    "PARTIAL_FIELDS_REVIEW_REQUIRED"
+  ],
+  "scope": "Offline advisory receipt only; no import, deduplication, entity matching, lifecycle update or approval."
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "url": "https://homerun.co.jp/shop_nonoichi.html",
+    "status": 200,
+    "sha256": "fe6308c488d04219078c5cfabfc034e1043f557e3ef51915f48db872f606149a",
+    "bytes": 7955,
+    "fetchedAt": "2026-10-25T17:54:17.554188+00:00"
+  },
+  {
+    "url": "https://homerun.co.jp/privacy.html",
+    "status": 200,
+    "sha256": "ef62e733454a23e81ad9a282e23f6d05dcfe805aeba60cc4c8602f03b02dc46a",
+    "bytes": 4853,
+    "fetchedAt": "2026-10-25T17:54:17.632622+00:00"
+  },
+  {
+    "url": "https://shiawasenoyu.co.jp/info.html",
+    "status": 200,
+    "sha256": "a153ca3b414435195348cd938b6d4622a2a2a32bf544011ba4b2b6b39f3403f7",
+    "bytes": 9061,
+    "fetchedAt": "2026-10-25T17:54:17.729962+00:00"
+  },
+  {
+    "url": "https://shiawasenoyu.co.jp/",
+    "status": 200,
+    "sha256": "b78642100bc200ed6fdcbc8a02a91a3a69533ce4fdae768e3fd6d5efa818b79f",
+    "bytes": 15081,
+    "fetchedAt": "2026-10-25T17:54:17.825787+00:00"
+  },
+  {
+    "url": "https://hikaricorp.jp/karaoke/koudaimae.html",
+    "status": 200,
+    "sha256": "1de2a212c40c00226332afbd5a8783f9b77e9bbddd557b943e5e6a1b961a74da",
+    "bytes": 26325,
+    "fetchedAt": "2026-10-25T17:54:17.994784+00:00"
+  },
+  {
+    "url": "https://hikaricorp.jp/karaoke/koudai_map.html",
+    "status": 200,
+    "sha256": "df172cd997110bc7292ddd1faf0b1f4821c74b800dc5e3fce1b1f7bf632a07a1",
+    "bytes": 5812,
+    "fetchedAt": "2026-10-25T17:54:18.108186+00:00"
+  },
+  {
+    "url": "https://hikaricorp.jp/",
+    "status": 200,
+    "sha256": "85889599c98241343f6a713c0e1183cef356aef998bdca40dbd5bb803a4c712d",
+    "bytes": 21141,
+    "fetchedAt": "2026-10-25T17:54:18.397886+00:00"
+  },
+  {
+    "url": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+    "status": 200,
+    "sha256": "9d4429273cea81517a79898ea7f1b85321a086c01b192c114b33bb3f671e4568",
+    "bytes": 40996,
+    "fetchedAt": "2026-10-25T17:54:19.183776+00:00"
+  },
+  {
+    "url": "https://www.saint-marc-hd.com/hd/privacy/",
+    "status": 200,
+    "sha256": "80fd9046e2f5ec61c496a0f4954bd8dd846241e2a5fa324ed0126089d35ca06b",
+    "bytes": 34792,
+    "fetchedAt": "2026-10-25T17:54:19.386379+00:00"
+  },
+  {
+    "url": "https://www.hoshinocoffee.com/shop.html",
+    "status": 200,
+    "sha256": "797933f984e3dce6de98b5f0b6294ef09896f5964a0e8006b20d9897d5b0badf",
+    "bytes": 243497,
+    "fetchedAt": "2026-10-25T17:54:19.749754+00:00"
+  },
+  {
+    "url": "https://www.manten-hotel.com/michinoyado-1/room/",
+    "status": 200,
+    "sha256": "6db88d691e9d7f65d747f885b4fb9b81b896a77ff6b289792c07af07cb10aa95",
+    "bytes": 24687,
+    "fetchedAt": "2026-10-25T17:54:19.946106+00:00"
+  },
+  {
+    "url": "https://manten-hotel.co.jp/privacy/",
+    "status": 200,
+    "sha256": "7358a919c4912955154a1f3f4fa7d14cfee9f662bd44508fdfed7133e308b6e4",
+    "bytes": 14551,
+    "fetchedAt": "2026-10-25T17:54:20.194184+00:00"
+  }
+]

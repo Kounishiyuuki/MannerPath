@@ -1,0 +1,451 @@
+{
+  "version": 1,
+  "checkedOn": "2026-10-26",
+  "reviewedPr": 343,
+  "reviewedMain": "3b5fd608dab2b3e97be18931836c3f7839ea7450",
+  "scope": "既存28施設のうち設備記載確認12施設の審査計画。調査記録であり正式fixture/許諾/位置authorityではない。",
+  "investigated": 28,
+  "equipmentSeenInOriginalSurvey": 12,
+  "existingIntakeRows": 6,
+  "newIntakeRows": 0,
+  "newPublishable": 0,
+  "canonicalAdded": 0,
+  "publishedAdded": 0,
+  "inquirySent": false,
+  "promotionPerformed": false,
+  "priority": [
+    "shiawase",
+    "hikousen",
+    "homerun",
+    "kurashiki",
+    "manten",
+    "hoshino",
+    "fukufuku",
+    "kaikatsu",
+    "yuzu",
+    "omega",
+    "sanmarco",
+    "keiz"
+  ],
+  "facilities": [
+    {
+      "id": "homerun",
+      "name": "ホームランGOGO野々市店",
+      "intakeSourceId": "homerun-nonoichi-smoking-place",
+      "firstPartyUrls": [
+        "https://homerun.co.jp/shop_nonoichi.html"
+      ],
+      "equipmentEvidence": "店舗固有サービス欄で喫煙ブースを再確認。屋内外はunknown。",
+      "accessReview": "喫煙のみの利用、遊技客以外の利用、ブース固有時間、紙巻/加熱式はunknown。",
+      "facilityAddressReview": "運営者の野々市市横宮町3-6は施設住所でありブースの座標ではない。",
+      "positionReview": "ABR parcel、precisionTooLow/unmatchedRemainder。Google埋込の値は使用しない。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://homerun.co.jp/privacy.html"
+        ],
+        "reading": "店舗footerと個人情報方針を再読。確認範囲に情報利用/DB化の明示禁止を確認せず。表現の権利留保がある。事実参照の技術審査候補であり承認・ライセンスではない。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。",
+        "運営者にブース利用資格と内外を確認する未送信文案を個別化する。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    },
+    {
+      "id": "shiawase",
+      "name": "しあわせの湯",
+      "intakeSourceId": "shiawasenoyu-smoking-place",
+      "firstPartyUrls": [
+        "https://shiawasenoyu.co.jp/info.html",
+        "https://shiawasenoyu.co.jp/eigyou.html"
+      ],
+      "equipmentEvidence": "現行FAQで2階喫煙室を再確認。浴場/脱衣場の禁煙とは別設備。",
+      "accessReview": "入浴料金は施設利用の説明。入浴しない来訪者、受付通過、2階共用部の利用資格と喫煙室固有時間・対応たばこはunknown。",
+      "facilityAddressReview": "野々市市横宮町6-3は施設住所。2階という区画は分かるが喫煙室/入口の数値位置ではない。",
+      "positionReview": "ABR parcel、precisionTooLow/unmatchedRemainder。現行HTMLに独立した数値代表点を確認できず。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://shiawasenoyu.co.jp/",
+          "https://shiawasenoyu.co.jp/info.html",
+          "https://shiawasenoyu.co.jp/eigyou.html"
+        ],
+        "reading": "確認した公式ページでは表現の権利留保のみ。情報利用/DB化の明示禁止を確認せず。適用範囲をsource別に記録する段階であり承認ではない。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。",
+        "2階が受付前/後か、入浴券や貸切風呂利用が必要かを別々に尋ねる。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    },
+    {
+      "id": "hikousen",
+      "name": "飛行船 工大前店",
+      "intakeSourceId": "hikousen-koudaimae-smoking-place",
+      "firstPartyUrls": [
+        "https://hikaricorp.jp/karaoke/koudaimae.html",
+        "https://hikaricorp.jp/karaoke/koudai_map.html"
+      ],
+      "equipmentEvidence": "店舗固有ページで喫煙ブースと客室禁煙を再確認。2026-08-31更新案内も確認。内外はunknown。",
+      "accessReview": "カラオケ料金はブース単独利用の条件ではない。客以外の利用、ブース固有時間、対応たばこはunknown。",
+      "facilityAddressReview": "野々市市扇が丘4-8はアクセスページの施設住所。設備の実位置ではない。",
+      "positionReview": "ABR machiaza、precisionTooLow/unmatchedRemainder。Google埋込を位置根拠にしない。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://hikaricorp.jp/policy/",
+          "https://hikaricorp.jp/karaoke/koudaimae.html"
+        ],
+        "reading": "新たに運営者ポリシーを特定・再読。個人情報処理を対象とし、確認範囲に正規化事実/DB利用の明示禁止を確認せず。Copyrightは表現の留保。source審査は未承認。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。",
+        "カラオケ利用者限定かと喫煙室固有時間を運営者に確認する文案を作る。"
+      ],
+      "resolvedSubquestions": [
+        "運営者プライバシーポリシーの所在と内容未確認を解消。current-operation再審査資料を追加。"
+      ],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    },
+    {
+      "id": "kurashiki",
+      "name": "倉式珈琲店 御経塚店",
+      "intakeSourceId": "kurashiki-okyozuka-smoking-place",
+      "firstPartyUrls": [
+        "https://www.saint-marc-hd.com/kurashiki/shop/19/"
+      ],
+      "equipmentEvidence": "当該店舗の選択済みサービスに喫煙ブース・全席禁煙。共通アイコン凡例を根拠にしない。",
+      "accessReview": "ブースのみ利用、注文・料金条件、固有時間、対応たばこはunknown。全席禁煙をブース不存在に変換しない。",
+      "facilityAddressReview": "野々市市御経塚2ー5は施設住所。ブースの実位置/内外はunknown。",
+      "positionReview": "ABR parcel、precisionTooLow。独立した数値施設点を確認できず。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://www.saint-marc-hd.com/hd/privacy/"
+        ],
+        "reading": "リンク先の個人情報/SNS/Cookie方針を再読。SNSでの公式サイト模写禁止は守り、確認範囲で正規化事実の情報利用/DB化禁止を確認せず。承認ではない。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。",
+        "注文が必要か、ブースの場所と内外を運営者に確認する文案を作る。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    },
+    {
+      "id": "hoshino",
+      "name": "星乃珈琲店 金沢押野店",
+      "intakeSourceId": "hoshino-oshino-smoking-place",
+      "firstPartyUrls": [
+        "https://www.hoshinocoffee.com/shop.html"
+      ],
+      "equipmentEvidence": "石川県の金沢押野行に客席禁煙・喫煙ブースありを再確認。",
+      "accessReview": "ブースのみ利用、注文条件、喫煙設備固有時間、対応たばこはunknown。",
+      "facilityAddressReview": "野々市市押野6-6は施設住所。ブース位置/内外はunknown。",
+      "positionReview": "ABR machiaza_detail、precisionTooLow/coordinateCoarserThanMatch。match=parcelでも位置精度は上げない。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://www.hoshinocoffee.com/shop.html",
+          "https://www.n-rs.co.jp/privacypolicy/"
+        ],
+        "reading": "ブランドfooterの著作権留保と運営会社の個人情報方針を確認。後者はブランドの一般サイト利用規約ではなく、直接適用する利用許諾と扱わない。適用範囲を未確定としてsource審査を継続。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "sourceRightsReviewAndRegistryRequired",
+        "applicableTermsScopeUnresolved"
+      ],
+      "resolutionSteps": [
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "ブランドの適用サイト条件と親会社の個人情報方針の範囲を分離して記録し、必要なら権利者から必要な事実利用の条件を受領する。",
+        "ブース利用条件の確認文案を作る。"
+      ],
+      "resolvedSubquestions": [
+        "親会社ポリシーの所在と内容を確認。ただしブランドサイトの権利承認ではない。"
+      ],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    },
+    {
+      "id": "manten",
+      "name": "満天の湯・道の宿 白山インター店",
+      "intakeSourceId": "manten-hakusan-smoking-place",
+      "firstPartyUrls": [
+        "https://www.manten-hotel.com/michinoyado-1/room/",
+        "https://www.manten-hotel.com/michinoyado-1/faq/",
+        "https://www.manten-hotel.com/michinoyado-1/access/"
+      ],
+      "equipmentEvidence": "客室・館内ページに1階大浴場入口手前と客室階2/3/4階の喫煙ルーム。FAQの2〜4階記載は1階の明示廃止ではない。",
+      "accessReview": "FAQで非宿泊客の客室/客室フロア立入制限を確認。客室階を一般公開扱いにしない。1階室の入浴客/非利用客の資格、喫煙設備固有時間・対応たばこはunknown。",
+      "facilityAddressReview": "野々市市柳町460番地は施設住所。階数は室位置の説明であり数値座標ではない。",
+      "positionReview": "ABR parcel、precisionTooLow。市の予備避難所19で同一住所を確認したが、市の指定避難所CSV10行と公共施設CSV193行には対象施設がなく数値anchorを得られない。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://manten-hotel.co.jp/privacy/",
+          "https://www.manten-hotel.com/img/pdf_agreement.pdf"
+        ],
+        "reading": "リンク先宿泊約款PDF全4頁を再読。日本語2024.01/英語2014.09。指定喫煙場所限定などの館内利用条件であり一般客への設備公開許可ではない。確認範囲で情報利用/DB化禁止を確認せず、source権利承認は未完了。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。",
+        "市防災担当に予備避難所19の既存公式代表点資料があるか、または施設が点の意味/再利用条件を示せるかを尋ねる文案を用意する。",
+        "1階室の資格を客室階と別に尋ね、同じanchorなら1地点に集約する。"
+      ],
+      "resolvedSubquestions": [
+        "宿泊約款未読を解消。非宿泊客の客室階立入制限を確認。市の同一施設住所を確認したが数値anchorは未取得。"
+      ],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    },
+    {
+      "id": "sanmarco",
+      "name": "サンマルコ（円光寺）",
+      "intakeSourceId": null,
+      "firstPartyUrls": [],
+      "equipmentEvidence": "旧調査は制限付きリードの記載確認。今回、独立運営者の設備一次記載は未発見。設備値を正規化して転記しない。",
+      "accessReview": "施設/設備の利用条件・固有時間・対応たばこはunknown。",
+      "facilityAddressReview": "今回、独立した運営者住所出典を確保できず。制限付きページの住所を転写しない。",
+      "positionReview": "独立した施設/喫煙設備の位置根拠なし。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [],
+        "reading": "P-WORLDの制限を維持し追加取得・設備データの転記をしない。店舗が直接独立して提供する資料と権利範囲が必要。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "independentEquipmentEvidenceRequired",
+        "independentRightsBasisRequired"
+      ],
+      "resolutionSteps": [
+        "既存未送信文案で、店舗自身の現行設備・利用条件と独立した数値位置/再利用条件を求める。",
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "notObtained"
+    },
+    {
+      "id": "omega",
+      "name": "オメガ野々市ホワイトバード",
+      "intakeSourceId": null,
+      "firstPartyUrls": [
+        "https://www.daiichibussan.co.jp/contents/office.html",
+        "https://www.daiichibussan.co.jp/contents/history.html"
+      ],
+      "equipmentEvidence": "独立運営者の事業所/沿革で施設同一性を確認。喫煙設備の一次記載は未発見。制限付きリードの設備値は転記しない。",
+      "accessReview": "喫煙設備の利用条件・固有時間・対応たばこはunknown。",
+      "facilityAddressReview": "第一物産の事業所一覧が野々市市菅原町10-55を明示。これは独立した施設住所であり設備位置ではない。",
+      "positionReview": "独立した数値施設点/喫煙設備位置は未取得。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://www.daiichibussan.co.jp/contents/privacy_policy.html"
+        ],
+        "reading": "個人情報方針とfooter権利留保を確認。再利用許諾ではない。設備情報の独立一次出典を確保してからsource別に審査する。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "independentEquipmentEvidenceRequired",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "第一物産から当該店の現行喫煙設備・利用条件を独立した資料として受領する文案を用意する。",
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。"
+      ],
+      "resolvedSubquestions": [
+        "運営者・施設住所の出典をP-WORLDから独立して確保。設備存在のブロッカーは残る。"
+      ],
+      "independentEquipmentEvidenceStatus": "notObtained"
+    },
+    {
+      "id": "keiz",
+      "name": "KEIZラパーク金沢店",
+      "intakeSourceId": null,
+      "firstPartyUrls": [
+        "https://www.heiseikankou.com/shop/store_19.html",
+        "https://www.heiseikankou.com/faq/"
+      ],
+      "equipmentEvidence": "運営者店舗ページ/FAQで施設存在は確認。独立した喫煙設備記載は未発見。制限付きページの値を転記しない。",
+      "accessReview": "喫煙設備の利用条件・固有時間・対応たばこはunknown。",
+      "facilityAddressReview": "運営者の金沢市西泉4-11は施設住所であり設備位置ではない。",
+      "positionReview": "Google等の地図から数値を取らず、適格施設点は未取得。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://www.heiseikankou.com/privacy/"
+        ],
+        "reading": "個人情報方針は事実/DB利用の承認ではない。独立設備情報とそのsource権利審査が必要。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "independentEquipmentEvidenceRequired",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "平成観光へ当該店固有の設備資料・利用条件・位置と再利用範囲を求める未送信文案を用意する。",
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。",
+        "D-Rの適用範囲・条項・出典表記をsource別に記録し、docs/SOURCES.md/registryのレビューを完了する。表現・HTML・画像・ロゴは転載しない。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "notObtained"
+    },
+    {
+      "id": "fukufuku",
+      "name": "福々亭（横川）",
+      "intakeSourceId": null,
+      "firstPartyUrls": [
+        "https://dskgroup.co.jp/shop/jp1117/"
+      ],
+      "equipmentEvidence": "旧調査と検索索引では客席禁煙・店外喫煙場所。既存HTTP403を尊重し再取得や別経路回避はしない。再現可能な現行資料は未取得。",
+      "accessReview": "店外場所の非来店者利用、固有時間、対応たばこはunknown。",
+      "facilityAddressReview": "施設住所と店外喫煙場所を区別する。制限中のページから住所を追加転記しない。",
+      "positionReview": "店外という表現だけでは施設敷地内か未確定。facility anchor適用には同一施設範囲内の確認も必要。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://dskgroup.co.jp/shop/jp1117/"
+        ],
+        "reading": "現行の許容取得経路・適用条件を確認できず。検索索引だけでfactReferenceの承認/fixture化をしない。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "currentFirstPartyReceiptRequired",
+        "facilityScopeUnresolved",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "運営者から公開可能な現行事実資料と規約を直接提供してもらう文案を用意する。403回避はしない。",
+        "店外場所が同一施設敷地か、非来店者利用可否を確認する。",
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "reacquisitionBlocked"
+    },
+    {
+      "id": "kaikatsu",
+      "name": "快活CLUB 金沢久安店",
+      "intakeSourceId": null,
+      "firstPartyUrls": [
+        "https://www.kaikatsu.jp/shop/detail/20413.html",
+        "https://www.kaikatsu.jp/faq/"
+      ],
+      "equipmentEvidence": "店舗ページは施設存在、全店FAQは専用喫煙室を示す2資料の組合せ。当該店舗ページ自体の喫煙記載と誤記しない。",
+      "accessReview": "会員制/入店手続/課金を伴う施設。喫煙室だけの無料利用・非会員利用はunknown。全店FAQを店舗固有の加熱式エリア有りと断定しない。",
+      "facilityAddressReview": "運営者の金沢市久安3-362は店舗住所。専用室の位置ではない。",
+      "positionReview": "室位置と再利用可能な数値代表点を未取得。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://www.kaikatsu.jp/guide/use_002.html"
+        ],
+        "reading": "会員規約13条のサービス情報の私的範囲外利用制限について公開Web事実への適用範囲が未解決。適用外と独断しない。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "informationUseTermsScopeUnresolved",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "必要最小限の正規化事実と座標のDB保存/アプリ表示/API配信の可否を具体的に確認する未送信文案を用意する。",
+        "当該店での設備/利用条件を独立して確認し、対応たばこは店舗確認までunknown。",
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "chainFAQWithCurrentStore"
+    },
+    {
+      "id": "yuzu",
+      "name": "ゆず庵 金沢有松店",
+      "intakeSourceId": null,
+      "firstPartyUrls": [
+        "https://www.shabu-yuzuan.jp/shop/4131/"
+      ],
+      "equipmentEvidence": "現行店舗固有ページで客席禁煙と別の喫煙室を再確認。",
+      "accessReview": "非利用客や喫煙室のみ利用、固有時間、紙巻/加熱式はunknown。",
+      "facilityAddressReview": "運営者の金沢市有松4-3-8は施設住所。室位置ではない。",
+      "positionReview": "再利用可能な数値施設点なし。",
+      "approximateLocationDecision": "適格な施設代表点と施設内の存在範囲を別途確認できた場合のみareaApproximate/facility。現在はanchor未取得のため不可。",
+      "rightsReview": {
+        "termsUrls": [
+          "https://www.monogatari.co.jp/about/"
+        ],
+        "reading": "店舗footerから直接適用リンク。営利/準備行為、リンク、問い合わせ回答再利用に制約があり現状はfail closed。表現の著作権留保だけと読み替えない。",
+        "status": "sourceReviewPending"
+      },
+      "publicationStatus": "blocked",
+      "formalAdapterReady": false,
+      "blockingReasons": [
+        "eligibleFacilityAnchorMissing",
+        "explicitInformationUseRestriction",
+        "sourceRightsReviewAndRegistryRequired"
+      ],
+      "resolutionSteps": [
+        "権利者に正規化事実の保存/API/アプリ表示、出典リンク、回答自体の二次利用を項目別に認める資料を求める未送信文案を用意する。",
+        "運営者から地図事業者に依存しない施設代表点の数値・座標系・点の意味・取得出典・再利用条件を受領するか、対象施設と同一性を確認できる公的reference pointを取得する。受付後も既存authority審査を通す。"
+      ],
+      "resolvedSubquestions": [],
+      "independentEquipmentEvidenceStatus": "directOperatorPage"
+    }
+  ]
+}

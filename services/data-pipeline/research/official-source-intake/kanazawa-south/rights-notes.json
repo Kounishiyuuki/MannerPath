@@ -1,0 +1,56 @@
+[
+  {
+    "sourceId": "homerun-nonoichi-smoking-place",
+    "termsUrls": [
+      "https://homerun.co.jp/shop_nonoichi.html",
+      "https://homerun.co.jp/privacy.html"
+    ],
+    "reading": "店舗ページ末尾はCopyright / All rights reserved。個人情報保護方針は個人情報の取扱いであり、確認した範囲に情報利用・データ収集・DB化の禁止なし。P-WORLDを出典にせず運営者独自ページの必要な事実のみ参照。技術的factReference分類で法的/G5承認ではない。",
+    "status": "unapproved"
+  },
+  {
+    "sourceId": "shiawasenoyu-smoking-place",
+    "termsUrls": [
+      "https://shiawasenoyu.co.jp/info.html",
+      "https://shiawasenoyu.co.jp/"
+    ],
+    "reading": "公式FAQ・ホーム・利用案内の確認範囲ではフッター©2016 Shiawasenoyuの表現権利留保のみ。一般規約や情報利用・DB化禁止条項を確認せず。文章・写真・図を転載せず正規化事実だけ参照。技術的factReference分類で法的/G5承認ではない。",
+    "status": "unapproved"
+  },
+  {
+    "sourceId": "hikousen-koudaimae-smoking-place",
+    "termsUrls": [
+      "https://hikaricorp.jp/karaoke/koudaimae.html",
+      "https://hikaricorp.jp/karaoke/koudai_map.html",
+      "https://hikaricorp.jp/"
+    ],
+    "reading": "店舗ページはひかり商事運営と明示。店舗/アクセス/運営者ページの確認範囲ではCopyright / All Rights Reservedの表現留保のみで、情報利用・DB化の禁止なし。地図/写真/文章は転載せず正規化事実だけ参照。技術的factReference分類で法的/G5承認ではない。",
+    "status": "unapproved"
+  },
+  {
+    "sourceId": "kurashiki-okyozuka-smoking-place",
+    "termsUrls": [
+      "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+      "https://www.saint-marc-hd.com/hd/privacy/"
+    ],
+    "reading": "店舗ページの権利留保とリンク先個人情報/SNS/Cookie方針を確認。公式サイト模写のSNS投稿は禁止されるが、確認した適用範囲では正規化事実参照・情報利用・DB化禁止を確認せず。文章・画像・図・ロゴは転載しない。技術的factReference分類で法的/G5承認ではない。",
+    "status": "unapproved"
+  },
+  {
+    "sourceId": "hoshino-oshino-smoking-place",
+    "termsUrls": [
+      "https://www.hoshinocoffee.com/shop.html"
+    ],
+    "reading": "適用条件の確認中。未承認。",
+    "status": "unapproved"
+  },
+  {
+    "sourceId": "manten-hakusan-smoking-place",
+    "termsUrls": [
+      "https://www.manten-hotel.com/michinoyado-1/room/",
+      "https://manten-hotel.co.jp/privacy/"
+    ],
+    "reading": "客室・館内施設ページはAll Rights Reserved。リンク先個人情報方針に情報利用/DB化禁止を確認せず。適用条件と宿泊約款の追加確認前の候補。",
+    "status": "unapproved"
+  }
+]

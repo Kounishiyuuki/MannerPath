@@ -1,0 +1,38 @@
+[
+  {
+    "candidateId": "shiawasenoyu-smoking-place",
+    "name": "しあわせの湯 喫煙室（2階）",
+    "prefecture": "石川県",
+    "municipality": "野々市市",
+    "officialAddress": "石川県野々市市横宮町6-3",
+    "addressUrl": "https://shiawasenoyu.co.jp/info.html",
+    "sourceUrl": "https://shiawasenoyu.co.jp/info.html",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "zones": "2階フロア",
+    "spotType": "facilitySmokingRoom",
+    "environment": "indoor",
+    "accessType": "unknown",
+    "accessDetail": null,
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked",
+    "blockers": [
+      "sourceRightsReviewRequired",
+      "noEligibleAreaAnchor"
+    ],
+    "geocodeEvidence": {
+      "file": "abrg-output.json",
+      "recordIndex": 1,
+      "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+      "usableAsAnchor": false
+    }
+  }
+]

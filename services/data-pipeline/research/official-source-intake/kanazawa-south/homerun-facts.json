@@ -1,0 +1,38 @@
+[
+  {
+    "candidateId": "homerun-nonoichi-smoking-place",
+    "name": "ホームランGOGO野々市店 喫煙ブース",
+    "prefecture": "石川県",
+    "municipality": "野々市市",
+    "officialAddress": "石川県野々市市横宮町3-6",
+    "addressUrl": "https://homerun.co.jp/shop_nonoichi.html",
+    "sourceUrl": "https://homerun.co.jp/shop_nonoichi.html",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "zones": "喫煙ブース",
+    "spotType": "unknown",
+    "environment": "unknown",
+    "accessType": "unknown",
+    "accessDetail": null,
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked",
+    "blockers": [
+      "sourceRightsReviewRequired",
+      "noEligibleAreaAnchor"
+    ],
+    "geocodeEvidence": {
+      "file": "abrg-output.json",
+      "recordIndex": 0,
+      "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+      "usableAsAnchor": false
+    }
+  }
+]

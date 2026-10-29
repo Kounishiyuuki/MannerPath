@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "publicationStatus": "blocked",
+  "humanReviewRequired": true,
+  "sources": [
+    {
+      "sourceId": "homerun-nonoichi-smoking-place",
+      "factsFile": "homerun-facts.json",
+      "receiptFile": "homerun-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "3cff714a29ef52ad254aab66d90bc00042902a403d05fa14328c1e98e3553cc0"
+    },
+    {
+      "sourceId": "shiawasenoyu-smoking-place",
+      "factsFile": "shiawase-facts.json",
+      "receiptFile": "shiawase-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "90b3f985d14d2a8cb9bfa08eda8940ef254250ec1de39256724066ecb83b70ff"
+    },
+    {
+      "sourceId": "hikousen-koudaimae-smoking-place",
+      "factsFile": "hikousen-facts.json",
+      "receiptFile": "hikousen-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "a3afe66d42bc3807b40447403a0fe436c697082ad3bb026c9012c2270d0fa3bd"
+    },
+    {
+      "sourceId": "kurashiki-okyozuka-smoking-place",
+      "factsFile": "kurashiki-facts.json",
+      "receiptFile": "kurashiki-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "1377d6c0389b0ae30eb51909e3b8a867771d190c211924e0253452d89173bf14"
+    },
+    {
+      "sourceId": "hoshino-oshino-smoking-place",
+      "factsFile": "hoshino-facts.json",
+      "receiptFile": "hoshino-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "8793656affff9c75e36861392c97ea94014e88e7ec6026a648c16727905b8e56"
+    },
+    {
+      "sourceId": "manten-hakusan-smoking-place",
+      "factsFile": "manten-facts.json",
+      "receiptFile": "manten-receipt.json",
+      "expectedRows": 1,
+      "factsSha256": "3666e9c81b33aac5655c7dc97260a724687b695f453155b4656e3a211a377556"
+    }
+  ]
+}

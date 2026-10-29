@@ -1,0 +1,270 @@
+{
+  "version": 1,
+  "checkedOn": "2026-10-26",
+  "scope": "Research decisions only; restricted sources never become normalized intake facts",
+  "summary": {
+    "investigated": 28,
+    "operatorEquipmentConfirmed": 9,
+    "restrictedEquipmentListing": 3,
+    "equipmentSeenTotal": 12,
+    "unconfirmed": 12,
+    "excludedNoSmoking": 4,
+    "intakeRows": 6,
+    "canonicalAdded": 0,
+    "publishable": 0
+  },
+  "facilities": [
+    {
+      "id": "sanmarco",
+      "name": "サンマルコ",
+      "area": "円光寺",
+      "referenceUrl": "https://www.p-world.co.jp/ishikawa/sanmarco.htm",
+      "decision": "restrictedEquipmentListing",
+      "note": "店舗更新ページの設備記載を最初に確認。P-WORLDの情報利用制限によりデータ取込せず",
+      "nextAction": "店舗が直接提供する設備・位置情報と再利用許可"
+    },
+    {
+      "id": "dsg",
+      "name": "DSGアリーナ",
+      "area": "野々市本町",
+      "referenceUrl": "https://www.dsg-group.jp/business/store/",
+      "decision": "unconfirmed",
+      "note": "独自サイトに店舗はあるが設備記載を確認できず。提供P-WORLD URLは追加抽出しない",
+      "nextAction": "運営者による独立した設備・位置情報"
+    },
+    {
+      "id": "omega",
+      "name": "オメガ野々市ホワイトバード",
+      "area": "野々市",
+      "referenceUrl": "https://www.p-world.co.jp/ishikawa/omega-p1.htm",
+      "decision": "restrictedEquipmentListing",
+      "note": "ユーザー提示の店舗更新ページを確認後、利用制限のため取込せず",
+      "nextAction": "独立した運営者設備情報と位置・再利用根拠"
+    },
+    {
+      "id": "homerun",
+      "name": "ホームランGOGO野々市店",
+      "area": "野々市横宮",
+      "referenceUrl": "https://homerun.co.jp/shop_nonoichi.html",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "独自運営者サイトに喫煙ブース。実データ受付対象",
+      "nextAction": "適格な施設anchor・source別権利審査"
+    },
+    {
+      "id": "keiz",
+      "name": "KEIZラパーク金沢店",
+      "area": "西泉",
+      "referenceUrl": "https://www.heiseikankou.com/shop/store_19.html",
+      "decision": "restrictedEquipmentListing",
+      "note": "独自ページに設備を確認できず。P-WORLD記載は取込せず",
+      "nextAction": "独立した運営者設備情報と位置・再利用根拠"
+    },
+    {
+      "id": "kurashiki",
+      "name": "倉式珈琲店 御経塚店",
+      "area": "野々市御経塚",
+      "referenceUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "店舗固有サービスに喫煙ブース・客席禁煙。受付対象",
+      "nextAction": "適格な施設anchor・source別権利審査"
+    },
+    {
+      "id": "hikousen",
+      "name": "飛行船 工大前店",
+      "area": "野々市扇が丘",
+      "referenceUrl": "https://hikaricorp.jp/karaoke/koudaimae.html",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "店舗本文に喫煙ブース・客室禁煙。受付対象",
+      "nextAction": "適格な施設anchor・source別権利審査"
+    },
+    {
+      "id": "shiawase",
+      "name": "しあわせの湯",
+      "area": "野々市横宮",
+      "referenceUrl": "https://shiawasenoyu.co.jp/info.html",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "FAQに2階喫煙室。受付対象",
+      "nextAction": "適格な施設anchor・source別権利審査"
+    },
+    {
+      "id": "fukufuku",
+      "name": "福々亭",
+      "area": "横川",
+      "referenceUrl": "https://dskgroup.co.jp/shop/jp1117/",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "運営者本文は店外喫煙場所を明示。直接HTTP403のため再取得せず保留",
+      "nextAction": "公開pageの取得証跡・権利審査・施設anchor"
+    },
+    {
+      "id": "manten",
+      "name": "満天の湯・道の宿 白山インター",
+      "area": "野々市柳町",
+      "referenceUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "1階と客室階の喫煙ルーム。同一施設1候補。受付対象",
+      "nextAction": "適格な施設anchor・権利審査・客室階アクセス条件"
+    },
+    {
+      "id": "kaikatsu",
+      "name": "快活CLUB 金沢久安店",
+      "area": "久安",
+      "referenceUrl": "https://www.kaikatsu.jp/shop/detail/20413.html",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "現行店ページと全店喫煙室FAQを確認。規約適用未解決のため取込保留",
+      "nextAction": "会員規約13条の情報利用制限の適用範囲・位置根拠"
+    },
+    {
+      "id": "cote",
+      "name": "コート・ダジュール野々市矢作店",
+      "area": "野々市矢作",
+      "referenceUrl": "https://www.cotedazur.jp/branch/detail/10341.html",
+      "decision": "unconfirmed",
+      "note": "運営者ページに設備記載を確認できず",
+      "nextAction": "現在の運営者証言"
+    },
+    {
+      "id": "misdo",
+      "name": "ミスタードーナツ野々市ショップ",
+      "area": "野々市本町",
+      "referenceUrl": "https://md.mapion.co.jp/b/misterdonut_s/info/0161/",
+      "decision": "unconfirmed",
+      "note": "選択アイコンは全席禁煙。下部の喫煙ブース凡例は存在証拠にしない",
+      "nextAction": "店舗固有の設備証言"
+    },
+    {
+      "id": "tullys",
+      "name": "タリーズ金沢野々市店",
+      "area": "野々市",
+      "referenceUrl": "https://shop.tullys.co.jp/",
+      "decision": "unconfirmed",
+      "note": "個別公式店情報の取得不十分。古い口コミは採用せず",
+      "nextAction": "現行の店舗固有案内"
+    },
+    {
+      "id": "maple",
+      "name": "カエデ珈琲",
+      "area": "野々市",
+      "referenceUrl": "https://www.e-maplehouse.com/contents/shop/maple_kaedeCoffee.html",
+      "decision": "unconfirmed",
+      "note": "旧メニューの席喫煙表記を現行許可に転用せず",
+      "nextAction": "現行設備と席喫煙条件の確認"
+    },
+    {
+      "id": "hoshino",
+      "name": "星乃珈琲店 金沢押野店",
+      "area": "野々市押野",
+      "referenceUrl": "https://www.hoshinocoffee.com/shop.html",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "石川県の店舗固有行に喫煙ブース。受付対象",
+      "nextAction": "適格な施設anchor・source別権利審査"
+    },
+    {
+      "id": "yuzu",
+      "name": "ゆず庵 金沢有松店",
+      "area": "有松",
+      "referenceUrl": "https://www.shabu-yuzuan.jp/shop/4131/",
+      "decision": "operatorEquipmentConfirmed",
+      "note": "設備記載は確認。運営者の情報利用制限により取込せず",
+      "nextAction": "利用規約の許可・適用範囲確認、位置根拠"
+    },
+    {
+      "id": "round1",
+      "name": "ラウンドワンスタジアム金沢店",
+      "area": "横川",
+      "referenceUrl": "https://www.round1.co.jp/shop/tenpo/ishikawa-kanazawa.html",
+      "decision": "unconfirmed",
+      "note": "現行店舗とFAQに設備記載を確認できず",
+      "nextAction": "店舗固有の設備証言"
+    },
+    {
+      "id": "birion",
+      "name": "ビリオン珈琲 久安店",
+      "area": "久安",
+      "referenceUrl": "https://www.legacyhd.co.jp/products_birioncoffee.html",
+      "decision": "unconfirmed",
+      "note": "独自店舗一覧を確認、喫煙設備の本文根拠なし",
+      "nextAction": "運営者の設備案内"
+    },
+    {
+      "id": "chanomi",
+      "name": "CHANOMI 富樫本店",
+      "area": "富樫",
+      "referenceUrl": "https://www.cha-nomi.com/togashi/",
+      "decision": "unconfirmed",
+      "note": "店舗は確認、喫煙場所の明示なし",
+      "nextAction": "運営者の設備案内"
+    },
+    {
+      "id": "panchan",
+      "name": "ふくふくパンチャンの家",
+      "area": "山科",
+      "referenceUrl": "https://www.panchan.co.jp/",
+      "decision": "unconfirmed",
+      "note": "焼肉用吸煙ダクトを喫煙許可に転用しない",
+      "nextAction": "運営者による喫煙可否・専用場所の証言"
+    },
+    {
+      "id": "yagiya",
+      "name": "ヤギヤ",
+      "area": "寺地",
+      "referenceUrl": "https://yagi-ya.com/",
+      "decision": "unconfirmed",
+      "note": "店舗は確認、喫煙場所の明示なし",
+      "nextAction": "運営者の設備案内"
+    },
+    {
+      "id": "sushi",
+      "name": "すし食いねぇ！金沢寺地店",
+      "area": "寺地",
+      "referenceUrl": "https://www.sushikuine.co.jp/shops/terazi/",
+      "decision": "unconfirmed",
+      "note": "第三者の屋外スペース記載を運営者ページで裏付けできず",
+      "nextAction": "運営者の設備案内"
+    },
+    {
+      "id": "gym",
+      "name": "金沢市総合体育館",
+      "area": "泉野出町",
+      "referenceUrl": "https://www.kanazawa-sports.jp/use/search/433/",
+      "decision": "excludedNoSmoking",
+      "note": "2019-06-30喫煙場所廃止・敷地内に喫煙場所なし",
+      "nextAction": "採用しない"
+    },
+    {
+      "id": "park",
+      "name": "金沢南総合運動公園",
+      "area": "富樫周辺",
+      "referenceUrl": "https://www.kanazawa-sports.jp/no_smoking/",
+      "decision": "excludedNoSmoking",
+      "note": "敷地内禁煙対象。旧一般FAQから指定場所を推定しない",
+      "nextAction": "採用しない"
+    },
+    {
+      "id": "hisayasu",
+      "name": "久安運動広場",
+      "area": "久安",
+      "referenceUrl": "https://www.kanazawa-sports.jp/no_smoking/",
+      "decision": "excludedNoSmoking",
+      "note": "敷地内禁煙対象",
+      "nextAction": "採用しない"
+    },
+    {
+      "id": "fushimi",
+      "name": "伏見川スポーツ公園",
+      "area": "南部",
+      "referenceUrl": "https://www.kanazawa-sports.jp/no_smoking/",
+      "decision": "excludedNoSmoking",
+      "note": "敷地内禁煙対象",
+      "nextAction": "採用しない"
+    },
+    {
+      "id": "komeda",
+      "name": "コメダ珈琲店 野々市矢作店",
+      "area": "野々市矢作",
+      "referenceUrl": "https://kagaworks.co.jp/business/biz03/",
+      "decision": "unconfirmed",
+      "note": "現行独自店舗案内に設備根拠なし。旧分煙情報を採用せず",
+      "nextAction": "現行の店舗固有設備証言"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "candidateId": "manten-hakusan-smoking-place",
+    "name": "満天の湯・道の宿 白山インター 喫煙ルーム（1階・客室階）",
+    "prefecture": "石川県",
+    "municipality": "野々市市",
+    "officialAddress": "石川県野々市市柳町460番地",
+    "addressUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+    "sourceUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+    "checkedAt": "2026-10-26",
+    "existence": "listed",
+    "zones": "1階大浴場入口手前・客室フロア2/3/4階",
+    "spotType": "facilitySmokingRoom",
+    "environment": "indoor",
+    "accessType": "unknown",
+    "accessDetail": null,
+    "supportsPaper": "unknown",
+    "supportsHeated": "unknown",
+    "openingHours": {
+      "status": "none",
+      "raw": null,
+      "parsed": null
+    },
+    "locationPrecision": "unknown",
+    "locationAnchorCandidate": null,
+    "publicationStatus": "blocked",
+    "blockers": [
+      "sourceRightsReviewRequired",
+      "noEligibleAreaAnchor"
+    ],
+    "geocodeEvidence": {
+      "file": "abrg-output.json",
+      "recordIndex": 5,
+      "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+      "usableAsAnchor": false
+    }
+  }
+]

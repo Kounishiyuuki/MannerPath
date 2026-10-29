@@ -34,6 +34,9 @@ export const ADDRESS_ANCHOR_DATASET_RELEASE = "abr-tokyo-6wards-2026-10-18:sha25
 /** Every reviewed release, append-only: a new municipality gets a new release, and earlier anchors are not re-geocoded. */
 export const ADDRESS_ANCHOR_DATASET_RELEASES: readonly AddressAnchorDatasetRelease[] = [
   { releaseId: ADDRESS_ANCHOR_DATASET_RELEASE, fileCount: 27, lgCodes: ["131016", "131024", "131067", "131041", "131130", "131164"] },
+  // Actual 2026-10-26 download. Registration never approves a source or a coordinate level.
+  { releaseId: "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+    fileCount: 15, lgCodes: ["172014", "172120"] },
 ];
 
 /** The registered release with this id, or a thrown error: an unknown id is never trusted. */
