@@ -250,7 +250,7 @@ the App Store with **limited covered areas** — the regions the production corp
 waiting for nationwide data:
 
 - free, Japan storefront only;
-- **amended 2026-10-22:** photo-backed new-place submission (standalone 「喫煙所を報告」 button, 1–3 private photos,
+- **amended 2026-10-22:** photo-backed new-place submission (standalone 「＋ 喫煙所を追加する」 button, 1–3 private photos,
   moderator review before any publication) is a v1.0 P0 requirement. It stays unavailable in production until every
   gate in [`release/V1_PHOTO_PLACE_SUBMISSION.md`](release/V1_PHOTO_PLACE_SUBMISSION.md) is met, including the
   terms/rights approval (#124); reports and App Attest registration follow the same gates;

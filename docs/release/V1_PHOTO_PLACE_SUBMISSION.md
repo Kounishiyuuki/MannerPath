@@ -10,7 +10,7 @@ where a step below needs one of them amended, that PR amends it.
 
 ## 1. Goal and non-goals
 
-Goal: a user on the v1.0 Release build taps an always-visible 「喫煙所を報告」 button, pins a place, attaches
+Goal: a user on the v1.0 Release build taps an always-visible 「＋ 喫煙所を追加する」 button, pins a place, attaches
 1–3 photos, describes it (unknown stays unknown), accepts the terms, and sends it. A moderator reviews the report
 and its private photos, approves, holds or rejects it, and only approved information reaches the public map
 through the existing community publication pipeline and gates.
@@ -47,17 +47,17 @@ Non-goals (unchanged rules):
 
 ### 3.1 Standalone map button
 
-- `.medium` (and whenever the map is visible): a floating, labelled button 「喫煙所を報告」 (SF Symbol
+- `.medium` (and whenever the map is visible): a floating, labelled button 「＋ 喫煙所を追加する」 (SF Symbol
   `plus.circle.fill`) at the map's top leading corner — the search field lives in the sheet, the compass sits top
   trailing and the sheet covers the bottom half. It never overlaps the search field and does not move with the keyboard.
 - `.large` (the sheet covers the map): the map button leaves the screen and the accessibility tree, and a fixed,
-  full-width labelled bar 「喫煙所を報告」 (`sheetReportButton`) sits at the bottom of the sheet (a bottom-bar
+  full-width labelled bar 「＋ 喫煙所を追加する」 (`sheetReportButton`) sits at the bottom of the sheet (a bottom-bar
   `ToolbarItem` would collapse to the bare symbol). It steps aside while the search field is focused or shows
   suggestions, and when the empty state shows its own button. Every entry shows visible text, never a bare icon.
 - The in-list section keeps the explanatory text only; the empty-state button (§3.2) opens the same flow.
 - Visible only when `reportModel.availability == .available`; when reports are unavailable every entry is hidden
   (no dead control).
-- ≥44 pt hit area on the map button, VoiceOver label 「喫煙所を報告」, hint 「地図にない喫煙所を運営に提案します。確認後に掲載されます。」
+- ≥44 pt hit area on the map button, VoiceOver label 「＋ 喫煙所を追加する」, hint 「地図にない喫煙所を運営に提案します。確認後に掲載されます。」
 - At the largest Dynamic Type sizes the empty-state invitation may sit below the medium detent; raising the sheet
   shows it, and the map button stays reachable throughout.
 
@@ -68,7 +68,7 @@ When no published place is in the area (`.refreshed` with no results), the `Cont
 - Title (unchanged): the existing 「この周辺に掲載中の場所はありません」 (exact current ja string)
 - 「まだ掲載されていない喫煙所を知っていますか？」
 - 「場所と写真を送ってください。運営が確認し、承認された情報を地図に追加します。」
-- Button 「喫煙所を報告」 → the same flow as §3.1.
+- Button 「＋ 喫煙所を追加する」 → the same flow as §3.1.
 
 Copy must not promise publication or timing.
 
@@ -125,7 +125,7 @@ Exists (reuse):
 | `migrations-reports/0003_evidence_photos.sql`, deletion tracking, retention (`retain`) | Implemented |
 | `reports:moderate` incl. `photo-summary`, `photo-decide`, triage, duplicates, export/import | Implemented |
 | Community activation/publication pipeline, `COMMUNITY_LAUNCH_CHECKLIST.md` | Implemented, HOLD on #124 |
-| Map button (medium), labelled sheet bar (large) and empty-state 「喫煙所を報告」 entries | Implemented in P2, only when reports available |
+| Map button (medium), labelled sheet bar (large) and empty-state 「＋ 喫煙所を追加する」 entries | Implemented in P2, only when reports available |
 | New-spot photo publication gate: a `missing` report backs a new-spot review only with a ready, approved, unexpired photo (`newSpotPhotoGate`, checked at propose/export and by REPORTS_DB migration 0009); photo-less reports are held and minimize normally | Implemented; 0009 not applied to any remote store |
 | Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 

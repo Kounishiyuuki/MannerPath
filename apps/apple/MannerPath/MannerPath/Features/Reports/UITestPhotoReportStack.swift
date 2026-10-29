@@ -23,6 +23,7 @@ nonisolated enum UITestPhotoReportStack {
         if defaults.bool(forKey: "uiTestReportReset") { try? FileManager.default.removeItem(at: directory) }
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let service = Service(photoIntake: scenario != "closed", directory: directory,
+                              failFirstReport: scenario == "reportRetry",
                               receivedAt: scenario == "old" ? "2020-01-01T00:00:00Z" : ISO8601DateFormatter().string(from: Date()))
         return ReportModel(configClient: service, reportClient: service,
                            store: FileReportDraftStore(directory: directory), installIDs: service,
@@ -36,6 +37,7 @@ nonisolated enum UITestPhotoReportStack {
     private struct Service: ReportConfigFetching, ReportSubmitting, AttestedReportSubmitting, InstallIDProviding {
         let photoIntake: Bool
         let directory: URL
+        let failFirstReport: Bool
         let receivedAt: String
         func fetchAvailability() async throws -> ReportAvailability {
             .available(ReportLimits(noteMaxLength: 500, maxBodyBytes: 16_384, submissionProtocol: .appAttestV3,
@@ -45,6 +47,11 @@ nonisolated enum UITestPhotoReportStack {
         }
         func submit(_ body: Data) async throws -> AcceptedReport { throw ReportAPIError.httpStatus(503) }
         func submitAttested(_ envelope: Data) async throws -> AcceptedReport {
+            let attempt = directory.appending(path: "ui-test-report-attempted")
+            if failFirstReport, !FileManager.default.fileExists(atPath: attempt.path) {
+                try Data().write(to: attempt)
+                throw URLError(.networkConnectionLost)
+            }
             let count = Self.reportCount(in: directory) + 1
             try Data("\(count)".utf8).write(to: directory.appending(path: "ui-test-report-count"))
             return AcceptedReport(schemaVersion: 3, reportId: "rp_UITEST\(count)", state: "pending", receivedAt: receivedAt)

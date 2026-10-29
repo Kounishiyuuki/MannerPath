@@ -79,6 +79,32 @@ final class ReportModel {
         return limits.acceptsPhotoEvidence && photos.accepts(termsVersion: limits.termsVersion)
     }
 
+    /// Read-only preflight for the form. Uses the wire validator without generating/storing an identity,
+    /// fixing a payload, authorizing or sending anything. The actual submit path still validates independently.
+    var submissionReadinessMessage: String? {
+        guard case .available(let limits) = availability, var candidate = draft else { return nil }
+        if candidate.type == .missing && !acceptsNewSpotProposals {
+            return String(localized: "New smoking places are not being accepted right now.")
+        }
+        // Locked retries must keep their original encoded payload; their dedicated retry UI owns readiness.
+        guard candidate.pendingSubmission == nil else { return nil }
+        if limits.submissionProtocol == .appAttestV3, candidate.idempotencyKey == nil {
+            candidate.idempotencyKey = String(repeating: "0", count: 64)
+        }
+        do {
+            _ = try ReportRequest.encoded(draft: candidate,
+                installId: UUID(uuidString: "00000000-0000-4000-8000-000000000000")!, limits: limits)
+        } catch let error as ReportValidationError {
+            return Self.validationMessage(error)
+        } catch {
+            return String(localized: "Report could not be prepared.")
+        }
+        if candidate.type == .missing && photos.photos.isEmpty {
+            return String(localized: "Add at least one photo of the smoking place to submit.")
+        }
+        return nil
+    }
+
     /// Photos live only in memory: after a restart, a saved new-place submission is retried only once the user has
     /// chosen its photos again, so the report is never accepted without photos to follow it.
     var ambiguousRetryNeedsPhotos: Bool { draft?.type == .missing && photos.photos.isEmpty }

@@ -135,14 +135,15 @@ run_phase not-determined -only-testing:MannerPathUITests/F_LocationNotDetermined
 xcrun simctl privacy "$sim" grant location "$bundle_id"
 run_phase light -only-testing:MannerPathUITests/B_OnlineUITests
 # Photo-report form flow against the DEBUG-only report stack (-uiTestPhotoReport): no report or photo is sent anywhere.
-run_phase photo-report -only-testing:MannerPathUITests/I_PhotoReportFlowUITests
+run_phase photo-report -only-testing:MannerPathUITests/I_PhotoReportFlowUITests -only-testing:MannerPathUITests/J_ReportSubmissionUXUITests
 run_phase destination-search -only-testing:MannerPathUITests/DestinationSearchUITests
 
 xcrun simctl ui "$sim" appearance dark
 run_phase dark \
   -only-testing:MannerPathUITests/B_OnlineUITests/testNearbyLoadedShowsMapAndFirstResultWithoutScrolling \
   -only-testing:MannerPathUITests/B_OnlineUITests/testListRowOpensDetailWithKeySections \
-  -only-testing:MannerPathUITests/B_OnlineUITests/testDataAndPrivacyFullPage
+  -only-testing:MannerPathUITests/B_OnlineUITests/testDataAndPrivacyFullPage \
+  -only-testing:MannerPathUITests/J_ReportSubmissionUXUITests/testNewApplicantSeesRequirementsThenOneReceiptPendingReview
 xcrun simctl ui "$sim" appearance light
 
 xcrun simctl ui "$sim" content_size accessibility-extra-extra-extra-large

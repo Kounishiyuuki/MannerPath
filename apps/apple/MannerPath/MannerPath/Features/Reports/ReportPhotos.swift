@@ -254,13 +254,22 @@ struct ReportPhotoSection: View {
     /// A new-place proposal needs at least one photo; other reports keep photos optional.
     var required = false
     @State private var selection: [PhotosPickerItem] = []
+    private var offersPhotoSelection: Bool { photos.acceptsNewPhotos && photos.remainingSlots > 0 }
+
     var body: some View {
         Section {
-            Text("Avoid faces, vehicle plates and unrelated surroundings. A photo of an ashtray does not establish permission to smoke. Photos stay on this screen until submission; closing the app discards them.")
-                .font(.footnote)
-            Text("The photo's location data is not used. The listed position is only the map pin you chose.")
-                .font(.footnote).foregroundStyle(.secondary)
-            if photos.acceptsNewPhotos && photos.remainingSlots > 0 {
+            if photos.acceptedReportID != nil && photos.allUploaded && !offersPhotoSelection {
+                Text("Photos were received for private review. Photos are not displayed on the public map.")
+                    .font(.footnote)
+                    .accessibilityIdentifier("report.photo.receivedSummary")
+            } else {
+                Text("Avoid faces, vehicle plates and unrelated surroundings. A photo of an ashtray does not establish permission to smoke. Photos stay on this screen until submission; closing the app discards them.")
+                    .font(.footnote)
+                    .accessibilityIdentifier("report.photo.preparationNotice")
+                Text("The photo's location data is not used. The listed position is only the map pin you chose.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            if offersPhotoSelection {
                 // Read outside the picker's Sendable label closure.
                 let title = photos.photos.isEmpty ? String(localized: "Choose photos (up to 3)") : String(localized: "Add another photo")
                 PhotosPicker(selection: $selection, maxSelectionCount: photos.remainingSlots,
@@ -306,7 +315,7 @@ struct ReportPhotoSection: View {
             if let error = photos.error { Text(error).accessibilityLabel(error) }
         } header: {
             if photos.acceptedReportID != nil { Text("Photos for the received report") }
-            else { Text(required ? "Photos (required, 1 to 3)" : "Evidence photos (optional)") }
+            else { Text(required ? "3. Add photos (required, 1 to 3)" : "Evidence photos (optional)") }
         } footer: {
             if required && photos.photos.isEmpty { Text("Add at least one photo of the smoking place to submit.") }
         }

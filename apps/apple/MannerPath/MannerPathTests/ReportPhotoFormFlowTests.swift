@@ -104,6 +104,54 @@ struct ReportPhotoFormFlowTests {
         for index in 0..<photos { model.photos.add(image(CGFloat(index) / 4)) }
     }
 
+    @Test func readinessExplainsMissingPinConsentAndPhotosBeforeSubmitting() async throws {
+        let (model, reports, authorizer) = await model()
+        model.startNewSpot(pin: nil)
+        #expect(model.submissionReadinessMessage == String(localized: "Choose and confirm a proposed map pin."))
+        var draft = try #require(model.draft)
+        draft.proposedLocation = pin
+        model.saveDraft(draft)
+        #expect(model.submissionReadinessMessage == String(localized: "Read and agree to the report terms before submitting."))
+        model.setTermsAccepted(true)
+        #expect(model.submissionReadinessMessage == String(localized: "Add at least one photo of the smoking place to submit."))
+        model.photos.add(image())
+        #expect(model.draft?.claim?.spotType == "unknown", "Not sure remains a valid answer")
+        #expect(model.submissionReadinessMessage == nil)
+        #expect(await reports.count() == 0)
+        #expect(await authorizer.signed().isEmpty)
+        #expect(model.submission == .idle)
+    }
+
+    @Test func readinessUsesWireLimitsWithoutFixingTheDraftOrGeneratingRetryState() async throws {
+        let (model, reports, authorizer) = await model()
+        newSpot(model, photos: 1)
+        var draft = try #require(model.draft)
+        draft.note = String(repeating: "a", count: 281)
+        model.saveDraft(draft)
+        #expect(model.submissionReadinessMessage == String(localized: "Shorten the note to the character limit."))
+        draft.note = String(repeating: "a", count: 280)
+        model.saveDraft(draft)
+        let before = try #require(model.draft)
+        for _ in 0..<3 { #expect(model.submissionReadinessMessage == nil) }
+        #expect(model.draft == before, "Rendering readiness must not persist an idempotency key or immutable payload")
+        #expect(model.draft?.idempotencyKey == before.idempotencyKey && model.draft?.pendingSubmission == nil,
+                "Readiness preserves the draft's existing key and creates no submission payload")
+        #expect(await reports.count() == 0)
+        #expect(await authorizer.signed().isEmpty)
+        await model.submit()
+        guard case .accepted = model.submission else { Issue.record("ready draft was not accepted"); return }
+        await model.submit()
+        #expect(await reports.count() == 1, "An accepted report cannot be submitted again")
+    }
+
+    @Test func readinessDoesNotAdvertiseNewPlaceIntakeWhenPhotosAreClosed() async {
+        let (model, reports, authorizer) = await model(photoIntake: false)
+        newSpot(model, photos: 1)
+        #expect(model.submissionReadinessMessage == String(localized: "New smoking places are not being accepted right now."))
+        #expect(await reports.count() == 0)
+        #expect(await authorizer.signed().isEmpty)
+    }
+
     @Test func closedPhotoIntakeBlocksNewPlacesBeforeAnythingIsSigned() async {
         for (intake, policy) in [(false, PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: flowTerms)),
                                  (true, PhotoEvidencePolicy()),
