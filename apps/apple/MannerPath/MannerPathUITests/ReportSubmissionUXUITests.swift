@@ -24,7 +24,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 30))
         settle(entry)
         XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
-        XCTAssertTrue(entry.label.contains("喫煙所を追加する") || entry.label.contains("保存済みの報告を再開"))
+        XCTAssertTrue(entry.label.contains("喫煙所を報告") || entry.label.contains("保存済みの報告を再開"))
         entry.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
     }
@@ -340,7 +340,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
 
     private func checkEntry(_ entry: XCUIElement, screenshotName: String, opensForm: Bool) {
         settle(entry)
-        XCTAssertTrue(entry.label.contains("喫煙所を追加する"))
+        XCTAssertTrue(entry.label.contains("喫煙所を報告"))
         XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(entry.frame), "Entry must not be clipped")
         screenshot(screenshotName)

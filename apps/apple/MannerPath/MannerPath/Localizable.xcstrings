@@ -1,6 +1,14 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Use my current location": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地を使う"}}}},
+    "Current location accuracy: about %lld m. Check the pin on the map and move it to the smoking place before confirming.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地の精度: 約%lld m。地図上のピンを確認し、喫煙場所の位置に合わせてから確定してください。"}}}},
+    "Your location is approximate. Choose the place on the map instead.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地はおおよその位置です。地図から場所を指定してください。"}}}},
+    "Find my current location": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地を取得"}}}},
+    "Your current location is not available. Choose the place on the map.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地を利用できません。地図から場所を指定してください。"}}}},
+    "Use your current location or choose the place on the map, then confirm it. Your location is never used unless you choose it.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "「現在地を使う」か地図で場所を指定し、確定してください。現在地は選んだときだけ使われます。"}}}},
+    "Clear destination": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "目的地を解除"}}}},
+    "Shows directions and details for this place": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "この場所への案内と詳細を表示します"}}}},
     "Finish editing additional detail": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "補足情報の入力を完了" } } } },
     "Photos were received for private review. Photos are not displayed on the public map.": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "写真を審査用に受け付けました。写真は公開地図には表示されません。" } } } },
     "Retry saved submission": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "保存した申請を再送信"}}}},
@@ -16,7 +24,7 @@
     "Add a place": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "喫煙場所を追加" } } } },
     "Report received": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "申請を受付済み" } } } },
     "%lld / 3": { "localizations": { "ja": { "stringUnit": { "state": "translated", "value": "%lld / 3" } } } },
-    "Add a smoking place to the map": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "喫煙所を追加する"}}}},
+    "Add a smoking place to the map": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "喫煙所を報告"}}}},
     "New place submissions paused": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "新規申請の受付停止中"}}}},
     "Know a smoking place missing from the map? Choose its location, add photos and tell us what you know. Approved information is added after review.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "地図にない喫煙所を知っていますか？場所と写真、分かる情報を送ってください。運営が確認し、承認された情報を掲載します。"}}}},
     "Location, 1–3 photos and agreement to the terms are required. Other details can stay unknown. Closing this form keeps your draft; photos stay only until the app closes.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "場所・写真1〜3枚・規約への同意は必須です。分からない情報は不明のままでかまいません。この画面を閉じても下書きは残りますが、写真はアプリを終了すると消えます。"}}}},
@@ -833,16 +841,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "提案するピンを選ぶ"
-          }
-        }
-      }
-    },
-    "Clear": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "消去"
           }
         }
       }
@@ -1887,16 +1885,6 @@
         }
       }
     },
-    "Opens place details": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場所の詳細を開きます"
-          }
-        }
-      }
-    },
     "Other correction": {
       "localizations": {
         "ja": {
@@ -2693,16 +2681,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "対応するたばこの種類が変わった"
-          }
-        }
-      }
-    },
-    "Tap a point on the map and confirm it. Your device location is never selected automatically.": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "地図上の場所をタップして確定してください。デバイスの現在地が自動的に選択されることはありません。"
           }
         }
       }

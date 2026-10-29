@@ -137,6 +137,7 @@ run_phase light -only-testing:MannerPathUITests/B_OnlineUITests
 # Photo-report form flow against the DEBUG-only report stack (-uiTestPhotoReport): no report or photo is sent anywhere.
 run_phase photo-report -only-testing:MannerPathUITests/I_PhotoReportFlowUITests -only-testing:MannerPathUITests/J_ReportSubmissionUXUITests
 run_phase destination-search -only-testing:MannerPathUITests/DestinationSearchUITests
+run_phase primary-flows -only-testing:MannerPathUITests/N_PrimaryFlowUITests
 
 xcrun simctl ui "$sim" appearance dark
 run_phase dark \

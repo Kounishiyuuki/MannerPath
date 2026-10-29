@@ -64,7 +64,9 @@ SDK, no IDFA, no `identifierForVendor`.
   in Japanese/English; publish that policy clarification before distributing this changed app. This PR does not
   publish the site or approve ASC inputs. In-app Data & Privacy carries the same explanation.
 - **Report pin** — `ReportRequest.proposedLocation` (`Features/Reports/ReportDomain.swift`) is a pin the user
-  places on a map, quantized to 5 decimals (`ReportCoordinate.quantized`). It is not the device GPS fix.
+  places on a map, quantized to 5 decimals (`ReportCoordinate.quantized`). It is not taken from the device GPS fix
+  unless the user taps 「現在地を使う」 in the pin picker and then confirms the pin (2026-10-30); the fix is never
+  selected or sent automatically, and the pin stays editable before confirmation.
 - **Note / claims** — `ReportRequest.note`, claim fields. The retention pass
   (`services/api/src/reports/retention.ts`, ADR-0007 §4) removes free text and keeps a non-personal skeleton.
 - **Photos** — chosen via `PhotosPicker` (no library-wide access), re-encoded and stripped of metadata segments
