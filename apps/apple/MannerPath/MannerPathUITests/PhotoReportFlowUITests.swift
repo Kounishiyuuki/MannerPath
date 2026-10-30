@@ -191,14 +191,16 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     }
 
     func testClosedPhotoIntakeBlocksNewPlaces() {
-        openNewPlaceForm("closed")
-        XCTAssertTrue(app.descendants(matching: .any)["report-new-spot-closed"].waitForExistence(timeout: 10))
-        XCTAssertTrue(textContaining("現在、新しい喫煙所の報告を受け付けていません").exists)
-        XCTAssertFalse(app.buttons["report.photo.addTest"].exists)
+        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+        // The entry stays visible but explains the pause; no new-place draft, form or submit is reachable.
+        tapMapEntryWhenSettled()
+        let alert = app.alerts["現在、申請受付を停止しています"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 10))
+        XCTAssertTrue(alert.staticTexts["現在、新しい喫煙所の報告を受け付けていません。"].exists)
         screenshot("66-new-spot-closed")
-        choosePinAndAgree()
-        scrollTo(submit)
-        XCTAssertFalse(submit.isEnabled)
+        assertIntakePausedAlert()
+        XCTAssertFalse(submit.exists)
+        XCTAssertFalse(app.buttons["下書きを破棄"].exists)
     }
 
     // MARK: Interrupted uploads (resume after relaunch)

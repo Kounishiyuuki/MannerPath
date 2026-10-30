@@ -121,7 +121,7 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
         let window = app.windows.firstMatch.frame
         XCTAssertGreaterThan(mapEntry.frame.midX, window.midX, "The report entry sits top trailing")
         XCTAssertLessThan(mapEntry.frame.maxY, window.height * 0.3)
-        XCTAssertTrue(mapEntry.label.contains("喫煙所を報告"))
+        XCTAssertTrue(mapEntry.label.contains("喫煙所を追加"))
         destinationSearch.tap()
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 10))
@@ -129,13 +129,55 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
         XCTAssertTrue(searchEntry.waitForExistence(timeout: 10), "No report entry while searching")
         XCTAssertTrue(searchEntry.isHittable)
         XCTAssertLessThanOrEqual(searchEntry.frame.maxY, keyboard.frame.minY, "Entry hidden by the keyboard")
-        XCTAssertTrue(searchEntry.label.contains("喫煙所を報告"))
+        XCTAssertTrue(searchEntry.label.contains("喫煙所を追加"))
         screenshot("primary-05-search-report-entry")
         searchEntry.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["report.newPlace.introduction"].exists)
         discardReportDraft()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForNonExistence(timeout: 10))
+    }
+
+    func testPausedEntryIsFoundWhileSearchingAndOnlyExplainsThePause() {
+        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+        let mapEntry = app.buttons["mapReportButton"]
+        XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
+        waitForSheet(Self.mediumSheet, "Initial medium sheet")
+        XCTAssertTrue(mapEntry.label.contains("新規申請の受付停止中"), mapEntry.label)
+        XCTAssertGreaterThanOrEqual(mapEntry.frame.height, 44)
+        destinationSearch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+        let searchEntry = app.buttons["searchReportButton"]
+        XCTAssertTrue(searchEntry.waitForExistence(timeout: 10), "No paused entry while searching")
+        // One entry at a time, so VoiceOver never reads two.
+        XCTAssertFalse(mapEntry.exists)
+        XCTAssertFalse(app.buttons["sheetReportButton"].exists)
+        XCTAssertTrue(searchEntry.label.contains("新規申請の受付停止中"))
+        screenshot("primary-08-paused-search-entry")
+        searchEntry.tap()
+        assertIntakePausedAlert()
+    }
+
+    func testSavedDraftReopensWhileIntakeIsPaused() {
+        // A draft saved while intake was open keeps its own gate: it reopens, and its form still refuses to send.
+        launch(extraArguments: ["-uiTestPhotoReport", "success", "-uiTestReportPersistent", "YES", "-uiTestReportReset", "YES"])
+        let mapEntry = app.buttons["mapReportButton"]
+        XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
+        waitForSheet(Self.mediumSheet, "Initial medium sheet")
+        mapEntry.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        // Opening the form already saves the new-place draft on the device.
+        app.terminate()
+        launch(extraArguments: ["-uiTestPhotoReport", "closed", "-uiTestReportPersistent", "YES"])
+        XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
+        waitForSheet(Self.mediumSheet, "Relaunched medium sheet")
+        XCTAssertTrue(mapEntry.label.contains("保存済みの報告を再開"), mapEntry.label)
+        mapEntry.tap()
+        XCTAssertFalse(app.alerts["現在、申請受付を停止しています"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["report-new-spot-closed"].waitForExistence(timeout: 10))
+        let submit = app.buttons["report.submit"]
+        XCTAssertFalse(submit.exists && submit.isEnabled, "A paused deployment must not accept the draft")
+        discardReportDraft()
     }
 
     func testCurrentLocationIsOfferedAndBecomesAPinOnlyWhenChosen() {

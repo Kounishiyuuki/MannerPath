@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var reportModel = ReportComposition.makeModel()
     @State private var showingReport = false
     @State private var showingQuickConfirm = false
+    @State private var showingIntakePaused = false
     /// The report form opened from a new-report entry while an earlier report still waits for photos: it first asks
     /// whether to add photos to that report or to report a new place.
     @State private var reportOpensWithFollowUpChoice = false
@@ -51,8 +52,9 @@ struct ContentView: View {
         // Top trailing: the search field lives in the sheet, the compass sits top leading (ClusteredSpotMap), and the
         // sheet covers the bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and
         // the sheet's bottom bar takes over; while searching, a row under the results does. VoiceOver never meets two.
+        // Shown even while intake is paused, so the feature can be found; tapping it then explains the pause.
         .overlay(alignment: .topTrailing) {
-            if reportEntryAvailable, sheetDetent != .large, !searchPresented, !searchFocused, !isShowingSearchResults {
+            if sheetDetent != .large, !searchPresented, !searchFocused, !isShowingSearchResults {
                 mapReportButton.padding(.trailing, 16).padding(.top, 8)
             }
         }
@@ -105,7 +107,7 @@ struct ContentView: View {
                     }
                     // Searching hides the map and the large-detent bar, so the report entry follows the results: a
                     // place that is not found can be reported from here, with the keyboard still open.
-                    if reportEntryAvailable, searchPresented || searchFocused || isShowingSearchResults {
+                    if searchPresented || searchFocused || isShowingSearchResults {
                         Section { searchReportButton }.listRowBackground(Color.clear)
                     }
                     if model.browsingCoordinate == nil {
@@ -254,6 +256,15 @@ struct ContentView: View {
         .sheet(isPresented: $showingQuickConfirm) {
             QuickConfirmView(model: reportModel)
         }
+        // Presented from inside the sheet: the map entry sits under it, and the root cannot present over the sheet.
+        .alert("New place submissions are paused", isPresented: $showingIntakePaused) {
+            if case .unknown = reportModel.availability {
+                Button("Check reporting again") { Task { await reportModel.refreshAvailability() } }
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(intakePausedReason)
+        }
         .sheet(isPresented: $showingFilters) {
             NavigationStack {
                 Form { NearbyFilterView(filters: $filters) }
@@ -345,16 +356,21 @@ struct ContentView: View {
         showingReport = true
     }
 
-    /// The map and toolbar entries share the gate of the in-list entry: only when the deployment accepts reports.
-    private var reportEntryAvailable: Bool {
-        if case .available = reportModel.availability { return true }
-        return false
+    /// The entry is always shown; only a deployment that accepts photo-backed new places lets it start one.
+    private var intakePausedReason: LocalizedStringKey {
+        switch reportModel.availability {
+        case .available: "New smoking places are not being accepted right now."
+        case .unknown: "Reporting availability could not be checked. Try again when connected."
+        case .unavailable: "Reports are currently unavailable."
+        case .incompatible: "Update the app to submit reports."
+        case .attestationUnsupported: "Secure reporting isn't supported on this device."
+        }
     }
 
     private var reportEntryTitle: LocalizedStringKey {
         if reportModel.draft != nil { return "Continue saved report" }
         if reportModel.hasPendingPhotoFollowUp { return "Send photos for your received report" }
-        return reportModel.acceptsNewSpotProposals ? "Add a smoking place to the map" : "New place submissions paused"
+        return reportModel.acceptsNewSpotProposals ? "Add a smoking place" : "New place submissions paused"
     }
 
     private var reportEntrySymbol: String {
@@ -362,10 +378,13 @@ struct ContentView: View {
         return reportModel.acceptsNewSpotProposals ? "plus.circle.fill" : "pause.circle"
     }
 
-    /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does.
+    /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does. Drafts and photo
+    /// follow-ups keep their own gates; only a new place needs the deployment to accept new-place proposals.
     private func openReportEntry() {
-        if reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
+        if reportModel.hasPendingPhotoFollowUp {
             beginNewReport { startAddingPlace() }
+        } else if reportModel.canStartReport {
+            if reportModel.acceptsNewSpotProposals { beginNewReport { startAddingPlace() } } else { showingIntakePaused = true }
         } else if reportModel.draft != nil || reportModel.photoFollowUp != nil {
             showingReport = true
         }
@@ -386,8 +405,13 @@ struct ContentView: View {
     /// ToolbarItem would collapse to its icon. Not while searching (the keyboard and suggestions own the bottom) and
     /// not when the empty state already shows its own report button.
     private var showsSheetReportBar: Bool {
-        reportEntryAvailable && sheetDetent == .large && !searchPresented && !searchFocused && !isShowingSearchResults
-            && !(model.dataState == .refreshed && model.results.isEmpty && !model.hasUnfilteredResults)
+        sheetDetent == .large && !searchPresented && !searchFocused && !isShowingSearchResults && !emptyStateOffersReport
+    }
+
+    private var emptyStateOffersReport: Bool {
+        guard model.dataState == .refreshed, model.results.isEmpty, !model.hasUnfilteredResults,
+              case .available = reportModel.availability else { return false }
+        return reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp
     }
 
     private var sheetReportBar: some View {
@@ -778,8 +802,8 @@ struct ContentView: View {
             } description: {
                 Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability, acceptsNewSpotProposals: reportModel.acceptsNewSpotProposals))
             } actions: {
-                if case .available = reportModel.availability, reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
-                    Button { beginNewReport { startAddingPlace() } } label: {
+                if emptyStateOffersReport {
+                    Button { openReportEntry() } label: {
                         Label(reportEntryTitle, systemImage: reportEntrySymbol)
                     }
                         .buttonStyle(.borderedProminent)

@@ -84,6 +84,16 @@ class MannerPathUITestCase: XCTestCase {
         confirm.tap()
     }
 
+    /// Paused intake: the entry explains the pause and never opens a new-place form, so nothing can be sent.
+    func assertIntakePausedAlert(file: StaticString = #filePath, line: UInt = #line) {
+        let alert = app.alerts["現在、申請受付を停止しています"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 10), "No paused-intake explanation", file: file, line: line)
+        XCTAssertFalse(app.navigationBars["喫煙場所を追加"].exists, "A paused entry opened the form", file: file, line: line)
+        alert.buttons["OK"].tap()
+        XCTAssertTrue(alert.waitForNonExistence(timeout: 10), file: file, line: line)
+        XCTAssertFalse(app.navigationBars["喫煙場所を追加"].exists, file: file, line: line)
+    }
+
     func assertNoDeveloperText(file: StaticString = #filePath, line: UInt = #line) {
         let leak = NSPredicate(format: """
             label CONTAINS[c] '127.0.0.1' OR label CONTAINS[c] 'localhost' OR label CONTAINS[c] 'debug' \
@@ -1064,10 +1074,12 @@ final class I_ProductionAPIUITests: MannerPathUITestCase {
         waitForResults()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30), "Live refresh did not succeed")
         screenshot("70-production-nearby")
-        XCTAssertFalse(app.buttons["mapReportButton"].exists)
-        XCTAssertFalse(app.buttons["sheetReportButton"].exists)
-        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙所を報告' OR label == '新規申請の受付停止中'")).firstMatch.exists,
-                       "Add-place must be hidden while production reports are unavailable")
+        // The entry stays visible so the feature can be found, but only explains that intake is paused.
+        let entry = app.buttons["mapReportButton"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10))
+        XCTAssertTrue(entry.label.contains("新規申請の受付停止中"), entry.label)
+        entry.tap()
+        assertIntakePausedAlert()
 
         let first = resultRows.firstMatch
         scrollTo(first)

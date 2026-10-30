@@ -94,6 +94,31 @@ SDK, no IDFA, no `identifierForVendor`.
    (`/v1/config` `reports.available`), and App Attest registration must be assessed independently.
    Photos are disabled in the shipping composition regardless of dormant photo code.
 
+## Report pin from 「現在地を使う」 (audit 2026-10-30, PR #349)
+
+Facts, from the code on `feat/iphone-primary-navigation-ux`:
+
+1. **On-device fix.** The pin picker offers the existing When-In-Use fix (`ContentView.reportDeviceLocation`); with
+   no permission yet or only a last-known fix it offers 「現在地を取得」, which asks for one fresh fix. The accuracy
+   shown (`report.pin.currentLocationAccuracy`) stays on the device.
+2. **User confirmation.** Tapping 「現在地を使う」 only moves the candidate pin; it stays editable and becomes the
+   draft's `proposedLocation` only on 「確定」 (`ReportPinPicker.onConfirm` → `pin.quantized`, 5 decimals ≈ 1 m).
+3. **Stored.** The confirmed pin lives in the on-device draft (`FileReportDraftStore`) until submitted or discarded.
+4. **Sent.** Only `ReportRequest.encoded` sends it, on an explicit submit to a deployment that accepts the report;
+   no accuracy, timestamp or location history is sent.
+5. **Paused intake.** With intake paused (any `ReportAvailability` other than `.available` with photo intake) the
+   「＋ 喫煙所を追加」 entry shows only an alert and creates no draft, so nothing is stored or sent. A saved draft can
+   still be reopened, but its form refuses to submit (`submissionReadinessMessage`).
+6. **Association.** A submitted new-place report carries the pin, 1–3 re-encoded photos without EXIF/GPS (sent after
+   acceptance, tied to the `reportId`), and `installId` (server keeps only the submitter hash; App Attest key id when
+   attested). The pin is therefore associated with the photos and that per-install hash, not with an account.
+
+**ASC answer draft (not entered; maintainer decides, only when reports are enabled in the shipped deployment):**
+because a pin may now equal the device position at ~1 m, answer **Precise Location — collected, linked (see note 2),
+not tracking, App Functionality**, alongside Photos or Videos and Device ID as in
+[the photo decision pack §3](legal/PHOTO_LEGAL_DECISION_PACK.md). While intake stays off, this change adds no
+collection; the existing conservative Precise Location proposal (submission §2.2) already covers it.
+
 ## Privacy manifests
 
 | Bundle | Manifest | Required-reason APIs | Collected types declared |
