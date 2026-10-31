@@ -1,8 +1,9 @@
 # v1.0 P0 — Photo-backed new place submission
 
-Status: **Plan (PR 1 of the series below).** Product decision 2026-10-22: proposing a new smoking place with
-photos is a v1.0 P0 feature, not deferred to v1.1. This document makes that decision executable: requirements,
-UI specification, the audited gap list, the PR breakdown and the verification that closes each gate.
+Status: **Code complete up to P7; fail-closed.** Product decision 2026-10-22: proposing a new smoking place with
+photos is a v1.0 P0 feature, not deferred to v1.1. Re-audited 2026-10-31 against `main` `2a050cd` (§5): what is
+left is maintainer approval (#124 terms, App Privacy), operations (bindings, edge rule, cron) and the staging and
+device evidence of P8.
 
 This decision changes **product scope only**. It grants no legal approval (Issue #124), enables no production
 intake and changes no Cloudflare, D1, R2 or API configuration. ADR-0007/0013/0014/0016/0021 stay authoritative;
@@ -129,18 +130,22 @@ Exists (reuse):
 | New-spot photo publication gate: a `missing` report backs a new-spot review only with a ready, approved, unexpired photo (`newSpotPhotoGate`, checked at propose/export and by REPORTS_DB migration 0009); photo-less reports are held and minimize normally | Implemented; 0009 not applied to any remote store |
 | Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 
-Missing (this plan):
+Re-audit 2026-10-31 (`main` `2a050cd`; `make api-validate` 1484 tests pass, `make contract` OK). The gap list
+written with this plan is closed in code except where a row names a maintainer:
 
-| Gap | Blocks | PR |
+| Gap (original) | State | Evidence |
 | --- | --- | --- |
-| Standalone map button, empty-state copy | R1, R2 | P2 |
-| Production fenced storage adapter (R2 + durable fence) and expiry/backup cleanup, config wiring behind a reviewed switch | R5 | P5 |
-| `photoEvidenceEnabled` config path that is true only with storage + covered terms version | R5, R9 | P5 |
-| Moderator photo viewing (`photo-view`) | R11 | P6 |
-| Photo clause in terms; App Privacy and privacy policy text | R9, R10 | P7 (text) + maintainer approval |
-| Staging E2E runbook and evidence | R13 | P8 |
-| Device verification record | R14 | P8 |
-| Edge IP rate-limit rule, R2 bucket, REPORTS_DB, App Attest secrets in production | R5, R8 | Maintainer operations only |
+| Standalone map button, empty-state copy (R1, R2) | Implemented | P2; three-detent sheet integration in #344 |
+| Production fenced storage adapter, expiry and cleanup (R5) | Implemented, off | `src/reports/r2-photo-storage.ts` (create-only PUT, zero-byte fence on delete); `r2-photo-storage*.test.ts`, `new-spot-photo-erasure-window.test.ts`, migration 0010; `report-retention-automation.test.ts` |
+| `photoEvidenceEnabled` true only with storage and reviewed terms (R5, R9) | Implemented, off | `src/reports/photo-policy.ts` (`REVIEWED_PHOTO_TERMS` = `[]`); `photo-policy.test.ts`, `photo-activation-readiness.test.ts` (server and app lists must match) |
+| Moderator photo viewing (R11) | Implemented (local Admin) | `src/reports/private-photo-view.ts`; `private-photo-view.test.ts`, `admin-*.test.ts`; [LOCAL_MODERATION_ADMIN](../LOCAL_MODERATION_ADMIN.md). Real R2 not exercised |
+| Photo clause, App Privacy, privacy policy text (R9, R10) | Candidate text only | [PHOTO_TERMS_CANDIDATE](../legal/PHOTO_TERMS_CANDIDATE.md), [decision pack](../legal/PHOTO_LEGAL_DECISION_PACK.md). **Maintainer approval (#124)**; `PrivacyInfo.xcprivacy` gets Photos only in the activation PR |
+| Staging E2E runbook and evidence (R13) | Runbook and offline preflight only | [V1_PHOTO_STAGING_RUNBOOK](V1_PHOTO_STAGING_RUNBOOK.md), `photo-staging-preflight.test.ts`, local `v1-photo-report-e2e.test.ts`. No staging run recorded |
+| Device verification record (R14) | Run sheet only | [V1_FINAL_DEVICE_E2E](V1_FINAL_DEVICE_E2E.md). No device run recorded |
+| Edge IP rule, R2 bucket, REPORTS_DB, App Attest secrets, retention cron (R5, R8) | Not configured | **Maintainer operations.** Every `wrangler.jsonc` env has `crons: []` and no photo binding; per-key limits exist in code (`reportRateLimited`) |
+| Per-report erasure on request (ADR-0021) | Not implemented | ADR-0021 is Proposed; its §7 decisions are the maintainer's. Terms must not promise erasure beyond the 90-day ceiling until then |
+
+Activation steps and the gate list: [V1_PHOTO_ACTIVATION_HANDOFF](V1_PHOTO_ACTIVATION_HANDOFF.md).
 
 ## 6. PR breakdown (each small, independently reviewable; none enables production)
 
