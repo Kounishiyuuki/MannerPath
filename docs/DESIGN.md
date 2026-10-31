@@ -304,7 +304,9 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
   warning prominence. Native `dismissSearch` ends editing on selection; existing selection/query handlers stay.
   Keep destination-mode copy and the straight-line vs route explanation.
 - **Selected destination (2026-10-30):** 「目的地: <name>」 and 「目的地を解除」 sit in a bar above the list at medium and
-  large (not while searching, not collapsed), so clearing never needs a scroll to the end of the results.
+  large (not while searching, not collapsed), so clearing never needs a scroll to the end of the results. It is one
+  row with text capped at xxxLarge, like a system bar (Large Content Viewer and VoiceOver keep the full labels):
+  stacked and uncapped at AX5 it covered about 80% of the medium sheet (2026-10-31).
 
 ### 5.10 Empty
 

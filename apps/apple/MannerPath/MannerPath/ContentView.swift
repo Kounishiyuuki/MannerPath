@@ -889,8 +889,9 @@ struct ContentView: View {
     }
 
     private func destinationBar(_ destination: PlaceDestination) -> some View {
-        adaptiveRowLayout {
+        HStack(spacing: 8) {
             Label(String(localized: "Destination: \(destination.name)"), systemImage: "flag.checkered")
+                .lineLimit(2)
                 .font(.subheadline.weight(.semibold))
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button { selectDestination(nil) } label: {
@@ -902,6 +903,11 @@ struct ContentView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 6)
+        // A fixed bar over the list, capped like the system bars and kept to one row: uncapped and stacked at AX5 it
+        // covered about 80% of the medium sheet and left the list unusable. The Large Content Viewer and VoiceOver
+        // still give the full labels.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .accessibilityShowsLargeContentViewer()
         .background(.bar)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("destinationBar")
