@@ -599,6 +599,13 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
             let remaining = deadline.timeIntervalSinceNow
             if remaining > 0, XCTWaiter().wait(for: [ready], timeout: min(1, remaining)) == .completed { return }
         }
-        XCTAssertTrue(onScreenAndHittable(element))
+        guard !onScreenAndHittable(element) else { return }
+        screenshot("list-scroll-failure")
+        let tree = XCTAttachment(string: "target=\(element.exists ? String(describing: element.frame) : "missing")\n"
+            + app.debugDescription)
+        tree.name = "\(phase)-list-scroll-failure-tree"
+        tree.lifetime = .keepAlways
+        add(tree)
+        XCTFail("Could not scroll the list to \(element)")
     }
 }

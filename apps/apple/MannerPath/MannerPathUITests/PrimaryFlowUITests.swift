@@ -99,8 +99,12 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: clear)
         XCTAssertEqual(XCTWaiter().wait(for: [ready], timeout: 10), .completed, "Clear is not reachable without scrolling")
         XCTAssertGreaterThanOrEqual(clear.frame.height, 44)
-        XCTAssertTrue(app.descendants(matching: .any)["destinationBar"].staticTexts["目的地: 上野駅"].exists)
+        let bar = app.descendants(matching: .any)["destinationBar"]
+        XCTAssertTrue(bar.staticTexts["目的地: 上野駅"].exists)
         screenshot("primary-03-destination-bar-\(largeText ? "ax5" : "normal")")
+        // The bar sits over the list: at AX5 it once stacked and wrapped down to y=757 of 852, leaving the medium
+        // sheet's list a 95 pt band that the destination rows could not be scrolled into.
+        XCTAssertGreaterThanOrEqual(app.windows.firstMatch.frame.maxY - clear.frame.maxY, 140, "Clear at \(clear.frame)")
         clear.tap()
         // The outcome: no destination, and the list is about the device location again.
         XCTAssertTrue(clear.waitForNonExistence(timeout: 10))
