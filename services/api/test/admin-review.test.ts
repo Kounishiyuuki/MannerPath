@@ -73,7 +73,8 @@ test('concurrent reused operation UUID with different decisions cannot overwrite
  const results=await Promise.allSettled([applyAdminDecision(db,input,now),applyAdminDecision(db,{...input,state:'rejected',reason:'outOfScope'},now)]);
  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
  const detail=await getAdminReport(x.db,x.reportId,now);assert.equal(detail.history.length,1);assert.equal(detail.report.state,detail.history[0].state);
- assert.equal(detail.history[0].state,'needsInfo');
+ // Which request reaches its batch first depends on async hashing under load; the winner is whichever one fulfilled.
+ assert.equal(detail.history[0].state,results[0].status==='fulfilled'?'needsInfo':'rejected');
 });
 test('discarded and artifact-exported reports are not counted as waiting or publicly published',async()=>{
  const x=await fixture();
