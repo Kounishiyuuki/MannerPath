@@ -12,6 +12,12 @@ signed-device, privacy/terms and moderation gates agree. Do not ship read-only a
 For enabled photos, §0.2/§0.4/§4's old disabled-flow answers must be re-decided using
 [PHOTO_PRIVACY_REVIEW](legal/PHOTO_PRIVACY_REVIEW.md); in particular, no automatic “not linked” answer.
 
+**2026-10-31 photos-enabled v1.0 audit:** the disabled-flow answers in §0.2/§4 and disabled
+paragraphs in §3/§5 are historical, **not the answers to enter for the requested v1.0**.
+Use [the current audit §3](release/V1_APP_STORE_GATE_AUDIT_2026-10-31.md#3-app-privacy写真有効版の回答案未承認)
+for the enabled proposal (including #349's explicitly selected current-location pin). Keep submission blocked
+until owner-approved labels/policy/manifest, runtime and signed RC agree. No ASC values were entered.
+
 What to type into App Store Connect (ASC), in order, and what cannot be typed yet. Rationale, Apple references and
 evidence live in [APP_STORE_SUBMISSION.md](APP_STORE_SUBMISSION.md) (§ numbers below point there); privacy
 evidence classifications are owned by [PRODUCTION_PRIVACY_AUDIT.md](PRODUCTION_PRIVACY_AUDIT.md) (#178/#185).
