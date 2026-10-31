@@ -16,7 +16,11 @@
 
 ## D1/暗号化を検討中の場合（2026-10-31追記）
 
-現main `1e2d009`はR2経路のまま。D1/暗号化PoCは未統合で、法務承認も有効化もされていない。
+初回監査時のmain `1e2d009`ではD1/暗号化PoCは未統合だった。
+2026-11-01再照合：最新main `d3508d5`へ#357・#358・#360のPoCソースは統合済み。
+通常の申請経路はR2のままで、D1/暗号化の正式採用・法務承認・本番有効化は確認されていない。
+`app-privacy-candidate.json`の`storageReview`（`unmerged-poc`等）は初回監査のsnapshotとして保持する。
+現在の統合状態はこの追記を参照し、候補値や削除説明、未承認ゲートの変更とは扱わない。
 [D1データフローと公式文書](D1_PHOTO_PRIVACY.md)、[日英policy候補](PRIVACY_POLICY_D1_CANDIDATE.md)、
 [削除依頼/再install support候補](SUPPORT_PHOTO_DELETION_CANDIDATE.md)を承認前の差分として使う。
 下記の旧R2由来90日/89日記述を、D1の物理消去期限やupload可能期間の確約へ転用しない。

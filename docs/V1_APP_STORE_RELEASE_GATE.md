@@ -25,7 +25,9 @@ is not a matrix PASS; current main includes later UI changes. No ASC or producti
 G2/G8/G10/G12の準備作業は完了したが、運営者承認/当日scope/署名RC/実環境証拠がないためP0はOPENを維持。
 
 **D1/暗号化案の未決事項（2026-10-31）**：[方式別Privacy評価](release/submission-v1/D1_PHOTO_PRIVACY.md)
-と日英policy/support候補を追加。main `1e2d009`は未承認R2経路、D1/暗号化は未統合PoC。
+と日英policy/support候補を追加。初回監査時のmain `1e2d009`ではD1/暗号化PoCは未統合。
+2026-11-01再照合：main `d3508d5`へ#357・#358・#360のPoCソースは統合済み。
+通常の申請経路は未承認R2構成のまま。PoC統合を方式採用・本番有効化・消去検証済みとは扱わない。
 G2/G3/G7/G16/G23はOPEN。Time Travel、全鍵copy、本文/pinの履歴、再install本人確認を含む
 最終方式・期限・restore検証をLane 3/運営者が確定するまで、90日の物理消去/E2EE/削除ボタンを約束しない。
 

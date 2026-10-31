@@ -1,15 +1,18 @@
 # D1写真案：Privacyと削除説明の差分
 
-**未承認・設計未決・本番未実装。** 2026-10-31、取得済みmain `1e2d009`とPR #353を確認。
+**未承認・設計未決・本番未実装。** 初回監査：2026-10-31、当時のmain `1e2d009`とPR #353を確認。
 [Release Gate](../../V1_APP_STORE_RELEASE_GATE.md)のG2/G3/G7/G16/G23はOPEN。
 本書はLane 3の方式を決めず、法的十分性も認定しない。公開site/規約/アプリ/バックエンドは変更しない。
 
 ## 1. 確認したデータフローとラベル
 
-mainの`photo-policy.ts`はR2実装のみ、`REVIEWED_PHOTO_TERMS=[]`。
+**2026-11-01再照合：最新main `d3508d5`には#357・#358・#360が統合済み。**
+通常の申請経路の`photo-policy.ts`は引き続きR2実装のみ、`REVIEWED_PHOTO_TERMS=[]`。
 [#357](https://github.com/Kounishiyuuki/MannerPath/pull/357)、[#358](https://github.com/Kounishiyuuki/MannerPath/pull/358)、
-[#360](https://github.com/Kounishiyuuki/MannerPath/pull/360)は監査時OPENのPoC。D1/BLOB、binary v3、
-暗号helperは公開経路へ接続されていない。未mergeコードの測定は本番証拠ではない。
+[#360](https://github.com/Kounishiyuuki/MannerPath/pull/360)は初回監査時にはOPENだったPoCで、現在はmainに統合済み。D1/BLOB、binary v3、
+暗号helperは通常の申請経路へ接続されていない（暗号helperは隔離probeから使用）。
+ソース統合やPoC測定は、方式の正式採用・本番有効化・実環境の消去証明ではない。
+以下のデータフロー表は通常の申請経路を記述する。
 
 | データ | mainでの保存・関連付け・目的 | 保持とD1案で再確認する点 |
 | --- | --- | --- |
