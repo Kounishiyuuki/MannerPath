@@ -93,6 +93,12 @@ existing production REPORTS_DB, not only photos. Who reads these fields today: t
 (`review.ts` reads pins and `submitter_hash`; `triage.ts`, `moderation.ts`, Admin) and SQL-side equality/joins on
 `submitter_hash` (independence, bulk rejection).
 
+Legal explanation (for counsel; not legal advice): the policy may state that report text, pin, date and the device-derived
+hash are removed from the operational store when the report is minimized (90 days), and must disclose that the provider's
+recovery mechanism keeps restorable history for 7 days and that physical erasure inside the provider is not under the
+operator's control. Whether that satisfies APPI's retention/erasure expectations (e.g. the effort duty to erase personal
+data no longer needed) is counsel's call, together with ADR-0021 L2.
+
 | Measure | Closes | Cost | Proposal |
 | --- | --- | --- | --- |
 | R1 Disclose in the policy (as for photos without encryption) | nothing technically | text only | **now**, with counsel |
@@ -141,15 +147,36 @@ The test also shows the core residual risk: **a copy of the old file (snapshot, 
 | Clock behind | rotation lags | broken for lagging days | NTP; compare with server time |
 | Clock ahead / mistaken date | future days destroyed | met; photos of those days unreviewable early | refuse jumps > 1 day without confirmation |
 | File corrupted | load refuses (checksum) | met (nothing derivable) but review stops | none needed for privacy; new chain + new public keys for review |
-| APFS: rename is copy-on-write | old seed blocks remain on the SSD until reused/TRIMmed | **not provable** | encrypted volume (FileVault); see hardening |
-| Time Machine local snapshots / backups | may hold old seed files | **broken for as long as the snapshot exists** | keep the seed outside snapshotted/backed-up volumes (to be verified on the machine); or hardening |
+| APFS: rename is copy-on-write | old seed blocks remain on the SSD until reused/TRIMmed | **not provable** | encrypted volume (FileVault); see §5.2 |
+| Time Machine local snapshots / backups | may hold old seed files | **broken for as long as the snapshot exists** | keep the seed outside snapshotted/backed-up volumes (to be verified on the machine); see §5.2 |
 | Keychain / password manager / cloud sync | item history and sync copies | broken | do not use for the seed |
 | Admin session memory | day keys as `CryptoKey` in a running process | broken while it runs | short sessions, process exit, no core dumps |
 
-Hardening (proposal, not built): keep the seed encrypted under a **Secure Enclave key** that is replaced daily
-(create E_{k+1}, re-encrypt the advanced seed, delete E_k). Old file copies in snapshots/backups are then useless without
-E_k, so the snapshot/backup/COW rows above stop mattering. Requires a small Swift tool (CryptoKit) and relies on
-Apple's statement that deleted Secure Enclave keys are unrecoverable — to be checked against Apple's documentation.
+### 5.1 Secure Enclave as hardening — checked against Apple's documentation (2026-11-01): **not shown to help**
+
+The idea was: keep the seed encrypted under a Secure Enclave key, replace that key daily, so old seed copies in
+snapshots/backups become useless. What Apple's official pages say:
+
+- Apple Platform Security, "Keychain data protection": "The keychain is implemented as a SQLite database, stored on the
+  file system"; "ThisDeviceOnly" items are "always protected with the UID when being copied from the device during a
+  backup", i.e. usable again on the same device.
+- Apple Platform Security, "Secure Enclave": describes nonvolatile storage for anti-replay services and user data
+  encryption keys; it does **not** say that third-party Secure Enclave keys live inside the enclave, nor what deleting
+  one does. The developer pages for `SecureEnclave.P256…dataRepresentation` and "Protecting keys with the Secure
+  Enclave" did not render for verification.
+
+Consequence: an app's Secure Enclave key is reachable through state stored on the file system; an APFS snapshot or a
+backup of that state, restored on the **same Mac**, may bring the old key back. Nothing official says deletion prevents
+that. The proposal is therefore **not adopted**; it would need Apple documentation or a test on the actual Mac proving
+that an old keychain/blob copy cannot be used after deletion.
+
+### 5.2 Open issues and what can actually be done
+
+| Issue | What is possible | What is not |
+| --- | --- | --- |
+| APFS local snapshots (Time Machine) holding an old seed | operator checks `tmutil listlocalsnapshots /` and the seed's volume; keep the seed on a dedicated encrypted APFS volume that Time Machine does not snapshot (to be confirmed on the machine); delete existing snapshots | proving that no snapshot ever captured the file; APFS snapshot behavior is per volume and must be observed, not assumed |
+| Copies of an old seed (backups, sync, copy-on-write blocks) | no backup, no sync, no password manager, one file, FileVault on | physical removal of the old blocks on an SSD — not provable (the same reason NIST §3.2.3's "all copies sanitized" is only partly met) |
+| Mac off → rotation late | `launchd` with `RunAtLoad` + daily interval; alert when > 0 days behind; the statement holds only while rotation runs | rotation elsewhere: the seed must not be replicated to another machine or to Cloudflare, so a powered-off Mac delays destruction. This is an operational limit to disclose internally, and a reason the policy text describes a practice, not a guarantee |
 
 ## 6. Three things that must not be confused
 
