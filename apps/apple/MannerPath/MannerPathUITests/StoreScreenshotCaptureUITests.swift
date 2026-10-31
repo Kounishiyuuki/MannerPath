@@ -56,7 +56,7 @@ final class StoreScreenshotCaptureUITests: MannerPathUITestCase {
         XCTAssertTrue(resultRows.firstMatch.waitForExistence(timeout: 45))
         let first = resultRows.firstMatch
         scrollTo(first, maxSwipes: 12)
-        first.tap()
+        openDetail(fromRow: first)
         waitForDetail()
         let handoff = app.buttons["open-walking-directions"]
         scrollTo(handoff, maxSwipes: 12)

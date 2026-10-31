@@ -24,7 +24,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 30))
         settle(entry)
         XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
-        XCTAssertTrue(entry.label.contains("喫煙所を追加する") || entry.label.contains("保存済みの報告を再開"))
+        XCTAssertTrue(entry.label.contains("喫煙所を追加") || entry.label.contains("保存済みの報告を再開"))
         entry.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
     }
@@ -270,10 +270,9 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         XCTAssertTrue(entry.label.contains("新規申請の受付停止中"))
         screenshot("report-ux-10-paused-entry-fixture")
         entry.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["report-new-spot-closed"].waitForExistence(timeout: 10))
-        scrollTo(submit)
-        XCTAssertFalse(submit.exists && submit.isEnabled)
-        screenshot("report-ux-11-paused-form-fixture")
+        XCTAssertTrue(app.alerts["現在、申請受付を停止しています"].waitForExistence(timeout: 10))
+        screenshot("report-ux-11-paused-alert-fixture")
+        assertIntakePausedAlert()
     }
 
     func testEnglishIntroductionRetainsAccessibleControls() {
@@ -340,7 +339,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
 
     private func checkEntry(_ entry: XCUIElement, screenshotName: String, opensForm: Bool) {
         settle(entry)
-        XCTAssertTrue(entry.label.contains("喫煙所を追加する"))
+        XCTAssertTrue(entry.label.contains("喫煙所を追加"))
         XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(entry.frame), "Entry must not be clipped")
         screenshot(screenshotName)
@@ -374,9 +373,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         XCTAssertTrue(bar.label.contains("新規申請の受付停止中"))
         screenshot("integration-paused-large")
         bar.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["report-new-spot-closed"].waitForExistence(timeout: 10))
-        scrollTo(submit)
-        XCTAssertFalse(submit.exists && submit.isEnabled)
+        assertIntakePausedAlert()
     }
 
     func testMapEntryYieldsToEmptySearchAtMediumAndCollapsed() {
