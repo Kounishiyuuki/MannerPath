@@ -21,8 +21,8 @@ import { JPEG_MAX_BYTES } from "../../reports/jpeg-structure.ts";
 export const PHOTO_DOMAIN = "mannerpath.app-attest.photo.v3";
 export const PHOTO_V3_CONTENT_TYPE = "application/vnd.mannerpath.photo.v3";
 export const PHOTO_V3_HEADER_MAX_BYTES = 4096;
-/** Below D1's 2,000,000-byte row/BLOB limit with margin; all measured client output (≤1.07 MB) fits. */
-export const PHOTO_V3_IMAGE_MAX_BYTES = Math.min(JPEG_MAX_BYTES, 1_500_000);
+/** Provisional cap (2026-10-31): below D1's 2,000,000-byte row/BLOB limit; all measured client output (≤1.07 MB) fits. */
+export const PHOTO_V3_IMAGE_MAX_BYTES = Math.min(JPEG_MAX_BYTES, 1_200_000);
 export const PHOTO_V3_BODY_MAX_BYTES = 4 + PHOTO_V3_HEADER_MAX_BYTES + PHOTO_V3_IMAGE_MAX_BYTES;
 
 const base64 = (max: number) => z.string().min(4).max(max).regex(/^[A-Za-z0-9+/]+={0,2}$/);

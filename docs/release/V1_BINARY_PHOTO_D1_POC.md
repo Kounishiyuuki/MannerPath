@@ -11,7 +11,7 @@ base64-decoded twice by a JS loop with a re-encode check and matched by a regex.
 
 ```
 POST /v1/reports/{reportId}/photos          Content-Type: application/vnd.mannerpath.photo.v3
-body       = uint32_be(headerLength) ‖ header ‖ image                       headerLength 2…4096, image 1…1,500,000 B
+body       = uint32_be(headerLength) ‖ header ‖ image                       headerLength 2…4096, image 1…1,200,000 B (provisional cap; was 1.5 MB in the first PoC)
 header     = {"schemaVersion":3,"payload":"<base64>","attestation":{"keyId","challenge","assertion"}}
 payload    = {"schemaVersion":3,"kind":"photo","reportId","idempotencyKey","acceptedTermsVersion",
               "mediaType":"image/jpeg","byteLength","sha256"}               ≤ ~1 KiB, the only base64 left
@@ -27,7 +27,7 @@ clientData = frame("mannerpath.app-attest.photo.v3") ‖ frame(challenge) ‖ fr
 | Domain separation | new domain string; a report/v2 assertion over the same bytes never verifies | signed with report domain → `403 assertionInvalid` |
 | Owner only | `submitter_hash` from the attested key must equal the report's | other device → `403 photoUnauthorized` |
 | Counter, revocation, environment, bundle version | same `readKey` / `verifyAssertion` / `advanceCounterStatement` as v2 | covered by existing suites for those functions |
-| Size limits | `Content-Length` pre-check, bounded streaming read, header ≤4 KiB, image ≤1.5 MB, total ≤1,504,100 B | 1.6 MB body → `413`; header 4,097 → `400` |
+| Size limits | `Content-Length` pre-check, bounded streaming read, header ≤4 KiB, image ≤1.2 MB, total ≤1,204,100 B | 1.6 MB body → `413`; header 4,097 → `400` |
 | Resend / idempotency | same draft key + same image with a fresh challenge → same `photoId`; same key + other image → `409` | yes |
 | Attachments per report | 3 (existing trigger) | 4th → `photoAttachmentLimit` |
 
@@ -72,11 +72,11 @@ cap to 1.2 MB (all real client output ≤1.07 MB) removes the near-cap rows.
 | --- | --- | --- |
 | Where | a dedicated D1 database, not REPORTS_DB (keeps the report store's 500 MB for reports) | design |
 | Row | `photo_objects(storage_key PK, state live/deleted, bytes BLOB, sha256, byte_length, …)` — one row per photo, one bound BLOB parameter | 1.07 MB round-trip byte-identical in a local workerd D1 check (wrangler local mode, earlier session, not committed) and in node:sqlite tests here |
-| 2 MB limit | image cap 1.5 MB < 2,000,000 B | design; remote enforcement **unverified** (local accepted 2,000,001 B) |
-| 100 KB statement limit | the BLOB is a bound parameter, not SQL text; whether D1 counts it toward 100 KB is **not documented** | **remote test required**; fallback: ≤90 KB chunk rows in one batch (≈17 statements at 1.5 MB, within 50 queries/invocation) |
+| 2 MB limit | image cap 1.2 MB < 2,000,000 B | design; remote enforcement **unverified** (local accepted 2,000,001 B) |
+| 100 KB statement limit | the BLOB is a bound parameter, not SQL text; whether D1 counts it toward 100 KB is **not documented** | **remote test required**; fallback: ≤90 KB chunk rows in one batch (≈14 statements at 1.2 MB, within 50 queries/invocation). **Update (probe PR): local workerd D1 accepted bound BLOBs of 90 KB … 2,000,001 B intact; a >100 KB SQL literal was refused (`SQLITE_TOOBIG`) — the bound parameter is not counted locally; remote still unverified** |
 | Create-only put, identical retry, conflict | `INSERT … ON CONFLICT DO NOTHING` then compare | tests |
 | Permanent fence | `live → deleted` only; triggers refuse resurrection, edits and row removal; delete before put creates the fence | tests |
-| Residual bytes | `PRAGMA secure_delete = ON` in the fence batch: freed pages are zeroed | local file: **1,987 fragments left without it, 0 with it**; D1 acceptance of this PRAGMA **unverified** |
+| Residual bytes | **Superseded (probe PR):** local workerd D1 refuses `PRAGMA secure_delete` (`SQLITE_AUTH`), and batching it made the whole fence fail; the fence no longer uses it. Free pages keep fenced bytes until reused; `zeroblob()` overwrite does not help | node:sqlite: 1,987 fragments without the PRAGMA, 0 with it — but the PRAGMA is unavailable on D1. See V1_FREE_TIER_PROBE_RUNBOOK.md §3 |
 | Space reuse | freed pages go to the free list and are reused; the file does not shrink | local: 50 MB live → fenced → 50 MB new → file stays 50.1–50.7 MB |
 | Usage ledger | `photo_store_usage.live_bytes/live_count` maintained by triggers; insert refused at `budget_bytes` | test: budget reached → `503 photoIntakePaused`, reservation left for cleanup |
 
@@ -111,7 +111,7 @@ to 0, and a late put is refused. `make api-validate` result is in the PR.
 ## 8. Only on real Cloudflare (each needs separately approved resources)
 
 1. CPU of the v3 route and of retention as Cloudflare counts it, incl. tail and GC, on **Workers Free**.
-2. D1: a 1.5 MB bound BLOB (statement-length rule), the 2 MB limit, `PRAGMA secure_delete` acceptance in a batch,
+2. D1: a 1.2 MB bound BLOB (statement-length rule), the 2 MB limit, `PRAGMA secure_delete` acceptance in a batch,
    `meta.size_after` behavior after fences, rows-read/written accounting of BLOB rows.
 3. Time Travel retention of fenced rows, and whether a restore can resurrect a fenced photo (procedure: never restore
    PHOTOS_DB; document as operational rule).
@@ -121,7 +121,7 @@ to 0, and a late put is refused. `make api-validate` result is in the PR.
 ## 9. Recommendation
 
 Keep configuration 3 as the first candidate: binary v3 + strict JPEG check + local re-encode in Admin + D1 photo store
-with secure_delete, −9 day erasure lead and an 80 % budget. Do not adopt until §8.1–8.2 pass on a Free Worker. The
+without secure_delete (unavailable; residue accepted or not by the operator), −9 day erasure lead and an 80 % budget. Do not adopt until §8.1–8.2 pass on a Free Worker. The
 client HEIC/size refusal (§3) must be resolved for photos to work at all, whichever storage is chosen.
 
 Production PRs (none started): (1) iPhone: accept HEIC/large originals by downscaling before the size check; send v3.
