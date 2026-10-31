@@ -234,3 +234,31 @@ for ID documents or the photo itself.
 | Review history (`report_moderation`, `admin_review_audit`, `report_bulk_rejection_targets`, `report_reviews`) | Unchanged | These hold IDs, states and reasons only, no reporter content; removing them is option 3 (§5) |
 | Published places (DATA_DB) | Unchanged | Only sanitized, content-free evidence was exported; a report already counted keeps counting. Withdrawal and re-count are option 3 (§4, D5) |
 
+
+### 12.4 P1 design: App Attest proof (first candidate, 2026-10-31; not approved, not implemented)
+
+Reuses the existing App Attest assertion path (`src/attest`); the sketch below is for review, not a commitment.
+
+1. **Which reports.** The app keeps no list of its own submitted report IDs today (`ReportStorage.swift` keeps only a
+   transient photo follow-up). P1 needs the app to remember the report IDs it sent, on the device only, until their
+   `minimize_after`. That is an iPhone change and a privacy-label review item (Lane 4).
+2. **Challenge.** A new challenge purpose `erasure` (today `purpose IN ('registration','report')`, so this needs a
+   REPORTS_DB migration), bound to the key ID, single use, 300 s TTL like `report`.
+3. **Assertion.** The client signs the frame `(ERASURE_DOMAIN, challenge, keyId, reportId)` (a new domain string, as
+   `reportClientData` does for reports), so a report assertion can never be replayed as an erasure request.
+4. **Server checks, all fail closed.** Key registered and not revoked → assertion and counter valid → report exists,
+   `redacted_at IS NULL`, and `submitter_hash = submitterHash(attested key input, REPORT_SUBMITTER_PEPPER)`. Any
+   mismatch gets the same `404` as an unknown report, so the endpoint does not reveal whether an ID exists.
+5. **Effect.** The §12.3 one-report redaction in one D1 batch with the challenge consumption; repeating it is a
+   no-op `200`. No new identifier is stored; an aggregate counter only.
+6. **Abuse.** Same per-key budget and edge rule as reports (Q3). The effect only shortens retention of the caller's
+   own report.
+7. **Not covered.** Unattested reports, reinstalled or replaced devices (§12.2), and reports after day 90 (D7).
+
+### 12.5 Final decisions that must be recorded before implementation and before activation
+
+None is made by this ADR. Before an implementation PR: **D6** (P1 as the method; whether P2 is also offered; the
+§12.2 support reply), the endpoint and app screen as a public surface (App Review), and the client change in 12.4.1.
+Before production activation: **D1** terms and privacy-policy wording (legal, #124), **D4** backup wording
+(counsel), **D7**, a staging run of 12.4 on a signed device, and confirmation that photo deletion completes through
+the real cron (R5).
