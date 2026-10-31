@@ -132,10 +132,31 @@ class CiSecurityTests(unittest.TestCase):
         for mutate in (lambda d: d['jobs']['build']['steps'][1].update(run='tar -cf artifact.tar site'),
                        lambda d: d['jobs']['build']['steps'][1].update(shell='bash -c true {0}'),
                        lambda d: d['jobs']['build']['steps'][2]['with'].update(path='site'),
+                       lambda d: d['jobs']['build']['steps'][2]['with'].update(archive='false'),
                        lambda d: d['jobs']['build'].update(defaults={'run': {'shell': 'bash -c true {0}'}})):
             changed = copy.deepcopy(doc)
             mutate(changed)
             self.assertTrue(guard.workflow_errors(changed, 'pages.yml'))
+
+    def test_required_validation_cannot_be_skipped_by_artifact_failure(self):
+        self.rejects(lambda d: d['jobs']['validate'].update(needs='pages-artifact'), 'cannot depend')
+
+    def test_pages_validation_cannot_become_publication(self):
+        for mutate in (
+            lambda d: d['jobs'].pop('pages-artifact'),
+            lambda d: d['jobs']['pages-artifact'].update(environment={'name': 'github-pages'}),
+            lambda d: d['jobs']['pages-artifact'].update(permissions={'contents': 'read', 'pages': 'write'}),
+            lambda d: d['jobs']['pages-artifact'].update({'if': "github.ref == 'refs/heads/main'"}),
+            lambda d: d['jobs']['pages-artifact']['steps'][1].update(run='tar -cf artifact.tar site'),
+            lambda d: d['jobs']['pages-artifact']['steps'][2]['with'].update(name='github-pages'),
+            lambda d: d['jobs']['pages-artifact']['steps'][2]['with'].update(archive='false'),
+            lambda d: d['jobs']['pages-artifact']['steps'][2].update({'continue-on-error': 'true'}),
+            lambda d: d['jobs']['pages-artifact']['steps'].append({'uses': 'actions/deploy-pages@' + 'a' * 40}),
+        ):
+            with self.subTest(mutate=mutate):
+                doc = copy.deepcopy(self.doc)
+                mutate(doc)
+                self.assertTrue(guard.workflow_errors(doc, 'pr-validation.yml'))
 
     def test_yaml_ambiguities_fail_closed(self):
         for text in ('permissions: read-all\npermissions: write-all\n', 'a: &x [one]\nb: *x\n', 'a: [', '---\na: b\n---\na: c\n', 'a: !custom value\n'):
