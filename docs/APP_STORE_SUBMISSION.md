@@ -6,6 +6,12 @@ recommendation. Photo-backed proposals are P0 but not currently established as e
 BLOCKED. Do not copy older disabled-flow privacy/UGC answers into an activated-photo release.
 No new data addition is authorized. Use the dated evidence and final RC checks, not “production today” shorthand.
 
+**2026-10-31 実入力素材**：[submission-v1](release/submission-v1/README.md)に写真有効版の
+日本語説明・Review Notes全文、Privacy回答JSON、manifest候補、iPhone16Pro/Watch実行シートを用意。
+§2.2の旧無効版案はこの有効版へそのまま転記しない。型/Linked/Tracking/保持は
+[回答候補](release/submission-v1/app-privacy-candidate.json)と[manifest候補](release/submission-v1/PrivacyInfo.photos-enabled.candidate.plist)
+を運営者が承認後、Lane 3の整合PRと最終archive Privacy Reportで確認する。候補はアプリへ組み込んでいない。
+
 **APP STORE COMPLIANCE: READY FOR MAINTAINER INPUT** (packet prepared; not authorization to submit).
 Target: mid-October 2026. Checked 2026-10-04 against `origin/main` **d511f1a**,
 which includes #170 / #171 / #172. Apple rules can change: recheck the linked pages at submission.
@@ -24,8 +30,8 @@ This is existing evidence reconciliation, not new Mac/device/provider validation
 
 Scope: App Store Connect inputs and release evidence. No Apple code change, production deployment,
 source research, or community activation. No OpenPOI / Overture additions or OSM adoption.
-The recommended first release is **read-only: reports, App Attest registration and photos unavailable**.
-That is a deployment decision to confirm, not a compile-time guarantee.
+The earlier read-only recommendation is historical. The requested v1.0 requires photo-backed proposals
+to be enabled after all legal/runtime/device gates; a disabled deployment does not complete that P0.
 
 ## 1. Exact App Store Connect checklist
 
@@ -50,7 +56,8 @@ maintainer markers below into App Store Connect. Save evidence and the final ans
       final notes and review instructions (§7); attach a short flow video if geographic access is difficult.
 - [ ] Version release: recommend **Manual release**, allowing final backend/privacy checks after approval.
 - [ ] Confirm public support/privacy pages, in-app privacy access, production HTTPS origin, honest empty states,
-      attribution, reports unavailable and no photo intake on the actual release build/deployment.
+      attribution and the approved, enabled report/photo flow on the actual release build/deployment;
+      separately verify paused intake safely refuses submission.
 - [ ] Complete applicable current compliance/accessibility fields honestly; claim accessibility support only after
       device verification, not merely because SwiftUI is used.
 - [ ] Add for Review → review submission details → Submit for Review only after §10 blockers are closed.

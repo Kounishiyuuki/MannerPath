@@ -5,6 +5,8 @@ The description must stay within Apple's limits, name the covered areas and neve
 The gate must say SUBMISSION: BLOCKED while any P0 row is OPEN, so the page cannot read as ready by accident.
 """
 import re
+import json
+import plistlib
 import sys
 import unittest
 from pathlib import Path
@@ -154,6 +156,55 @@ class StoreCopyTests(unittest.TestCase):
         self.assertIn("NOT RUN here", packet)
         self.assertIn("Destination results do not sync to Watch", packet)
         self.assertIn("no data additions until separately approved", GATE.read_text(encoding="utf-8"))
+
+    def test_full_enabled_description_is_valid_and_does_not_mix_disabled_copy(self):
+        root = DOCS / "release" / "submission-v1"
+        desc = (root / "ja" / "description-photos-enabled.txt").read_text().strip()
+        entry = ENTRY.read_text()
+        self.assertEqual(copy_problems(entry.replace(description(entry), desc)), [])
+        self.assertNotIn("現在、場所の報告と写真の送信は利用できません。", desc)
+        for phrase in ["写真を1〜3枚", "公開されません", "送信や写真の承認だけでは掲載されません"]:
+            self.assertIn(phrase, desc)
+        metadata = json.loads((root / "metadata.json").read_text())
+        for key, field in [("name", r"Name \(ja\)"), ("subtitle", r"Subtitle \(ja\)"), ("keywords", "Keywords")]:
+            self.assertEqual(metadata[key], entry_value(entry, field))
+        self.assertFalse(metadata["submissionReady"])
+        self.assertTrue(metadata["requiresPhotosEnabledEvidence"])
+        self.assertTrue(metadata["requiresSubmissionDayCoverageCheck"])
+        self.assertEqual(metadata["storefronts"], ["Japan"])
+
+    def test_enabled_privacy_candidate_matches_manifest_without_changing_required_reasons(self):
+        root = DOCS / "release" / "submission-v1"
+        answers = json.loads((root / "app-privacy-candidate.json").read_text())
+        manifest = plistlib.loads((root / "PrivacyInfo.photos-enabled.candidate.plist").read_bytes())
+        current = plistlib.loads((DOCS.parent / "apps/apple/MannerPath/MannerPath/PrivacyInfo.xcprivacy").read_bytes())
+        types = answers["dataTypes"]
+        self.assertEqual({r["ascType"] for r in types},
+                         {"Photos or Videos", "Other User Content", "Device ID", "Precise Location", "Customer Support", "Email Address"})
+        self.assertEqual(len(types), 6)
+        self.assertEqual(answers["status"], "candidate-not-approved")
+        self.assertFalse(answers["submissionReady"])
+        self.assertTrue(answers["unresolved"])
+        expected = [{"NSPrivacyCollectedDataType": r["manifestType"], "NSPrivacyCollectedDataTypeLinked": True,
+                     "NSPrivacyCollectedDataTypeTracking": False,
+                     "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]} for r in types]
+        self.assertEqual(manifest["NSPrivacyCollectedDataTypes"], expected)
+        self.assertFalse(manifest["NSPrivacyTracking"])
+        self.assertEqual(manifest["NSPrivacyTrackingDomains"], [])
+        self.assertEqual(manifest["NSPrivacyAccessedAPITypes"], current["NSPrivacyAccessedAPITypes"])
+        for row in types:
+            self.assertTrue(row["collected"])
+            self.assertTrue(row["linked"])
+            self.assertFalse(row["tracking"])
+            self.assertEqual(row["purposes"], ["App Functionality"])
+
+    def test_review_notes_distinguish_browsing_pin_uploads_and_private_photos(self):
+        notes = (DOCS / "release/submission-v1/review-notes-photos-enabled.txt").read_text()
+        self.assertLessEqual(len(notes), 4000, "ASC Review Notes limit")
+        for phrase in ["Browsing requests", "That pin is sent with the report", "Apple App Attest",
+                       "1–3 photos", "same report", "not synchronized to Watch", "No account"]:
+            self.assertIn(phrase, notes)
+        self.assertNotIn("uploads are currently unavailable", notes)
 
     def test_rejects_ready_wording_with_open_p0(self):
         bad = "| G1 | x | P0 | OPEN | a | b | 1 | yes | no |\n"

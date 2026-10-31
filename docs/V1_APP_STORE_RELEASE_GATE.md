@@ -20,6 +20,10 @@ approved-policy client as well as runtime activation; disabled copy is not a wai
 1.0 (7) feedback, photos-enabled privacy answers and remaining physical-device evidence. Build 7 feedback
 is not a matrix PASS; current main includes later UI changes. No ASC or production API access occurred.
 
+**提出素材の実装（2026-10-31）**：[転記用素材と実機実行シート](release/submission-v1/README.md)
+に説明/Review Notes全文、Privacy回答とmanifest候補、iPhone16Pro/Watch/Widgetの操作・期待・証拠を用意。
+G2/G8/G10/G12の準備作業は完了したが、運営者承認/当日scope/署名RC/実環境証拠がないためP0はOPENを維持。
+
 ## 1. Release scope (2026-10-24 scope freeze; photo P0 decision retained)
 
 | Decision | v1.0 |

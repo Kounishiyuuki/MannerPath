@@ -18,6 +18,13 @@ Use [the current audit §3](release/V1_APP_STORE_GATE_AUDIT_2026-10-31.md#3-app-
 for the enabled proposal (including #349's explicitly selected current-location pin). Keep submission blocked
 until owner-approved labels/policy/manifest, runtime and signed RC agree. No ASC values were entered.
 
+**提出準備ファイル（2026-10-31）**：[転記用素材](release/submission-v1/README.md)に
+[日本語説明全文](release/submission-v1/ja/description-photos-enabled.txt)、
+[Review Notes全文と操作手順](release/submission-v1/review-notes-photos-enabled.txt)、
+[metadata](release/submission-v1/metadata.json)、[Privacy回答候補](release/submission-v1/app-privacy-candidate.json)を用意した。
+写真有効版v1.0ではこれらを承認・当日scope/RC照合後に使用する。下の停止中説明/旧UGC回答を転記しない。
+[実機・撮影シート](release/submission-v1/DEVICE_CAPTURE_SESSION.md)でiPhone 16 Pro/Watch/Widgetを確認する。
+
 What to type into App Store Connect (ASC), in order, and what cannot be typed yet. Rationale, Apple references and
 evidence live in [APP_STORE_SUBMISSION.md](APP_STORE_SUBMISSION.md) (§ numbers below point there); privacy
 evidence classifications are owned by [PRODUCTION_PRIVACY_AUDIT.md](PRODUCTION_PRIVACY_AUDIT.md) (#178/#185).
@@ -174,7 +181,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | --- | --- | --- |
 | Bundle ID (iPhone app) | `com.kounishiyuuki.MannerPath` | CONFIRMED |
 | Embedded bundles | `….widgets`, `….watchkitapp`, `….watchkitapp.widgets` | CONFIRMED |
-| Version / build | `MARKETING_VERSION 1.0`, `CURRENT_PROJECT_VERSION 6` at `eb4ed96`; final selected RC may differ | SOURCE-CONFIRMED only; processed/signed build not checked here. Lane 3 alone changes the build number |
+| Version / build | `MARKETING_VERSION 1.0`, `CURRENT_PROJECT_VERSION 7` at `bb538e5`; final selected RC may differ | SOURCE-CONFIRMED only; processed/signed build not checked here. Lane 3 alone changes the build number |
 | Display name | `MannerPath` | CONFIRMED |
 | Minimum OS | iOS 18.0, watchOS 11.0 | CONFIRMED |
 | Device families | iPhone app and iPhone widget `1` (iPhone only), Watch app `4`; no native iPad target. iPad users run the iPhone app in compatibility mode ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) | CONFIRMED (maintainer decision 2026-10-05) |
@@ -195,7 +202,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | Primary category | Navigation | CONFIRMED |
 | Secondary category | Utilities | CONFIRMED |
 | Content Rights | “Yes, contains third-party content”; necessary-rights declaration only after [production corpus audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md) gates: municipal open data and Apple Maps (§5) | CONFIRMED live corpus/licenses/API attribution (513 / 6 / community 0); Taito app-side notice / Watch license Link IMPLEMENTED; signed iPhone/Watch visual/link verification, assets and MAINTAINER legal signoff pending |
-| Age Rating | questionnaire answers in §4 below | CONFIRMED answers; result calculated by Apple |
+| Age Rating | Current photos-enabled questionnaire must be reassessed; §4 is historical | MAINTAINER decision; result calculated by Apple |
 | License agreement | Apple standard EULA | CONFIRMED |
 
 ## 3. Version 1.0 page (ASC → iOS App → 1.0)
@@ -203,7 +210,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | Field | Enter | Status |
 | --- | --- | --- |
 | Promotional text (optional) | `喫煙可能場所の位置、利用条件、情報源を確認。周囲の掲示や施設のルールを優先し、案内情報を参考にしてください。` | CONFIRMED |
-| Description | block below (length checked by `scripts/test-store-copy.py`; limit 4,000). The covered-area sentence must match the production inventory at submission ([release gate](V1_APP_STORE_RELEASE_GATE.md) G8) | CONFIRMED wording; area list re-check at submission |
+| Description | [Prepared photos-enabled full text](release/submission-v1/ja/description-photos-enabled.txt), checked by `scripts/test-store-copy.py` (limit 4,000). The block below is the historical disabled reference | Candidate complete; owner approval, current coverage and enabled RC evidence required (G8/G16) |
 | Keywords | `喫煙所,灰皿設置,指定場所,利用条件,徒歩案内,位置情報` (74 bytes; limit 100) | CONFIRMED |
 | Support URL | `https://kounishiyuuki.github.io/MannerPath/support/` | CONFIRMED (live, #177/#179) |
 | Marketing URL | leave blank | CONFIRMED |
@@ -214,6 +221,8 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | App Review contact | first/last name, phone (international format), email | MAINTAINER |
 | App Review notes | §5 draft with tested destination steps; final maintainer approval and signed-build checks remain | MAINTAINER / BLOCKED-DEVELOPER-PROGRAM; populated-area path CONFIRMED on Release simulator |
 | Version release | **Manually release this version** (allows final backend/privacy checks after approval) | CONFIRMED |
+
+**Historical disabled reference — not for the requested photo-enabled v1.0.** Use the linked prepared full text after approval/verification.
 
 Description (paste as plain text):
 
@@ -242,6 +251,9 @@ still a device gate (§7); keep the widget bullet only if that check passes.
 
 ## 4. Age Rating questionnaire answers
 
+**Historical reports-off proposal only.** Photos-enabled v1.0 requires the maintainer to reassess UGC,
+moderation safeguards and the current questionnaire before entry. The No answer below is not approved for that release.
+
 | Question | Answer |
 | --- | --- |
 | Alcohol, Tobacco, or Drug Use or References | **Frequent** |
@@ -261,6 +273,8 @@ question not listed here, read its definition and record the wording before answ
 itself imposes a minimum use age above the calculated rating is a **MAINTAINER** decision (§3).
 
 ## 5. App Review notes and reviewer steps
+
+**Historical disabled notes below — not for the requested photo-enabled v1.0.** Use the [prepared enabled notes](release/submission-v1/review-notes-photos-enabled.txt) after approval/verification.
 
 Notes (English), final draft 2026-10-15 for maintainer approval; wording of the source sentence corrected 2026-10-19 (it was "published municipal open data"). This is the 513-spot text. The 638-spot candidate, which is 準備中 and not to be entered before the production switch, is in [release/V1_TOKYO_STORE_COPY.md](release/V1_TOKYO_STORE_COPY.md). Steps 1–5 below were verified on the Release simulator (#191/#193); re-run them on the submitted build:
 
