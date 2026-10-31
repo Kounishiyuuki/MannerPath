@@ -35,7 +35,7 @@ export function checkTarget(baseUrl: string, confirm: string | undefined): URL {
 function parse(argv: string[]) {
   const o: Record<string, string> = {};
   for (let i = 0; i < argv.length; i += 2) {
-    if (!["--base-url", "--photos", "--uploads", "--confirm-probe"].includes(argv[i])) throw new Error(`unknown argument ${argv[i]}`);
+    if (!["--base-url", "--photos", "--uploads", "--confirm-probe", "--mode"].includes(argv[i])) throw new Error(`unknown argument ${argv[i]}`);
     o[argv[i].slice(2)] = argv[i + 1] ?? "";
   }
   return o;
@@ -66,6 +66,19 @@ async function main() {
     return JSON.parse(r.body || "{}");
   };
 
+  if ((args.mode ?? "upload") === "seal") {
+    // F11: seal each photo with a throwaway epoch public key; nothing is stored.
+    const pair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]) as CryptoKeyPair;
+    const pub = new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey) as ArrayBuffer);
+    for (let i = 0; i < planned.length; i++) {
+      const body = new Uint8Array(65 + planned[i].length); body.set(pub, 0); body.set(planned[i], 65);
+      const r = await call("/probe/seal", { method: "POST", body, headers: { "Content-Type": "application/octet-stream" } });
+      expect(`seal ${i + 1}`, r, 200);
+      console.log(`seal ${i + 1}/${planned.length} ${planned[i].length} B → ${r.status} (${r.ms.toFixed(0)} ms wall)`);
+    }
+    return;
+  }
+  if ((args.mode ?? "upload") !== "upload") throw new Error("--mode must be upload or seal");
   const pki = await testPki(), device = await testDevice();
   expect("setup", await post("/probe/setup", { trustAnchor: base64Encode(pki.root) }), 200);
   const challenge = async (purpose: "registration" | "report") => expect(`challenge ${purpose}`,

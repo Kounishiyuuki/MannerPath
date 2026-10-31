@@ -19,6 +19,7 @@ import { CURRENT_REPORT_TERMS } from "../../reports/terms.ts";
 import { D1PhotoStore } from "../binary-photo/d1-photo-store.ts";
 import { queueDuePhotosForErasure } from "../binary-photo/erasure.ts";
 import { handleBinaryPhoto } from "../binary-photo/route.ts";
+import { sealPhoto } from "../binary-photo/photo-crypto.ts";
 import { runD1Checks } from "./d1-checks.ts";
 import { PROBE_IDENTITY } from "./identity.ts";
 
@@ -81,6 +82,13 @@ export default {
     }
     if (req.method === "POST" && url.pathname === "/probe/d1-checks") return json(200, await runD1Checks(env.PHOTOS_DB));
     if (req.method === "POST" && url.pathname === "/probe/retention") return json(200, await retention(env, store));
+    // F11: CPU of crypto-erasure sealing alone (run in its own time window; analytics cannot split by path).
+    if (req.method === "POST" && url.pathname === "/probe/seal") {
+      const body = new Uint8Array(await req.arrayBuffer());
+      if (body.length < 65 + 1 || body.length > 65 + 1_200_000) return json(400, { error: "body" });
+      const sealed = await sealPhoto(body.subarray(65), "probe/seal.jpg", 1, body.subarray(0, 65));
+      return json(200, { sealedBytes: sealed.length });
+    }
     const photo = url.pathname.match(/^\/v3\/reports\/(rp_[0-9A-HJKMNP-TV-Z]{26})\/photos$/);
     if (req.method === "POST" && photo) {
       return handleBinaryPhoto(req, photo[1], env as never, env.REPORTS_DB, { now: () => new Date(), store, photoTermsCovered, trustAnchor: anchor });

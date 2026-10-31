@@ -18,6 +18,7 @@ operator's approval first. Production, staging, R2 and Workers Paid are out of s
 | F8 | Time Travel: a restore to before the fence returns the photo; window length on Free | not testable locally | bytes come back after restore (confirms the −9 day lead is necessary); `time-travel info` shows ≤ 7 days |
 | F9 | Importing the report schema (incl. 0003 triggers with `CASE`) via `d1 execute --file` | local import: 114 statements OK | import succeeds (a known `migrations apply` failure for 0003 exists, REPORTS_MIGRATION_RECOVERY.md) |
 | F10 | Workers rate-limit binding on Free | not documented | deploy accepts `ratelimits` and challenges are served |
+| F11 | CPU of crypto-erasure sealing (`sealPhoto`, V1_PHOTO_ERASURE_ANALYSIS.md §2) | Node median 1.50 ms / max 2.21 ms for 1.2 MB; runs in local workerd | `--mode seal` 100 requests in their own window: 0 failures, P99 ≤ 8 ms, and F1 P99 + F11 P99 ≤ 8 ms |
 
 ## 2. Code (this PR)
 
@@ -52,7 +53,7 @@ retention `complete`; D1 facts as in §1 (F4, F6, F7). It found and fixed two de
 export in the Worker entry (workerd refused to start) and a fence batched with `PRAGMA secure_delete`, which D1 refuses —
 the whole fence failed and a later put was accepted. The fence no longer depends on the PRAGMA.
 
-**Known limitation (pinned by a test):** without `secure_delete`, SQLite keeps a fenced photo's bytes in free pages until
+**Known limitation (pinned by a test; analysed in V1_PHOTO_ERASURE_ANALYSIS.md):** without `secure_delete`, SQLite keeps a fenced photo's bytes in free pages until
 they are reused; overwriting with `zeroblob()` first does not help (49,470 of 49,731 fragments remained). Those pages
 are unreachable through SQL, export or the adapter, but they are provider-held copies of the class already accepted for
 R2 in PHOTO_STORAGE_OPERATIONS.md. **The operator (and counsel) must accept or reject this before production.**
@@ -93,6 +94,8 @@ curl -s -o /dev/null -w '%{http_code}\n' https://mannerpath-free-tier-probe.<sub
 PROBE_TOKEN=… npm run free-probe:run -- --base-url https://mannerpath-free-tier-probe.<sub>.workers.dev \
   --photos <client-equivalent jpegs ≤1.2 MB> --uploads 10 --confirm-probe mannerpath-free-tier-probe
 #    …then --uploads 100.
+#    F11 in a separate time window (analytics cannot split by path):
+#    … --uploads 100 --mode seal
 # 6. CPU (F1/F3), ≥ 10 min after the run.
 CLOUDFLARE_API_TOKEN=… npm run free-probe:analytics -- --account-id <32-hex> --since <start> --until <end>
 # 7. Time Travel (F8): use "key" and "fencedAfter" from the d1-checks "store.delete (fence)" line.
