@@ -431,7 +431,22 @@ Recheck the account plan and current primary pricing/limits before approving a s
 [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/),
 [D1 limits](https://developers.cloudflare.com/d1/platform/limits/),
 [R2 pricing](https://developers.cloudflare.com/r2/pricing/).
-No monetary estimate or free-tier sufficiency is asserted here. Follow
+### Estimate (2026-10-31; prices read from the pages above that day, not a quote)
+
+| Item | Free plan | Paid plan | Staging use (cap: 50 synthetic reports, 150 photos) |
+| --- | --- | --- | --- |
+| Workers requests | 100,000/day | $5/month minimum, 10M/month included | 288 cron runs/day plus test traffic: far below |
+| Workers CPU | **10 ms per invocation** | 30M CPU-ms/month included | **Photo upload does not fit Free**: `sanitizeEvidencePhoto` on a 1632×1224 (2 MP) JPEG measured 587–854 ms CPU locally (Node 24, 3 runs); workerd was not measured |
+| D1 | 5M rows read/day, 100k written/day, 5 GB total | 25B read, 50M written/month, 5 GB included | Thousands of rows: far below |
+| R2 Standard | 10 GB-month, 1M Class A, 10M Class B per month | $0.015/GB-month, $4.50/M Class A, $0.36/M Class B, no egress fee | ~0.5 GB, a few hundred writes/reads: within the free tier |
+| Cron Trigger | billed as requests/CPU | same | as above |
+| Rate limiting binding, edge rules | not stated on the pricing pages | not stated | **unverified**: check the account dashboard |
+
+Conclusion: photo intake needs **Workers Paid (USD 5/month per account)** in staging and production; everything
+else in a capped staging run stays inside the included amounts. Production at 1,000 reports × 3 photos × ~3 MB
+held ≤ 90 days is ~9 GB, inside R2's 10 GB-month free tier; beyond that ~USD 0.015 per extra GB-month. Set a
+billing notification before enrollment. The CPU figure is a local measurement, not a workerd one: rerun it on the
+staging Worker before relying on it. Follow
 [photo storage privacy/fences](../PHOTO_STORAGE_OPERATIONS.md),
 [staging security](../STAGING_VERIFICATION.md),
 [Admin operations](../LOCAL_MODERATION_ADMIN.md),
