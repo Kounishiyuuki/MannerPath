@@ -5,6 +5,7 @@
 import { type Db, type DbStatement, isoSeconds, sha256Hex } from "../../db.ts";
 import { PhotoAttachmentError, type PhotoAttachmentAccepted } from "../../reports/photos.ts";
 import type { D1PhotoStore } from "./d1-photo-store.ts";
+import { D1_PHOTO_ERASURE_LEAD_DAYS } from "./erasure.ts";
 
 export interface ValidatedJpeg { bytes: Uint8Array; contentSha256: string; width: number; height: number }
 
@@ -20,6 +21,8 @@ export async function attachValidatedJpeg(db: Db, storage: D1PhotoStore,
   if (!report) throw new PhotoAttachmentError("reportNotFound", 404);
   if (report.submitter_hash !== input.submitterHash) throw new PhotoAttachmentError("photoUnauthorized", 403);
   if (report.redacted_at !== null || report.minimize_after <= now) throw new PhotoAttachmentError("reportExpired", 410);
+  // Inside the erasure lead a new photo would be queued for erasure within one retention pass: refuse it instead.
+  if (Date.parse(report.minimize_after) - D1_PHOTO_ERASURE_LEAD_DAYS * 86_400_000 <= opts.now.getTime()) throw new PhotoAttachmentError("reportExpired", 410);
   if (report.accepted_terms_version !== input.acceptedTermsVersion) throw new PhotoAttachmentError("photoConsentRequired", 403);
   const prior = await db.prepare("SELECT q.content_sha256,p.photo_id,p.storage_key,p.lifecycle,p.moderation_status FROM community_photo_requests q LEFT JOIN community_evidence_photos p ON p.photo_id=q.photo_id WHERE q.report_id=? AND q.idempotency_key=?")
     .bind(input.reportId, input.idempotencyKey).first<PhotoRow>();

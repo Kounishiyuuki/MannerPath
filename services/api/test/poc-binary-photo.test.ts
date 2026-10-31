@@ -117,7 +117,7 @@ test("operator display re-encodes: the browser never receives the uploaded bytes
   await assert.rejects(renderForOperator(exif), /forbiddenSegment/);
 });
 
-test("the fence zeroes the freed pages: no photo bytes remain in the database file (local SQLite)", async () => {
+test("known limitation: after the fence SQLite keeps the photo bytes in free pages (secure_delete is not available on D1)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "photos-db-")), path = join(dir, "photos.db");
   try {
     const raw = new DatabaseSync(path); raw.exec("PRAGMA journal_mode = DELETE;"); raw.exec(PHOTOS_DB_SCHEMA);
@@ -125,7 +125,16 @@ test("the fence zeroes the freed pages: no photo bytes remain in the database fi
     const sentinel = new TextEncoder().encode("SENTINEL-PHOTO-BYTES-".repeat(2000));
     await store.put("k", sentinel, { mediaType: "image/jpeg", contentSha256: await sha256Hex(sentinel), byteLength: sentinel.length, width: 1, height: 1 });
     await store.delete("k");
+    assert.equal(await store.read("k", 1_200_000), null); // unreachable through the adapter and SQL
     raw.close();
-    assert.equal(Buffer.from(readFileSync(path)).toString("latin1").includes("SENTINEL-PHOTO-BYTES-"), false);
+    // …but physically present until the pages are reused. If this ever turns false, update V1_FREE_TIER_PROBE_RUNBOOK.md.
+    assert.equal(Buffer.from(readFileSync(path)).toString("latin1").includes("SENTINEL-PHOTO-BYTES-"), true);
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("provisional limits: 1.2 MB per photo at the route", async () => {
+  const h = await harness(), device = await h.enrol(), reportId = await h.newReport(device);
+  const atCap = new Uint8Array(1_200_001); atCap[0] = 0xff; atCap[1] = 0xd8;
+  const over = await h.send(reportId, await h.body(device, reportId, atCap));
+  assert.deepEqual([over.status, over.json.detail], [400, "frame: image_length"]);
 });

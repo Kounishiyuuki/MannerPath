@@ -50,13 +50,15 @@ export function photo(width = 320, height = 240, seed = 1): Uint8Array {
 
 export async function harness(opts: { budget?: number; now?: Date } = {}) {
   const reports = jpegReportsD1(), photos = photosD1(opts.budget), pki = await testPki(), now = opts.now ?? new Date();
-  const store = new D1PhotoStore(photos, () => now);
-  const core = createApp({ now: () => now, appAttestTrustAnchor: pki.root });
+  let current = now; // movable clock for the route and the store; reports are created at `now`
+  const setNow = (date: Date) => { current = date; };
+  const store = new D1PhotoStore(photos, () => current);
+  const core = createApp({ now: () => current, appAttestTrustAnchor: pki.root });
   const dataDb = new SqliteD1();
   const env = { DB: dataDb, REPORTS_DB: reports, ...ENV };
   const app = new Hono();
   app.post("/v3/reports/:reportId/photos", (c) => handleBinaryPhoto(c.req.raw, c.req.param("reportId"), ENV, reports,
-    { now: () => now, store, photoTermsCovered: () => true, trustAnchor: pki.root }));
+    { now: () => current, store, photoTermsCovered: () => true, trustAnchor: pki.root }));
   const postJson = (path: string, body: unknown) => core.request(path, { method: "POST", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }, env);
   const challenge = async (device: TestDevice, purpose: "registration" | "report") => ((await (await postJson("/v1/app-attest/challenges",
     { schemaVersion: 1, purpose, ...(purpose === "report" ? { keyId: device.keyIdBase64 } : {}) })).json()) as { challenge: string }).challenge;
@@ -85,6 +87,6 @@ export async function harness(opts: { budget?: number; now?: Date } = {}) {
     const res = await app.request(`/v3/reports/${reportId}/photos`, { method: "POST", body: bytes, headers: { "Content-Type": contentType } });
     return { status: res.status, json: await res.json() as Record<string, unknown> };
   };
-  return { reports, photos, store, now, enrol, newReport, body, send, request };
+  return { reports, photos, store, now, setNow, enrol, newReport, body, send, request };
 }
 
