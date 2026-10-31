@@ -83,18 +83,16 @@ export class D1PhotoStore {
 
   /**
    * Durable fence; also creates the fence when no object was ever stored under this key. Idempotent.
-   * secure_delete makes SQLite zero the freed pages; without it the photo bytes stay in the database file's free pages
-   * until reused (measured locally: test/poc-binary-photo.test.ts). Whether D1 accepts this PRAGMA, and what its
-   * replicas, WAL and Time Travel keep, can only be established on D1 itself.
+   * It must not depend on anything D1 may refuse: D1 (local workerd) answers `PRAGMA secure_delete` with SQLITE_AUTH,
+   * and an earlier version that batched it here failed the whole fence. Consequence, pinned by a test: SQLite keeps the
+   * old bytes in free pages until they are reused, and overwriting with zeroblob() first does not change that. Those
+   * pages are not reachable through SQL, export or this adapter; Time Travel restore is (see erasure.ts lead).
    */
   async delete(key: string): Promise<void> {
-    await this.db.batch([
-      this.db.prepare("PRAGMA secure_delete = ON"),
-      this.db.prepare(`INSERT INTO photo_objects (storage_key, state, deleted_at) VALUES (?, 'deleted', ?)
+    await this.db.prepare(`INSERT INTO photo_objects (storage_key, state, deleted_at) VALUES (?, 'deleted', ?)
         ON CONFLICT (storage_key) DO UPDATE SET state = 'deleted', bytes = NULL, content_sha256 = NULL, byte_length = NULL,
           stored_at = NULL, deleted_at = excluded.deleted_at
-        WHERE photo_objects.state = 'live'`).bind(key, isoSeconds(this.now())),
-    ]);
+        WHERE photo_objects.state = 'live'`).bind(key, isoSeconds(this.now())).run();
   }
 
   /** Operator read (local Admin only). Bounded by the stored length, never by the caller. */
