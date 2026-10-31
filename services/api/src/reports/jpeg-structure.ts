@@ -23,7 +23,7 @@ export class JpegStructureError extends Error {
 
 const fail = (code: JpegStructureFailure): never => { throw new JpegStructureError(code); };
 
-interface Component { id: number; quantTable: number }
+interface Component { id: number; quantTable: number; h: number; v: number }
 
 /** Returns the frame size when `bytes` is exactly a baseline JFIF JPEG of the shape the iPhone encoder emits. */
 export function validateJpegStructure(bytes: Uint8Array, maxBytes = JPEG_MAX_BYTES): { width: number; height: number } {
@@ -88,7 +88,7 @@ export function validateJpegStructure(bytes: Uint8Array, maxBytes = JPEG_MAX_BYT
           const p = start + 6 + 3 * i, h = bytes[p + 1] >> 4, v = bytes[p + 1] & 15;
           if (h < 1 || h > 2 || v < 1 || v > 2 || bytes[p + 2] > 3) fail("badFrame");
           if (components.some((c) => c.id === bytes[p])) fail("badFrame");
-          components.push({ id: bytes[p], quantTable: bytes[p + 2] });
+          components.push({ id: bytes[p], quantTable: bytes[p + 2], h, v });
         }
         break;
       }
@@ -102,7 +102,13 @@ export function validateJpegStructure(bytes: Uint8Array, maxBytes = JPEG_MAX_BYT
     position = end;
   }
   if (!jfif) fail("badJfif");
-  entropyData(bytes, position, restartInterval > 0);
+  // Restart markers must be exactly RST0, RST1, … RST7, RST0, … once per interval, so their count follows from the frame.
+  const frame = components as unknown as Component[];
+  const hMax = Math.max(...frame.map((c) => c.h)), vMax = Math.max(...frame.map((c) => c.v));
+  const mcus = frame.length === 1 ? Math.ceil(width / 8) * Math.ceil(height / 8)
+    : Math.ceil(width / (8 * hMax)) * Math.ceil(height / (8 * vMax));
+  const expectedRestarts = restartInterval > 0 ? Math.ceil(mcus / restartInterval) - 1 : 0;
+  entropyData(bytes, position, expectedRestarts);
   return { width, height };
 }
 
@@ -123,14 +129,20 @@ function scanHeader(bytes: Uint8Array, start: number, end: number, components: C
   return end;
 }
 
-/** After the scan header only stuffed 0xFF00, RST0–7 (when a restart interval exists) and one final EOI may appear. */
-function entropyData(bytes: Uint8Array, from: number, restarts: boolean) {
+/**
+ * After the scan header only stuffed 0xFF00, the expected RSTn sequence and one final EOI may appear. A single
+ * non-interleaved component (grayscale) counts 8×8 blocks; an interleaved scan counts MCUs of the largest sampling.
+ */
+function entropyData(bytes: Uint8Array, from: number, expectedRestarts: number) {
   const last = bytes.length - 2;
   if (last < from || bytes[last] !== 0xff || bytes[last + 1] !== 0xd9) fail("trailingData");
+  let restarts = 0;
   let p = bytes.indexOf(0xff, from);
   while (p !== -1 && p < last) {
     const next = bytes[p + 1];
-    if (next !== 0 && !(restarts && next >= 0xd0 && next <= 0xd7)) fail("badEntropyData");
+    if (next === 0xd0 + (restarts % 8) && restarts < expectedRestarts) restarts++;
+    else if (next !== 0) fail("badEntropyData");
     p = bytes.indexOf(0xff, p + 2);
   }
+  if (restarts !== expectedRestarts) fail("badRestart");
 }
