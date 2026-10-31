@@ -1,0 +1,87 @@
+{
+  "status": "candidate-not-approved",
+  "submissionReady": false,
+  "runtimeScope": "photos-enabled",
+  "tracking": false,
+  "dataTypes": [
+    {
+      "ascType": "Photos or Videos",
+      "manifestType": "NSPrivacyCollectedDataTypePhotosorVideos",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Private evidence photos linked through report ID and key-derived submitter hash."
+    },
+    {
+      "ascType": "Other User Content",
+      "manifestType": "NSPrivacyCollectedDataTypeOtherUserContent",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Report notes and claims retained for review."
+    },
+    {
+      "ascType": "Device ID",
+      "manifestType": "NSPrivacyCollectedDataTypeDeviceID",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "App Attest key ID/public key and key-derived submitter hash."
+    },
+    {
+      "ascType": "Precise Location",
+      "manifestType": "NSPrivacyCollectedDataTypePreciseLocation",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Explicitly selected current-location pin, confirmed by user, stored to five decimals."
+    },
+    {
+      "ascType": "Customer Support",
+      "manifestType": "NSPrivacyCollectedDataTypeCustomerSupport",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Published Gmail support workflow; owner must verify retention and scope."
+    },
+    {
+      "ascType": "Email Address",
+      "manifestType": "NSPrivacyCollectedDataTypeEmailAddress",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Support sender email; not an account-registration requirement."
+    }
+  ],
+  "unresolved": [
+    "Cloudflare retained tile/IP and diagnostic fields, provider/Logpush retention",
+    "Owner choice for Coarse Location and Other Diagnostic Data",
+    "Final archive traffic, manifest and generated Privacy Report",
+    "Approved terms/version, public policy text and deletion/withdrawal process"
+  ],
+  "retention": {
+    "reportPersonalContent": "Minimized within 90 days of receipt; not a promise to erase every record.",
+    "photos": "Access closes 24 hours before the 90-day report deadline; deletion workflow must be verified by Lane 3. Provider internal timing requires owner approval.",
+    "deviceFollowUp": "Report ID, consent version, deadline and confirmed photo count only; at most 89 days. Photo bytes are not persisted by app.",
+    "appAttest": "Key registration/revocation retention is separate; no blanket 90-day deletion promise.",
+    "supportAndProvider": "Not established by report retention. Owner must confirm."
+  }
+}
