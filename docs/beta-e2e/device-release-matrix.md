@@ -23,6 +23,7 @@ row is never filled from simulator, unit-test or source evidence. `python3 scrip
 | 1.0 (1) | `main` after #252 | yes | superseded by 1.0 (2); no device rows recorded |
 | 1.0 (2) | `main` `2c133ba` (#254, #255; **not** #259) | 2026-10-14, signed preflight passed | rows marked `1.0 (2)` below |
 | 1.0 (3) | `main` `e7a4654` (#259 live search, #263 search sheet, #265, #267) | 2026-10-15, signed + `--distribution` preflight passed | none yet; run sheet §9 |
+| 1.0 (7) | #348 build bump; current main also includes later #349 UI changes | TestFlight use reported in #349; no archive/processing evidence inspected in this audit | Qualitative usability feedback only; no row-level PASS. See [2026-10-31 audit §1](../release/V1_APP_STORE_GATE_AUDIT_2026-10-31.md#1-testflight-10-7の証拠) |
 
 Observed by the maintainer on an iPhone with TestFlight 1.0 (2), production API, standing in Kanazawa
 (device model, iOS version and time were not recorded; record them from Build 3 on):
