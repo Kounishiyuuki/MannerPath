@@ -183,18 +183,54 @@ skeleton, the receipt digest and DATA_DB evidence IDs remain after that.
 | What is removed on request | Nothing early; everything personal goes by day 90 | Photos fenced-deleted and report content/hash redacted at once, by a one-report variant of the existing `retain` redaction | Option 2 plus the report row, the receipt (tombstone), review evidence links (withdrawal, option B) and audit IDs |
 | Code | None | Small: one maintainer CLI command reusing redaction and the photo deletion queue; no schema change | Large: migration 0007 rebuilds, DATA_DB withdrawal ledger, promotion guard, ADR-0014 §10 amendment |
 | Kept afterwards | As today | Skeleton row, receipt digest, DATA_DB IDs (as after day 90) | Tombstone for *R* (D2); random IDs in DATA_DB unless D3 says otherwise |
-| Requester proof (§6) | Not needed | V2 (report ID + idempotency key) once the client keeps the key; before that, report ID only plus an early-redaction-only effect, which a third party could trigger to remove someone's report early | Same as option 2; V1 alone is rejected because erase is irreversible |
+| Requester proof (§6) | Not needed | Report ID **plus** proof of the submitting device (§12.1); report ID alone is not accepted | Same as option 2; V1 alone is rejected because erase is irreversible |
 | Abuse | None | A forged request only shortens retention of one report; it cannot read data. Bounded by maintainer handling | A forged request destroys evidence; needs V2 or V3 |
 | Effect on published places | None until a review uses the report | A report already in an exported review stays as evidence (its content was never exported) | Withdrawal re-counts evidence; a place may be held (D5) |
 | Terms/policy wording | "deleted within 90 days; no earlier deletion promised" | "on request with the report ID, we delete its photos and content early" | "on request we erase the report" with the D4 backup exception |
 | Operator effort | None | Minutes per request | Plan/apply per request plus withdrawal import |
 
-Recommendation for v1.0: **option 2**, with **D2–D3 deferred** (they only matter for option 3), **D4** answered in
-the policy as "backups follow the provider's retention, at most the D1 Time Travel window" (counsel to confirm), **D6**
-as "report ID only for early minimization", and **D7** "no request handling after day 90 (nothing personal is left)".
-Option 3 stays the target for a later release. Risks left with option 2: a third party who learns a report ID can
-make its photos and content disappear early (no disclosure); IDs in DATA_DB and backup copies are not touched
-early; counsel should confirm that the 90-day ceiling plus early minimization meets APPI requests (L2).
+Direction (maintainer, 2026-10-31; not a D1 approval): **option 2 is the baseline**, but **an early-minimization
+request is never executed on a report ID alone** (V1 stays rejected for option 2 too). Requester proof prefers the
+submitting device's App Attest key (§12.1). D2–D3 stay deferred (they only matter for option 3). Still open and **not** decided here: D1
+(terms/policy wording, legal), D4 (backup wording, counsel), D6 (the proof method of §12.1 and the support path of
+§12.2), D7 (proposed: no handling after day 90, nothing personal is left). Option 3 stays the target for a later
+release. Risks left with option 2: IDs in DATA_DB and backup copies are not touched early; a requester without the
+device may get no early effect (§12.2); counsel should confirm that the 90-day ceiling plus early minimization meets
+APPI requests (L2).
 
 Implementable now without these decisions: the §10 read-only `reports:erasure-impact` report and characterization
-tests. Option 2's CLI should wait for D1/D6.
+tests. Option 2's CLI or endpoint waits for D1/D6.
+
+## 12. Option 2 specification draft (2026-10-31; for D1/D6, not approved)
+
+### 12.1 Requester proof
+
+| Method | How it is checked | Fits |
+| --- | --- | --- |
+| P1 in-app request with an App Attest assertion (preferred) | The app asks for early minimization of a report it submitted; the Worker verifies an assertion from a registered, unrevoked key (existing `src/attest` path) and recomputes `submitter_hash` from that key ID and `REPORT_SUBMITTER_PEPPER` (`src/reports/create.ts`). A match with the report's stored hash proves the same device install sent it. Nothing new is stored | Attested reports before `minimize_after` (after it, the hash is gone, so P1 cannot match — consistent with D7) |
+| P2 report ID + idempotency key (§6 V2) | Maintainer recomputes the receipt digest | Only if the client keeps the key per report (client change; today it discards it) |
+| P0 report ID only | — | **Rejected** |
+
+P1 needs a new authenticated endpoint and an app screen ("delete my submission"), which is a public surface and a
+Lane-4/App Review item; it is a design, not a commitment. An unattested report (`attestation_status <> 'verified'`)
+cannot use P1.
+
+### 12.2 Device change, reinstall or loss
+
+App Attest keys belong to one app install; reinstalling or changing the device loses the key, and nothing else ties
+a person to a report (no accounts). Proposed support answer, for the maintainer to decide (D6): we cannot verify the
+request, so no early action is taken; the report's photos and content are erased automatically by day 90 at the latest,
+and the reply says so. Optional extra (maintainer's call): a moderation-only action — hide the report from review and
+fence-delete its photos when the request plausibly concerns a privacy risk visible in the photo, which a maintainer
+could take for any report anyway under the review policy, so it is not an identity-based right. Support never asks
+for ID documents or the photo itself.
+
+### 12.3 Separated effects
+
+| Part | Early-minimization effect | Notes |
+| --- | --- | --- |
+| Photos (R2 + `community_evidence_photos`) | Setting `redacted_at` already queues every photo into `community_photo_deletions` and marks it `deleting` (0003 trigger); the existing fenced delete removes the object and leaves the empty marker | The same path the 90-day retention uses; deletion is asynchronous, so the reply promises "within N days" once the cron runs (R5) |
+| Report content (`reports`) | The one-report variant of the retention redaction: `note`, pin, `observed_on`, `submitter_hash` set to NULL, `redacted_at` set | Claim enums, type and terms version stay (as after day 90); `community_photo_requests` rows are deleted by the existing trigger |
+| Review history (`report_moderation`, `admin_review_audit`, `report_bulk_rejection_targets`, `report_reviews`) | Unchanged | These hold IDs, states and reasons only, no reporter content; removing them is option 3 (§5) |
+| Published places (DATA_DB) | Unchanged | Only sanitized, content-free evidence was exported; a report already counted keeps counting. Withdrawal and re-count are option 3 (§4, D5) |
+

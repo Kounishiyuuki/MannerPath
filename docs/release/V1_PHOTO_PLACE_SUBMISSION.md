@@ -165,7 +165,7 @@ R2/D1/App Attest, staging or a device; **Decision** = what only the maintainer (
 | R14 device Release build | Run sheet ([V1_FINAL_DEVICE_E2E](V1_FINAL_DEVICE_E2E.md)) | — | **Not run** | Device run |
 
 Also open, outside R1–R14: per-report erasure on request (ADR-0021) is Proposed and not implemented; its §7
-decisions are the maintainer's. Until it lands, terms and policy must promise no erasure beyond the 90-day ceiling.
+decisions are the maintainer's. Direction 2026-10-31: option 2 baseline, never on a report ID alone (ADR-0021 §11–§12). Until it lands, terms and policy must promise no erasure beyond the 90-day ceiling.
 
 [COMMUNITY_LAUNCH_CHECKLIST](../COMMUNITY_LAUNCH_CHECKLIST.md), by the same columns: A (terms, operator details,
 reuse, withdrawal) is all **Decision** except the report-store path, which is done. B (activation PR) is code that
