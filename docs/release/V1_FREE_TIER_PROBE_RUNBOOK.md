@@ -18,7 +18,7 @@ operator's approval first. Production, staging, R2 and Workers Paid are out of s
 | F8 | Time Travel: a restore to before the fence returns the photo; window length on Free | not testable locally | bytes come back after restore (confirms the −9 day lead is necessary); `time-travel info` shows ≤ 7 days |
 | F9 | Importing the report schema (incl. 0003 triggers with `CASE`) via `d1 execute --file` | local import: 114 statements OK | import succeeds (a known `migrations apply` failure for 0003 exists, REPORTS_MIGRATION_RECOVERY.md) |
 | F10 | Workers rate-limit binding on Free | not documented | deploy accepts `ratelimits` and challenges are served |
-| F11 | CPU of crypto-erasure sealing (`sealPhoto`, V1_PHOTO_ERASURE_ANALYSIS.md §2) | Node median 1.50 ms / max 2.21 ms for 1.2 MB; runs in local workerd | `--mode seal` 100 requests in their own window: 0 failures, P99 ≤ 8 ms, and F1 P99 + F11 P99 ≤ 8 ms |
+| F11 | CPU of crypto-erasure sealing (`sealPhoto`, X25519 day keys, V1_PHOTO_ERASURE_ANALYSIS.md §2) | Node median 0.64 ms / max 1.24 ms for 1.2 MB; runs in local workerd | `--mode seal` 100 requests in their own window: 0 failures, P99 ≤ 8 ms, and F1 P99 + F11 P99 ≤ 8 ms |
 
 ## 2. Code (this PR)
 

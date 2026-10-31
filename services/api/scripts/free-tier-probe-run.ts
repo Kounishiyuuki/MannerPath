@@ -15,6 +15,7 @@ import { base64Decode, base64Encode, sha256, utf8 } from "../src/attest/bytes.ts
 import { sha256Hex } from "../src/db.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { PHOTO_V3_CONTENT_TYPE, PHOTO_V3_IMAGE_MAX_BYTES, encodePhotoBody, photoClientData } from "../src/poc/binary-photo/protocol.ts";
+import { DayKeyChain } from "../src/poc/binary-photo/photo-crypto.ts";
 import { PROBE_WORKER } from "./free-tier-probe-config.ts";
 import { assert as makeAssertion, attest, testDevice, testPki } from "../test/support/app-attest-fixture.ts";
 
@@ -68,10 +69,9 @@ async function main() {
 
   if ((args.mode ?? "upload") === "seal") {
     // F11: seal each photo with a throwaway epoch public key; nothing is stored.
-    const pair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]) as CryptoKeyPair;
-    const pub = new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey) as ArrayBuffer);
+    const pub = await DayKeyChain.generate(1).publicKeyRaw(1); // throwaway day key; the private side is discarded
     for (let i = 0; i < planned.length; i++) {
-      const body = new Uint8Array(65 + planned[i].length); body.set(pub, 0); body.set(planned[i], 65);
+      const body = new Uint8Array(32 + planned[i].length); body.set(pub, 0); body.set(planned[i], 32);
       const r = await call("/probe/seal", { method: "POST", body, headers: { "Content-Type": "application/octet-stream" } });
       expect(`seal ${i + 1}`, r, 200);
       console.log(`seal ${i + 1}/${planned.length} ${planned[i].length} B → ${r.status} (${r.ms.toFixed(0)} ms wall)`);

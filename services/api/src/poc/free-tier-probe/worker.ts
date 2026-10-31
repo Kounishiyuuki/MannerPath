@@ -85,8 +85,8 @@ export default {
     // F11: CPU of crypto-erasure sealing alone (run in its own time window; analytics cannot split by path).
     if (req.method === "POST" && url.pathname === "/probe/seal") {
       const body = new Uint8Array(await req.arrayBuffer());
-      if (body.length < 65 + 1 || body.length > 65 + 1_200_000) return json(400, { error: "body" });
-      const sealed = await sealPhoto(body.subarray(65), "probe/seal.jpg", 1, body.subarray(0, 65));
+      if (body.length < 32 + 1 || body.length > 32 + 1_200_000) return json(400, { error: "body" });
+      const sealed = await sealPhoto(body.subarray(32), "probe/seal.jpg", 1, body.subarray(0, 32));
       return json(200, { sealedBytes: sealed.length });
     }
     const photo = url.pathname.match(/^\/v3\/reports\/(rp_[0-9A-HJKMNP-TV-Z]{26})\/photos$/);

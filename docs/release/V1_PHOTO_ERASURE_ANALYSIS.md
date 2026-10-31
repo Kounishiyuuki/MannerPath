@@ -23,59 +23,96 @@ storage failure and a D1 outage) and closes the Time Travel window inside it. It
 within 90 days** on D1 (layers 3 and 4), and nothing in Cloudflare's documentation lets us claim it. The current
 candidate wording "受信から 90 日以内に削除" is accurate only as SQL deletion; "完全に消去" must not be promised.
 
-## 2. Safe alternative: crypto-erasure with operator-held keys (PoC: `src/poc/binary-photo/photo-crypto.ts`)
+## 2. Safe alternative: crypto-erasure with operator-held day keys (PoC: `src/poc/binary-photo/photo-crypto.ts`)
 
-Make every byte Cloudflare stores ciphertext that Cloudflare cannot decrypt, then destroy the key on the operator side.
+"Unreadable" (cryptographic erasure: the key is gone) is a different claim from "physically erased" (layer 3/4 bytes
+gone). Crypto-erasure makes the residue in every layer unreadable; it does not remove it.
 
-- The Worker holds only the current epoch's **public** key (not a secret). Per photo: ephemeral P-256 ECDH →
-  HKDF-SHA-256 → AES-256-GCM; AAD binds storage key and epoch. Envelope `MPE1 ‖ epoch ‖ ephemeral key ‖ IV ‖ ct+tag`.
-- The epoch **private** key exists only with the operator; the local Admin decrypts in memory for review.
-- Epochs of 14 days. All photos of epoch E are fenced and E's private key is destroyed by `epochStart(E) + 90 d`, so
-  every photo becomes unreadable — in every layer above — within 90 days of storage (76–90 days of review time).
-- Why not a Worker Secret as the key: a deleted Secret's fate in older Worker versions/rollbacks and its storage
-  erasure are not documented (secrets page, read 2026-10-31); a key Cloudflare never had needs no such assurance.
+### 2.1 Options compared
 
-Evidence (local): round trip; wrong key, other storage key, swapped epoch and tampered byte all refused; after a fence
-the database file contains no plaintext (only ciphertext residue); `sealPhoto` 1.2 MB median 1.50 ms, max 2.21 ms
-(Node 24); runs in local workerd (`/probe/seal` 200). On real Workers Free: probe F11.
+| Option | Within 90 days for every photo | Review time lost | Destroying one key affects | Residue risk | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| A. 14-day creation epochs (first PoC) | yes (destroy at epoch start + 90 d) | up to 14 days for photos stored late in an epoch | every photo of the epoch, incl. ones still under review | as C | replaced |
+| B. Per-photo data key wrapped to an operator key, wrapped key stored in D1 | only when the wrapping key is destroyed → same as A/C | — | — | the wrapped data key itself is D1 residue (layers 2–4) | adds nothing over C unless the data keys live outside D1 |
+| B′. Per-photo data key held only in an operator key store | yes, per photo; also allows early erasure on request (ADR-0021) | none | that photo only | moves the problem to the operator store, where deleting one entry on an SSD is not sanitization | possible later; needs a store with reliable per-entry destruction |
+| **C. Per-deadline-day keys + forward key chain (recommended)** | **yes: key destroyed in (t + 89 d, t + 90 d]** | **< 1 day** | only photos with the same deadline day | operator stores **one** 32-byte seed; destruction = replacing it with the advanced seed | **recommended** |
+| D. Worker Secret as key | — | — | — | rollback/old-version and storage erasure of deleted Secrets undocumented | rejected |
+| E. No encryption | no physical guarantee (§1) | — | — | layers 2–4 in plaintext | only with disclosed residue |
 
-Costs and risks of the alternative:
+### 2.2 Scheme C
 
-| Item | Effect |
-| --- | --- |
-| CPU | +~1.5 ms per photo (Node); F1 + F11 must still leave the P99 ≤ 8 ms margin |
-| Operator key duty | generate epoch key pairs ahead (e.g. a quarter = 7 public keys committed/deployed); keep private keys in a vault that is **excluded from backups** or whose backups expire before `keyDestroyBy`; destroy on schedule (calendar + checklist). The guarantee now depends on this discipline |
-| Key loss | photos of that epoch become unreviewable (fail safe for privacy, not for review) |
-| Missing current public key | intake for photos fails closed (`503`) — must alert well before an epoch starts |
-| Admin | must load the epoch private key from the vault per session, never write it to disk |
-| Scope | photos only. Text fields in REPORTS_DB keep layers 2–4; same technique possible later, larger change |
+- Photo stored at `t` → sealed to the X25519 public key of day `k = floor((t + 90 d) / 1 d)`; envelope `MPE2 ‖ day ‖
+  ephemeral key ‖ IV ‖ AES-256-GCM(ct+tag)`, AAD = storage key + day. Worker holds only public keys (published ahead).
+- Operator: `seed_{k+1} = HMAC-SHA-256(seed_k, "advance")`; day private key = HMAC(seed_k, "x25519") as an X25519
+  scalar. The stored seed is always that of the oldest day still alive; each day the operator replaces it with the
+  advanced seed, which destroys that day's key. A stolen current seed reveals future days only, never past ones.
+- Tests (all pass): lifetime in (89 d, 90 d] at any time of day; wrong day/other storage key/swapped day/tampering
+  refused; **destroying day 0 leaves days 1–4 readable**; a chain object that was advanced refuses use; a reloaded seed
+  cannot derive destroyed days; the fenced database file contains no plaintext.
+- CPU (Node 24): `sealPhoto` 1.2 MB **median 0.64 ms, max 1.24 ms**; deriving a key 90 days ahead 2.91 ms (operator).
+  Runs in local workerd (`/probe/seal` 200). Real Workers Free: **F11**.
 
-Standard reference for the concept: "cryptographic erase" in NIST SP 800-88 (not re-read for this note).
+### 2.3 Key management (operator)
 
-## 3. Without the alternative
+| Topic | Rule | Residual risk |
+| --- | --- | --- |
+| Generation | `crypto.getRandomValues` (32 bytes) once; publish public keys for days `today+90 … today+90+N` | entropy source of the operator machine; not FIPS-validated (see §2.4) |
+| Storage of the seed | one secret in one place: a local file/keychain item **excluded from Time Machine, iCloud and any backup**, on an encrypted volume | a backup or sync copy holding an old seed defeats erasure for every day it covers |
+| Backup | **none** (recommended). Loss ⇒ photos become unreviewable (privacy-safe failure); new chain + new public keys | if backups are required, they must advance daily and expire before the oldest covered day's deadline — not recommended |
+| Replication | never copy the seed to another machine, CI, Cloudflare, chat or a password manager with history | password managers usually keep item history |
+| Loading into Admin | Admin reads the seed per session, derives only the needed day keys as non-extractable `CryptoKey`s, zeroes its byte copies | JS cannot zero a `CryptoKey` or strings; GC timing is uncontrolled |
+| Memory residue | end the Admin process after review; no core dumps; keep FileVault on (encrypted swap/hibernation) | a live process or memory image during the session can expose current keys |
+| Destruction | daily (cron/launchd on the operator machine + alert): load seed → `advanceTo(today)` → write the new seed over the old one → fsync → verify the old day fails | overwriting a file on an SSD/APFS is **not** physical sanitization of the old seed's blocks; assurance rests on the encrypted volume (FileVault) and on no copies — record this limitation |
+| Missed destruction | the key of an overdue day still exists → the 90-day statement is false for those photos until fixed; alert on any day > 0 overdue | operator availability |
+| Current public key missing | photo intake fails closed (`503`); alert ≥ 7 days ahead | — |
 
-If crypto-erasure is not adopted, configuration 3 can still ship only with wording that promises SQL deletion and
-discloses layers 2–4, and with the operator's (and counsel's) acceptance of that residue. R2 (configuration 2) does not
-remove layer 4 and adds billing risk, so it is not a privacy improvement over D1 on this point.
+### 2.4 NIST SP 800-88 Rev. 2 (September 2025, read 2026-10-31 from nvlpubs.nist.gov) — fit of scheme C
+
+| NIST text (paraphrased, section) | Scheme C | Status |
+| --- | --- | --- |
+| For logical/virtual storage such as cloud, CE "may be the only viable purge sanitization technique" (§3.1.2) | D1 is exactly this case | fits |
+| CE pre-condition: no sensitive data previously stored in plaintext on the media (§3.2.2, citing ISO/IEC 27040) | photos must be sealed **before** the first byte reaches D1; any plaintext pilot data breaks CE for that store | design requirement; **any earlier plaintext photo store needs a fresh database** |
+| Algorithm strength ≥ 128 bits; RNG entropy ≥ key size (§3.2.1) | AES-256-GCM, X25519 (~128-bit), HKDF/HMAC-SHA-256, 256-bit seed | fits on paper |
+| Key-transport private keys are valid CE targets; **public** key sanitization is not valid (§3.2.3, fn. 12) | the destroyed item is the private side (seed) | fits |
+| All copies of target keys must be able to be sanitized; zeroization recommended (§3.2.3) | one seed, no backups, overwrite daily | partial: overwrite on SSD is not proven zeroization of old blocks |
+| Unwrapped keys in volatile memory must also be eliminated (§3.2.3) | short Admin sessions, process exit | partial: JS cannot guarantee it |
+| Do not trust CE where data/keys were backed up or escrowed without high confidence in key handling (§3.2.2) | no seed backups | depends on operator discipline |
+| Implementation quality: independent validation or vendor statement; federal agencies need FIPS 140 modules (§3.2.4) | WebCrypto in workerd/Node, not a validated module claim | **not met formally** (not required for a private operator, but must not be claimed) |
+| Long-lived sensitivity / future cryptanalysis (§3.2.2) | 90-day review photos; X25519 is not post-quantum | acceptable risk to state, not to hide |
+
+Conclusion: scheme C follows the CE model NIST describes for cloud storage, but **we cannot claim NIST-conformant
+cryptographic erase**: key zeroization on the operator's SSD and memory elimination are best effort, and no validated
+module is used.
+
+## 3. REPORTS_DB has the same residue (separate issue)
+
+The 90-day redaction (`retain`) sets `note`, `proposed_latitude/longitude`, `observed_on` and `submitter_hash` to NULL.
+Layers 2–4 of §1 apply unchanged: Time Travel can restore the pre-redaction rows for 7 days, and the old values stay in
+SQLite free pages until reuse. This affects the shipped report design (production REPORTS_DB already exists), not only
+photos. Options: (a) disclose the same limits; (b) start redaction ≥ 8 days before the 90-day ceiling (closes Time
+Travel, not free pages); (c) seal these fields with the same day-key scheme (larger change: moderation reads them in the
+Admin today). Decision belongs to the operator and counsel; nothing is changed here.
 
 ## 4. Wording proposals (for counsel; not approved, not shipped)
 
-With crypto-erasure (recommended):
+Only what is proven or designed may be stated. Not proven today: Cloudflare-side physical erasure; D1 behavior on the
+real service (F6, F8); the operator's key handling in practice.
 
-> 写真は、審査のためだけに、暗号化した状態で非公開のクラウドストレージ（Cloudflare）に保存します。復号に必要な鍵は運営者だけが
-> 管理し、保存した日から 90 日以内に鍵を破棄します。鍵の破棄後は、保存先やその復旧用の仕組みに写真の暗号化データが残っていても、
-> 運営者を含め誰も写真を復元できません。審査用の保存データからは、それより前（報告の受信から 81 日以内）に削除します。
+If scheme C ships and its operation is in place:
 
-Without crypto-erasure:
+> 写真は、審査のためだけに非公開のクラウドストレージ（Cloudflare）に保存します。写真は保存前に暗号化し、復号のための鍵は
+> 運営者だけが管理します。審査用の保存データからは報告の受信から 81 日以内に削除し、復号のための鍵は保存から 90 日以内に破棄
+> します。保存事業者の仕組み上、暗号化された状態のデータがその後も一定期間残ることがあります。
+
+Without encryption:
 
 > 写真は、審査のためだけに非公開のクラウドストレージ（Cloudflare）に保存し、報告の受信から 81 日以内に保存データから削除します。
-> ただし、保存事業者の障害復旧の仕組みにより、削除後 7 日間は復元可能な状態で残ります。また、保存事業者の内部の記録領域から
-> データが物理的に消去される時期は、運営者が確認・保証できません。
+> 保存事業者の障害復旧の仕組みにより、削除後 7 日間は復元可能な状態で残ります。保存事業者の内部の記録領域から物理的に消去される
+> 時期は、運営者が確認・保証できません。
 
-Both replace PHOTO_TERMS_CANDIDATE.md 第 6 条の 2 第 3 項 (which describes the R2 overwrite method) when configuration 3
-is chosen; the privacy-policy photo footnote (PHOTO_PRIVACY_REVIEW.md §5) follows the same text. 〔LEGAL-REVIEW〕
+Neither text says 「完全に消去」 or 「誰も復元できません」. 〔LEGAL-REVIEW〕
 
 ## 5. Real-environment items
 
-F1–F10 in V1_FREE_TIER_PROBE_RUNBOOK.md are unchanged. Added: **F11** — CPU of `sealPhoto` on Workers Free
+F1–F10 in V1_FREE_TIER_PROBE_RUNBOOK.md are unchanged. Added: **F11** — CPU of `sealPhoto` (X25519 day keys) on Workers Free
 (`free-probe:run --mode seal`, its own time window). F6 and F8 now also decide the layer 2/3 statements above.
