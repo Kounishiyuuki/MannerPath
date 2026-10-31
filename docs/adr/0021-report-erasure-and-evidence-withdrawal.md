@@ -166,3 +166,35 @@ Independent of D1–D7 and not presuming the erase design:
   later migration changes them deliberately.
 
 Nothing else (schema, CLI writes, retention periods, client changes) should land before the decisions.
+
+## 11. Re-audit and option comparison (2026-10-31, `main` `689bfc8`)
+
+Not a decision: the §7 owners still decide. Two facts changed since this ADR was written. The fenced R2 adapter
+exists (`src/reports/r2-photo-storage.ts`: a delete overwrites the key with a permanent empty marker), so §3 step 1
+("refuse while no adapter can delete photos") can become "queue the photo rows for fenced deletion in the same batch".
+And v1.0 ships with photo intake on (product decision 2026-10-31), so a request can arrive from launch day.
+
+What the 90-day ceiling already does without any erase code (`retain`, migration 0010): photos are erased from
+`delete_after − 24 h`; report content and `submitter_hash` are redacted at `minimize_after`. Only a content-free
+skeleton, the receipt digest and DATA_DB evidence IDs remain after that.
+
+| Topic | Option 1: 90-day ceiling only | Option 2: early minimization on request | Option 3: full erase (§3–§5) |
+| --- | --- | --- | --- |
+| What is removed on request | Nothing early; everything personal goes by day 90 | Photos fenced-deleted and report content/hash redacted at once, by a one-report variant of the existing `retain` redaction | Option 2 plus the report row, the receipt (tombstone), review evidence links (withdrawal, option B) and audit IDs |
+| Code | None | Small: one maintainer CLI command reusing redaction and the photo deletion queue; no schema change | Large: migration 0007 rebuilds, DATA_DB withdrawal ledger, promotion guard, ADR-0014 §10 amendment |
+| Kept afterwards | As today | Skeleton row, receipt digest, DATA_DB IDs (as after day 90) | Tombstone for *R* (D2); random IDs in DATA_DB unless D3 says otherwise |
+| Requester proof (§6) | Not needed | V2 (report ID + idempotency key) once the client keeps the key; before that, report ID only plus an early-redaction-only effect, which a third party could trigger to remove someone's report early | Same as option 2; V1 alone is rejected because erase is irreversible |
+| Abuse | None | A forged request only shortens retention of one report; it cannot read data. Bounded by maintainer handling | A forged request destroys evidence; needs V2 or V3 |
+| Effect on published places | None until a review uses the report | A report already in an exported review stays as evidence (its content was never exported) | Withdrawal re-counts evidence; a place may be held (D5) |
+| Terms/policy wording | "deleted within 90 days; no earlier deletion promised" | "on request with the report ID, we delete its photos and content early" | "on request we erase the report" with the D4 backup exception |
+| Operator effort | None | Minutes per request | Plan/apply per request plus withdrawal import |
+
+Recommendation for v1.0: **option 2**, with **D2–D3 deferred** (they only matter for option 3), **D4** answered in
+the policy as "backups follow the provider's retention, at most the D1 Time Travel window" (counsel to confirm), **D6**
+as "report ID only for early minimization", and **D7** "no request handling after day 90 (nothing personal is left)".
+Option 3 stays the target for a later release. Risks left with option 2: a third party who learns a report ID can
+make its photos and content disappear early (no disclosure); IDs in DATA_DB and backup copies are not touched
+early; counsel should confirm that the 90-day ceiling plus early minimization meets APPI requests (L2).
+
+Implementable now without these decisions: the §10 read-only `reports:erasure-impact` report and characterization
+tests. Option 2's CLI should wait for D1/D6.

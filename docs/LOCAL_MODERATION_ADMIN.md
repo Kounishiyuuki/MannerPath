@@ -69,7 +69,7 @@ or actual browser interaction results are claimed. Use the synthetic demo below 
 1. MacのターミナルでNode 24以上を選択し、次を実行します。`--demo`を必ず付けます。
 
    ```sh
-   cd /private/tmp/mannerpath-report-moderation-admin/services/api
+   cd services/api   # リポジトリのルートから
    npm run reports:admin -- --demo
    ```
 

@@ -1,9 +1,10 @@
 # v1.0 P0 — Photo-backed new place submission
 
-Status: **Code complete up to P7; fail-closed.** Product decision 2026-10-22: proposing a new smoking place with
-photos is a v1.0 P0 feature, not deferred to v1.1. Re-audited 2026-10-31 against `main` `2a050cd` (§5): what is
-left is maintainer approval (#124 terms, App Privacy), operations (bindings, edge rule, cron) and the staging and
-device evidence of P8.
+Status: **Code complete, not production-ready; fail-closed.** Product decision 2026-10-22: proposing a new smoking
+place with photos is a v1.0 P0 feature, not deferred to v1.1. Re-audited 2026-10-31 against `main` `689bfc8` (§5).
+"Code complete" means P2–P6 are merged and tested on dummy data with intake off. "Production-ready" additionally
+needs the #124 approvals, the maintainer's Cloudflare operations, and staging (R13) and device (R14) evidence; none
+of those exist yet.
 
 This decision changes **product scope only**. It grants no legal approval (Issue #124), enables no production
 intake and changes no Cloudflare, D1, R2 or API configuration. ADR-0007/0013/0014/0016/0021 stay authoritative;
@@ -142,20 +143,41 @@ Exists (reuse):
 | New-spot photo publication gate: a `missing` report backs a new-spot review only with a ready, approved, unexpired photo (`newSpotPhotoGate`, checked at propose/export and by REPORTS_DB migration 0009); photo-less reports are held and minimize normally | Implemented; 0009 not applied to any remote store |
 | Photo step in `ReportFormView` (P3): 1–3 photos chosen before consent and submit, required for a new place; a new place is not sent unless `photoEvidenceEnabled` and the photo policy's terms match (`ReportModel.acceptsNewSpotProposals`); photos upload after acceptance, retry only photos (`canRetry`), per-photo reasons, no "all sent" copy while any photo is unsent | Implemented; closed in production (`PhotoEvidencePolicy` default off, config false) |
 
-Re-audit 2026-10-31 (`main` `2a050cd`; `make api-validate` 1484 tests pass, `make contract` OK). The gap list
-written with this plan is closed in code except where a row names a maintainer:
+Re-audit 2026-10-31 (`main` `689bfc8` after #349; `make api-validate` 1484 tests pass, `make contract` OK).
+Columns: **Code** = merged; **Tested** = automated tests on dummy data or doubles; **Real env** = observed on real
+R2/D1/App Attest, staging or a device; **Decision** = what only the maintainer (or counsel) can settle.
 
-| Gap (original) | State | Evidence |
-| --- | --- | --- |
-| Standalone map button, empty-state copy (R1, R2) | Implemented | P2; three-detent sheet integration in #344 |
-| Production fenced storage adapter, expiry and cleanup (R5) | Implemented, off | `src/reports/r2-photo-storage.ts` (create-only PUT, zero-byte fence on delete); `r2-photo-storage*.test.ts`, `new-spot-photo-erasure-window.test.ts`, migration 0010; `report-retention-automation.test.ts` |
-| `photoEvidenceEnabled` true only with storage and reviewed terms (R5, R9) | Implemented, off | `src/reports/photo-policy.ts` (`REVIEWED_PHOTO_TERMS` = `[]`); `photo-policy.test.ts`, `photo-activation-readiness.test.ts` (server and app lists must match) |
-| Moderator photo viewing (R11) | Implemented (local Admin) | `src/reports/private-photo-view.ts`; `private-photo-view.test.ts`, `admin-*.test.ts`; [LOCAL_MODERATION_ADMIN](../LOCAL_MODERATION_ADMIN.md). Real R2 not exercised |
-| Photo clause, App Privacy, privacy policy text (R9, R10) | Candidate text only | [PHOTO_TERMS_CANDIDATE](../legal/PHOTO_TERMS_CANDIDATE.md), [decision pack](../legal/PHOTO_LEGAL_DECISION_PACK.md). **Maintainer approval (#124)**; `PrivacyInfo.xcprivacy` gets Photos only in the activation PR |
-| Staging E2E runbook and evidence (R13) | Runbook and offline preflight only | [V1_PHOTO_STAGING_RUNBOOK](V1_PHOTO_STAGING_RUNBOOK.md), `photo-staging-preflight.test.ts`, local `v1-photo-report-e2e.test.ts`. No staging run recorded |
-| Device verification record (R14) | Run sheet only | [V1_FINAL_DEVICE_E2E](V1_FINAL_DEVICE_E2E.md). No device run recorded |
-| Edge IP rule, R2 bucket, REPORTS_DB, App Attest secrets, retention cron (R5, R8) | Not configured | **Maintainer operations.** Every `wrangler.jsonc` env has `crons: []` and no photo binding; per-key limits exist in code (`reportRateLimited`) |
-| Per-report erasure on request (ADR-0021) | Not implemented | ADR-0021 is Proposed; its §7 decisions are the maintainer's. Terms must not promise erasure beyond the 90-day ceiling until then |
+| Req | Code | Tested | Real env | Decision / operation left |
+| --- | --- | --- | --- | --- |
+| R1 map button | Yes (P2, #344, #349: always visible, paused state explained) | iPhone UI tests (`ReportSubmissionUXUITests`) | Device: no | — |
+| R2 empty state | Yes | UI tests | Device: no | — |
+| R3 seven-step flow | Yes (P3; restart recovery #330) | `ReportPhotoFormFlowTests`, `ReportPhotoRecoveryTests`, `PhotoReportFlowUITests` | Device: no | — |
+| R4 attested upload | Yes (`AttestedEvidencePhotoUploader`, #317) | `AttestedPhotoUploadTests`, `photo-client-contract.test.ts` | Real App Attest: no | App Attest secrets (operation) |
+| R5 private storage, fence, expiry | Yes (`r2-photo-storage.ts`, #316, #323, migration 0010) | `r2-photo-storage*.test.ts`, `new-spot-photo-erasure-window.test.ts`, `report-retention-automation.test.ts` | Real R2, cron: no | Bucket, `PHOTO_STORAGE_POLICY` attestation, retention cron (every env has `crons: []`) |
+| R6 metadata removal | Yes (device re-encode + server PNG) | `ReportPhotoTests`, `photo-sanitizer.test.ts` | Real device photos: no | — |
+| R7 faces/plates | Copy + manual photo rejection | Admin tests | — | Moderation policy (operator) |
+| R8 abuse limits | Per-key limits (`reportRateLimited`, challenge budgets) | `reports-api.test.ts`, `app-attest-api.test.ts` | Edge rule: no | Edge IP rule and values (Q3) |
+| R9 terms incl. photos | Consent per version; photos refused without a reviewed version (`photoConsentRequired`) | `photo-policy.test.ts`, `photo-activation-readiness.test.ts` | — | **#124: M2–M6, counsel advised on L1–L4** |
+| R10 App Privacy, policy | Not in code until activation (`PrivacyInfo.xcprivacy` declares no photos) | — | — | Final ASC answer and policy text (M7, M8); direction set below |
+| R11 moderator review | Yes (local Admin, private previews, #321) | `admin-*.test.ts`, `private-photo-view.test.ts` | Real R2: no; browser acceptance: not recorded | — |
+| R12 gates to publication | Yes (`newSpotPhotoGate`, #322, v4 promotion #328) | `new-spot-photo-gate.test.ts`, `v1-photo-report-promotion-v4.test.ts` | Production promotion: no | M9 (report IDs in promoted rows) |
+| R13 staging E2E | Runbook + offline preflight | `v1-photo-report-e2e.test.ts` (local, synthetic), `photo-staging-preflight.test.ts` | **Not run** | Staging resources (Q4) |
+| R14 device Release build | Run sheet ([V1_FINAL_DEVICE_E2E](V1_FINAL_DEVICE_E2E.md)) | — | **Not run** | Device run |
+
+Also open, outside R1–R14: per-report erasure on request (ADR-0021) is Proposed and not implemented; its §7
+decisions are the maintainer's. Until it lands, terms and policy must promise no erasure beyond the 90-day ceiling.
+
+[COMMUNITY_LAUNCH_CHECKLIST](../COMMUNITY_LAUNCH_CHECKLIST.md), by the same columns: A (terms, operator details,
+reuse, withdrawal) is all **Decision** except the report-store path, which is done. B (activation PR) is code that
+can only be written after A. C (migrations on REPORTS_DB, pepper, App Attest, edge rule, retention schedule) and
+D (launch order, blue/green, smoke, campaign) are **operations**, not observed in any environment. E (rollback) needs
+the revert and `suspended` PRs prepared before launch.
+
+Product decisions recorded 2026-10-31 (maintainer, product scope only; not legal approval): v1.0 ships with photo
+submission and operator review **on** (Q5/M1); a new place needs **1–3 photos** (Q1); photos are private and used
+only for review; approved facts reach the map only after the quality gates; photos and personal data are kept no
+longer than the existing retention ceiling; App Privacy is prepared as photos, report content and device ID
+**Linked** (final answer checked against Apple's definitions at entry, M7); review uses the existing local Admin.
 
 Activation steps and the gate list: [V1_PHOTO_ACTIVATION_HANDOFF](V1_PHOTO_ACTIVATION_HANDOFF.md).
 
@@ -177,13 +199,12 @@ performed by the maintainer.
 
 ## 7. Open decisions (maintainer)
 
-- Q1. Is at least one photo **required** for a new-place proposal, or optional (0–3)? Recommendation: required (1–3)
-  for new places, since the release goal is photo-backed submission; confirmations stay photo-free.
+- Q1. ~~Photos required for a new place?~~ Decided 2026-10-31: required, 1–3 (§5).
 - Q2. Terms: who approves the photo clause, and is counsel review needed (#124)?
 - Q3. Edge IP rate limit values for `POST /v1/reports` and `/photos`.
 - Q4. Staging environment for E2E (existing staging Worker + separate REPORTS_DB and bucket?).
-- Q5. Release order: v1.0 ships only after R9/R10 are approved, or v1.0 ships with the button hidden
-  (`reports.available:false`) and is switched on later by config? The completion condition requires the former.
+- Q5. ~~Release order?~~ Decided 2026-10-31: v1.0 ships with submission on, so it ships only after R9/R10 are
+  approved (§5).
 
 ## 8. Completion condition
 
