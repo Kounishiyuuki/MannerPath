@@ -20,6 +20,7 @@
     "local:reports": "node --experimental-strip-types --no-warnings scripts/report-queue.ts",
     "local:reports:retention": "node --experimental-strip-types --no-warnings scripts/report-retention.ts",
     "local:reports:redact": "node --experimental-strip-types --no-warnings scripts/report-queue.ts retain",
+    "local:reports:erasure-impact": "node --experimental-strip-types --no-warnings scripts/report-erasure-impact.ts",
     "reports:moderate": "node --experimental-strip-types --no-warnings scripts/report-queue.ts",
     "reports:admin": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/report-admin.ts",
     "reports:bulk-reject": "node --experimental-strip-types --no-warnings scripts/bulk-report-reject.ts",
