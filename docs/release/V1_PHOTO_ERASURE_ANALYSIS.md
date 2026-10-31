@@ -84,25 +84,37 @@ Conclusion: scheme C follows the CE model NIST describes for cloud storage, but 
 cryptographic erase**: key zeroization on the operator's SSD and memory elimination are best effort, and no validated
 module is used.
 
-## 3. REPORTS_DB has the same residue (separate issue)
+## 3. REPORTS_DB has the same residue (separate issue, separate measures)
 
 The 90-day redaction (`retain`) sets `note`, `proposed_latitude/longitude`, `observed_on` and `submitter_hash` to NULL.
-Layers 2–4 of §1 apply unchanged: Time Travel can restore the pre-redaction rows for 7 days, and the old values stay in
-SQLite free pages until reuse. This affects the shipped report design (production REPORTS_DB already exists), not only
-photos. Options: (a) disclose the same limits; (b) start redaction ≥ 8 days before the 90-day ceiling (closes Time
-Travel, not free pages); (c) seal these fields with the same day-key scheme (larger change: moderation reads them in the
-Admin today). Decision belongs to the operator and counsel; nothing is changed here.
+Layers 2–4 of §1 apply unchanged: Time Travel can restore the pre-redaction rows for 7 days, the old values stay in
+SQLite free pages until reuse, provider copies are undocumented. This concerns the **shipped** report design and the
+existing production REPORTS_DB, not only photos. Who reads these fields today: the operator-side review tools
+(`review.ts` reads pins and `submitter_hash`; `triage.ts`, `moderation.ts`, Admin) and SQL-side equality/joins on
+`submitter_hash` (independence, bulk rejection).
+
+| Measure | Closes | Cost | Proposal |
+| --- | --- | --- | --- |
+| R1 Disclose in the policy (as for photos without encryption) | nothing technically | text only | **now**, with counsel |
+| R2 Redact ≥ 8 days before the stated ceiling (e.g. state "90 days", redact at 82) | Time Travel (layer 2) | one constant + migration-free retention change; review window for text 82 days | **next**, small PR after the operator decides the number |
+| R3 Seal `note`, pin and `observed_on` with the same day-key scheme (Worker seals with public keys; operator tools decrypt) | layers 2–4 become ciphertext | review tools and Admin must decrypt locally; distance search moves to the operator side; schema change | evaluate after photos; larger |
+| R4 `submitter_hash` | cannot be sealed while SQL compares it; a per-period HMAC key held by the operator would change rate-limit and independence logic | design work | open question |
+| R5 Never import plaintext pilot data into a store that later relies on R3 (NIST §3.2.2 pre-condition) | — | process | rule |
 
 ## 4. Wording proposals (for counsel; not approved, not shipped)
 
 Only what is proven or designed may be stated. Not proven today: Cloudflare-side physical erasure; D1 behavior on the
 real service (F6, F8); the operator's key handling in practice.
 
-If scheme C ships and its operation is in place:
+If scheme C ships — usable only after F1–F11 pass, the daily rotation has run with alerting for a reviewed period,
+and §5's snapshot/backup question is answered on the operator's machine:
 
 > 写真は、審査のためだけに非公開のクラウドストレージ（Cloudflare）に保存します。写真は保存前に暗号化し、復号のための鍵は
-> 運営者だけが管理します。審査用の保存データからは報告の受信から 81 日以内に削除し、復号のための鍵は保存から 90 日以内に破棄
-> します。保存事業者の仕組み上、暗号化された状態のデータがその後も一定期間残ることがあります。
+> 運営者だけが管理します。審査用の保存データからは報告の受信から 81 日以内に削除します。復号のための鍵は、保存からおおむね
+> 90 日で破棄する運用としています。保存事業者の仕組み上、暗号化された状態のデータは削除後も一定期間残ることがあります。
+
+Note: 「運用としています」 describes a practice, not a guarantee; counsel decides whether even that may be said before an
+operating record exists. Until then use the text below.
 
 Without encryption:
 
@@ -112,7 +124,44 @@ Without encryption:
 
 Neither text says 「完全に消去」 or 「誰も復元できません」. 〔LEGAL-REVIEW〕
 
-## 5. Real-environment items
+## 5. Seed lifecycle on the operator machine (PoC: `scripts/photo-key-seed-file.ts`)
+
+Tested: after a rotation the stored file cannot derive any earlier day (API refusal; the one-wayness of
+HMAC-SHA-256 is an assumption, not something a test proves); later days stay readable; a crash before the rename keeps
+the old seed and the next run completes it; rotation is idempotent, refuses to move backwards, detects corruption.
+The test also shows the core residual risk: **a copy of the old file (snapshot, backup) still opens the old day.**
+
+| Situation | Behavior | Effect on the 90-day statement | Mitigation |
+| --- | --- | --- | --- |
+| Normal daily rotation | temp file → fsync → rename → fsync dir → read back → verify yesterday fails | met | launchd job at boot and daily; alert on any failure |
+| Machine off / job not run | old seed stays | **broken for the photos of every overdue day** until it runs | run at boot; alert when > 0 days behind; a second operator able to run it |
+| Crash before rename | old seed stays, `.next` holds a newer seed | broken until next run (minutes–a day) | next run deletes `.next` and redoes it |
+| Crash after rename | new seed in place | met | — |
+| Disk full / write error | old seed stays | broken until fixed | alert |
+| Clock behind | rotation lags | broken for lagging days | NTP; compare with server time |
+| Clock ahead / mistaken date | future days destroyed | met; photos of those days unreviewable early | refuse jumps > 1 day without confirmation |
+| File corrupted | load refuses (checksum) | met (nothing derivable) but review stops | none needed for privacy; new chain + new public keys for review |
+| APFS: rename is copy-on-write | old seed blocks remain on the SSD until reused/TRIMmed | **not provable** | encrypted volume (FileVault); see hardening |
+| Time Machine local snapshots / backups | may hold old seed files | **broken for as long as the snapshot exists** | keep the seed outside snapshotted/backed-up volumes (to be verified on the machine); or hardening |
+| Keychain / password manager / cloud sync | item history and sync copies | broken | do not use for the seed |
+| Admin session memory | day keys as `CryptoKey` in a running process | broken while it runs | short sessions, process exit, no core dumps |
+
+Hardening (proposal, not built): keep the seed encrypted under a **Secure Enclave key** that is replaced daily
+(create E_{k+1}, re-encrypt the advanced seed, delete E_k). Old file copies in snapshots/backups are then useless without
+E_k, so the snapshot/backup/COW rows above stop mattering. Requires a small Swift tool (CryptoKit) and relies on
+Apple's statement that deleted Secure Enclave keys are unrecoverable — to be checked against Apple's documentation.
+
+## 6. Three things that must not be confused
+
+| Event | What happens | Privacy effect | Promise allowed |
+| --- | --- | --- | --- |
+| Key **loss** (seed file lost/corrupted, machine dead) | every live day's photos become unreviewable at once | none negative (data unreadable); review stops | "we may be unable to review photos" — no promise needed |
+| **Deletion request** for one report (ADR-0021 option 2) | SQL redaction + fence of that report's photos now; its day key still exists for other photos of that day | ciphertext stays readable to the operator until the day key is destroyed (≤ 90 d after storage) | "deleted from the review store now; unrecoverable at the latest when the key is destroyed (≤ 90 days after storage)" — only once implemented |
+| **90-day statement** | key destroyed in (t + 89 d, t + 90 d] if §5 operation holds | residue unreadable after that | only "keys are destroyed within 90 days of storage" (designed), never "completely erased"; conditional on F-items and operation |
+
+Per-photo early crypto-erasure would need per-photo keys outside D1 (option B′ in §2.1).
+
+## 7. Real-environment items
 
 F1–F10 in V1_FREE_TIER_PROBE_RUNBOOK.md are unchanged. Added: **F11** — CPU of `sealPhoto` (X25519 day keys) on Workers Free
 (`free-probe:run --mode seal`, its own time window). F6 and F8 now also decide the layer 2/3 statements above.
