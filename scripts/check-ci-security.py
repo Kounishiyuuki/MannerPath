@@ -166,10 +166,36 @@ def workflow_errors(doc, filename):
         reject(len(packages) != 1 or any(s.get('run') != PAGES_PACKAGE_COMMAND or any(k in s for k in ('shell', 'env', 'working-directory', 'if', 'continue-on-error')) for s in packages), 'Pages must run the permission-normalizing packager')
         uploads = [s for s in build.get('steps', []) if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/upload-artifact@')]
         reject(len(uploads) != 1 or uploads[0].get('with', {}).get('name') != 'github-pages' or uploads[0].get('with', {}).get('path') != '${{ runner.temp }}/artifact.tar', 'Pages must upload the normalized archive')
+        reject(any(str(s.get('with', {}).get('archive')).lower() != 'true' for s in uploads), 'Pages upload must explicitly preserve ZIP archive semantics')
     if filename == 'pr-validation.yml':
+        smoke = jobs.get('pages-artifact', {})
+        if not isinstance(smoke, dict):
+            smoke = {}
+        reject(smoke.get('runs-on') != 'ubuntu-latest' or any(k in smoke for k in
+               ('if', 'continue-on-error', 'environment', 'needs', 'env', 'defaults')),
+               'Pages validation must be an unconditional read-only Ubuntu job without a deployment environment')
+        smoke_steps = smoke.get('steps', [])
+        if not isinstance(smoke_steps, list):
+            smoke_steps = []
+        packages = [s for s in smoke_steps if isinstance(s, dict) and 'run' in s]
+        uploads = [s for s in smoke_steps if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/upload-artifact@')]
+        checkouts = [s for s in smoke_steps if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/checkout@')]
+        reject(len(smoke_steps) != 3 or len(checkouts) != 1 or len(packages) != 1 or len(uploads) != 1,
+               'Pages validation must only checkout, package and upload')
+        reject(any(s.get('run') != PAGES_PACKAGE_COMMAND or any(k in s for k in
+               ('if', 'continue-on-error', 'env', 'shell', 'working-directory')) for s in packages),
+               'Pages validation must use the normalized packager')
+        reject(any(s.get('with', {}).get('name') != 'pages-validation' or
+               s.get('with', {}).get('path') != '${{ runner.temp }}/artifact.tar' or
+               str(s.get('with', {}).get('archive')).lower() != 'true' or
+               str(s.get('with', {}).get('retention-days')) != '1' or
+               s.get('with', {}).get('if-no-files-found') != 'error' or
+               any(k in s for k in ('if', 'continue-on-error')) for s in uploads),
+               'Pages validation must upload a separate one-day ZIP artifact')
         reject('pull_request' not in events or events.get('pull_request') not in ('', None, {}), 'all PRs must run without trigger filters')
         job = jobs.get('validate', {})
         reject(bool(job.get('if')) or bool(job.get('continue-on-error')), 'PR validation job cannot skip or tolerate failure')
+        reject('needs' in job, 'PR validation cannot depend on a skippable sibling job')
         reject('defaults' in doc or 'defaults' in job, 'PR checks must run from the repository root')
         reject('env' in doc or 'env' in job, 'PR validation must not override the command environment')
         for command in ('make contract', 'make api-validate', 'make security-validate'):
