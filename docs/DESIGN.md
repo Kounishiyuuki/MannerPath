@@ -238,6 +238,11 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
     `MannerPathYellow`.
   - Re-tapping the selected pin keeps the selection; only the Clear button removes it. Selecting scrolls the
     sheet to the summary.
+  - A list row selects its place the same way (2026-10-30): summary with 「この場所へ案内」/「この付近へ案内」 and
+    「場所の詳細を見る」, plus type and access (「利用条件」), instead of pushing details. The two actions follow the
+    distance, before type/access, evidence and precision, so at medium they stay above 「選択を解除」.
+  - At accessibility text sizes a pin selection opens the large detent and the two actions follow the name: at AX5
+    the summary's facts filled more than the full sheet and left the directions under 「選択を解除」.
 - **Required change:** new selection state in the sheet; reuse `SpotPresentation` and `ApproximateLocation` copy.
 
 ### 5.6 Spot Detail — exact
@@ -298,6 +303,8 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
   remain readable. Compact status labels keep warnings and distinguish success/info/failure by symbol and
   warning prominence. Native `dismissSearch` ends editing on selection; existing selection/query handlers stay.
   Keep destination-mode copy and the straight-line vs route explanation.
+- **Selected destination (2026-10-30):** 「目的地: <name>」 and 「目的地を解除」 sit in a bar above the list at medium and
+  large (not while searching, not collapsed), so clearing never needs a scroll to the end of the results.
 
 ### 5.10 Empty
 

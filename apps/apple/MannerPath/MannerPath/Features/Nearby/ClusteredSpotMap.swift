@@ -166,6 +166,16 @@ struct ClusteredSpotMap: UIViewRepresentable {
         map.register(VisibleMarkerView.self, forAnnotationViewWithReuseIdentifier: Coordinator.spotReuse)
         map.register(VisibleMarkerView.self, forAnnotationViewWithReuseIdentifier: Coordinator.clusterReuse)
         map.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: Coordinator.fixedReuse)
+        // The report entry floats top trailing, where MapKit puts its compass; the same system compass sits top leading.
+        map.showsCompass = false
+        let compass = MKCompassButton(mapView: map)
+        compass.compassVisibility = .adaptive
+        compass.translatesAutoresizingMaskIntoConstraints = false
+        map.addSubview(compass)
+        NSLayoutConstraint.activate([
+            compass.leadingAnchor.constraint(equalTo: map.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            compass.topAnchor.constraint(equalTo: map.safeAreaLayoutGuide.topAnchor, constant: 8),
+        ])
         return map
     }
 

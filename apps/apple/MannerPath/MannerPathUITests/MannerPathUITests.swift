@@ -27,6 +27,15 @@ class MannerPathUITestCase: XCTestCase {
     var phase: String { ProcessInfo.processInfo.environment["MP_PHASE"] ?? "default" }
     var resultRows: XCUIElementQuery { app.buttons.matching(identifier: "nearbyResultRow") }
 
+    /// A row selects its place, as a pin does: the summary with directions leads the sheet; details are one step further.
+    func openDetail(fromRow row: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        row.tap()
+        let details = app.buttons["selectedSpotDetails"]
+        XCTAssertTrue(details.waitForExistence(timeout: 10), "Row did not select its place", file: file, line: line)
+        scrollTo(details, upwards: true, file: file, line: line)
+        details.tap()
+    }
+
     func screenshot(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "\(phase)-\(name)"
@@ -73,6 +82,16 @@ class MannerPathUITestCase: XCTestCase {
         let confirm = app.buttons["report.discard.confirm"].firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
+    }
+
+    /// Paused intake: the entry explains the pause and never opens a new-place form, so nothing can be sent.
+    func assertIntakePausedAlert(file: StaticString = #filePath, line: UInt = #line) {
+        let alert = app.alerts["現在、申請受付を停止しています"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 10), "No paused-intake explanation", file: file, line: line)
+        XCTAssertFalse(app.navigationBars["喫煙場所を追加"].exists, "A paused entry opened the form", file: file, line: line)
+        alert.buttons["OK"].tap()
+        XCTAssertTrue(alert.waitForNonExistence(timeout: 10), file: file, line: line)
+        XCTAssertFalse(app.navigationBars["喫煙場所を追加"].exists, file: file, line: line)
     }
 
     func assertNoDeveloperText(file: StaticString = #filePath, line: UInt = #line) {
@@ -304,7 +323,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         let first = resultRows.firstMatch
         scrollTo(first)
         let name = first.label
-        first.tap()
+        openDetail(fromRow: first)
         waitForDetail()
         // Phase 4: the navigation title is the place's name, not a generic 「場所の詳細」.
         XCTAssertTrue(app.navigationBars[name].exists, "Detail title is not the place name \(name)")
@@ -606,7 +625,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
     func testReportDraftCanBeEditedClosedAndDiscardedWithoutSubmitting() {
         launch()
         waitForResults()
-        resultRows.firstMatch.tap()
+        openDetail(fromRow: resultRows.firstMatch)
         waitForDetail()
         let report = app.buttons["この場所の情報を報告"]
         scrollTo(report)
@@ -791,7 +810,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
 
     func openRow(_ element: XCUIElement) {
         scrollTo(element)
-        element.tap()
+        openDetail(fromRow: element)
         waitForDetail()
     }
 
@@ -886,7 +905,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         let approximate = row(valueContaining: "位置は上野恩賜公園内の目安です")
         scrollTo(approximate)
         screenshot("20-list-approximate-row")
-        approximate.tap()
+        openDetail(fromRow: approximate)
         waitForDetail()
         XCTAssertTrue(app.descendants(matching: .any)["approximate-location-note"].exists)
         XCTAssertTrue(textContaining("約").exists, "Approximate distance is prefixed with 約")
@@ -906,7 +925,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
         scrollTo(community)
         XCTAssertFalse(community.value.debugDescription.contains("公式"))
         screenshot("24-list-community-row")
-        community.tap()
+        openDetail(fromRow: community)
         waitForDetail()
         screenshot("25-detail-community-top")
         let note = textContaining("1人の利用者の報告をMannerPathが審査したもの")
@@ -1055,14 +1074,16 @@ final class I_ProductionAPIUITests: MannerPathUITestCase {
         waitForResults()
         XCTAssertTrue(text("近くの場所の情報を更新しました。").waitForExistence(timeout: 30), "Live refresh did not succeed")
         screenshot("70-production-nearby")
-        XCTAssertFalse(app.buttons["mapReportButton"].exists)
-        XCTAssertFalse(app.buttons["sheetReportButton"].exists)
-        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == '喫煙所を追加する' OR label == '新規申請の受付停止中'")).firstMatch.exists,
-                       "Add-place must be hidden while production reports are unavailable")
+        // The entry stays visible so the feature can be found, but only explains that intake is paused.
+        let entry = app.buttons["mapReportButton"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10))
+        XCTAssertTrue(entry.label.contains("新規申請の受付停止中"), entry.label)
+        entry.tap()
+        assertIntakePausedAlert()
 
         let first = resultRows.firstMatch
         scrollTo(first)
-        first.tap()
+        openDetail(fromRow: first)
         waitForDetail()
         XCTAssertTrue(row("直線距離").exists)
         screenshot("71-production-detail")
@@ -1105,7 +1126,7 @@ final class J_ProductionDestinationUITests: MannerPathUITestCase {
         screenshot("80-production-destination")
         let first = resultRows.firstMatch
         scrollTo(first)
-        first.tap()
+        openDetail(fromRow: first)
         waitForDetail()
         XCTAssertTrue(text("距離と方角は選択した目的地を基準にした目安です。端末の現在地からの距離や徒歩ルートではありません。").exists)
         XCTAssertTrue(text("徒歩ルートを利用できません。上の直線距離と方角は引き続き確認できます。").exists ||

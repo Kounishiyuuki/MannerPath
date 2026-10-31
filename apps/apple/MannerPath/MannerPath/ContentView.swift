@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var reportModel = ReportComposition.makeModel()
     @State private var showingReport = false
     @State private var showingQuickConfirm = false
+    @State private var showingIntakePaused = false
     /// The report form opened from a new-report entry while an earlier report still waits for photos: it first asks
     /// whether to add photos to that report or to report a new place.
     @State private var reportOpensWithFollowUpChoice = false
@@ -48,12 +49,13 @@ struct ContentView: View {
             nearbyMap(bottomInset: mapBottomInset(screenHeight: proxy.size.height))
         }
         .ignoresSafeArea()
-        // Top leading: the search field lives in the sheet, the compass appears top trailing, and the sheet covers the
-        // bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and the sheet's
-        // bottom bar takes over; VoiceOver never meets two entries.
-        .overlay(alignment: .topLeading) {
-            if reportEntryAvailable, sheetDetent != .large, !searchPresented, !searchFocused, !isShowingSearchResults {
-                mapReportButton.padding(.leading, 16).padding(.top, 8)
+        // Top trailing: the search field lives in the sheet, the compass sits top leading (ClusteredSpotMap), and the
+        // sheet covers the bottom half. At the large detent the sheet covers it, so it leaves the accessibility tree and
+        // the sheet's bottom bar takes over; while searching, a row under the results does. VoiceOver never meets two.
+        // Shown even while intake is paused, so the feature can be found; tapping it then explains the pause.
+        .overlay(alignment: .topTrailing) {
+            if sheetDetent != .large, !searchPresented, !searchFocused, !isShowingSearchResults {
+                mapReportButton.padding(.trailing, 16).padding(.top, 8)
             }
         }
         .sheet(isPresented: $showingNearbySheet) {
@@ -103,6 +105,11 @@ struct ContentView: View {
                             .id(Self.searchResultsAnchor)
                             .listRowBackground(Color.clear)
                     }
+                    // Searching hides the map and the large-detent bar, so the report entry follows the results: a
+                    // place that is not found can be reported from here, with the keyboard still open.
+                    if searchPresented || searchFocused || isShowingSearchResults {
+                        Section { searchReportButton }.listRowBackground(Color.clear)
+                    }
                     if model.browsingCoordinate == nil {
                         Section { sheetSummary.id(Self.summaryAnchor) }.listRowBackground(Color.clear)
                     }
@@ -130,6 +137,13 @@ struct ContentView: View {
                 // VoiceOver would reach rows off screen. Show List brings it back.
                 // `hidden()`, not opacity with accessibilityHidden: List cells stayed in the accessibility tree that way.
                 .hidden(isCollapsed)
+                // The chosen destination and its Clear stay above the list at medium and large, so clearing never needs
+                // a scroll to the end of the results (the system field empties when search ends).
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if let destination = model.destination, !isCollapsed, !searchPresented {
+                        destinationBar(destination)
+                    }
+                }
                 // Codex P2 (#203): a pin selected while the list is scrolled must not leave its summary off screen.
                 .onChange(of: summaryScrollRequest) { _, _ in
                     guard selectedSpotID != nil else { return }
@@ -235,10 +249,21 @@ struct ContentView: View {
         .sheet(isPresented: $showingReport) {
             ReportFormView(model: reportModel, visualCenter: model.displayLocation?.coordinate,
                            nearbySpots: model.results.map(\.spot),
-                           opensWithFollowUpChoice: reportOpensWithFollowUpChoice)
+                           opensWithFollowUpChoice: reportOpensWithFollowUpChoice,
+                           deviceLocation: reportDeviceLocation,
+                           onRequestDeviceLocation: { model.refreshDeviceLocation() })
         }
         .sheet(isPresented: $showingQuickConfirm) {
             QuickConfirmView(model: reportModel)
+        }
+        // Presented from inside the sheet: the map entry sits under it, and the root cannot present over the sheet.
+        .alert("New place submissions are paused", isPresented: $showingIntakePaused) {
+            if case .unknown = reportModel.availability {
+                Button("Check reporting again") { Task { await reportModel.refreshAvailability() } }
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(intakePausedReason)
         }
         .sheet(isPresented: $showingFilters) {
             NavigationStack {
@@ -310,21 +335,42 @@ struct ContentView: View {
         Task { await reportModel.refreshAvailability() }
     }
 
+    /// What the report pin picker may offer as "Use my current location": only a fresh fix, and only on request.
+    private var reportDeviceLocation: ReportDeviceLocation {
+        switch model.locationState {
+        case .notDetermined: .canRequest
+        case .locating: .locating
+        case .denied, .restricted: .denied
+        case .unavailable: .canRequest
+        case .usable(let location):
+            location.isLastKnown
+                ? .canRequest
+                : .available(ReportCoordinate(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude),
+                             accuracyMeters: location.horizontalAccuracyMeters,
+                             approximate: location.isApproximate)
+        }
+    }
+
     private func startAddingPlace() {
         reportModel.startNewSpot(pin: nil)
         showingReport = true
     }
 
-    /// The map and toolbar entries share the gate of the in-list entry: only when the deployment accepts reports.
-    private var reportEntryAvailable: Bool {
-        if case .available = reportModel.availability { return true }
-        return false
+    /// The entry is always shown; only a deployment that accepts photo-backed new places lets it start one.
+    private var intakePausedReason: LocalizedStringKey {
+        switch reportModel.availability {
+        case .available: "New smoking places are not being accepted right now."
+        case .unknown: "Reporting availability could not be checked. Try again when connected."
+        case .unavailable: "Reports are currently unavailable."
+        case .incompatible: "Update the app to submit reports."
+        case .attestationUnsupported: "Secure reporting isn't supported on this device."
+        }
     }
 
     private var reportEntryTitle: LocalizedStringKey {
         if reportModel.draft != nil { return "Continue saved report" }
         if reportModel.hasPendingPhotoFollowUp { return "Send photos for your received report" }
-        return reportModel.acceptsNewSpotProposals ? "Add a smoking place to the map" : "New place submissions paused"
+        return reportModel.acceptsNewSpotProposals ? "Add a smoking place" : "New place submissions paused"
     }
 
     private var reportEntrySymbol: String {
@@ -332,10 +378,13 @@ struct ContentView: View {
         return reportModel.acceptsNewSpotProposals ? "plus.circle.fill" : "pause.circle"
     }
 
-    /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does.
+    /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does. Drafts and photo
+    /// follow-ups keep their own gates; only a new place needs the deployment to accept new-place proposals.
     private func openReportEntry() {
-        if reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
+        if reportModel.hasPendingPhotoFollowUp {
             beginNewReport { startAddingPlace() }
+        } else if reportModel.canStartReport {
+            if reportModel.acceptsNewSpotProposals { beginNewReport { startAddingPlace() } } else { showingIntakePaused = true }
         } else if reportModel.draft != nil || reportModel.photoFollowUp != nil {
             showingReport = true
         }
@@ -356,8 +405,13 @@ struct ContentView: View {
     /// ToolbarItem would collapse to its icon. Not while searching (the keyboard and suggestions own the bottom) and
     /// not when the empty state already shows its own report button.
     private var showsSheetReportBar: Bool {
-        reportEntryAvailable && sheetDetent == .large && !searchPresented && !searchFocused && !isShowingSearchResults
-            && !(model.dataState == .refreshed && model.results.isEmpty && !model.hasUnfilteredResults)
+        sheetDetent == .large && !searchPresented && !searchFocused && !isShowingSearchResults && !emptyStateOffersReport
+    }
+
+    private var emptyStateOffersReport: Bool {
+        guard model.dataState == .refreshed, model.results.isEmpty, !model.hasUnfilteredResults,
+              case .available = reportModel.availability else { return false }
+        return reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp
     }
 
     private var sheetReportBar: some View {
@@ -374,6 +428,17 @@ struct ContentView: View {
         .background(.bar)
     }
 
+    private var searchReportButton: some View {
+        Button { openReportEntry() } label: {
+            Label(reportEntryTitle, systemImage: reportEntrySymbol)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        }
+        .buttonStyle(.bordered)
+        .disabled(reportModel.isBusy)
+        .accessibilityIdentifier("searchReportButton")
+        .accessibilityHint("Check submission availability and saved drafts")
+    }
+
     private var mapReportButton: some View {
         Button { openReportEntry() } label: {
             Label(reportEntryTitle, systemImage: reportEntrySymbol)
@@ -386,6 +451,10 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .foregroundStyle(.tint)
         .disabled(reportModel.isBusy)
+        // A floating map control: capped so it never spans the map at accessibility sizes; the Large Content Viewer
+        // and VoiceOver still read the full label.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .accessibilityShowsLargeContentViewer()
         .accessibilityIdentifier("mapReportButton")
         .accessibilityHint("Check submission availability and saved drafts")
     }
@@ -593,15 +662,22 @@ struct ContentView: View {
             onUserMovedMap: { mapPositionedByUser = true },
             onSelectSpot: { id in
                 guard model.results.contains(where: { $0.spot.id == id }) else { return }
-                selectedSpotID = id
-                summaryScrollRequest += 1
-                path = []
-                sheetDetent = .medium
+                selectSpot(id)
+                // Medium keeps the map in view; at accessibility sizes the summary's directions would sit under the
+                // Clear selection bar there (iOS 26.5, AX5), so the summary gets the full sheet.
+                sheetDetent = dynamicTypeSize.isAccessibilitySize ? .large : .medium
             }
         )
         .accessibilityIdentifier("nearbyMap")
         .accessibilityLabel("Nearby places map")
         .accessibilityHint("Select a pin to see a summary in the Nearby list")
+    }
+
+    /// Pin and list row alike: the summary leads the sheet and the pin is marked; details are one step further.
+    private func selectSpot(_ id: String) {
+        selectedSpotID = id
+        summaryScrollRequest += 1
+        path = []
     }
 
     private var clearSelectionButton: some View {
@@ -654,15 +730,12 @@ struct ContentView: View {
             sheetSummary
                 .id(Self.summaryAnchor)
             dataStatus
-            if let destination = model.destination {
-                // Named here, beside its results: ending system search empties the visible field (the bound text is
-                // kept), and the destination section with Clear sits further down the list.
-                Label(destination.name, systemImage: "flag.checkered")
-                    .font(.subheadline)
-                    .id(Self.destinationListAnchor)
+            if model.destination != nil {
+                // Named, with Clear, in the bar above the list (`destinationBar`).
                 Text("Straight-line distances and bearings below are from the selected destination, not your device location.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .id(Self.destinationListAnchor)
                 Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("refreshDestination")
@@ -691,8 +764,9 @@ struct ContentView: View {
                 }
             } else if let area = model.resultsArea {
                 ForEach(displayResults, id: \.nearby.spot.id) { ranked in
+                    // As a pin does: the summary with directions and details leads the sheet, and the map marks it.
                     Button {
-                        openDetail(ranked.nearby)
+                        selectSpot(ranked.nearby.spot.id)
                     } label: {
                         NearbySpotRow(result: ranked.nearby, detourSeconds: ranked.detourSeconds,
                                       routeMode: model.destination != nil,
@@ -700,7 +774,7 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("nearbyResultRow")
-                    .accessibilityHint("Opens place details")
+                    .accessibilityHint("Shows directions and details for this place")
                 }
             }
         } header: {
@@ -728,8 +802,8 @@ struct ContentView: View {
             } description: {
                 Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability, acceptsNewSpotProposals: reportModel.acceptsNewSpotProposals))
             } actions: {
-                if case .available = reportModel.availability, reportModel.canStartReport || reportModel.hasPendingPhotoFollowUp {
-                    Button { beginNewReport { startAddingPlace() } } label: {
+                if emptyStateOffersReport {
+                    Button { openReportEntry() } label: {
                         Label(reportEntryTitle, systemImage: reportEntrySymbol)
                     }
                         .buttonStyle(.borderedProminent)
@@ -807,29 +881,30 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
     private var destinationSection: some View {
-        if let destination = model.destination {
-            Section {
-                HStack {
-                    Label(destination.name, systemImage: "flag.checkered")
-                    Spacer()
-                    Button("Clear") { selectDestination(nil) }
-                        .buttonStyle(.borderless)
-                        .accessibilityIdentifier("clearDestination")
-                }
-                .font(.subheadline)
-            } header: {
-                Text("Walking destination")
-            } footer: {
-                Text("Destination search stays in this screen and is never added to saved smoking places.")
-            }
-        } else {
-            Section {
-            } footer: {
-                Text("Destination search stays in this screen and is never added to saved smoking places.")
-            }
+        Section {
+        } footer: {
+            Text("Destination search stays in this screen and is never added to saved smoking places.")
         }
+    }
+
+    private func destinationBar(_ destination: PlaceDestination) -> some View {
+        adaptiveRowLayout {
+            Label(String(localized: "Destination: \(destination.name)"), systemImage: "flag.checkered")
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button { selectDestination(nil) } label: {
+                Label("Clear destination", systemImage: "xmark.circle.fill")
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("clearDestination")
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(.bar)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("destinationBar")
     }
 
     @ViewBuilder
@@ -1028,6 +1103,7 @@ private struct NearbySpotRow: View {
 /// docs/DESIGN.md §5.5: a tapped pin is summarised in the sheet first; details are one explicit step further.
 /// Evidence and the approximate-location note stay separate labels, as in the list row.
 private struct SelectedSpotSummary: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let result: NearbyResult
     let locationAccuracyMeters: Double
     let onShowDetails: () -> Void
@@ -1041,8 +1117,25 @@ private struct SelectedSpotSummary: View {
                 .accessibilityAddTraits(.isHeader)
             Text(SpotPresentation.name(result.spot))
                 .font(.title3.weight(.semibold))
+            // At accessibility sizes the facts below fill more than the full sheet, so the actions follow the name;
+            // their wording still carries the exact/approximate distinction.
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 8) { actionButtons }
+            }
             Text("\(SpotPresentation.distance(result)) straight-line · \(SpotPresentation.bearing(result, accuracyMeters: locationAccuracyMeters))")
                 .font(.subheadline)
+            // The actions come before the remaining facts, so at medium they stay above the Clear bar under a long,
+            // wrapped name. Side by side when both fit; stacked at large text sizes, where a row would truncate them.
+            if !dynamicTypeSize.isAccessibilitySize {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) { actionButtons }
+                    VStack(spacing: 8) { actionButtons }
+                }
+            }
+            // What it is and who may use it, before deciding to walk there.
+            Text(verbatim: "\(SpotPresentation.type(result.spot)) · \(String(localized: "Access: \(SpotPresentation.access(result.spot))"))")
+                .font(.subheadline)
+                .accessibilityIdentifier("selectedSpotConditions")
             Label("\(SpotPresentation.evidence(result.spot)) · \(SpotPresentation.confirmation(result))",
                   systemImage: SpotPresentation.existenceSymbol(result.spot.verification.existenceTier))
                 .font(.subheadline)
@@ -1055,21 +1148,15 @@ private struct SelectedSpotSummary: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("selectedSpotPrecision")
             }
-            // ADR-0017: 「この場所へ案内」 only for an exact point; approximate and unknown precision say 「この付近へ案内」.
-            // Black on MannerPath Yellow: white text on #F5A623 is about 2:1, black is about 10:1.
-            // Text only, no symbol: 「この場所へ案内」 vs 「この付近へ案内」 is the exact/approximate distinction itself, and an
-            // icon beside it truncated the wording at the largest text sizes.
-            // Side by side when both fit, so at medium the details button stays above the Clear bar even under a long,
-            // wrapped name. Stacked at large text sizes, where a row would truncate them.
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) { actionButtons }
-                VStack(spacing: 8) { actionButtons }
-            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("selectedSpotSummary")
     }
 
+    // ADR-0017: 「この場所へ案内」 only for an exact point; approximate and unknown precision say 「この付近へ案内」.
+    // Black on MannerPath Yellow: white text on #F5A623 is about 2:1, black is about 10:1.
+    // Text only, no symbol: 「この場所へ案内」 vs 「この付近へ案内」 is the exact/approximate distinction itself, and an
+    // icon beside it truncated the wording at the largest text sizes.
     @ViewBuilder
     private var actionButtons: some View {
         Button(action: onDirections) {

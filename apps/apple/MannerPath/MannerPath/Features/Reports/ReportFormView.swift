@@ -10,6 +10,9 @@ struct ReportFormView: View {
     var nearbySpots: [Spot] = []
     /// Opened from a new-report entry while an earlier report still waits for photos: ask before anything changes.
     var opensWithFollowUpChoice = false
+    /// The device's current fix, offered in the pin picker only as a starting point the user then checks and confirms.
+    var deviceLocation: ReportDeviceLocation = .denied
+    var onRequestDeviceLocation: () -> Void = {}
 
     @State private var observedDate = Date()
     @State private var hasObservedDate = false
@@ -93,7 +96,7 @@ struct ReportFormView: View {
                                     .font(.footnote).foregroundStyle(.secondary)
                                     .accessibilityValue("Latitude \(pin.latitude.formatted()), longitude \(pin.longitude.formatted())")
                             } else {
-                                Text("Tap a point on the map and confirm it. Your device location is never selected automatically.")
+                                Text("Use your current location or choose the place on the map, then confirm it. Your location is never used unless you choose it.")
                                     .font(.footnote).foregroundStyle(.secondary)
                             }
                         }
@@ -345,7 +348,8 @@ struct ReportFormView: View {
                 if let version = termsVersion { ReportTermsSheet(version: version) }
             }
             .sheet(isPresented: $choosingPin) {
-                ReportPinPicker(center: visualCenter, initial: model.draft?.proposedLocation) { pin in
+                ReportPinPicker(center: visualCenter, initial: model.draft?.proposedLocation,
+                                deviceLocation: deviceLocation, onRequestDeviceLocation: onRequestDeviceLocation) { pin in
                     editDraft { $0.proposedLocation = pin.quantized }
                 }
             }
@@ -582,10 +586,22 @@ struct ReportFormView: View {
     private static func dayString(_ date: Date) -> String { dayFormatter.string(from: date) }
 }
 
+/// What the pin picker can offer as the device's location. Never chosen for the user: a tap places it as the
+/// candidate pin, which is then checked, moved if needed and confirmed like any other pin.
+enum ReportDeviceLocation: Equatable {
+    case available(ReportCoordinate, accuracyMeters: Double, approximate: Bool)
+    case locating
+    /// Not asked yet, or only an old fix: asking may show the When In Use prompt.
+    case canRequest
+    case denied
+}
+
 private struct ReportPinPicker: View {
     @Environment(\.dismiss) private var dismiss
     let center: SpotCoordinate?
     let initial: ReportCoordinate?
+    let deviceLocation: ReportDeviceLocation
+    let onRequestDeviceLocation: () -> Void
     let onConfirm: (ReportCoordinate) -> Void
 
     @State private var position: MapCameraPosition = .automatic
@@ -632,6 +648,8 @@ private struct ReportPinPicker: View {
                     .buttonStyle(.bordered)
                     .disabled(cameraCenter == nil)
                     .accessibilityIdentifier("report.pin.useCenter")
+                    // Beside the map choices, never instead of them: the fix is only a starting point to check and move.
+                    currentLocationOption
                     if let candidate {
                         Label("Proposed map pin selected", systemImage: "mappin.and.ellipse")
                             .font(.footnote)
@@ -671,6 +689,49 @@ private struct ReportPinPicker: View {
                 ))
                 cameraCenter = ReportCoordinate(latitude: latitude, longitude: longitude)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var currentLocationOption: some View {
+        switch deviceLocation {
+        case let .available(coordinate, accuracy, approximate):
+            Button {
+                candidate = coordinate.quantized
+                position = .region(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.004, longitudeDelta: 0.004)
+                ))
+            } label: {
+                Label("Use my current location", systemImage: "location.fill")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("report.pin.useCurrentLocation")
+            Text("Current location accuracy: about \(Int(accuracy.rounded())) m. Check the pin on the map and move it to the smoking place before confirming.")
+                .font(.footnote)
+                .accessibilityIdentifier("report.pin.currentLocationAccuracy")
+            if approximate || accuracy > 100 {
+                Label("Your location is approximate. Choose the place on the map instead.", systemImage: "exclamationmark.triangle")
+                    .font(.footnote)
+            }
+        case .locating:
+            ProgressView("Finding your location…")
+                .font(.footnote)
+        case .canRequest:
+            Button {
+                onRequestDeviceLocation()
+            } label: {
+                Label("Find my current location", systemImage: "location")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("report.pin.requestLocation")
+        case .denied:
+            Text("Your current location is not available. Choose the place on the map.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("report.pin.locationUnavailable")
         }
     }
 
