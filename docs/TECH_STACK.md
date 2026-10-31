@@ -51,6 +51,10 @@ lifecycle scripts disabled during locked npm installation. Workflow policy parsi
 Python 3 and system Ruby/Psych without additional gems. Action SHA pins, Dependabot and
 maintainer account controls are documented in [CI_SUPPLY_CHAIN_SECURITY.md](CI_SUPPLY_CHAIN_SECURITY.md).
 
+The separate Pages artifact validation job uses a read-only Ubuntu runner and has no deployment
+permission or environment. Official checkout/configure-pages/upload-artifact/deploy-pages Actions
+use their bundled Node 24 runtime, independently of the API Node patch installed by setup-node.
+
 ## Why MapKit
 
 MannerPath is iOS/watchOS-first. MapKit gives native SwiftUI integration, Apple-platform POI/destination search, map rendering and walking directions without introducing a separate commercial map SDK into v1.

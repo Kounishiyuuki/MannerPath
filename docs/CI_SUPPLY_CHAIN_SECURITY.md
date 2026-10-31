@@ -41,10 +41,12 @@ a PR can edit the checker itself.
 
 The former tag-only references were all in `pages.yml`; the source-health workflow was already
 SHA-pinned. The following pins were resolved from official repositories, not third-party snippets.
-Checkout/configure/deploy major versions are unchanged. The composite upload wrapper is removed:
-its pinned source still calls `actions/upload-artifact@v4`, so pinning only the wrapper would
-leave a mutable transitive action. The build job uses `scripts/package-pages-artifact.py` to create `artifact.tar` and uploads
-it directly with the already-reviewed upload-artifact v4 SHA. The deploy job depends on that
+The 2026-10-31 dependency review updates checkout to v7.0.1, configure-pages to v6.0.0,
+upload-artifact to v7.0.2 and deploy-pages to v5.0.1. Each official release tag was resolved to the
+full commit below and its `action.yml` reviewed at that commit; all four use Node 24.
+The former composite upload wrapper remains removed because its nested mutable Action reference
+would escape the top-level SHA policy. The build job uses `scripts/package-pages-artifact.py` to
+create `artifact.tar` and uploads it directly with the reviewed upload-artifact SHA. The deploy job depends on that
 build and retains the same `github-pages` artifact/environment contract.
 
 The artifact builder records directories as 755 and regular files as 644, with zero timestamps
@@ -75,22 +77,48 @@ Trigger decisions (2026-10-13):
 The Node patch is fixed to 24.21.0 in PR validation and source-health, matching the tested
 local runtime and API `engines.node >=24`. Updating Node requires an explicit reviewed change;
 no automatic Node updater is added. Current Pages comments were checked against official
-upstream tags: configure-pages v5.0.0 and deploy-pages v4.0.5. Their SHAs are unchanged.
+upstream tags: configure-pages v6.0.0 and deploy-pages v5.0.1. This Action runtime is separate
+from the Node version selected for API scripts by setup-node.
 
-| Action | Former Pages ref | Commit |
+| Action | Current version | Commit |
 | --- | --- | --- |
-| actions/checkout | v4 | `11d5960a326750d5838078e36cf38b85af677262` |
-| actions/configure-pages | v5 | `983d7736d9b0ae728b81ab479565c72886d7745b` |
-| actions/upload-pages-artifact → actions/upload-artifact | v3 wrapper | `ea165f8d65b6e75b540449e92b4886f43607fa02` (v4.6.2 direct upload) |
-| actions/deploy-pages | v4 | `d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e` |
+| actions/checkout | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| actions/configure-pages | v6.0.0 | `45bfe0192ca1faeb007ade9deae92b16b8254a0d` |
+| actions/upload-artifact | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
+| actions/deploy-pages | v5.0.1 | `368f82528645a54fb793d4d04e342629a3f51346` |
+| actions/setup-node | v7.1.0 (unchanged) | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
 
-Existing setup-node `49933ea5288caeca8642d1e84afbd3f7d6820020` and upload-artifact
-`ea165f8d65b6e75b540449e92b4886f43607fa02` stay pinned. The new PR workflow reuses checkout
-and setup-node pins. Dependabot checks Actions weekly and opens reviewable update PRs; it does
-not approve or merge them. Review the official upstream commit/tag, action implementation and
-runner requirements before accepting an updated SHA. Inspect composite actions for nested
-mutable `uses` references; workflow SHA checks cannot inspect remote action internals offline. A SHA pin prevents a mutable tag changing
-underneath the workflow; it does not establish that the pinned implementation is trustworthy.
+Checkout's Node 24 runtime needs Actions Runner >=2.327.1; authenticated Git from a Docker
+container with its v6+ credential storage needs >=2.329.0. This repository uses GitHub-hosted
+macOS 15 and Ubuntu runners, `persist-credentials: false`, no container-authenticated Git, and
+no unsafe PR checkout override. The existing ban on `pull_request_target`/`workflow_run` remains.
+See [official checkout requirements](https://github.com/actions/checkout/blob/3d3c42e5aac5ba805825da76410c181273ba90b1/README.md)
+and [GitHub's Node 20 retirement notice](https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/).
+
+Upload-artifact v7 introduces direct uploads, but `archive: false` ignores `name` and uses the
+uploaded filename as the artifact name. Pages therefore explicitly keeps **`archive: true`**,
+`name: github-pages` and a single `artifact.tar` in the ZIP. Direct upload would rename it to
+`artifact.tar` and break deploy-pages' `artifact_name: github-pages` default. Source-health also
+explicitly keeps ZIP mode for its multi-file report. See the [pinned upload inputs](https://github.com/actions/upload-artifact/blob/cf430e030ddbb5b0abf93d22962f4752f3646cd9/action.yml).
+
+PR validation adds a separate Ubuntu **Pages artifact validation (no deploy)** job: checkout,
+the same packager, and upload of a one-day ZIP named `pages-validation`. It has read-only
+contents permission, no Pages environment/OIDC/write scopes, and no configure/deploy Action.
+The policy rejects changing its artifact to `github-pages`, disabling ZIP mode, bypassing the
+packager or making it a privileged/conditional deployment job. It runs on PRs and main pushes;
+it cannot publish Pages. Required-check selection remains a maintainer account setting.
+The original **PR validation** check remains the stable required-check candidate and may not
+depend on another job: an artifact failure must not turn API/security validation into a skipped
+check. Both jobs run independently; their successful checks should be reviewed before merging.
+
+Changing `pages.yml` will trigger the existing production Pages workflow **when a maintainer
+later merges to main** and republish unchanged `site/`. Branch pushes/PR validation do not
+run that workflow. No workflow dispatch, Pages configuration change or deployment is part of
+this verification. Hosted configure/deploy behavior needs a separately authorized deployment.
+
+Dependabot checks Actions weekly and opens reviewable update PRs; it does not approve or
+merge them. Review official tags, implementation and runner requirements before accepting
+new SHAs. A pin prevents tag mutation, not malicious code at a reviewed commit.
 
 ## Dependency policy
 
@@ -166,3 +194,29 @@ References: [GitHub secure use](https://docs.github.com/en/actions/reference/sec
 [protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches),
 [npm SBOM](https://docs.npmjs.com/cli/commands/npm-sbom/),
 [reviewed upload wrapper](https://github.com/actions/upload-pages-artifact/blob/56afc609e74202658d3ffba0e8f6dda462b719fa/action.yml).
+
+## Pages post-merge verification and rollback
+
+A merge changing `.github/workflows/pages.yml` can automatically publish `site/`.
+The PR artifact check does not exercise production deployment or repository/environment settings.
+Before an authorized merge, record the latest successful Pages run, its commit SHA and public URL.
+After the automatic run, the operator should:
+
+1. Check the Pages workflow's build and deploy jobs both succeed on the merged main SHA;
+   inspect the `github-pages` artifact and deployment URL. Check environment approval if queued.
+2. Open the deployed root, `/privacy/`, `/support/` and `/style.css`; confirm successful responses,
+   expected content and styling, including privacy/support links. Compare against the recorded
+   previous release; this Actions-only change must not change site content.
+3. If deployment fails, inspect logs before retrying; do not grant broader permissions or enable
+   Pages automatically to work around a failure. Verify the previous public site remains available.
+4. For an Actions regression, prepare a reviewed rollback PR restoring the three workflow files
+   from the recorded known-good commit, together with matching CI guard/tests where necessary.
+   Run contract/security/artifact checks before merging. Do not revert a merge commit blindly:
+   that could undo unrelated main changes. Do not weaken secret scanning.
+5. An authorized rollback merge changing pages.yml will trigger another Pages run. Verify its
+   SHA, jobs and public URLs again. If site content itself needs restoration, restore only the
+   reviewed `site/` files from the known-good release in a separate reviewed change. Publishing
+   or dispatching a main workflow requires operator authorization; neither occurs during PR audit.
+
+Artifact retention is one day; do not rely on an old downloadable artifact as the rollback source.
+Use the recorded Git commit to rebuild, retaining immutable reviewed Action pins.
