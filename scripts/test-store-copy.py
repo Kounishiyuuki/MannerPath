@@ -6,6 +6,8 @@ The gate must say SUBMISSION: BLOCKED while any P0 row is OPEN, so the page cann
 """
 import re
 import json
+import copy
+import importlib.util
 import plistlib
 import sys
 import unittest
@@ -205,6 +207,35 @@ class StoreCopyTests(unittest.TestCase):
                        "1–3 photos", "same report", "not synchronized to Watch", "No account"]:
             self.assertIn(phrase, notes)
         self.assertNotIn("uploads are currently unavailable", notes)
+
+    def test_d1_privacy_proposal_rejects_storage_based_label_and_erasure_claims(self):
+        spec = importlib.util.spec_from_file_location("photo_privacy", Path(__file__).with_name("validate-photo-privacy-candidate.py"))
+        validator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validator)
+        root = DOCS / "release/submission-v1"
+        answers = json.loads((root / "app-privacy-candidate.json").read_text())
+        manifest = plistlib.loads((root / "PrivacyInfo.photos-enabled.candidate.plist").read_bytes())
+        self.assertEqual(validator.problems(answers, manifest), [])
+        for field in ["collected", "linked"]:
+            bad = copy.deepcopy(answers)
+            bad["dataTypes"][0][field] = False
+            self.assertTrue(validator.problems(bad, manifest))
+        for field in ["keyDestructionVerified", "physicalErasureVerified", "sqlDeletionProvesPhysicalErasure"]:
+            bad = copy.deepcopy(answers)
+            bad["storageReview"][field] = True
+            self.assertTrue(validator.problems(bad, manifest))
+        bad = copy.deepcopy(answers)
+        bad["storageReview"]["timeTravel"]["deployedPlanVerified"] = True
+        self.assertTrue(validator.problems(bad, manifest))
+        bad = copy.deepcopy(answers)
+        bad["dataTypes"] = [r for r in bad["dataTypes"] if r["ascType"] != "Precise Location"]
+        self.assertTrue(validator.problems(bad, manifest))
+        bad_manifest = copy.deepcopy(manifest)
+        bad_manifest["NSPrivacyCollectedDataTypes"][0]["NSPrivacyCollectedDataTypeLinked"] = False
+        self.assertTrue(validator.problems(answers, bad_manifest))
+        bad = copy.deepcopy(answers)
+        bad["submissionReady"] = True
+        self.assertTrue(validator.problems(bad, manifest))
 
     def test_rejects_ready_wording_with_open_p0(self):
         bad = "| G1 | x | P0 | OPEN | a | b | 1 | yes | no |\n"
