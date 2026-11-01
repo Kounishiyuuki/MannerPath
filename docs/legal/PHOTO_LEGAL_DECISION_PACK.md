@@ -1,5 +1,8 @@
 # Photo-backed submission — final legal/privacy decision pack (v1.0)
 
+**2026-11-02 scope superseded:** 写真関連の要件・条項・候補はv1.1以降向けに保留。以下の旧v1.0写真必須/P0表記は履歴。
+現v1.0は[写真なし新規申請](../release/submission-v1/text-reports/README.md)。本書の写真条件を現v1.0提出の必須条件や承認済み条件としない。
+
 Status: **Preparation, 2026-10-23, against `main` `eb4ed96` (after #330). Not an approval and not a legal
 determination.** Nothing here registers a terms version, enables photo intake, changes the public site or answers App
 Store Connect. `REVIEWED_PHOTO_TERMS` stays `[]` (`services/api/src/reports/photo-policy.ts:10`).

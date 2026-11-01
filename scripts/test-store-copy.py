@@ -105,7 +105,7 @@ class StoreCopyTests(unittest.TestCase):
         self.assertEqual(found, [])
         self.assertEqual([r[0] for r in rows], [f"G{i}" for i in range(1, 24)])
 
-    def test_rejects_lost_photo_legal_gate(self):
+    def test_rejects_lost_report_terms_gate(self):
         text = GATE.read_text(encoding="utf-8")
         bad = "\n".join(line for line in text.splitlines() if not line.startswith("| G23 |"))
         self.assertIn("G23: missing gate", gate_problems(bad, require_all=True)[0])
@@ -137,12 +137,12 @@ class StoreCopyTests(unittest.TestCase):
         section = packet.split(heading, 1)[1].split("### Photo-enabled Review Notes", 1)[0]
         candidate = section.split("```text\n", 1)[1].split("\n```", 1)[0]
         disabled = "現在、場所の報告と写真の送信は利用できません。"
-        self.assertIn(disabled, description(entry))
+        self.assertNotIn(disabled, description(entry))
         self.assertNotIn(candidate, description(entry))
         self.assertIn("写真を1〜3枚", candidate)
         self.assertIn("公開されません", candidate)
         self.assertIn("送信や写真の承認だけでは掲載されません", candidate)
-        self.assertEqual(copy_problems(entry.replace(disabled, candidate)), [])
+        self.assertEqual(copy_problems(entry.replace(description(entry), description(entry).rsplit("\n\n", 1)[0] + "\n\n" + candidate)), [])
 
     def test_final_assets_handoff_covers_every_submission_gate_without_approving_it(self):
         packet = FINAL_ASSETS.read_text(encoding="utf-8")
@@ -241,6 +241,53 @@ class StoreCopyTests(unittest.TestCase):
         bad = copy.deepcopy(answers)
         bad["submissionReady"] = True
         self.assertTrue(validator.problems(bad, manifest))
+
+    def test_current_text_only_material_matches_entry_and_omits_photo_workflow(self):
+        root = DOCS / "release/submission-v1/text-reports"
+        entry = ENTRY.read_text()
+        desc = (root / "description-ja.txt").read_text().strip()
+        notes = (root / "review-notes.txt").read_text().strip()
+        self.assertEqual(description(entry), desc)
+        self.assertEqual(copy_problems(entry), [])
+        self.assertLessEqual(len(notes), 4000)
+        self.assertIn(notes, entry)
+        self.assertIn("v1.0では写真の添付・送信は提供しません", desc)
+        self.assertIn("自動では掲載されず", desc)
+        self.assertNotIn("写真を1〜3枚", desc)
+        self.assertIn("No photo step is present", notes)
+        self.assertNotIn("New-place proposals require 1–3 photos", notes)
+        metadata = json.loads((root / "metadata.json").read_text())
+        self.assertFalse(metadata["photosAvailable"])
+        self.assertTrue(metadata["requiresReportsEnabledEvidence"])
+        self.assertFalse(metadata["submissionReady"])
+
+    def test_text_only_privacy_keeps_report_linkage_and_conditional_photo_omission(self):
+        root = DOCS / "release/submission-v1/text-reports"
+        answers = json.loads((root / "app-privacy-candidate.json").read_text())
+        manifest = plistlib.loads((root / "PrivacyInfo.reports-only.candidate.plist").read_bytes())
+        rows = answers["dataTypes"]
+        self.assertEqual({r["ascType"] for r in rows},
+                         {"Other User Content", "Device ID", "Precise Location", "Customer Support", "Email Address"})
+        self.assertEqual(len(rows), 5)
+        self.assertFalse(answers["submissionReady"])
+        self.assertFalse(answers["photoDisclosure"]["inAppCollection"])
+        self.assertFalse(answers["photoDisclosure"]["conditionsVerified"])
+        self.assertTrue(answers["photoDisclosure"]["omitFromASCOnlyAfterVerification"])
+        self.assertTrue(answers["unresolved"])
+        self.assertNotIn("NSPrivacyCollectedDataTypePhotosorVideos", str(manifest))
+        self.assertEqual(manifest["NSPrivacyCollectedDataTypes"], [
+            {"NSPrivacyCollectedDataType": row["manifestType"], "NSPrivacyCollectedDataTypeLinked": True,
+             "NSPrivacyCollectedDataTypeTracking": False,
+             "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]} for row in rows])
+        for row in rows:
+            self.assertTrue(row["collected"])
+            self.assertTrue(row["linked"])
+            self.assertFalse(row["tracking"])
+        gate = GATE.read_text()
+        _, gates = gate_problems(gate, require_all=True)
+        self.assertEqual(next(r for r in gates if r[0] == "G23")[3], "OPEN")
+        self.assertIn("Text-only new-place report terms", gate)
+        self.assertIn("写真v1.1", gate)
 
     def test_rejects_ready_wording_with_open_p0(self):
         bad = "| G1 | x | P0 | OPEN | a | b | 1 | yes | no |\n"

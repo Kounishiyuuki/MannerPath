@@ -1,5 +1,8 @@
 # Photo-backed submission — privacy review and approval pack (v1.0 P7)
 
+**2026-11-02 scope superseded:** 写真関連の要件・条項・候補はv1.1以降向けに保留。以下の旧v1.0写真必須/P0表記は履歴。
+現v1.0は[写真なし新規申請](../release/submission-v1/text-reports/README.md)。本書の写真条件を現v1.0提出の必須条件や承認済み条件としない。
+
 Status: **Preparation material, 2026-10-23, against main `b5f7d91`. Not a legal determination and not an approval.**
 Nothing here enables photo intake, adds a reviewed photo terms version, changes the public site or answers App Store
 Connect. Terms text: [PHOTO_TERMS_CANDIDATE.md](PHOTO_TERMS_CANDIDATE.md) (candidate, not approved).

@@ -1,5 +1,8 @@
 # v1.0 P0 — Photo-backed new place submission
 
+**2026-11-02 scope superseded:** 写真関連の要件・条項・候補はv1.1以降向けに保留。以下の旧v1.0写真必須/P0表記は履歴。
+現v1.0は[写真なし新規申請](submission-v1/text-reports/README.md)。本書の写真条件を現v1.0提出の必須条件や承認済み条件としない。
+
 Status: **Code complete, not production-ready; fail-closed.** Product decision 2026-10-22: proposing a new smoking
 place with photos is a v1.0 P0 feature, not deferred to v1.1. Re-audited 2026-10-31 against `main` `689bfc8` (§5).
 "Code complete" means P2–P6 are merged and tested on dummy data with intake off. "Production-ready" additionally

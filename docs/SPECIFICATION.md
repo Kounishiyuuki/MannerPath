@@ -7,6 +7,13 @@ canonical document wins for its detail and the conflict is a documentation bug t
 
 GitHub issues are not specification. A decision made in an issue binds only once it is recorded in a document below.
 
+## v1.0 scope amendment — 2026-11-02
+
+v1.0 includes photo-less new-place proposals and excludes photo attachment/upload/retry. Photos are deferred to v1.1
+or later. This supersedes earlier photo-required v1.0 scope and blanket report suspension, without granting legal
+approval, runtime activation or automatic publication. PRODUCT_REQUIREMENTS §10 and ADR-0016's dated amendment
+record the scope; [current submission material](release/submission-v1/text-reports/README.md) records implementation gaps.
+
 ## Canonical document map
 
 | Concern | Canonical document |

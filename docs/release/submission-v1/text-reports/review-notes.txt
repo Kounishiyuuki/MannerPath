@@ -1,0 +1,19 @@
+MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It does not sell or advertise tobacco, reward consumption or guarantee permission to smoke. Follow posted signs and local rules. No account, payment or sign-in is required.
+
+Coverage is partial: parts of Tokyo (Taito, Minato, Koto and Musashino), Osaka City and Kyoto City. Other areas show an honest empty state. Access uncertainty, source, freshness and approximate positions are shown. A destination search changes the browsing area, not the device location. From outside coverage, search for “浅草駅 東京” and select the Tokyo destination to see published places. Distant destinations do not offer a walking detour; Apple Maps handoff is separate.
+
+Version 1.0 accepts new-place proposals without photos. There is no photo attachment, upload or photo retry feature in this version. A user confirms a map pin, checks nearby duplicates, enters the place type, access conditions and any useful explanation, then reviews and consents to the report terms before sending. Unknown values are allowed. A store's existence or an ashtray does not by itself establish permission to smoke. A received proposal is pending operator review. Sending a report does not automatically publish a place or guarantee a listing. Reviewed facts still pass separate rights, location and quality checks before publication.
+
+Browsing uses When In Use location for nearby ranking, distance and bearing. Browsing requests contain geographic tile IDs, not raw GPS. A report includes the map pin explicitly chosen and confirmed by the user; it can equal the device's current location. Report submission uses Apple App Attest on a supported physical iPhone. Report text, pin and device-derived identifiers are collected and associated for review and abuse prevention. No account does not mean anonymous submissions. Report personal fields are scheduled for minimization after 90 days; database recovery history and minimal audit records are separate. The privacy policy explains the final approved retention and provider handling.
+
+Reviewer steps:
+1. Fresh install, read and confirm the eligibility notice. Allow When In Use when explicitly requesting location, or deny and continue with destination search.
+2. Search “浅草駅 東京”, select the Tokyo destination, inspect the map/list, select a published place and open its details, access information, precision and source/license. Use directions to open Apple Maps. Clear the destination and try filters/clear.
+3. Open Data & Privacy, privacy/support links and contact. After loading, disconnect and inspect cached information; offline walking routes are not provided.
+4. On a supported physical iPhone, open the new-place entry for a real unlisted smoking location. Confirm the pin, check duplicate suggestions, enter details (unknown is allowed), read the approved terms, consent and send once. No photo step is present. Save the received report ID and pending-review status. Do not create dummy production reports. If suitable real evidence is unavailable, use the operator-provided recording of this signed build's authorized flow. A simulator/mock does not prove App Attest acceptance.
+5. A paired Watch shows nearby data received from the iPhone, freshness and cached offline states. Destination-search results are not synchronized to Watch. Populated Watch/widget scenes need real nearby data from a covered area. Widget refresh follows the system's schedule.
+
+Reinstalling does not delete server submissions or prove ownership of old reports. A report ID alone does not guarantee deletion or restoration. Contact support. No in-app deletion feature is claimed.
+
+Privacy: https://kounishiyuuki.github.io/MannerPath/privacy/
+Support: https://kounishiyuuki.github.io/MannerPath/support/

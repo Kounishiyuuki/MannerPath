@@ -1,29 +1,13 @@
 # App Store Connect entry sheet — MannerPath v1.0
 
-**2026-10-24 final-assets reconciliation (`origin/main` `eb4ed96`): submission remains BLOCKED.**
-Use [the final-assets packet](release/V1_APPSTORE_FINAL_ASSETS.md) for the submission-day sequence,
-capture plan, activation-dependent wording and G1–G21 handoff. No ASC screen, production API or
-provider setting was accessed in this reconciliation. Values below are prepared, **not entered**.
-The six-source/513-spot inventory and disabled-intake observations below are dated historical evidence,
-not a fresh measurement. New data additions require separate approval; do not use the 638 candidate.
-Photo-backed reports are a v1.0 P0, but code merged is not production activation: §3/§5 describe
-the last observed disabled state only. They are **not submission-ready** until the final runtime,
-signed-device, privacy/terms and moderation gates agree. Do not ship read-only as a silent P0 waiver.
-For enabled photos, §0.2/§0.4/§4's old disabled-flow answers must be re-decided using
-[PHOTO_PRIVACY_REVIEW](legal/PHOTO_PRIVACY_REVIEW.md); in particular, no automatic “not linked” answer.
-
-**2026-10-31 photos-enabled v1.0 audit:** the disabled-flow answers in §0.2/§4 and disabled
-paragraphs in §3/§5 are historical, **not the answers to enter for the requested v1.0**.
-Use [the current audit §3](release/V1_APP_STORE_GATE_AUDIT_2026-10-31.md#3-app-privacy写真有効版の回答案未承認)
-for the enabled proposal (including #349's explicitly selected current-location pin). Keep submission blocked
-until owner-approved labels/policy/manifest, runtime and signed RC agree. No ASC values were entered.
-
-**提出準備ファイル（2026-10-31）**：[転記用素材](release/submission-v1/README.md)に
-[日本語説明全文](release/submission-v1/ja/description-photos-enabled.txt)、
-[Review Notes全文と操作手順](release/submission-v1/review-notes-photos-enabled.txt)、
-[metadata](release/submission-v1/metadata.json)、[Privacy回答候補](release/submission-v1/app-privacy-candidate.json)を用意した。
-写真有効版v1.0ではこれらを承認・当日scope/RC照合後に使用する。下の停止中説明/旧UGC回答を転記しない。
-[実機・撮影シート](release/submission-v1/DEVICE_CAPTURE_SESSION.md)でiPhone 16 Pro/Watch/Widgetを確認する。
+**2026-11-02 current scope: 写真なし新規地点申請あり、写真添付はv1.1以降。SUBMISSION: BLOCKED。**
+以前の申請全面停止/写真必須P0を上書きする。公開Web/ASC/本番API/iOSコードは変更していない。
+転記用の[現行素材](release/submission-v1/text-reports/README.md)に日本語説明・Review Notes全文、
+[Privacy回答](release/submission-v1/text-reports/app-privacy-candidate.json)、未組込manifest、保持/削除説明、
+実機手順とLane1/3の阻害をまとめた。写真有効版は[v1.1索引](release/submission-v1/PHOTO_V1_1_README.md)へ分離。
+申請利用可能な文面は提出対象の候補であり、現mainや本番が動作済みとは認定しない。
+過去の停止中/写真有効版Privacy表は履歴。現在の回答は通常申請の収集を含めて再承認が必要。
+地域文は履歴由来で当日確認待ち。運営者の承認・実機E2E・ASC反映が終わるまで提出不可。
 
 What to type into App Store Connect (ASC), in order, and what cannot be typed yet. Rationale, Apple references and
 evidence live in [APP_STORE_SUBMISSION.md](APP_STORE_SUBMISSION.md) (§ numbers below point there); privacy
@@ -44,7 +28,7 @@ Status legend:
 
 ## 0. v1.0 最終入力チェック表（日本語・2026-10-15）
 
-（2026-10-24 更新：データ追加は別承認まで行わず、現行 production の掲載範囲を基準とする。下の地域文は過去の 6 ソース / 513 地点観測に合わせた準備値で、当日の再確認が必要。[G19](V1_APP_STORE_RELEASE_GATE.md) と [最終素材 packet](release/V1_APPSTORE_FINAL_ASSETS.md) を参照。写真投稿 P0 は維持し、有効化前の機能を利用可能とは記載しない。）日本のみ・無料・Apple 標準 EULA の既存方針は維持。
+（2026-10-24 更新：データ追加は別承認まで行わず、現行 production の掲載範囲を基準とする。下の地域文は過去の 6 ソース / 513 地点観測に合わせた準備値で、当日の再確認が必要。[G19](V1_APP_STORE_RELEASE_GATE.md) と [最終素材 packet](release/V1_APPSTORE_FINAL_ASSETS.md) を参照。この段落は旧監査履歴。2026-11-02の写真なし申請スコープを優先する。）日本のみ・無料・Apple 標準 EULA の既存方針は維持。
 **ASC の画面はこのリポジトリ作業では見ていません。** 下表の「状態」は入力値の準備状況であり、ASC 入力済みを意味しません。
 入力済みかどうかは ASC で確認し、入力済みの項目は再入力しないでください。個人情報（氏名・電話番号）はここに書きません。
 
@@ -67,7 +51,13 @@ Status legend:
 | 審査メモ | §5（英語、最終案） | **MAINTAINER 承認** |
 | 公開方法 | 手動公開 | 値確定 |
 
-### 0.2 App Privacy 推奨回答（Apple の現行定義に基づく、2026-10-15）
+### 0.2 App Privacy 回答案
+
+**現v1.0**：[写真なし申請候補](release/submission-v1/text-reports/app-privacy-candidate.json)。
+本文・確定pin・App Attest由来IDはCollected/Linked/Not Tracking/App Functionality案。
+Photosの非申告はアプリ無収集に加えてsupport添付/provider保持の確認後のみ。ログ/粗位置/診断の未確認は残る。
+
+**以下は2026-10-15のreports-off履歴。現v1.0へそのまま転記しない。**
 
 **メンテナー未承認の推奨案。ASC 入力は承認後。** [submission §2.2](APP_STORE_SUBMISSION.md) の「7 項目すべて申告」案を置き換える。
 Apple 定義（[App privacy details](https://developer.apple.com/app-store/app-privacy-details/)、2026-10-15 取得）：
@@ -138,7 +128,9 @@ Apple 定義（[App privacy details](https://developer.apple.com/app-store/app-p
 **保守案**：Logpush ジョブ 0 件、または基盤側の保持が無いことを証明できないことを重く見る場合は、**おおよその位置情報**と
 **その他の診断データ**を加える（リンク、トラッキングなし、アプリの機能）。基盤側の保持が問題になるのはこの 2 項目だけで、ほかの項目はどちらの案でも変わらない。
 
-### 0.3 プライバシーポリシーとの整合
+### 0.3 プライバシーポリシーとの整合（旧停止中の履歴）
+
+現v1.0は通常申請の取扱いを含むpolicyへ更新する必要がある。以下は現在の適合証拠ではない。
 
 #275（2026-10-15 公開）で §2 を現状に合わせた：Cloudflare Workers を利用中、呼び出しログ無効、診断記録は保存される場合あり、
 Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の記録が残る場合あり。§6（解析・広告・クラッシュ SDK なし）と
@@ -147,6 +139,8 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 法的十分性の判断は MAINTAINER。
 
 ### 0.4 年齢制限の回答案
+
+以下の投稿無効版は履歴。現v1.0は写真なしでも申請ありのためUGCを運営者が再評価し、旧「いいえ」を転記しない。
 
 | 質問 | 回答 |
 | --- | --- |
@@ -169,7 +163,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 
 ### 0.6 ユーザーの判断・入力（短い一覧、2026-10-15 更新）
 
-1. App Privacy：§0.2 の推奨案（サポート関連 2 項目）か保守案（＋おおよその位置情報・その他の診断データ）かを決め、ASC に入力。
+1. App Privacy：現行の写真なし申請候補で本文/pin/端末ID/support・ログの扱いを決定。写真型除外の条件を確認し、承認後にASCへ反映（今回入力しない）。
 2. 最低利用年齢を設けるか（§0.4）。
 3. ASC 入力：SKU、著作権者名、審査担当の連絡先（Git に記録しない）。
 4. Content Rights の法務承認（配布ビルドの実機で出典・ライセンスリンクを確認した後）。
@@ -202,7 +196,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | Primary category | Navigation | CONFIRMED |
 | Secondary category | Utilities | CONFIRMED |
 | Content Rights | “Yes, contains third-party content”; necessary-rights declaration only after [production corpus audit](PRODUCTION_CONTENT_RIGHTS_AUDIT.md) gates: municipal open data and Apple Maps (§5) | CONFIRMED live corpus/licenses/API attribution (513 / 6 / community 0); Taito app-side notice / Watch license Link IMPLEMENTED; signed iPhone/Watch visual/link verification, assets and MAINTAINER legal signoff pending |
-| Age Rating | Current photos-enabled questionnaire must be reassessed; §4 is historical | MAINTAINER decision; result calculated by Apple |
+| Age Rating | Current text-report-enabled questionnaire must be reassessed; §4 is historical | MAINTAINER decision; result calculated by Apple |
 | License agreement | Apple standard EULA | CONFIRMED |
 
 ## 3. Version 1.0 page (ASC → iOS App → 1.0)
@@ -210,7 +204,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | Field | Enter | Status |
 | --- | --- | --- |
 | Promotional text (optional) | `喫煙可能場所の位置、利用条件、情報源を確認。周囲の掲示や施設のルールを優先し、案内情報を参考にしてください。` | CONFIRMED |
-| Description | [Prepared photos-enabled full text](release/submission-v1/ja/description-photos-enabled.txt), checked by `scripts/test-store-copy.py` (limit 4,000). The block below is the historical disabled reference | Candidate complete; owner approval, current coverage and enabled RC evidence required (G8/G16) |
+| Description | [Prepared text-only full text](release/submission-v1/text-reports/description-ja.txt), checked by `scripts/test-store-copy.py` (limit 4,000). The block below is the current candidate | Candidate complete; owner approval, current coverage and enabled RC evidence required (G8/G16) |
 | Keywords | `喫煙所,灰皿設置,指定場所,利用条件,徒歩案内,位置情報` (74 bytes; limit 100) | CONFIRMED |
 | Support URL | `https://kounishiyuuki.github.io/MannerPath/support/` | CONFIRMED (live, #177/#179) |
 | Marketing URL | leave blank | CONFIRMED |
@@ -222,7 +216,7 @@ Workers のログは Cloudflare の公開仕様で最長 7 日、事業者側の
 | App Review notes | §5 draft with tested destination steps; final maintainer approval and signed-build checks remain | MAINTAINER / BLOCKED-DEVELOPER-PROGRAM; populated-area path CONFIRMED on Release simulator |
 | Version release | **Manually release this version** (allows final backend/privacy checks after approval) | CONFIRMED |
 
-**Historical disabled reference — not for the requested photo-enabled v1.0.** Use the linked prepared full text after approval/verification.
+**Current text-only submission candidate — not proof of runtime activation.** Use only after approval, implementation and signed-device verification.
 
 Description (paste as plain text):
 
@@ -240,9 +234,9 @@ MannerPathは、喫煙が認められている場所の位置や利用条件を�
 
 掲載情報だけで、その時点の喫煙可否を保証するものではありません。現地の掲示、施設のルール、自治体の規則を優先してください。日本では20歳未満の方は喫煙できません。法令上喫煙が認められている方を対象としています。
 
-アカウント登録は不要です。端末の現在地は近くの場所の順位や距離・方向の計算に使用します。オフラインでの徒歩経路案内には対応していません。
+アカウント登録は不要です。閲覧時の現在地は近くの場所の順位や距離・方向の計算に使用します。新規申請で現在地を使う場合も、地図上の位置を自分で確認・確定してから送信します。オフラインでの徒歩経路案内には対応していません。
 
-現在、場所の報告と写真の送信は利用できません。
+地図にない喫煙場所を知っている場合は、地図で位置を指定し、種類や利用条件、分かる範囲の説明を入力して申請できます。分からない項目は不明として申請できます。v1.0では写真の添付・送信は提供しません。店舗の存在や灰皿だけで喫煙が許可されているとは判断せず、現地の掲示や利用条件を確認してください。申請は運営者が審査し、承認された情報が掲載手続きを経て反映されます。送信しても自動では掲載されず、掲載を保証するものではありません。
 ```
 
 Each bullet matches behavior verified on the simulator in #176 (list/map, detail evidence and approximate
@@ -251,7 +245,7 @@ still a device gate (§7); keep the widget bullet only if that check passes.
 
 ## 4. Age Rating questionnaire answers
 
-**Historical reports-off proposal only.** Photos-enabled v1.0 requires the maintainer to reassess UGC,
+**Historical reports-off proposal only.** Text-report-enabled v1.0 requires the maintainer to reassess UGC,
 moderation safeguards and the current questionnaire before entry. The No answer below is not approved for that release.
 
 | Question | Answer |
@@ -274,34 +268,30 @@ itself imposes a minimum use age above the calculated rating is a **MAINTAINER**
 
 ## 5. App Review notes and reviewer steps
 
-**Historical disabled notes below — not for the requested photo-enabled v1.0.** Use the [prepared enabled notes](release/submission-v1/review-notes-photos-enabled.txt) after approval/verification.
-
-Notes (English), final draft 2026-10-15 for maintainer approval; wording of the source sentence corrected 2026-10-19 (it was "published municipal open data"). This is the 513-spot text. The 638-spot candidate, which is 準備中 and not to be entered before the production switch, is in [release/V1_TOKYO_STORE_COPY.md](release/V1_TOKYO_STORE_COPY.md). Steps 1–5 below were verified on the Release simulator (#191/#193); re-run them on the submitted build:
+Current text-only candidate; owner approval and final RC rehearsal required. No actual runtime verification here.
+[Full notes](release/submission-v1/text-reports/review-notes.txt) / [device procedures and implementation gaps](release/submission-v1/text-reports/README.md).
 
 ```text
-MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It shows places published by Japanese local governments as open data, with access restrictions, source information and uncertainty; it does not guarantee that smoking is permitted at a place at any given time, and it instructs users to follow posted signs and local rules. It does not encourage tobacco consumption, sell tobacco, provide purchase links, promote brands or show tobacco/nicotine advertising. There are no payments, rewards, streaks or accounts. No sign-in is required.
+MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It does not sell or advertise tobacco, reward consumption or guarantee permission to smoke. Follow posted signs and local rules. No account, payment or sign-in is required.
 
-Location permission is When In Use. MannerPath uses the device location for nearby ranking, distance and bearing; requests to our service contain geographic tile IDs, not raw device GPS coordinates. We do not intentionally retain location history. Apple MapKit search/routing and Apple Maps operate through Apple's services. Our privacy policy (https://kounishiyuuki.github.io/MannerPath/privacy/) describes how network providers may process request information.
+Coverage is partial: parts of Tokyo (Taito, Minato, Koto and Musashino), Osaka City and Kyoto City. Other areas show an honest empty state. Access uncertainty, source, freshness and approximate positions are shown. A destination search changes the browsing area, not the device location. From outside coverage, search for “浅草駅 東京” and select the Tokyo destination to see published places. Distant destinations do not offer a walking detour; Apple Maps handoff is separate.
 
-Reports, report device registration and photo uploads are currently unavailable. This describes the last observed disabled deployment, not a waiver of the v1.0 photo-submission release gate. There is no public user-content feed. Apple Watch shows nearby cached places with distance and direction; widgets show a cached nearby place. Cached discovery works offline; offline walking routes are not provided.
+Version 1.0 accepts new-place proposals without photos. There is no photo attachment, upload or photo retry feature in this version. A user confirms a map pin, checks nearby duplicates, enters the place type, access conditions and any useful explanation, then reviews and consents to the report terms before sending. Unknown values are allowed. A store's existence or an ashtray does not by itself establish permission to smoke. A received proposal is pending operator review. Sending a report does not automatically publish a place or guarantee a listing. Reviewed facts still pass separate rights, location and quality checks before publication.
 
-Coverage is limited to places that local governments publish as open data. In version 1.0, places are published only for parts of Tokyo (Taito, Minato, Koto and Musashino), Osaka City and Kyoto City; other areas show an empty state. Our service is available during review at https://mannerpath-api-production.happywestyuki.workers.dev. To see populated results from outside Japan, search for “浅草駅 東京” in destination search and select the result, then open a published place's details and sources. This displays the selected destination's area, not your current location. Walking routes may be unavailable far from the destination; straight-line distance and bearing remain available. Please also see the age/eligibility notice, Data & Privacy (privacy policy, support and contact links), filters, the location-denied state and the cached offline state.
+Browsing uses When In Use location for nearby ranking, distance and bearing. Browsing requests contain geographic tile IDs, not raw GPS. A report includes the map pin explicitly chosen and confirmed by the user; it can equal the device's current location. Report submission uses Apple App Attest on a supported physical iPhone. Report text, pin and device-derived identifiers are collected and associated for review and abuse prevention. No account does not mean anonymous submissions. Report personal fields are scheduled for minimization after 90 days; database recovery history and minimal audit records are separate. The privacy policy explains the final approved retention and provider handling.
+
+Reviewer steps:
+1. Fresh install, read and confirm the eligibility notice. Allow When In Use when explicitly requesting location, or deny and continue with destination search.
+2. Search “浅草駅 東京”, select the Tokyo destination, inspect the map/list, select a published place and open its details, access information, precision and source/license. Use directions to open Apple Maps. Clear the destination and try filters/clear.
+3. Open Data & Privacy, privacy/support links and contact. After loading, disconnect and inspect cached information; offline walking routes are not provided.
+4. On a supported physical iPhone, open the new-place entry for a real unlisted smoking location. Confirm the pin, check duplicate suggestions, enter details (unknown is allowed), read the approved terms, consent and send once. No photo step is present. Save the received report ID and pending-review status. Do not create dummy production reports. If suitable real evidence is unavailable, use the operator-provided recording of this signed build's authorized flow. A simulator/mock does not prove App Attest acceptance.
+5. A paired Watch shows nearby data received from the iPhone, freshness and cached offline states. Destination-search results are not synchronized to Watch. Populated Watch/widget scenes need real nearby data from a covered area. Widget refresh follows the system's schedule.
+
+Reinstalling does not delete server submissions or prove ownership of old reports. A report ID alone does not guarantee deletion or restoration. Contact support. No in-app deletion feature is claimed.
+
+Privacy: https://kounishiyuuki.github.io/MannerPath/privacy/
+Support: https://kounishiyuuki.github.io/MannerPath/support/
 ```
-
-Reviewer steps (draft, not final approved Review Notes; Release simulator J/K/L and source-rights UI confirmed
-by #191/#193; signed-device/Maps/Watch checks remain):
-
-1. Fresh install → eligibility notice → 確認しました → allow location While Using.
-2. Search “浅草駅 東京” → select destination → published list/map → place detail → sources. Refresh also works
-   with location denied; clear the destination to return to the device area. For a distant current location, do not
-   require a walking route (10 km gate); verify Apple Maps handoff separately on the signed build.
-3. Filters (type, tobacco, access) and clearing them.
-4. Data & Privacy → プライバシーポリシー / サポート open the published pages; メールで問い合わせ addresses mannerpath.support@gmail.com.
-5. Airplane mode after loading: cached places, distance and direction remain; route unavailability is explained.
-6. Paired Apple Watch: nearby list, detail, directions handoff (BLOCKED-DEVELOPER-PROGRAM to verify on hardware).
-
-If a populated area cannot be reached remotely with the shipped UI, attach a screen recording rather than adding
-any hidden reviewer feature (§7).
 
 ## 6. Screenshots
 

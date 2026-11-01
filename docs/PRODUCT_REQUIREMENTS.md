@@ -119,7 +119,7 @@ Tobacco support and similar attributes are tri-state: `yes | no | unknown`. Acce
 
 ### Should
 
-Issue #147 adds an iPhone-only, default-off photo evidence foundation (ADR-0016): optional in-memory
+Deferred to v1.1 or later (2026-11-02): Issue #147 adds an iPhone-only, default-off photo evidence foundation (ADR-0016): optional in-memory
 preview/removal, upload state and explicit attachment retry after report acceptance. Current terms do
 not approve photo intake and #124 still gates publication. Photos never supply EXIF-derived coordinates
 or establish permission to smoke, and the ordinary report flow remains unchanged with the feature off.
@@ -250,10 +250,12 @@ the App Store with **limited covered areas** — the regions the production corp
 waiting for nationwide data:
 
 - free, Japan storefront only;
-- **amended 2026-10-22:** photo-backed new-place submission (standalone, always-visible 「＋ 喫煙所を追加」 button — 「＋ 喫煙所を追加する」 until 2026-10-30; while intake is paused it only explains the pause — 1–3 private photos,
-  moderator review before any publication) is a v1.0 P0 requirement. It stays unavailable in production until every
-  gate in [`release/V1_PHOTO_PLACE_SUBMISSION.md`](release/V1_PHOTO_PLACE_SUBMISSION.md) is met, including the
-  terms/rights approval (#124); reports and App Attest registration follow the same gates;
+- **amended 2026-11-02 (supersedes 2026-10-22 photo P0 and blanket suspension):** v1.0 includes new-place
+  proposals without photos: confirmed pin → duplicate check → type/conditions/free text → approved terms/consent →
+  attested send → pending operator review. No photo selection/upload/retry in v1.0; photos are planned for v1.1 or later.
+  Submission never auto-publishes. Source/rights/precision/quality gates and #124 report terms approval remain.
+  Main's existing client and review/export photo requirements need Lane1/3 implementation; this scope change enables no runtime.
+  Current submission material: [text-only v1.0](release/submission-v1/text-reports/README.md);
 - no waiting on external data-provider replies (e.g. モクログ); nationwide data work continues after release;
 - store copy, screenshots and Review Notes name the covered areas and the location-precision limits, and never
   suggest a spot can be found anywhere in Japan;
