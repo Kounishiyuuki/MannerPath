@@ -138,6 +138,57 @@ terminated (`exceededCpu`); with the hex binding 11–49 ms, never ≤ 10 ms, ev
 | 6a. v1.0 without photo upload | Yes (no photo route) | 0 | best (no photos held) | small (hide the photo step) | **most reliable at 0 yen** |
 | 6b. Workers Paid (30 s CPU) with the D1 or R2 store | Yes | $5/month minimum | as built | none | outside the zero-cost goal |
 
-Recommendation: ship v1.0 without photo upload (6a) unless the maintainer accepts a recurring cost (6b) or approves the
+Recommendation (refined in §9.2): ship v1.0 without photo upload (6a) unless the maintainer accepts a recurring cost (6b) or approves the
 auth change in option 4 for a further measured PoC. Relying on the documented tolerance for "infrequent" overruns is
 not a design: every measured upload overran.
+
+## 9. Final evaluation: photos on Workers Free (2026-11-01, desk study; nothing deployed, nothing written to R2)
+
+Sources read 2026-11-01: R2 pricing, R2 presigned URLs, R2 S3 API compatibility, KV pricing / limits / put, D1
+pricing, Workers pricing, Billing budget alerts (developers.cloudflare.com). CPU figures are the Workers Free
+measurements in V1_FREE_TIER_PROBE_RUNBOOK.md §9–§10; everything else marked *unmeasured* is design, not evidence.
+
+**What the measurements fix.** Bytes through the D1 binding are the dominant cost (JSON number arrays; hex halves it).
+What remains is a fixed cost of roughly 10 ms per upload request whatever the size (146 KB → 15 ms), spread over
+challenge consumption, key read, assertion verification and the attach statements. Any free design must remove bytes
+from the D1 binding **and** split that fixed cost across requests. The workerd binary ships a JS wrapper only for D1
+(`cloudflare-internal:d1-api`); KV and R2 are native bindings, so the number-array cost should not apply to them
+(*unmeasured* on Cloudflare).
+
+### 9.1 Candidates (requirements kept: App Attest per photo, server JPEG structure check, attested SHA-256 and length, 90-day deletion with a permanent fence)
+
+| | A1. KV photo bytes + split request (**recommended to measure**) | A2. R2 presigned direct upload | A3. D1 (hex) + split request | A4. Workers Paid, as built (hex) |
+| --- | --- | --- | --- | --- |
+| Flow | ① `POST /photo-intents` with the App Attest assertion over {reportId, sha256, length, terms}: verify, burn the challenge, write an intent row, return a random single-use ticket (≤ 5 min). ② `PUT /photo-intents/{ticket}` with the bytes: length + SHA-256 must equal the intent, JPEG structure check, `KV.put(key, bytes, {expiration})`, mark the intent used, fence row in D1 (no bytes) | ① as A1 but returns a presigned PUT URL (signed locally, Content-Type signed) ② iPhone PUTs to R2 ③ `POST …/finalize`: Worker reads the object, checks SHA-256 + length + JPEG structure, deletes it on any mismatch | ① as A1 ② bytes request stores via `unhex(?)` in D1 | one request as today |
+| Worker CPU | ① ≈ assertion + 3–4 statements, no bytes; ② ≈ read + hash + JPEG check (each 4–7 ms alone at 1 MB, baseline included; not measured together) + 2 small statements + native KV put — **both unmeasured**; plausible but unproven ≤ 8 ms | ① as A1; ③ native R2 read + check — **unmeasured** | ② still pays hex (11–15 ms per MB measured): fits only for small photos, **unproven** | 30 s limit; 11–49 ms measured → fits |
+| Monthly cost | **0, hard** on Workers Free: KV Free is 1,000 writes/day, 1 GB; over a limit operations fail, no billing | **not guaranteed**: 10 GB-month, 1M Class A, 10M Class B free; beyond that $0.015/GB-month, $4.50/M Class A, $0.36/M Class B. The account holds an R2 subscription and a payment method; budget alerts "do not pause or cap usage" | 0, hard | $5/month minimum (+ tax); includes 10M requests, 30M CPU-ms, D1 50M rows written, 5 GB |
+| Capacity | 1 GB KV: at 300 KB per photo (1.2 MP q0.75 measured 213–414 KB) ≈ 3,300 live photos ≈ 1,100 reports with 3 photos per 90 days (≈ 12/day); intake pauses at 80 % via the D1 ledger | 10 GB free ≈ 33,000 photos | 500 MB per photo DB ≈ 1,600 photos; more DBs possible within 5 GB | D1 5 GB included |
+| Security | unchanged checks; the ticket is bound to the attested hash + length and single use, so the bytes request needs no second assertion | presigned URLs are bearer tokens, reusable until expiry; Content-Length and SHA-256 checksum enforcement are **not documented** (only Content-Type is) → unchecked bytes sit in a private bucket until ③ | as A1 | unchanged |
+| Deletion | `expiration` at the deadline lead + explicit delete; no Time Travel, but KV's own replication/propagation of deletes is **undocumented** (provider copies, as for R2) | R2 delete is free; provider copies as accepted for R2 in PHOTO_STORAGE_OPERATIONS.md | Time Travel 7 days → −9 day lead (measured restore) | as A3 |
+| iOS change | medium: two calls per photo, same assertion code | medium + R2 S3 host, CORS not needed (native app) | as A1 | none |
+| Status | design only; needs one measured run on the probe | rejected unless a non-zero bill is accepted | fallback if KV is refused | known to work |
+
+Worst case for A2 (no cap): a leaked URL can be replayed until expiry and its size is not bounded by the documented
+signature; at the documented rates 1M extra Class A operations cost $4.50 and every 1 GB held for a month $0.015. The
+number of URLs is limited only by App Attest and rate limits, so the bound is operational, not contractual.
+
+Rejected here: Durable Objects SQLite storage and the Cache API (Cache is not durable storage; DO free-tier CPU and
+storage terms were not established), and moving any check to the iPhone (§8).
+
+### 9.2 Answers
+
+**A. Free, with photos — possible, not proven.** Only A1 (KV bytes + intent/ticket split) keeps every check and a hard
+zero bill; A3 is the D1-only fallback for small photos. Neither is GO: both need, on the probe Worker with synthetic
+data, ≥ 100 uploads of client-equivalent photos with **0** `exceededCpu` and per-request P99 ≤ 8 ms for both requests,
+plus counsel's acceptance of KV deletion semantics. The ticket split changes the photo protocol (not its strength) and
+needs the maintainer's approval before it is built.
+
+**B. Switch to photo-less v1.0 if any of:** the A1/A3 measurement fails the criteria above; the protocol split or KV is
+not approved; KV deletion cannot be described to counsel's satisfaction; or the photo work would delay the App Store
+submission. Effect of photo-less v1.0: proposals carry no photo evidence (review relies on text, location and the
+existing duplicate/strength rules); no photo is collected, so no EXIF/GPS or face risk, a shorter privacy policy, and
+no Photos permission or photo-related App Privacy entry; the PHOTOS_DB, fence and erasure work become dormant.
+
+**C. Minimum cost for photos with a proven design: $5/month (+ tax), Workers Paid** with the D1 photo store and the
+hex binding (A4), measured at 11–49 ms against a 30 s limit. R2 adds no fixed fee but has no spending cap, so it is not
+cheaper in the worst case.
