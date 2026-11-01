@@ -20,7 +20,9 @@ import { D1PhotoStore } from "../binary-photo/d1-photo-store.ts";
 import { queueDuePhotosForErasure } from "../binary-photo/erasure.ts";
 import { handleBinaryPhoto } from "../binary-photo/route.ts";
 import { sealPhoto } from "../binary-photo/photo-crypto.ts";
+import { PHOTO_V3_BODY_MAX_BYTES } from "../binary-photo/protocol.ts";
 import { runD1Checks } from "./d1-checks.ts";
+import { STAGES, type Stage, runStage } from "./stages.ts";
 import { PROBE_IDENTITY } from "./identity.ts";
 
 interface ProbeEnv {
@@ -65,6 +67,14 @@ export default {
       if (!body.trustAnchor || base64Decode(body.trustAnchor) === null) return json(400, { error: "trustAnchor" });
       await env.PHOTOS_DB.prepare("INSERT INTO probe_config (id, trust_anchor) VALUES (1, ?) ON CONFLICT (id) DO NOTHING").bind(body.trustAnchor).run();
       return json(200, { ok: true });
+    }
+    // §10: one upload stage per request for per-stage CPU (synthetic bytes, ≤ the v3 body cap).
+    const stage = url.pathname.match(/^\/probe\/stage\/([a-z0-9-]+)$/)?.[1];
+    if (req.method === "POST" && stage) {
+      if (!(STAGES as readonly string[]).includes(stage)) return notFound();
+      const body = new Uint8Array(await req.arrayBuffer());
+      if (body.length < 1 || body.length > PHOTO_V3_BODY_MAX_BYTES) return json(400, { error: "body" });
+      return json(200, await runStage(stage as Stage, body, env.PHOTOS_DB));
     }
     const anchor = await trustAnchor(env);
     if (!anchor) return json(409, { error: "setupRequired" });
