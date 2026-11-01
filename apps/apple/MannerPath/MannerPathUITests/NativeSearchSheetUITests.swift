@@ -465,16 +465,17 @@ final class NativeSearchSheetUITests: MannerPathUITestCase {
         app.buttons["絞り込み"].tap()
         let picker = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '場所の種類'")).firstMatch
         scrollForegroundListTo(picker)
-        // iOS 18 exposes the Form row as a button around the actual Menu button.
+        // iOS 18 exposes the Form row as a button around the actual Menu button. On 18.6 the inner button reports
+        // itself unhittable (scrolling toward it dragged the sheet closed) and a tap on the row's centre does not open
+        // the menu, so tap the visible inner button by coordinate.
         let menu = picker.buttons.firstMatch
-        let menuButton: XCUIElement
         if #available(iOS 26, *) {
-            menuButton = picker
+            picker.tap()
+        } else if menu.exists {
+            menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         } else {
-            menuButton = menu.exists ? menu : picker
+            picker.tap()
         }
-        scrollForegroundListTo(menuButton)
-        menuButton.tap()
         let type = app.buttons["公共の喫煙室"]
         XCTAssertTrue(type.waitForExistence(timeout: 5))
         type.tap()
