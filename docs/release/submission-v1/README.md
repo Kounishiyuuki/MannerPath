@@ -14,6 +14,22 @@
 | [PrivacyInfo.photos-enabled.candidate.plist](PrivacyInfo.photos-enabled.candidate.plist) | iPhone現manifestに回答候補6型を加えたレビュー用実ファイル。`.xcprivacy`としてアプリに組み込んでいない。Lane 3が承認後の整合PRで取り込む候補 |
 | [DEVICE_CAPTURE_SESSION.md](DEVICE_CAPTURE_SESSION.md) | iPhone 16 Pro/Watch/Widget撮影、端末別実行順序、操作/期待/証拠、記録用表 |
 
+## D1/暗号化を検討中の場合（2026-10-31追記）
+
+初回監査時のmain `1e2d009`ではD1/暗号化PoCは未統合だった。
+2026-11-01再照合：最新main `d3508d5`へ#357・#358・#360のPoCソースは統合済み。
+通常の申請経路はR2のままで、D1/暗号化の正式採用・法務承認・本番有効化は確認されていない。
+`app-privacy-candidate.json`の`storageReview.d1Proposal`は
+`merged-poc-not-mounted-not-production-enabled`（PoC統合済み・通常申請経路へ未組込・本番未有効化）へ更新した。
+これは統合状態の訂正で、Privacy回答・削除説明・未承認ゲートの承認や有効化を意味しない。
+[D1データフローと公式文書](D1_PHOTO_PRIVACY.md)、[日英policy候補](PRIVACY_POLICY_D1_CANDIDATE.md)、
+[削除依頼/再install support候補](SUPPORT_PHOTO_DELETION_CANDIDATE.md)を承認前の差分として使う。
+下記の旧R2由来90日/89日記述を、D1の物理消去期限やupload可能期間の確約へ転用しない。
+
+`python3 scripts/validate-photo-privacy-candidate.py`でJSON/plist候補の整合を検査できる。
+暗号化だけでNot Linkedに変更する、SQL削除を物理消去とする、未検証plan/鍵破棄を完了扱いにする変更を拒否する。
+これは文書候補の検査で、実暗号方式・消去・法務・提出承認を検証しない。出力は常にsubmissionReady=false。
+
 ## 転記前の3つの照合
 
 1. **地域**：今回使ったのは2026-10-15の[保存済み観測](../store-screenshots/production-recheck.json)にある

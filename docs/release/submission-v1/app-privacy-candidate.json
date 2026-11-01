@@ -75,13 +75,34 @@
     "Cloudflare retained tile/IP and diagnostic fields, provider/Logpush retention",
     "Owner choice for Coarse Location and Other Diagnostic Data",
     "Final archive traffic, manifest and generated Privacy Report",
-    "Approved terms/version, public policy text and deletion/withdrawal process"
+    "Approved terms/version, public policy text and deletion/withdrawal process",
+    "D1 versus R2 storage and application encryption are not decided or activated",
+    "Time Travel and all key copies/exports/restore procedures must be included in deletion design",
+    "Report-receipt deadline versus storage-epoch key expiry and late uploads; client retry deadline must agree",
+    "Deletion request ownership proof and reinstall/device-loss support are not implemented"
   ],
   "retention": {
-    "reportPersonalContent": "Minimized within 90 days of receipt; not a promise to erase every record.",
-    "photos": "Access closes 24 hours before the 90-day report deadline; deletion workflow must be verified by Lane 3. Provider internal timing requires owner approval.",
-    "deviceFollowUp": "Report ID, consent version, deadline and confirmed photo count only; at most 89 days. Photo bytes are not persisted by app.",
+    "reportPersonalContent": "Current main redacts personal report fields at receipt +90 days; skeleton/audit/receipt records remain. Historical D1 versions can retain pre-redaction data; this is not physical erasure.",
+    "photos": "Current main R2 design: access closes 24 hours before the report-receipt +90-day deadline; provider physical erasure is not proven. D1/crypto retention and destruction deadline are UNDECIDED; do not carry the R2 promise into D1 without evidence.",
+    "deviceFollowUp": "Current main: report ID, consent version, estimated deadline and photo count only, at most 89 days; no image bytes. This is not a guaranteed D1 upload window; server deadline must remain authoritative.",
     "appAttest": "Key registration/revocation retention is separate; no blanket 90-day deletion promise.",
     "supportAndProvider": "Not established by report retention. Owner must confirm."
+  },
+  "storageReview": {
+    "decision": "undecided",
+    "mainImplementation": "private-r2-not-activated",
+    "d1Proposal": "merged-poc-not-mounted-not-production-enabled",
+    "encryptionProposal": "not-selected-not-wired",
+    "operatorCanReviewPhotos": true,
+    "workerProcessesPlaintextInCurrentFlow": true,
+    "timeTravel": {
+      "alwaysOn": true,
+      "freeDays": 7,
+      "paidDays": 30,
+      "deployedPlanVerified": false
+    },
+    "sqlDeletionProvesPhysicalErasure": false,
+    "keyDestructionVerified": false,
+    "physicalErasureVerified": false
   }
 }
