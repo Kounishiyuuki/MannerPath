@@ -100,3 +100,26 @@ test('launch parser reuses real terminal/CI remote guards and refuses public bin
   assert.throws(()=>parseAdminArguments([...remote,'--demo'],{interactive:true,ci:false}),/demoCannot/);
   assert.equal(parseAdminArguments(remote,{interactive:true,ci:false}).enableDecisions,false);
 });
+test('independent-check record uses its own confirmation, then enables new-place approval without a photo',async t=>{
+  const f=await fixture(t);const id=f.ids[0];
+  const detail=async()=>await (await f.call('/api/reports/'+id,undefined,f.auth)).json() as any;
+  const today=new Date(Date.now()+9*3_600_000).toISOString().slice(0,10);
+  const payload={reportId:id,basis:'officialSource',sourceUrl:'https://www.city.example.jp/smoking.html',checkedOn:today,expectedVersion:(await detail()).version,operationId:crypto.randomUUID()};
+  assert.equal((await f.call('/api/evidence/confirm',{...payload,note:'free text'},f.auth)).status,400);
+  const prepared=await (await f.call('/api/evidence/confirm',payload,f.auth)).json() as any;
+  assert.match(prepared.summary,/公式情報源を確認/);assert.match(prepared.summary,/承認・公開は行いません/);
+  // A confirmation for a record cannot commit a decision, and a decision payload cannot reuse it.
+  assert.equal((await f.call('/api/decide',{reportId:id,state:'accepted',reason:'confirmed',expectedVersion:payload.expectedVersion,operationId:payload.operationId,privacyChecked:true,confirmationToken:prepared.confirmationToken},f.auth)).status,403);
+  assert.equal((await f.call('/api/evidence/record',{...payload,checkedOn:'2000-01-01',confirmationToken:prepared.confirmationToken},f.auth)).status,403);
+  const saved=await f.call('/api/evidence/record',{...payload,confirmationToken:prepared.confirmationToken},f.auth);assert.equal(saved.status,200);
+  const after=await detail();assert.equal(after.evidenceChecks.length,1);assert.equal(after.report.state,'pending');
+  const accept={reportId:id,state:'accepted',reason:'confirmed',expectedVersion:after.version,operationId:crypto.randomUUID(),privacyChecked:true};
+  const token=(await (await f.call('/api/confirm',accept,f.auth)).json() as any).confirmationToken;
+  assert.equal((await f.call('/api/decide',{...accept,confirmationToken:token},f.auth)).status,200);
+  assert.equal((await detail()).report.state,'accepted');
+});
+test('read-only sessions cannot record independent checks',async t=>{
+  const f=await fixture(t,true);
+  const r=await f.call('/api/evidence/confirm',{reportId:f.ids[0],basis:'siteVisit',checkedOn:'2026-11-02',expectedVersion:'x',operationId:crypto.randomUUID()},f.auth);
+  assert.deepEqual([r.status,(await r.json() as any).error],[403,'readOnly']);
+});

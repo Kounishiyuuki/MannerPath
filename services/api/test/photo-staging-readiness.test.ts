@@ -50,5 +50,5 @@ test('template cannot enable reports or photos; flags cannot bypass unapproved p
 
 test('report stream preserves audit and both photo-export fences in sequence', () => {
   const migrations = readdirSync(new URL('../migrations-reports/', import.meta.url)).filter(n => n.endsWith('.sql')).sort();
-  assert.deepEqual(migrations.slice(7), ['0008_admin_review_audit.sql', '0009_new_spot_photo_gate.sql', '0010_new_spot_photo_erasure_window.sql']);
+  assert.deepEqual(migrations.slice(7), ['0008_admin_review_audit.sql', '0009_new_spot_photo_gate.sql', '0010_new_spot_photo_erasure_window.sql', '0011_new_spot_independent_evidence.sql']);
 });

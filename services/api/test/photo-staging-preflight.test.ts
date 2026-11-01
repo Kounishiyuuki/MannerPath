@@ -151,7 +151,7 @@ test('CR and CRLF comments cannot conceal duplicate keys, activation or unknown 
 test('mandatory report migrations cannot disappear from both configured and reference lists', () => {
   const names = readdirSync(resolve(api,'migrations-reports')).sort();
   assert.equal(migrationNamesValid(names,names,true),true);
-  for(const required of ['0008_admin_review_audit.sql','0009_new_spot_photo_gate.sql','0010_new_spot_photo_erasure_window.sql']){
+  for(const required of ['0008_admin_review_audit.sql','0009_new_spot_photo_gate.sql','0010_new_spot_photo_erasure_window.sql','0011_new_spot_independent_evidence.sql']){
     const missing=names.filter(n=>n!==required);
     assert.equal(migrationNamesValid(missing,missing,true),false);
   }
