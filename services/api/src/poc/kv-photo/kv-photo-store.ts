@@ -94,16 +94,20 @@ export class KvPhotoStore {
    */
   async put(key: string, bytes: Uint8Array, metadata: { contentSha256: string; byteLength: number }): Promise<void> {
     const now = this.now(), expires = Math.floor(now.getTime() / 1000) + KV_RETENTION_DAYS * 86_400;
+    let row: LedgerRow | undefined;
     try {
-      await this.db.prepare(`INSERT INTO kv_photo_objects (storage_key, state, content_sha256, byte_length, stored_at, kv_expires_at)
-          VALUES (?, 'live', ?, ?, ?, ?) ON CONFLICT (storage_key) DO NOTHING`)
-        .bind(key, metadata.contentSha256, bytes.length, isoSeconds(now), expires).run();
+      const out = await this.db.batch([
+        this.db.prepare(`INSERT INTO kv_photo_objects (storage_key, state, content_sha256, byte_length, stored_at, kv_expires_at)
+            VALUES (?, 'live', ?, ?, ?, ?) ON CONFLICT (storage_key) DO NOTHING`)
+          .bind(key, metadata.contentSha256, bytes.length, isoSeconds(now), expires),
+        this.db.prepare("SELECT state, content_sha256, byte_length, kv_expires_at FROM kv_photo_objects WHERE storage_key = ?").bind(key),
+      ]);
+      row = (out[1] as { results: LedgerRow[] }).results[0];
     } catch (error) {
       if (String(error).includes("store budget reached")) throw new PhotoStoreError("budgetReached");
       if (String(error).includes("daily write cap reached")) throw new KvPhotoStoreError("dailyWriteCapReached");
       throw error;
     }
-    const row = await this.row(key);
     if (!row || row.state === "deleted") throw new PhotoStoreError("permanentlyDeleted");
     if (row.content_sha256 !== metadata.contentSha256 || row.byte_length !== bytes.length) throw new PhotoStoreError("conflict");
     await this.kv.put(key, bytes, { expiration: row.kv_expires_at! });

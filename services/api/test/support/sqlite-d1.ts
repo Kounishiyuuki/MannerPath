@@ -118,7 +118,11 @@ export class SqliteD1 implements Db {
   async batch(statements: DbStatement[]): Promise<unknown[]> {
     this.raw.exec("BEGIN");
     try {
-      const out = statements.map((s) => (s as Statement).execRun());
+      // Like D1, a statement that returns rows (SELECT, … RETURNING) yields them as `results`.
+      const out = statements.map((s) => {
+        const st = s as Statement;
+        return st.stmt().columns().length > 0 ? st.execAll() : { results: [], meta: st.execRun() };
+      });
       this.raw.exec("COMMIT");
       return out;
     } catch (e) {
