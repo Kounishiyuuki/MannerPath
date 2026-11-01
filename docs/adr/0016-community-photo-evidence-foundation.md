@@ -95,6 +95,12 @@ and App Attest. All photos remain private, even approved ones. See
 
 ## New-spot photo gate (2026-10-22, v1.0)
 
+> **Amended 2026-11-02 (v1.0 scope decision, `docs/release/V1_PHOTO_FREE_NEW_SPOT.md`).** Photos on Workers Free were
+> NO-GO, so v1.0 takes new places without photos and photos return in v1.1. The gate below now opens on **either** a
+> viewable approved photo **or** an operator's recorded independent check (`new_spot_evidence_checks`, REPORTS_DB 0011:
+> an official source page or a site visit). Reporter words alone still never open it. Acceptance in the admin tool
+> (`independentEvidenceRequired`), review proposal, export and the export trigger all apply the same rule.
+
 A new-spot (`missing`) report is received first and its photos follow (`POST /v1/reports/:id/photos`), so an
 accepted report can exist without photos: the app closed, an upload failed or was rejected. Intake order is
 unchanged. Publication is gated instead: a new-spot review is neither proposed nor exported unless every `missing`

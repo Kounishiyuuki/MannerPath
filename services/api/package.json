@@ -39,6 +39,7 @@
     "e2e:config": "node --experimental-strip-types --no-warnings scripts/disposable-env.ts",
     "free-probe:config": "node --experimental-strip-types --no-warnings scripts/free-tier-probe-config.ts",
     "free-probe:run": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/free-tier-probe-run.ts",
+    "free-probe:reports": "node --experimental-strip-types --no-warnings scripts/report-intake-probe-run.ts",
     "free-probe:analytics": "node --experimental-strip-types --no-warnings scripts/free-tier-probe-analytics.ts",
     "community:seed": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/community-seed.ts",
     "community:status": "node --experimental-strip-types --no-warnings scripts/community-activation.ts status",
