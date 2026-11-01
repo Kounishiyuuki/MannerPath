@@ -33,10 +33,16 @@ struct ReportFormView: View {
                     followUpChoice(followUp)
                 }
                 Section {
-                    if isMissing {
+                    if isMissing, asksForPhotos {
                         Text("Know a smoking place missing from the map? Choose its location, add photos and tell us what you know. Approved information is added after review.")
                             .accessibilityIdentifier("report.newPlace.introduction")
                         Text("Location, 1–3 photos and agreement to the terms are required. Other details can stay unknown. Closing this form keeps your draft; photos stay only until the app closes.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    } else if isMissing {
+                        // v1.0: no photos (scope change 2026-11-02); the photo steps return when photo intake opens.
+                        Text("Know a smoking place missing from the map? Choose its location and tell us what you know. Approved information is added after review.")
+                            .accessibilityIdentifier("report.newPlace.introduction")
+                        Text("Location and agreement to the terms are required. Other details can stay unknown. Closing this form keeps your draft.")
                             .font(.footnote).foregroundStyle(.secondary)
                     } else if model.draft != nil {
                         Text("This is a proposal for review. Submitting it does not immediately change the listing.")
@@ -138,7 +144,7 @@ struct ReportFormView: View {
                     }
 
                     // New-place photos come before optional details. The deployment/consent gate is unchanged.
-                    if isMissing, model.photos.enabled && model.acceptsNewSpotProposals {
+                    if isMissing, asksForPhotos {
                         ReportPhotoSection(photos: model.photos, required: true)
                             .disabled(isSubmitting)
                     }
@@ -152,7 +158,7 @@ struct ReportFormView: View {
                     }
 
                     if isMissing, case .available(let limits) = model.availability, limits.acceptsNewSpotClaim {
-                        NewSpotClaimSection(claim: Binding(
+                        NewSpotClaimSection(photoStepShown: asksForPhotos, claim: Binding(
                             get: { model.draft?.claim ?? ReportClaim() },
                             set: { value in editDraft { $0.claim = value } }
                         ))
@@ -191,18 +197,23 @@ struct ReportFormView: View {
 
                     // Photos are offered only while the deployment accepts them; for a new place the notice above
                     // says why not. Chosen before consent and submit, which they gate.
-                    if !isMissing, model.photos.enabled && model.acceptsNewSpotProposals {
+                    if !isMissing, asksForPhotos {
                         ReportPhotoSection(photos: model.photos)
                             .disabled(isSubmitting)
                     }
 
                     if isMissing {
-                        Section("5. Review before sending") {
+                        Section(asksForPhotos ? "5. Review before sending" : "4. Review before sending") {
                             Label(draft.proposedLocation == nil ? "Location still needed" : "Proposed map pin selected",
                                   systemImage: draft.proposedLocation == nil ? "circle" : "checkmark.circle")
-                            LabeledContent("Photos chosen", value: "\(model.photos.photos.count) / 3")
-                            Text("Review the location, photos and details above. You can leave information you do not know as unknown.")
-                                .font(.footnote).foregroundStyle(.secondary)
+                            if asksForPhotos {
+                                LabeledContent("Photos chosen", value: "\(model.photos.photos.count) / 3")
+                                Text("Review the location, photos and details above. You can leave information you do not know as unknown.")
+                                    .font(.footnote).foregroundStyle(.secondary)
+                            } else {
+                                Text("Review the location and details above. You can leave information you do not know as unknown.")
+                                    .font(.footnote).foregroundStyle(.secondary)
+                            }
                         }
                         .accessibilityIdentifier("report.review.summary")
                     }
@@ -422,7 +433,12 @@ struct ReportFormView: View {
         return false
     }
 
-    private var newSpotNeedsPhotos: Bool { isMissing && (!model.acceptsNewSpotProposals || model.photos.photos.isEmpty) }
+    private var newSpotNeedsPhotos: Bool {
+        isMissing && (!model.acceptsNewSpotProposals || (model.acceptsPhotoEvidence && model.photos.photos.isEmpty))
+    }
+
+    /// Photo steps only while photo evidence is active (v1.1); v1.0 builds never offer them.
+    private var asksForPhotos: Bool { model.photos.enabled && model.acceptsPhotoEvidence }
 
     private var unavailableNotice: String? {
         switch model.availability {
@@ -497,6 +513,8 @@ struct ReportFormView: View {
             VStack(alignment: .leading, spacing: 8) {
                 if model.photos.photos.isEmpty || model.photos.allUploaded {
                     Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
+                    Text("Submitting does not guarantee that the place will be listed.")
+                        .accessibilityIdentifier("report.noListingGuarantee")
                 } else if model.photos.busy {
                     Text("The report was received. Sending photos…")
                     Text("Until a photo is received, a new place stays out of review for listing.")
@@ -754,6 +772,7 @@ private struct ReportPinPicker: View {
 /// ADR-0012 new-spot claim. What kind of smoking place it is comes first and is the one answer a single report
 /// needs to be listed; "Not sure" stays a valid answer. Everything else is optional and defaults to "not stated".
 private struct NewSpotClaimSection: View {
+    let photoStepShown: Bool
     @Binding var claim: ReportClaim
 
     var body: some View {
@@ -833,7 +852,7 @@ private struct NewSpotClaimSection: View {
                 set: { claim.hoursNote = $0.isEmpty ? nil : String($0.prefix(ReportClaim.hoursNoteMaxLength)) }
             ))
         } header: {
-            Text("4. Describe the smoking place")
+            Text(photoStepShown ? "4. Describe the smoking place" : "3. Describe the smoking place")
         } footer: {
             Text("Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and hours are only for the reviewer and are deleted after 90 days.")
         }

@@ -262,7 +262,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
     }
 
     func testPausedIntakeDoesNotAdvertiseAddingAPlace() {
-        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+        launch(extraArguments: ["-uiTestPhotoReport", "paused"])
         let entry = app.buttons["mapReportButton"]
         XCTAssertTrue(entry.waitForExistence(timeout: 90))
         XCTAssertTrue(app.navigationBars["近くの場所"].waitForExistence(timeout: 30))
@@ -353,7 +353,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
     }
 
     func testPausedEntryStaysHonestAcrossThreeDetents() {
-        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+        launch(extraArguments: ["-uiTestPhotoReport", "paused"])
         let mapEntry = app.buttons["mapReportButton"]
         XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
         waitForSheet(Self.mediumSheet, "Initial medium sheet")
