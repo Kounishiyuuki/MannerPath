@@ -41,7 +41,11 @@ const photoTermsCovered = () => true; // synthetic data only
 export default {
   async fetch(req: Request, env: ProbeEnv, ctx: ExecutionContext): Promise<Response> {
     if (!tokenMatches(req.headers.get("Authorization"), env.PROBE_TOKEN)) return notFound();
-    if (!(await isProbeStore(env.REPORTS_DB)) || !(await isProbeStore(env.PHOTOS_DB))) return notFound();
+    // PHOTOS_DB: the identity check and the trust anchor in one round trip (same refusal as isProbeStore).
+    let photosProbe: { name: string | null; trust_anchor: string | null } | null = null;
+    try { photosProbe = await env.PHOTOS_DB.prepare("SELECT (SELECT name FROM probe_identity WHERE id = 1) AS name, (SELECT trust_anchor FROM probe_config WHERE id = 1) AS trust_anchor").first(); }
+    catch { photosProbe = null; }
+    if (!(await isProbeStore(env.REPORTS_DB)) || photosProbe?.name !== PROBE_IDENTITY) return notFound();
     const url = new URL(req.url);
     if (req.method === "POST" && url.pathname === "/probe/setup") {
       const body = await req.json() as { trustAnchor?: string };
@@ -49,12 +53,18 @@ export default {
       await env.PHOTOS_DB.prepare("INSERT INTO probe_config (id, trust_anchor) VALUES (1, ?) ON CONFLICT (id) DO NOTHING").bind(body.trustAnchor).run();
       return json(200, { ok: true });
     }
-    const row = await env.PHOTOS_DB.prepare("SELECT trust_anchor FROM probe_config WHERE id = 1").first<{ trust_anchor: string }>();
-    const anchor = row ? base64Decode(row.trust_anchor) : null;
+    const anchor = photosProbe.trust_anchor ? base64Decode(photosProbe.trust_anchor) : null;
     if (!anchor) return json(409, { error: "setupRequired" });
     const store = new KvPhotoStore(env.PHOTOS_DB, env.PHOTO_KV);
     const opts = { now: () => new Date(), store, photoTermsCovered, trustAnchor: anchor };
 
+    // CPU attribution: n sequential trivial D1 round trips and nothing else, so tail's cpuTime(n) gives the per-trip cost.
+    if (req.method === "POST" && url.pathname === "/probe/d1-trips") {
+      const n = Number(url.searchParams.get("n"));
+      if (!Number.isInteger(n) || n < 0 || n > 20) return json(400, { error: "n" });
+      for (let i = 0; i < n; i++) await env.REPORTS_DB.prepare("SELECT ? AS i").bind(i).first();
+      return json(200, { n });
+    }
     if (req.method === "GET" && url.pathname === "/probe/kv-usage") return json(200, await store.usage());
     if (req.method === "POST" && url.pathname === "/probe/reports") {
       const body = await req.json() as { keyId?: string };

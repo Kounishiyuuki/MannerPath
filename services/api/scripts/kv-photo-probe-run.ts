@@ -1,7 +1,7 @@
 // Drives the A1 probe (docs/release/V1_KV_PHOTO_A1_POC.md): TEST App Attest PKI and device, one registration, then N
 // photos as ① intent + ② upload, then the KV deletion facts. Per-request CPU comes from `wrangler tail`.
 //
-//   PROBE_TOKEN=… npm run kv-probe:run -- --base-url <origin> --photos <dir> --uploads 5 [--confirm-probe mannerpath-free-tier-probe]
+//   PROBE_TOKEN=… npm run kv-probe:run -- --base-url <origin> --photos <dir> --uploads 5 [--confirm-probe mannerpath-free-tier-probe] [--trip-probe on]
 //
 // Same refusals as free-tier-probe-run.ts: loopback or the probe's workers.dev only, ≤ 120 uploads and ≤ 100 MB per run,
 // token from the environment only, stop at the first unexpected status.
@@ -21,7 +21,7 @@ const APP_ID = "PROBE00000.invalid.mannerpath.free-tier-probe";
 async function main(argv: string[]) {
   const a: Record<string, string> = {};
   for (let i = 0; i < argv.length; i += 2) {
-    if (!["--base-url", "--photos", "--uploads", "--confirm-probe", "--delete-check"].includes(argv[i])) throw new Error(`unknown argument ${argv[i]}`);
+    if (!["--base-url", "--photos", "--uploads", "--confirm-probe", "--delete-check", "--trip-probe"].includes(argv[i])) throw new Error(`unknown argument ${argv[i]}`);
     a[argv[i].slice(2)] = argv[i + 1] ?? "";
   }
   const token = process.env.PROBE_TOKEN; delete process.env.PROBE_TOKEN;
@@ -67,6 +67,8 @@ async function main(argv: string[]) {
     if (i === 0) expect("replay", await call(`/v4/photo-uploads/${ticket}`, { method: "PUT", body: image, headers: { "Content-Type": "image/jpeg" } }), 409);
     console.log(`photo ${i + 1}/${planned.length} ${image.length} B → intent 201, upload 201`);
   }
+  // --trip-probe on: 5 × each of n = 0, 4, 8, 16 trivial D1 round trips, to fit tail's cpuTime against n.
+  if (a["trip-probe"] === "on") for (const n of [0, 4, 8, 16]) for (let k = 0; k < 5; k++) expect(`d1-trips ${n}`, await call(`/probe/d1-trips?n=${n}`, { method: "POST" }), 200);
   console.log("kv-usage", (await call("/probe/kv-usage")).body);
   console.log("kv-check", (await call(`/probe/kv-check${a["delete-check"] === "on" ? "?delete=1" : ""}`, { method: "POST" })).body);
   console.log(`done: ${planned.length} photos, ${total} B sent.`);

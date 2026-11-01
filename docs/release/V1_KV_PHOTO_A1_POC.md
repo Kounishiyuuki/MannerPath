@@ -73,3 +73,43 @@ All far below Free limits (KV 1,000 writes/day, 1 GB; Workers 100,000 requests/d
 the insert), but that changes `attachValidatedJpeg`, which mirrors the production attach, and was not attempted here.
 GO would need: ② and ① P99 ≤ 8 ms over ≥ 100 measured photos with 0 `exceededCpu`; KV delete semantics accepted by
 counsel; the iPhone client change; and the Time Travel ticket case (#6) measured.
+
+## 7. Round-trip reduction for ② (local only; not yet measured on Cloudflare)
+
+D1 round trips of one first-time ② upload, counted by `test/poc-kv-photo.test.ts` ("D1 round trips of one ② upload"):
+
+| Step | Before (§3 run) | After |
+| --- | --- | --- |
+| ticket lookup, claim, claim read-back | 3 | 1 — `UPDATE … SET state='claimed' WHERE issued AND unexpired RETURNING` the attested fields |
+| report, idempotency request, same-hash photo | 3 | 1 batch of the three reads |
+| reservation inserts, reservation read-back | 2 | 1 batch (the read is the batch's last statement) |
+| ledger insert, ledger read | 2 | 1 batch |
+| ledger re-read after `KV.put` (fence race) | 1 | 1 (kept) |
+| `ready` update, its read-back, ticket consume | 3 | 1 batch; the consume commits with `ready` |
+| ledger metadata check | 1 | 1 (kept) |
+| **REPORTS_DB + PHOTOS_DB** | **11 + 4 = 15** | **4 + 3 = 7** |
+| probe guards (probe Worker only) | 3 | 2 (PHOTOS_DB identity + trust anchor in one query) |
+
+Same checks, same order of effects: App Attest stays in ①; the claim is still one atomic conditional statement; the body is
+read only after a successful claim, up to the attested length, and must match the length, SHA-256 and JPEG structure
+check (a mismatch releases the claim, as the old pre-claim refusal left it issued); fences, the 800 MB budget and the
+800/day cap are the same triggers. `attachKvJpeg` (`src/poc/kv-photo/attach-kv.ts`) is a copy of `attachValidatedJpeg`
+with batched reads; `binary-photo/attach.ts`, the production mirror, is unchanged. The SQLite test adapter's `batch` now
+returns `{ results }` per statement, as D1 does. Local workerd (real D1/KV simulators): 5 photos, intent and upload 201,
+replay 409, deletion `after: deleted, kvStillAnswers: false`.
+
+New threat cases pinned (15 tests): D1 failing after `KV.put` (ticket released and the consume rolled back; retry 201 with
+one counted write; without a retry the 15-minute upload expiry plus retention deletes the KV value and fences it); a report
+past its photo deadline (410, ticket dead, no KV write); and Time Travel (#6), which is now evaluated locally:
+
+- rewound intent table, same bytes, within 5 min → idempotent 201, still one photo, one KV value, one counted write;
+- the photo fenced after the restore point → 410, the fenced key stays deleted;
+- after 5 min → 410;
+- a full REPORTS_DB rewind to before the upload, inside the 5-minute window, **would** let the ticket store its attested
+  bytes again under a new key. `VOID_ISSUED_TICKETS_AFTER_RESTORE` (two-step.ts) must run right after any restore,
+  before traffic; the test shows it turns such a ticket into 409 with no KV write. This is a runbook step, not proven on
+  a real Time Travel restore.
+
+CPU attribution: `/probe/d1-trips?n=` (driver `--trip-probe on`: 5 × n = 0, 4, 8, 16 trivial round trips) gives the
+per-round-trip CPU from `wrangler tail` on the next approved run. Whether 7 trips bring ② to P99 ≤ 8 ms is **not known**
+until that run.

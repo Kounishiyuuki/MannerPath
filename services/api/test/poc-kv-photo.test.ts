@@ -13,11 +13,11 @@ import { runRetentionMaintenance } from "../src/reports/retention-automation.ts"
 import { queueDuePhotosForErasure } from "../src/poc/binary-photo/erasure.ts";
 import { photoClientData } from "../src/poc/binary-photo/protocol.ts";
 import { KV_PHOTOS_DB_SCHEMA, KvPhotoStore, type PhotoKv } from "../src/poc/kv-photo/kv-photo-store.ts";
-import { PHOTO_INTENTS_SCHEMA, handlePhotoIntent, handlePhotoUpload, photoIntentClientData } from "../src/poc/kv-photo/two-step.ts";
+import { PHOTO_INTENTS_SCHEMA, VOID_ISSUED_TICKETS_AFTER_RESTORE, handlePhotoIntent, handlePhotoUpload, photoIntentClientData } from "../src/poc/kv-photo/two-step.ts";
 import { assert as makeAssertion, attest, type TestDevice, testDevice, testPki } from "./support/app-attest-fixture.ts";
 import { jpegReportsD1, photo } from "./support/binary-photo-harness.ts";
 import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
-import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, withoutTrigger } from "./support/sqlite-d1.ts";
 
 const APP_ID = "ABCDE12345.com.example.mannerpath";
 const ENV = { ...REGISTRATION_TEST_ENV, REPORT_ATTESTATION: "required", REPORT_APP_ATTEST_APP_ID: APP_ID,
@@ -118,7 +118,14 @@ test("a used ticket cannot be replayed, and parallel uses of one ticket store on
 test("the ticket binds the attested bytes: other bytes, other length, EXIF and expired tickets are refused before anything is stored", async () => {
   const t = await setup(), image = photo(), other = image.slice(); other[other.length >> 1] ^= 1;
   assert.equal((await t.upload(await t.ticketFor(image), other)).json.detail, "image: digest_mismatch");
+  const longer = photo(640, 480, 7); assert.notEqual(longer.length, image.length);
+  assert.equal((await t.upload(await t.ticketFor(image), longer)).json.detail, "image: length_mismatch");
   assert.equal((await t.upload(await t.ticketFor(image), image.subarray(0, image.length - 1))).json.detail, "image: length_mismatch");
+  // A refused body releases the claim: the same ticket still takes the attested bytes.
+  const kept = await t.ticketFor(image);
+  assert.equal((await t.upload(kept, other)).status, 400);
+  assert.equal((await t.upload(kept, image)).status, 201);
+  t.kv.values.clear(); t.kv.puts = 0;
   const withExif = new Uint8Array([0xff, 0xd8, 0xff, 0xe1, 0x00, 0x08, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, ...image.subarray(2)]);
   const exif = await t.upload(await t.ticketFor(withExif), withExif);
   assert.equal(exif.status, 422); assert.match(exif.json.detail, /forbidden/i);
@@ -216,4 +223,102 @@ test("the existing retention pass erases the photo from KV inside the erasure le
   assert.ok(!t.kv.values.has(key));
   assert.deepEqual(await t.store.read(key), { status: "deleted" });
   assert.equal((await t.store.usage()).liveCount, 0);
+});
+
+/** Counts D1 round trips (one per first/all/run, one per batch) without changing what runs. */
+function countTrips(db: { prepare: (sql: string) => unknown; batch: (s: never[]) => Promise<unknown[]> }) {
+  const counter = { trips: 0, log: [] as string[] };
+  const prepare = db.prepare.bind(db), batch = db.batch.bind(db);
+  const wrap = (stmt: any): any => ({
+    __inner: stmt,
+    bind: (...v: unknown[]) => wrap(stmt.bind(...v)),
+    first: () => { counter.trips++; counter.log.push(stmt.sql.trim().slice(0, 40)); return stmt.first(); },
+    all: () => { counter.trips++; counter.log.push(stmt.sql.trim().slice(0, 40)); return stmt.all(); },
+    run: () => { counter.trips++; counter.log.push(stmt.sql.trim().slice(0, 40)); return stmt.run(); },
+  });
+  (db as any).prepare = (sql: string) => wrap(prepare(sql));
+  (db as any).batch = (s: any[]) => { counter.trips++; counter.log.push(`batch(${s.length})`); return batch(s.map((x) => x.__inner ?? x) as never[]); };
+  return counter;
+}
+
+test("D1 round trips of one ② upload (REPORTS_DB + PHOTOS_DB), probe guards excluded", async () => {
+  const t = await setup(), image = photo();
+  const ticket = await t.ticketFor(image);
+  const r = countTrips(t.reports as never), p = countTrips(t.ledger as never);
+  assert.equal((await t.upload(ticket, image)).status, 201);
+  console.log(`② trips: reports=${r.trips} photos=${p.trips}\n  ${[...r.log, "--", ...p.log].join("\n  ")}`);
+  // Was 11 + 4 before the round-trip reduction (docs/release/V1_KV_PHOTO_A1_POC.md §7).
+  assert.deepEqual([r.trips, p.trips], [4, 3]);
+});
+
+test("KV.put succeeds but the D1 ready update fails: nothing is served, the ticket retries, or retention removes the value", async () => {
+  const t = await setup(), image = photo();
+  const ticket = await t.ticketFor(image);
+  const batch = t.reports.batch.bind(t.reports);
+  let failReady = 1;
+  t.reports.batch = async (s) => {
+    if (failReady > 0 && s.some((x) => /SET lifecycle='ready'/.test((x as { sql: string }).sql))) { failReady--; throw new Error("D1 unavailable (injected)"); }
+    return batch(s);
+  };
+  const first = await t.upload(ticket, image);
+  assert.equal(first.status, 503); assert.equal(first.json.error, "photoStoreUnavailable");
+  const [row] = photoRow(t);
+  assert.equal(row.lifecycle, "uploading"); assert.ok(t.kv.values.has(row.storage_key));
+  assert.deepEqual(intentState(t), ["issued"]); // the consume rolled back with the ready update
+  assert.equal((await t.upload(ticket, image)).status, 201);
+  assert.deepEqual(intentState(t), ["consumed"]);
+  assert.equal((await t.store.usage()).writesToday, 1);
+
+  // Without a retry: the abandoned upload expires (15 min) and the retention pass deletes the KV value and fences it.
+  const u = await setup(), other = photo(320, 240, 9), ticket2 = await u.ticketFor(other);
+  const batch2 = u.reports.batch.bind(u.reports);
+  u.reports.batch = async (s) => {
+    if (s.some((x) => /SET lifecycle='ready'/.test((x as { sql: string }).sql))) throw new Error("D1 unavailable (injected)");
+    return batch2(s);
+  };
+  assert.equal((await u.upload(ticket2, other)).status, 503);
+  const key = photoRow(u)[0].storage_key;
+  u.setNow(new Date(u.now().getTime() + 16 * 60_000));
+  assert.equal((await u.upload(ticket2, other)).status, 410); // the ticket expired too
+  const result = await runRetentionMaintenance(u.reports, { now: u.now(), mode: "cleanup", photoStorage: u.store as never });
+  assert.equal(result.outcome, "complete");
+  assert.ok(!u.kv.values.has(key));
+  assert.deepEqual(await u.store.read(key), { status: "deleted" });
+});
+
+test("a report past its photo deadline refuses the upload and the ticket stays dead", async () => {
+  const t = await setup(), image = photo();
+  const ticket = await t.ticketFor(image);
+  t.setNow(new Date(t.now().getTime() + 4 * 60_000));
+  withoutTrigger(t.reports.raw, "reports_only_redaction_updates", () =>
+    t.reports.raw.prepare("UPDATE reports SET minimize_after = ?").run(new Date(t.now().getTime() + 86_400_000).toISOString().replace(/\.\d{3}Z$/, "Z")));
+  const r = await t.upload(ticket, image);
+  assert.equal(r.status, 410); assert.equal(r.json.error, "reportExpired");
+  assert.equal(t.kv.puts, 0);
+  assert.equal((await t.upload(ticket, image)).status, 409);
+});
+
+test("Time Travel: a rewound ticket cannot create a second photo, cannot revive a fenced key, dies after 5 min, and the restore runbook voids it", async () => {
+  const t = await setup(), image = photo();
+  const ticket = await t.ticketFor(image);
+  assert.equal((await t.upload(ticket, image)).status, 201);
+  // REPORTS_DB intent table rewound to before the upload (PHOTOS_DB, KV unchanged).
+  const rewind = () => withoutTrigger(t.reports.raw, "photo_upload_intents_transitions", () => t.reports.raw.exec("UPDATE photo_upload_intents SET state = 'issued', claim_token = NULL"));
+  rewind();
+  assert.equal((await t.upload(ticket, image)).status, 201, "same attested bytes: idempotent");
+  assert.equal(photoRow(t).length, 1); assert.equal(t.kv.values.size, 1); assert.equal((await t.store.usage()).writesToday, 1);
+  // The photo was erased (fence) after the restore point: the rewound ticket does not bring it back.
+  const key = photoRow(t)[0].storage_key;
+  await t.store.delete(key); rewind();
+  assert.equal((await t.upload(ticket, image)).status, 410);
+  assert.ok(!t.kv.values.has(key)); assert.deepEqual(await t.store.read(key), { status: "deleted" });
+  // Outside the 5-minute window a rewound ticket is dead.
+  rewind(); t.setNow(new Date(t.now().getTime() + 5 * 60_000 + 1000));
+  assert.equal((await t.upload(ticket, image)).status, 410);
+  // A full REPORTS_DB rewind to before the upload WOULD let an unexpired ticket store its attested bytes again under a
+  // new key, so the restore runbook voids every issued ticket first.
+  const u = await setup(), ticket2 = await u.ticketFor(image);
+  u.reports.raw.exec(VOID_ISSUED_TICKETS_AFTER_RESTORE);
+  assert.equal((await u.upload(ticket2, image)).status, 409);
+  assert.equal(u.kv.puts, 0);
 });

@@ -4,10 +4,10 @@
 //    assertion cannot be replayed here) over {reportId, idempotencyKey, terms, mediaType, byteLength, sha256}. Same
 //    order and checks as the v3 route minus the image; the counter advance and the intent row commit in one batch.
 //    Returns a random 32-byte ticket; D1 stores only its SHA-256.
-// ② PUT /v4/photo-uploads/{ticket}, the raw JPEG: bounded read, length + SHA-256 must equal what ① attested, then the
-//    full JPEG structure check (forbidden segments included), then the ticket is claimed with one conditional UPDATE
-//    (parallel uses: one wins), then the existing attach + KvPhotoStore. Retryable failures release the claim; success
-//    consumes it for good.
+// ② PUT /v4/photo-uploads/{ticket}, the raw JPEG: bounded read, length + SHA-256 must equal what ① attested, and the
+//    full JPEG structure check (forbidden segments included); the ticket is claimed first with one conditional
+//    UPDATE … RETURNING (parallel uses: one wins) and released on a mismatch, then attachKvJpeg (attach.ts with fewer
+//    round trips) + KvPhotoStore. Retryable failures release the claim; success consumes it for good.
 import { APPLE_APP_ATTEST_ROOT_DER } from "../../attest/apple-root.ts";
 import { base64Decode, base64Encode, sha256, utf8 } from "../../attest/bytes.ts";
 import { type AppAttestContext, type Rejected, consumeReportChallenge, decode32 } from "../../attest/protocol.ts";
@@ -19,11 +19,11 @@ import { attestedSubmitter, submitterHash } from "../../reports/create.ts";
 import { JpegStructureError, validateJpegStructure } from "../../reports/jpeg-structure.ts";
 import { PhotoAttachmentError } from "../../reports/photos.ts";
 import { CURRENT_REPORT_TERMS, TERMS_VERSION } from "../../reports/terms.ts";
-import { attachValidatedJpeg } from "../binary-photo/attach.ts";
-import { type D1PhotoStore, PhotoStoreError } from "../binary-photo/d1-photo-store.ts";
+import { PhotoStoreError } from "../binary-photo/d1-photo-store.ts";
 import { D1_PHOTO_ERASURE_LEAD_DAYS } from "../binary-photo/erasure.ts";
 import { frame } from "../../attest/binding.ts";
 import { PHOTO_V3_IMAGE_MAX_BYTES } from "../binary-photo/protocol.ts";
+import { attachKvJpeg } from "./attach-kv.ts";
 import { type KvPhotoStore, KvPhotoStoreError } from "./kv-photo-store.ts";
 import { z } from "zod";
 
@@ -60,6 +60,12 @@ CREATE TRIGGER photo_upload_intents_transitions BEFORE UPDATE OF state ON photo_
 WHEN NOT ((OLD.state = 'issued' AND NEW.state = 'claimed') OR (OLD.state = 'claimed' AND NEW.state IN ('issued', 'consumed')))
 BEGIN SELECT RAISE(ABORT, 'intent: invalid transition'); END;
 `;
+
+/**
+ * Run on REPORTS_DB right after any Time Travel restore, before traffic: a restore can bring back issued, unexpired
+ * tickets (≤ 5 min) for uploads that already happened or were erased later. claimed + a fixed token = dead for good.
+ */
+export const VOID_ISSUED_TICKETS_AFTER_RESTORE = "UPDATE photo_upload_intents SET state = 'claimed', claim_token = 'void-after-restore' WHERE state = 'issued';";
 
 const base64 = (max: number) => z.string().min(4).max(max).regex(/^[A-Za-z0-9+/]+={0,2}$/);
 export const PhotoIntentRequest = z.object({
@@ -158,9 +164,15 @@ export async function handlePhotoIntent(req: Request, reportId: string, env: Att
   return json(201, { schemaVersion: 4, ticket: base64Url(ticket), expiresAt });
 }
 
-interface IntentRow { report_id: string; key_id: string; idempotency_key: string; accepted_terms_version: string; content_sha256: string; byte_length: number; expires_at: string; state: string }
+interface IntentRow { report_id: string; key_id: string; idempotency_key: string; accepted_terms_version: string; content_sha256: string; byte_length: number }
 
-/** ② Stores the bytes ① committed to. The ticket is the only credential; it is single-use and bound to SHA-256 + length. */
+/**
+ * ② Stores the bytes ① committed to. The ticket is the only credential; it is single-use and bound to SHA-256 + length.
+ * The claim comes first and is ONE conditional `UPDATE … RETURNING` (lookup + claim + the attested fields, parallel uses:
+ * one wins), so an unknown, used or expired ticket costs one round trip and no body read; only a refused claim reads
+ * the row again, to say why. The body is then read up to the attested length and must match it, its SHA-256 and the
+ * JPEG structure check; a mismatch releases the claim, leaving the ticket as it was.
+ */
 export async function handlePhotoUpload(req: Request, ticketText: string, env: AttestationBindings, reports: Db, opts: TwoStepOptions): Promise<Response> {
   const policy = attestationConfig(env);
   if (policy.kind !== "appAttest") return problem(503, "attestationUnavailable", "App Attest is not enabled on this deployment");
@@ -168,42 +180,44 @@ export async function handlePhotoUpload(req: Request, ticketText: string, env: A
   const ticket = fromBase64Url(ticketText);
   if (!ticket || ticket.length !== 32) return json(404, { error: "ticketUnknown" });
   const ticketSha = await sha256Hex(ticket);
-  const intent = await reports.prepare(`SELECT report_id, key_id, idempotency_key, accepted_terms_version, content_sha256, byte_length, expires_at, state
-      FROM photo_upload_intents WHERE ticket_sha256 = ?`).bind(ticketSha).first<IntentRow>();
-  if (!intent) return json(404, { error: "ticketUnknown" });
-  if (intent.state === "consumed") return json(409, { error: "ticketUsed" });
   const now = opts.now();
-  if (intent.expires_at <= isoSeconds(now)) return json(410, { error: "ticketExpired" });
-  const declared = Number(req.headers.get("Content-Length") ?? NaN);
-  if (Number.isFinite(declared) && declared !== intent.byte_length) return problem(400, "invalidPhoto", "image: length_mismatch");
+  const claim = base64Url(crypto.getRandomValues(new Uint8Array(16)));
+  const intent = await reports.prepare(`UPDATE photo_upload_intents SET state = 'claimed', claim_token = ?
+      WHERE ticket_sha256 = ? AND state = 'issued' AND expires_at > ?
+      RETURNING report_id, key_id, idempotency_key, accepted_terms_version, content_sha256, byte_length`)
+    .bind(claim, ticketSha, isoSeconds(now)).first<IntentRow>();
+  if (!intent) {
+    const row = await reports.prepare("SELECT state, expires_at FROM photo_upload_intents WHERE ticket_sha256 = ?").bind(ticketSha).first<{ state: string; expires_at: string }>();
+    if (!row) return json(404, { error: "ticketUnknown" });
+    if (row.state === "consumed") return json(409, { error: "ticketUsed" });
+    if (row.expires_at <= isoSeconds(now)) return json(410, { error: "ticketExpired" });
+    return json(409, { error: "ticketInUse" });
+  }
+  const release = () => reports.prepare("UPDATE photo_upload_intents SET state = 'issued', claim_token = NULL WHERE ticket_sha256 = ? AND state = 'claimed' AND claim_token = ?")
+    .bind(ticketSha, claim).run();
+  const refuse = async (response: Response) => { await release(); return response; };
 
+  const declared = Number(req.headers.get("Content-Length") ?? NaN);
+  if (Number.isFinite(declared) && declared !== intent.byte_length) return refuse(problem(400, "invalidPhoto", "image: length_mismatch"));
   const image = await readBounded(req, intent.byte_length);
-  if (!image || image.length !== intent.byte_length) return problem(400, "invalidPhoto", "image: length_mismatch");
+  if (!image || image.length !== intent.byte_length) return refuse(problem(400, "invalidPhoto", "image: length_mismatch"));
   const contentSha256 = await sha256Hex(image);
-  if (contentSha256 !== intent.content_sha256) return problem(400, "invalidPhoto", "image: digest_mismatch");
+  if (contentSha256 !== intent.content_sha256) return refuse(problem(400, "invalidPhoto", "image: digest_mismatch"));
   let size: { width: number; height: number };
   try { size = validateJpegStructure(image); }
   catch (error) {
-    if (error instanceof JpegStructureError) return problem(error.code === "tooLarge" ? 413 : error.code === "notJpeg" ? 415 : 422, "invalidPhoto", `image: ${error.code}`);
+    if (error instanceof JpegStructureError) return refuse(problem(error.code === "tooLarge" ? 413 : error.code === "notJpeg" ? 415 : 422, "invalidPhoto", `image: ${error.code}`));
     throw error;
   }
 
-  // One conditional UPDATE decides between parallel uses; the read-back of our own claim token tells us whether we won.
-  const claim = base64Url(crypto.getRandomValues(new Uint8Array(16)));
-  await reports.prepare("UPDATE photo_upload_intents SET state = 'claimed', claim_token = ? WHERE ticket_sha256 = ? AND state = 'issued' AND expires_at > ?")
-    .bind(claim, ticketSha, isoSeconds(now)).run();
-  const won = await reports.prepare("SELECT 1 AS ok FROM photo_upload_intents WHERE ticket_sha256 = ? AND state = 'claimed' AND claim_token = ?").bind(ticketSha, claim).first();
-  if (!won) return json(409, { error: "ticketInUse" });
-  const release = () => reports.prepare("UPDATE photo_upload_intents SET state = 'issued', claim_token = NULL WHERE ticket_sha256 = ? AND state = 'claimed' AND claim_token = ?")
-    .bind(ticketSha, claim).run();
-
   try {
-    const accepted = await attachValidatedJpeg(reports, opts.store as unknown as D1PhotoStore, {
+    const accepted = await attachKvJpeg(reports, opts.store, {
       reportId: intent.report_id, submitterHash: await submitterHash(attestedSubmitter(intent.key_id), policy.submitterPepper),
       idempotencyKey: intent.idempotency_key, acceptedTermsVersion: intent.accepted_terms_version,
       image: { bytes: image, contentSha256, ...size },
-    }, { now, photoTermsCovered: opts.photoTermsCovered });
-    await reports.prepare("UPDATE photo_upload_intents SET state = 'consumed', claim_token = NULL WHERE ticket_sha256 = ? AND claim_token = ?").bind(ticketSha, claim).run();
+    }, { now, photoTermsCovered: opts.photoTermsCovered,
+      // Commits with the `ready` update: the ticket is consumed exactly when the photo became ready.
+      onReady: () => [reports.prepare("UPDATE photo_upload_intents SET state = 'consumed', claim_token = NULL WHERE ticket_sha256 = ? AND claim_token = ?").bind(ticketSha, claim)] });
     return json(201, { schemaVersion: 4, ...accepted });
   } catch (error) {
     // Final refusals keep the ticket claimed (dead); a store or KV failure releases it so the same ticket can retry.
