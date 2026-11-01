@@ -1,6 +1,14 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Know a smoking place that isn't listed yet? Send its location and what you know. MannerPath reviews it and adds approved information to the map.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "まだ掲載されていない喫煙所を知っていますか？場所と分かる情報を送ってください。運営が確認し、承認された情報を地図に追加します。"}}}},
+    "3. Describe the smoking place": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "3. 種類や利用条件を入力"}}}},
+    "4. Review before sending": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "4. 内容を確認して送信"}}}},
+    "Know a smoking place missing from the map? Choose its location and tell us what you know. Approved information is added after review.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "地図にない喫煙所を知っていますか？場所と分かる情報を送ってください。運営が確認し、承認された情報を掲載します。"}}}},
+    "Location and agreement to the terms are required. Other details can stay unknown. Closing this form keeps your draft.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "場所と規約への同意は必須です。分からない情報は不明のままでかまいません。この画面を閉じても下書きは残ります。"}}}},
+    "Review the location and details above. You can leave information you do not know as unknown.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "上の場所と入力内容を確認してください。分からない情報は不明のまま送れます。"}}}},
+    "Send its location and what you know. MannerPath reviews it and adds approved information to the map.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "場所と分かる情報を送ってください。運営が確認し、承認された情報を地図に追加します。"}}}},
+    "Submitting does not guarantee that the place will be listed.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "送信しても掲載されるとは限りません。"}}}},
     "Use my current location": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地を使う"}}}},
     "Current location accuracy: about %lld m. Check the pin on the map and move it to the smoking place before confirming.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地の精度: 約%lld m。地図上のピンを確認し、喫煙場所の位置に合わせてから確定してください。"}}}},
     "Your location is approximate. Choose the place on the map instead.": {"localizations": {"ja": {"stringUnit": {"state": "translated", "value": "現在地はおおよその位置です。地図から場所を指定してください。"}}}},

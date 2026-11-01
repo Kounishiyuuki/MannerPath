@@ -71,10 +71,18 @@ final class ReportModel {
         }
         return true
     }
-    /// A new-place proposal is accepted only together with photos (v1.0 P0): the deployment must advertise photo
-    /// intake and this build must carry consent for the same terms version. Otherwise no new-place report is sent,
-    /// so a proposal can never be stored without its photos.
+    /// v1.0 accepts new-place proposals without photos whenever reporting is available (scope change 2026-11-02:
+    /// photos on Workers Free were NO-GO). The terms and an explicitly confirmed pin are still required, and the
+    /// deployment's App Attest protocol applies unchanged (never downgraded; see refreshAvailability).
     var acceptsNewSpotProposals: Bool {
+        guard case .available = availability else { return false }
+        return true
+    }
+
+    /// Photo evidence (planned for v1.1) is active only while the deployment advertises photo intake and this build
+    /// carries consent for the same terms version. Then a new-place proposal is sent only together with photos, as
+    /// before; otherwise no photo is asked for, chosen or sent.
+    var acceptsPhotoEvidence: Bool {
         guard case .available(let limits) = availability else { return false }
         return limits.acceptsPhotoEvidence && photos.accepts(termsVersion: limits.termsVersion)
     }
@@ -99,7 +107,7 @@ final class ReportModel {
         } catch {
             return String(localized: "Report could not be prepared.")
         }
-        if candidate.type == .missing && photos.photos.isEmpty {
+        if candidate.type == .missing && acceptsPhotoEvidence && photos.photos.isEmpty {
             return String(localized: "Add at least one photo of the smoking place to submit.")
         }
         return nil
@@ -107,7 +115,7 @@ final class ReportModel {
 
     /// Photos live only in memory: after a restart, a saved new-place submission is retried only once the user has
     /// chosen its photos again, so the report is never accepted without photos to follow it.
-    var ambiguousRetryNeedsPhotos: Bool { draft?.type == .missing && photos.photos.isEmpty }
+    var ambiguousRetryNeedsPhotos: Bool { draft?.type == .missing && acceptsPhotoEvidence && photos.photos.isEmpty }
 
     /// A submission is in progress: preparing authorization counts, the draft must not change.
     var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission || photos.busy }
@@ -320,7 +328,7 @@ final class ReportModel {
                 submission = .failed(String(localized: "New smoking places are not being accepted right now."))
                 return
             }
-            guard !photos.photos.isEmpty else {
+            guard !acceptsPhotoEvidence || !photos.photos.isEmpty else {
                 submission = .failed(String(localized: "Add at least one photo of the smoking place to submit."))
                 return
             }
