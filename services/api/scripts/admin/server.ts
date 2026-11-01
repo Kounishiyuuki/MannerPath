@@ -3,14 +3,17 @@ import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
 import type { Db } from '../../src/db.ts';
-import { getAdminReport, listAdminReports, applyAdminDecision, AdminReviewError } from '../../src/reports/admin-review.ts';
+import { getAdminReport, listAdminReports, applyAdminDecision, recordIndependentEvidence, AdminReviewError } from '../../src/reports/admin-review.ts';
 import { readPrivateEvidencePhoto, PrivatePhotoViewError, type PrivatePhotoReader } from '../../src/reports/private-photo-view.ts';
 import { duplicateCandidates } from '../../src/pipeline/community-evidence.ts';
-import { adminDecisionSummary } from './ui-copy.js';
+import { adminDecisionSummary, adminEvidenceSummary } from './ui-copy.js';
 
 const decisionSchema=z.object({reportId:z.string().regex(/^rp_[0-9A-HJKMNP-TV-Z]{26}$/),photoId:z.string().regex(/^ph_[0-9a-f]{64}$/).optional(),
   state:z.enum(['accepted','needsInfo','rejected','duplicate','approved']),reason:z.string().min(1).max(64),
   expectedVersion:z.string().min(1).max(8192),operationId:z.uuid(),privacyChecked:z.boolean()}).strict();
+const evidenceSchema=z.object({reportId:z.string().regex(/^rp_[0-9A-HJKMNP-TV-Z]{26}$/),basis:z.enum(['officialSource','siteVisit']),
+  sourceUrl:z.string().min(12).max(300).optional(),checkedOn:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  expectedVersion:z.string().min(1).max(8192),operationId:z.uuid()}).strict();
 const loginSchema=z.object({token:z.string().min(24).max(256)}).strict();
 const nonce=()=>randomBytes(32).toString('hex');
 const hash=(value:string)=>createHash('sha256').update(value).digest();
@@ -93,25 +96,33 @@ export function createAdminServer(options:AdminServerOptions) {
         const photo=await readPrivateEvidencePhoto(options.reports,options.reader,photoMatch[1],clock);
         res.writeHead(200,{'Content-Type':photo.mediaType,'Content-Length':photo.bytes.length});res.end(photo.bytes);return;
       }
-      if((path==='/api/confirm'||path==='/api/decide')&&req.method==='POST'){
+      // Decisions and independent-evidence records share one two-step confirmation; the digest covers the route kind.
+      const evidence=path==='/api/evidence/confirm'||path==='/api/evidence/record';
+      if((path==='/api/confirm'||path==='/api/decide'||evidence)&&req.method==='POST'){
         if(options.readOnly)return refuse(res,403,'readOnly');
-        const schema=path==='/api/decide'?decisionSchema.extend({confirmationToken:z.string().regex(/^[0-9a-f]{64}$/)}):decisionSchema;
-        const parsed=schema.safeParse(await json(req));if(!parsed.success)return refuse(res,400,'invalidDecision');
-        const {confirmationToken,...payload}=parsed.data as z.infer<typeof decisionSchema>&{confirmationToken?:string};
-        const digest=hash(JSON.stringify(payload)).toString('hex');
+        const base=evidence?evidenceSchema:decisionSchema;
+        const commit=path==='/api/decide'||path==='/api/evidence/record';
+        const schema=commit?base.extend({confirmationToken:z.string().regex(/^[0-9a-f]{64}$/)}):base;
+        const parsed=schema.safeParse(await json(req));if(!parsed.success)return refuse(res,400,evidence?'invalidEvidence':'invalidDecision');
+        const {confirmationToken,...payload}=parsed.data as (z.infer<typeof decisionSchema>|z.infer<typeof evidenceSchema>)&{confirmationToken?:string};
+        const digest=hash(JSON.stringify([evidence?'evidence':'decision',payload])).toString('hex');
         for(const [key,value]of session.confirmations)if(value.expires<=ms)session.confirmations.delete(key);
-        if(path==='/api/confirm'){
+        if(!commit){
           if(session.confirmations.size>=32)return refuse(res,429,'confirmationLimit');
           const detail=await getAdminReport(options.reports,payload.reportId,now);if(detail.version!==payload.expectedVersion)return refuse(res,409,'staleDecision');
           const token=nonce();session.confirmations.set(token,{digest,expires:ms+120_000,used:false});
-          return respond(res,200,{confirmationToken:token,summary:adminDecisionSummary(payload)});
+          return respond(res,200,{confirmationToken:token,summary:evidence?adminEvidenceSummary(payload):adminDecisionSummary(payload)});
         }
         const confirmation=session.confirmations.get(confirmationToken!);
         if(!confirmation||confirmation.digest!==digest)return refuse(res,403,'confirmationRequired');
         if(confirmation.completed)return respond(res,200,{detail:await getAdminReport(options.reports,payload.reportId,clock()),replayed:true,publicationChanged:false});
         if(confirmation.used||inFlight.has(payload.reportId))return refuse(res,409,'operationInProgress');
         confirmation.used=true;inFlight.add(payload.reportId);
-        try{const result=await applyAdminDecision(options.reports,{...payload,decidedBy:actor},clock());confirmation.completed=true;return respond(res,200,{...result,publicationChanged:false});}
+        try{
+          const result=evidence?await recordIndependentEvidence(options.reports,{...(payload as z.infer<typeof evidenceSchema>),decidedBy:actor},clock())
+            :await applyAdminDecision(options.reports,{...(payload as z.infer<typeof decisionSchema>),decidedBy:actor},clock());
+          confirmation.completed=true;return respond(res,200,{...result,publicationChanged:false});
+        }
         finally{inFlight.delete(payload.reportId);}
       }
       return refuse(res,404,'notFound');

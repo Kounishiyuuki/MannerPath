@@ -88,21 +88,21 @@ test('admin detail distinguishes zero, pending, rejected and expired photos and 
     }, {now: NOW, attestationStatus: 'verified', submitterHash: 'a'.repeat(64)});
     assert.deepEqual((await getAdminReport(demo.reports, empty.reportId, NOW)).photos, []);
     assert.equal(await newSpotPhotoGate(demo.reports, empty.reportId, NOW), 'none');
-    await assert.rejects(decide(demo, empty.reportId, {}), /approvedPhotoRequired/);
+    await assert.rejects(decide(demo, empty.reportId, {}), /independentEvidenceRequired/);
     const id = demo.ids[0], pending = (await getAdminReport(demo.reports, id, NOW)).photos[0];
     assert.equal(pending.moderation_status, 'pending');
     assert.equal(pending.previewAvailable, true);
-    await assert.rejects(decide(demo, id, {}), /approvedPhotoRequired/);
+    await assert.rejects(decide(demo, id, {}), /independentEvidenceRequired/);
     await decide(demo, id, {photoId: pending.photo_id, state: 'rejected', reason: 'privacyRisk'});
     const rejected = (await getAdminReport(demo.reports, id, NOW)).photos[0];
     assert.equal(rejected.moderation_status, 'rejected');
     assert.equal(rejected.lifecycle, 'deleting');
     assert.equal(rejected.previewAvailable, false);
-    await assert.rejects(decide(demo, id, {}), /approvedPhotoRequired/);
+    await assert.rejects(decide(demo, id, {}), /independentEvidenceRequired/);
     const expired = await getAdminReport(demo.reports, demo.ids[2], NOW);
     assert.equal(expired.photos[0].previewAvailable, false);
     assert.equal(await newSpotPhotoGate(demo.reports, demo.ids[2], NOW), 'expired');
-    await assert.rejects(decide(demo, demo.ids[2], {}), /approvedPhotoRequired/);
+    await assert.rejects(decide(demo, demo.ids[2], {}), /independentEvidenceRequired/);
   } finally { await demo.dispose(); }
 });
 
@@ -126,7 +126,7 @@ for (const offset of [-1000, 0, 1000]) {
         await decide(demo, approvedId, {}, acceptanceAt);
       } else {
         await assert.rejects(approve(demo, pendingId, at), /photoUnavailable/);
-        await assert.rejects(decide(demo, approvedId, {}, acceptanceAt), /approvedPhotoRequired/);
+        await assert.rejects(decide(demo, approvedId, {}, acceptanceAt), /independentEvidenceRequired/);
       }
     } finally { await demo.dispose(); }
   });

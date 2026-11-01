@@ -91,7 +91,7 @@ function overlaps(a: string, b: string) { return a === b || a.endsWith(`.${b}`) 
 
 export function migrationNamesValid(names: string[], original: string[], reportStream: boolean): boolean {
   return JSON.stringify(names) === JSON.stringify(original)
-    && (!reportStream || ['0008_admin_review_audit.sql', '0009_new_spot_photo_gate.sql', '0010_new_spot_photo_erasure_window.sql'].every(n => names.includes(n)))
+    && (!reportStream || ['0008_admin_review_audit.sql', '0009_new_spot_photo_gate.sql', '0010_new_spot_photo_erasure_window.sql', '0011_new_spot_independent_evidence.sql'].every(n => names.includes(n)))
     && names.every((n, i) => /^\d{4}_[a-z0-9_]+\.sql$/.test(n) && Number(n.slice(0, 4)) === i + 1);
 }
 
