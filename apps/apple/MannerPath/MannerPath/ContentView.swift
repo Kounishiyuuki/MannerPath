@@ -1121,8 +1121,13 @@ private struct SelectedSpotSummary: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .accessibilityAddTraits(.isHeader)
+                // At AX5 on iOS 18.6 (taller search bar than 26) the full-size caption and a wrapped name pushed
+                // Directions under the Clear selection bar. The caption is capped like the system bars; the name a
+                // step less, so it stays larger than the caption and is never truncated.
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             Text(SpotPresentation.name(result.spot))
                 .font(.title3.weight(.semibold))
+                .dynamicTypeSize(...DynamicTypeSize.accessibility4)
             // At accessibility sizes the facts below fill more than the full sheet, so the actions follow the name;
             // their wording still carries the exact/approximate distinction.
             if dynamicTypeSize.isAccessibilitySize {
@@ -1168,6 +1173,8 @@ private struct SelectedSpotSummary: View {
         Button(action: onDirections) {
             Text(SpotPresentation.navigationTitle(result.spot))
                 .multilineTextAlignment(.center)
+                // A tall summary row squeezed this to 「この場所へ…」 on iOS 18.6 at AX5, losing the exact/approximate wording.
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .foregroundStyle(.black)
         }
@@ -1178,6 +1185,7 @@ private struct SelectedSpotSummary: View {
         Button(action: onShowDetails) {
             Text("Show place details")
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.bordered)

@@ -243,6 +243,9 @@ Each screen: **Current implementation → Stitch target → Apple-native interpr
     distance, before type/access, evidence and precision, so at medium they stay above 「選択を解除」.
   - At accessibility text sizes a pin selection opens the large detent and the two actions follow the name: at AX5
     the summary's facts filled more than the full sheet and left the directions under 「選択を解除」.
+    On iOS 18.6 (taller search bar) the 「選択中の場所」 caption and a wrapped name still did (2026-11-01, #366): the
+    caption is capped at xxxLarge and the name at accessibility4, so the name stays larger than the caption and is
+    never truncated; the action labels keep their full height, never 「この場所へ…」.
 - **Required change:** new selection state in the sheet; reuse `SpotPresentation` and `ApproximateLocation` copy.
 
 ### 5.6 Spot Detail — exact

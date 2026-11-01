@@ -232,10 +232,11 @@ class MannerPathUITestCase: XCTestCase {
     /// Taps a single spot pin, expanding clusters first (ADR-0015). `value` narrows to pins whose VoiceOver value
     /// contains that text.
     @discardableResult
-    func selectPin(valueContaining value: String? = nil, afterRecenter prepare: (() -> Void)? = nil,
+    func selectPin(valueContaining value: String? = nil, named name: String? = nil, afterRecenter prepare: (() -> Void)? = nil,
                    file: StaticString = #filePath, line: UInt = #line) throws -> XCUIElement {
         var predicate = "label ENDSWITH 'の詳細を表示'"
         if let value { predicate += " AND value CONTAINS '\(value)'" }
+        if let name { predicate += " AND label BEGINSWITH '\(name)'" }
         let pins = app.buttons.matching(NSPredicate(format: predicate))
         let clusters = app.buttons.matching(NSPredicate(format: "label ENDSWITH '件の場所'"))
         XCTAssertTrue(pins.firstMatch.waitForExistence(timeout: 10) || clusters.firstMatch.waitForExistence(timeout: 10),

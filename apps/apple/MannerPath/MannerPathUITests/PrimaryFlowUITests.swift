@@ -54,7 +54,9 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
     private func checkPinDirections(largeText: Bool) throws {
         launch(extraArguments: largeText ? Self.largeText : [])
         waitForResults()
-        _ = try selectPin()
+        // At AX5 the longest fixture name: wrapped over several lines it once pushed Directions under the Clear bar
+        // on iOS 18.6 (#366); any pin left that to chance.
+        _ = try selectPin(named: largeText ? "台東リバーサイドスポーツセンター体育館前" : nil)
         // At accessibility sizes the summary needs the full sheet; medium would leave directions under Clear selection.
         waitForSheet(largeText ? Self.largeSheet : Self.mediumSheet, "A pin shows its summary")
         XCTAssertTrue(directions.waitForExistence(timeout: 10))
