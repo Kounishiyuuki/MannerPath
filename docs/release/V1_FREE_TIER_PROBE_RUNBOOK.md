@@ -200,3 +200,40 @@ to the pre-fence bookmark), so F8 used a run photo fenced by hand with the store
 **Not established.** Which step of the upload costs the CPU (stream read, `validateJpegStructure`'s JS scan, or
 passing a 1 MB BLOB to D1 — d1-checks suggests BLOB binding is expensive); a per-stage probe is needed before any
 redesign. Per the §8 rule, configuration 3 is **not viable on Workers Free as built**.
+
+## 10. Stage breakdown and the hex-binding PoC (2026-11-01, Workers Free)
+
+Same probe Worker (redeployed 07:08 UTC, deleted 07:13 UTC with fresh Secrets), `POST /probe/stage/<name>`: one stage
+per request on one synthetic 1,072,881 B JPEG, 3 requests each (`--mode stages`); CPU from tail as in §9. Every stage
+includes the baseline (token check, two identity queries, reading the whole body).
+
+| Stage | CPU ms (3 runs) |
+| --- | --- |
+| read (baseline) | 9, 5, 5 |
+| split v3 frame | 4, 4, 6 |
+| `validateJpegStructure` | 6, 6, 6 |
+| SHA-256 | 7, 4, 5 |
+| D1 write, bound `Uint8Array` (as built) | **111, 63, 94** |
+| D1 read, BLOB column | **33, 51, 28** |
+| D1 write, one base64 string | 15, 11, 11 |
+| D1 write, one hex string into `unhex(?)` | 18, 14, 20 |
+| D1 read, `hex(bytes)` → `Uint8Array.fromHex` | 6, 10, 6 |
+
+**Cause.** The D1 binding (workerd `cloudflare-internal:d1-api`) converts a bound ArrayBuffer/view with
+`Array.from(bytes)` and sends the parameters with `JSON.stringify`; results return the same way. A 1 MB photo becomes a
+million-element number array. Parsing, the JPEG check and hashing are within the baseline's noise.
+
+**PoC.** `D1PhotoStore.put` now binds `toHex(bytes)` into `unhex(?)` (`Uint8Array.prototype.toHex`, native in workerd).
+The column still receives a BLOB, so the existing `typeof(bytes)` / `length(bytes) = byte_length` CHECKs and fence
+triggers are unchanged; malformed hex becomes NULL and is refused. Full v3 uploads (`--uploads 4 --d1-checks off`,
+client-equivalent JPEGs without metadata):
+
+| Photos | Upload CPU ms | > 10 ms |
+| --- | --- | --- |
+| 0.8 MP q0.70, 146–269 KB | 28, 15, 18, 16 | 4 / 4 |
+| 1.2 MP q0.75, 213–414 KB | 28, 14, 24, 11 | 4 / 4 |
+| 2 MP q0.85, 1,073 KB | 49, 42, 35, 30 (was 74–184) | 4 / 4 |
+
+The binding fix removes about half the CPU at 1 MB but **no size fits 10 ms**: about 10 ms remains per upload whatever
+the photo size (challenge consumption, key read, assertion, the attach statements — each D1 call is a JSON round
+trip). Not split further. Verdict and options: V1_FREE_TIER_ARCHITECTURE.md §8.

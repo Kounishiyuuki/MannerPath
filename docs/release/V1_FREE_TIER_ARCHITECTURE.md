@@ -122,3 +122,22 @@ Rejected: removing server-side checks without B's allowlist; C alone (stores unc
 | B keeps metadata out | PASS for the allowlist (unit + fuzz tests); depends on refusing, not stripping |
 | D1 can hold and fence photos | PASS locally (1 MB round-trip, re-PUT refused); remote 2 MB/100 KB statement behavior **unverified** |
 | Hard zero bill | Possible only with config 3 and no billable product on the account; **unverified** on the account |
+
+## 8. After the real-Cloudflare probe (2026-11-01)
+
+Measured on Workers Free (V1_FREE_TIER_PROBE_RUNBOOK.md §9–§10): the v3 upload as built costs 26–184 ms CPU and was
+terminated (`exceededCpu`); with the hex binding 11–49 ms, never ≤ 10 ms, even at 146 KB. No check was relaxed.
+
+| Option | Fits 10 ms | Monthly cost | Security / privacy | Effort | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| 1. Config 3 optimised (hex binding, smaller photos) | **No** — measured 11–28 ms at 146–414 KB | 0 | unchanged | small (done in PoC) | keep the fix; not sufficient |
+| 2. Split upload + chunked D1 rows | No (inferred): each request keeps the ~10 ms fixed cost and the final JPEG check must read every chunk back | 0 | unchanged if every chunk is bound to the attested payload | large (protocol, store, iOS) | rejected, not built |
+| 3. iPhone validates / hashes / encrypts | Not without dropping the server's JPEG check, which is not allowed; sealing is 5 ms and not the cost | 0 | weaker (server trusts the client) | medium | rejected |
+| 4. Minimise Worker work (one HMAC upload token from the attested report request, batched statements) | Unknown: removes the assertion and some round trips; not measured | 0 | **auth spec change** — needs approval | medium | candidate, needs a decision first |
+| 5. R2 free tier (stream body to R2) | Unknown: removes the D1 byte cost, not the fixed cost | **not guaranteed 0**: the account has an R2 subscription and a payment method; R2 documents no cap | as built today | medium | not tested (no R2 writes allowed) |
+| 6a. v1.0 without photo upload | Yes (no photo route) | 0 | best (no photos held) | small (hide the photo step) | **most reliable at 0 yen** |
+| 6b. Workers Paid (30 s CPU) with the D1 or R2 store | Yes | $5/month minimum | as built | none | outside the zero-cost goal |
+
+Recommendation: ship v1.0 without photo upload (6a) unless the maintainer accepts a recurring cost (6b) or approves the
+auth change in option 4 for a further measured PoC. Relying on the documented tolerance for "infrequent" overruns is
+not a design: every measured upload overran.

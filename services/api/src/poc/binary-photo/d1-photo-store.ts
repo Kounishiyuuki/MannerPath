@@ -55,6 +55,11 @@ export class PhotoStoreError extends Error {
 
 export interface PhotoStoreMetadata { mediaType: "image/png" | "image/jpeg"; contentSha256: string; byteLength: number; width: number; height: number }
 
+const toHex = (bytes: Uint8Array): string => {
+  const native = (bytes as unknown as { toHex?: () => string }).toHex;
+  return native ? native.call(bytes) : Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+};
+
 export class D1PhotoStore {
   private readonly db: Db;
   private readonly now: () => Date;
@@ -62,9 +67,12 @@ export class D1PhotoStore {
 
   async put(key: string, bytes: Uint8Array, metadata: PhotoStoreMetadata): Promise<void> {
     try {
+      // Bound as one hex string and decoded by SQLite: the D1 binding JSON-encodes a bound BLOB as an array of numbers,
+      // which cost 63–111 ms CPU per 1 MB on Workers (runbook §10). The column still receives a BLOB, so the CHECKs on
+      // typeof(bytes) and length(bytes) = byte_length below still decide; malformed hex becomes NULL and is refused.
       await this.db.prepare(`INSERT INTO photo_objects (storage_key, state, bytes, content_sha256, byte_length, stored_at)
-          VALUES (?, 'live', ?, ?, ?, ?) ON CONFLICT (storage_key) DO NOTHING`)
-        .bind(key, bytes, metadata.contentSha256, bytes.length, isoSeconds(this.now())).run();
+          VALUES (?, 'live', unhex(?), ?, ?, ?) ON CONFLICT (storage_key) DO NOTHING`)
+        .bind(key, toHex(bytes), metadata.contentSha256, bytes.length, isoSeconds(this.now())).run();
     } catch (error) {
       if (String(error).includes("store budget reached")) throw new PhotoStoreError("budgetReached");
       throw error;

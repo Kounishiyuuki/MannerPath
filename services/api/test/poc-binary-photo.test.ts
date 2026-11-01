@@ -138,3 +138,12 @@ test("provisional limits: 1.2 MB per photo at the route", async () => {
   const over = await h.send(reportId, await h.body(device, reportId, atCap));
   assert.deepEqual([over.status, over.json.detail], [400, "frame: image_length"]);
 });
+
+test("the store's hex binding writes every byte value as a BLOB of the declared length", async () => {
+  const d1 = photosD1(), store = new D1PhotoStore(d1 as never);
+  const bytes = Uint8Array.from({ length: 4096 }, (_, i) => i % 256);
+  await store.put("k/all-bytes.jpg", bytes, { mediaType: "image/jpeg", contentSha256: await sha256Hex(bytes), byteLength: bytes.length, width: 1, height: 1 });
+  const row = d1.raw.prepare("SELECT typeof(bytes) AS t, bytes FROM photo_objects WHERE storage_key = 'k/all-bytes.jpg'").get() as { t: string; bytes: Uint8Array };
+  assert.equal(row.t, "blob");
+  assert.deepEqual(new Uint8Array(row.bytes), bytes);
+});

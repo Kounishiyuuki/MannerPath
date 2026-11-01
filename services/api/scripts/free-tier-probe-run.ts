@@ -21,6 +21,8 @@ import { assert as makeAssertion, attest, testDevice, testPki } from "../test/su
 
 export const MAX_UPLOADS = 120;
 export const MAX_RUN_BYTES = 100 * 1024 * 1024;
+export const STAGE_REPEATS = 3;
+export const STAGE_ORDER = ["read", "split", "jpeg", "sha256", "b64-write", "b64-read", "hex-write", "hex-read", "blob-write", "blob-read"] as const;
 const APP_ID = "PROBE00000.invalid.mannerpath.free-tier-probe";
 
 export function checkTarget(baseUrl: string, confirm: string | undefined): URL {
@@ -36,7 +38,7 @@ export function checkTarget(baseUrl: string, confirm: string | undefined): URL {
 function parse(argv: string[]) {
   const o: Record<string, string> = {};
   for (let i = 0; i < argv.length; i += 2) {
-    if (!["--base-url", "--photos", "--uploads", "--confirm-probe", "--mode"].includes(argv[i])) throw new Error(`unknown argument ${argv[i]}`);
+    if (!["--base-url", "--photos", "--uploads", "--confirm-probe", "--mode", "--d1-checks"].includes(argv[i])) throw new Error(`unknown argument ${argv[i]}`);
     o[argv[i].slice(2)] = argv[i + 1] ?? "";
   }
   return o;
@@ -78,7 +80,18 @@ async function main() {
     }
     return;
   }
-  if ((args.mode ?? "upload") !== "upload") throw new Error("--mode must be upload or seal");
+  if (args.mode === "stages") {
+    // §10: each upload stage alone, on the first --photos file, STAGE_REPEATS times; cheap stages first. Rows are
+    // replaced in probe_blob_checks, so storage stays at one photo. Stops at the first non-200 (e.g. exceededCpu).
+    const image = files[0], frame = encodePhotoBody({ schemaVersion: 3, payload: "e30=", attestation: { keyId: "", challenge: "", assertion: "" } }, image);
+    for (const stage of STAGE_ORDER) for (let i = 0; i < STAGE_REPEATS; i++) {
+      const r = await call(`/probe/stage/${stage}`, { method: "POST", body: stage === "split" ? frame : image, headers: { "Content-Type": "application/octet-stream" } });
+      expect(`stage ${stage}`, r, 200);
+      console.log(`stage ${stage} ${i + 1}/${STAGE_REPEATS} ${image.length} B → ${r.status} ${r.body.slice(0, 120)}`);
+    }
+    return;
+  }
+  if ((args.mode ?? "upload") !== "upload") throw new Error("--mode must be upload, seal or stages");
   const pki = await testPki(), device = await testDevice();
   expect("setup", await post("/probe/setup", { trustAnchor: base64Encode(pki.root) }), 200);
   const challenge = async (purpose: "registration" | "report") => expect(`challenge ${purpose}`,
@@ -104,7 +117,8 @@ async function main() {
   }
   console.log(lines.join("\n"));
   console.log("usage", (await call("/probe/usage")).body);
-  console.log("d1-checks", JSON.stringify(expect("d1-checks", await post("/probe/d1-checks", {}), 200), null, 1));
+  // `--d1-checks off` for small per-size upload runs: the checks alone cost ~1.1 s CPU (runbook §9) and are not re-measured.
+  if (args["d1-checks"] !== "off") console.log("d1-checks", JSON.stringify(expect("d1-checks", await post("/probe/d1-checks", {}), 200), null, 1));
   console.log("retention", (await post("/probe/retention", {})).body);
   console.log(`done: ${planned.length} uploads, ${total} B sent. CPU: run scripts/free-tier-probe-analytics.ts for this time window.`);
 }
