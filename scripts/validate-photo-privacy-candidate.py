@@ -17,6 +17,8 @@ def problems(answers, manifest):
             or storage.get("physicalErasureVerified") is not False
             or storage.get("sqlDeletionProvesPhysicalErasure") is not False):
         found.append("Unresolved design cannot claim verified destruction or physical erasure")
+    if storage.get("d1Proposal") != "merged-poc-not-mounted-not-production-enabled":
+        found.append("D1 PoC is merged, but not mounted in normal intake or enabled in production")
     history = storage.get("timeTravel", {})
     if (history.get("alwaysOn") is not True or history.get("freeDays") != 7 or history.get("paidDays") != 30
             or history.get("deployedPlanVerified") is not False):

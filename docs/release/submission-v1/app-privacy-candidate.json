@@ -91,7 +91,7 @@
   "storageReview": {
     "decision": "undecided",
     "mainImplementation": "private-r2-not-activated",
-    "d1Proposal": "unmerged-poc",
+    "d1Proposal": "merged-poc-not-mounted-not-production-enabled",
     "encryptionProposal": "not-selected-not-wired",
     "operatorCanReviewPhotos": true,
     "workerProcessesPlaintextInCurrentFlow": true,

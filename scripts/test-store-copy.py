@@ -216,6 +216,11 @@ class StoreCopyTests(unittest.TestCase):
         answers = json.loads((root / "app-privacy-candidate.json").read_text())
         manifest = plistlib.loads((root / "PrivacyInfo.photos-enabled.candidate.plist").read_bytes())
         self.assertEqual(validator.problems(answers, manifest), [])
+        for value in ["unmerged-poc", "production-enabled", None]:
+            bad = copy.deepcopy(answers)
+            bad["storageReview"]["d1Proposal"] = value
+            self.assertIn("D1 PoC is merged, but not mounted in normal intake or enabled in production",
+                          validator.problems(bad, manifest))
         for field in ["collected", "linked"]:
             bad = copy.deepcopy(answers)
             bad["dataTypes"][0][field] = False
