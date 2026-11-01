@@ -113,3 +113,32 @@ past its photo deadline (410, ticket dead, no KV write); and Time Travel (#6), w
 CPU attribution: `/probe/d1-trips?n=` (driver `--trip-probe on`: 5 × n = 0, 4, 8, 16 trivial round trips) gives the
 per-round-trip CPU from `wrangler tail` on the next approved run. Whether 7 trips bring ② to P99 ≤ 8 ms is **not known**
 until that run.
+
+## 8. Workers Free measurement after the reduction (2026-11-01 13:11–13:16 UTC) — A1 final: NO-GO
+
+Probe Worker from `cf9733a`, same probe D1s and KV namespace (IDs checked against the generated config; dry-run bundle has
+no production database, Worker or R2 reference). Secrets regenerated, never printed, Worker and Secrets deleted after.
+CPU per invocation from `wrangler tail` (ms).
+
+| Run | Request | n | P50 | P95 | P99 | max | > 8 ms | > 10 ms |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 5 photos, 213–414 KB | ① intent | 5 | 6 | 10 | 10 | 10 | 1 | 0 |
+| | ② upload (incl. one 409 replay) | 6 | 12 | 22 | 22 | 22 | 5 | 5 |
+| 20 photos, 146–269 KB | ① intent | 20 | 4 | 5 | 7 | 7 | 0 | 0 |
+| | ② upload 201 only | 20 | 10 | 12 | 13 | 13 | 19 | 8 |
+
+Before (§3, 20 photos): ② P50 11, P99 18. `exceededCpu` / non-ok outcomes: 0 of 152 events. Refused uploads (409
+replay) cost 3–4 ms and read no body. KV: 25 writes this run, all photos' SHA-256 matched on read-back; after delete
+`kvStillAnswers: false`.
+
+Per-round-trip CPU (`/probe/d1-trips`, P50 of 5): n = 0 → 1 ms, 4 → 3, 8 → 4–6, 16 → 10–12, i.e. **≈ 0.6–0.7 ms per D1
+round trip**. ② = 7 trips + 2 probe-guard trips ≈ 6 ms, plus ≈ 4 ms for the SHA-256, JPEG walk, body read and KV put.
+Even without the probe guards (production) ② would sit at ≈ 8–9 ms: the 8 ms P99 is not reachable by trimming
+round trips, and the remaining trips are the safety ones (atomic claim, fence re-read after `KV.put`, metadata check).
+
+**Verdict: A1 is NO-GO on Workers Free** (② P99 13 ms > 8 ms, 19 / 20 above 8 ms). The 100-run was not started. Per the
+plan, no further tuning in this direction.
+
+Open even if CPU had passed: KV write accounting — a retry after "KV.put ok, D1 failed" re-puts the value, so real KV
+writes can exceed the counted 800/day (only the 20 % margin absorbs it); KV delete propagation and restore semantics
+accepted by counsel; the Time Travel void step in the restore runbook; iOS protocol; device E2E; App Store conditions.
