@@ -1,5 +1,14 @@
 # App Privacy data inventory (App Store Connect input)
 
+**2026-11-02 v1.0 scope amendment:** new-place reports without photos; no photo attachment/upload/retry.
+The earlier initial-v1 reports-off and photos-on proposals below are historical capability evidence.
+Use [current text-only privacy candidates](release/submission-v1/text-reports/README.md): report content,
+confirmed precise pin and App Attest identifiers remain collected/linked proposals; support/email and provider
+logs remain separately assessed. Photos/Videos omission requires verified absence of retained photos through
+app, support and relevant providers. Photo evidence material is deferred to v1.1 or later, not approved.
+Current client/review photo dependencies and the shipping manifest still need implementation/RC verification.
+This inventory update changes no app, runtime or ASC answer.
+
 Fact table derived from the repository implementation at the time of writing, for filling in the App Store
 Connect "App Privacy" questionnaire. **This is not a legal determination.** Where the App Store category a fact
 falls into is a judgment call, the row says so and the maintainer decides. Re-derive this table when report,

@@ -1,0 +1,87 @@
+{
+  "status": "candidate-not-approved",
+  "submissionReady": false,
+  "runtimeScope": "reports-enabled-photos-unavailable",
+  "tracking": false,
+  "dataTypes": [
+    {
+      "ascType": "Other User Content",
+      "manifestType": "NSPrivacyCollectedDataTypeOtherUserContent",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Report notes and claims retained for review."
+    },
+    {
+      "ascType": "Device ID",
+      "manifestType": "NSPrivacyCollectedDataTypeDeviceID",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "App Attest key ID/public key and key-derived submitter hash."
+    },
+    {
+      "ascType": "Precise Location",
+      "manifestType": "NSPrivacyCollectedDataTypePreciseLocation",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Explicitly selected current-location pin, confirmed by user, stored to five decimals."
+    },
+    {
+      "ascType": "Customer Support",
+      "manifestType": "NSPrivacyCollectedDataTypeCustomerSupport",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Published Gmail support workflow; owner must verify retention and scope."
+    },
+    {
+      "ascType": "Email Address",
+      "manifestType": "NSPrivacyCollectedDataTypeEmailAddress",
+      "collected": true,
+      "linked": true,
+      "tracking": false,
+      "purposes": [
+        "App Functionality"
+      ],
+      "basis": "Support sender email; not an account-registration requirement."
+    }
+  ],
+  "unresolved": [
+    "Lane1 removes photo requirement and photo UI from new-place proposals",
+    "Lane3 defines photo-less review/export path while preserving source/rights/quality gates",
+    "Approved report terms, runtime activation and signed-device E2E",
+    "Cloudflare retained tile/IP/diagnostics, Time Travel, support scope and final archive Privacy Report",
+    "App Attest registration/audit retention, early minimization and reinstall ownership proof"
+  ],
+  "retention": {
+    "reportPersonalContent": "Current main redacts personal report fields at receipt +90 days; skeleton/audit/receipt records remain. Historical D1 versions can retain pre-redaction data; this is not physical erasure.",
+    "appAttest": "Key registration/revocation retention is separate; no blanket 90-day deletion promise.",
+    "supportAndProvider": "Not established by report retention. Owner must confirm.",
+    "localDraft": "Unsent report draft persists on device until discarded/submitted under app behavior. No v1.0 photo-follow-up record should be created. Reinstall is not server deletion."
+  },
+  "photoDisclosure": {
+    "ascType": "Photos or Videos",
+    "inAppCollection": false,
+    "omitFromASCOnlyAfterVerification": true,
+    "conditionsVerified": false,
+    "conditions": [
+      "Final app has no photo picker, upload or photo retry/follow-up entry",
+      "Normal report route rejects photo bodies and photo endpoints remain off",
+      "Support attachments and provider workflows do not retain user photos; otherwise disclose Photos for that actual workflow"
+    ]
+  }
+}
