@@ -47,6 +47,10 @@ async function isProbeStore(db: Db): Promise<boolean> {
   catch { return false; }
 }
 
+// Bindings are fixed for a deployed version, and an isolate never outlives its version, so a positive identity check
+// holds for the isolate's life. Checked once, the probe's own overhead on the measured /v1 routes drops to the anchor read.
+let probeStoresVerified = false;
+
 async function trustAnchor(env: ProbeEnv): Promise<Uint8Array | null> {
   const row = await env.PHOTOS_DB.prepare("SELECT trust_anchor FROM probe_config WHERE id = 1").first<{ trust_anchor: string }>();
   return row ? base64Decode(row.trust_anchor) : null;
@@ -57,7 +61,10 @@ const photoTermsCovered = () => true; // synthetic data only; the API Worker's R
 export default {
   async fetch(req: Request, env: ProbeEnv, ctx: ExecutionContext): Promise<Response> {
     if (!tokenMatches(req.headers.get("Authorization"), env.PROBE_TOKEN)) return notFound();
-    if (!(await isProbeStore(env.REPORTS_DB)) || !(await isProbeStore(env.PHOTOS_DB))) return notFound();
+    if (!probeStoresVerified) {
+      if (!(await isProbeStore(env.REPORTS_DB)) || !(await isProbeStore(env.PHOTOS_DB))) return notFound();
+      probeStoresVerified = true;
+    }
     const url = new URL(req.url);
 
     if (req.method === "POST" && url.pathname === "/probe/setup") {

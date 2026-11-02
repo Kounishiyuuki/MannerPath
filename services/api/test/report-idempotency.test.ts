@@ -42,10 +42,10 @@ class Gate implements Db {
   prepare(sql: string) {
     const stmt = this.inner.prepare(sql);
     const hidden = (sql.startsWith("SELECT report_id, request_sha256") && this.hideReceipts > 0 && this.hideReceipts--)
-      || (sql.startsWith("SELECT report_count FROM report_rate_windows") && this.hideBudget);
+      || (sql.startsWith("SELECT window_kind, report_count FROM report_rate_windows") && this.hideBudget);
     if (!hidden) return stmt;
     const bind = stmt.bind.bind(stmt);
-    return Object.assign(stmt, { bind: (...v: unknown[]) => Object.assign(bind(...v), { first: async () => null }) });
+    return Object.assign(stmt, { bind: (...v: unknown[]) => Object.assign(bind(...v), { first: async () => null, all: async () => ({ results: [] }) }) });
   }
   /** Why each rolled-back batch aborted, to prove which commit-time guard answered. */
   readonly aborts: string[] = [];
