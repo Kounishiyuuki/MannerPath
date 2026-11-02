@@ -289,6 +289,18 @@ class StoreCopyTests(unittest.TestCase):
         self.assertIn("Text-only new-place report terms", gate)
         self.assertIn("写真v1.1", gate)
 
+    def test_final_text_review_requires_independent_evidence_and_real_photo_exclusion_checks(self):
+        root = DOCS / "release/submission-v1/text-reports"
+        self.assertIn("独立した根拠", (root / "description-ja.txt").read_text())
+        self.assertIn("independent check", (root / "review-notes.txt").read_text())
+        answers = json.loads((root / "app-privacy-candidate.json").read_text())
+        checks = answers["photoDisclosure"]["verificationChecks"]
+        self.assertEqual({c["id"] for c in checks}, {"RELEASE", "LEGACY", "CONFIG", "PHOTO_API", "PAYLOAD", "SUPPORT"})
+        self.assertTrue(all(c["status"] == "NOT_RUN" for c in checks))
+        self.assertFalse(answers["photoDisclosure"]["conditionsVerified"])
+        self.assertFalse(answers["reviewedInputs"]["releaseVerified"])
+        self.assertFalse(answers["reviewedInputs"]["apiDeploymentVerified"])
+
     def test_rejects_ready_wording_with_open_p0(self):
         bad = "| G1 | x | P0 | OPEN | a | b | 1 | yes | no |\n"
         self.assertNotEqual(gate_problems(bad)[0], [])

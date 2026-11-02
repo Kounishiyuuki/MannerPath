@@ -236,7 +236,7 @@ MannerPathは、喫煙が認められている場所の位置や利用条件を�
 
 アカウント登録は不要です。閲覧時の現在地は近くの場所の順位や距離・方向の計算に使用します。新規申請で現在地を使う場合も、地図上の位置を自分で確認・確定してから送信します。オフラインでの徒歩経路案内には対応していません。
 
-地図にない喫煙場所を知っている場合は、地図で位置を指定し、種類や利用条件、分かる範囲の説明を入力して申請できます。分からない項目は不明として申請できます。v1.0では写真の添付・送信は提供しません。店舗の存在や灰皿だけで喫煙が許可されているとは判断せず、現地の掲示や利用条件を確認してください。申請は運営者が審査し、承認された情報が掲載手続きを経て反映されます。送信しても自動では掲載されず、掲載を保証するものではありません。
+地図にない喫煙場所を知っている場合は、地図で位置を指定し、種類や利用条件、分かる範囲の説明を入力して申請できます。分からない項目は不明として申請できます。v1.0では写真の添付・送信は提供しません。店舗の存在や灰皿だけで喫煙が許可されているとは判断せず、現地の掲示や利用条件を確認してください。申請は運営者が公式情報源や現地確認などの独立した根拠で確認・審査し、承認された情報が掲載手続きを経て反映されます。送信しても自動では掲載されず、掲載を保証するものではありません。
 ```
 
 Each bullet matches behavior verified on the simulator in #176 (list/map, detail evidence and approximate
@@ -276,7 +276,7 @@ MannerPath is a navigation and local-rule compliance utility for adults legally 
 
 Coverage is partial: parts of Tokyo (Taito, Minato, Koto and Musashino), Osaka City and Kyoto City. Other areas show an honest empty state. Access uncertainty, source, freshness and approximate positions are shown. A destination search changes the browsing area, not the device location. From outside coverage, search for “浅草駅 東京” and select the Tokyo destination to see published places. Distant destinations do not offer a walking detour; Apple Maps handoff is separate.
 
-Version 1.0 accepts new-place proposals without photos. There is no photo attachment, upload or photo retry feature in this version. A user confirms a map pin, checks nearby duplicates, enters the place type, access conditions and any useful explanation, then reviews and consents to the report terms before sending. Unknown values are allowed. A store's existence or an ashtray does not by itself establish permission to smoke. A received proposal is pending operator review. Sending a report does not automatically publish a place or guarantee a listing. Reviewed facts still pass separate rights, location and quality checks before publication.
+Version 1.0 accepts new-place proposals without photos. There is no photo attachment, upload or photo retry feature in this version. A user confirms a map pin, checks nearby duplicates, enters the place type, access conditions and any useful explanation, then reviews and consents to the report terms before sending. Unknown values are allowed. A store's existence or an ashtray does not by itself establish permission to smoke. A received proposal is pending operator review. Approval requires an operator-recorded independent check, such as an official source or a site visit. Sending a report does not automatically publish a place or guarantee a listing. Reviewed facts still pass separate rights, location and quality checks before publication.
 
 Browsing uses When In Use location for nearby ranking, distance and bearing. Browsing requests contain geographic tile IDs, not raw GPS. A report includes the map pin explicitly chosen and confirmed by the user; it can equal the device's current location. Report submission uses Apple App Attest on a supported physical iPhone. Report text, pin and device-derived identifiers are collected and associated for review and abuse prevention. No account does not mean anonymous submissions. Report personal fields are scheduled for minimization after 90 days; database recovery history and minimal audit records are separate. The privacy policy explains the final approved retention and provider handling.
 

@@ -61,8 +61,8 @@
     }
   ],
   "unresolved": [
-    "Lane1 removes photo requirement and photo UI from new-place proposals",
-    "Lane3 defines photo-less review/export path while preserving source/rights/quality gates",
+    "PR375 photo-less client changes are prepared but not merged; final Release and legacy follow-up states need verification",
+    "PR374 independent officialSource/siteVisit review/export gate and migration0011 are prepared but not merged or applied",
     "Approved report terms, runtime activation and signed-device E2E",
     "Cloudflare retained tile/IP/diagnostics, Time Travel, support scope and final archive Privacy Report",
     "App Attest registration/audit retention, early minimization and reinstall ownership proof"
@@ -71,7 +71,8 @@
     "reportPersonalContent": "Current main redacts personal report fields at receipt +90 days; skeleton/audit/receipt records remain. Historical D1 versions can retain pre-redaction data; this is not physical erasure.",
     "appAttest": "Key registration/revocation retention is separate; no blanket 90-day deletion promise.",
     "supportAndProvider": "Not established by report retention. Owner must confirm.",
-    "localDraft": "Unsent report draft persists on device until discarded/submitted under app behavior. No v1.0 photo-follow-up record should be created. Reinstall is not server deletion."
+    "localDraft": "Unsent report draft persists on device until discarded/submitted under app behavior. No v1.0 photo-follow-up record should be created. Reinstall is not server deletion.",
+    "independentEvidenceAudit": "PR374 adds immutable report-linked independent check records (basis, official URL, checked date, operator ID, time/hash); no blanket 90-day deletion claim."
   },
   "photoDisclosure": {
     "ascType": "Photos or Videos",
@@ -79,9 +80,45 @@
     "omitFromASCOnlyAfterVerification": true,
     "conditionsVerified": false,
     "conditions": [
-      "Final app has no photo picker, upload or photo retry/follow-up entry",
-      "Normal report route rejects photo bodies and photo endpoints remain off",
+      "Exact signed Release build: reviewed photo terms remain empty; no picker/upload/retry/follow-up entry on clean install or restored legacy drafts/follow-ups",
+      "Effective API config: reports available with App Attest and photoEvidenceEnabled=false; photo endpoint and retries refuse without storage writes",
+      "Strict report request has no photo fields or bytes; no photo storage bindings, key allowlists or hidden alternate route enabled",
       "Support attachments and provider workflows do not retain user photos; otherwise disclose Photos for that actual workflow"
+    ],
+    "verificationChecks": [
+      {
+        "id": "RELEASE",
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "LEGACY",
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "CONFIG",
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PHOTO_API",
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "PAYLOAD",
+        "status": "NOT_RUN"
+      },
+      {
+        "id": "SUPPORT",
+        "status": "NOT_RUN"
+      }
     ]
+  },
+  "reviewedInputs": {
+    "reviewedOn": "2026-11-03",
+    "main": "1fdf89a",
+    "pr375": "21cb4d5200644b9a973c88721fb5f11fed841b71",
+    "pr374": "12c745dd425a10bf7c4a2004aa14595c2dd609fe",
+    "pr372": "1b84c9d1bf9e70486eeeb89ece85cef4f717b9be",
+    "releaseVerified": false,
+    "apiDeploymentVerified": false
   }
 }

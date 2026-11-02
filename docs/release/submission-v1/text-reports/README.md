@@ -25,7 +25,7 @@ Lane1/3の実装と下記の条件が揃うまでASCへ転記しない。掲載�
 | Customer Support / Email Address | 同上の既存包括案 | Gmailの送信者/問い合わせ内容。保管範囲と任意開示例外は運営者確認 |
 | Coarse Location / Other Diagnostic Data等 | 未決 | tile/IP/ログ、provider/Logpush、support保持、最終archive通信の確認が必要。写真延期では解決しない |
 
-根拠：[Apple Privacy定義](https://developer.apple.com/app-store/app-privacy-details/)を2026-11-02確認。
+根拠：[Apple Privacy定義](https://developer.apple.com/app-store/app-privacy-details/)を2026-11-03再確認。
 申請は主要機能で毎回同意しても開示例外とはしない。写真型を除くmanifest候補5型は未組込。
 現iPhone manifestは収集型未宣言のため、この候補とまだ一致しない。
 最終manifest/生成Privacy Report/承認済み回答/公開policyを一致させる作業はLane1/3・運営者側に残る。
@@ -33,7 +33,7 @@ Lane1/3の実装と下記の条件が揃うまでASCへ転記しない。掲載�
 ## 保持・削除・再installの利用者向け候補（未公開）
 
 「申請すると、確認した位置、申請内容、端末認証に由来する識別情報を、審査と不正対策のために取り扱います。
-v1.0では写真の添付・送信は提供しません。申請は自動では掲載されず、運営者が審査します。
+v1.0では写真の添付・送信は提供しません。申請は自動では掲載されず、運営者が公式情報源や現地確認などの独立した根拠で確認・審査します。
 申請本文、位置、自由文や申請者の関連付け情報は、受信から90日を基準に削除・最小化する設計です。
 これは全記録の消去ではなく、最小限の受付・審査記録や項目の分類などが残ります。
 認証鍵の登録・不正対策記録、問い合わせ情報の保持は申請本文とは別です。
@@ -50,17 +50,19 @@ D1 Time Travelは[常時有効](https://developers.cloudflare.com/d1/reference/t
 ADR-0021の早期最小化endpoint/申請履歴/本人確認は未実装。削除ボタン・即時完全削除を約束しない。
 申請の個人情報削除と公開済み場所factの撤回は別。第三者privacyリスクは本人確認不能でも一律拒否せず運営者へ相談する。
 
-## Lane 1・3との未確定事項（現mainの差分）
+## Lane 1・3との最終照合（2026-11-03、すべてOPEN PR）
 
-| 担当 | 現mainの阻害・食い違い | v1.0の受入条件 |
+[最終レビュー・写真除外の実証条件・運営者の順序](FINAL_REVIEW.md)を参照。
+
+| 対象 | 照合したHEADと内容 | まだ完了しない条件 |
 | --- | --- | --- |
-| Lane1 | `ReportModel.acceptsNewSpotProposals`がphoto config/termsを要求。preflight/submitも写真必須。`ContentView`は停止alert、`ReportFormView`は必須写真section | 写真offでも新規申請開始/確定/送信可。写真picker・upload・retry/follow-upなし、写真不要の説明。既存受付/同意/二重送信対策は維持 |
-| Lane3 | create経路は写真なしreportを保存可能だが、`review.ts`/`photos.ts`とREPORTS_DB migrations0009/0010が写真なし新規地点のreview/exportを拒否 | 写真なしの証拠審査基準・review/exportとDB制約を整合。写真必須を外してもsource/rights/位置/品質/独立性のゲートを迂回しない |
-| Lane3/運営者 | draft terms / community publication pending、実runtime未確認 | #124の通常申請・再利用規約を新versionで承認/同意整合。申請有効、photo route/config無効を確認。写真条項の承認待ちをv1.0申請全停止の理由にしない |
-| Lane1/3 | 保存・失敗再送・受付ID・本人確認が最終RCで未検証 | 実App Attest送信、同じidempotencyによる安全な再送、再起動/再installの説明と一致。未提供の履歴復旧/削除を約束しない |
+| #375 Lane1 | `21cb4d5`はreports availableで新規申請可、photo configとreviewed termsの双方が満たされない限り写真不要・写真sectionなし。受付は審査待ち、掲載保証なし | 未merge・未配布。実署名Release/実App Attest/staging、旧draft/写真follow-upの入口と再送が出ないことを確認。範囲外pinの事前拒否は同PRで未確認 |
+| #374 Lane3 | `12c745d`は写真なし受理をpending保存。公式https sourceまたは現地確認の独立記録を承認/review/exportで要求。migration0011でDB制約を更新 | 未merge・未適用・本番無変更。公式URLの真実性は運営者が確認。実DB/CPU再計測・1102監視・実機stagingが必要 |
+| #372 方針 | `1b84c9d`は冒頭でB（写真なし申請）採用を記録。後段のA（申請自体延期）分析/手順は履歴とされている | この資料ではBのみ使用。写真PoCのNO-GOを通常申請自体の停止条件と混同しない |
+| 規約/運用 | #124通常申請規約、公開policy/support、manifest/ASCは未承認・未整合 | 新versionのbytes/同意/権利、保存期限/backup/本人確認、公開更新とRC/実runtimeの一致を運営者が確認 |
 
-PR #372の「申請自体を延期推奨」は今回の指示で上書き。Lane3所有の同PR3ファイルは編集せず、統合時に再照合する。
-写真なしの受理と、審査を経た掲載可能性は別であり、現mainのまま提出可能とは認定しない。
+現main `1fdf89a`にはまだ旧写真依存が残る。PRの実装完了と、main統合・配備・Release実機PASSは別。
+写真なし受理と独立根拠を満たした掲載可能性も別。source/rights/位置/品質/独立性のゲートを緩めない。
 
 ## App Review・実機・撮影の実行シート（全件NOT RUN）
 
