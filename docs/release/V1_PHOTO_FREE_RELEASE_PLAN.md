@@ -7,6 +7,8 @@ Status: **計画（2026-11-01）。§3–§7 は 2026-11-02 の正式決定で�
 > 本文中の「推奨：A」は決定前の分析として残すが、採用されていない。承認条件は §3 の「Bの安全条件」のとおり、
 > 運営者が記録した独立確認（公式情報源または現地確認）で `approvedPhotoRequired` を置き換える。実装・API契約・計測・
 > 有効化手順は `V1_PHOTO_FREE_NEW_SPOT.md`（別PR）を正とする。§4 の A向けタスク（P3の入口非表示など）は実施しない。
+> 写真なし申請（`POST /v1/reports`）の Workers Free 計測（2026-11-03：P50 6 ms、P99 35 ms、10 ms 超5%、`exceededCpu` 0）、
+> staging・実機E2E・本番チェックリストも同じPR（#374）の `V1_PHOTO_FREE_NEW_SPOT.md`・`V1_PHOTO_FREE_STAGING_E2E.md` を正とする。
 
 ## 1. 最終NO-GO：Workers Freeでの写真付き申請
 
