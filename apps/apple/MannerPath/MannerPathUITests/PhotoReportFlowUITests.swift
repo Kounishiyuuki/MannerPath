@@ -6,8 +6,8 @@ import XCTest
 // button, which exists only in that DEBUG composition; the native picker smoke test opens and cancels without
 // reading, selecting or changing library photos. These diagnostic captures are fixtures, not submission assets.
 final class I_PhotoReportFlowUITests: MannerPathUITestCase {
-    func openNewPlaceForm(_ scenario: String) {
-        launch(extraArguments: ["-uiTestPhotoReport", scenario])
+    func openNewPlaceForm(_ scenario: String, extraArguments: [String] = []) {
+        launch(extraArguments: ["-uiTestPhotoReport", scenario] + extraArguments)
         // The entry copy can differ from the form title; use the shipped map-entry contract.
         // Launch reads availability from the stack; a loaded Simulator can take well over 30 s to show the entry.
         tapMapEntryWhenSettled()
@@ -208,7 +208,17 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     /// v1.0 (2026-11-02): reports open, photo intake closed. No photo step is shown; pin and consent still gate submit.
     func testNewPlaceWithoutPhotosIsSentOnceAndAwaitsReview() {
-        openNewPlaceForm("photoless")
+        submitPhotolessNewPlace(shots: "8")
+    }
+
+    /// The same flow at AX5: every step, the review notice and the receipt stay reachable and readable.
+    func testNewPlaceWithoutPhotosAtAX5() {
+        submitPhotolessNewPlace(extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"],
+                                shots: "8ax5-")
+    }
+
+    private func submitPhotolessNewPlace(extraArguments: [String] = [], shots: String) {
+        openNewPlaceForm("photoless", extraArguments: extraArguments)
         XCTAssertTrue(textContaining("場所と分かる情報を送ってください").exists)
         XCTAssertFalse(textContaining("写真を添付").exists, "no photo step while photo intake is closed")
         XCTAssertFalse(app.buttons["report.photo.choose"].exists)
@@ -222,17 +232,17 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         XCTAssertFalse(textContaining("選択した写真").exists)
         scrollTo(submit)
         XCTAssertTrue(submit.isEnabled)
-        screenshot("80-photoless-ready")
+        screenshot("\(shots)0-photoless-ready")
         submitOnceAndWaitForReceipt()
         let pending = app.descendants(matching: .any)["report.pendingReview"]
         scrollTo(pending, upwards: true)
         XCTAssertEqual(pending.label, "受付完了・審査待ち")
         let noGuarantee = app.descendants(matching: .any)["report.noListingGuarantee"]
         scrollTo(noGuarantee)
-        XCTAssertEqual(noGuarantee.label, "送信しても掲載されるとは限りません。")
+        XCTAssertEqual(noGuarantee.label, "自動では掲載されません。運営者が内容を確認し、掲載するかを判断します。")
         XCTAssertTrue(textContaining("rp_UITEST1").exists)
         XCTAssertFalse(app.descendants(matching: .any)["report.pendingPhotos"].exists)
-        screenshot("81-photoless-received")
+        screenshot("\(shots)1-photoless-received")
     }
 
     /// A lost answer survives a relaunch: the saved photo-less report is retried as it was, without asking for photos,

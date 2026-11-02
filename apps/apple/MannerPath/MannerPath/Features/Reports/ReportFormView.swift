@@ -513,7 +513,7 @@ struct ReportFormView: View {
             VStack(alignment: .leading, spacing: 8) {
                 if model.photos.photos.isEmpty || model.photos.allUploaded {
                     Text("Thanks for your report. It may be reflected after review; the listing has not changed yet.")
-                    Text("Submitting does not guarantee that the place will be listed.")
+                    Text("Reports are not listed automatically. The MannerPath team reviews each one and decides whether to list it.")
                         .accessibilityIdentifier("report.noListingGuarantee")
                 } else if model.photos.busy {
                     Text("The report was received. Sending photos…")

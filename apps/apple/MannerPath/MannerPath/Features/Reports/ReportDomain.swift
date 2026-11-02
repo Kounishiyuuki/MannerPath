@@ -43,6 +43,12 @@ nonisolated struct ReportCoordinate: Codable, Equatable, Sendable {
         latitude.isFinite && longitude.isFinite && (-90...90).contains(latitude) && (-180...180).contains(longitude)
     }
 
+    /// The server's Japan extent (services/api/src/geo/japan.ts), bounds inclusive. The server still decides; this
+    /// only spares the user a round trip that can only be refused.
+    var isInServiceArea: Bool {
+        (20...46).contains(latitude) && (122...154).contains(longitude)
+    }
+
     var quantized: Self {
         Self(latitude: (latitude * 100_000).rounded() / 100_000,
              longitude: (longitude * 100_000).rounded() / 100_000)
@@ -211,7 +217,7 @@ nonisolated enum ReportAvailability: Equatable, Sendable {
 
 nonisolated enum ReportValidationError: Error, Equatable, Sendable {
     case missingSpotID, unexpectedSpotID, missingProposedLocation, unexpectedProposedLocation
-    case invalidCoordinate, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge, termsNotAccepted
+    case invalidCoordinate, outsideServiceArea, invalidObservedDay, emptyNote, noteTooLong, bodyTooLarge, termsNotAccepted
     case unexpectedClaim, invalidClaim, unsupportedReportType, invalidCorrection
     case invalidIdempotencyKey
 }
@@ -257,6 +263,8 @@ nonisolated struct ReportRequest: Encodable, Sendable {
         if draft.type.needsProposedLocation {
             guard let pin = draft.proposedLocation else { throw ReportValidationError.missingProposedLocation }
             guard pin.isValid else { throw ReportValidationError.invalidCoordinate }
+            // The quantized pin is what is sent, so the boundary is judged on it.
+            guard pin.quantized.isInServiceArea else { throw ReportValidationError.outsideServiceArea }
         } else if draft.proposedLocation != nil {
             throw ReportValidationError.unexpectedProposedLocation
         }

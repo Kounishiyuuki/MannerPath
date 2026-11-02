@@ -195,8 +195,10 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
             let seconds = response.retryAfter.flatMap(Int.init)
             throw ReportAPIError.rateLimited(seconds)
         case 400, 409, 413, 503:
-            let code = problem?.error
-            let isDefinite = (response.statusCode == 400 && (code == "invalidJson" || code == "invalidReport"
+            // The one 400 detail the client explains on its own (docs/release/V1_PHOTO_FREE_NEW_SPOT.md §2).
+            let code = response.statusCode == 400 && problem?.error == "invalidReport"
+                && problem?.detail == "proposedLocation: outside_service_area" ? "outsideServiceArea" : problem?.error
+            let isDefinite = (response.statusCode == 400 && (code == "invalidJson" || code == "invalidReport" || code == "outsideServiceArea"
                                                              || code == "reportSchemaUnsupported"))
                 || (response.statusCode == 409 && code == "termsVersionOutdated")
                 || (response.statusCode == 413 && code == "reportTooLarge")

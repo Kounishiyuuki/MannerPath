@@ -20,9 +20,10 @@ private struct PhotolessConfig: ReportConfigFetching {
 /// `failures` scripts the next answers to POST /reports (then 201): an Error to throw.
 private actor PhotolessReports: ReportSubmitting, AttestedReportSubmitting, InstallIDProviding {
     var payloads: [Data] = []
+    var unsigned = 0
     var failures: [any Error]
     init(failures: [any Error] = []) { self.failures = failures }
-    func submit(_ body: Data) async throws -> AcceptedReport { throw ReportAPIError.httpStatus(503) }
+    func submit(_ body: Data) async throws -> AcceptedReport { unsigned += 1; throw ReportAPIError.httpStatus(503) }
     func submitAttested(_ envelope: Data) async throws -> AcceptedReport {
         let object = try JSONSerialization.jsonObject(with: envelope) as! [String: Any]
         payloads.append(Data(base64Encoded: object["payload"] as! String)!)
@@ -32,6 +33,7 @@ private actor PhotolessReports: ReportSubmitting, AttestedReportSubmitting, Inst
     }
     nonisolated func installID() -> UUID { UUID(uuidString: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f")! }
     func sent() -> [Data] { payloads }
+    func unsignedSent() -> Int { unsigned }
 }
 
 private actor PhotolessAuthorizer: ReportAuthorizing {
@@ -52,6 +54,13 @@ private actor PhotolessAuthorizer: ReportAuthorizing {
 private struct NoPhotoUploads: EvidencePhotoUploading {
     func upload(reportID: String, attachmentID: UUID, jpeg: Data, acceptedTermsVersion: String) async throws {
         Issue.record("a photo was uploaded while photo intake is closed")
+    }
+}
+
+private struct OneResponse: ReportHTTPTransport {
+    let status: Int, body: String
+    func send(_ request: URLRequest) async throws -> ReportHTTPResponse {
+        ReportHTTPResponse(statusCode: status, body: Data(body.utf8), retryAfter: nil)
     }
 }
 
@@ -154,6 +163,7 @@ struct ReportNewPlaceWithoutPhotosTests {
             readyNewPlace(model)
             await model.submit()
             #expect(await reports.sent().isEmpty)
+            #expect(await reports.unsignedSent() == 0, "an App Attest deployment is never sent an unsigned report")
             #expect(await authorizer.count() == 0)
         }
     }
@@ -207,5 +217,44 @@ struct ReportNewPlaceWithoutPhotosTests {
         await model.submit()
         #expect(model.submission == .ambiguous, "never reported as received")
         #expect(model.canRetryAmbiguous && model.draft != nil)
+    }
+
+    // Lane 3 (#374): the server refuses a pin outside lat 20–46 / lon 122–154 (bounds inclusive) with 400.
+    @Test func serviceAreaMatchesTheServerBoundsOnTheSentPin() {
+        for (lat, lon, inside) in [(20.0, 122.0, true), (46.0, 154.0, true), (45.999_999, 153.999_999, true),
+                                   (46.000_004, 139.0, true), (46.000_006, 139.0, false), (19.999_99, 139.0, false),
+                                   (35.0, 121.999_99, false), (35.0, 154.000_01, false), (51.5, -0.12, false)] {
+            #expect(ReportCoordinate(latitude: lat, longitude: lon).quantized.isInServiceArea == inside, "\(lat),\(lon)")
+        }
+    }
+
+    @Test func pinOutsideJapanIsExplainedAndNothingIsSigned() async throws {
+        let reports = PhotolessReports(), authorizer = PhotolessAuthorizer()
+        let model = await launch(reports: reports, authorizer: authorizer)
+        model.startNewSpot(pin: ReportCoordinate(latitude: 51.5, longitude: -0.12))
+        model.setTermsAccepted(true)
+        let message = String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")
+        #expect(model.submissionReadinessMessage == message)
+        await model.submit()
+        #expect(model.submission == .failed(message))
+        #expect(await reports.sent().isEmpty)
+        #expect(await authorizer.count() == 0)
+    }
+
+    @Test func serverOutsideServiceAreaIsADefiniteExplainedRefusal() async {
+        let client = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: OneResponse(status: 400,
+            body: #"{"error":"invalidReport","detail":"proposedLocation: outside_service_area"}"#))
+        await #expect(throws: ReportAPIError.rejected(400, "outsideServiceArea")) { _ = try await client.submit(Data()) }
+        let other = ReportAPIClient(baseURL: URL(string: "https://example.test")!, transport: OneResponse(status: 400,
+            body: #"{"error":"invalidReport","detail":"note: too_big"}"#))
+        await #expect(throws: ReportAPIError.rejected(400, "invalidReport")) { _ = try await other.submit(Data()) }
+
+        // The server is the final judge: a refusal it sends is shown as the outside-Japan guidance, never as received.
+        let reports = PhotolessReports(failures: [ReportAPIError.rejected(400, "outsideServiceArea")])
+        let model = await launch(reports: reports)
+        readyNewPlace(model)
+        await model.submit()
+        #expect(model.submission == .rejected(String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")))
+        #expect(model.draft != nil, "the draft stays so the pin can be moved")
     }
 }

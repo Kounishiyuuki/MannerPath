@@ -596,6 +596,7 @@ final class ReportModel {
         case .missingProposedLocation: String(localized: "Choose and confirm a proposed map pin.")
         case .unexpectedProposedLocation: String(localized: "This report type cannot include a proposed pin.")
         case .invalidCoordinate: String(localized: "Choose a valid point on the map.")
+        case .outsideServiceArea: String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")
         case .invalidObservedDay: String(localized: "Choose a valid observation day.")
         case .emptyNote: String(localized: "Remove the empty note or add some detail.")
         case .noteTooLong: String(localized: "Shorten the note to the character limit.")
@@ -614,6 +615,8 @@ final class ReportModel {
             String(localized: "Reporting is temporarily unavailable. Your draft remains saved.")
         case (409, "termsVersionOutdated"):
             String(localized: "The report terms have changed. Update the app to read them. Your draft remains saved.")
+        case (400, "outsideServiceArea"):
+            String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")
         case (400, _):
             String(localized: "Some report information needs to be corrected.")
         case (413, _):
