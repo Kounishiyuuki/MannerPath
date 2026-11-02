@@ -13,7 +13,7 @@ const decisionSchema=z.object({reportId:z.string().regex(/^rp_[0-9A-HJKMNP-TV-Z]
   expectedVersion:z.string().min(1).max(8192),operationId:z.uuid(),privacyChecked:z.boolean()}).strict();
 const evidenceSchema=z.object({reportId:z.string().regex(/^rp_[0-9A-HJKMNP-TV-Z]{26}$/),basis:z.enum(['officialSource','siteVisit']),
   sourceUrl:z.string().min(12).max(300).optional(),checkedOn:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  expectedVersion:z.string().min(1).max(8192),operationId:z.uuid()}).strict();
+  placeConfirmed:z.boolean(),expectedVersion:z.string().min(1).max(8192),operationId:z.uuid()}).strict();
 const loginSchema=z.object({token:z.string().min(24).max(256)}).strict();
 const nonce=()=>randomBytes(32).toString('hex');
 const hash=(value:string)=>createHash('sha256').update(value).digest();

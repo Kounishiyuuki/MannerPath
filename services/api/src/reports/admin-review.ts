@@ -17,7 +17,7 @@ export interface AdminPhoto {
 }
 /** An operator's independent check of a new place (REPORTS_DB 0011): bounded metadata, never free text. */
 export interface AdminEvidenceCheck {
-  operation_id: string; basis: 'officialSource' | 'siteVisit'; source_url: string | null; checked_on: string;
+  operation_id: string; basis: 'officialSource' | 'siteVisit'; source_url: string | null; checked_on: string; place_confirmed: number;
   recorded_by: string; recorded_at: string;
 }
 export interface AdminHistory {
@@ -60,7 +60,7 @@ export async function getAdminReport(db: Db, reportId: string, now: Date): Promi
     CASE WHEN lifecycle='ready' AND moderation_status<>'rejected' AND delete_after>? AND NOT EXISTS(SELECT 1 FROM community_photo_deletions d WHERE d.storage_key=p.storage_key) THEN 1 ELSE 0 END available
     FROM community_evidence_photos p WHERE report_id=? ORDER BY created_at,photo_id`).bind(eraseBy,reportId).all<Omit<AdminPhoto,'previewAvailable'|'view_until'> & {available:number}>();
   const history = await db.prepare(`SELECT operation_id,report_id,photo_id,state,reason,decided_by,decided_at,privacy_checked FROM admin_review_audit WHERE report_id=? ORDER BY decided_at,operation_id`).bind(reportId).all<AdminHistory>();
-  const checks = await db.prepare(`SELECT operation_id,basis,source_url,checked_on,recorded_by,recorded_at FROM new_spot_evidence_checks WHERE report_id=? ORDER BY recorded_at,operation_id`).bind(reportId).all<AdminEvidenceCheck>();
+  const checks = await db.prepare(`SELECT operation_id,basis,source_url,checked_on,place_confirmed,recorded_by,recorded_at FROM new_spot_evidence_checks WHERE report_id=? ORDER BY recorded_at,operation_id`).bind(reportId).all<AdminEvidenceCheck>();
   return {report:safeReport(report,at),version,evidenceChecks:checks.results,photos:photos.results.map(({available,...p})=>({...p,view_until:isoSeconds(new Date(Date.parse(p.delete_after)-PHOTO_ERASURE_LEAD_MS)),previewAvailable:!!available && !row.redacted_at && row.minimize_after===p.delete_after && row.minimize_after>eraseBy})),history:history.results,
     publicationState:row.state!=='accepted'?'notApproved':row.reconciliation_state==='applied'?'artifactExported':row.reconciliation_state==='discarded'?'discarded':'awaitingPublication',publicationVerified:false};
 }
@@ -128,6 +128,8 @@ export async function applyAdminDecision(db: Db, input: AdminDecision, now: Date
 export interface EvidenceCheckInput {
   reportId: string; basis: string; sourceUrl?: string; checkedOn: string; expectedVersion: string;
   operationId: string; decidedBy: string;
+  /** The operator saw a place to smoke at this pin in the source or on site, not in the report itself. Must be true. */
+  placeConfirmed: boolean;
 }
 const EVIDENCE_URL_MAX = 300;
 function calendarDate(value: string): boolean {
@@ -151,7 +153,9 @@ export async function recordIndependentEvidence(db: Db, input: EvidenceCheckInpu
     || !/^[a-zA-Z0-9._-]{1,64}$/.test(input.decidedBy) || typeof input.expectedVersion!=='string' || input.expectedVersion.length>8192
     || !['officialSource','siteVisit'].includes(input.basis) || !/^\d{4}-\d{2}-\d{2}$/.test(input.checkedOn)
     || !calendarDate(input.checkedOn)
-    || (input.basis==='officialSource' ? typeof input.sourceUrl!=='string' || !evidenceSourceUrl(input.sourceUrl) : input.sourceUrl!==undefined)) throw new AdminReviewError('invalidEvidence',400);
+    || (input.basis==='officialSource' ? typeof input.sourceUrl!=='string' || !evidenceSourceUrl(input.sourceUrl) : input.sourceUrl!==undefined)
+    || typeof input.placeConfirmed!=='boolean') throw new AdminReviewError('invalidEvidence',400);
+  if(input.placeConfirmed!==true)throw new AdminReviewError('placeConfirmationRequired',400);
   const sourceUrl = input.sourceUrl ?? null;
   const hash=await sha256Hex(JSON.stringify(['evidence',input.reportId,input.basis,sourceUrl,input.checkedOn,input.expectedVersion,input.decidedBy]));
   const prior=await db.prepare('SELECT request_hash FROM new_spot_evidence_checks WHERE operation_id=?').bind(input.operationId).first<{request_hash:string}>();
@@ -163,8 +167,8 @@ export async function recordIndependentEvidence(db: Db, input: EvidenceCheckInpu
   const today=isoSeconds(new Date(now.getTime()+9*3_600_000)).slice(0,10), received=isoSeconds(new Date(Date.parse(current.report.received_at)+9*3_600_000)).slice(0,10);
   if(input.checkedOn<received || input.checkedOn>today)throw new AdminReviewError('evidenceDateOutOfRange',400);
   try{
-    await db.prepare(`INSERT INTO new_spot_evidence_checks(operation_id,report_id,basis,source_url,checked_on,recorded_by,recorded_at,request_hash)
-      SELECT ?,?,?,?,?,?,?,? ${FROM} WHERE r.report_id=? AND ${VERSION}=?`)
+    await db.prepare(`INSERT INTO new_spot_evidence_checks(operation_id,report_id,basis,source_url,checked_on,place_confirmed,recorded_by,recorded_at,request_hash)
+      SELECT ?,?,?,?,?,1,?,?,? ${FROM} WHERE r.report_id=? AND ${VERSION}=?`)
       .bind(input.operationId,input.reportId,input.basis,sourceUrl,input.checkedOn,input.decidedBy,at,hash,input.reportId,input.expectedVersion).run();
   }catch{
     const raced=await db.prepare('SELECT request_hash FROM new_spot_evidence_checks WHERE operation_id=?').bind(input.operationId).first<{request_hash:string}>();

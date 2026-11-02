@@ -1,8 +1,9 @@
 -- v1.0 new places without photos (scope decision 2026-11-02: photos on Workers Free were NO-GO; photos 1–3 return in
 -- v1.1). A `missing` report is words and a pin from one person, so it may back a new place only when an operator has
 -- checked the place independently and recorded how: an official source page (`officialSource`, its https URL) or a
--- visit in person (`siteVisit`). An approved, still viewable photo (0010) remains the other way to open the gate, so
--- v1.1 photos need no migration of this table.
+-- visit in person (`siteVisit`). The operator also affirms what the check showed (`place_confirmed`): a place to smoke
+-- at this pin, seen in the source or on site, not taken from the report. An approved, still viewable photo (0010)
+-- remains the other way to open the gate, so v1.1 photos need no migration of this table.
 --
 -- Bounded operator metadata only: no report text, pin, submitter identity or free text. Immutable like
 -- admin_review_audit (0008): a wrong record is answered by rejecting the report, never by editing evidence.
@@ -13,6 +14,7 @@ CREATE TABLE new_spot_evidence_checks (
  source_url TEXT CHECK(source_url IS NULL OR (length(source_url) BETWEEN 12 AND 300 AND source_url GLOB 'https://?*'
    AND source_url NOT GLOB '*[^!-~]*' AND source_url NOT GLOB 'https://*@*' AND source_url NOT GLOB '*#*')),
  checked_on TEXT NOT NULL CHECK(length(checked_on)=10 AND date(checked_on) IS checked_on),
+ place_confirmed INTEGER NOT NULL CHECK(place_confirmed = 1),
  recorded_by TEXT NOT NULL CHECK(length(recorded_by) BETWEEN 1 AND 64 AND recorded_by NOT GLOB '*[^a-zA-Z0-9._-]*'),
  recorded_at TEXT NOT NULL,
  request_hash TEXT NOT NULL CHECK(length(request_hash)=64),

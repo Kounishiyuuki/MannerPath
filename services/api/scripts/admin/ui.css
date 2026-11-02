@@ -52,3 +52,5 @@ dl{grid-template-columns:minmax(90px,30%) minmax(0,1fr);gap:12px}dt{font-weight:
 @media(prefers-color-scheme:dark){
   :root{color:#e1ebe5}.brand b,.tag,.intro p:not(.eyebrow),.section-title span,.muted,.queue-item small,.code,dt,.history,.empty,footer,.step-description{color:#bfd0c5}.step-label{color:#9cddbe}.review-step{border-color:#587563}.review{border-color:#739c82}.danger{color:#ffbdb1;border-color:#b97d72}button:disabled{background:#2c3931;color:#b6c3b9;border-color:#64766b}#message,#approval-photo-hint{background:#42351c;color:#ffe2a1;border-color:#a58a4f}:focus-visible{outline-color:#9ae3bd}
 }
+.evidence-record label{display:block;margin:12px 0}.evidence-record select,.evidence-record input[type=url],.evidence-record input[type=date]{display:block;max-width:100%;margin-top:4px;border:1px solid #c7d6ce;border-radius:5px;padding:7px}.evidence-record input[type=url]{width:100%}
+.evidence-record label[hidden]{display:none}

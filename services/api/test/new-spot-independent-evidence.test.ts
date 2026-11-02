@@ -2,6 +2,8 @@
 // without any photo and waits in moderation; nothing publishes it automatically. It can be accepted, and back a new-spot
 // review and export, only after an operator recorded an independent check (official source page or visit). The photo
 // routes stay closed in v1.0, and every other intake guard (App Attest, idempotency, budget, bounds) is unchanged.
+import { readFileSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createApp } from "../src/app.ts";
@@ -14,7 +16,7 @@ import { exportReview, listNewSpotCandidates, proposeNewSpotReview } from "../sr
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { type TestDevice, type TestPki, assert as makeAssertion, attest, testDevice, testPki } from "./support/app-attest-fixture.ts";
 import { REGISTRATION_TEST_ENV } from "./support/registration-env.ts";
-import { SqliteD1, reportsD1 } from "./support/sqlite-d1.ts";
+import { SqliteD1, applyMigration, reportMigrationFiles, reportsD1 } from "./support/sqlite-d1.ts";
 
 type Row = Record<string, any>;
 const APP_ID = "ABCDE12345.com.example.mannerpath";
@@ -61,7 +63,7 @@ const count = (db: SqliteD1, sql: string) => (db.raw.prepare(sql).get() as Row).
 
 async function evidence(db: SqliteD1, reportId: string, extra: Partial<EvidenceCheckInput> = {}, at = NOW): Promise<EvidenceCheckInput> {
   return { reportId, basis: "officialSource", sourceUrl: OFFICIAL, checkedOn: TODAY_JST, expectedVersion: (await getAdminReport(db, reportId, at)).version,
-    operationId: crypto.randomUUID(), decidedBy: "operator", ...extra };
+    operationId: crypto.randomUUID(), decidedBy: "operator", placeConfirmed: true, ...extra };
 }
 async function accept(db: SqliteD1, reportId: string, at = NOW) {
   return applyAdminDecision(db, { reportId, state: "accepted", reason: "confirmed", expectedVersion: (await getAdminReport(db, reportId, at)).version,
@@ -140,10 +142,12 @@ test("evidence input: https only, no credentials or fragment, a Japan date betwe
     { sourceUrl: "http://www.city.example.jp/a" }, { sourceUrl: "https://user:pw@www.city.example.jp/a" }, { sourceUrl: "https://www.city.example.jp/a#x" },
     { sourceUrl: "https://localhost/x" }, { sourceUrl: "https://www.city.example.jp/ a" }, { sourceUrl: `https://www.city.example.jp/${"a".repeat(300)}` },
     { sourceUrl: undefined }, { basis: "siteVisit", sourceUrl: OFFICIAL }, { basis: "photo" }, { checkedOn: "2026-13-01" }, { checkedOn: "20261013" },
-    { decidedBy: "a b" }, { operationId: "not-a-uuid" },
+    { decidedBy: "a b" }, { operationId: "not-a-uuid" }, { placeConfirmed: "yes" as any }, { placeConfirmed: undefined as any },
   ] as Partial<EvidenceCheckInput>[]) {
     await assert.rejects(recordIndependentEvidence(h.db, await evidence(h.db, reportId, bad), NOW), code("invalidEvidence"), JSON.stringify(bad));
   }
+  // The operator must affirm that the source or the visit showed a place to smoke at this pin.
+  await assert.rejects(recordIndependentEvidence(h.db, await evidence(h.db, reportId, { placeConfirmed: false }), NOW), code("placeConfirmationRequired"));
   await assert.rejects(recordIndependentEvidence(h.db, await evidence(h.db, reportId, { checkedOn: "2026-10-14" }), NOW), code("evidenceDateOutOfRange"));
   await assert.rejects(recordIndependentEvidence(h.db, await evidence(h.db, reportId, { checkedOn: "2026-10-12" }), NOW), code("evidenceDateOutOfRange"));
   const visit = await recordIndependentEvidence(h.db, await evidence(h.db, reportId, { basis: "siteVisit", sourceUrl: undefined }), NOW);
@@ -157,7 +161,7 @@ test("the database refuses a check for another report type, a decided or expired
     ...(type === "moved" ? { spotId: "sp_01V64NN31G72E5KJJ5W22W1A1J" } : {}), acceptedTermsVersion: CURRENT_REPORT_TERMS.version } as any,
   { now: NOW, attestationStatus: "verified", submitterHash: "a".repeat(64) })).reportId;
   const insert = (reportId: string, checkedOn = TODAY_JST, recordedAt = "2026-10-13T03:00:00Z") => db.raw.prepare(`INSERT INTO new_spot_evidence_checks
-    (operation_id, report_id, basis, source_url, checked_on, recorded_by, recorded_at, request_hash) VALUES (?, ?, 'siteVisit', NULL, ?, 'operator', ?, ?)`)
+    (operation_id, report_id, basis, source_url, checked_on, place_confirmed, recorded_by, recorded_at, request_hash) VALUES (?, ?, 'siteVisit', NULL, ?, 1, 'operator', ?, ?)`)
     .run(crypto.randomUUID(), reportId, checkedOn, recordedAt, "0".repeat(64));
   const moved = await make("moved");
   assert.throws(() => insert(moved), /not an open new-spot proposal/);
@@ -165,8 +169,10 @@ test("the database refuses a check for another report type, a decided or expired
   const open = await make("missing");
   assert.throws(() => insert(open, "2026-10-12"), /not an open new-spot proposal/);
   assert.throws(() => insert(open, "2026-10-14"), /not an open new-spot proposal/);
-  assert.throws(() => db.raw.prepare(`INSERT INTO new_spot_evidence_checks VALUES (?, ?, 'officialSource', NULL, ?, 'operator', ?, ?)`)
+  assert.throws(() => db.raw.prepare(`INSERT INTO new_spot_evidence_checks VALUES (?, ?, 'officialSource', NULL, ?, 1, 'operator', ?, ?)`)
     .run(crypto.randomUUID(), open, TODAY_JST, "2026-10-13T03:00:00Z", "0".repeat(64)), /CHECK constraint/);
+  assert.throws(() => db.raw.prepare(`INSERT INTO new_spot_evidence_checks VALUES (?, ?, 'siteVisit', NULL, ?, 0, 'operator', ?, ?)`)
+    .run(crypto.randomUUID(), open, TODAY_JST, "2026-10-13T03:00:00Z", "0".repeat(64)), /CHECK constraint/, "a check that confirmed nothing is not a check");
   insert(open);
   const rejected = await make("missing");
   await recordModerationDecision(db, rejected, { state: "rejected", decidedBy: "operator", reason: "abuse", now: NOW });
@@ -204,4 +210,66 @@ test("publication: a checked report backs a new-spot review and export; an unche
   h.db.raw.prepare("INSERT INTO report_review_evidence (report_id, review_id) VALUES (?, ?)").run(unchecked, forged);
   assert.throws(() => h.db.raw.prepare("UPDATE report_reviews SET state = 'exported', artifact_sha256 = ?, exported_at = ? WHERE review_id = ?")
     .run("0".repeat(64), "2026-10-13T03:02:00Z", forged), /no viewable approved evidence photo and no independent check/);
+});
+
+test("a request cut off by the CPU limit is retried with a fresh challenge and the same key: one report either way", async () => {
+  const h = await harness();
+  // Cut off before the report batch commits: nothing of the report is stored, and the spent challenge stays spent.
+  const batch = h.db.batch.bind(h.db);
+  h.db.batch = async () => { h.db.batch = batch; throw new Error("Worker exceeded CPU time limit"); };
+  const first = await signedMissing(h, idem(40));
+  assert.equal((await h.post("/v1/reports", first)).status, 503);
+  assert.equal(count(h.db, "SELECT count(*) AS n FROM reports"), 0);
+  assert.equal(count(h.db, "SELECT count(*) AS n FROM report_rate_windows"), 0, "a rolled-back report spends no budget");
+  const replay = await h.post("/v1/reports", first);
+  assert.deepEqual([replay.status, replay.json.reason], [403, "challengeInvalid"], "the cut-off request's challenge cannot be replayed");
+  const retried = await h.post("/v1/reports", await signedMissing(h, idem(40)));
+  assert.equal(retried.status, 201);
+
+  // Cut off after the commit, so the client never saw the answer: the retry answers the stored report.
+  const again = await h.post("/v1/reports", await signedMissing(h, idem(40)));
+  assert.deepEqual([again.status, again.json.reportId], [200, retried.json.reportId]);
+  assert.equal(count(h.db, "SELECT count(*) AS n FROM reports"), 1);
+  assert.equal(count(h.db, "SELECT sum(report_count) AS n FROM report_rate_windows WHERE window_kind = 'hour'"), 1);
+});
+
+test("0011 applies over existing 0010 data unchanged, and its rollback restores the photo-only gate", async () => {
+  const raw = new DatabaseSync(":memory:");
+  raw.exec("PRAGMA foreign_keys = ON;");
+  const sql = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
+  const files = reportMigrationFiles();
+  assert.equal(files.at(-1), "0011_new_spot_independent_evidence.sql");
+  for (const file of files.slice(0, -1)) applyMigration(raw, sql(`../migrations-reports/${file}`));
+  const db = new SqliteD1(raw);
+  const make = async (at: Date, latitude: number) => (await createReport(db, { schemaVersion: 1, type: "missing", installId: INSTALL,
+    proposedLocation: { latitude, longitude: 139.77 }, acceptedTermsVersion: CURRENT_REPORT_TERMS.version, claim: CLAIM } as any,
+  { now: at, attestationStatus: "verified", submitterHash: "a".repeat(64) })).reportId;
+  // Data written before 0011: an open proposal, and one the legacy CLI accepted without photo or check.
+  const open = await make(NOW, 35.71);
+  const legacy = await make(NOW, 35.81);
+  await recordModerationDecision(db, legacy, { state: "accepted", decidedBy: "legacy-cli", reason: "confirmed", now: NOW });
+  await setReconciliationState(db, legacy, "queued", NOW);
+  const snapshot = () => JSON.stringify(raw.prepare("SELECT * FROM reports r JOIN report_moderation m USING (report_id) ORDER BY report_id").all());
+  const before = snapshot();
+  const triggers = () => (raw.prepare("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'report_reviews_new_spot%' ORDER BY name").all() as Row[]).map((t) => t.name);
+
+  applyMigration(raw, sql(`../migrations-reports/${files.at(-1)}`));
+  assert.equal(snapshot(), before, "0011 only adds; existing reports and decisions are untouched");
+  assert.deepEqual(triggers(), ["report_reviews_new_spot_evidence"]);
+  const later = new Date(NOW.getTime() + 60_000);
+  await assert.rejects(proposeNewSpotReview(db, { reportIds: [legacy], tier: "communityReported", locationReportId: legacy, decidedBy: "operator", now: later }),
+    /no independent check/, "a pre-0011 acceptance without evidence stays held");
+  await recordIndependentEvidence(db, await evidence(db, open), NOW);
+  await accept(db, open);
+  await setReconciliationState(db, open, "queued", NOW);
+  const reviewId = await proposeNewSpotReview(db, { reportIds: [open], tier: "communityReported", locationReportId: open, decidedBy: "operator", now: later });
+
+  // Rollback: the 0009/0010 photo-only gate is back, the 0011 gate is gone, the immutable check record stays.
+  applyMigration(raw, sql("../migrations-reports-rollback/0011_new_spot_independent_evidence.sql"));
+  assert.deepEqual(triggers(), ["report_reviews_new_spot_photo_evidence", "report_reviews_new_spot_photo_viewable"]);
+  assert.equal(count(db, "SELECT count(*) AS n FROM new_spot_evidence_checks"), 1);
+  await assert.rejects(exportReview(db, reviewId, { now: later }), /report_reviews: a new-spot report has no viewable approved evidence photo$/, "after rollback a check alone exports nothing");
+  // 0011 is not re-runnable: applied again it fails as one transaction and changes nothing.
+  assert.throws(() => applyMigration(raw, sql(`../migrations-reports/${files.at(-1)}`)), /already exists/);
+  assert.deepEqual(triggers(), ["report_reviews_new_spot_photo_evidence", "report_reviews_new_spot_photo_viewable"]);
 });

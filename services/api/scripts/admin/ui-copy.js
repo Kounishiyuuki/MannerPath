@@ -3,6 +3,7 @@ const errors = {
   independentEvidenceRequired: '新規地点の承認には、公式情報源または現地確認の記録が必要です。先に確認結果を記録してください。',
   invalidEvidence: '確認記録の内容が正しくありません。公式情報源は https のURL、確認日は日付で入力してください。',
   evidenceDateOutOfRange: '確認日は投稿の受付日から今日まで（日本時間）の日付にしてください。',
+  placeConfirmationRequired: '公式情報源の記載または現地で、この位置に喫煙できる場所があることを確かめた場合だけ記録できます。確認欄にチェックしてください。',
   evidenceNotApplicable: 'この投稿には確認記録を追加できません（新規地点の未承認の投稿だけが対象です）。',
   privacyCheckRequired: '承認前にプライバシーと喫煙許可の確認欄をチェックしてください。',
   photoUnavailable: '写真は期限切れ・削除中、または審査対象外です。再読み込みして確認してください。',
@@ -31,7 +32,7 @@ const states = {accepted:'承認',needsInfo:'保留',rejected:'却下',duplicate
 const reasons = {confirmed:'確認できた',contradictedBySource:'根拠と矛盾',insufficientDetail:'情報不足',duplicateOfExistingReport:'既存投稿と重複',outOfScope:'対象外',abuse:'不適切な投稿',unspecified:'その他（未指定）',usableEvidence:'審査資料として利用可能',privacyRisk:'顔・車両番号などのプライバシーリスク',unrelated:'無関係',unsafeContent:'不適切な写真'};
 const bases = {officialSource:'公式情報源を確認',siteVisit:'現地で確認'};
 export function adminEvidenceSummary(payload) {
-  return `投稿 ${payload.reportId}\n確認方法：${Object.hasOwn(bases,payload.basis) ? bases[payload.basis] : '不明'}\n確認日：${payload.checkedOn}${payload.sourceUrl ? `\n情報源：${payload.sourceUrl}` : ''}\n記録は変更・削除できません。投稿の承認・公開は行いません。`;
+  return `投稿 ${payload.reportId}\n確認方法：${Object.hasOwn(bases,payload.basis) ? bases[payload.basis] : '不明'}\n確認日：${payload.checkedOn}${payload.sourceUrl ? `\n情報源：${payload.sourceUrl}` : ''}\n確認内容：${payload.placeConfirmed === true ? 'この位置に喫煙できる場所があることを運営者が確認' : '未確認（記録できません）'}\n記録は変更・削除できません。投稿の承認・公開は行いません。`;
 }
 export function adminDecisionSummary(payload) {
   return `${payload.photoId ? '写真' : '投稿'} ${payload.reportId}\n状態：${Object.hasOwn(states,payload.state) ? states[payload.state] : '不明'}\n理由：${Object.hasOwn(reasons,payload.reason) ? reasons[payload.reason] : '不明'}\n公開データは変更しません。`;
