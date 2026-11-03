@@ -1,5 +1,11 @@
 # Free-tier probe — real Cloudflare verification of configuration 3 (prepared, NOT RUN)
 
+> **保全記録（2026-11-04）：** §1–§8は実行前の手順書、§9–§10は当時の隔離probeでの実測記録。
+> この文書保全でCloudflare操作・再測定は行っていない。写真は最終的にNO-GO、v1.0は写真なし申請を採用した。
+> 現行方針は [V1_PHOTO_FREE_RELEASE_PLAN.md](V1_PHOTO_FREE_RELEASE_PLAN.md)。PoCコード・設定はこの保全に含めない。
+> §9–§10の保全元：[#364 / `673c6d90e0a764cd4ae58d67a19975f009a49017`](https://github.com/Kounishiyuuki/MannerPath/blob/673c6d90e0a764cd4ae58d67a19975f009a49017/docs/release/V1_FREE_TIER_PROBE_RUNBOOK.md)
+> （§9は#363の測定記録を継承）。記録中の作成・削除・時刻・資源名は当時の状態で、現在の存在を示さない。
+
 Status: **prepared 2026-10-31; nothing created, deployed or run on Cloudflare.** Every remote step below needs the
 operator's approval first. Production, staging, R2 and Workers Paid are out of scope and untouched. Builds on #357
 (free-tier review) and #358 (binary v3 + D1 photo store PoC).
@@ -147,3 +153,93 @@ window); the operator and counsel accept the free-page residue (§3); the iPhone
 a device run passes (#358 §3); plus the existing activation decisions (#124 terms, ADR-0021 D1/D6, App Privacy).
 If F1 fails, configuration 3 is not viable on Workers Free as built; record the numbers and return to the options in
 V1_FREE_TIER_ARCHITECTURE.md rather than relaxing a check.
+
+## 9. Results (2026-10-31, Workers Free, wrangler 4.154.0)
+
+Worker `mannerpath-free-tier-probe` on workers.dev (bindings: the two probe D1s, `CHALLENGE_RATE_LIMITER`, vars), deployed
+19:51 UTC, deleted ≈ 20:07 UTC with its three Secrets. Synthetic data only (re-encoded iOS Simulator sample photos,
+172–1,073 KB, no EXIF). Uploads: 10, then a 100-run that stopped itself at upload 23 → 33 uploads, 18.8 MB.
+
+**CPU source and unit.** Per invocation from `wrangler tail` (`cpuTime`, integer ms; headers and bodies dropped before
+writing). Cross-checked with GraphQL `workersInvocationsAdaptive`: the d1-checks call is 1,105 ms in tail and
+`cpuTimeP99` 1,105,944 in GraphQL, so GraphQL CPU is **microseconds**; failures appear as status `exceededResources`
+(tail outcome `exceededCpu`). Node timings are not Cloudflare CPU and are not used below.
+
+| Route | n | CPU p50 / p95 / p99 / max (ms) | > 10 ms | Failures |
+| --- | --- | --- | --- | --- |
+| v3 photo upload | 33 | 74 / 160 / 184 / 184 (min 26, mean 86) | 33 / 33 | 1 × `exceededCpu` → 503 at upload 23 of the 100-run |
+| `/probe/seal` (F11, 20 req, own window) | 20 | 5 / 8 / 37 / 37 | 1 / 20 | 0 |
+| App Attest registration | 3 | 23 / 36 / 36 / 36 | 3 / 3 | 0 (the 403 is the intended foreign-PKI refusal) |
+| App Attest challenge | 37 | 6 / 16 / 22 / 22 | 3 / 37 | 0 |
+| synthetic report | 33 | 4 / 7 / 7 / 7 | 0 | 0 |
+| retention pass (route, nothing due) | 1 | 9 | 0 | 0 |
+| d1-checks (≈ 9 MB of BLOB work) | 1 | 1,105 | 1 | 0 |
+
+Workers' limits page (read 2026-10-31): Free CPU is 10 ms, with "some built-in flexibility" for infrequent overruns;
+"if your Worker starts hitting the limit consistently, its execution will be terminated". Every upload overran, and
+termination started after ~32 overruns.
+
+| # | Result | Evidence |
+| --- | --- | --- |
+| F1 | **FAIL** | table above: p99 184 ms vs ≤ 8 ms; 1 `exceededCpu` |
+| F2 | NOT RUN | Cron not enabled; the same pass via the route took 9 ms with nothing due |
+| F3 | PASS (condition: 0 failures), **at risk** | registration 23–36 ms and challenge max 22 ms are over 10 ms; they rely on the same tolerance |
+| F4 | PASS | bound BLOB 1,200,000 B inserted and read back, sha256 matches |
+| F5 | recorded | 2,000,000 and **2,000,001** B accepted and intact: the 2 MB row limit is not enforced at 2,000,000 B |
+| F6 | recorded (refused) | `PRAGMA secure_delete` → `SQLITE_AUTH`, single and in a batch |
+| F7 | PASS | put-after-fence refused; raw resurrect UPDATE and raw DELETE refused by triggers |
+| F8 | PASS (restore), window NOT MEASURED | restore to a pre-fence bookmark returned the fenced photo's 514,557 B, sha256 identical; restoring the post-fence bookmark re-applied the fence. Free window length (7 days per docs) not observable in one day |
+| F9 | PASS | `d1 execute --file`: reports 22 tables / 16 indexes / 72 triggers, photos 5 tables / 6 triggers |
+| F10 | PASS | deploy accepted `ratelimits`; 37 challenges served |
+| F11 | **FAIL** (20 of 100 planned) | p99 37 ms; F1 + F11 ≤ 8 ms impossible |
+
+Other facts: literal SQL of 98,080 chars accepted, 100,082 → `SQLITE_TOOBIG`; D1 served from APAC (NRT/KIX);
+photos DB 18.4 MB after the run; request without/with a wrong/truncated token → 404; either database's identity row
+changed → 404; a registration under a PKI other than the stored test root → `403 untrustedChain`.
+
+**Procedure findings.** (1) The driver generates a new test PKI each run but `/probe/setup` keeps the first anchor, so a
+second run needs `DELETE FROM probe_config` on the probe photos DB first. (2) The d1-checks photo lives for well under
+a second; Time Travel bookmarks covered ~40 s spans here and `--timestamp` lookups lagged (a post-fence timestamp mapped
+to the pre-fence bookmark), so F8 used a run photo fenced by hand with the store's SQL and `--bookmark`, never
+`--timestamp`.
+
+**Not established.** Which step of the upload costs the CPU (stream read, `validateJpegStructure`'s JS scan, or
+passing a 1 MB BLOB to D1 — d1-checks suggests BLOB binding is expensive); a per-stage probe is needed before any
+redesign. Per the §8 rule, configuration 3 is **not viable on Workers Free as built**.
+
+## 10. Stage breakdown and the hex-binding PoC (2026-11-01, Workers Free)
+
+Same probe Worker (redeployed 07:08 UTC, deleted 07:13 UTC with fresh Secrets), `POST /probe/stage/<name>`: one stage
+per request on one synthetic 1,072,881 B JPEG, 3 requests each (`--mode stages`); CPU from tail as in §9. Every stage
+includes the baseline (token check, two identity queries, reading the whole body).
+
+| Stage | CPU ms (3 runs) |
+| --- | --- |
+| read (baseline) | 9, 5, 5 |
+| split v3 frame | 4, 4, 6 |
+| `validateJpegStructure` | 6, 6, 6 |
+| SHA-256 | 7, 4, 5 |
+| D1 write, bound `Uint8Array` (as built) | **111, 63, 94** |
+| D1 read, BLOB column | **33, 51, 28** |
+| D1 write, one base64 string | 15, 11, 11 |
+| D1 write, one hex string into `unhex(?)` | 18, 14, 20 |
+| D1 read, `hex(bytes)` → `Uint8Array.fromHex` | 6, 10, 6 |
+
+**Cause.** The D1 binding (workerd `cloudflare-internal:d1-api`) converts a bound ArrayBuffer/view with
+`Array.from(bytes)` and sends the parameters with `JSON.stringify`; results return the same way. A 1 MB photo becomes a
+million-element number array. Parsing, the JPEG check and hashing are within the baseline's noise.
+
+**PoC.** `D1PhotoStore.put` now binds `toHex(bytes)` into `unhex(?)` (`Uint8Array.prototype.toHex`, native in workerd).
+The column still receives a BLOB, so the existing `typeof(bytes)` / `length(bytes) = byte_length` CHECKs and fence
+triggers are unchanged; malformed hex becomes NULL and is refused. Full v3 uploads (`--uploads 4 --d1-checks off`,
+client-equivalent JPEGs without metadata):
+
+| Photos | Upload CPU ms | > 10 ms |
+| --- | --- | --- |
+| 0.8 MP q0.70, 146–269 KB | 28, 15, 18, 16 | 4 / 4 |
+| 1.2 MP q0.75, 213–414 KB | 28, 14, 24, 11 | 4 / 4 |
+| 2 MP q0.85, 1,073 KB | 49, 42, 35, 30 (was 74–184) | 4 / 4 |
+
+The binding fix removes about half the CPU at 1 MB but **no size fits 10 ms**: about 10 ms remains per upload whatever
+the photo size (challenge consumption, key read, assertion, the attach statements — each D1 call is a JSON round
+trip). Not split further. Verdict and options: V1_FREE_TIER_ARCHITECTURE.md §8.
