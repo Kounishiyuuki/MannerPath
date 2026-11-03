@@ -1,4 +1,4 @@
-# v1.0 写真なし新規地点：staging 準備・実機E2E・本番チェックリスト（Lane 3 / 2026-11-03）
+# v1.0 写真なし新規地点：staging 準備・実機E2E・本番チェックリスト（Lane 3 / 2026-11-03、2026-11-04 更新）
 
 Status: **手順のみ。staging の作成・変更・デプロイは一切実行していない。** 共通の前提（B1〜B4、0003 の取り込み、
 Secret の扱い）は [STAGING_VERIFICATION.md](../STAGING_VERIFICATION.md)。ここでは v1.0 の写真なし申請に固有の部分だけを書く。
@@ -22,31 +22,81 @@ Secret の扱い）は [STAGING_VERIFICATION.md](../STAGING_VERIFICATION.md)。�
 | var | `REPORT_APP_ATTEST_ENVIRONMENT` | 実機ビルドの実際の App Attest 環境（TestFlight／App Store 配布は `production`、Xcode の Debug は `development`） | 環境が違う鍵は `environmentMismatch` で拒否 |
 | var | `REPORT_APP_ATTEST_APP_ID` | `<Team ID>.<staging の bundle ID>` | 本番と同じでもよいが、staging 向けクライアントでだけ使う |
 | var | `REPORT_APP_ATTEST_BUNDLE_VERSIONS` | E2E に使うビルド番号だけ | 古いビルドは拒否される |
-| var | `REPORT_REGISTRATION` | E2E の間だけ `open`、終わったら `paused` | `paused` は新しい鍵の登録だけを止める。既存の鍵からの申請は止まらない |
+| var | `REPORT_REGISTRATION` | E2E の間だけ `enabled`、終わったら `paused`（それ以外の値は `misconfigured` で fail closed） | `paused` は新しい鍵の登録だけを止める。既存の鍵からの申請は止まらない |
 | var | `REPORT_REGISTRATION_MAX_PER_HOUR`／`_DAY` | 運営者が決める（B2） | |
 | Secret | `REPORT_SUBMITTER_PEPPER`・`RATE_LIMIT_KEY_PEPPER` | staging 専用の新しい値（32文字以上） | 本番と共有しない。表示・ログ出力しない |
 | binding | `CHALLENGE_RATE_LIMITER` | staging 専用 namespace | B2 |
 | 規約 | `reports.termsVersion` | `/v1/config` が返す `CURRENT_REPORT_TERMS.version` | クライアントは古い版で送ると 409 `termsVersionOutdated` |
 | 受付 | `reports.available` | 上の値が揃い、REPORTS_DB があるときだけ `true` | `photoEvidenceEnabled` は常に `false` |
 
-## 3. staging に 0011 を当てる手順（未実施・運営者の承認が必要）
+## 2.1 必要なリソースと新規作成（2026-11-04 時点、すべて未作成）
 
-1. `npx wrangler whoami` でアカウントを確認する。`wrangler.jsonc` の staging の ID が本番と違うことを
-   `test/deploy-config.test.ts` と目視で確認する。
-2. 新しい REPORTS_DB に 0001／0002 → 0003 のガード付き取り込み → 0004〜0010 を当てる（STAGING_VERIFICATION.md の手順）。
-3. 当てる前の状態を記録する：
-   `npx wrangler d1 migrations list REPORTS_DB --env staging --remote`（未適用に 0011 だけがあること）。
-4. `npx wrangler d1 migrations apply REPORTS_DB --env staging --remote`。
-5. 読み取りで確認する：
+| リソース | 名前 | 新規作成 | 備考 |
+| --- | --- | --- | --- |
+| Worker | `mannerpath-api-staging`（workers.dev） | 要 | 本番 Worker `mannerpath-api-production` とは別 |
+| D1（正本） | `mannerpath-staging` | 要 | 検証用の probe D1（`mannerpath-free-tier-probe-*`）は流用しない。合成の正本データだけを入れる |
+| D1（申請） | `mannerpath-staging-reports` | 要 | 同上。0011 を含む全 migration を当てる |
+| Rate limit | `CHALLENGE_RATE_LIMITER`（staging 専用 namespace、例 `9801`） | 生成した設定のデプロイで作られる | 本番と namespace を共有しない |
+| Secret | `REPORT_SUBMITTER_PEPPER`・`RATE_LIMIT_KEY_PEPPER` | 要（staging 専用の新しい値） | 2つは別の値にする（同じ値は `misconfigured`） |
+| App Attest | staging 向けの bundle ID の App ID・ビルド番号 | アプリ側（Lane 1）で用意 | Apple Developer の App Attest capability が必要 |
+| R2 | なし | 作らない | `wrangler.jsonc` の staging の `RAW_ARTIFACTS` は cron のソース確認専用。staging は cron がないので、デプロイは R2 を外した生成設定で行う |
+
+### 2.2 生成した設定（`npm run staging:v1-config`）
+
+`scripts/staging-v1-config.ts` が、コミット済みの `env.staging` から git 管理外の `.wrangler/staging-v1/worker.jsonc` を作る。
+違いは「R2 なし」「staging の D1 の実 ID」「App Attest の値・登録の上限・`CHALLENGE_RATE_LIMITER`」の3点だけ。
+プレースホルダー、コミット済みの ID（本番）、2つの D1 が同じ ID、形式の違う App ID は拒否する。
+`REPORT_REGISTRATION` は常に `paused` で出力し、写真のバインディングと Secret は書かない。
+`wrangler deploy --dry-run -c .wrangler/staging-v1/worker.jsonc` で、バインディングが D1×2・Rate Limit・vars だけになることを確認済み（2026-11-04、ダミー ID）。
+
+## 3. staging を作って migration を当てる手順（未実施・各手順に運営者の承認が必要）
+
+migration の正確な順序：
+
+- `DB`（正本）：`migrations/0001`〜`0033` を順に（`wrangler d1 migrations apply DB`）。
+- `REPORTS_DB`：`0001_report_store` → `0002_scale_indexes` → **0003_evidence_photos はガード付きの取り込み**
+  （`npm run reports:migration -- prepare / apply-remote`、REPORTS_MIGRATION_RECOVERY.md）→ `0004_report_idempotency`
+  → `0005_app_attest_key_revocation` → `0006_bulk_report_rejection` → `0007_photo_deletion_attempts`
+  → `0008_admin_review_audit` → `0009_new_spot_photo_gate` → `0010_new_spot_photo_erasure_window`
+  → `0011_new_spot_independent_evidence`。
+- ローカルでの通し確認：`test/staging-local-d1.test.ts`（0001/0002 → 0003 の取り込み → 0004〜0011、台帳＝ファイル一覧と一致、FK）。
+
+手順：
+
+1. `npx wrangler whoami` でアカウントを確認する（表示されたトークン情報を貼らない）。
+2. **【作成】** `npx wrangler d1 create mannerpath-staging` と `npx wrangler d1 create mannerpath-staging-reports`。
+3. **【コミット】** 2つの ID を `wrangler.jsonc` の `env.staging` に書き、`test/deploy-config.test.ts` の「staging は
+   プレースホルダー」の期待値を staging の ID に変える（本番と同じくレビュー付きの PR）。ガード付きの取り込みツール
+   （`reports:migration`）はコミット済みの設定の ID と `--database-id` の一致を要求するため、これが必要。
+4. **【DB】** `DB` に `npx wrangler d1 migrations apply DB --env staging --remote`。合成の正本データの投入は別の承認で行う
+   （本番データをコピーしない）。
+5. **【REPORTS_DB】** 0001/0002 だけを入れた一時ディレクトリで当てる → `reports:migration -- apply-remote --env staging
+   --database-id <id> --confirm-staging mannerpath-staging-reports --file <prepare の出力> --expected-digest <sha256>`
+   → `verify-remote … --completed true`（台帳が 0001〜0003 だけ）。STAGING_VERIFICATION.md の手順1〜3。
+6. 当てる前の状態を記録する：`npx wrangler d1 migrations list REPORTS_DB --env staging --remote`（未適用が 0004〜0011）。
+7. **【REPORTS_DB】** `npx wrangler d1 migrations apply REPORTS_DB --env staging --remote`。
+8. 読み取りで確認する：
    ```sql
+   SELECT name FROM d1_migrations ORDER BY id;  -- 0001〜0011 の11行
    SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'report_reviews_new_spot%';
    -- 期待：report_reviews_new_spot_evidence の1行だけ（0009/0010 のトリガーは消えている）
    SELECT sql FROM sqlite_master WHERE name='new_spot_evidence_checks';  -- place_confirmed 列があること
    SELECT count(*) FROM new_spot_evidence_checks;                         -- 0
+   PRAGMA foreign_key_check;                                              -- 0行
    ```
-6. 戻す場合：`npx wrangler d1 execute REPORTS_DB --env staging --remote --file migrations-reports-rollback/0011_new_spot_independent_evidence.sql`
-   のあと、手順5のトリガーが `report_reviews_new_spot_photo_evidence`／`_viewable` の2つになったことを確認する。
-   REPORTS_DB 自体の削除・作り直しはしない。
+9. 設定を作る：`npm run staging:v1-config -- --db-id <DB の id> --reports-db-id <REPORTS_DB の id> --app-id <Team ID>.<staging bundle ID>
+   --attest-environment <production|development> --bundle-versions <E2E のビルド番号> --registration-max-per-hour <n>
+   --registration-max-per-day <n> --limiter-namespace <staging 専用> --limiter-limit <1分あたり>`。
+10. **【Secret】** `npx wrangler secret put REPORT_SUBMITTER_PEPPER -c .wrangler/staging-v1/worker.jsonc`、同じく
+    `RATE_LIMIT_KEY_PEPPER`（対話入力。値を表示・保存しない。`openssl rand -base64 48` などで別々に作る）。
+11. **【デプロイ】** `npx wrangler deploy -c .wrangler/staging-v1/worker.jsonc`（登録は `paused`）。
+12. 読み取りの確認：`npm run --silent staging:security-smoke -- --base-url https://mannerpath-api-staging.<subdomain>.workers.dev
+    --confirm-staging mannerpath-api-staging --expect-reports v3`。`/v1/config` が `photoEvidenceEnabled:false`。
+13. **【E2E の開始】** 生成した設定の `REPORT_REGISTRATION` を `enabled` にして再デプロイ → §4 → 終わったら `paused` で再デプロイ。
+
+0011 を戻す場合：`npx wrangler d1 execute REPORTS_DB --env staging --remote --file migrations-reports-rollback/0011_new_spot_independent_evidence.sql`
+のあと、手順8のトリガーが `report_reviews_new_spot_photo_evidence`／`_viewable` の2つになったことを確認する。
+REPORTS_DB 自体の削除・作り直しはしない。
 
 ## 4. 実機E2Eシナリオ（staging、Release build、合成データのみ）
 
@@ -87,7 +137,25 @@ staging で（本番と同じ Workers Free の条件で）：
    本番の Worker 名で実行する）。`exceededCpu` が出たら、アプリの再送（新しい challenge・同じ冪等キー）で回復できて
    いるかを、申請の重複がないことで確認する。
 
-## 6. 本番 migration と受付開始のチェックリスト
+## 6. 運営者1名での確認・承認（2名承認とのリスク差）
+
+v1.0 は運営者1名で、独立確認の記録と承認の両方を行える。代わりに次を必須にしている：
+
+- 承認の前に、申請者とは独立した証拠の記録（公式情報源の https URL か現地確認、確認日、`place_confirmed=1`、記録者）。
+  API・運営ツール・DB トリガー（0011）の3段で、記録のない新規地点は承認・export できない。
+- 記録は変更・削除できない（0011 の `no_update`・`no_delete` トリガー）。承認は `admin_review_audit` に `decided_by` 付きで残る。
+
+| | 1名（v1.0） | 2名承認 |
+| --- | --- | --- |
+| 申請者の主張だけでの掲載 | 防げる（DB で拒否） | 防げる |
+| 運営者の誤認（URL の読み違い、別の場所の確認） | 防げない。事後に監査で見つける | 2人目が気づける |
+| 運営者による故意の誤記録 | 防げない。記録者・時刻が消せない形で残る | 共謀がなければ防げる |
+| 運用の負荷 | 小さい | 承認待ちが増える |
+
+緩和策：週1回、承認済みの新規地点の記録（URL・確認日）を見直す。誤りが見つかったら、既存の取り下げの手順で非公開にする。
+2名承認にするかは、受付件数と誤掲載の実績を見て運営者が決める（要確認）。
+
+## 7. 本番 migration と受付開始のチェックリスト
 
 すべて未実施。各項目に運営者の承認が必要。
 
