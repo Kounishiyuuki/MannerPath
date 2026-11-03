@@ -8,6 +8,10 @@ import { STAGING_WORKER, stagingConfig } from "../scripts/staging-v1-config.ts";
 
 const committed = parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
 const A = "11111111-2222-4333-8444-555555555555", B = "66666666-7777-4888-9999-000000000000";
+// The committed staging IDs; the first two tests run against a copy with placeholders, as before staging existed.
+const placeholders = structuredClone(committed);
+placeholders.env.staging.d1_databases[0].database_id = "00000000-0000-0000-0000-000000000000";
+placeholders.env.staging.d1_databases[1].database_id = "00000000-0000-0000-0000-000000000001";
 const input = {
   "--db-id": A, "--reports-db-id": B, "--app-id": "ABCDE12345.com.example.mannerpath.staging",
   "--attest-environment": "production", "--bundle-versions": "42", "--registration-max-per-hour": "20",
@@ -15,7 +19,7 @@ const input = {
 };
 
 test("binds only the staging databases with their own IDs, no R2, no cron, no photo bindings, registration paused", () => {
-  const c = stagingConfig(committed, input, "/api");
+  const c = stagingConfig(placeholders, input, "/api");
   assert.equal(c.name, STAGING_WORKER);
   assert.equal("env" in c || "r2_buckets" in c || "routes" in c, false);
   assert.deepEqual(c.triggers.crons, []);
@@ -36,12 +40,12 @@ test("refuses placeholders, committed (production) IDs, a shared ID and malforme
     ["--bundle-versions", "1;2"], ["--registration-max-per-hour", "0"], ["--registration-max-per-day", "10"],
     ["--limiter-limit", "-1"],
   ];
-  for (const [flag, value] of bad) assert.throws(() => stagingConfig(committed, { ...input, [flag]: value }, "/api"), undefined, `${flag}=${value}`);
+  for (const [flag, value] of bad) assert.throws(() => stagingConfig(placeholders, { ...input, [flag]: value }, "/api"), undefined, `${flag}=${value}`);
 });
 
 test("once staging's IDs are committed, only those IDs are accepted", () => {
-  const withIds = structuredClone(committed);
-  withIds.env.staging.d1_databases[0].database_id = A; withIds.env.staging.d1_databases[1].database_id = B;
-  assert.equal(stagingConfig(withIds, input, "/api").d1_databases[1].database_id, B);
-  assert.throws(() => stagingConfig(withIds, { ...input, "--reports-db-id": "77777777-7777-4777-8777-777777777777" }, "/api"), /committed ID/);
+  const [db, reports] = committed.env.staging.d1_databases.map((d: any) => d.database_id);
+  const real = { ...input, "--db-id": db, "--reports-db-id": reports };
+  assert.equal(stagingConfig(committed, real, "/api").d1_databases[1].database_id, reports);
+  assert.throws(() => stagingConfig(committed, input, "/api"), /committed ID/);
 });

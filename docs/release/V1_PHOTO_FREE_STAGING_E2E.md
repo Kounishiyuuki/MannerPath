@@ -1,6 +1,6 @@
 # v1.0 写真なし新規地点：staging 準備・実機E2E・本番チェックリスト（Lane 3 / 2026-11-03、2026-11-04 更新）
 
-Status: **手順のみ。staging の作成・変更・デプロイは一切実行していない。** 共通の前提（B1〜B4、0003 の取り込み、
+Status: **2026-11-04 に staging を作成・デプロイ（§8）。REPORTS_DB は 0002 まで（0003 の取り込みは対話端末での実行待ち）。** 共通の前提（B1〜B4、0003 の取り込み、
 Secret の扱い）は [STAGING_VERIFICATION.md](../STAGING_VERIFICATION.md)。ここでは v1.0 の写真なし申請に固有の部分だけを書く。
 仕様は [V1_PHOTO_FREE_NEW_SPOT.md](V1_PHOTO_FREE_NEW_SPOT.md)。
 
@@ -170,3 +170,36 @@ v1.0 は運営者1名で、独立確認の記録と承認の両方を行える�
 - [ ] `REPORT_REGISTRATION` を開く（運営者承認）→ `reports.available:true` を確認
 - [ ] 受付開始後24時間：1102 エラー、429 の件数、申請の重複がないことを確認。問題があれば `REPORT_REGISTRATION=paused`
       と App Attest の有効化値の除去で受付を止める（STAGING_VERIFICATION.md 手順5）
+
+## 8. staging の現状（2026-11-04、承認のもとで実行）
+
+| 項目 | 状態 |
+| --- | --- |
+| D1 `mannerpath-staging` | `86435c50-daf0-4d6a-b792-ae5ecdba84cd`（APAC）。`migrations/0001`〜`0033` 適用済み（台帳33行、`PRAGMA foreign_key_check` 0行）。正本データは空（promotion 未実施） |
+| D1 `mannerpath-staging-reports` | `2a6e9bf2-4bc1-4394-885b-745d76c80158`（APAC）。0001・0002 適用済み。`reports:migration verify-remote` は OK。**0003 の `apply-remote` は対話端末が必須なため未実施** |
+| Worker `mannerpath-api-staging` | `https://mannerpath-api-staging.happywestyuki.workers.dev`。生成した設定でデプロイ（R2・cron・写真なし） |
+| vars | `REPORT_ATTESTATION=required`、`REPORT_REGISTRATION=paused`、App ID `58A7G4U27M.com.kounishiyuuki.MannerPath`、環境 `development`、ビルド `7`、登録上限 10/時・30/日 |
+| Rate limit | `CHALLENGE_RATE_LIMITER` namespace `9801`、60 requests/60s |
+| Secret | `REPORT_SUBMITTER_PEPPER`・`RATE_LIMIT_KEY_PEPPER`（別々の乱数、値はどこにも保存していない） |
+
+App Attest の値は、アプリの実際の構成から取った（`project.pbxproj`：`DEVELOPMENT_TEAM = 58A7G4U27M`、
+`PRODUCT_BUNDLE_IDENTIFIER = com.kounishiyuuki.MannerPath`、`CURRENT_PROJECT_VERSION = 7`、`MannerPath.entitlements` の
+`appattest-environment = development`）。staging 専用の bundle ID はないので、本番と同じアプリの App ID を、Xcode の Debug
+ビルド（App Attest `development`）として使う。TestFlight で試す場合は、環境を `production` にして設定を作り直す。
+
+### 8.1 残りの手順
+
+1. 対話端末で：`npm run reports:migration -- apply-remote --env staging --database-id 2a6e9bf2-4bc1-4394-885b-745d76c80158
+   --confirm-staging mannerpath-staging-reports --file <prepare の出力> --expected-digest <artifactSha256>`
+   （`prepare` の出力の `artifactSha256` を使う）。
+2. `verify-remote … --completed true` → `npx wrangler d1 migrations apply REPORTS_DB --env staging --remote`（0004〜0011）→ §3 手順8。
+3. 0005 まで当たるまでは、申請のルートは `503 reportStoreUnavailable` で閉じている。
+
+### 8.2 Lane 1 に渡す設定（実機 E2E）
+
+- Debug 構成で実機にビルドする（署名は Automatic、Team `58A7G4U27M`）。Debug には API の URL がないので、ビルド設定で渡す：
+  `xcodebuild … -configuration Debug MANNERPATH_API_BASE_URL=https://mannerpath-api-staging.happywestyuki.workers.dev`
+  （または Xcode でコミットしない xcconfig に書く）。Release の本番 URL は変えない。
+- `CURRENT_PROJECT_VERSION` は `7` のまま（変えたら staging の `--bundle-versions` も合わせて再デプロイ）。
+- 規約の版は `/v1/config` の `reports.termsVersion`（現在 `report-terms.2026-09-30.draft`）に従う。
+- 正本データが空なので、地図には既存のピンが出ない。新規地点の申請だけを試す。

@@ -54,8 +54,9 @@ test("staging mirrors production except for names and IDs, and cannot be deploye
   for (const s of [staging.name, ...staging.d1_databases.map((d: any) => d.database_name), ...staging.r2_buckets.map((b: any) => b.bucket_name)]) {
     assert.match(s, /staging/, `${s}: a staging resource is named as one`);
   }
-  // Placeholder IDs: deploy and --remote fail until a reviewed PR lands the real staging IDs.
-  assert.deepEqual(staging.d1_databases.map((d: any) => d.database_id), ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]);
+  // The reviewed staging-only databases (created 2026-11-04), never production's.
+  assert.deepEqual(staging.d1_databases.map((d: any) => d.database_id), ["86435c50-daf0-4d6a-b792-ae5ecdba84cd", "2a6e9bf2-4bc1-4394-885b-745d76c80158"]);
+  for (const d of staging.d1_databases) assert.equal(production.d1_databases.some((p: any) => p.database_id === d.database_id), false);
   // Writes stay closed: attestation required, registration paused, and no limiter binding, so registration
   // cannot be enabled (it requires CHALLENGE_RATE_LIMITER) without a further reviewed PR.
   assert.deepEqual(staging.vars, { REPORT_ATTESTATION: "required", REPORT_REGISTRATION: "paused" });

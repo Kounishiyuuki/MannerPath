@@ -69,13 +69,13 @@
         {
           "binding": "DB",
           "database_name": "mannerpath-staging",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "86435c50-daf0-4d6a-b792-ae5ecdba84cd",
           "migrations_dir": "migrations"
         },
         {
           "binding": "REPORTS_DB",
           "database_name": "mannerpath-staging-reports",
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "2a6e9bf2-4bc1-4394-885b-745d76c80158",
           "migrations_dir": "migrations-reports"
         }
       ]

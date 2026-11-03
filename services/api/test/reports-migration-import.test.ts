@@ -137,6 +137,7 @@ test("staging recovery selects only a configured independent report UUID and exa
   const reports = config.env.staging.d1_databases.find((entry: any) => entry.binding === "REPORTS_DB");
   const valid = () => new Map([["--env", "staging"], ["--database-id", stagingId], ["--confirm-staging", "mannerpath-staging-reports"]]);
   const runtime = { interactive: true, ci: false };
+  reports.database_id = "00000000-0000-0000-0000-000000000001";
   assert.throws(() => remoteTarget(valid(), runtime, true, config), /placeholder/);
   reports.database_id = stagingId;
   assert.equal(remoteTarget(valid(), runtime, true, config), "staging");
@@ -167,7 +168,8 @@ test("staging CLI refuses placeholder and cross-environment requests before remo
   for (const command of ["verify-remote", "apply-remote"]) {
     const result = run(command, "--env", "staging", "--database-id", "00000000-0000-0000-0000-000000000001", "--confirm-staging", "mannerpath-staging-reports");
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /placeholder/);
+    // The committed staging ID is real, so a placeholder argument is refused as not matching it.
+    assert.match(result.stderr, /placeholder|must match configuration/);
     assert.doesNotMatch(result.stdout, /Executing on remote|Importing reviewed/);
     const mixed = run(command, "--env", "staging", "--database-id", DATABASE_ID, "--confirm-staging", "mannerpath-staging-reports", "--confirm-production", DATABASE_NAME);
     assert.notEqual(mixed.status, 0);
