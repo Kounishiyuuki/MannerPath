@@ -1,5 +1,8 @@
 # Binary photo upload + D1 photo store — PoC (configuration 3 of V1_FREE_TIER_ARCHITECTURE)
 
+> **2026-11-01 結果：** Workers Free での写真受付はすべての検証構成で NO-GO（構成3・A1 を含む、CPU P99 > 8 ms）。
+> 採用された構成はない。詳細と v1.0 の方針は [V1_PHOTO_FREE_RELEASE_PLAN.md](V1_PHOTO_FREE_RELEASE_PLAN.md)。
+
 Status: **local PoC, not adopted** (2026-10-31). Code lives in `services/api/src/poc/binary-photo/` and is **not mounted
 by `createApp`**; no shipped route, schema, migration, binding, Secret or Cloudflare resource changes. Photo intake
 stays disabled. Builds on PR #357 (`jpeg-structure.ts`), whose validator this PoC also tightens (restart markers).

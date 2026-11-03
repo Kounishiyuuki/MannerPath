@@ -1,5 +1,8 @@
 # v1.0 at zero monthly cost — architecture review and photo PoC
 
+> **2026-11-01 結果：** Workers Free での写真受付はすべての検証構成で NO-GO（構成3・A1 を含む、CPU P99 > 8 ms）。
+> 採用された構成はない。詳細と v1.0 の方針は [V1_PHOTO_FREE_RELEASE_PLAN.md](V1_PHOTO_FREE_RELEASE_PLAN.md)。
+
 Status: **design + local PoC only (2026-10-31, main `1e2d009`)**. Nothing here changes a route, a schema, a Cloudflare
 resource, a plan or production intake. Workers Paid is **not** approved. Every remote or production claim below is
 either quoted from a source with its date or marked unverified.
