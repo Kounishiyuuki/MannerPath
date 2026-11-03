@@ -6,6 +6,8 @@
 この文書PRは公開Web、ASC、本番API、iOSコードを変更せず、有効化・法務承認を代行しない。
 [canonical Gate](../../../V1_APP_STORE_RELEASE_GATE.md)のP0は実装・実機・承認の証拠が揃うまでOPEN。
 
+[2026-11-04の要件総点検・4分類・優先ブロッカー](REQUIREMENTS_AUDIT.md)を提出前に確認する。
+
 ## 転記用ファイル
 
 [日本語説明](description-ja.txt)、[Review Notes](review-notes.txt)、[metadata](metadata.json)、
@@ -50,15 +52,15 @@ D1 Time Travelは[常時有効](https://developers.cloudflare.com/d1/reference/t
 ADR-0021の早期最小化endpoint/申請履歴/本人確認は未実装。削除ボタン・即時完全削除を約束しない。
 申請の個人情報削除と公開済み場所factの撤回は別。第三者privacyリスクは本人確認不能でも一律拒否せず運営者へ相談する。
 
-## Lane 1・3との最終照合（2026-11-03、すべてOPEN PR）
+## Lane 1・3との最終照合（2026-11-04、すべてOPEN PR）
 
 [最終レビュー・写真除外の実証条件・運営者の順序](FINAL_REVIEW.md)を参照。
 
 | 対象 | 照合したHEADと内容 | まだ完了しない条件 |
 | --- | --- | --- |
-| #375 Lane1 | `21cb4d5`はreports availableで新規申請可、photo configとreviewed termsの双方が満たされない限り写真不要・写真sectionなし。受付は審査待ち、掲載保証なし | 未merge・未配布。実署名Release/実App Attest/staging、旧draft/写真follow-upの入口と再送が出ないことを確認。範囲外pinの事前拒否は同PRで未確認 |
-| #374 Lane3 | `12c745d`は写真なし受理をpending保存。公式https sourceまたは現地確認の独立記録を承認/review/exportで要求。migration0011でDB制約を更新 | 未merge・未適用・本番無変更。公式URLの真実性は運営者が確認。実DB/CPU再計測・1102監視・実機stagingが必要 |
-| #372 方針 | `1b84c9d`は冒頭でB（写真なし申請）採用を記録。後段のA（申請自体延期）分析/手順は履歴とされている | この資料ではBのみ使用。写真PoCのNO-GOを通常申請自体の停止条件と混同しない |
+| #375 Lane1 | `55ac086`はreports availableで新規申請可、photo configとreviewed termsの双方が満たされない限り写真不要・写真sectionなし。受付は審査待ち、掲載保証なし | 未merge・未配布。実署名Release/実App Attest/staging、旧draft/写真follow-upの入口と再送が出ないことを確認。送信する量子化pinの範囲検査とserver拒否の説明は実装・自動検証済み（同PR内） |
+| #374 Lane3 | `78456d8`は写真なし受理をpending保存。公式https sourceまたは現地確認とplace_confirmedの独立記録を承認/review/exportで要求。migration0011でDB制約を更新 | 未merge・未適用・本番無変更。公式URLの真実性は運営者が確認。staging資源は未作成。実DB/CPU再計測・1102監視・実機stagingが必要 |
+| #372 方針 | `8a1a398`は冒頭でB（写真なし申請）採用を記録。後段のA（申請自体延期）分析/手順は履歴とされている | この資料ではBのみ使用。写真PoCのNO-GOを通常申請自体の停止条件と混同しない |
 | 規約/運用 | #124通常申請規約、公開policy/support、manifest/ASCは未承認・未整合 | 新versionのbytes/同意/権利、保存期限/backup/本人確認、公開更新とRC/実runtimeの一致を運営者が確認 |
 
 現main `1fdf89a`にはまだ旧写真依存が残る。PRの実装完了と、main統合・配備・Release実機PASSは別。
@@ -78,7 +80,7 @@ ADR-0021の早期最小化endpoint/申請履歴/本人確認は未実装。削�
 | 通信/再送 | 許可済みstagingで送信前offline、受理応答欠落、再起動→再送 | 入力保持、安全な同一report再送、重複なし、原因と回復方法を表示 | 切断時点、同じID/受理件数、前後録画。mockのみで本番成功としない |
 | 受付停止安全 | 別途用意済み停止環境で入口 | 停止理由、送れない。受付可能を装わない。試験のため本番を停止しない | config参照/alert |
 | Watch同期 | 初回未同期→実掲載地域のiPhone現在地nearby更新→Watch | 未同期/正常0件/通信失敗/staleを区別。実WC受信、fresh時刻/revision | 両端末画像、公開ID/時刻、再接続結果。目的地検索は同期しない |
-| Widget | iPhone/Watchのapp正常後small/medium/lock/Smart Stack/complication→tap | 同じ先頭/目安/不明、署名App Groupで共有、正しい遷移 | 画像・更新時刻/遅延。Widgetは別ストア枠ではない |
+| Widget | iPhone/Watchのapp正常後small/medium/lock/Smart Stack/complication→tap | 保存した未filterのiPhone候補順/目安/不明、署名App Group共有、正しい遷移。Watchの実GPS/フィルタ後の先頭との一致は要求しない | 画像・更新時刻/遅延。Widgetは別ストア枠ではない |
 | offline/stale | cache読込→機内/再起動、別sessionはcacheなし、Watchは1h超切断 | cache/空/通信失敗/古さを区別。offline徒歩案内を約束しない | 実経過時刻/録画、再接続結果 |
 | AX5/VO/dark | iPhone最大文字/keyboard/3detents→検索/申請/同意/receipt。Watch VO/大文字。darkへ | 欠け/到達不能なし、読み順/状態通知、停止も読める | 設定/端末/録画・音声。未確認アクセシビリティをASCで主張しない |
 | policy/support | Data & Privacy→各URL/メール作成、source license | 正しい承認文面/到達、宛先、送信は不要 | URL/画面。公開Web変更は別担当 |

@@ -18,6 +18,11 @@ mainのiPhone写真必須判定とreview/exportの写真制約はまだ残って
 写真なしUI・独立根拠review/exportの実装は各OPEN PRに準備済みだが、main統合・migration0011適用・
 実機staging・CPU再計測・規約承認・本番設定・ASCは未完了。G2/G3/G16/G23を含めゲートはOPENのまま。
 
+**2026-11-04総点検**：[全要件の4分類と優先ブロッカー](release/submission-v1/text-reports/REQUIREMENTS_AUDIT.md)。
+mainは引き続き`1fdf89a`。OPEN PR #372 `8a1a398`・#374 `78456d8`・#375 `55ac086`を照合。
+#371の両OS AX5対象ケース成功と、Issue #367の未解決UI失敗を分ける。全UI/実機PASSとはしない。
+通常申請/legacy写真状態の統合・staging未作成・実機/署名・法務/公開説明・ASC・本番設定のゲートはOPEN。
+
 ## 1. Release scope (2026-11-02: reports on, photos unavailable)
 
 | Decision | v1.0 |

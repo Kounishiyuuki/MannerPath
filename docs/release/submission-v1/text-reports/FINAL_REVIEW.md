@@ -1,7 +1,8 @@
-# v1.0最終提出文書レビュー — 2026-11-03
+# v1.0最終提出文書レビュー — 2026-11-04
 
 **SUBMISSION: BLOCKED。** v1.0は写真なし新規申請ありで確定。写真はv1.1以降。
-main `1fdf89a`、PR #375 `21cb4d5`、#374 `12c745d`、#372 `1b84c9d`をread-onlyで照合した。
+全項目の4分類と優先ブロッカーは[公開要件総点検](REQUIREMENTS_AUDIT.md)を参照。
+main `1fdf89a`、PR #375 `55ac086`、#374 `78456d8`、#372 `8a1a398`をread-onlyで照合した。
 各PRは照合時OPEN。ソースレビューと各Laneの自動テスト報告は、配布Release・実App Attest・本番の証拠ではない。
 公開Web/ASC/本番API/iOSコードは今回変更・操作しない。
 
@@ -28,7 +29,7 @@ REPORTS_DBへpendingとして保存する。写真fieldは持たない。submitt
 
 目的は審査/不正対策のApp Functionality。アプリに広告・IDFA/広告計測SDKはなく、報告を広告/ブローカー用途へ結合するflowは
 見つからないためNot Tracking案。providerの実用途・保持・転送は運営者が確認する。IP/tile/ログやsupport/emailを写真延期で消さない。
-[Apple Privacy定義](https://developer.apple.com/app-store/app-privacy-details/)を2026-11-03再確認した工学上の評価で、法務承認やASC回答済みではない。
+[Apple Privacy定義](https://developer.apple.com/app-store/app-privacy-details/)を2026-11-04再確認した工学上の評価で、法務承認やASC回答済みではない。
 
 `retention.ts`は90日で本文/pin/submitter hash等を最小化するが、skeleton・列挙claim・receipt/監査とApp Attest登録は別。
 #374の独立確認行（report ID、basis、公式URL、確認日、operator ID、時刻/hash）もimmutableな監査記録で、全記録90日削除ではない。
@@ -52,7 +53,8 @@ D1履歴/exports/restore再適用・support・認証登録の期限と削除依�
 ## 4. 独立した根拠と自動掲載の禁止
 
 #374は写真なし新規地点の承認、review提案、exportに`officialSource`の公式https情報または`siteVisit`の
-運営者による確認記録を要求し、migration0011がDB exportでも検査する。記録しただけでは承認しない。
+運営者による確認記録を要求し、migration0011がDB exportでも検査する。
+最新#374は`place_confirmed = 1`（そのpinに喫煙可能場所があるという明示確認）も必須とする。記録しただけでは承認しない。
 URLの形式がhttpsであることは、そのページが公式/現行である証明ではない。施設/地点・利用条件・位置・確認日との一致は
 運営者が原本で検証する。店舗や灰皿の存在だけで喫煙許可を推定しない。申請者の自由文だけを独立根拠としない。
 source/rights/位置精度/品質・独立性・規約権利・後段公開手続きも残る。受付・独立確認・承認・公開を区別する。
@@ -69,7 +71,9 @@ source/rights/位置精度/品質・独立性・規約権利・後段公開手�
    retention/cleanup・監視を準備。写真off。staging/productionを混ぜず、stagingデータをストア素材に使わない。
 4. **署名実機staging E2E**：写真なし受理→pending→独立確認→承認→review/exportを検証。再送、範囲外pin、上限、
    未同意/不正assertion拒否、写真拒否、LEGACY、Watch/Widget/オフライン/AX5/VoiceOverを記録する。
-   Workers Free CPUの再計測と1102監視を確認。#374の全件ok計測はCPU閾値の常時達成や本番SLOを証明しない。
+   Workers Free CPUの再計測と1102監視を確認。#374最新計測はP50 6ms/P99 35ms、10ms超5%、exceededCpu0。
+   この計測はCPU閾値の常時達成や本番SLOを証明しない。staging資源は同PRで未作成と記録されている。
+   [同PRのstaging手順](https://github.com/Kounishiyuuki/MannerPath/blob/78456d80fd1766a11c2cc257905c2f6e034b72be/docs/release/V1_PHOTO_FREE_STAGING_E2E.md)は準備資料で実行済み証拠ではない。
 5. **公開説明/素材を一致**：別担当が承認したja/en Privacy Policy・Support・通常規約を更新/到達確認する。
    提出RCと承認済み現在corpusで画像・審査動画・notesを準備し、出典/素材権利/地域文を確認する。
 6. **本番有効化は別承認**：運営者の明示的な有効化承認後のみ、別担当が本番0011/trigger、登録/App Attest/limits/retentionを

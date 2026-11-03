@@ -62,7 +62,7 @@
   ],
   "unresolved": [
     "PR375 photo-less client changes are prepared but not merged; final Release and legacy follow-up states need verification",
-    "PR374 independent officialSource/siteVisit review/export gate and migration0011 are prepared but not merged or applied",
+    "PR374 independent officialSource/siteVisit + place_confirmed gate, migration0011 and rollback are prepared but not merged/applied; staging resources and device E2E remain absent",
     "Approved report terms, runtime activation and signed-device E2E",
     "Cloudflare retained tile/IP/diagnostics, Time Travel, support scope and final archive Privacy Report",
     "App Attest registration/audit retention, early minimization and reinstall ownership proof"
@@ -113,11 +113,11 @@
     ]
   },
   "reviewedInputs": {
-    "reviewedOn": "2026-11-03",
+    "reviewedOn": "2026-11-04",
     "main": "1fdf89a",
-    "pr375": "21cb4d5200644b9a973c88721fb5f11fed841b71",
-    "pr374": "12c745dd425a10bf7c4a2004aa14595c2dd609fe",
-    "pr372": "1b84c9d1bf9e70486eeeb89ece85cef4f717b9be",
+    "pr375": "55ac086eaa5d63c8204e079874ea64b9035b1688",
+    "pr374": "78456d80fd1766a11c2cc257905c2f6e034b72be",
+    "pr372": "8a1a398ee4baa450484f9291a8599b54f30d4fb8",
     "releaseVerified": false,
     "apiDeploymentVerified": false
   }
