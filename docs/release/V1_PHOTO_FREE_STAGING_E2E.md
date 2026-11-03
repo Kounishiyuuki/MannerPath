@@ -197,12 +197,17 @@ App Attest の値は、アプリの実際の構成から取った（`project.pbx
 | 未知の challenge での申請 | `403 challengeInvalid` |
 | 写真 API | `503 photoEvidenceDisabled` |
 | `CHALLENGE_RATE_LIMITER` | バインディングは付いている（`wrangler versions view`）。しかし1つの IP から 200件/7秒、180件/70秒を送っても **429 は0件**。Cloudflare の Rate Limiting はロケーションごとの近似で、緩いフィルターとして動く（公式文書）。申請の上限は別の層で守られている：鍵ごとの未使用 challenge 3件、登録 challenge の全体上限1000件、登録 10件/時・30件/日、申請 10件/時・50件/日（D1 トリガー） |
-| `/v1/readiness`・`staging:security-smoke` | 503／失敗。正本 DB に promotion がないため（地図データが空）。申請の経路には影響しない |
+| `/v1/readiness`・`staging:security-smoke` | 合成の正本データ投入後（下記）：readiness 200 `completed`、smoke `PASS`（v3、photosDisabled） |
 
 `reports.available` と実際の受付：`available` は App Attest の設定と REPORTS_DB の有無だけで決まり、`REPORT_REGISTRATION` は見ない。
 これは設計どおり（`paused` は新しい鍵の登録だけを止め、登録済みの鍵からの申請は続く）。アプリは登録時の 503 を
 `serviceUnavailable` として扱い、鍵を消さない（`ReportAuthorizer.swift`）。不一致による誤動作はないので修正はしない。
 staging の受付自体を止めるときは、生成した設定から App Attest の値を外して再デプロイする（`available:false`、503 `attestationUnavailable`）。
+
+合成の正本データ（2026-11-04 投入）：ソース `staging-synthetic-test`、スポット4件「【テスト】MannerPath staging 合成スポット 1〜4」
+（東京駅周辺の座標、URL は `https://example.invalid/…`）、タイル 14/14552/6451・14/14553/6451。リポジトリの
+ingest → resolve → publish → promotion bundle の経路で作った SQL（sha256 `8ec4af90…ebc5`）を、空の DB に1回だけ適用した。
+本番データはコピーしていない。provenance の rule 名には Taito のパーサーの識別子が残る（中身は合成）。
 
 ### 8.2 Lane 1 に渡す設定（実機 E2E）
 
@@ -211,7 +216,7 @@ staging の受付自体を止めるときは、生成した設定から App Atte
   （または Xcode でコミットしない xcconfig に書く）。Release の本番 URL は変えない。
 - `CURRENT_PROJECT_VERSION` は `7` のまま（変えたら staging の `--bundle-versions` も合わせて再デプロイ）。
 - 規約の版は `/v1/config` の `reports.termsVersion`（現在 `report-terms.2026-09-30.draft`）に従う。
-- 正本データが空なので、地図には既存のピンが出ない。新規地点の申請だけを試す。
+- 地図には合成スポット4件（東京駅周辺）だけが出る。
 
 ### 8.3 実機 E2E の当日の手順
 
@@ -219,7 +224,14 @@ staging の受付自体を止めるときは、生成した設定から App Atte
 2. `npx wrangler tail mannerpath-api-staging -c .wrangler/staging-v1/worker.jsonc --format json > tail.jsonl` を流す。
 3. 生成した設定の `REPORT_REGISTRATION` を `enabled` にして `npx wrangler deploy -c .wrangler/staging-v1/worker.jsonc`
    （`npm run staging:v1-config` は常に `paused` を出すので、出力ファイルだけを手で変える。コミットしない）。
-4. §4 のシナリオ 1〜11 を行う。6（429）は申請の上限（D1）で確かめる。challenge の IP 制限は近似なので合否に使わない。
+4. §4 のシナリオ 1〜11 を行う。E2E で必ず確かめる項目（2026-11-04 運営者の指示）：
+   - CPU：`cpuTime` の分布と、`outcome` が `exceededCpu`（1102）の件数。
+   - 冪等性：シナリオ3・4（同じ下書きの再送は 200 で同じ reportId、内容を変えた再送は 409）。
+   - 独立確認なしの公開防止：記録のない申請は承認ボタンが無効で、旧 CLI で承認しても export が DB で拒否される（シナリオ7・9）。
+   - rate limit：申請の上限（シナリオ6、11件目が 429）。challenge の IP 制限は、実機と同じネットワークから正規の端末が
+     送っている間に `curl` で登録用 challenge を1分に100件以上送り、429 が返るか・実機の申請が止まるかを記録する
+     （2026-11-04 の 403 だけの試験では有効性を判断していない。近似の制限として暫定許容）。
+   - 運営ツールでの記録→承認→新規地点レビュー→export（シナリオ8・9）。
 5. 終わったら `npm run staging:v1-config -- …`（同じ引数）で `paused` に戻して再デプロイ。登録済みの鍵からの申請を止める
    必要があれば、App Attest の値を外した設定でデプロイするか、運営ツールで鍵を取り消す。
 6. `tail.jsonl` を §5 の方法で集計する（`cpuTime` の P50／P99／最大、10 ms 超の件数、`outcome` が `ok` 以外＝1102 の件数、429 の件数）。
