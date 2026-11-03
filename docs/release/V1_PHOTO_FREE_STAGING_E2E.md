@@ -1,6 +1,6 @@
 # v1.0 写真なし新規地点：staging 準備・実機E2E・本番チェックリスト（Lane 3 / 2026-11-03、2026-11-04 更新）
 
-Status: **2026-11-04 に staging を作成・デプロイ（§8）。REPORTS_DB は 0002 まで（0003 の取り込みは対話端末での実行待ち）。** 共通の前提（B1〜B4、0003 の取り込み、
+Status: **2026-11-04 に staging を作成・デプロイし、REPORTS_DB は 0011 まで適用済み（§8）。実機 E2E は未実施。** 共通の前提（B1〜B4、0003 の取り込み、
 Secret の扱い）は [STAGING_VERIFICATION.md](../STAGING_VERIFICATION.md)。ここでは v1.0 の写真なし申請に固有の部分だけを書く。
 仕様は [V1_PHOTO_FREE_NEW_SPOT.md](V1_PHOTO_FREE_NEW_SPOT.md)。
 
@@ -176,7 +176,7 @@ v1.0 は運営者1名で、独立確認の記録と承認の両方を行える�
 | 項目 | 状態 |
 | --- | --- |
 | D1 `mannerpath-staging` | `86435c50-daf0-4d6a-b792-ae5ecdba84cd`（APAC）。`migrations/0001`〜`0033` 適用済み（台帳33行、`PRAGMA foreign_key_check` 0行）。正本データは空（promotion 未実施） |
-| D1 `mannerpath-staging-reports` | `2a6e9bf2-4bc1-4394-885b-745d76c80158`（APAC）。0001・0002 適用済み。`reports:migration verify-remote` は OK。**0003 の `apply-remote` は対話端末が必須なため未実施** |
+| D1 `mannerpath-staging-reports` | `2a6e9bf2-4bc1-4394-885b-745d76c80158`（APAC）。0001・0002 → 0003（運営者が対話端末で取り込み）→ 0004〜0011 適用済み。台帳11行、FK 0行、`report_reviews_new_spot_evidence` のみ、`new_spot_evidence_checks`（`place_confirmed` 列あり、0行、変更・削除禁止のトリガー3つ） |
 | Worker `mannerpath-api-staging` | `https://mannerpath-api-staging.happywestyuki.workers.dev`。生成した設定でデプロイ（R2・cron・写真なし） |
 | vars | `REPORT_ATTESTATION=required`、`REPORT_REGISTRATION=paused`、App ID `58A7G4U27M.com.kounishiyuuki.MannerPath`、環境 `development`、ビルド `7`、登録上限 10/時・30/日 |
 | Rate limit | `CHALLENGE_RATE_LIMITER` namespace `9801`、60 requests/60s |
@@ -187,13 +187,22 @@ App Attest の値は、アプリの実際の構成から取った（`project.pbx
 `appattest-environment = development`）。staging 専用の bundle ID はないので、本番と同じアプリの App ID を、Xcode の Debug
 ビルド（App Attest `development`）として使う。TestFlight で試す場合は、環境を `production` にして設定を作り直す。
 
-### 8.1 残りの手順
+### 8.1 API の確認（2026-11-04、App Attest なしでできる範囲）
 
-1. 対話端末で：`npm run reports:migration -- apply-remote --env staging --database-id 2a6e9bf2-4bc1-4394-885b-745d76c80158
-   --confirm-staging mannerpath-staging-reports --file <prepare の出力> --expected-digest <artifactSha256>`
-   （`prepare` の出力の `artifactSha256` を使う）。
-2. `verify-remote … --completed true` → `npx wrangler d1 migrations apply REPORTS_DB --env staging --remote`（0004〜0011）→ §3 手順8。
-3. 0005 まで当たるまでは、申請のルートは `503 reportStoreUnavailable` で閉じている。
+| 確認 | 結果 |
+| --- | --- |
+| `/v1/config` | `available:true`・`attestation:appAttest`・report v3 のみ・`photoEvidenceEnabled:false` |
+| 登録の challenge | `503 registrationPaused` |
+| 未登録の鍵の report challenge | `403 keyNotRegistered` |
+| 未知の challenge での申請 | `403 challengeInvalid` |
+| 写真 API | `503 photoEvidenceDisabled` |
+| `CHALLENGE_RATE_LIMITER` | バインディングは付いている（`wrangler versions view`）。しかし1つの IP から 200件/7秒、180件/70秒を送っても **429 は0件**。Cloudflare の Rate Limiting はロケーションごとの近似で、緩いフィルターとして動く（公式文書）。申請の上限は別の層で守られている：鍵ごとの未使用 challenge 3件、登録 challenge の全体上限1000件、登録 10件/時・30件/日、申請 10件/時・50件/日（D1 トリガー） |
+| `/v1/readiness`・`staging:security-smoke` | 503／失敗。正本 DB に promotion がないため（地図データが空）。申請の経路には影響しない |
+
+`reports.available` と実際の受付：`available` は App Attest の設定と REPORTS_DB の有無だけで決まり、`REPORT_REGISTRATION` は見ない。
+これは設計どおり（`paused` は新しい鍵の登録だけを止め、登録済みの鍵からの申請は続く）。アプリは登録時の 503 を
+`serviceUnavailable` として扱い、鍵を消さない（`ReportAuthorizer.swift`）。不一致による誤動作はないので修正はしない。
+staging の受付自体を止めるときは、生成した設定から App Attest の値を外して再デプロイする（`available:false`、503 `attestationUnavailable`）。
 
 ### 8.2 Lane 1 に渡す設定（実機 E2E）
 
@@ -203,3 +212,14 @@ App Attest の値は、アプリの実際の構成から取った（`project.pbx
 - `CURRENT_PROJECT_VERSION` は `7` のまま（変えたら staging の `--bundle-versions` も合わせて再デプロイ）。
 - 規約の版は `/v1/config` の `reports.termsVersion`（現在 `report-terms.2026-09-30.draft`）に従う。
 - 正本データが空なので、地図には既存のピンが出ない。新規地点の申請だけを試す。
+
+### 8.3 実機 E2E の当日の手順
+
+1. Lane 1 の Debug ビルド（§8.2）を実機に入れる。
+2. `npx wrangler tail mannerpath-api-staging -c .wrangler/staging-v1/worker.jsonc --format json > tail.jsonl` を流す。
+3. 生成した設定の `REPORT_REGISTRATION` を `enabled` にして `npx wrangler deploy -c .wrangler/staging-v1/worker.jsonc`
+   （`npm run staging:v1-config` は常に `paused` を出すので、出力ファイルだけを手で変える。コミットしない）。
+4. §4 のシナリオ 1〜11 を行う。6（429）は申請の上限（D1）で確かめる。challenge の IP 制限は近似なので合否に使わない。
+5. 終わったら `npm run staging:v1-config -- …`（同じ引数）で `paused` に戻して再デプロイ。登録済みの鍵からの申請を止める
+   必要があれば、App Attest の値を外した設定でデプロイするか、運営ツールで鍵を取り消す。
+6. `tail.jsonl` を §5 の方法で集計する（`cpuTime` の P50／P99／最大、10 ms 超の件数、`outcome` が `ok` 以外＝1102 の件数、429 の件数）。
