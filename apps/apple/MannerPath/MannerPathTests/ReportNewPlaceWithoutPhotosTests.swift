@@ -76,7 +76,9 @@ struct ReportNewPlaceWithoutPhotosTests {
         let model = ReportModel(configClient: config, reportClient: reports,
                                 store: FileReportDraftStore(directory: directory), installIDs: reports,
                                 attestedClient: reports, authorizer: authorizer,
-                                photoPolicy: policy, photoUploader: NoPhotoUploads())
+                                photoPolicy: policy, photoUploader: NoPhotoUploads(),
+                                // These tests pin the state after one lost answer; automatic repeats are ReportAutoRetryTests.
+                                retryPolicy: ReportRetryPolicy(maxRetries: 0))
         await model.refreshAvailability()
         return model
     }

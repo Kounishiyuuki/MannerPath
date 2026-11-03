@@ -245,6 +245,23 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         screenshot("\(shots)1-photoless-received")
     }
 
+    /// One lost answer is repeated automatically: one tap, the form stays locked through the backoff, and the
+    /// server receives one report.
+    func testLostAnswerIsRepeatedAutomaticallyOnce() {
+        openNewPlaceForm("photolessAutoRetry")
+        choosePinAndAgree()
+        scrollTo(submit)
+        waitUntilSettled(submit)
+        submit.tap()
+        let pending = app.descendants(matching: .any)["report.pendingReview"]
+        XCTAssertTrue(pending.waitForExistence(timeout: 20))
+        XCTAssertFalse(app.buttons["report.retrySaved"].exists, "no manual retry was needed")
+        scrollTo(pending, upwards: true)
+        XCTAssertEqual(pending.label, "受付完了・審査待ち")
+        XCTAssertTrue(textContaining("rp_UITEST1").exists, "the server stored the report once")
+        screenshot("82-auto-retry-received")
+    }
+
     /// A lost answer survives a relaunch: the saved photo-less report is retried as it was, without asking for photos,
     /// and the server receives one report.
     func testPhotolessLostAnswerRetriesTheSavedReportAfterRelaunch() {
