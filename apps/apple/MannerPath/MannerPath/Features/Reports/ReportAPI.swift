@@ -28,6 +28,9 @@ nonisolated enum ReportAPIError: Error, Equatable, Sendable {
     case attestationRejected(AttestationRejection)
     case challengeLimited(Int?)
     case idempotencyConflict, idempotencyRetired
+    /// A 5xx that is not a documented refusal (e.g. a Workers CPU-limit 1102 answered as 503): the report may or may
+    /// not be stored, so it is ambiguous, but repeating the same idempotent payload is expected to help.
+    case transientStatus(Int)
 }
 
 nonisolated struct AttestationRejection: Equatable, Sendable {
@@ -203,8 +206,13 @@ nonisolated struct ReportAPIClient: ReportConfigFetching, ReportSubmitting, AppA
                 || (response.statusCode == 409 && code == "termsVersionOutdated")
                 || (response.statusCode == 413 && code == "reportTooLarge")
                 || (response.statusCode == 503 && code == "attestationUnavailable")
-            guard isDefinite else { throw ReportAPIError.incompatibleResponse }
+            guard isDefinite else {
+                if response.statusCode == 503 { throw ReportAPIError.transientStatus(503) }
+                throw ReportAPIError.incompatibleResponse
+            }
             throw ReportAPIError.rejected(response.statusCode, code)
+        case 500, 502, 504:
+            throw ReportAPIError.transientStatus(response.statusCode)
         default:
             throw ReportAPIError.incompatibleResponse
         }

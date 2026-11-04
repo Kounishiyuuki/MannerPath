@@ -48,6 +48,9 @@ final class ReportModel {
     private var acceptedCleanupPending = false
     private var recoveredSubmissionAttempt = false
     private let photoFollowUps: (any ReportPhotoFollowUpStoring)?
+    private let retryPolicy: ReportRetryPolicy
+    /// The last attempt's answer was lost to a failure that repeating the same idempotent payload can fix.
+    private var lastAttemptTransient = false
 
     /// A report received earlier (possibly in a previous launch) whose photos are not all on the server yet.
     private var storedPhotoFollowUp: ReportPhotoFollowUp?
@@ -141,8 +144,10 @@ final class ReportModel {
          consent: (any ReportConsentRemembering)? = nil,
          photoPolicy: PhotoEvidencePolicy = PhotoEvidencePolicy(),
          photoUploader: (any EvidencePhotoUploading)? = nil,
-         photoFollowUps: (any ReportPhotoFollowUpStoring)? = nil) {
+         photoFollowUps: (any ReportPhotoFollowUpStoring)? = nil,
+         retryPolicy: ReportRetryPolicy = ReportRetryPolicy()) {
         photos = ReportPhotos(policy: photoPolicy, uploader: photoUploader)
+        self.retryPolicy = retryPolicy
         self.photoFollowUps = photoFollowUps
         self.consent = consent
         self.configClient = configClient
@@ -327,7 +332,28 @@ final class ReportModel {
         } catch { submission = .failed(String(localized: "Saved report could not be removed.")) }
     }
 
+    /// Sends once, then repeats a v3 report whose answer was lost to a transient failure (network, 5xx such as a
+    /// Workers 1102) up to `retryPolicy.maxRetries` times. Each repeat is the manual "Submit again": the saved payload
+    /// and idempotency key, freshly signed over a new challenge, so the server stores it once and replays its
+    /// receipt (200, same reportId). The form stays busy through the backoff, so a tap cannot add a send.
     func submit() async {
+        await submitOnce()
+        var retries = 0
+        while lastAttemptTransient, retries < retryPolicy.maxRetries, canRetryAmbiguous, usesIdempotentRetry {
+            retries += 1
+            submission = .submitting
+            do { try await retryPolicy.wait(retries) }
+            catch {
+                submission = .ambiguous
+                return
+            }
+            submission = .idle
+            await submitOnce()
+        }
+    }
+
+    private func submitOnce() async {
+        lastAttemptTransient = false
         guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy,
               submission != .ambiguous, !isTerminalReceipt,
               (retryAfterSecondsRemaining ?? 0) == 0,
@@ -491,9 +517,15 @@ final class ReportModel {
                 guard clearDefiniteAttempt() else { return }
                 retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
                 submission = .rateLimited(seconds)
+            case .transientStatus:
+                lastAttemptTransient = true
+                submission = .ambiguous
             case .incompatibleResponse: submission = .ambiguous
             case .malformedResponse, .httpStatus: submission = .ambiguous
             }
+        } catch let error as URLError {
+            lastAttemptTransient = ReportRetryPolicy.transientCodes.contains(error.code)
+            submission = .ambiguous
         } catch {
             submission = .ambiguous
         }
@@ -634,6 +666,23 @@ final class ReportModel {
             String(localized: "The report could not be accepted. Your draft remains saved.")
         }
     }
+}
+
+/// Automatic repeats of a lost v3 submission: exponential backoff (1 s, 2 s, …) with jitter, so devices that lost
+/// the same answer do not return at the same instant. 429 and definite refusals never reach it.
+nonisolated struct ReportRetryPolicy: Sendable {
+    static let transientCodes: Set<URLError.Code> = [.timedOut, .networkConnectionLost, .notConnectedToInternet,
+                                                     .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed]
+    var maxRetries = 2
+    var baseSeconds = 1.0
+    var jitter: @Sendable () -> Double = { Double.random(in: 0.5...1.0) }
+    var sleep: @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+
+    func delay(_ retry: Int) -> Duration {
+        .milliseconds(Int(baseSeconds * pow(2, Double(retry - 1)) * jitter() * 1000))
+    }
+
+    func wait(_ retry: Int) async throws { try await sleep(delay(retry)) }
 }
 
 private nonisolated struct UnconfiguredReportClient: ReportConfigFetching, ReportSubmitting {
