@@ -34,7 +34,7 @@ Backend tooling and `make api-validate` require Node >=24: segmented promotion v
 |---|---|
 | Runtime | Cloudflare Workers |
 | Language | TypeScript |
-| HTTP framework | Hono |
+| HTTP framework | Hono 4.13.16 (exact pin; includes GHSA-h7mg-cq63-vhpq wildcard middleware fix) |
 | Validation | Zod |
 | Private evidence image codecs | pinned `jpeg-js` 0.4.4 and `fast-png` 8.0.0; pure JavaScript, bounded server decode and fresh PNG encoding (ADR-0016); intake disabled |
 | Database | Cloudflare D1 |
