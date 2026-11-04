@@ -208,6 +208,9 @@ staging の受付自体を止めるときは、生成した設定から App Atte
 （東京駅周辺の座標、URL は `https://example.invalid/…`）、タイル 14/14552/6451・14/14553/6451。リポジトリの
 ingest → resolve → publish → promotion bundle の経路で作った SQL（sha256 `8ec4af90…ebc5`）を、空の DB に1回だけ適用した。
 本番データはコピーしていない。provenance の rule 名には Taito のパーサーの識別子が残る（中身は合成）。
+`GET /v1/spots/{id}` の `provenance[].rule` に `taito.listed.v1` などが出る（`sourceId` は `staging-synthetic-test`）。
+タイルと `/v1/config` には出ない。アプリは `rule` を表示しない（`apps/apple` に参照なし）。E2E では地点詳細の画面に
+「台東」などの表示が出ないことを目視で確かめる。
 
 ### 8.2 Lane 1 に渡す設定（実機 E2E）
 
@@ -232,6 +235,8 @@ ingest → resolve → publish → promotion bundle の経路で作った SQL（
      送っている間に `curl` で登録用 challenge を1分に100件以上送り、429 が返るか・実機の申請が止まるかを記録する
      （2026-11-04 の 403 だけの試験では有効性を判断していない。近似の制限として暫定許容）。
    - 運営ツールでの記録→承認→新規地点レビュー→export（シナリオ8・9）。
+   - App Attest：初回の鍵登録（registration challenge → `/v1/app-attest/keys` 201）と、申請ごとの report challenge。
+   - CHALLENGE_RATE_LIMITER の 429 は **未解決**。E2E で 429 が観測できなかった場合も成功扱いにしない。
 5. 終わったら `npm run staging:v1-config -- …`（同じ引数）で `paused` に戻して再デプロイ。登録済みの鍵からの申請を止める
    必要があれば、App Attest の値を外した設定でデプロイするか、運営ツールで鍵を取り消す。
 6. `tail.jsonl` を §5 の方法で集計する（`cpuTime` の P50／P99／最大、10 ms 超の件数、`outcome` が `ok` 以外＝1102 の件数、429 の件数）。
