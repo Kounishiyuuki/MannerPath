@@ -26,16 +26,19 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     /// Waits until the element is enabled, hittable and its frame is unchanged between two reads. A tap that lands
     /// while a list is still decelerating or a sheet is still animating only stops the motion; nothing is activated.
-    func waitUntilSettled(_ element: XCUIElement, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+    @discardableResult
+    func waitUntilSettled(_ element: XCUIElement, timeout: TimeInterval = 10, failing: Bool = true,
+                          file: StaticString = #filePath, line: UInt = #line) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         var last = CGRect.null
         while Date() < deadline {
             let frame = element.exists ? element.frame : .null
-            if frame == last, element.isEnabled, element.isHittable { return }
+            if frame == last, element.isEnabled, element.isHittable { return true }
             last = frame
             RunLoop.current.run(until: Date().addingTimeInterval(0.2))
         }
-        XCTFail("\(element) did not settle within \(timeout) s; last frame \(last)", file: file, line: line)
+        if failing { XCTFail("\(element) did not settle within \(timeout) s; last frame \(last)", file: file, line: line) }
+        return false
     }
 
     func choosePinAndAgree() {
@@ -49,8 +52,14 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         // The pin sheet's dismissal reflows the Form; scrolling then leaves it decelerating. Tap the switch only once
         // it is still, then require the toggle to report ON: every later step depends on consent.
         XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForNonExistence(timeout: 10))
+        // Issue #367 (iOS 18.6, long batches): the Form can still reflow after scrollTo saw the switch hittable once,
+        // leaving it settled just below the screen (frame y=854 on 852pt). Scroll again rather than tap off-screen.
         scrollTo(agree)
-        let control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        var control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        for _ in 0..<2 where !waitUntilSettled(control, timeout: 5, failing: false) {
+            scrollTo(agree)
+            control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        }
         waitUntilSettled(control)
         control.tap()
         let on = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: agree)
