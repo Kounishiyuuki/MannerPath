@@ -109,6 +109,18 @@ test("intake: pins outside Japan, oversized text and unattested bodies are refus
   assert.equal(count(h.db, "SELECT count(*) AS n FROM reports"), 0);
 });
 
+test("intake: the Japan extent is inclusive and judged on the submitted pin, before rounding, with no budget used", async () => {
+  const h = await harness();
+  // 46.000004 rounds to the stored 46.00000, but the bound applies to the value sent (docs/API.md).
+  const refused = await h.post("/v1/reports", await signedMissing(h, idem(30), { proposedLocation: { latitude: 46.000004, longitude: 140 } }));
+  assert.deepEqual([refused.status, refused.json.detail], [400, "proposedLocation: outside_service_area"]);
+  assert.equal(count(h.db, "SELECT count(*) AS n FROM report_rate_windows"), 0);
+  for (const [i, location] of [[31, { latitude: 20, longitude: 122 }], [32, { latitude: 46, longitude: 154 }]] as const) {
+    const res = await h.post("/v1/reports", await signedMissing(h, idem(i), { proposedLocation: location }));
+    assert.equal(res.status, 201, JSON.stringify(location));
+  }
+});
+
 test("review: acceptance needs a recorded independent check; the check is audited, immutable and approves nothing", async () => {
   const h = await harness();
   const reportId = (await h.post("/v1/reports", await signedMissing(h, idem(10)))).json.reportId as string;
