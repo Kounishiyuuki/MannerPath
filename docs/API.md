@@ -392,7 +392,10 @@ server responses, while the report body is the server's minimization boundary.)
   spot has no canonical ID yet).
 - `proposedLocation`: required for `missing` and `moved`, and **rejected for every other type**.
   It is the **map pin being proposed, not the device's position**; clients must never send the
-  user's own location. It is stored rounded to 5 decimal places (~1 m).
+  user's own location. It is stored rounded to 5 decimal places (~1 m). It must lie in the service area,
+  Japan's extent `20 ≤ latitude ≤ 46` and `122 ≤ longitude ≤ 154` (bounds inclusive, `src/geo/japan.ts`),
+  judged on the value **as submitted, before rounding**; a pin outside it is
+  `400 {"error":"invalidReport","detail":"proposedLocation: outside_service_area"}` (see the response tables).
 - `observedOn`: optional, `YYYY-MM-DD`. Day precision only, and a **real calendar date**: a value
   carrying a time, an unpadded component, or an impossible day (`2026-02-31`, `2026-19-39`,
   `2026-00-00`, `2026-02-29` in a non-leap year) is rejected with `400`. Leap days of actual leap
@@ -454,6 +457,7 @@ Responses:
 | Body is not JSON | `400` | `{"error":"invalidJson","detail":…}` |
 | Schema violation (unknown field, wrong type for the report type, oversized note, …) | `400` | `{"error":"invalidReport","detail":…}` — JSON paths and issue codes only, never the submitted values |
 | `schemaVersion` is a number other than the one this deployment accepts | `400` | `{"error":"reportSchemaUnsupported","detail":…}` |
+| `proposedLocation` outside the service area (Japan's extent, above) | `400` | `{"error":"invalidReport","detail":"proposedLocation: outside_service_area"}` — after schema validation, before the terms check; nothing stored, no budget used |
 | `acceptedTermsVersion` is not the deployment's current terms version | `409` | `{"error":"termsVersionOutdated","detail":…}` — nothing stored; the client must show the current terms (update the app) |
 | Attestation policy unrecognised or incomplete (see ADR-0007 §6) | `503` | `{"error":"attestationUnavailable","detail":…}` — checked before the body is read; fails closed, and a typo never silently disables attestation |
 | Per-install rate limit exceeded (10/hour, 50/day) | `429` | `{"error":"reportRateLimited","detail":…}`; `Retry-After` seconds |
@@ -520,6 +524,7 @@ Responses:
 | Retry of a draft already stored: same key, same report | `200` | the same body as that report's `201` (same `reportId` and `receivedAt`; `state` describes the submission, never later moderation) |
 | Same key, a different report | `409` | `{"error":"idempotencyConflict",…}` — nothing stored, no budget used |
 | Same key after that report passed retention (90 days) | `410` | `{"error":"idempotencyRetired",…}` — its content can no longer be compared; nothing stored |
+| Payload `proposedLocation` outside the service area (Japan's extent, as for schema 1) | `400` | `{"error":"invalidReport","detail":"proposedLocation: outside_service_area"}` — after the payload is parsed and before the assertion is verified: nothing stored, no budget used. The client may check the same bounds first, but the server decides |
 
 The report is stored with `attestation_status = 'verified'` and no reference to the key. The server
 keeps a **receipt** per accepted draft: `SHA-256("mannerpath.report-idempotency.v2\n" ‖ keyId ‖ "\n" ‖

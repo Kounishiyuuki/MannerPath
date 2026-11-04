@@ -12,6 +12,8 @@ import { attestationConfig } from "../src/reports/attestation.ts";
 const PLACEHOLDER_DATABASE_ID = "00000000-0000-0000-0000-000000000000";
 /** REPORTS_DB's placeholder differs from DB's only so the two never share wrangler's local state (ADR-0014). */
 const PLACEHOLDER_REPORTS_DATABASE_ID = "00000000-0000-0000-0000-000000000001";
+/** Reviewed staging-only databases, created 2026-11-04 (docs/release/V1_PHOTO_FREE_STAGING_E2E.md §3); never production's or the probe's. */
+const STAGING = { db: "86435c50-daf0-4d6a-b792-ae5ecdba84cd", reports: "2a6e9bf2-4bc1-4394-885b-745d76c80158" };
 const CONFIG = new URL("../wrangler.jsonc", import.meta.url);
 
 /** Minimal JSONC reader: strips // and /* *\/ comments outside of string literals. */
@@ -48,17 +50,17 @@ test("staging and production-like environments exist and are distinctly named", 
   assert.equal(new Set(names).size, names.length);
 });
 
-test("only production binds its provisioned databases; local and staging retain placeholders", () => {
+test("production and staging bind their provisioned databases; local retains placeholders", () => {
   for (const [name, env] of environments) {
     const databases = env.d1_databases;
     assert.equal(Array.isArray(databases) && databases.length === 2, true, `${name}: two D1 bindings (DB, REPORTS_DB)`);
     const [db, reports] = databases;
     assert.equal(db.binding, "DB", `${name}: binding name`);
     assert.equal(db.migrations_dir, "migrations", `${name}: migrations dir`);
-    assert.equal(db.database_id, name === "production" ? "ffbaea1e-b57e-4064-abeb-a0c53f459662" : PLACEHOLDER_DATABASE_ID, `${name}: canonical database_id must match the reviewed target`);
+    assert.equal(db.database_id, name === "production" ? "ffbaea1e-b57e-4064-abeb-a0c53f459662" : name === "staging" ? STAGING.db : PLACEHOLDER_DATABASE_ID, `${name}: canonical database_id must match the reviewed target`);
     assert.equal(reports.binding, "REPORTS_DB", `${name}: report store binding name`);
     assert.equal(reports.migrations_dir, "migrations-reports", `${name}: report store migrations dir`);
-    assert.equal(reports.database_id, name === "production" ? "e641b1df-8042-4522-8463-804c6ba57868" : PLACEHOLDER_REPORTS_DATABASE_ID, `${name}: REPORTS_DB database_id must match the reviewed target`);
+    assert.equal(reports.database_id, name === "production" ? "e641b1df-8042-4522-8463-804c6ba57868" : name === "staging" ? STAGING.reports : PLACEHOLDER_REPORTS_DATABASE_ID, `${name}: REPORTS_DB database_id must match the reviewed target`);
   }
 });
 

@@ -8,7 +8,7 @@
 //     REPORTS_DB or any other store makes every route refuse;
 //   - the App Attest trust anchor is the driver's generated TEST root, stored once by /probe/setup. Nothing here
 //     trusts Apple's root, so no real device key can ever register against the probe.
-// Routes: the real challenge/key routes (createApp), the PoC v3 photo route, synthetic report creation, D1 checks and
+// Routes: the real challenge/key/report routes (createApp), the PoC v3 photo route, synthetic report creation, D1 checks and
 // a retention pass. A Cron trigger, if configured, runs the same retention pass for scheduled-CPU measurement.
 import { createApp } from "../../app.ts";
 import { base64Decode } from "../../attest/bytes.ts";
@@ -47,6 +47,10 @@ async function isProbeStore(db: Db): Promise<boolean> {
   catch { return false; }
 }
 
+// Bindings are fixed for a deployed version, and an isolate never outlives its version, so a positive identity check
+// holds for the isolate's life. Checked once, the probe's own overhead on the measured /v1 routes drops to the anchor read.
+let probeStoresVerified = false;
+
 async function trustAnchor(env: ProbeEnv): Promise<Uint8Array | null> {
   const row = await env.PHOTOS_DB.prepare("SELECT trust_anchor FROM probe_config WHERE id = 1").first<{ trust_anchor: string }>();
   return row ? base64Decode(row.trust_anchor) : null;
@@ -57,7 +61,10 @@ const photoTermsCovered = () => true; // synthetic data only; the API Worker's R
 export default {
   async fetch(req: Request, env: ProbeEnv, ctx: ExecutionContext): Promise<Response> {
     if (!tokenMatches(req.headers.get("Authorization"), env.PROBE_TOKEN)) return notFound();
-    if (!(await isProbeStore(env.REPORTS_DB)) || !(await isProbeStore(env.PHOTOS_DB))) return notFound();
+    if (!probeStoresVerified) {
+      if (!(await isProbeStore(env.REPORTS_DB)) || !(await isProbeStore(env.PHOTOS_DB))) return notFound();
+      probeStoresVerified = true;
+    }
     const url = new URL(req.url);
 
     if (req.method === "POST" && url.pathname === "/probe/setup") {
@@ -93,7 +100,10 @@ export default {
     if (req.method === "POST" && photo) {
       return handleBinaryPhoto(req, photo[1], env as never, env.REPORTS_DB, { now: () => new Date(), store, photoTermsCovered, trustAnchor: anchor });
     }
-    if (url.pathname.startsWith("/v1/app-attest/")) return createApp({ appAttestTrustAnchor: anchor }).fetch(req, env as never, ctx);
+    // v1.0 new places without photos: the API Worker's own POST /v1/reports handler, unchanged, for its CPU and D1 cost.
+    if (url.pathname.startsWith("/v1/app-attest/") || (req.method === "POST" && url.pathname === "/v1/reports")) {
+      return createApp({ appAttestTrustAnchor: anchor }).fetch(req, env as never, ctx);
+    }
     return notFound();
   },
 

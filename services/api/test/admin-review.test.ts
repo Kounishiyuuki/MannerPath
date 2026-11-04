@@ -40,10 +40,10 @@ test('report/photo decisions are audited, idempotent, stale-safe and never publi
 });
 test('missing place acceptance requires explicit privacy check and approved unexpired photo',async()=>{
  const x=await fixture();await assert.rejects(applyAdminDecision(x.db,await decision(x,{state:'accepted',reason:'confirmed'}),now),/privacyCheckRequired/);
- await assert.rejects(applyAdminDecision(x.db,await decision(x,{state:'accepted',reason:'confirmed',privacyChecked:true}),now),/approvedPhotoRequired/);
+ await assert.rejects(applyAdminDecision(x.db,await decision(x,{state:'accepted',reason:'confirmed',privacyChecked:true}),now),/independentEvidenceRequired/);
  await applyAdminDecision(x.db,await decision(x,{photoId:x.photoId,state:'rejected',reason:'privacyRisk'}),now);
  assert.equal((await getAdminReport(x.db,x.reportId,now)).photos[0].previewAvailable,false);assert.equal(x.db.raw.prepare('SELECT count(*) n FROM community_photo_deletions').get()?.n,1);
- await assert.rejects(applyAdminDecision(x.db,await decision(x,{state:'accepted',reason:'confirmed',privacyChecked:true}),now),/approvedPhotoRequired/);
+ await assert.rejects(applyAdminDecision(x.db,await decision(x,{state:'accepted',reason:'confirmed',privacyChecked:true}),now),/independentEvidenceRequired/);
 });
 test('same-revision concurrent actions yield one audit; rejected and hold reload',async()=>{
  const x=await fixture();const input=await decision(x);const result=await Promise.allSettled([applyAdminDecision(x.db,input,now),applyAdminDecision(x.db,{...input,operationId:crypto.randomUUID(),state:'rejected',reason:'outOfScope'},now)]);

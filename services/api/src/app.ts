@@ -21,6 +21,7 @@ import { SEED_AREAS_VERSION } from "./coverage/seed-areas.ts";
 import { CoverageProbeOverflow, publishedGapTasks } from "./coverage/published-gaps.ts";
 import { COVERAGE_TASKS_VERSION } from "./coverage/tasks.ts";
 import { type Db, type DbStatement, isoSeconds, sha256Hex } from "./db.ts";
+import { withinJapan } from "./geo/japan.ts";
 import { DATA_TILE_ZOOM, formatTileId, parseTileId } from "./geo/tile.ts";
 import { APPLE_APP_ATTEST_ROOT_DER } from "./attest/apple-root.ts";
 import { base64Decode } from "./attest/bytes.ts";
@@ -469,6 +470,13 @@ export function createApp(options: AppOptions = {}) {
     }
   }
 
+  // Review refuses a pin outside Japan (review.ts); intake refuses it too rather than keep it for 90 days. Not in the
+  // request schema, so the schema's canonical-hash rules stay independent of the service area.
+  function outsideServiceArea(r: { proposedLocation?: { latitude: number; longitude: number } }): boolean {
+    return r.proposedLocation !== undefined && !withinJapan(r.proposedLocation.latitude, r.proposedLocation.longitude);
+  }
+  const outsideServiceAreaProblem = () => problem(400, "invalidReport", "proposedLocation: outside_service_area");
+
   async function report(req: Request, env: Env, reports: Db): Promise<Response> {
     // Configuration is checked before anything is read: a misconfigured policy must not accept a
     // single report.
@@ -493,6 +501,7 @@ export function createApp(options: AppOptions = {}) {
     const parsed = ReportRequestV1.safeParse(json);
     if (!parsed.success) return problem(400, "invalidReport", validationDetail(parsed.error));
     const request = parsed.data;
+    if (outsideServiceArea(request)) return outsideServiceAreaProblem();
 
     const outdated = outdatedTerms(request.acceptedTermsVersion);
     if (outdated !== null) return outdated;
@@ -545,6 +554,8 @@ export function createApp(options: AppOptions = {}) {
     const parsed = ReportPayloadV3.safeParse(decoded);
     if (!parsed.success) return problem(400, "invalidReport", prefixed("payload", validationDetail(parsed.error)));
     const report = parsed.data as ReportPayloadV3;
+    // Before the assertion is verified and anything is written: a pin outside Japan can never back a spot.
+    if (outsideServiceArea(report)) return outsideServiceAreaProblem();
 
     // 3. Verify the assertion over those bytes. Pure: nothing is written. Nothing about an earlier submission, not
     // even whether this key has one, is revealed before this succeeds.

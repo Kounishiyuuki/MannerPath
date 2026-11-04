@@ -44,11 +44,15 @@ function budgetWindows(now: Date) {
  * trigger on report_rate_windows when reportBudgetDebits commits, so a concurrent request cannot overshoot it.
  */
 export async function checkReportBudget(db: Db, submitterHash: string, now: Date): Promise<RateDecision> {
-  for (const w of budgetWindows(now)) {
-    const row = await db.prepare(
-      "SELECT report_count FROM report_rate_windows WHERE submitter_hash = ? AND window_kind = ? AND window_start = ?",
-    ).bind(submitterHash, w.limit.kind, w.start).first<{ report_count: number }>();
-    if (row !== null && row.report_count >= w.limit.max) {
+  // Every window in one D1 round trip: each query costs Worker CPU on Workers Free (docs/release/V1_PHOTO_FREE_NEW_SPOT.md §5).
+  const windows = budgetWindows(now);
+  const { results } = await db.prepare(
+    `SELECT window_kind, report_count FROM report_rate_windows WHERE submitter_hash = ? AND (${
+      windows.map(() => "(window_kind = ? AND window_start = ?)").join(" OR ")})`,
+  ).bind(submitterHash, ...windows.flatMap((w) => [w.limit.kind, w.start])).all<{ window_kind: string; report_count: number }>();
+  for (const w of windows) {
+    const row = results.find((r) => r.window_kind === w.limit.kind);
+    if (row !== undefined && row.report_count >= w.limit.max) {
       return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((w.end.getTime() - now.getTime()) / 1000)) };
     }
   }
