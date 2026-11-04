@@ -236,7 +236,7 @@ is usable below after manual identity/schema review. Existing/partial stores req
    npx wrangler d1 migrations list REPORTS_DB --config .wrangler/photo-staging/worker.jsonc --remote
    npx wrangler d1 execute REPORTS_DB --config .wrangler/photo-staging/worker.jsonc --remote --command "SELECT name FROM d1_migrations ORDER BY name"
    npx wrangler d1 execute REPORTS_DB --config .wrangler/photo-staging/worker.jsonc --remote --command "SELECT key,value FROM report_store_meta ORDER BY key"
-   npx wrangler d1 execute REPORTS_DB --config .wrangler/photo-staging/worker.jsonc --remote --command "SELECT type,name,sql FROM sqlite_schema WHERE name LIKE 'admin_review_audit%' OR name IN ('report_reviews_new_spot_photo_evidence','report_reviews_new_spot_photo_viewable') ORDER BY name"
+   npx wrangler d1 execute REPORTS_DB --config .wrangler/photo-staging/worker.jsonc --remote --command "SELECT type,name,sql FROM sqlite_schema WHERE name LIKE 'admin_review_audit%' OR name LIKE 'report_reviews_new_spot%' OR name LIKE 'new_spot_evidence_checks%' ORDER BY name"
    npx wrangler d1 execute REPORTS_DB --config .wrangler/photo-staging/worker.jsonc --remote --command "PRAGMA foreign_key_check"
    ```
 

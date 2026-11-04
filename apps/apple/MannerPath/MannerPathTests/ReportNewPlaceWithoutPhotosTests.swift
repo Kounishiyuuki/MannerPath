@@ -230,6 +230,39 @@ struct ReportNewPlaceWithoutPhotosTests {
         }
     }
 
+    /// The API judges the coordinate it receives, before its own rounding (services/api/src/geo/japan.ts, test
+    /// "the Japan extent is inclusive and judged on the submitted pin"). iOS sends the 5-decimal pin, so the API rule is
+    /// applied here to the numbers in the signed payload itself: whatever iOS sends, the API accepts.
+    @Test func sentPinObeysTheAPIRuleExactlyAtAndJustBeyondEachBound() async throws {
+        func apiWithinJapan(_ lat: Double, _ lon: Double) -> Bool { lat >= 20 && lat <= 46 && lon >= 122 && lon <= 154 }
+        let atBounds = [(20.0, 122.0), (46.0, 154.0), (20.0, 154.0), (46.0, 122.0)]
+        let justBeyond = [(46.000_01, 139.0), (19.999_99, 139.0), (35.0, 121.999_99), (35.0, 154.000_01)]
+        for (lat, lon) in atBounds {
+            let reports = PhotolessReports()
+            let model = await launch(reports: reports)
+            model.startNewSpot(pin: ReportCoordinate(latitude: lat, longitude: lon))
+            model.setTermsAccepted(true)
+            await model.submit()
+            let payload = try #require(await reports.sent().first, "\(lat),\(lon) is allowed")
+            let object = try #require(try JSONSerialization.jsonObject(with: payload) as? [String: Any])
+            let location = try #require(object["proposedLocation"] as? [String: Double])
+            let sentLat = try #require(location["latitude"]), sentLon = try #require(location["longitude"])
+            #expect(sentLat == lat && sentLon == lon, "a bound is sent unchanged")
+            #expect(apiWithinJapan(sentLat, sentLon))
+        }
+        for (lat, lon) in justBeyond {
+            #expect(!apiWithinJapan(lat, lon), "the API refuses \(lat),\(lon)")
+            let reports = PhotolessReports()
+            let model = await launch(reports: reports)
+            model.startNewSpot(pin: ReportCoordinate(latitude: lat, longitude: lon))
+            model.setTermsAccepted(true)
+            await model.submit()
+            #expect(await reports.sent().isEmpty, "\(lat),\(lon) is refused before sending")
+            #expect(model.draft != nil)
+            model.cancel()   // the next pin starts its own draft
+        }
+    }
+
     @Test func pinOutsideJapanIsExplainedAndNothingIsSigned() async throws {
         let reports = PhotolessReports(), authorizer = PhotolessAuthorizer()
         let model = await launch(reports: reports, authorizer: authorizer)
