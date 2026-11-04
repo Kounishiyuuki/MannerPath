@@ -1,5 +1,10 @@
 # v1.0 P0 — Photo-backed new place submission
 
+> **Superseded for v1.0 (2026-11-02).** Workers Free measurements made photo intake NO-GO
+> (`V1_PHOTO_FREE_RELEASE_PLAN.md`). The maintainer chose to take new places **without photos** in v1.0, gated by an
+> operator's independent check (`V1_PHOTO_FREE_NEW_SPOT.md`); photo-backed submission moves to v1.1. This document
+> stays the design reference for v1.1.
+
 Status: **Code complete, not production-ready; fail-closed.** Product decision 2026-10-22: proposing a new smoking
 place with photos is a v1.0 P0 feature, not deferred to v1.1. Re-audited 2026-10-31 against `main` `689bfc8` (§5).
 "Code complete" means P2–P6 are merged and tested on dummy data with intake off. "Production-ready" additionally

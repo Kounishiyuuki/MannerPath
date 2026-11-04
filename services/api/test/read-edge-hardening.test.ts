@@ -91,6 +91,22 @@ test("an unsupported method or an unknown path is a JSON, no-store, nosniff 404;
   assert.equal(await head.text(), "");
 });
 
+// GHSA-h7mg-cq63-vhpq: decoded line terminators must not bypass Hono's wildcard middleware.
+test("encoded line terminators cannot bypass nosniff or the conditional-header byte limit", async () => {
+  for (const encoded of ["%0A", "%0D", "%E2%80%A8", "%E2%80%A9"]) {
+    const url = `${ORIGIN}/v1/${encoded}nothing`;
+    const missing = await app.request(url, {}, {});
+    assert.equal(missing.status, 404, encoded);
+    assert.deepEqual([missing.headers.get("Content-Type"), missing.headers.get("Cache-Control"), missing.headers.get("X-Content-Type-Options")],
+      ["application/json; charset=utf-8", "no-store", "nosniff"], encoded);
+    assert.equal((await missing.json() as { error: string }).error, "notFound");
+    const oversized = await app.request(url, { headers: { "If-None-Match": "x".repeat(CONDITIONAL_HEADER_MAX_BYTES + 1) } }, {});
+    assert.equal(oversized.status, 413, encoded);
+    assert.equal(oversized.headers.get("X-Content-Type-Options"), "nosniff", encoded);
+    assert.equal((await oversized.json() as { error: string }).error, "requestTooLarge");
+  }
+});
+
 // A Cache API double with the same contract the Worker relies on: keyed by request URL, stores what it is given.
 function fakeCache(options: { failMatch?: boolean } = {}) {
   const store = new Map<string, Response>();

@@ -96,8 +96,8 @@ report-queue apply <applicationId>        # then the normal publish / quality / 
 
 ## Staging manual checklist (each step needs separate authorization; nothing here is approved)
 
-1. Apply REPORTS_DB migrations through 0010 to **staging** only; confirm triggers
-   `report_reviews_new_spot_photo_evidence` and `report_reviews_new_spot_photo_viewable` exist.
+1. Apply REPORTS_DB migrations through 0011 to **staging** only; confirm trigger `report_reviews_new_spot_evidence`
+   exists and the 0009/0010 triggers it replaces (`report_reviews_new_spot_photo_evidence`, `…_photo_viewable`) do not.
 2. Staging Worker with photo intake enabled against a **staging-only private** R2 bucket; config shows
    `photoEvidenceEnabled: true` on staging only; production stays `false`.
 3. From a TestFlight/dev build with real App Attest: submit a new place with 1–3 photos, kill the app before photos

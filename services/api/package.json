@@ -37,8 +37,10 @@
     "replay:approximate": "node --experimental-strip-types --no-warnings scripts/approximate-location-replay.ts",
     "coverage:targets": "node --experimental-strip-types --no-warnings scripts/coverage-targets.ts",
     "e2e:config": "node --experimental-strip-types --no-warnings scripts/disposable-env.ts",
+    "staging:v1-config": "node --experimental-strip-types --no-warnings scripts/staging-v1-config.ts",
     "free-probe:config": "node --experimental-strip-types --no-warnings scripts/free-tier-probe-config.ts",
     "free-probe:run": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/free-tier-probe-run.ts",
+    "free-probe:reports": "node --experimental-strip-types --no-warnings scripts/report-intake-probe-run.ts",
     "free-probe:analytics": "node --experimental-strip-types --no-warnings scripts/free-tier-probe-analytics.ts",
     "community:seed": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/community-seed.ts",
     "community:status": "node --experimental-strip-types --no-warnings scripts/community-activation.ts status",
@@ -70,14 +72,14 @@
   },
   "dependencies": {
     "fast-png": "8.0.0",
-    "hono": "4.13.13",
+    "hono": "4.13.16",
     "jpeg-js": "0.4.4",
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20261023.1",
+    "@cloudflare/workers-types": "5.20261030.1",
     "typescript": "7.0.2",
-    "wrangler": "4.154.0",
+    "wrangler": "4.156.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }
