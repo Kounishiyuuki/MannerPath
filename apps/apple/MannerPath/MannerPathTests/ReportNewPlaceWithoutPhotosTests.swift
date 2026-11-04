@@ -259,4 +259,47 @@ struct ReportNewPlaceWithoutPhotosTests {
         #expect(model.submission == .rejected(String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")))
         #expect(model.draft != nil, "the draft stays so the pin can be moved")
     }
+
+    /// A follow-up saved by an earlier photo build, restored at launch (`restart` is a fresh model on the same files).
+    private func relaunch(photoIntake: Bool, policy: PhotoEvidencePolicy) async -> ReportModel {
+        var config = PhotolessConfig()
+        config.availability = .available(ReportLimits(
+            noteMaxLength: 280, maxBodyBytes: 16_384, submissionProtocol: .appAttestV3, maxSubmissionBytes: 32_768,
+            termsVersion: photolessTerms, acceptsNewSpotClaim: true, acceptsPhotoEvidence: photoIntake))
+        let reports = PhotolessReports()
+        let model = ReportModel(configClient: config, reportClient: reports,
+                                store: FileReportDraftStore(directory: directory), installIDs: reports,
+                                attestedClient: reports, authorizer: PhotolessAuthorizer(),
+                                photoPolicy: policy, photoUploader: NoPhotoUploads(),
+                                photoFollowUps: FileReportPhotoFollowUpStore(directory: directory))
+        await model.refreshAvailability()
+        return model
+    }
+
+    @Test func restoredPhotoFollowUpNeitherBlocksNorAsksForPhotosWhileIntakeIsClosed() async throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let store = FileReportPhotoFollowUpStore(directory: directory)
+        try store.save(ReportPhotoFollowUp(reportId: "rp_01V64NN31G72E5KJJ5W22W1A0Z", acceptedTermsVersion: photolessTerms,
+                                           receivedAt: ISO8601DateFormatter().string(from: Date())))
+        let photoBuild = PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: photolessTerms)
+
+        // The deployment says photoEvidenceEnabled=false (photo build), and the Release build carries no photo terms.
+        for policy in [photoBuild, .reviewed()] {
+            for _ in 1...2 {   // the same after a restart
+                let model = await relaunch(photoIntake: false, policy: policy)
+                #expect(model.photoFollowUp == nil && !model.hasPendingPhotoFollowUp && !model.canResumePhotos)
+                #expect(model.canStartReport, "the old photo state does not block a new place")
+                model.startNewSpot(pin: pin)
+                model.setTermsAccepted(true)
+                #expect(model.submissionReadinessMessage == nil, "no photo is asked for")
+                #expect(!model.ambiguousRetryNeedsPhotos)
+                model.cancel()
+            }
+        }
+        #expect(try store.load() != nil, "the received report's record is kept, never deleted silently")
+
+        // When photo intake is open again, the earlier report waits for its photos as before.
+        let reopened = await relaunch(photoIntake: true, policy: photoBuild)
+        #expect(reopened.hasPendingPhotoFollowUp && !reopened.canStartReport)
+    }
 }

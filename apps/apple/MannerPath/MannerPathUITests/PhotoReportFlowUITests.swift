@@ -393,16 +393,25 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         XCTAssertFalse(textContaining("rp_UITEST3").exists)
     }
 
-    func testResumeExplainsPausedIntakeAndConnectionFailure() {
+    /// photoEvidenceEnabled=false: an earlier report's restored photo state neither blocks a new place nor asks for
+    /// photos, across a restart; once intake opens again the same report still waits for its photos.
+    func testClosedIntakeHidesRestoredFollowUpAndConnectionFailureKeepsIt() {
         submitAndTerminateDuringUpload()
-        launchPersistent("closed")
-        continuePreviousReport()
-        let paused = app.descendants(matching: .any)["report-photo-intake-paused"].firstMatch
-        XCTAssertTrue(paused.waitForExistence(timeout: 10))
-        XCTAssertTrue(app.frame.contains(paused.frame), "the pause is explained on the first screen")
-        XCTAssertTrue(paused.label.contains("写真の受付を一時停止しています"))
-        screenshot("74-photo-resume-paused")
-        app.terminate()
+        for _ in 1...2 {
+            launchPersistent("closed")
+            tapMapEntryWhenSettled()
+            XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10),
+                          "a new place starts directly, with no choice about the earlier report")
+            XCTAssertFalse(text("前回の報告が残っています").exists)
+            XCTAssertFalse(app.descendants(matching: .any)["report-photo-intake-paused"].exists)
+            XCTAssertFalse(app.descendants(matching: .any)["report-photo-follow-up"].exists)
+            XCTAssertFalse(app.buttons["report.photo.choose"].exists, "no photo is asked for")
+            XCTAssertFalse(app.buttons["report.photo.addTest"].exists)
+            screenshot("74-photo-follow-up-hidden-while-closed")
+            scrollTo(app.buttons["下書きを破棄"])
+            discardReportDraft()
+            app.terminate()
+        }
 
         launchPersistent("offline")
         continuePreviousReport()

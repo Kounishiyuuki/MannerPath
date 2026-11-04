@@ -53,7 +53,16 @@ final class ReportModel {
     private var lastAttemptTransient = false
 
     /// A report received earlier (possibly in a previous launch) whose photos are not all on the server yet.
-    private(set) var photoFollowUp: ReportPhotoFollowUp?
+    private var storedPhotoFollowUp: ReportPhotoFollowUp?
+    /// The follow-up only while photos can be sent at all: with photo intake closed (this build, or the deployment's
+    /// `photoEvidenceEnabled=false`) a restored one neither asks for photos nor blocks a new report. Its saved record is
+    /// kept, so it returns if intake opens again; while availability is unknown it still counts, as before.
+    var photoFollowUp: ReportPhotoFollowUp? { photoIntakeClosed ? nil : storedPhotoFollowUp }
+    private var photoIntakeClosed: Bool {
+        if !photos.enabled { return true }
+        if case .available(let limits) = availability { return !limits.acceptsPhotoEvidence }
+        return false
+    }
     /// The follow-up exists only in memory: closing the app now would lose the way back to this report's photos.
     private(set) var photoFollowUpNotSaved = false
 
@@ -185,7 +194,7 @@ final class ReportModel {
         photos.onProgress = { [weak self] in self?.recordPhotoProgress() }
         // An unreadable record only loses the chance to re-attach photos; it never blocks reporting.
         if let saved = try? photoFollowUps?.load() {
-            photoFollowUp = saved
+            storedPhotoFollowUp = saved
             if saved.isExpired() {
                 // Kept in memory only, to say once that the time ended; nothing is left to send.
                 try? photoFollowUps?.delete()
@@ -209,21 +218,21 @@ final class ReportModel {
     func endPhotoFollowUp() {
         guard !photos.busy else { return }
         try? photoFollowUps?.delete()
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photoFollowUpNotSaved = false
         photos.clear()
     }
 
     private func recordPhotoProgress() {
-        guard var followUp = photoFollowUp, photos.acceptedReportID == followUp.reportId else { return }
+        guard var followUp = storedPhotoFollowUp, photos.acceptedReportID == followUp.reportId else { return }
         if photos.allUploaded || photos.closedForPhotos {
             try? photoFollowUps?.delete()
-            photoFollowUp = nil
+            storedPhotoFollowUp = nil
             photoFollowUpNotSaved = false
             return
         }
         followUp.uploadedCount = photos.totalUploaded
-        photoFollowUp = followUp
+        storedPhotoFollowUp = followUp
         do {
             try photoFollowUps?.save(followUp)
             photoFollowUpNotSaved = false
@@ -247,7 +256,7 @@ final class ReportModel {
 
     func start(type: ReportType, spotId: String?, subjectName: String? = nil) {
         guard canStartReport else { return }
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photos.clear()
         let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId,
                                    subjectName: type == .missing ? nil : subjectName)
@@ -260,7 +269,7 @@ final class ReportModel {
     /// ADR-0013 "add a smoking place": a new-spot draft, optionally with a pin the user already placed on the map.
     func startNewSpot(pin: ReportCoordinate?) {
         guard canStartReport else { return }
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photos.clear()
         var newDraft = ReportDraft(type: .missing, proposedLocation: pin?.quantized)
         newDraft.claim = ReportClaim()
@@ -271,7 +280,7 @@ final class ReportModel {
     /// the exact version the user agreed to before; otherwise the confirmation sheet asks.
     func startQuickConfirm(spotId: String, subjectName: String?) {
         guard canStartReport else { return }
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photos.clear()
         var newDraft = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName)
         if case .available(let limits) = availability, let version = limits.termsVersion, consent?.agreedVersion() == version {
@@ -468,7 +477,7 @@ final class ReportModel {
                 // this report. Failing to write it only loses that recovery, which the form then says.
                 let followUp = ReportPhotoFollowUp(reportId: accepted.reportId, acceptedTermsVersion: version,
                                                    receivedAt: accepted.receivedAt)
-                photoFollowUp = followUp
+                storedPhotoFollowUp = followUp
                 do { try photoFollowUps?.save(followUp) } catch { photoFollowUpNotSaved = true }
             }
             await photos.attach(to: accepted.reportId, acceptedTermsVersion: draft.acceptedTermsVersion)
