@@ -62,10 +62,11 @@
   ],
   "unresolved": [
     "PR375 photo-less client changes are prepared but not merged; final Release and legacy follow-up states need verification",
-    "PR374 independent officialSource/siteVisit + place_confirmed gate, migration0011 and rollback are prepared but not merged/applied; staging resources and device E2E remain absent",
+    "PR374 independent evidence and migration0011 are prepared; staging setup/0011/synthetic readiness+security smoke completed, but code main integration, device E2E, CPU/1102 and production approval remain open",
     "Approved report terms, runtime activation and signed-device E2E",
     "Cloudflare retained tile/IP/diagnostics, Time Travel, support scope and final archive Privacy Report",
-    "App Attest registration/audit retention, early minimization and reinstall ownership proof"
+    "App Attest registration/audit retention, early minimization and reinstall ownership proof",
+    "PR374 docs/API wording must distinguish prohibited automatic device-GPS transmission from the explicitly chosen current-location pin supported by PR375"
   ],
   "retention": {
     "reportPersonalContent": "Current main redacts personal report fields at receipt +90 days; skeleton/audit/receipt records remain. Historical D1 versions can retain pre-redaction data; this is not physical erasure.",
@@ -96,11 +97,13 @@
       },
       {
         "id": "CONFIG",
-        "status": "NOT_RUN"
+        "status": "PARTIAL",
+        "evidenceScope": "Staging configuration/security smoke record only; final signed Release and production not verified"
       },
       {
         "id": "PHOTO_API",
-        "status": "NOT_RUN"
+        "status": "PARTIAL",
+        "evidenceScope": "Staging configuration/security smoke record only; final signed Release and production not verified"
       },
       {
         "id": "PAYLOAD",
@@ -114,11 +117,39 @@
   },
   "reviewedInputs": {
     "reviewedOn": "2026-11-04",
-    "main": "1fdf89a",
+    "main": "50d88a5",
     "pr375": "55ac086eaa5d63c8204e079874ea64b9035b1688",
-    "pr374": "78456d80fd1766a11c2cc257905c2f6e034b72be",
+    "pr374": "d34ad9ea1314518491a90135666fc8db50f71778",
     "pr372": "8a1a398ee4baa450484f9291a8599b54f30d4fb8",
     "releaseVerified": false,
-    "apiDeploymentVerified": false
+    "apiDeploymentVerified": false,
+    "pr381": "e0d9a334433801e2c2833a2436ff07d1ebb409be",
+    "pr372State": "MERGED"
+  },
+  "stagingEvidence": {
+    "source": "https://github.com/Kounishiyuuki/MannerPath/blob/d34ad9ea1314518491a90135666fc8db50f71778/docs/release/V1_PHOTO_FREE_STAGING_E2E.md#8-staging-の現状2026-11-04承認のもとで実行",
+    "reportedOn": "2026-11-04",
+    "setup": "COMPLETE",
+    "reportsMigrationsThrough": "0011",
+    "syntheticMapData": true,
+    "readiness": "PASS",
+    "securitySmoke": "PASS",
+    "photoApiDisabledResponse": "503 photoEvidenceDisabled",
+    "appAttestEnvironment": "development",
+    "clientBuildConfiguration": "Debug",
+    "registration": "paused",
+    "realDeviceE2EVerified": false,
+    "cpu1102DeviceVerified": false,
+    "submissionReleaseVerified": false,
+    "productionEnabled": false
+  },
+  "retryAssessment": {
+    "sourcePr": "381",
+    "v3AutomaticRetries": 2,
+    "samePayloadAndIdempotencyKey": true,
+    "freshChallengePerAttempt": true,
+    "newDataTypesAdded": false,
+    "providerRequestLogRetention": "UNRESOLVED",
+    "device1102Verified": false
   }
 }

@@ -296,7 +296,16 @@ class StoreCopyTests(unittest.TestCase):
         answers = json.loads((root / "app-privacy-candidate.json").read_text())
         checks = answers["photoDisclosure"]["verificationChecks"]
         self.assertEqual({c["id"] for c in checks}, {"RELEASE", "LEGACY", "CONFIG", "PHOTO_API", "PAYLOAD", "SUPPORT"})
-        self.assertTrue(all(c["status"] == "NOT_RUN" for c in checks))
+        self.assertEqual({c["id"]: c["status"] for c in checks},
+                         {"RELEASE": "NOT_RUN", "LEGACY": "NOT_RUN", "CONFIG": "PARTIAL",
+                          "PHOTO_API": "PARTIAL", "PAYLOAD": "NOT_RUN", "SUPPORT": "NOT_RUN"})
+        staging = answers["stagingEvidence"]
+        self.assertEqual(staging["reportsMigrationsThrough"], "0011")
+        self.assertEqual(staging["securitySmoke"], "PASS")
+        self.assertFalse(staging["realDeviceE2EVerified"])
+        self.assertFalse(staging["submissionReleaseVerified"])
+        self.assertFalse(staging["cpu1102DeviceVerified"])
+        self.assertFalse(staging["productionEnabled"])
         self.assertFalse(answers["photoDisclosure"]["conditionsVerified"])
         self.assertFalse(answers["reviewedInputs"]["releaseVerified"])
         self.assertFalse(answers["reviewedInputs"]["apiDeploymentVerified"])

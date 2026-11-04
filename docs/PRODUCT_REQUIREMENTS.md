@@ -252,7 +252,7 @@ waiting for nationwide data:
 - free, Japan storefront only;
 - **amended 2026-11-02 (supersedes 2026-10-22 photo P0 and blanket suspension):** v1.0 includes new-place
   proposals without photos: confirmed pin → duplicate check → type/conditions/free text → approved terms/consent →
-  attested send → pending operator review. No photo selection/upload/retry in v1.0; photos are planned for v1.1 or later.
+  attested send → pending operator review. No photo selection/upload/retry in v1.0; photo functionality will be reconsidered for v1.1 or later, without a release commitment.
   Submission never auto-publishes. Source/rights/precision/quality gates and #124 report terms approval remain.
   Main's existing client and review/export photo requirements need Lane1/3 implementation; this scope change enables no runtime.
   Current submission material: [text-only v1.0](release/submission-v1/text-reports/README.md);

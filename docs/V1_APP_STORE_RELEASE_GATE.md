@@ -6,7 +6,7 @@
 写真添付は提供せず、v1.1以降の計画。以前の申請全面停止/写真必須P0を上書きする。
 申請の自動掲載はなく、審査・source/rights/位置/品質ゲートは維持する。
 [現在の提出素材・実装差分・実機手順](release/submission-v1/text-reports/README.md)が現行スコープ。
-mainのiPhone写真必須判定とreview/exportの写真制約はまだ残っており、文書更新で動作済みとは扱わない。
+mainに残る旧写真依存はコード統合待ちの差分で、v1.0の要件ではない。#374/#375/#381の準備済みコードと実機完了を区別する。
 公開Web・ASC・本番API・iOSコードはこのPRで変更しない。
 
 過去の写真有効版監査（2026-10-15〜11-01）とD1/暗号PoCの検討は
@@ -14,14 +14,13 @@ mainのiPhone写真必須判定とreview/exportの写真制約はまだ残って
 #357/#358/#360はソース統合済みだが通常申請へ未組込・本番未有効化。
 写真の実環境検証/写真条項はv1.0の提出条件から除き、実施済みと認定しない。
 
-**2026-11-03最終照合**：[PR375/374/372のHEAD別レビュー](release/submission-v1/text-reports/FINAL_REVIEW.md)。
-写真なしUI・独立根拠review/exportの実装は各OPEN PRに準備済みだが、main統合・migration0011適用・
-実機staging・CPU再計測・規約承認・本番設定・ASCは未完了。G2/G3/G16/G23を含めゲートはOPENのまま。
-
-**2026-11-04総点検**：[全要件の4分類と優先ブロッカー](release/submission-v1/text-reports/REQUIREMENTS_AUDIT.md)。
-mainは引き続き`1fdf89a`。OPEN PR #372 `8a1a398`・#374 `78456d8`・#375 `55ac086`を照合。
-#371の両OS AX5対象ケース成功と、Issue #367の未解決UI失敗を分ける。全UI/実機PASSとはしない。
-通常申請/legacy写真状態の統合・staging未作成・実機/署名・法務/公開説明・ASC・本番設定のゲートはOPEN。
+**最新整合（staging実施記録2026-11-04反映）**：[要件分類](release/submission-v1/text-reports/REQUIREMENTS_AUDIT.md)と
+[実施記録/残る手動作業](release/submission-v1/text-reports/FINAL_REVIEW.md)。main `50d88a5`へ#372/#380/#376/#377/#379は統合済み。
+#374 `d34ad9e`・#375 `55ac086`・#381 `e0d9a33`はOPEN。申請なし/写真必須の旧指示は履歴としてのみ保持する。
+staging構築・REPORTS_DB0011・合成4地点・readiness/security-smokeは完了記録あり。Debug/developmentで登録paused。
+実機E2E、提出Release/production App Attest、CPU・1102/再送実測、#124、署名/素材、ASC、本番設定は未完了。
+登録pauseは新規鍵だけの制御で、申請全面停止を意味しない。写真はv1.1以降に再検討し、提供を保証しない。
+#371対象成功と#367未解決試験を分け、全UI/実機PASSやP0完了へ拡張しない。
 
 ## 1. Release scope (2026-11-02: reports on, photos unavailable)
 
@@ -62,14 +61,14 @@ legal decision, App Store Connect, device). **Ext** = waits on a third party.
 | G13 | In-app support / privacy links | P1 | OPEN | Release-simulator navigation to both pages and contact verified (#179) | Links and mail compose checked on a physical device | 3 | yes | no |
 | G14 | Signing, App Group, App Attest | P0 | OPEN | 過去1.0(3)署名preflightは履歴。最終RCのApp Group/実App Attestは未検証 | 最終署名preflightとiPhone/Watch/Widget共有、写真なし実申請のApp Attestを証明 | 3 | yes | no |
 | G15 | Widget / Watch on device | P0 | OPEN | No Watch/widget device PASS recorded ([matrix §4](beta-e2e/device-release-matrix.md)) | Matrix P0 rows W1, W2, W3, W5, W5b and widget rows `PASS 1.0 (N)` on the submitted build | 3 | yes | no |
-| G16 | Production runtime and intake truth | P0 | OPEN | 以前の公開config観測は履歴。現mainには新規申請の写真依存が残る。写真なしruntime未確認 | 別途許可された担当がreports available・写真無効を当日確認。通常規約/RC/実受付と一致。今回有効化しない | 1 | yes | no |
+| G16 | Production runtime and intake truth | P0 | OPEN | stagingのavailable=true/photos=false・smoke成功を記録。登録pausedは新規鍵のみ。本番runtimeと最終RCは未確認 | 別途許可された担当がreports available・写真無効を当日確認。通常規約/RC/実受付と一致。今回有効化しない | 1 | yes | no |
 | G17 | First launch, location permission, offline | P0 | OPEN | 初回/位置/オフラインと写真なし新規申請の最終RC実機証拠なし | matrix P1/P4/P8/P9b/AI1と写真なし受付・同一reportの再送/再起動をPASS。旧R1は停止時の負例のみ | 3 | yes | no |
 | G18 | Accessibility / UI tests | P1 | OPEN | Simulator UI tests incl. visual audit pass (#265); Reduce Motion simulator (#191); VoiceOver/large text not observed on device | Matrix A1, A1W, P17, W9, W10 observed; ASC accessibility answers claim only observed support | 2/3 | yes | no |
 | G19 | Published data and quality | P0 | OPEN | Historical bounded scan: 513 IDs / 81 tiles, 6/6 source notices; not a global index or fresh observation. Local 638 rehearsal is not production evidence | Data owner rechecks existing approved production scope with separately authorized public GET audit + deployment inventory; copy/rights/captures agree. No source/data addition, rebuild, re-ID or promotion without separate approval | 4 | yes | no |
 | G20 | App Review risk | P1 | OPEN | Guideline 1.4.3 (tobacco), 2.1 (sparse data looks broken), 5.1.1 (privacy) — mitigations in [submission §7](APP_STORE_SUBMISSION.md) | Maintainer accepts residual risk; notes lead with compliance purpose and covered areas | 1 | yes | no |
 | G21 | Build to submit | P0 | OPEN | `main` declares 1.0 build 7 (#348). #349 records TestFlight 1.0 (7) device feedback, followed by UI changes not proven present in that binary. Final RC archive/hash, processing, signed preflight and complete device matrix remain unverified; see [audit §1](release/V1_APP_STORE_GATE_AUDIT_2026-10-31.md#1-testflight-10-7の証拠) | One build passes G14/G15/G17 and the signed preflight; build number raised by Lane 3 only | 3 | yes | no |
 | G22 | In-app covered-area list | P2 | OPEN | Not implemented | Optional covered-area list in the app (Lane 2 decision) | 2 | no | no |
-| G23 | Text-only new-place report terms and review (#124) | P0 | OPEN | 通常申請規約/権利は未承認。PR374/375に写真なし経路のコードは準備済みだが、未統合・未配備・実機未検証。写真条項はv1.1以降 | #124の通常申請規約を新versionで運営者承認、client/server同意一致。Lane1の写真不要UIとlegacy状態、Lane3のmigration0011と独立した公式情報/現地確認の承認・review/exportゲートを整合。staging実機E2E後に閉じる | 1 | yes | no |
+| G23 | Text-only new-place report terms and review (#124) | P0 | OPEN | 通常申請規約/権利は未承認。PR374/375に写真なし経路のコードは準備済みだが、main未統合・本番未有効化・実機未検証。staging0011/smokeは完了。写真条項はv1.1以降 | #124の通常申請規約を新versionで運営者承認、client/server同意一致。Lane1の写真不要UI/legacy状態/#381再送、Lane3の本番0011と独立した公式情報/現地確認の承認・review/exportゲートを整合。staging実機E2E後に閉じる | 1 | yes | no |
 
 P0 = blocks submission. P1 = must be closed or explicitly accepted by the maintainer before submission.
 P2 = after release.
