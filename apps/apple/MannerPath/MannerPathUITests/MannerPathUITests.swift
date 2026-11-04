@@ -691,7 +691,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         }
         let button = app.buttons["mapReportButton"]
         XCTAssertTrue(button.waitForExistence(timeout: 10), "No map report button while reports are available")
-        XCTAssertEqual(button.label, "新規申請の受付停止中")
+        XCTAssertEqual(button.label, "喫煙所を追加")
         XCTAssertTrue(button.isHittable)
         XCTAssertGreaterThanOrEqual(button.frame.height, 44)
         let search = destinationSearch
@@ -708,7 +708,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         app.navigationBars["近くの場所"].swipeUp()
         let bar = app.buttons["sheetReportButton"]
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
-        XCTAssertEqual(bar.label, "新規申請の受付停止中")
+        XCTAssertEqual(bar.label, "喫煙所を追加")
         XCTAssertTrue(bar.isHittable)
         // The text is on screen, not only the symbol: the labelled bar spans the sheet's width.
         XCTAssertGreaterThan(bar.frame.width, app.windows.firstMatch.frame.width / 2, "The large entry shows its text")
@@ -726,7 +726,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
     }
 
     // §3.2: an area without published places invites a report with the approved copy.
-    func testEmptyAreaInvitesAPhotoReport() {
+    func testEmptyAreaInvitesAReport() {
         XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 43.0621, longitude: 141.3544))
         addTeardownBlock {
             XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 35.7118, longitude: 139.7775))
@@ -737,9 +737,11 @@ final class B_OnlineUITests: MannerPathUITestCase {
             app.navigationBars["近くの場所"].swipeUp()
         }
         XCTAssertTrue(text("この周辺に掲載中の場所はありません").waitForExistence(timeout: 10))
-        XCTAssertTrue(textContaining("掲載範囲は地域によって異なります").exists)
-        XCTAssertFalse(textContaining("場所と写真を送ってください。").exists, "Paused intake must not invite a submission")
-        let action = app.buttons.matching(NSPredicate(format: "label == '新規申請の受付停止中' AND identifier != 'mapReportButton'")).firstMatch
+        XCTAssertTrue(textContaining("まだ掲載されていない喫煙所を知っていますか？").exists)
+        // v1.0 (2026-11-02): the invitation asks for the location and what is known, never for photos.
+        XCTAssertTrue(textContaining("場所と分かる情報を送ってください。").exists, "Open intake invites a submission")
+        XCTAssertFalse(textContaining("場所と写真を送ってください。").exists, "No photos are asked for in v1.0")
+        let action = app.buttons.matching(NSPredicate(format: "label == '喫煙所を追加' AND identifier != 'mapReportButton'")).firstMatch
         XCTAssertTrue(action.exists, "The empty state offers the report entry")
         XCTAssertFalse(app.buttons["sheetReportButton"].exists, "The empty state's own button is the only one in the sheet")
         screenshot("34-empty-area-invitation")
@@ -971,7 +973,7 @@ final class G_VisualAuditUITests: MannerPathUITestCase {
             saved.tap()
             discardReportDraft()
         }
-        let add = app.buttons.matching(NSPredicate(format: "label == '新規申請の受付停止中'")).firstMatch
+        let add = app.buttons.matching(NSPredicate(format: "label == '喫煙所を追加'")).firstMatch
         XCTAssertTrue(add.waitForExistence(timeout: 10))
         add.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))

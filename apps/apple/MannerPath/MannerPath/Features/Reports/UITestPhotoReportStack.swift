@@ -22,8 +22,11 @@ nonisolated enum UITestPhotoReportStack {
             : FileManager.default.temporaryDirectory.appending(path: "ui-test-reports-\(UUID().uuidString)")
         if defaults.bool(forKey: "uiTestReportReset") { try? FileManager.default.removeItem(at: directory) }
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let service = Service(photoIntake: scenario != "closed", directory: directory,
-                              failFirstReport: scenario == "reportRetry",
+        // `photoless`: the v1.0 deployment, reports open and photo intake closed (`photolessRetry` loses the first
+        // answer). `paused`: reporting itself is unavailable.
+        let service = Service(photoIntake: !["closed", "photoless", "photolessRetry"].contains(scenario),
+                              reportingPaused: scenario == "paused", directory: directory,
+                              failFirstReport: scenario == "reportRetry" || scenario == "photolessRetry",
                               receivedAt: scenario == "old" ? "2020-01-01T00:00:00Z" : ISO8601DateFormatter().string(from: Date()))
         return ReportModel(configClient: service, reportClient: service,
                            store: FileReportDraftStore(directory: directory), installIDs: service,
@@ -36,11 +39,13 @@ nonisolated enum UITestPhotoReportStack {
 
     private struct Service: ReportConfigFetching, ReportSubmitting, AttestedReportSubmitting, InstallIDProviding {
         let photoIntake: Bool
+        let reportingPaused: Bool
         let directory: URL
         let failFirstReport: Bool
         let receivedAt: String
         func fetchAvailability() async throws -> ReportAvailability {
-            .available(ReportLimits(noteMaxLength: 500, maxBodyBytes: 16_384, submissionProtocol: .appAttestV3,
+            if reportingPaused { return .unavailable }
+            return .available(ReportLimits(noteMaxLength: 500, maxBodyBytes: 16_384, submissionProtocol: .appAttestV3,
                                     maxSubmissionBytes: 32_768, termsVersion: UITestPhotoReportStack.terms,
                                     acceptsNewSpotClaim: true, acceptsExistingSpotFindings: true,
                                     acceptsPhotoEvidence: photoIntake))
