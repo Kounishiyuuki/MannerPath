@@ -430,7 +430,7 @@ Use actual final-build UI, no synthetic permitted-place data or disabled reports
 
 | Bundle/dependency | Verified source state |
 | --- | --- |
-| iPhone `MannerPath/PrivacyInfo.xcprivacy` | Tracking false, tracking domains empty, UserDefaults reason CA92.1; **NSPrivacyCollectedDataTypes absent**, not an explicit empty array |
+| iPhone `MannerPath/PrivacyInfo.xcprivacy` | Tracking false, tracking domains empty, UserDefaults reason CA92.1. **2026-11-05:** NSPrivacyCollectedDataTypes declares the three types the app itself sends with a photo-less report (Other User Content: note/claim; Device ID: App Attest key and install ID; Precise Location: the confirmed pin), each linked, not tracking, App Functionality — the app-collected rows of the [text-report candidate](release/submission-v1/text-reports/PrivacyInfo.reports-only.candidate.plist). Customer Support / Email Address (mail outside the app) stay ASC-label decisions (D7) |
 | Watch `MannerPathWatch Watch App/PrivacyInfo.xcprivacy` | Same declarations as iPhone |
 | iPhone/Watch widgets | No manifest; current snapshot reads use App Group files, no independent network/location acquisition; audit final required-reason API usage in archive |
 | GRDB 7.9.0 | Only resolved third-party package, revision `aa0079aeb82a4bf00324561a40bffe68c6fe1c26`; upstream manifest declares tracking false, collected/accessed arrays empty |

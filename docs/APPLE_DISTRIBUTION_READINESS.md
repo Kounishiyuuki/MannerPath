@@ -49,7 +49,9 @@ group so the Watch widget can read it (`WatchStore`). Fallback without the conta
 and the widget shows its unavailable state; the Watch keeps a private cache (`WatchStore.migrate`). No crash path.
 Portal work: register the group and enable App Groups on all four App IDs (automatic signing does this, §4).
 
-**App Attest — not used by read-only v1, kept as a capability.** Server: production `REPORT_ATTESTATION=required`
+**App Attest — required for v1.0 photo-less reports (2026-11-05; the read-only wording below is historical).** Production must accept the `production` aaguid and list the uploaded `CFBundleVersion` (8 for the next upload) in `REPORT_APP_ATTEST_BUNDLE_VERSIONS` before reports are enabled; that is an owner-run production change.
+
+Historical: Server: production `REPORT_ATTESTATION=required`
 with no App Attest secrets, so live `/v1/config` reports `reports.available:false` and report/App Attest routes fail closed.
 Client: `ReportModel` maps that to `.unavailable`; `DCAppAttestService` is reached only through `AppAttestDevice` on an
 explicit report submission, never while browsing. Keeping the entitlement means the iPhone App ID needs the App Attest
