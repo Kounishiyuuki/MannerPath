@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プライバシーポリシー | MannerPath</title>
+<link rel="stylesheet" href="../../../../../site/style.css">
+</head>
+<body>
+<main>
+<aside role="note"><strong>CANDIDATE — NOT APPROVED / 未承認・公開禁止</strong><p>写真なし申請を提供するv1.0向けの置換案です。現在の本番稼働を説明する公開ページではありません。Q1〜Q3承認・保持運用・最終Release確認後にのみ反映します。This is an unpublished replacement candidate, not a statement of current production availability.</p></aside>
+<nav><a href="../../../../../site/index.html">MannerPath</a><a href="../support/">サポート</a><a href="#en">English</a></nav>
+
+<h1>MannerPath プライバシーポリシー</h1>
+<p class="meta">運営者：MannerPath 運営<br>制定日：2026年10月4日　改定日：承認後に設定</p>
+
+<p>MannerPath（以下「本アプリ」）は、法律上喫煙が認められている方が、近くの喫煙可能場所・灰皿設置場所を探すための案内アプリです。本ポリシーは、本アプリ（iPhone、Apple Watch、ウィジェット）がどの情報をどのように扱うかを説明します。本アプリにアカウント登録はありません。</p>
+
+<h2>1. 位置情報</h2>
+<ul>
+<li>本アプリは「アプリの使用中」に限って位置情報の利用許可を求めます。</li>
+<li>現在地は、端末上で近くの場所を並べ替え、直線距離と方角を計算するために使います。</li>
+<li>場所データを取得するとき、本アプリは端末の GPS 座標そのものではなく、地図を区切った地域の番号（タイル ID）を MannerPath のサーバーに送ります。タイル ID はおおよその地域を表すため、要求の対象地域は推測できます。</li>
+<li>閲覧時の現在地の履歴を自動収集しません。申請時に明示選択・確定した位置は、現在地と一致する場合も含め保存します。</li>
+<li>Apple Watch は、距離と方角の計算に Apple Watch 自身の現在地を端末上で使います。</li>
+</ul>
+
+<h2>2. 通信とサーバー</h2>
+<ul>
+<li>場所データの配信には Cloudflare のサービス（Cloudflare Workers など）を利用しています。通信の過程で、Cloudflare などの通信・配信事業者が、IP アドレスやリクエスト情報（要求したタイル ID、日時、端末・アプリの技術情報など）を、配信、安全確保、障害対応のために処理し、記録する場合があります。</li>
+<li>MannerPath は、Cloudflare Workers のリクエストごとの自動記録（呼び出しログ）を無効にしています。ただし、エラーが発生したときの診断記録は保存される場合があります。Cloudflare の公開仕様では、Workers のログの保存期間は最長 7 日間です。これとは別に、事業者側の記録が残る場合もあります。</li>
+<li>記録される項目と保存期間は、事業者のサービスと設定によって異なります。MannerPath が確認した内容は、本ポリシーに反映します。</li>
+<li>通信記録は配信・安全確保・障害対応に用い、閲覧位置の履歴作成や広告には使いません。申請時の識別情報は端末認証と不正対策に用います。</li>
+<li>通信事業者による情報の取り扱いは、各事業者のプライバシーポリシーにも従います。</li>
+</ul>
+
+<h2>3. Apple のサービス（MapKit・マップ）</h2>
+<ul>
+<li>地図表示、目的地検索、徒歩ルートの確認には Apple MapKit を使います。これらの機能では、位置情報や検索語などのリクエスト情報が Apple のサービスとやり取りされる場合があります。</li>
+<li>「案内」を選ぶと、Apple の「マップ」アプリに目的地を渡します。</li>
+<li>目的地検索の結果は、目的地付近の場所の表示に使います。目的地名、検索語、正確な目的地の座標は MannerPath のサーバーに送りません。目的地を選ぶと、その座標から端末上で計算した地域の番号（タイル ID）をサーバーに送り、公開済みの場所データを取得します。要求の対象地域は推測できますが、端末の現在地とは限りません。</li>
+<li>Apple による情報の取り扱いは、Apple のプライバシーポリシーに従います。</li>
+</ul>
+
+<h2>4. 端末内に保存される情報</h2>
+<ul>
+<li>取得した場所データ（キャッシュ）、絞り込み設定、初回の確認画面の表示状態を端末内に保存します。</li>
+<li>保存済みのデータと利用できる現在地があれば、オフラインでも場所の一覧、直線距離、方角を確認できます。オフラインの徒歩経路案内には対応していません。</li>
+<li>iPhone は、近くの場所の要約、情報源、絞り込み設定を Apple Watch とウィジェットに端末間・端末内で共有します。</li>
+<li>報告の下書きを作成した場合、下書きはこの端末内にのみ保存され、いつでも破棄できます。</li>
+<li>アプリの削除はサーバーの申請情報の削除になりません。認証情報やバックアップ等の残存はOS設定にも依存します。</li>
+</ul>
+
+<h2>5. 写真なしの地点申請と保持・削除</h2>
+<ul>
+<li>v1.0はiPhoneから写真なしで新しい場所を申請する機能を提供します。写真の添付・送信・再送は提供しません。受付できない状態では送信できません。</li>
+<li>申請時に、選んだ位置、種類・利用条件、任意本文・確認日、同意した規約版、申請/冪等性の識別情報を送ります。位置は小数点以下5桁で保存し、明示選択した現在地と一致する場合があります。</li>
+<li>Apple App Attestの認証鍵ID・公開鍵等と鍵由来の申請者識別値を端末認証・審査・不正対策に使います。同じインストールの申請を関連付けられます。無アカウントでも匿名とは限りません。閲覧だけでは申請用端末登録を行いません。</li>
+<li>申請はCloudflare Workers/D1で処理・保存します。申請本文や端末識別情報を一般公開せず、公式情報や運営者の現地確認など独立した根拠で審査します。受付は審査待ちで、自動掲載・掲載保証はありません。</li>
+<li>受信後90日を基準に、本文・位置・確認日・自由文・申請者との関連付けを運用DB上で削除/最小化する設計です。運営者が処理の実行・完了を管理します。受付・分類・審査/冪等性/独立確認の記録、認証登録は別に残ります。審査済みの場所の事実は継続利用される場合があります。</li>
+<li>D1の復元用履歴や別管理のバックアップには処理前の情報が残る場合があります。SQL上の削除/最小化は、暗号鍵破棄による復元不能化や媒体からの物理消去とは異なります。復元時には必要な最小化を再適用します。</li>
+<li><strong>公開前未決：</strong>認証登録・監査/受付記録・問い合わせ・提供者ログ等の保持期限と削除手順は、保持台帳の承認・必要な実装/運用確認後に確定文へ置き換えます。現状で『全情報が90日で消える』とは約束しません。</li>
+</ul>
+<h2>6. 解析・広告・トラッキング</h2>
+<ul>
+<li>本アプリには、外部の利用状況解析ツール、広告用トラッカー、クラッシュ報告ツールは含まれていません。</li>
+<li>通信・配信事業者による記録については、第2項をご覧ください。</li>
+<li>本アプリは、他社のアプリやウェブサイトをまたいで利用者を追跡（トラッキング）しません。広告識別子（IDFA）も使いません。</li>
+<li>Apple が提供する診断情報の共有を端末の設定で有効にしている場合、その情報は Apple の仕組みと規約に従って扱われます。</li>
+</ul>
+
+<h2>7. 場所データの出典</h2>
+<p>本アプリは、出典と再利用条件を確認した情報を各条件に従って利用し、利用者報告からは独立した根拠で確認・審査された場所の事実だけを公開審査後に利用します。各場所の出典とライセンスは、アプリ内の「データとプライバシー」→「情報源と出典」と、各場所の詳細画面で確認できます。営業時間、利用条件、対応するたばこの種類などは不明または古い場合があります。</p>
+
+<h2>8. 第三者への提供</h2>
+<p>MannerPath は、利用者の個人情報を販売したり、広告目的で第三者に提供したりしません。法令に基づく場合を除き、本ポリシーに記載した事業者（通信・配信事業者、Apple、お問い合わせメールの事業者）による処理以外に、利用者の情報を第三者に提供しません。</p>
+
+<h2>9. お問い合わせ・開示等の請求</h2>
+<p>削除・訂正・利用停止等の相談には、分かる場合は報告IDと相談内容を添えてください。報告IDだけで本人認定しません。秘密鍵・認証情報・本人確認書類・写真をメールで送らないでください。再インストールはサーバー削除ではなく、元の認証情報を失うと所有確認や復旧ができない場合があります。第三者の個人情報の問題は本人確認の可否とは別に調査します。申請情報の削除と公開済み場所の事実の扱いは別に審査し、即時完全削除や全配布物の回収を保証しません。</p>
+<p>本ポリシーや情報の取り扱いに関するお問い合わせ、開示・訂正・削除等のご請求は、下記までメールでご連絡ください。本アプリにはアカウントがないため、ご請求の内容によっては、対象となる情報を特定できない場合があります。</p>
+<p>お問い合わせのメールは Google のメールサービス（Gmail）で受信し、お送りいただいたメールアドレスと内容を、お問い合わせへの対応のために利用します。</p>
+<p>運営者：MannerPath 運営<br>メール：<a href="mailto:mannerpath.support@gmail.com">mannerpath.support@gmail.com</a></p>
+
+<h2>10. 改定</h2>
+<p>本ポリシーを改定する場合は、本ページの最終更新日を更新します。重要な変更は、可能な範囲でアプリ内でもお知らせします。</p>
+
+<hr>
+
+<section id="en" lang="en">
+<h1>MannerPath Privacy Policy</h1>
+<p class="meta">Operator: MannerPath 運営 (MannerPath operations)<br>Effective: October 4, 2026　Revision date: to be set after approval</p>
+<p>MannerPath helps people who are legally permitted to smoke find nearby permitted smoking places and ashtrays. This policy explains how the app (iPhone, Apple Watch and widgets) handles information. There is no account. If the Japanese and English texts differ, the Japanese text prevails.</p>
+
+<h2>1. Location</h2>
+<ul>
+<li>MannerPath asks for location access only While Using the App.</li>
+<li>Your current location is used on your device to rank nearby places and calculate straight-line distance and direction.</li>
+<li>To download place data, the app sends geographic tile IDs, not your device's raw GPS coordinates, to MannerPath's server. A tile ID identifies an approximate area.</li>
+<li>Browsing does not automatically collect a history of your current locations. Reports store the pin explicitly selected and confirmed by you; it may equal your current location.</li>
+<li>Apple Watch uses its own current location, on the watch, for distance and direction.</li>
+</ul>
+
+<h2>2. Network and server</h2>
+<ul>
+<li>MannerPath uses Cloudflare's services (such as Cloudflare Workers) to deliver place data. Network and delivery providers such as Cloudflare may process and record IP addresses and request information (requested tile IDs, time, technical device/app information) to deliver and protect the service and to handle failures.</li>
+<li>MannerPath has turned off automatic per-request records (invocation logs) in Cloudflare Workers. Diagnostic records created when an error occurs may still be kept. Under Cloudflare's published terms, Workers logs are kept for up to 7 days. Separately, records kept by providers may also remain.</li>
+<li>Which details are recorded, and for how long, depends on each provider's services and settings. What MannerPath confirms will be added to this policy.</li>
+<li>Network records are used for delivery, security and troubleshooting, not browsing-location histories or advertising. Report identifiers are used for device authentication and abuse prevention.</li>
+<li>Providers also handle information under their own privacy policies.</li>
+</ul>
+
+<h2>3. Apple services (MapKit and Maps)</h2>
+<ul>
+<li>Maps, destination search and walking-route previews use Apple MapKit, which may exchange location and request information, such as search terms, with Apple's services.</li>
+<li>Choosing directions hands the destination to Apple's Maps app.</li>
+<li>Destination search results are used to show places near the selected destination. Destination names, search text and exact destination coordinates are not sent to MannerPath's server. Selecting a destination sends geographic tile IDs computed on your device from that coordinate to fetch published place data. The requested area can be inferred, but it need not be your device's current location.</li>
+<li>Apple handles this information under Apple's privacy policy.</li>
+</ul>
+
+<h2>4. Information stored on your device</h2>
+<ul>
+<li>Downloaded place data (cache), filter settings and whether you have seen the first-launch notice are stored on your device.</li>
+<li>With cached data and a usable location, saved places, straight-line distance and direction remain available offline. Offline walking routes are not provided.</li>
+<li>The iPhone shares a compact set of nearby places, source information and filter preferences with your Apple Watch and widgets, device to device or within the device.</li>
+<li>A report draft, if you create one, stays only on your device and can be discarded at any time.</li>
+<li>Deleting or reinstalling the app does not delete server reports. Remaining authentication information and backups also depend on OS settings.</li>
+</ul>
+
+<h2>5. Photo-less place reports, retention and deletion</h2>
+<ul>
+<li>Version 1.0 provides new-place proposals from iPhone without photos. Photo attachment, upload and photo retries are not provided. Reports cannot be sent when intake is unavailable.</li>
+<li>Reports send the selected pin, type and access conditions, optional text and observation date, consented terms version, and report/idempotency identifiers. Pins are stored to five decimal places and may equal your explicitly selected current location.</li>
+<li>Apple App Attest key identifiers/public keys and key-derived submitter identifiers support device authentication, review and abuse prevention. Reports from the same installation can be linked; no account does not mean anonymous. Browsing alone does not register a reporting key.</li>
+<li>Cloudflare Workers/D1 process and store reports. Report text and device identifiers are not made public. An operator reviews independent evidence, such as an official source or a site visit. Receipt means pending review, not automatic or guaranteed publication.</li>
+<li>The design minimizes report text, pin, observation date, free-text claims and submitter linkage in the operational database based on 90 days after receipt. The operator must run and verify the process. Receipt, categorical, review/idempotency/independent-check records and authentication registrations are separate. Reviewed place facts may continue to be used.</li>
+<li>Recovery history in D1 and separately managed backups may retain earlier data. SQL deletion/minimization is different from cryptographic key destruction or physical erasure. Required minimization must be reapplied after restoration.</li>
+<li><strong>Unresolved before publication:</strong> retention and removal procedures for authentication, audit/receipt records, support and provider logs must be finalized after retention-register approval and implementation/operational checks. No promise that all data disappears after 90 days is made.</li>
+</ul>
+<h2>6. Analytics, advertising and tracking</h2>
+<ul>
+<li>MannerPath does not include third-party analytics, advertising trackers, or a crash-reporting SDK.</li>
+<li>For records kept by network and delivery providers, see section 2.</li>
+<li>MannerPath does not track you across other companies' apps or websites and does not use the advertising identifier (IDFA).</li>
+<li>If you share diagnostics with Apple in your device settings, Apple handles that information under its own terms.</li>
+</ul>
+
+<h2>7. Data sources</h2>
+<p>Place data is used under reviewed source and reuse conditions. Independently confirmed and reviewed place facts from user reports may be used after publication review. Sources and licenses are shown in the app under Data &amp; Privacy → Sources and attribution, and on each place's details. Hours, access conditions and supported tobacco types may be unknown or out of date.</p>
+
+<h2>8. Sharing</h2>
+<p>MannerPath does not sell personal information or share it with third parties for advertising. Apart from the processing by the providers described in this policy (network and delivery providers, Apple, and our email provider), we do not provide your information to third parties except where required by law.</p>
+
+<h2>9. Contact and requests</h2>
+<p>For deletion, correction or restriction requests, include the report ID if known and explain the request. A report ID alone is not proof of ownership. Do not email private keys, authentication data, identity documents or photos. Reinstalling does not delete server data; losing original authentication information may prevent ownership checks or recovery. Third-party privacy concerns are investigated separately. Deleting personal report information and handling published place facts are reviewed separately; immediate complete erasure or recall of every distributed copy is not guaranteed.</p>
+<p>For questions about this policy or requests for disclosure, correction or deletion, email us. Because there is no account, we may be unable to identify the information a request concerns.</p>
+<p>Support email is received through Google's email service (Gmail). We use your email address and the content of your message to respond to you.</p>
+<p>Operator: MannerPath 運営<br>Email: <a href="mailto:mannerpath.support@gmail.com">mannerpath.support@gmail.com</a></p>
+
+<h2>10. Changes</h2>
+<p>When this policy changes, the "Last updated" date above is updated. Significant changes are also announced in the app where practical.</p>
+</section>
+
+<footer>© 2026 MannerPath 運営 · <a href="../support/">サポート / Support</a></footer>
+</main>
+</body>
+</html>

@@ -391,8 +391,9 @@ server responses, while the report body is the server's minimization boundary.)
 - `spotId`: required for every type **except** `missing`, and rejected for `missing` (a missing
   spot has no canonical ID yet).
 - `proposedLocation`: required for `missing` and `moved`, and **rejected for every other type**.
-  It is the **map pin being proposed, not the device's position**; clients must never send the
-  user's own location. It is stored rounded to 5 decimal places (~1 m). It must lie in the service area,
+  It is the **map pin explicitly selected and confirmed by the user**. Clients must not
+  automatically transmit the device's raw GPS location or location history; a pin the user
+  explicitly chooses may coincide with their current location. It is stored rounded to 5 decimal places (~1 m). It must lie in the service area,
   Japan's extent `20 ≤ latitude ≤ 46` and `122 ≤ longitude ≤ 154` (bounds inclusive, `src/geo/japan.ts`),
   judged on the value **as submitted, before rounding**; a pin outside it is
   `400 {"error":"invalidReport","detail":"proposedLocation: outside_service_area"}` (see the response tables).

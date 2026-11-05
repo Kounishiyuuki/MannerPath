@@ -38,8 +38,8 @@ REPORTS_DBへpendingとして保存する。写真fieldは持たない。submitt
 報告を関連付けられる。pinは5桁で利用者が明示選択した現在地と一致し得る。90日までの審査用保持はリアルタイム処理を超える。
 したがってOther User Content、Precise Location、Device IDはCollected/Linkedの回答案とする。
 無アカウント・hash化・毎回同意だけではNot Linked/開示例外にならない。
-正本仕様の文言残件：#374のdocs/API.mdには「端末の位置を送ってはならない」との旧文言が残る一方、
-#375は利用者が現在地をpinとして明示選択・確定する。自動GPS送信と明示確定pinを区別するようLane3で正本を整合する必要がある。
+API正本の位置説明は、raw GPSの自動送信と利用者が明示選択・確定したpinを区別する表現へ修正した。
+[規約・日英Privacy/Supportの変更候補](../../../legal/v1-text-reports/README.md)は未承認・未公開。
 提出候補のPrivacy回答は実際に送られるpinに基づき、非収集へ変更しない。
 
 目的は審査/不正対策のApp Functionality。アプリに広告・IDFA/広告計測SDKはなく、報告を広告/ブローカー用途へ結合するflowは
