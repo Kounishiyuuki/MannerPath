@@ -6,7 +6,7 @@
 写真添付は提供せず、v1.1以降の計画。以前の申請全面停止/写真必須P0を上書きする。
 申請の自動掲載はなく、審査・source/rights/位置/品質ゲートは維持する。
 [現在の提出素材・実装差分・実機手順](release/submission-v1/text-reports/README.md)が現行スコープ。
-mainに残る旧写真依存はコード統合待ちの差分で、v1.0の要件ではない。#374/#375/#381の準備済みコードと実機完了を区別する。
+写真なし経路と限定再送は#374/#375/#382でmain統合済み。写真機能の再有効化は行わない。
 公開Web・ASC・本番API・iOSコードはこのPRで変更しない。
 
 過去の写真有効版監査（2026-10-15〜11-01）とD1/暗号PoCの検討は
@@ -14,13 +14,21 @@ mainに残る旧写真依存はコード統合待ちの差分で、v1.0の要件
 #357/#358/#360はソース統合済みだが通常申請へ未組込・本番未有効化。
 写真の実環境検証/写真条項はv1.0の提出条件から除き、実施済みと認定しない。
 
-**最新整合（staging実施記録2026-11-04反映）**：[要件分類](release/submission-v1/text-reports/REQUIREMENTS_AUDIT.md)と
-[実施記録/残る手動作業](release/submission-v1/text-reports/FINAL_REVIEW.md)。main `50d88a5`へ#372/#380/#376/#377/#379は統合済み。
-#374 `d34ad9e`・#375 `55ac086`・#381 `e0d9a33`はOPEN。申請なし/写真必須の旧指示は履歴としてのみ保持する。
-staging構築・REPORTS_DB0011・合成4地点・readiness/security-smokeは完了記録あり。Debug/developmentで登録paused。
-実機E2E、提出Release/production App Attest、CPU・1102/再送実測、#124、署名/素材、ASC、本番設定は未完了。
-登録pauseは新規鍵だけの制御で、申請全面停止を意味しない。写真はv1.1以降に再検討し、提供を保証しない。
-#371対象成功と#367未解決試験を分け、全UI/実機PASSやP0完了へ拡張しない。
+## 最新状況（2026-11-05）
+
+main `2e0eec7`へ#374・#375・#382（旧#381の再送実装）が統合済み。
+証拠はmain上の自動テスト記録と2026-11-05の運営者報告。このLaneは実機・remote操作を再実行していない。
+
+| 区分 | 確認できた範囲 | 未確認・限界 |
+| --- | --- | --- |
+| 実施済み（運営者報告） | 実機App Attestで写真なし申請201。stagingに2件保存、pending、未掲載 | 最終提出Release全体のPASSではない |
+| 自動テストのみ | 冪等性、独立確認必須、審査・export制限、限定v3再送 | 実機の特殊な応答消失、staging実承認・exportは未検証 |
+| 実施済み（構築/停止） | REPORTS_DB0011、合成データ、readiness/security-smoke成功。その後App Attestを無効化し受付停止・fail-closed確認 | 過去のavailable=true/登録pausedは試験時点。現在の受付稼働を意味しない。本番は未変更 |
+| 未確認 | 十分なCPU余裕、1102時の実機復旧、CHALLENGE_RATE_LIMITERの429 | 成功受付やbinding存在から安全余裕・IP制限成功を推定しない |
+| 未完了 | #124、最終署名Release・iPhone/Watch/Widget・提出素材・ASC・本番有効化 | 未承認・未検証を完了扱いしない |
+
+合成データはストア素材に使用しない。実機2件の成功は写真非収集6条件やprivacy承認全体の代用ではない。
+[運営者の決定表](release/submission-v1/text-reports/OWNER_DECISIONS.md)と下記の残件に従う。
 
 ## 1. Release scope (2026-11-02: reports on, photos unavailable)
 
@@ -61,14 +69,14 @@ legal decision, App Store Connect, device). **Ext** = waits on a third party.
 | G13 | In-app support / privacy links | P1 | OPEN | Release-simulator navigation to both pages and contact verified (#179) | Links and mail compose checked on a physical device | 3 | yes | no |
 | G14 | Signing, App Group, App Attest | P0 | OPEN | 過去1.0(3)署名preflightは履歴。最終RCのApp Group/実App Attestは未検証 | 最終署名preflightとiPhone/Watch/Widget共有、写真なし実申請のApp Attestを証明 | 3 | yes | no |
 | G15 | Widget / Watch on device | P0 | OPEN | No Watch/widget device PASS recorded ([matrix §4](beta-e2e/device-release-matrix.md)) | Matrix P0 rows W1, W2, W3, W5, W5b and widget rows `PASS 1.0 (N)` on the submitted build | 3 | yes | no |
-| G16 | Production runtime and intake truth | P0 | OPEN | stagingのavailable=true/photos=false・smoke成功を記録。登録pausedは新規鍵のみ。本番runtimeと最終RCは未確認 | 別途許可された担当がreports available・写真無効を当日確認。通常規約/RC/実受付と一致。今回有効化しない | 1 | yes | no |
+| G16 | Production runtime and intake truth | P0 | OPEN | staging実機201/2件pending後にApp Attest無効化、受付停止・fail-closedを確認。本番runtimeと最終RCは未確認 | 別途許可された担当がreports available・写真無効を当日確認。通常規約/RC/実受付と一致。今回有効化しない | 1 | yes | no |
 | G17 | First launch, location permission, offline | P0 | OPEN | 初回/位置/オフラインと写真なし新規申請の最終RC実機証拠なし | matrix P1/P4/P8/P9b/AI1と写真なし受付・同一reportの再送/再起動をPASS。旧R1は停止時の負例のみ | 3 | yes | no |
 | G18 | Accessibility / UI tests | P1 | OPEN | Simulator UI tests incl. visual audit pass (#265); Reduce Motion simulator (#191); VoiceOver/large text not observed on device | Matrix A1, A1W, P17, W9, W10 observed; ASC accessibility answers claim only observed support | 2/3 | yes | no |
 | G19 | Published data and quality | P0 | OPEN | Historical bounded scan: 513 IDs / 81 tiles, 6/6 source notices; not a global index or fresh observation. Local 638 rehearsal is not production evidence | Data owner rechecks existing approved production scope with separately authorized public GET audit + deployment inventory; copy/rights/captures agree. No source/data addition, rebuild, re-ID or promotion without separate approval | 4 | yes | no |
 | G20 | App Review risk | P1 | OPEN | Guideline 1.4.3 (tobacco), 2.1 (sparse data looks broken), 5.1.1 (privacy) — mitigations in [submission §7](APP_STORE_SUBMISSION.md) | Maintainer accepts residual risk; notes lead with compliance purpose and covered areas | 1 | yes | no |
 | G21 | Build to submit | P0 | OPEN | `main` declares 1.0 build 7 (#348). #349 records TestFlight 1.0 (7) device feedback, followed by UI changes not proven present in that binary. Final RC archive/hash, processing, signed preflight and complete device matrix remain unverified; see [audit §1](release/V1_APP_STORE_GATE_AUDIT_2026-10-31.md#1-testflight-10-7の証拠) | One build passes G14/G15/G17 and the signed preflight; build number raised by Lane 3 only | 3 | yes | no |
 | G22 | In-app covered-area list | P2 | OPEN | Not implemented | Optional covered-area list in the app (Lane 2 decision) | 2 | no | no |
-| G23 | Text-only new-place report terms and review (#124) | P0 | OPEN | 通常申請規約/権利は未承認。PR374/375に写真なし経路のコードは準備済みだが、main未統合・本番未有効化・実機未検証。staging0011/smokeは完了。写真条項はv1.1以降 | #124の通常申請規約を新versionで運営者承認、client/server同意一致。Lane1の写真不要UI/legacy状態/#381再送、Lane3の本番0011と独立した公式情報/現地確認の承認・review/exportゲートを整合。staging実機E2E後に閉じる | 1 | yes | no |
+| G23 | Text-only new-place report terms and review (#124) | P0 | OPEN | 通常申請規約/権利は未承認。PR374/375/382はmain統合済み。実機App Attest201・2件pending/未掲載、0011/smoke完了。本番は未有効化。応答消失/実承認・export/CPU余裕・429は未確認。写真条項はv1.1以降 | #124の通常申請規約を新versionで運営者承認、client/server同意一致。Lane1の写真不要UI/legacy状態/#381再送、Lane3の本番0011と独立した公式情報/現地確認の承認・review/exportゲートを整合。staging実機E2E後に閉じる | 1 | yes | no |
 
 P0 = blocks submission. P1 = must be closed or explicitly accepted by the maintainer before submission.
 P2 = after release.

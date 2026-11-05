@@ -1,23 +1,22 @@
-# v1.0最終提出文書レビュー — 2026-11-04
+# v1.0最終提出文書レビュー — 2026-11-05
 
 **SUBMISSION: BLOCKED。** v1.0は写真なし新規申請ありで確定。写真はv1.1以降。
 全項目の4分類と優先ブロッカーは[公開要件総点検](REQUIREMENTS_AUDIT.md)を参照。
-main `50d88a5`、OPEN PR #375 `55ac086`・#374 `d34ad9e`・#381 `e0d9a33`と、統合済み#372を照合した。
-#380/#376/#377/#379もmainへ統合済み。ソースレビューと各Laneの自動テスト報告は、配布Release・実App Attest・本番の証拠ではない。
-公開Web/ASC/本番API/iOSコードは今回変更・操作しない。
+## 最新状況（2026-11-05）
 
-## stagingの現在記録と完了範囲
+main `2e0eec7`へ#374・#375・#382（旧#381の再送実装）が統合済み。
+証拠はmain上の自動テスト記録と2026-11-05の運営者報告。このLaneは実機・remote操作を再実行していない。
 
-#374の[実施記録§8/8.1](https://github.com/Kounishiyuuki/MannerPath/blob/d34ad9ea1314518491a90135666fc8db50f71778/docs/release/V1_PHOTO_FREE_STAGING_E2E.md)と運営者報告で、
-D1/Worker構築、REPORTS_DB0011、合成地図4地点、readiness completed、security-smoke PASSを確認した。
-古い「未作成」は過去状態であり、現在の残件ではない。このLaneによるremote再実行はしていない。
-現在はDebug/development/build7、draft規約、登録paused。config available=true/photos=falseでも新規鍵登録は503で、
-登録済み鍵の申請を全面停止する設定ではない。実機試験時の登録再開は別途運営者が操作する。
-TestFlight/提出Releaseはproduction App Attestを使うため、現在のdevelopment構成でのsmokeを代用しない。
-challenge IP limiterはbinding済みでも429を観測できなかった記録があり、厳密な制限確認済みとはしない。
-D1による鍵/登録/申請上限とは分けて実機E2Eで確認する。合成データを本番掲載範囲やストア素材に混ぜない。
-最新#374はdetail APIの内部provenance.ruleにTaitoパーサ識別子が残ることを記録している。
-sourceIdはstaging-synthetic-testであり、公式地点の証拠ではない。実機画面に「台東」等の誤認表示が出ないか確認する。
+| 区分 | 確認できた範囲 | 未確認・限界 |
+| --- | --- | --- |
+| 実施済み（運営者報告） | 実機App Attestで写真なし申請201。stagingに2件保存、pending、未掲載 | 最終提出Release全体のPASSではない |
+| 自動テストのみ | 冪等性、独立確認必須、審査・export制限、限定v3再送 | 実機の特殊な応答消失、staging実承認・exportは未検証 |
+| 実施済み（構築/停止） | REPORTS_DB0011、合成データ、readiness/security-smoke成功。その後App Attestを無効化し受付停止・fail-closed確認 | 過去のavailable=true/登録pausedは試験時点。現在の受付稼働を意味しない。本番は未変更 |
+| 未確認 | 十分なCPU余裕、1102時の実機復旧、CHALLENGE_RATE_LIMITERの429 | 成功受付やbinding存在から安全余裕・IP制限成功を推定しない |
+| 未完了 | #124、最終署名Release・iPhone/Watch/Widget・提出素材・ASC・本番有効化 | 未承認・未検証を完了扱いしない |
+
+合成データはストア素材に使用しない。実機2件の成功は写真非収集6条件やprivacy承認全体の代用ではない。
+[運営者の決定表](OWNER_DECISIONS.md)と下記の残件に従う。
 
 ## 1. 提出資料と公開説明の一致
 
@@ -50,7 +49,7 @@ REPORTS_DBへpendingとして保存する。写真fieldは持たない。submitt
 `retention.ts`は90日で本文/pin/submitter hash等を最小化するが、skeleton・列挙claim・receipt/監査とApp Attest登録は別。
 #374の独立確認行（report ID、basis、公式URL、確認日、operator ID、時刻/hash）もimmutableな監査記録で、全記録90日削除ではない。
 D1履歴/exports/restore再適用・support・認証登録の期限と削除依頼処理はG2/G3/G23で確定する。
-#381の再送は同じpayloadを使い新しい収集型/利用目的を追加しない。要求回数とproviderログが増える可能性は既存の未確認事項に含める。
+#382の再送は同じpayloadを使い新しい収集型/利用目的を追加しない。要求回数とproviderログが増える可能性は既存の未確認事項に含める。
 
 ## 3. Photos除外条件
 
@@ -80,25 +79,19 @@ URLの形式がhttpsであることは、そのページが公式/現行であ�
 source/rights/位置精度/品質・独立性・規約権利・後段公開手続きも残る。受付・独立確認・承認・公開を区別する。
 今回、確認記録の作成/承認/export/公開は実行していない。
 
-## 5. 運営者の実施順序（手順の提示のみ、操作は未実施）
+## 5. 提出までの必要条件と順序
 
-1. **通常申請の法務/運営判断**：#124の再利用・撤回・本人確認・保持/履歴・運営者/連絡先・新versionを確定。
-   写真条項はv1.1へ保留。App Privacy5型/Photos除外条件、UGC/年齢、EULAを承認する。未決はOPEN。
-2. **コード/RCを揃える**：#372は統合済み。担当Laneが#374/#375/#381と#373の整合を最終確認し、別権限の統合手続きを行う。
-   migration0011、Releaseでの写真/legacy follow-up無効、manifestとPrivacy Report、同意文書bytes/hash/version一致を確認。
-   このLaneはmain mergeやiOS修正をしない。#381はv3一時障害の最大2回自動再送で、全失敗の回復や再起動後自動送信は保証しない。
-3. **構築済みstagingを実機向けに確認**：0011/合成readiness/smokeは完了。実Worker版/依存版と対象PR・最新mainを照合する。
-   試験対象の署名形態とApp Attest環境/build、
-   draft規約の試験範囲、登録再開、rate limit・retention/監視を運営者が確認。developmentのDebugと最終Releaseの確認を分ける。
-4. **署名実機staging E2E**：写真なし受理→pending→独立確認→承認→review/exportを検証。再送、範囲外pin、上限、
-   未同意/不正assertion拒否、写真拒否、LEGACY、Watch/Widget/オフライン/AX5/VoiceOverを記録する。
-   Workers Free CPUの再計測と1102監視を確認。#374最新計測はP50 6ms/P99 35ms、10ms超5%、exceededCpu0。
-   この計測はCPU閾値の常時達成や本番SLOを証明しない。staging構築済みでも実機E2E・CPU/1102実測は残る。
-   [同PRのstaging手順](https://github.com/Kounishiyuuki/MannerPath/blob/d34ad9ea1314518491a90135666fc8db50f71778/docs/release/V1_PHOTO_FREE_STAGING_E2E.md)の§8は構築/smoke実施記録、§8.3以降の実機/CPU手順は未実施。
-5. **公開説明/素材を一致**：別担当が承認したja/en Privacy Policy・Support・通常規約を更新/到達確認する。
-   提出RCと承認済み現在corpusで画像・審査動画・notesを準備し、出典/素材権利/地域文を確認する。
-6. **本番有効化は別承認**：運営者の明示的な有効化承認後のみ、別担当が本番0011/trigger、登録/App Attest/limits/retentionを
-   設定・確認し、reports available・photos offとRCの一致/エラー監視を記録する。申請の有効化はデータ公開の承認ではない。
-7. **ASCと最終Gate**：運営者が承認済みmetadata/連絡先/Privacy/UGC年齢/輸出/地域/無料/手動公開/最終build/画像を反映。
-   当日scope/runtime、P0全完了、P1完了または明示受容を記録する。未完了があれば提出しない。
-   Appleへの審査提出・公開はさらに別途許可された操作。本PRでは実施しない。
+1. **P0・運営者判断**：[決定表](OWNER_DECISIONS.md)の#124・Privacy・運用条件を承認または修正。未承認のまま本番受付を開かない。
+2. **P0・現実装の仕上げ**：最終RCで写真/legacy入口非表示、manifest/Privacy Report、規約version/bytes/hash、公開policy/supportを一致させる。main統合は完了しており再度の未統合扱いは不要。
+3. **P0・残る検証**：既に成功した実機201を全やり直しの条件にはしない。未実施の応答消失・同一申請再送、独立確認→承認→review/export、失敗/復旧を隔離stagingで検証する。現在停止中の再開は別承認。CPU余裕・1102・IP制限429は実測し、未観測なら制限の有効性を主張せず、無料枠で安全に運用可能か判断する。有料化を既定の解決策としない。
+4. **P0・最終提出物**：同一署名Releaseで位置権限/オフライン、iPhone/Watch/Widget、App Group・App Attest、写真除外条件、承認済みcorpus/画像を確認。G18の実機AX/VOはP1として完了または明示受容し、証拠なくアクセシビリティ対応を申告しない。#367の失敗は現RCで製品影響を切り分ける。
+5. **P0・運営者作業**：承認済みPrivacy/Support/規約を別担当が公開し、別途承認された本番0011/設定・監視・停止手順を確認。通常申請ON/写真OFFと提出文言を一致させる。ASCの連絡先/Privacy/UGC年齢/権利/輸出/地域/無料/画像/buildを入力し、全P0完了後に提出判断する。本PRでは実施しない。
+
+## 6. v1.1以降へ分離（v1.0 P0へ追加しない）
+
+- 写真添付・写真暗号化/鍵破棄・写真専用規約/ストレージ検証。再有効化しない。
+- 申請履歴画面・セルフサービス削除/復旧endpoint、バックグラウンド自動再送の拡張。
+  ただしv1.0でも現実装で履行可能な手動削除相談・本人確認・保持説明は必要。
+- 2名承認・新地域追加・アプリ内地域一覧。現行の独立確認・権利/位置/品質ゲートは維持。
+
+実際の承認/exportのstaging検証は将来機能ではなく、既存v1.0運用の残件。P1は運営者の明示受容なしに省略しない。

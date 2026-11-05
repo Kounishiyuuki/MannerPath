@@ -303,6 +303,12 @@ class StoreCopyTests(unittest.TestCase):
         self.assertEqual(staging["reportsMigrationsThrough"], "0011")
         self.assertEqual(staging["securitySmoke"], "PASS")
         self.assertFalse(staging["realDeviceE2EVerified"])
+        self.assertTrue(staging["realDeviceAcceptanceVerified"])
+        self.assertEqual(staging["savedReports"], 2)
+        self.assertEqual(staging["publishedReports"], 0)
+        self.assertEqual(staging["reportStatus"], "pending")
+        for key in ("lostResponseDeviceVerified", "approvalExportStagingVerified", "cpuHeadroomVerified", "challengeIp429Verified"):
+            self.assertFalse(staging[key])
         self.assertFalse(staging["submissionReleaseVerified"])
         self.assertFalse(staging["cpu1102DeviceVerified"])
         self.assertFalse(staging["productionEnabled"])

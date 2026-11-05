@@ -1,13 +1,21 @@
-# v1.0公開要件総点検 — 2026-11-04
+# v1.0公開要件総点検 — 2026-11-05
 
 **SUBMISSION: BLOCKED。** 写真なし新規地点申請あり、写真はv1.1以降。go/no-goは[Release Gate](../../../V1_APP_STORE_RELEASE_GATE.md)。
-最新main `50d88a5`へ#372/#380/#376/#377/#379が統合済み。
-OPENの[#374](https://github.com/Kounishiyuuki/MannerPath/pull/374) `d34ad9e`、
-[#375](https://github.com/Kounishiyuuki/MannerPath/pull/375) `55ac086`、
-[#381](https://github.com/Kounishiyuuki/MannerPath/pull/381) `e0d9a33`を照合。
-staging構築/0011/合成データ/readiness/security-smokeは運営者報告と#374 §8の実施記録で反映する。
-このLaneは作業ブランチへ最新mainを取り込んだが、mainへのmerge、実機・本番・公開Web・ASC操作はしていない。各Laneのテスト報告は再実行していない。
-今回実行する文書contract/CIと、アプリ機能の自動検証履歴・実機結果を分離する。
+## 最新状況（2026-11-05）
+
+main `2e0eec7`へ#374・#375・#382（旧#381の再送実装）が統合済み。
+証拠はmain上の自動テスト記録と2026-11-05の運営者報告。このLaneは実機・remote操作を再実行していない。
+
+| 区分 | 確認できた範囲 | 未確認・限界 |
+| --- | --- | --- |
+| 実施済み（運営者報告） | 実機App Attestで写真なし申請201。stagingに2件保存、pending、未掲載 | 最終提出Release全体のPASSではない |
+| 自動テストのみ | 冪等性、独立確認必須、審査・export制限、限定v3再送 | 実機の特殊な応答消失、staging実承認・exportは未検証 |
+| 実施済み（構築/停止） | REPORTS_DB0011、合成データ、readiness/security-smoke成功。その後App Attestを無効化し受付停止・fail-closed確認 | 過去のavailable=true/登録pausedは試験時点。現在の受付稼働を意味しない。本番は未変更 |
+| 未確認 | 十分なCPU余裕、1102時の実機復旧、CHALLENGE_RATE_LIMITERの429 | 成功受付やbinding存在から安全余裕・IP制限成功を推定しない |
+| 未完了 | #124、最終署名Release・iPhone/Watch/Widget・提出素材・ASC・本番有効化 | 未承認・未検証を完了扱いしない |
+
+合成データはストア素材に使用しない。実機2件の成功は写真非収集6条件やprivacy承認全体の代用ではない。
+[運営者の決定表](OWNER_DECISIONS.md)と下記の残件に従う。
 
 ## 判定方法
 
@@ -43,12 +51,12 @@ staging構築/0011/合成データ/readiness/security-smokeは運営者報告と
 | Watch同期/位置/権利/再接続/圏外cache | 実装済みだが実機確認待ち | [Watch実行表](../../WATCH_WIDGET_RELEASE_READINESS.md)はhardware全行NOT RUN。目的地検索をnearby同期としない |
 | Widget保存file/鮮度/deeplinkのunit | 実装・検証済み | `NearbyGlanceTests`とfile roundtrip。App Groupの各端末内共有とWC橋渡しは別。署名共有の証明ではない |
 | iPhone/Watch Widget/Smart Stack/更新遅延 | 実装済みだが実機確認待ち | signed App GroupとWidgetKitの実時刻待ち。Watch Widgetは保存したiPhone候補順で、WatchのGPS/フィルタによる並べ替えとは一致しなくてよい |
-| 写真なし新規申請/重複/規約必須/受付/再送の自動検証 | 実装・検証済み | OPEN #375 `55ac086`の`ReportNewPlaceWithoutPhotosTests` 11件、I+J両OS26件報告。量子化pin範囲・400説明・未署名拒否・掲載保証なしも追加。main未統合 |
-| 本文/pin/terms/App Attestの実機受付→再起動/再送 | 実装済みだが実機確認待ち | real署名端末/本物のApp Attestでstaging E2Eなし。mock成功を実送信成功としない |
-| 不正申請防止・独立確認・review/export/rollbackの自動検証 | 実装・検証済み | OPEN #374 `d34ad9e`：attestation/上限/範囲外、cut-off冪等再送、immutable/CAS/期限、0011既存DB/rollback、headless admin操作の報告。公式source/現地のplace_confirmed必須。main未統合 |
-| #381の限定v3自動再送 | 実装・検証済み | OPEN #381 `e0d9a33`は同payload/冪等キー・新challengeで最大2回追加、busy/backoff後に手動再送。対象unitと18.6/26.5の再送UI報告あり。実機1102/自動回復は未検証 |
-| staging構築/0011/合成readiness・smoke | 実装・検証済み | #374 §8/8.1と運営者報告。合成4地点、readiness completed、security-smoke PASS。Debug/development、登録paused。実機送信・最終Release・本番成功ではない |
-| 写真なし経路/自動再送のmain統合 | 未実装・要修正 | #372は統合済み。#374/#375/#381はOPEN。最終統合回帰、同意/manifest/legacy状態の整合が必要。本番0011/設定は別承認 |
+| 写真なし新規申請/重複/規約必須/受付/再送の自動検証 | 実装・検証済み | 統合済み #375の`ReportNewPlaceWithoutPhotosTests` 11件、I+J両OS26件報告。量子化pin範囲・400説明・未署名拒否・掲載保証なしも追加。main統合済み |
+| 本文/pin/terms/App Attestの実機受付→再起動/再送 | 実装済みだが実機確認待ち | 実機App Attestで201、2件pending/未掲載は運営者確認済み。応答消失/再起動/再送、最終署名Releaseは未確認 |
+| 不正申請防止・独立確認・review/export/rollbackの自動検証 | 実装・検証済み | 統合済み #374：attestation/上限/範囲外、cut-off冪等再送、immutable/CAS/期限、0011既存DB/rollback、headless admin操作の報告。公式source/現地のplace_confirmed必須。main統合済み |
+| #382の限定v3自動再送 | 実装・検証済み | 統合済み #382は同payload/冪等キー・新challengeで最大2回追加、busy/backoff後に手動再送。対象unitと18.6/26.5の再送UI報告あり。実機1102/自動回復は未検証 |
+| staging構築/0011/合成readiness・smoke | 実装・検証済み | #374 §8/8.1と運営者報告。合成4地点、readiness completed、security-smoke PASS。実機201の後、App Attest無効化で受付停止・fail-closed確認。最終Release・本番成功ではない |
+| 写真なし経路/自動再送のmain統合 | 実装・検証済み | #372/#374/#375/#382はmain統合済み。最終統合回帰、同意/manifest/legacy状態の整合が必要。本番0011/設定は別承認 |
 | Workers Free tail/1102監視・有効化 | 運営者承認待ち | #374最新P50 6ms/P99 35ms、>10ms 5%、exceededCpu0。成功率観測は常時CPU閾値内の証明ではない。staging再計測/監視とtail扱いを承認 |
 | v1.0で旧写真follow-upまで入口なし | 未実装・要修正 | #375にもlegacy follow-up読込/入口が残る可能性。空reviewed termsはupload拒否とclean UIの根拠で、legacy表示の証明ではない。guard/移行方針と実機負例が必要 |
 | 申請pin/本文/端末IDのCollected/Linked/Not Tracking案 | 運営者承認待ち | [Privacy JSON](app-privacy-candidate.json)：実flowはD1審査保持、App Attest由来hashとの関連。無account/hashは匿名化ではない。purposeはApp Functionality案、provider実用途確認待ち |
@@ -68,20 +76,9 @@ staging構築/0011/合成データ/readiness/security-smokeは運営者報告と
 
 ## 重要度順の提出ブロッカー
 
-1. **P0：申請の正当な受付・審査・権利が揃わない。** #124の通常申請規約/再利用・privacy/保持承認、#374/#375統合、
-   0011と独立確認、legacy写真状態、manifest/policy/supportを整合する。単にreports availableへ切り替えない。
-2. **P0：staging実機E2Eと提出Releaseの証拠がない。** 構築/0011/合成readiness・smokeは完了したが、実App Attest、同一申請retry（#381含む）、独立確認→承認→review/export、
-   CPU再計測/1102監視の証拠なし。#367未解決失敗はfresh環境で切分け、最終統合HEADで回帰を確認する。
-3. **P0/P1：提出RCのiPhone/Watch/Widget・権限/offline/AX5/VOが未確認。** signed App Group/WCSession/WidgetKit/リンクを
-   実機で観測する。対象Simulator成功を全UI・実機へ拡張しない。G18はP1のまま、勝手にP0へ格上げしない。
-4. **P0：運営・法務とストアの確定不足。** Photos非収集条件/ログ/support、UGC年齢、corpus/素材権利、輸出、
-   承認済み地域説明・native画像・Review Notes、ASC値と最終buildの照合が必要。
-5. **P0：別承認の本番準備と当日確認。** 実機stagingと監視・rollback準備後に運営者が有効化を判断し、通常申請ON/写真OFF、
-   migration/登録/limits/retention/公開範囲を別担当が確認。全P0完了とP1完了または明示受容後のみ、別途許可された提出へ進む。
-
-優先順位は依存関係の整理で、下位項目を免除しない。今回新たな機能/実機/運用P0をDONEにしていない。
-登録pausedは新規鍵登録のみを止め、available=trueを申請全面停止とも実機受付完了とも解釈しない。IP challenge制限はbindingがあってもstagingで429未観測の記録があり、厳密な上限確認は未了。
-操作順序とPhotos除外条件は[FINAL_REVIEW](FINAL_REVIEW.md)も参照。すべて手順の提示で、本番/ASC/Apple提出は未実施。
+[最終レビュー§5](FINAL_REVIEW.md#5-提出までの必要条件と順序)にP0の必要条件と順序、§6にv1.1以降の非P0を限定列挙した。
+実機App Attest受付・main統合は実施済み。#124、公開説明/manifest、残るE2E・CPU/429、最終Release/Watch/Widget/素材、ASC・本番承認はOPEN。
+G18はP1のままで、未確認を自動的に提出阻害P0へ拡大しない。今回操作したのは文書/ローカル検証/Git/PRのみ。
 
 ## 公式資料と証拠の扱い
 
