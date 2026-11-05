@@ -65,7 +65,7 @@
     "Approved report terms, production activation and final signed Release verification",
     "Cloudflare retained tile/IP/diagnostics, Time Travel, support scope and final archive Privacy Report",
     "App Attest registration/audit retention, early minimization and reinstall ownership proof",
-    "PR374 docs/API wording must distinguish prohibited automatic device-GPS transmission from the explicitly chosen current-location pin supported by PR375"
+    "Legal/Privacy/Support replacement candidates remain unapproved and unpublished; retention schedules, erasure/withdrawal feasibility, provider/support handling and final owner approval remain release blockers."
   ],
   "retention": {
     "reportPersonalContent": "Current main redacts personal report fields at receipt +90 days; skeleton/audit/receipt records remain. Historical D1 versions can retain pre-redaction data; this is not physical erasure.",
