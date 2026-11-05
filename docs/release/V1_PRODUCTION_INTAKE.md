@@ -58,11 +58,37 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 
 ## 4. 手順（`npm run production:v1-plan` が出力する）
 
-1. 読み取りで状態を確認（migration、Secret 名）。
-2. D1 Time Travel の位置を控える（Free は7日間）。
-3. REPORTS_DB 0004〜0011 を適用。DB 0031〜0033 は別レビューの後に適用。
-4. peppers を対話で設定し、デプロイ。App ID なしなので受付は閉じたまま。
-5. 規約が承認されている場合だけ：App ID を設定し、`REPORT_REGISTRATION=enabled` でデプロイ。
+各段階の後に `npm run production:v1-check -- --stage <段階>` を実行し、`PASS` だけで次へ進む（§5）。
 
-ロールバック：Worker は `wrangler rollback`（その後、App ID が戻っていないか Secret 名で確認し、必要なら消し直す）。
+1. 読み取りで状態を確認し、`--stage before-db`。Lane 2 の migration レビュー（§5）がそろうまで `FAIL`。
+2. D1 Time Travel の位置を控える（Free は7日間）。
+3. REPORTS_DB 0004〜0011 と DB 0031〜0033 を適用し、`--stage after-db`。
+4. peppers を対話で設定し、デプロイし、`--stage after-deploy`。App ID なしなので受付は閉じたまま。
+5. 規約が承認されている場合だけ：App ID を設定し、`REPORT_REGISTRATION=enabled` でデプロイし、`--stage after-intake`。
+
+**停止**：`npm run production:v1-stop`（wrangler の確認に答えるだけ）。App ID を消し、既存の鍵を含めて受付を止め、
+続けて `--stage stopped` で fail-closed（`available:false`、challenge 503 `attestationUnavailable`）を確かめる。
+
+ロールバック：Worker は `wrangler rollback`。その後 `--stage stopped` を実行し、App ID が戻っていないかを確かめる。
 0011 だけを戻すときは `migrations-reports-rollback/0011_new_spot_independent_evidence.sql`。それ以外は D1 Time Travel。
+
+## 5. 段階ごとの自動検査（`npm run production:v1-check`）
+
+読み取り専用：`wrangler d1 migrations list`・`wrangler secret list`（名前のみ）・公開ルートの GET と、書き込みの前に
+拒否される POST（写真の送信、登録用 challenge）だけ。秘密の値や応答の本文は出力しない。全段階で、ビルド番号が
+すべて 8 であること、規約文書の bytes が登録済みの SHA-256 と一致することも確かめる。
+
+| 段階 | 確かめること |
+| --- | --- |
+| `before-db` | REPORTS_DB の未適用が 0004〜0011 だけ。未適用の各 migration を Lane 2 が承認済み（下記）。受付は閉じている |
+| `after-db` | 両 DB に未適用なし。受付は閉じている |
+| `after-deploy` | readiness 200、report schema 3、写真 503 `photoEvidenceDisabled`、規約の版が一致、peppers あり。App ID なし・`available:false` |
+| `after-intake` | **規約が草案または公開権利なしなら必ず FAIL**。App ID あり・`available:true`、上記の Worker の項目 |
+| `stopped` | `after-deploy` と同じ（受付が既存の鍵を含めて閉じている） |
+
+**Lane 2 の migration レビューの取り込み**：`services/api/release/production-migration-review.json` に、未適用の
+migration ごとに `{ database, name, sha256, verdict: "approved", reviewedBy }` を Lane 2 の PR で追加する。
+`sha256` はファイルの bytes の SHA-256（`shasum -a 256 <file>`）。ファイルが1 byte でも変われば `before-db` は FAIL に戻る。
+この検査はレビューの内容を判断しない。承認の記録と bytes の一致だけを見る。
+
+2026-11-05 の `--stage before-db`：ビルド 8・規約 hash・受付が閉じていることは PASS、未適用の 11件がレビュー未登録で FAIL。
