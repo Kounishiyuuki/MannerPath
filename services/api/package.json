@@ -18,6 +18,7 @@
     "bulk:intake": "node --experimental-strip-types --no-warnings scripts/bulk-intake.ts",
     "local:registry": "node --experimental-strip-types --no-warnings scripts/apply-source-registry.ts",
     "local:reports": "node --experimental-strip-types --no-warnings scripts/report-queue.ts",
+    "reports:retention-health": "node --experimental-strip-types --no-warnings scripts/report-retention-health.ts",
     "local:reports:retention": "node --experimental-strip-types --no-warnings scripts/report-retention.ts",
     "local:reports:redact": "node --experimental-strip-types --no-warnings scripts/report-queue.ts retain",
     "local:reports:erasure-impact": "node --experimental-strip-types --no-warnings scripts/report-erasure-impact.ts",

@@ -1147,8 +1147,9 @@ redactions + 10 receipt retirements + 10 expired rate-window deletions + 10 expi
 deletions plus seven reads. This is below the current Free limit of 50 queries per Worker invocation
 ([D1 limits](https://developers.cloudflare.com/d1/platform/limits/)). It does not bound rows scanned,
 CPU time, daily quota or guarantee Free-plan viability. Before activation, measure backlog arrival,
-read costs, execution time and the cadence needed to clear at most 10 reports per invocation. No
-production schedule or assumed traffic threshold is supplied here.
+read costs, execution time and the cadence needed to clear at most 10 reports per invocation. No live
+production schedule is enabled here. The v1.0 (8) offline production-plan generator proposes a bounded pass every five minutes;
+see [minimal retention operations](legal/v1-text-reports/OPERATIONS.md). Capacity, heartbeat visibility and activation remain unverified.
 
 LOCAL verification only (commands refuse remote/extra target flags):
 

@@ -62,7 +62,7 @@ main `2e0eec7`へ#374・#375・#382（旧#381の再送実装）が統合済み�
 | 申請pin/本文/端末IDのCollected/Linked/Not Tracking案 | 運営者承認待ち | [Privacy JSON](app-privacy-candidate.json)：実flowはD1審査保持、App Attest由来hashとの関連。無account/hashは匿名化ではない。purposeはApp Functionality案、provider実用途確認待ち |
 | Photos除外、ログ/IP/support保持の確定 | 運営者承認待ち | [6検証条件](FINAL_REVIEW.md#3-photos除外条件)のCONFIG/PHOTO_APIはstaging一部確認、その他/最終条件は未確認。support添付も対象。photo flagだけで非申告しない |
 | API正本の位置説明 | 実装・検証済み | docs/APIを明示選択pinとraw GPS自動送信の区別へ修正。文書のみで送信実装は不変。Precise Location案を維持 |
-| 最終Privacy manifest/Privacy Report/公開policy整合 | 未実装・要修正 | 候補plistは未組込、現iPhoneは収集型未宣言。公開用policy/support原稿は申請停止。変更は別担当。G2/G3/G13 OPEN |
+| 最終Privacy manifest/Privacy Report/公開policy整合 | 未実装・要修正 | #384でiPhone manifestの申請データ宣言を組込済み。最終archiveと回答・公開policyの一致は未確認。公開用policy/support原稿は申請停止。変更は別担当。G2/G3/G13 OPEN |
 | 保持90日最小化・復元履歴・認証登録・監査/削除方針 | 運営者承認待ち | `retention.ts`は本文/pin/hash等を最小化。全記録/媒体消去ではない。App Attest登録・独立確認・receipt・D1履歴/exports/supportを別承認 |
 | 早期削除endpoint/本人確認/履歴復旧 | 未実装・要修正 | ADR-0021は設計。機能自体を暗黙にv1.0必須へ追加しないが、現実装で履行できる請求対応/期限の法務承認は必要。再installはサーバー削除ではない |
 | 通常申請規約/再利用権・EULA | 運営者承認待ち | #124未承認、MAINTAINER入力/撤回/本人確認/90日とbackup表現未決。新versionとclient/server本文hash一致、非遡及同意が必要。写真条項はv1.1 |

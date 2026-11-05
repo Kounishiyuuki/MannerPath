@@ -19,6 +19,7 @@ python3 scripts/test-apple-beta-preflight.py
 python3 scripts/test-apple-ui-runner-safety.py
 python3 scripts/test-store-copy.py
 python3 scripts/test-v1-legal-prep.py
+python3 scripts/test-prepare-report-terms.py
 python3 scripts/test-ui-test-inventory.py
 
 # Store asset checks remain technical-only; never grant rights/device approval.
