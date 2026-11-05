@@ -378,11 +378,11 @@ extension ReportFlowTests {
             (429, "not JSON", .incompatibleResponse),
             (400, #"{"error":"unexpected"}"#, .incompatibleResponse),
             (413, #"{"error":"unexpected"}"#, .incompatibleResponse),
-            (503, #"{"error":"upstreamError"}"#, .incompatibleResponse),
-            (503, "not JSON", .incompatibleResponse),
-            (500, #"{"error":"serverError"}"#, .incompatibleResponse),
-            (502, "", .incompatibleResponse),
-            (504, "", .incompatibleResponse),
+            (503, #"{"error":"upstreamError"}"#, .transientStatus(503)),
+            (503, "not JSON", .transientStatus(503)),
+            (500, #"{"error":"serverError"}"#, .transientStatus(500)),
+            (502, "", .transientStatus(502)),
+            (504, "", .transientStatus(504)),
             (200, "", .incompatibleResponse),
             (201, #"{"schemaVersion":1,"state":"pending"}"#, .incompatibleResponse)
         ]

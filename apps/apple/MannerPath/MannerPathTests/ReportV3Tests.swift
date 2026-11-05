@@ -180,7 +180,9 @@ struct ReportV3Tests {
         let sender = V3Submitter([.failure(URLError(.networkConnectionLost)), .success(receipt)])
         let authorizer = V3Authorizer()
         let first = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
-            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer,
+            // Automatic repeats off: this pins the state after one lost answer (repeats: ReportAutoRetryTests).
+            retryPolicy: ReportRetryPolicy(maxRetries: 0))
         await first.refreshAvailability()
         first.start(type: .exists, spotId: spotID)
         let key = try #require(first.draft?.idempotencyKey)
@@ -228,7 +230,9 @@ struct ReportV3Tests {
         let authorizer = V3Authorizer()
         let model = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
             store: FileReportDraftStore(directory: path), installIDs: V3InstallID(),
-            attestedClient: sender, authorizer: authorizer)
+            attestedClient: sender, authorizer: authorizer,
+            // Automatic repeats off: this pins the state after one lost answer (repeats: ReportAutoRetryTests).
+            retryPolicy: ReportRetryPolicy(maxRetries: 0))
         await model.refreshAvailability()
         model.start(type: .exists, spotId: spotID)
         let key = model.draft?.idempotencyKey
@@ -347,7 +351,9 @@ struct ReportV3Tests {
             let sender = V3Submitter([.failure(URLError(.networkConnectionLost))])
             let authorizer = V3Authorizer()
             let first = ReportModel(configClient: V3Config(limits: limits), reportClient: sender,
-                store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+                store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer,
+                // Automatic repeats off: this pins the state after one lost answer (repeats: ReportAutoRetryTests).
+                retryPolicy: ReportRetryPolicy(maxRetries: 0))
             await first.refreshAvailability()
             first.start(type: .exists, spotId: spotID)
             await first.submit()
@@ -433,7 +439,9 @@ struct ReportV3Tests {
         var originalLimits = limits
         originalLimits.termsVersion = "original-terms"
         let first = ReportModel(configClient: V3Config(limits: originalLimits), reportClient: sender,
-            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer)
+            store: store, installIDs: V3InstallID(), attestedClient: sender, authorizer: authorizer,
+            // Automatic repeats off: this pins the state after one lost answer (repeats: ReportAutoRetryTests).
+            retryPolicy: ReportRetryPolicy(maxRetries: 0))
         await first.refreshAvailability()
         first.start(type: .exists, spotId: spotID)
         var draft = try #require(first.draft)

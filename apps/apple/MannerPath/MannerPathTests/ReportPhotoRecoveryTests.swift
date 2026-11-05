@@ -104,7 +104,9 @@ struct ReportPhotoRecoveryTests {
                                 attestedClient: reports, authorizer: authorizer,
                                 photoPolicy: PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: recoveryTerms),
                                 photoUploader: uploader,
-                                photoFollowUps: followUps ?? FileReportPhotoFollowUpStore(directory: directory))
+                                photoFollowUps: followUps ?? FileReportPhotoFollowUpStore(directory: directory),
+                                // These tests pin the state after one lost answer; automatic repeats are ReportAutoRetryTests.
+                                retryPolicy: ReportRetryPolicy(maxRetries: 0))
         await model.refreshAvailability()
         return model
     }
