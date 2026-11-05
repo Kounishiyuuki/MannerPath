@@ -1,5 +1,8 @@
 # MannerPath 利用者報告規約 — 写真に関する条項（候補）
 
+**2026-11-02 scope superseded:** 写真関連の要件・条項・候補はv1.1以降向けに保留。以下の旧v1.0写真必須/P0表記は履歴。
+現v1.0は[写真なし新規申請](../release/submission-v1/text-reports/README.md)。本書の写真条件を現v1.0提出の必須条件や承認済み条件としない。
+
 > **CANDIDATE — not approved. Not shown in the app, not a consent basis, not a basis for publication.**
 > これは `docs/legal/REPORT_TERMS_CANDIDATE.md` に追加する条項の候補です（v1.0 P7、
 > `docs/release/V1_PHOTO_PLACE_SUBMISSION.md` R9）。法的に有効であることは確認されていません。

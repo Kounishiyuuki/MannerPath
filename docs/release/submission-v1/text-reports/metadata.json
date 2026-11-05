@@ -1,0 +1,27 @@
+{
+  "status": "candidate-not-approved",
+  "submissionReady": false,
+  "name": "MannerPath",
+  "subtitle": "喫煙可能場所と利用条件を確認",
+  "keywords": "喫煙所,灰皿設置,指定場所,利用条件,徒歩案内,位置情報",
+  "promotionalText": "喫煙可能場所の位置、利用条件、情報源を確認。周囲の掲示や施設のルールを優先し、案内情報を参考にしてください。",
+  "supportUrl": "https://kounishiyuuki.github.io/MannerPath/support/",
+  "privacyPolicyUrl": "https://kounishiyuuki.github.io/MannerPath/privacy/",
+  "primaryLanguage": "ja",
+  "primaryCategory": "Navigation",
+  "secondaryCategory": "Utilities",
+  "price": "free",
+  "storefronts": [
+    "Japan"
+  ],
+  "releaseMode": "manual",
+  "signInRequired": false,
+  "coverageEvidence": "docs/release/store-screenshots/production-recheck.json",
+  "coverageEvidenceDate": "2026-10-15",
+  "requiresSubmissionDayCoverageCheck": true,
+  "appVersion": "1.0",
+  "runtimeScope": "reports-enabled-photos-unavailable",
+  "requiresReportsEnabledEvidence": true,
+  "photosAvailable": false,
+  "photoRoadmap": "v1.1-or-later-not-guaranteed"
+}

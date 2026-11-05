@@ -1,37 +1,17 @@
 # MannerPath v1 — App Store submission / compliance
 
-**2026-10-24 current handoff:** [final-assets packet](release/V1_APPSTORE_FINAL_ASSETS.md) and
-[Release Gate](V1_APP_STORE_RELEASE_GATE.md) supersede this page's historical read-only release
-recommendation. Photo-backed proposals are P0 but not currently established as enabled; submission remains
-BLOCKED. Do not copy older disabled-flow privacy/UGC answers into an activated-photo release.
-No new data addition is authorized. Use the dated evidence and final RC checks, not “production today” shorthand.
+**2026-11-02 scope: photo-less new-place proposals on v1.0; no photo attachment/upload/retry.**
+Photos are deferred to v1.1 or later. This supersedes earlier report suspension/photo P0. **SUBMISSION: BLOCKED**.
+Current [entry sheet](APP_STORE_CONNECT_ENTRY.md), [text-only material](release/submission-v1/text-reports/README.md)
+and [Release Gate](V1_APP_STORE_RELEASE_GATE.md) control submission. Historical read-only/photo-on answers below
+must not override the new scope. No ASC, public site, production API or iOS code changes in this preparation.
 
-**2026-10-31 実入力素材**：[submission-v1](release/submission-v1/README.md)に写真有効版の
-日本語説明・Review Notes全文、Privacy回答JSON、manifest候補、iPhone16Pro/Watch実行シートを用意。
-§2.2の旧無効版案はこの有効版へそのまま転記しない。型/Linked/Tracking/保持は
-[回答候補](release/submission-v1/app-privacy-candidate.json)と[manifest候補](release/submission-v1/PrivacyInfo.photos-enabled.candidate.plist)
-を運営者が承認後、Lane 3の整合PRと最終archive Privacy Reportで確認する。候補はアプリへ組み込んでいない。
-
-**APP STORE COMPLIANCE: READY FOR MAINTAINER INPUT** (packet prepared; not authorization to submit).
-Target: mid-October 2026. Checked 2026-10-04 against `origin/main` **d511f1a**,
-which includes #170 / #171 / #172. Apple rules can change: recheck the linked pages at submission.
-This is an engineering recommendation, not legal advice or a guarantee of App Review approval.
-
-**Entry sheet (2026-10-05):** [APP_STORE_CONNECT_ENTRY.md](APP_STORE_CONNECT_ENTRY.md) lists every ASC value as
-CONFIRMED / MAINTAINER / WAITING-PRODUCTION / BLOCKED-DEVELOPER-PROGRAM, in entry order.
-**App Icon artwork/archive-inclusion P0 is RESOLVED 2026-10-06**: the maintainer-selected 1024 px master
-is in both iPhone/Watch slots and unsigned archive CFBundleIcons / Assets.car / AppIcon renditions are verified.
-This does not close signing, physical-device or legal/asset-rights gates.
-
-Reconciled 2026-10-06 against main `cef7f055d0a3cb1b4d1baf223097b8c0e1b24cd9`:
-production launch and Release origin, outside-Japan destination browsing (Release J/K/L), Reduce Motion
-simulator checks, iPhone-only + Watch scope, and Content Rights technical fixes are complete (#191/#193).
-This is existing evidence reconciliation, not new Mac/device/provider validation or submission approval.
-
-Scope: App Store Connect inputs and release evidence. No Apple code change, production deployment,
-source research, or community activation. No OpenPOI / Overture additions or OSM adoption.
-The earlier read-only recommendation is historical. The requested v1.0 requires photo-backed proposals
-to be enabled after all legal/runtime/device gates; a disabled deployment does not complete that P0.
+Photos/Videos omission is conditional on no retained photos through the app, support or relevant providers.
+Other User Content, Precise Location and Device ID remain collected/linked proposals; support/email and logs need
+separate assessment. Use the [current privacy JSON](release/submission-v1/text-reports/app-privacy-candidate.json)
+and [unbundled manifest candidate](release/submission-v1/text-reports/PrivacyInfo.reports-only.candidate.plist).
+Source rights, #124 ordinary report terms, final runtime/device/retention evidence and owner decisions remain open.
+Photo-related terms/policy/crypto proposals are preserved in the [v1.1 index](release/submission-v1/PHOTO_V1_1_README.md).
 
 ## 1. Exact App Store Connect checklist
 
@@ -56,7 +36,7 @@ maintainer markers below into App Store Connect. Save evidence and the final ans
       final notes and review instructions (§7); attach a short flow video if geographic access is difficult.
 - [ ] Version release: recommend **Manual release**, allowing final backend/privacy checks after approval.
 - [ ] Confirm public support/privacy pages, in-app privacy access, production HTTPS origin, honest empty states,
-      attribution and the approved, enabled report/photo flow on the actual release build/deployment;
+      attribution and the approved, enabled text-report flow with photos unavailable on the actual release build/deployment;
       separately verify paused intake safely refuses submission.
 - [ ] Complete applicable current compliance/accessibility fields honestly; claim accessibility support only after
       device verification, not merely because SwiftUI is used.
@@ -68,6 +48,11 @@ Field definitions: [App information](https://developer.apple.com/help/app-store-
 Backend release evidence and maintainer operations remain in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 ## 2. App Privacy answers
+
+**2026-11-02 precedence:** use the text-only candidate linked above. The older disabled-flow tables in this
+section are historical evidence, not the current proposed ASC selections. Photo absence does not remove report
+content, confirmed pin, App Attest linkage, support processing or provider uncertainty.
+
 
 ### 2.1 Basis and decision rules
 
@@ -367,7 +352,7 @@ Description ≤4,000 characters, promotional text ≤170, keywords ≤100 UTF-8 
 | Primary / secondary category | Navigation / Utilities optional; maintainer confirms |
 | Age rating | Questionnaire §3, expected 18+ current system; not Made for Kids |
 | Screenshots / review contact / notes | §9 / §8 / §7 |
-| License agreement / terms | Apple standard EULA recommended for first read-only release; custom EULA only if approved |
+| License agreement / terms | Apple standard EULA recommended, separate from approved report terms; custom EULA only if approved |
 
 Description: the single canonical text is in [APP_STORE_CONNECT_ENTRY.md §3](APP_STORE_CONNECT_ENTRY.md#3-version-10-page-asc--ios-app--10)
 (duplicate removed 2026-10-15; v1.0 names its limited covered areas, see [release gate](V1_APP_STORE_RELEASE_GATE.md)).
@@ -383,34 +368,12 @@ Navigation to smoking places may still attract scrutiny; age rating/neutral copy
 Explain the compliance purpose up front. Completeness, public contact/privacy access and accurate metadata
 also need checking (1.5, 2.1, 2.3, 5.1.1). [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/).
 
-English Notes draft — paste only after reports-off/network facts and all markers are confirmed:
-
-```text
-MannerPath is a navigation and local-rule compliance utility for adults legally permitted to smoke. It helps users check evidenced permitted locations, access restrictions, source information and uncertainty, and instructs them to follow posted signs and local rules. It does not encourage tobacco consumption, sell tobacco, provide purchase links, promote brands or show tobacco/nicotine advertising. There are no payments, rewards, streaks or accounts.
-
-Location permission is When In Use. MannerPath uses the device location for nearby ranking, distance and bearing; routine requests to our backend contain geographic tile IDs, not raw device GPS coordinates. We do not intentionally retain location history. Apple MapKit search/routing and system Maps operate through Apple's services. Our public privacy policy describes any retained service logs.
-
-Reports, App Attest registration and photo uploads are unavailable in this initial version. There is no public user-content feed. Apple Watch shows nearby/cached places and distance/direction; widgets display cached place snapshots. Cached discovery works offline; offline turn-by-turn routing is not provided.
-
-Our backend is available during review at [CONFIRMED PRODUCTION HTTPS ORIGIN]. Coverage varies and regions without published places show an empty state. To inspect populated results, use [VERIFIED IN-APP STEPS AND LOCATION], then open a place's detail, source/attribution information and walking-route/Maps handoff. Please also inspect the eligibility notice, Data & Privacy screen, filters, denied-location and cached-offline states. No sign-in is required.
-```
-
-Reviewer instructions to finalize with the signed build:
-
-1. Launch fresh install; read adult eligibility/local-rule notice → I understand → allow While Using location
-   for nearby mode. Repeat with denial to verify useful fallback/explanation.
-2. Maintainer supplies **tested on-device UI steps** for viewing a populated area from outside Japan, plus one
-   exact published place/name. Do not invent a location selector/deep link the build lacks. If UI cannot reach
-   a populated region remotely, provide a capture and explain the limitation; discuss an approved review path
-   with Apple before submission rather than adding a hidden feature.
-3. Open populated list/map result → detail: inspect access, unknown hours, confidence/freshness, position precision
-   and source attribution. Apply a filter, preview walking route and hand off to system Maps.
-4. Visit a verified empty region using an actual supported flow; verify honest no-data state.
-5. Load data online, then airplane mode: cached places/distance/bearing remain; route unavailability is clear.
-6. Paired Watch: sync/place list/detail, distance/direction and offline snapshot; add iPhone/Watch widgets and open
-   their place destination. Do not expect a report form on Watch or a live GPS fix in widgets.
-7. Verify report/confirmation/add-place entry points cannot submit, photo upload unavailable; backend gate evidence
-   is supplied by maintainer, not a request for reviewers to configure infrastructure.
+Current candidate: [photo-less v1.0 Review Notes](release/submission-v1/text-reports/review-notes.txt).
+Rehearse the [current device/run sheet](release/submission-v1/text-reports/README.md) on the selected signed RC.
+It covers first launch/location, destination browsing and Maps, text-only new-place proposals with real App Attest,
+consent/receipt/retry, Watch nearby sync, widgets and offline/accessibility. No photo step or photo retry is offered.
+Do not paste older reports-off notes or use a test that requires all add-place entries to be unavailable.
+Final scope/runtime/terms/owner approval and evidence remain required before entry.
 
 ## 8. Required URLs, legal pages and contact
 
@@ -421,9 +384,9 @@ remain separate checks; URL configuration/reachability is no longer a blocker.
 | Item | Owner must supply / acceptance check |
 | --- | --- |
 | Support URL (required ASC) | Public HTTPS page; MannerPath identity, monitored contact, help for permissions/offline/coverage and correction/removal inquiries; accessible without account |
-| Privacy Policy URL (required ASC) | Public HTTPS policy, effective date, operator/contact, precise-on-device vs tile network data, MapKit/Maps, actual providers/logs/retention, no intentional history, tracking status, local caches/drafts, reports/photos off, rights/deletion/support process |
+| Privacy Policy URL (required ASC) | Public HTTPS policy, effective date, operator/contact, precise-on-device vs tile network data, MapKit/Maps, actual providers/logs/retention, no intentional history, tracking status, local caches/drafts, reports enabled with photos unavailable, chosen report pin/identifier linkage, minimization/backup limits, rights/deletion/support process |
 | In-app privacy policy access | #179 verifies Release-built Data & Privacy links to the published Privacy Policy and Support; repository wording corrected in #180; live publication and evidence-dependent audit handoff remain to verify |
-| Report terms URL | Approved version/public page before report intake; candidate/draft must not be represented as approved. Not a first-read-only-v1 blocker if intake stays off |
+| Report terms URL | Approved version/public page before report intake; candidate/draft must not be represented as approved. Required for this report-enabled v1.0 |
 | General terms/EULA URL | Optional public product terms; standard Apple EULA can apply without inventing a custom terms URL |
 | Marketing URL | Optional; blank is preferable until real page exists |
 | Public contact email | Dedicated monitored address; confirm delivery and response owner; no invented value |
@@ -431,8 +394,8 @@ remain separate checks; URL configuration/reachability is no longer a blocker.
 | Operator/rights holder | Actual person/entity, copyright holder, storefront-specific required business/contact information |
 | Backend origin | Confirmed production HTTPS host, reachable during review; not a support or privacy URL substitute |
 
-Policy must match the final §2 answers. If report intake is later enabled, add consent/retention/identifiers and
-private photo treatment as applicable before enabling it. A full legal/policy sufficiency decision belongs to
+Policy must match the final §2 answers. For this report-enabled v1.0, include approved consent/retention/identifiers before activation.
+Do not include photo-processing consent as a v1.0 collection claim; photo treatment is deferred to v1.1 or later. A full legal/policy sufficiency decision belongs to
 the maintainer and counsel if engaged. Public support/privacy and contact requirements are grounded in
 [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) and
 [App Privacy management](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/).
@@ -497,7 +460,7 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
 | iPad keep/remove — **resolved 2026-10-05** | v1 is iPhone + Apple Watch only; iPad audit found no P0/P1 ([IPAD_V1_READINESS.md](IPAD_V1_READINESS.md)) |
 | Policy accuracy, contact operations and review identity | Public URLs/operator/contact and Release access confirmed by #179; correct policy per audit handoff, verify mailbox delivery/response owner and supply review person/phone/rights-holder confirmation |
 | Actual production logging/retention | Maintainer completes §2.3; label, policy and manifest decisions recorded together |
-| First-v1 reports/auth/photos off | Runtime/config/authorized smoke confirmed by #185; community stays pending. Preserve this configuration; maintainer release decision and signed-build traffic checks remain |
+| v1.0 text reports on / photos unavailable | Old #185 off-state evidence is historical. Lane1/3 implementation, normal report terms, runtime verification and signed-device evidence remain OPEN |
 | Production backend / selected data rights | Launch SUCCESS and live corpus/licenses/API attribution CONFIRMED (513 / 6 / community 0). Taito separate processing notice and Watch license Link IMPLEMENTED (#193). Final signed rights display/link/MapKit/assets/storefront checks and maintainer legal/rights signoff remain; do not repeat launch |
 | Signed distribution archive / physical device evidence | Developer Program, provisioning/App Groups, iPhone/Watch/widget E2E, TestFlight and final privacy report |
 | Age answers / minimum age / storefronts | Maintainer confirms Frequent recommendation, calculated/regional ratings, Japan-first recommendation and eligibility/EULA policy |
@@ -514,9 +477,9 @@ Generate the final archive's Xcode Privacy Report and compare it to §2 and ASC.
    widget required-reason APIs and pinned GRDB resource embedding. Do not declare device GPS merely for local ranking.
 3. If exemption is approved, optionally add `ITSAppUsesNonExemptEncryption=false` to the correct generated plist/build
    settings for relevant shipping app bundles; confirm archive output rather than editing only an unused plist.
-4. A durable explicit read-only switch is a possible **backend** follow-up if maintainer wants reports to remain
-   off after App Attest configuration changes. Existing fail-closed release configuration is sufficient only while
-   retained and verified; do not weaken required attestation or enable reports in this compliance PR.
+4. Lane1/3 align client and review/export/DB prerequisites for photo-less proposals while preserving attestation,
+   source/rights/quality gates. Reports are a v1.0 requirement; keeping all intake off is not a substitute.
+   Photos remain unavailable. This document PR changes no runtime and does not authorize activation.
 5. Apple changes must follow area instructions and `make apple-validate`; backend changes `make api-validate`.
    Re-audit this packet after any changes. No changes to Claude Session / Claude Code CLI branches here.
 

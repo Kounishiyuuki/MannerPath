@@ -1,5 +1,8 @@
 # v1.0 App Store final-assets packet — Lane 4
 
+**2026-11-02 scope superseded:** 写真関連の要件・条項・候補はv1.1以降向けに保留。以下の旧v1.0写真必須/P0表記は履歴。
+現v1.0は[写真なし新規申請](submission-v1/text-reports/README.md)。本書の写真条件を現v1.0提出の必須条件や承認済み条件としない。
+
 Prepared 2026-10-24 against `origin/main` `eb4ed96` (PR #330 included).
 Integration-reviewed after rebase onto `245c81d`: #331 legal/privacy decisions, #332 staging preparation,
 #336 physical-device procedures and #335 public privacy-boundary regression coverage.

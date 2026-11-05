@@ -4,6 +4,15 @@ Status: Accepted for the technical foundation requested in Issue #147 (2026-10-0
 Production collection and publication are **not approved**. Issue #124 remains open.
 Amends ADR-0007's text-only intake and ADR-0013 decision 14 for an isolated, disabled foundation.
 
+## Scope amendment — 2026-11-02
+
+The maintainer's new instruction supersedes the 2026-10-22 **v1.0 photo requirement**: v1.0 accepts new-place
+proposals without photos and exposes no photo attachment/upload/retry. The photo foundation and photo-specific
+terms below are retained for v1.1 or later, not approved or activated. The historical "New-spot photo gate" section
+still describes current code, not the target v1.0 rule. Lane3 must separately align review/export and DB constraints
+with photo-less evidence review; removing the photo prerequisite never removes source, rights, precision, independent
+evidence or quality checks. Lane1 must remove client photo prerequisites. No code or consent approval changes here.
+
 ## Decision
 
 Photos are private attachments to an existing report, never canonical data. Report creation and its

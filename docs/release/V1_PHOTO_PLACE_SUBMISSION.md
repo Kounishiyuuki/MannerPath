@@ -1,9 +1,7 @@
 # v1.0 P0 — Photo-backed new place submission
 
-> **Superseded for v1.0 (2026-11-02).** Workers Free measurements made photo intake NO-GO
-> (`V1_PHOTO_FREE_RELEASE_PLAN.md`). The maintainer chose to take new places **without photos** in v1.0, gated by an
-> operator's independent check (`V1_PHOTO_FREE_NEW_SPOT.md`); photo-backed submission moves to v1.1. This document
-> stays the design reference for v1.1.
+**2026-11-05 scope superseded:** 写真条件・旧v1.0 P0表記は過去の設計履歴。現v1.0は[写真なし新規申請](submission-v1/text-reports/README.md)。
+写真はv1.1以降で再検討し、提供を保証しない。以下のstaging未作成等も監査当時の記録で、現状は同READMEを参照。
 
 Status: **Code complete, not production-ready; fail-closed.** Product decision 2026-10-22: proposing a new smoking
 place with photos is a v1.0 P0 feature, not deferred to v1.1. Re-audited 2026-10-31 against `main` `689bfc8` (§5).
