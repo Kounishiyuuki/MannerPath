@@ -138,15 +138,23 @@ function assertNewSpot(rows: readonly PremiseRow[], tier: CommunityTier): void {
   if (distinctSubmitters(rows) !== rows.length) throw new ReviewError("review: two reports come from the same submitter; they are not independent evidence");
 }
 
+/** Whether an operator recorded an independent check of this new-spot report (REPORTS_DB 0011). */
+export async function independentEvidenceRecorded(db: Db, reportId: string): Promise<boolean> {
+  return (await db.prepare("SELECT 1 AS ok FROM new_spot_evidence_checks WHERE report_id = ? LIMIT 1").bind(reportId).first<{ ok: number }>()) !== null;
+}
+
 /**
  * v1.0: a new place is never published on words alone. Every `missing` report a new-spot review rests on needs an
- * approved evidence photo (newSpotPhotoGate). Re-checked at export and by REPORTS_DB migrations 0009 and 0010 in the export batch.
+ * approved evidence photo (newSpotPhotoGate, v1.1) or an operator's recorded independent check (official source or
+ * visit). Re-checked at export and by REPORTS_DB migration 0011 in the export batch.
  */
-async function assertNewSpotPhotos(db: Db, rows: readonly PremiseRow[], now: Date): Promise<void> {
+async function assertNewSpotEvidence(db: Db, rows: readonly PremiseRow[], now: Date): Promise<void> {
   for (const r of rows) {
     if (r.report_type !== "missing") continue;
     const gate = await newSpotPhotoGate(db, r.report_id, now);
-    if (gate !== "approved") throw new ReviewError(`review: report ${r.report_id} has no approved evidence photo (photos: ${gate})`);
+    if (gate !== "approved" && !(await independentEvidenceRecorded(db, r.report_id))) {
+      throw new ReviewError(`review: report ${r.report_id} has no approved evidence photo (photos: ${gate}) and no independent check`);
+    }
   }
 }
 
@@ -215,7 +223,7 @@ export async function proposeNewSpotReview(db: Db, input: NewSpotReviewInput): P
   const rows = await readPremises(db, reportIds);
   assertCommon(rows, now, null);
   assertNewSpot(rows, tier);
-  await assertNewSpotPhotos(db, rows, input.now);
+  await assertNewSpotEvidence(db, rows, input.now);
   const reviewId = (input.newReviewId ?? (() => newReviewId("ca")))();
   await insertReview(db, {
     reviewId, kind: "newSpot", key: `newSpot:${input.locationReportId}`, ruleVersion: NEW_SPOT_RULE_VERSION, subjectSpotId: null,
@@ -412,7 +420,7 @@ export async function exportReview(db: Db, reviewId: string, opts: { now: Date }
   assertCommon(rows, now, reviewId);
   if (review.review_kind === "newSpot") {
     assertNewSpot(rows, review.evidence_tier!);
-    await assertNewSpotPhotos(db, rows, opts.now);
+    await assertNewSpotEvidence(db, rows, opts.now);
   } else if (review.review_kind === "effect") assertEffect(rows);
   else assertAbsence(rows);
   const artifact = await sealArtifact(await artifactContent(db, review, rows));
@@ -434,8 +442,10 @@ export interface NewSpotCandidateGroup {
   distinctSubmitters: number;
   maxPairDistanceMetres: number;
   commonTermsVersion: string | null;
-  /** Photo gate per report; a review is refused until every report reads `approved`. States only, no image data. */
+  /** Photo gate per report. States only, no image data. */
   photoGates: { reportId: string; gate: NewSpotPhotoGate }[];
+  /** A review is refused until every report has an approved photo or a recorded independent check. */
+  independentChecks: { reportId: string; recorded: boolean }[];
 }
 
 /**
@@ -478,7 +488,11 @@ export async function listNewSpotCandidates(db: Db, opts: { withinMetres: number
     groups.get(id)!.push(r);
   });
   const gates = new Map<string, NewSpotPhotoGate>();
-  for (const r of results) gates.set(r.report_id, await newSpotPhotoGate(db, r.report_id, opts.now));
+  const checks = new Map<string, boolean>();
+  for (const r of results) {
+    gates.set(r.report_id, await newSpotPhotoGate(db, r.report_id, opts.now));
+    checks.set(r.report_id, await independentEvidenceRecorded(db, r.report_id));
+  }
   return [...groups.values()].map((members) => {
     let max = 0;
     for (const a of members) for (const b of members) max = Math.max(max, haversineMeters(a, b));
@@ -491,6 +505,7 @@ export async function listNewSpotCandidates(db: Db, opts: { withinMetres: number
       maxPairDistanceMetres: Math.round(max * 10) / 10,
       commonTermsVersion: commonTermsVersion(members),
       photoGates: members.map((m) => ({ reportId: m.report_id, gate: gates.get(m.report_id)! })),
+      independentChecks: members.map((m) => ({ reportId: m.report_id, recorded: checks.get(m.report_id)! })),
     };
   });
 }

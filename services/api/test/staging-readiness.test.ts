@@ -54,8 +54,9 @@ test("staging mirrors production except for names and IDs, and cannot be deploye
   for (const s of [staging.name, ...staging.d1_databases.map((d: any) => d.database_name), ...staging.r2_buckets.map((b: any) => b.bucket_name)]) {
     assert.match(s, /staging/, `${s}: a staging resource is named as one`);
   }
-  // Placeholder IDs: deploy and --remote fail until a reviewed PR lands the real staging IDs.
-  assert.deepEqual(staging.d1_databases.map((d: any) => d.database_id), ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]);
+  // The reviewed staging-only databases (created 2026-11-04), never production's.
+  assert.deepEqual(staging.d1_databases.map((d: any) => d.database_id), ["86435c50-daf0-4d6a-b792-ae5ecdba84cd", "2a6e9bf2-4bc1-4394-885b-745d76c80158"]);
+  for (const d of staging.d1_databases) assert.equal(production.d1_databases.some((p: any) => p.database_id === d.database_id), false);
   // Writes stay closed: attestation required, registration paused, and no limiter binding, so registration
   // cannot be enabled (it requires CHALLENGE_RATE_LIMITER) without a further reviewed PR.
   assert.deepEqual(staging.vars, { REPORT_ATTESTATION: "required", REPORT_REGISTRATION: "paused" });
@@ -67,7 +68,7 @@ test("migration order: the Worker's report routes fail closed until the store re
   const files = reportMigrationFiles();
   assert.deepEqual(files, ["0001_report_store.sql", "0002_scale_indexes.sql", "0003_evidence_photos.sql",
     "0004_report_idempotency.sql", "0005_app_attest_key_revocation.sql", "0006_bulk_report_rejection.sql",
-    "0007_photo_deletion_attempts.sql", "0008_admin_review_audit.sql", "0009_new_spot_photo_gate.sql", "0010_new_spot_photo_erasure_window.sql"], "update STAGING_VERIFICATION.md when the stream grows");
+    "0007_photo_deletion_attempts.sql", "0008_admin_review_audit.sql", "0009_new_spot_photo_gate.sql", "0010_new_spot_photo_erasure_window.sql", "0011_new_spot_independent_evidence.sql"], "update STAGING_VERIFICATION.md when the stream grows");
   const now = new Date("2026-10-13T03:00:00Z");
   const pki = await testPki(now);
   const app = createApp({ appAttestTrustAnchor: pki.root, now: () => now });

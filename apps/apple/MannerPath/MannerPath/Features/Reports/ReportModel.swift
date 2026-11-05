@@ -48,9 +48,21 @@ final class ReportModel {
     private var acceptedCleanupPending = false
     private var recoveredSubmissionAttempt = false
     private let photoFollowUps: (any ReportPhotoFollowUpStoring)?
+    private let retryPolicy: ReportRetryPolicy
+    /// The last attempt's answer was lost to a failure that repeating the same idempotent payload can fix.
+    private var lastAttemptTransient = false
 
     /// A report received earlier (possibly in a previous launch) whose photos are not all on the server yet.
-    private(set) var photoFollowUp: ReportPhotoFollowUp?
+    private var storedPhotoFollowUp: ReportPhotoFollowUp?
+    /// The follow-up only while photos can be sent at all: with photo intake closed (this build, or the deployment's
+    /// `photoEvidenceEnabled=false`) a restored one neither asks for photos nor blocks a new report. Its saved record is
+    /// kept, so it returns if intake opens again; while availability is unknown it still counts, as before.
+    var photoFollowUp: ReportPhotoFollowUp? { photoIntakeClosed ? nil : storedPhotoFollowUp }
+    private var photoIntakeClosed: Bool {
+        if !photos.enabled { return true }
+        if case .available(let limits) = availability { return !limits.acceptsPhotoEvidence }
+        return false
+    }
     /// The follow-up exists only in memory: closing the app now would lose the way back to this report's photos.
     private(set) var photoFollowUpNotSaved = false
 
@@ -71,10 +83,18 @@ final class ReportModel {
         }
         return true
     }
-    /// A new-place proposal is accepted only together with photos (v1.0 P0): the deployment must advertise photo
-    /// intake and this build must carry consent for the same terms version. Otherwise no new-place report is sent,
-    /// so a proposal can never be stored without its photos.
+    /// v1.0 accepts new-place proposals without photos whenever reporting is available (scope change 2026-11-02:
+    /// photos on Workers Free were NO-GO). The terms and an explicitly confirmed pin are still required, and the
+    /// deployment's App Attest protocol applies unchanged (never downgraded; see refreshAvailability).
     var acceptsNewSpotProposals: Bool {
+        guard case .available = availability else { return false }
+        return true
+    }
+
+    /// Photo evidence (planned for v1.1) is active only while the deployment advertises photo intake and this build
+    /// carries consent for the same terms version. Then a new-place proposal is sent only together with photos, as
+    /// before; otherwise no photo is asked for, chosen or sent.
+    var acceptsPhotoEvidence: Bool {
         guard case .available(let limits) = availability else { return false }
         return limits.acceptsPhotoEvidence && photos.accepts(termsVersion: limits.termsVersion)
     }
@@ -99,7 +119,7 @@ final class ReportModel {
         } catch {
             return String(localized: "Report could not be prepared.")
         }
-        if candidate.type == .missing && photos.photos.isEmpty {
+        if candidate.type == .missing && acceptsPhotoEvidence && photos.photos.isEmpty {
             return String(localized: "Add at least one photo of the smoking place to submit.")
         }
         return nil
@@ -107,7 +127,7 @@ final class ReportModel {
 
     /// Photos live only in memory: after a restart, a saved new-place submission is retried only once the user has
     /// chosen its photos again, so the report is never accepted without photos to follow it.
-    var ambiguousRetryNeedsPhotos: Bool { draft?.type == .missing && photos.photos.isEmpty }
+    var ambiguousRetryNeedsPhotos: Bool { draft?.type == .missing && acceptsPhotoEvidence && photos.photos.isEmpty }
 
     /// A submission is in progress: preparing authorization counts, the draft must not change.
     var isBusy: Bool { submission == .submitting || submission == .preparingSecureSubmission || photos.busy }
@@ -124,8 +144,10 @@ final class ReportModel {
          consent: (any ReportConsentRemembering)? = nil,
          photoPolicy: PhotoEvidencePolicy = PhotoEvidencePolicy(),
          photoUploader: (any EvidencePhotoUploading)? = nil,
-         photoFollowUps: (any ReportPhotoFollowUpStoring)? = nil) {
+         photoFollowUps: (any ReportPhotoFollowUpStoring)? = nil,
+         retryPolicy: ReportRetryPolicy = ReportRetryPolicy()) {
         photos = ReportPhotos(policy: photoPolicy, uploader: photoUploader)
+        self.retryPolicy = retryPolicy
         self.photoFollowUps = photoFollowUps
         self.consent = consent
         self.configClient = configClient
@@ -172,7 +194,7 @@ final class ReportModel {
         photos.onProgress = { [weak self] in self?.recordPhotoProgress() }
         // An unreadable record only loses the chance to re-attach photos; it never blocks reporting.
         if let saved = try? photoFollowUps?.load() {
-            photoFollowUp = saved
+            storedPhotoFollowUp = saved
             if saved.isExpired() {
                 // Kept in memory only, to say once that the time ended; nothing is left to send.
                 try? photoFollowUps?.delete()
@@ -196,21 +218,21 @@ final class ReportModel {
     func endPhotoFollowUp() {
         guard !photos.busy else { return }
         try? photoFollowUps?.delete()
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photoFollowUpNotSaved = false
         photos.clear()
     }
 
     private func recordPhotoProgress() {
-        guard var followUp = photoFollowUp, photos.acceptedReportID == followUp.reportId else { return }
+        guard var followUp = storedPhotoFollowUp, photos.acceptedReportID == followUp.reportId else { return }
         if photos.allUploaded || photos.closedForPhotos {
             try? photoFollowUps?.delete()
-            photoFollowUp = nil
+            storedPhotoFollowUp = nil
             photoFollowUpNotSaved = false
             return
         }
         followUp.uploadedCount = photos.totalUploaded
-        photoFollowUp = followUp
+        storedPhotoFollowUp = followUp
         do {
             try photoFollowUps?.save(followUp)
             photoFollowUpNotSaved = false
@@ -234,7 +256,7 @@ final class ReportModel {
 
     func start(type: ReportType, spotId: String?, subjectName: String? = nil) {
         guard canStartReport else { return }
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photos.clear()
         let newDraft = ReportDraft(type: type, spotId: type == .missing ? nil : spotId,
                                    subjectName: type == .missing ? nil : subjectName)
@@ -247,7 +269,7 @@ final class ReportModel {
     /// ADR-0013 "add a smoking place": a new-spot draft, optionally with a pin the user already placed on the map.
     func startNewSpot(pin: ReportCoordinate?) {
         guard canStartReport else { return }
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photos.clear()
         var newDraft = ReportDraft(type: .missing, proposedLocation: pin?.quantized)
         newDraft.claim = ReportClaim()
@@ -258,7 +280,7 @@ final class ReportModel {
     /// the exact version the user agreed to before; otherwise the confirmation sheet asks.
     func startQuickConfirm(spotId: String, subjectName: String?) {
         guard canStartReport else { return }
-        photoFollowUp = nil
+        storedPhotoFollowUp = nil
         photos.clear()
         var newDraft = ReportDraft(type: .exists, spotId: spotId, subjectName: subjectName)
         if case .available(let limits) = availability, let version = limits.termsVersion, consent?.agreedVersion() == version {
@@ -310,7 +332,28 @@ final class ReportModel {
         } catch { submission = .failed(String(localized: "Saved report could not be removed.")) }
     }
 
+    /// Sends once, then repeats a v3 report whose answer was lost to a transient failure (network, 5xx such as a
+    /// Workers 1102) up to `retryPolicy.maxRetries` times. Each repeat is the manual "Submit again": the saved payload
+    /// and idempotency key, freshly signed over a new challenge, so the server stores it once and replays its
+    /// receipt (200, same reportId). The form stays busy through the backoff, so a tap cannot add a send.
     func submit() async {
+        await submitOnce()
+        var retries = 0
+        while lastAttemptTransient, retries < retryPolicy.maxRetries, canRetryAmbiguous, usesIdempotentRetry {
+            retries += 1
+            submission = .submitting
+            do { try await retryPolicy.wait(retries) }
+            catch {
+                submission = .ambiguous
+                return
+            }
+            submission = .idle
+            await submitOnce()
+        }
+    }
+
+    private func submitOnce() async {
+        lastAttemptTransient = false
         guard !acceptedCleanupPending, !recoveredSubmissionAttempt, !isBusy,
               submission != .ambiguous, !isTerminalReceipt,
               (retryAfterSecondsRemaining ?? 0) == 0,
@@ -320,7 +363,7 @@ final class ReportModel {
                 submission = .failed(String(localized: "New smoking places are not being accepted right now."))
                 return
             }
-            guard !photos.photos.isEmpty else {
+            guard !acceptsPhotoEvidence || !photos.photos.isEmpty else {
                 submission = .failed(String(localized: "Add at least one photo of the smoking place to submit."))
                 return
             }
@@ -434,7 +477,7 @@ final class ReportModel {
                 // this report. Failing to write it only loses that recovery, which the form then says.
                 let followUp = ReportPhotoFollowUp(reportId: accepted.reportId, acceptedTermsVersion: version,
                                                    receivedAt: accepted.receivedAt)
-                photoFollowUp = followUp
+                storedPhotoFollowUp = followUp
                 do { try photoFollowUps?.save(followUp) } catch { photoFollowUpNotSaved = true }
             }
             await photos.attach(to: accepted.reportId, acceptedTermsVersion: draft.acceptedTermsVersion)
@@ -474,9 +517,15 @@ final class ReportModel {
                 guard clearDefiniteAttempt() else { return }
                 retryAllowedAt = seconds.map { Date().addingTimeInterval(TimeInterval($0)) }
                 submission = .rateLimited(seconds)
+            case .transientStatus:
+                lastAttemptTransient = true
+                submission = .ambiguous
             case .incompatibleResponse: submission = .ambiguous
             case .malformedResponse, .httpStatus: submission = .ambiguous
             }
+        } catch let error as URLError {
+            lastAttemptTransient = ReportRetryPolicy.transientCodes.contains(error.code)
+            submission = .ambiguous
         } catch {
             submission = .ambiguous
         }
@@ -588,6 +637,7 @@ final class ReportModel {
         case .missingProposedLocation: String(localized: "Choose and confirm a proposed map pin.")
         case .unexpectedProposedLocation: String(localized: "This report type cannot include a proposed pin.")
         case .invalidCoordinate: String(localized: "Choose a valid point on the map.")
+        case .outsideServiceArea: String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")
         case .invalidObservedDay: String(localized: "Choose a valid observation day.")
         case .emptyNote: String(localized: "Remove the empty note or add some detail.")
         case .noteTooLong: String(localized: "Shorten the note to the character limit.")
@@ -606,6 +656,8 @@ final class ReportModel {
             String(localized: "Reporting is temporarily unavailable. Your draft remains saved.")
         case (409, "termsVersionOutdated"):
             String(localized: "The report terms have changed. Update the app to read them. Your draft remains saved.")
+        case (400, "outsideServiceArea"):
+            String(localized: "Places outside Japan can't be reported. Move the pin to a place in Japan.")
         case (400, _):
             String(localized: "Some report information needs to be corrected.")
         case (413, _):
@@ -614,6 +666,23 @@ final class ReportModel {
             String(localized: "The report could not be accepted. Your draft remains saved.")
         }
     }
+}
+
+/// Automatic repeats of a lost v3 submission: exponential backoff (1 s, 2 s, …) with jitter, so devices that lost
+/// the same answer do not return at the same instant. 429 and definite refusals never reach it.
+nonisolated struct ReportRetryPolicy: Sendable {
+    static let transientCodes: Set<URLError.Code> = [.timedOut, .networkConnectionLost, .notConnectedToInternet,
+                                                     .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed]
+    var maxRetries = 2
+    var baseSeconds = 1.0
+    var jitter: @Sendable () -> Double = { Double.random(in: 0.5...1.0) }
+    var sleep: @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+
+    func delay(_ retry: Int) -> Duration {
+        .milliseconds(Int(baseSeconds * pow(2, Double(retry - 1)) * jitter() * 1000))
+    }
+
+    func wait(_ retry: Int) async throws { try await sleep(delay(retry)) }
 }
 
 private nonisolated struct UnconfiguredReportClient: ReportConfigFetching, ReportSubmitting {

@@ -140,8 +140,10 @@ struct NearbyLocationModelTests {
         #expect(NearbyEmptyStateCopy.description(for: .available(limits)) == String(localized: "Coverage varies by area. Only published places are shown."))
         let invitation = NearbyEmptyStateCopy.description(for: .available(limits), acceptsNewSpotProposals: true)
         #expect(invitation.hasPrefix(String(localized: "Know a smoking place that isn't listed yet?")))
-        // The invitation says that photos are welcome and that nothing appears before review.
-        #expect(invitation.hasSuffix(String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")))
+        // v1.0 asks for no photos; either way nothing appears before review.
+        #expect(invitation.hasSuffix(String(localized: "Send its location and what you know. MannerPath reviews it and adds approved information to the map.")))
+        let withPhotos = NearbyEmptyStateCopy.description(for: .available(limits), acceptsNewSpotProposals: true, asksForPhotos: true)
+        #expect(withPhotos.hasSuffix(String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")))
     }
 
     @Test func permissionIsRequestedOnlyByExplicitAction() async {

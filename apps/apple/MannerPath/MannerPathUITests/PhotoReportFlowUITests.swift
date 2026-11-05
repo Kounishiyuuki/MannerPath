@@ -6,8 +6,8 @@ import XCTest
 // button, which exists only in that DEBUG composition; the native picker smoke test opens and cancels without
 // reading, selecting or changing library photos. These diagnostic captures are fixtures, not submission assets.
 final class I_PhotoReportFlowUITests: MannerPathUITestCase {
-    func openNewPlaceForm(_ scenario: String) {
-        launch(extraArguments: ["-uiTestPhotoReport", scenario])
+    func openNewPlaceForm(_ scenario: String, extraArguments: [String] = []) {
+        launch(extraArguments: ["-uiTestPhotoReport", scenario] + extraArguments)
         // The entry copy can differ from the form title; use the shipped map-entry contract.
         // Launch reads availability from the stack; a loaded Simulator can take well over 30 s to show the entry.
         tapMapEntryWhenSettled()
@@ -26,16 +26,19 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
 
     /// Waits until the element is enabled, hittable and its frame is unchanged between two reads. A tap that lands
     /// while a list is still decelerating or a sheet is still animating only stops the motion; nothing is activated.
-    func waitUntilSettled(_ element: XCUIElement, timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line) {
+    @discardableResult
+    func waitUntilSettled(_ element: XCUIElement, timeout: TimeInterval = 10, failing: Bool = true,
+                          file: StaticString = #filePath, line: UInt = #line) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         var last = CGRect.null
         while Date() < deadline {
             let frame = element.exists ? element.frame : .null
-            if frame == last, element.isEnabled, element.isHittable { return }
+            if frame == last, element.isEnabled, element.isHittable { return true }
             last = frame
             RunLoop.current.run(until: Date().addingTimeInterval(0.2))
         }
-        XCTFail("\(element) did not settle within \(timeout) s; last frame \(last)", file: file, line: line)
+        if failing { XCTFail("\(element) did not settle within \(timeout) s; last frame \(last)", file: file, line: line) }
+        return false
     }
 
     func choosePinAndAgree() {
@@ -49,8 +52,14 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         // The pin sheet's dismissal reflows the Form; scrolling then leaves it decelerating. Tap the switch only once
         // it is still, then require the toggle to report ON: every later step depends on consent.
         XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForNonExistence(timeout: 10))
+        // Issue #367 (iOS 18.6, long batches): the Form can still reflow after scrollTo saw the switch hittable once,
+        // leaving it settled just below the screen (frame y=854 on 852pt). Scroll again rather than tap off-screen.
         scrollTo(agree)
-        let control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        var control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        for _ in 0..<2 where !waitUntilSettled(control, timeout: 5, failing: false) {
+            scrollTo(agree)
+            control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        }
         waitUntilSettled(control)
         control.tap()
         let on = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: agree)
@@ -190,13 +199,14 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         screenshot("65-photo-expired")
     }
 
-    func testClosedPhotoIntakeBlocksNewPlaces() {
-        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+    /// v1.0 (2026-11-02): closed photo intake no longer pauses new places; unavailable reporting does.
+    func testPausedReportingBlocksNewPlaces() {
+        launch(extraArguments: ["-uiTestPhotoReport", "paused"])
         // The entry stays visible but explains the pause; no new-place draft, form or submit is reachable.
         tapMapEntryWhenSettled()
         let alert = app.alerts["現在、申請受付を停止しています"]
         XCTAssertTrue(alert.waitForExistence(timeout: 10))
-        XCTAssertTrue(alert.staticTexts["現在、新しい喫煙所の報告を受け付けていません。"].exists)
+        XCTAssertTrue(alert.staticTexts["現在、報告機能を利用できません。"].exists)
         screenshot("66-new-spot-closed")
         assertIntakePausedAlert()
         XCTAssertFalse(submit.exists)
@@ -204,6 +214,95 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     }
 
     // MARK: Interrupted uploads (resume after relaunch)
+
+    /// v1.0 (2026-11-02): reports open, photo intake closed. No photo step is shown; pin and consent still gate submit.
+    func testNewPlaceWithoutPhotosIsSentOnceAndAwaitsReview() {
+        submitPhotolessNewPlace(shots: "8")
+    }
+
+    /// The same flow at AX5: every step, the review notice and the receipt stay reachable and readable.
+    func testNewPlaceWithoutPhotosAtAX5() {
+        submitPhotolessNewPlace(extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"],
+                                shots: "8ax5-")
+    }
+
+    private func submitPhotolessNewPlace(extraArguments: [String] = [], shots: String) {
+        openNewPlaceForm("photoless", extraArguments: extraArguments)
+        XCTAssertTrue(textContaining("場所と分かる情報を送ってください").exists)
+        XCTAssertFalse(textContaining("写真を添付").exists, "no photo step while photo intake is closed")
+        XCTAssertFalse(app.buttons["report.photo.choose"].exists)
+        XCTAssertFalse(app.buttons["report.photo.addTest"].exists)
+        scrollTo(submit)
+        XCTAssertFalse(submit.isEnabled, "pin and consent are still required")
+        scrollTo(app.buttons["地図でピンを選ぶ"], upwards: true)
+        choosePinAndAgree()
+        scrollTo(text("3. 種類や利用条件を入力"), upwards: true)
+        scrollTo(text("4. 内容を確認して送信"))
+        XCTAssertFalse(textContaining("選択した写真").exists)
+        scrollTo(submit)
+        XCTAssertTrue(submit.isEnabled)
+        screenshot("\(shots)0-photoless-ready")
+        submitOnceAndWaitForReceipt()
+        let pending = app.descendants(matching: .any)["report.pendingReview"]
+        scrollTo(pending, upwards: true)
+        XCTAssertEqual(pending.label, "受付完了・審査待ち")
+        let noGuarantee = app.descendants(matching: .any)["report.noListingGuarantee"]
+        scrollTo(noGuarantee)
+        XCTAssertEqual(noGuarantee.label, "自動では掲載されません。運営者が内容を確認し、掲載するかを判断します。")
+        XCTAssertTrue(textContaining("rp_UITEST1").exists)
+        XCTAssertFalse(app.descendants(matching: .any)["report.pendingPhotos"].exists)
+        screenshot("\(shots)1-photoless-received")
+    }
+
+    /// One lost answer is repeated automatically: one tap, the form stays locked through the backoff, and the
+    /// server receives one report.
+    func testLostAnswerIsRepeatedAutomaticallyOnce() {
+        openNewPlaceForm("photolessAutoRetry")
+        choosePinAndAgree()
+        scrollTo(submit)
+        waitUntilSettled(submit)
+        submit.tap()
+        let pending = app.descendants(matching: .any)["report.pendingReview"]
+        XCTAssertTrue(pending.waitForExistence(timeout: 20))
+        XCTAssertFalse(app.buttons["report.retrySaved"].exists, "no manual retry was needed")
+        scrollTo(pending, upwards: true)
+        XCTAssertEqual(pending.label, "受付完了・審査待ち")
+        XCTAssertTrue(textContaining("rp_UITEST1").exists, "the server stored the report once")
+        screenshot("82-auto-retry-received")
+    }
+
+    /// A lost answer survives a relaunch: the saved photo-less report is retried as it was, without asking for photos,
+    /// and the server receives one report.
+    func testPhotolessLostAnswerRetriesTheSavedReportAfterRelaunch() {
+        launchPersistent("photolessRetry", reset: true)
+        tapMapEntryWhenSettled()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        choosePinAndAgree()
+        scrollTo(submit)
+        waitUntilSettled(submit)
+        submit.tap()
+        XCTAssertTrue(app.buttons["report.retrySaved"].waitForExistence(timeout: 15))
+        app.terminate()
+        launchPersistent("photolessRetry")
+        let entry = app.buttons["mapReportButton"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 90))
+        XCTAssertTrue(entry.label.contains("保存済みの報告を再開"), entry.label)
+        waitUntilSettled(entry)
+        entry.tap()
+        let retry = app.buttons["report.retrySaved"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.descendants(matching: .any)["report-retry-needs-photos"].exists)
+        scrollTo(retry)
+        waitUntilSettled(retry)
+        retry.tap()
+        app.buttons["report.retrySaved.confirm"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["下書きを破棄"].waitForNonExistence(timeout: 15))
+        let pending = app.descendants(matching: .any)["report.pendingReview"]
+        scrollTo(pending, upwards: true)
+        XCTAssertTrue(textContaining("rp_UITEST1").exists)
+        XCTAssertFalse(textContaining("rp_UITEST2").exists, "the retry must not create a second report")
+        screenshot("82-photoless-retry-received")
+    }
 
     func launchPersistent(_ scenario: String, reset: Bool = false, extraArguments: [String] = []) {
         launch(extraArguments: ["-uiTestPhotoReport", scenario, "-uiTestReportPersistent", "YES"]
@@ -303,16 +402,25 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         XCTAssertFalse(textContaining("rp_UITEST3").exists)
     }
 
-    func testResumeExplainsPausedIntakeAndConnectionFailure() {
+    /// photoEvidenceEnabled=false: an earlier report's restored photo state neither blocks a new place nor asks for
+    /// photos, across a restart; once intake opens again the same report still waits for its photos.
+    func testClosedIntakeHidesRestoredFollowUpAndConnectionFailureKeepsIt() {
         submitAndTerminateDuringUpload()
-        launchPersistent("closed")
-        continuePreviousReport()
-        let paused = app.descendants(matching: .any)["report-photo-intake-paused"].firstMatch
-        XCTAssertTrue(paused.waitForExistence(timeout: 10))
-        XCTAssertTrue(app.frame.contains(paused.frame), "the pause is explained on the first screen")
-        XCTAssertTrue(paused.label.contains("写真の受付を一時停止しています"))
-        screenshot("74-photo-resume-paused")
-        app.terminate()
+        for _ in 1...2 {
+            launchPersistent("closed")
+            tapMapEntryWhenSettled()
+            XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10),
+                          "a new place starts directly, with no choice about the earlier report")
+            XCTAssertFalse(text("前回の報告が残っています").exists)
+            XCTAssertFalse(app.descendants(matching: .any)["report-photo-intake-paused"].exists)
+            XCTAssertFalse(app.descendants(matching: .any)["report-photo-follow-up"].exists)
+            XCTAssertFalse(app.buttons["report.photo.choose"].exists, "no photo is asked for")
+            XCTAssertFalse(app.buttons["report.photo.addTest"].exists)
+            screenshot("74-photo-follow-up-hidden-while-closed")
+            scrollTo(app.buttons["下書きを破棄"])
+            discardReportDraft()
+            app.terminate()
+        }
 
         launchPersistent("offline")
         continuePreviousReport()

@@ -22,8 +22,13 @@ nonisolated enum UITestPhotoReportStack {
             : FileManager.default.temporaryDirectory.appending(path: "ui-test-reports-\(UUID().uuidString)")
         if defaults.bool(forKey: "uiTestReportReset") { try? FileManager.default.removeItem(at: directory) }
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let service = Service(photoIntake: scenario != "closed", directory: directory,
-                              failFirstReport: scenario == "reportRetry",
+        // `photoless`: the v1.0 deployment, reports open and photo intake closed (`photolessRetry` loses the first
+        // answer and both automatic repeats, so the manual retry is what sends it; `photolessAutoRetry` loses only the first,
+        // which the automatic repeat recovers). `paused`: reporting itself is unavailable.
+        let service = Service(photoIntake: !["closed", "photoless", "photolessRetry", "photolessAutoRetry"].contains(scenario),
+                              reportingPaused: scenario == "paused", directory: directory,
+                              lostAnswers: scenario == "photolessAutoRetry" ? 1
+                                  : scenario == "reportRetry" || scenario == "photolessRetry" ? 3 : 0,
                               receivedAt: scenario == "old" ? "2020-01-01T00:00:00Z" : ISO8601DateFormatter().string(from: Date()))
         return ReportModel(configClient: service, reportClient: service,
                            store: FileReportDraftStore(directory: directory), installIDs: service,
@@ -36,20 +41,23 @@ nonisolated enum UITestPhotoReportStack {
 
     private struct Service: ReportConfigFetching, ReportSubmitting, AttestedReportSubmitting, InstallIDProviding {
         let photoIntake: Bool
+        let reportingPaused: Bool
         let directory: URL
-        let failFirstReport: Bool
+        let lostAnswers: Int
         let receivedAt: String
         func fetchAvailability() async throws -> ReportAvailability {
-            .available(ReportLimits(noteMaxLength: 500, maxBodyBytes: 16_384, submissionProtocol: .appAttestV3,
+            if reportingPaused { return .unavailable }
+            return .available(ReportLimits(noteMaxLength: 500, maxBodyBytes: 16_384, submissionProtocol: .appAttestV3,
                                     maxSubmissionBytes: 32_768, termsVersion: UITestPhotoReportStack.terms,
                                     acceptsNewSpotClaim: true, acceptsExistingSpotFindings: true,
                                     acceptsPhotoEvidence: photoIntake))
         }
         func submit(_ body: Data) async throws -> AcceptedReport { throw ReportAPIError.httpStatus(503) }
         func submitAttested(_ envelope: Data) async throws -> AcceptedReport {
-            let attempt = directory.appending(path: "ui-test-report-attempted")
-            if failFirstReport, !FileManager.default.fileExists(atPath: attempt.path) {
-                try Data().write(to: attempt)
+            let attempts = directory.appending(path: "ui-test-report-attempts")
+            let lost = (try? Data(contentsOf: attempts)).flatMap { Int(String(decoding: $0, as: UTF8.self)) } ?? 0
+            if lost < lostAnswers {
+                try Data("\(lost + 1)".utf8).write(to: attempts)
                 throw URLError(.networkConnectionLost)
             }
             let count = Self.reportCount(in: directory) + 1

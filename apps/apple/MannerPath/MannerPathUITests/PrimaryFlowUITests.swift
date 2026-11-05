@@ -145,7 +145,7 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
     }
 
     func testPausedEntryIsFoundWhileSearchingAndOnlyExplainsThePause() {
-        launch(extraArguments: ["-uiTestPhotoReport", "closed"])
+        launch(extraArguments: ["-uiTestPhotoReport", "paused"])
         let mapEntry = app.buttons["mapReportButton"]
         XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
         waitForSheet(Self.mediumSheet, "Initial medium sheet")
@@ -174,13 +174,13 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         // Opening the form already saves the new-place draft on the device.
         app.terminate()
-        launch(extraArguments: ["-uiTestPhotoReport", "closed", "-uiTestReportPersistent", "YES"])
+        launch(extraArguments: ["-uiTestPhotoReport", "paused", "-uiTestReportPersistent", "YES"])
         XCTAssertTrue(mapEntry.waitForExistence(timeout: 90))
         waitForSheet(Self.mediumSheet, "Relaunched medium sheet")
         XCTAssertTrue(mapEntry.label.contains("保存済みの報告を再開"), mapEntry.label)
         mapEntry.tap()
         XCTAssertFalse(app.alerts["現在、申請受付を停止しています"].exists)
-        XCTAssertTrue(app.descendants(matching: .any)["report-new-spot-closed"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["report-unavailable-notice"].waitForExistence(timeout: 10))
         let submit = app.buttons["report.submit"]
         XCTAssertFalse(submit.exists && submit.isEnabled, "A paused deployment must not accept the draft")
         discardReportDraft()

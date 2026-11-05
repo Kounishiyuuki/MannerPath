@@ -534,7 +534,9 @@ struct ContentView: View {
         case .available:
             // The button itself is the map button (medium) or the sheet's report bar (large); one entry at a time.
             if reportModel.draft == nil, reportModel.acceptsNewSpotProposals {
-                Text("Know a smoking place that isn't listed yet? Send its location and photos. MannerPath reviews them and adds approved information to the map.")
+                Text(reportModel.acceptsPhotoEvidence
+                     ? "Know a smoking place that isn't listed yet? Send its location and photos. MannerPath reviews them and adds approved information to the map."
+                     : "Know a smoking place that isn't listed yet? Send its location and what you know. MannerPath reviews it and adds approved information to the map.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             if !reportModel.acceptsNewSpotProposals {
@@ -800,7 +802,8 @@ struct ContentView: View {
             ContentUnavailableView {
                 Label("No published spots in this nearby area", systemImage: "mappin.slash")
             } description: {
-                Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability, acceptsNewSpotProposals: reportModel.acceptsNewSpotProposals))
+                Text(verbatim: NearbyEmptyStateCopy.description(for: reportModel.availability, acceptsNewSpotProposals: reportModel.acceptsNewSpotProposals,
+                                                                  asksForPhotos: reportModel.acceptsPhotoEvidence))
             } actions: {
                 if emptyStateOffersReport {
                     Button { openReportEntry() } label: {
@@ -1021,10 +1024,13 @@ private struct DetailSelection {
 
 @MainActor
 enum NearbyEmptyStateCopy {
-    static func description(for availability: ReportAvailability, acceptsNewSpotProposals: Bool = false) -> String {
+    static func description(for availability: ReportAvailability, acceptsNewSpotProposals: Bool = false,
+                            asksForPhotos: Bool = false) -> String {
         if case .available = availability, acceptsNewSpotProposals {
             return String(localized: "Know a smoking place that isn't listed yet?") + "\n"
-                + String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")
+                + (asksForPhotos
+                   ? String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")
+                   : String(localized: "Send its location and what you know. MannerPath reviews it and adds approved information to the map."))
         }
         return String(localized: "Coverage varies by area. Only published places are shown.")
     }

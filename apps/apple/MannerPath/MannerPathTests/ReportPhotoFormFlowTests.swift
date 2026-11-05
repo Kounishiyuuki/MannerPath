@@ -3,8 +3,9 @@ import Testing
 import UIKit
 @testable import MannerPath
 
-// v1.0 P0 photo form flow (P3): a new-place proposal is sent only together with photos, the report is sent once, and
-// photos follow it under the same App Attest key; photo failures never resend the report.
+// Photo form flow (planned for v1.1): while photo intake is active a new-place proposal is sent only together with
+// photos, the report is sent once, and photos follow it under the same App Attest key; photo failures never resend the
+// report. Without active photo intake see ReportNewPlaceWithoutPhotosTests.
 nonisolated private let flowTerms = "report-terms.2026-09-30.draft"
 nonisolated private let flowReportID = "rp_01V64NN31G72E5KJJ5W22W1A1J"
 nonisolated private let flowKeyID = Data(repeating: 9, count: 32).base64EncodedString()
@@ -144,15 +145,18 @@ struct ReportPhotoFormFlowTests {
         #expect(await reports.count() == 1, "An accepted report cannot be submitted again")
     }
 
-    @Test func readinessDoesNotAdvertiseNewPlaceIntakeWhenPhotosAreClosed() async {
+    @Test func closedPhotoIntakeNeverAsksForPhotos() async {
         let (model, reports, authorizer) = await model(photoIntake: false)
-        newSpot(model, photos: 1)
-        #expect(model.submissionReadinessMessage == String(localized: "New smoking places are not being accepted right now."))
+        newSpot(model, photos: 0)
+        #expect(model.acceptsNewSpotProposals && !model.acceptsPhotoEvidence)
+        #expect(model.submissionReadinessMessage == nil)
         #expect(await reports.count() == 0)
         #expect(await authorizer.signed().isEmpty)
     }
 
-    @Test func closedPhotoIntakeBlocksNewPlacesBeforeAnythingIsSigned() async {
+    /// v1.0 scope change (2026-11-02): photo intake that is closed on either side no longer closes new-place intake;
+    /// the proposal is sent without photos, once, under App Attest.
+    @Test func closedPhotoIntakeSendsNewPlacesWithoutPhotos() async {
         for (intake, policy) in [(false, PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: flowTerms)),
                                  (true, PhotoEvidencePolicy()),
                                  (true, PhotoEvidencePolicy(enabled: true, acceptedTermsVersion: "report-terms.other")),
@@ -160,12 +164,12 @@ struct ReportPhotoFormFlowTests {
                                  (true, PhotoEvidencePolicy.reviewed()),
                                  (true, PhotoEvidencePolicy.reviewed(["report-terms.other"], current: flowTerms))] {
             let (model, reports, authorizer) = await model(photoIntake: intake, policy: policy)
-            #expect(!model.acceptsNewSpotProposals)
-            newSpot(model, photos: 1)
+            #expect(model.acceptsNewSpotProposals && !model.acceptsPhotoEvidence)
+            newSpot(model, photos: 0)
             await model.submit()
-            #expect(model.submission == .failed(String(localized: "New smoking places are not being accepted right now.")))
-            #expect(await reports.count() == 0, "no photo-less report is stored")
-            #expect(await authorizer.signed().isEmpty)
+            guard case .accepted = model.submission else { Issue.record("not accepted: \(model.submission)"); continue }
+            #expect(await reports.count() == 1)
+            #expect(await authorizer.signed().count == 1, "only the report is signed; no photo")
         }
     }
 
@@ -176,12 +180,12 @@ struct ReportPhotoFormFlowTests {
         let approved = PhotoEvidencePolicy.reviewed([flowTerms], current: flowTerms)
         #expect(approved.enabled && approved.acceptedTermsVersion == flowTerms)
         let (model, _, _) = await model(policy: approved)
-        #expect(model.acceptsNewSpotProposals)
+        #expect(model.acceptsPhotoEvidence)
     }
 
     @Test func newPlaceNeedsAPhotoAndConsentBeforeSubmitting() async {
         let (model, reports, _) = await model()
-        #expect(model.acceptsNewSpotProposals)
+        #expect(model.acceptsPhotoEvidence)
         newSpot(model, photos: 0)
         await model.submit()
         #expect(model.submission == .failed(String(localized: "Add at least one photo of the smoking place to submit.")))
