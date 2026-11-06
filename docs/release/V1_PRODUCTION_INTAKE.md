@@ -71,6 +71,22 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 ないときは何も消さない（何度実行してもよい）。規約の状態に関係なく動く。最後に `--stage stopped` で fail-closed
 （`available:false`、challenge 503 `attestationUnavailable`）を確かめる。
 
+**保持処理の一時停止・Cron の削除**（受付の停止とは別の操作。正常な保持処理は、受付を止めても原則続ける）
+- 保持処理だけを一時停止する：Cron（`2-57/5 * * * *`）と `REPORT_RETENTION_CRON` はそのままにして、
+  `REPORT_RETENTION=off` でデプロイする。Cron は `disabled` を記録して終わる。
+- Cron 自体を削除する：(1) まず `REPORT_RETENTION=off`（Cron 文字列との一致は保ったまま）でデプロイする。
+  (2) Cron を削除する（`triggers.crons: []`）。(3) Cloudflare の Cron 設定の反映には最大15分ほどかかるため、
+  **少なくとも20分**待ち、Cron の設定（空になったこと）、実行履歴（`disabled` 以外の実行がないこと）、次回予定時刻
+  （ダッシュボードの Triggers で表示がないこと）を確かめてから、旧 Worker（`REPORT_RETENTION_CRON` のない版）
+  への切替・ロールバックを判断する。
+- 保持用の Cron（v1 と写真用）が設定と一致しないとき、Worker は出典確認・R2・DB 書き込みへ進まず、
+  `{"event":"scheduled","outcome":"failed","reason":"unexpectedCron"}` を記録して失敗する（`src/scheduled.ts`）。
+  出典確認に進むのは許可リスト（`SOURCE_CHECK_CRONS`）の Cron だけ。この修正より前の版には、この防御がない。
+- 経緯（2026-11-06 staging）：Cron を外した直後に旧版へ戻したところ、`07:32:26Z` の Cron 1件が旧版で
+  `scriptThrewException` になった。旧版に `REPORT_RETENTION_CRON` がなく出典確認へ進み、R2 がないため最初の行で
+  止まった、というのが**有力な推定**（ログ本文は権限不足で未確認。時刻・版・コードから推定）。R2 がある本番では
+  実際の出典確認が動きうるため、上の順序と防御を設けた。
+
 ロールバック：Worker は `wrangler rollback`。その後 `--stage stopped` を実行し、App ID が戻っていないかを確かめる。
 0011 だけを戻すときは `migrations-reports-rollback/0011_new_spot_independent_evidence.sql`。それ以外は D1 Time Travel。
 

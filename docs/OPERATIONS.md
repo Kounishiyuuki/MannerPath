@@ -1192,6 +1192,9 @@ an invocation that never starts cannot emit its own failure; use independent hea
 and the read-only status oracle. No alert, Cron, deployment or remote database operation is activated
 by this PR. Pausing uses `off`; a still-configured maintenance trigger emits `disabled` without
 falling into source checks. Monitor and alert on an unexpected disabled heartbeat as well.
+An event on a reserved retention schedule (v1 `2-57/5 * * * *`, photo `*/5 * * * *`) that does not match
+`REPORT_RETENTION_CRON`, or any schedule outside `SOURCE_CHECK_CRONS`, fails closed with `unexpectedCron`
+and never reaches source checks, R2 or the canonical DB.
 
 Lane 1 revocation ownership is preserved: this change does not modify `app.ts`, attestation/key
 handling, report idempotency, migration numbering or the moderation CLI. Only the Worker entry point
