@@ -1,6 +1,6 @@
 # 確定前の整合チェックと承認後の変更順序
 
-基準main `33e1624`（#383/#384/#385統合後、iPhone 1.0(8)）。本PRは候補だけを更新し、稼働する規約・同意・公開URL・source gateは変更しません。
+基準main `b13a061`（#383/#384/#385統合後、iPhone 1.0(8)）。本PRは候補だけを更新し、稼働する規約・同意・公開URL・source gateは変更しません。
 
 | 対象 | 現状を確認した根拠 | このPRと、承認後に残る操作 |
 | --- | --- | --- |
@@ -13,7 +13,7 @@
 | App Privacy | text-reports JSONはcandidate-not-approved/submissionReady=false、5型のCollected/Linked/NotTracking案 | iPhone manifestは#384で申請データを宣言済み。最終archiveとの一致は未確認。既存条件を維持。提供者ログ/問い合わせ添付/最終archiveを検証して回答とmanifest/Privacy Reportを一致させる |
 | App Store説明/Review Notes | 写真なし、限定再試行、明示pin、審査待ち、独立確認、90日最小化/別保持/再install制約を記載 | 文面の意味は候補と一致し変更不要。『approved retention』は承認後の最終公開policyを指す。公開前/本番停止中にそのままASCへ転記しない |
 
-[今回の最小反映差分](ACTIVATION_DIFF.md)に、現iOSの旧GPS/90日表現と日英置換文を特定した。現draftと要約のまま、正式規約と一致済みとはしない。
+[最小反映差分](ACTIVATION_DIFF.md)のGPS/90日要約は#394で日英採用済み。新しい全文と最終署名RCの一致は別途確認する。Q2の[公開前P0確定表](Q2_PUBLICATION_P0.md)に、判断・実行証拠・必要時のみの追加実装を分けた。
 
 ## 最短の実施順序
 

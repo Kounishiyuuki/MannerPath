@@ -72,7 +72,7 @@ class LegalPrepTests(unittest.TestCase):
             self.assertTrue(row['linked'])
             self.assertFalse(row['tracking'])
 
-    def test_decision_packet_keeps_runtime_mismatch_and_unapproved_translation_visible(self):
+    def test_decision_packet_keeps_adopted_summary_history_and_unapproved_translation_visible(self):
         choices = (PACKET / 'OWNER_CHOICES.md').read_text()
         self.assertIn('推奨A（条件付き）', choices)
         self.assertIn('予定URL・未公開', choices)
@@ -80,6 +80,14 @@ class LegalPrepTests(unittest.TestCase):
         activation = (PACKET / 'ACTIVATION_DIFF.md').read_text()
         self.assertIn('Your device location and location history are not sent.', activation)
         self.assertIn('This is not complete erasure of all data.', activation)
+        self.assertIn('#394で採用済み', activation)
+        sheet = (ROOT / 'apps/apple/MannerPath/MannerPath/Features/Reports/ReportTermsSheet.swift').read_text()
+        form = (ROOT / 'apps/apple/MannerPath/MannerPath/Features/Reports/ReportFormView.swift').read_text()
+        self.assertNotIn('Your device location and location history are not sent.', sheet)
+        self.assertNotIn('is deleted within 90 days of receipt.', sheet)
+        self.assertIn('Reports send the pin you explicitly select and confirm', sheet)
+        self.assertIn('This is not complete erasure of all data.', sheet)
+        self.assertIn('Names and free-text hours are for review and are subject to minimization', form)
         english = (ROOT / 'docs/legal/REPORT_TERMS_CANDIDATE_EN.md').read_text()
         self.assertIn('CANDIDATE — NOT APPROVED', english)
         self.assertIn('no uniform automatic deletion deadline', english)

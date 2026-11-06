@@ -1,28 +1,29 @@
 # 正式承認後の最小反映差分（未実行）
 
-前提：[Q1〜Q3](OWNER_CHOICES.md)と最終全文の正式承認、Q2の法務/運用上のP0解消。以下は作業手順で、承認・公開許可ではない。
+候補差分の準備は可能。承認済み値を反映する段階では、[公開前P0表](Q2_PUBLICATION_P0.md)のP01/P02の結論と最終全文の正式承認が必要。
+保持/外部保存先の実態が本文を変えるなら先に確定する。公開・受付開始までにP03〜P05を含む全P0を閉じる。最終RC照合を差分作成前の必須条件にして循環させない。
+以下は作業手順で、承認・公開許可ではない。[Q1〜Q3](OWNER_CHOICES.md)の再選択は求めない。
 今はdraft/pendingと`REVIEWED_PHOTO_TERMS=[]`を維持する。版文字列や最終hashを先に確定しない。
 
-## 1. 同意要約の具体的な置換候補（日英、未承認）
+## 1. #394で採用済みの同意要約（日英、旧表現は変更履歴）
 
-現iOSの全文bundleと下記の要約は別なので、全文を追加するだけでは不一致が残る。
+main `b13a061`で下記の採用文へ修正済み。全文bundleとは別の要約であり、今後は新版全文・署名RCとの一致を確認する。表の旧keyは変更履歴で、現行表示ではない。
 
-| 修正箇所・現在の説明 | 承認後の日本語候補 | 承認後の英語候補 |
+| 修正箇所・旧説明（履歴） | 採用済み日本語 | 採用済み英語 |
 | --- | --- | --- |
 | ReportTermsSheetの`No account is needed. Your device location and location history are not sent.` | アカウントは不要です。閲覧時の現在地は端末上で使います。申請では明示的に選び確認した位置を送信し、現在地と一致する場合があります。位置履歴を自動収集しません。 | No account is needed. Browsing uses your location on the device. Reports send the pin you explicitly select and confirm; it may equal your current location. Location history is not automatically collected. |
 | 同`Personal content ... is deleted within 90 days of receipt.` | 申請本文・位置・確認日等は、受信後90日を基準に最小化する設計です。処理の実行が必要で、認証・審査記録や復元履歴などは別に残ります。全情報の完全消去ではありません。 | Personal report fields, including text, pin and observation date, are designed to be minimized based on 90 days after receipt. Processing must run; authentication, review records and recovery history remain separately. This is not complete erasure of all data. |
 | ReportFormViewの`Names and hours ... deleted after 90 days.` | 店名や自由入力の営業時間は審査用で、受信後90日を基準に最小化する対象です。処理状況や別に残る記録については規約・Privacyをご確認ください。 | Names and free-text hours are for review and are subject to minimization based on 90 days after receipt. See the terms and privacy policy for processing and separately retained records. |
 
-`ReportTermsSheet.swift`・`ReportFormView.swift`と対応する`Localizable.xcstrings`だけを修正する候補。
-同じ旧表現の英日keyを検索し、アクセシビリティ表示・改行・リンクを確認する。draftの全文は書き換えない。
-**最小コード修正として必要**であり、現行1.0(8)がこれらの候補文で表示済みとは扱わない。
+`ReportTermsSheet.swift`・`ReportFormView.swift`と対応する`Localizable.xcstrings`は#394で修正済み。
+この変更は位置/保持説明の採用で、正式規約の承認やdraft切替ではない。再修正をP0にせず、最終署名RCで日英の表示・改行・リンク・新版全文との一致を記録する。
 
 ## 2. 新しい正文と版/hash
 
 1. 正式な採用内容・承認者・日付、公開名/窓口/適用日/URLを記録する。和文候補の冒頭注記/metadataを確定し、本文が承認時から変わったら再確認。
 2. 新version `report-terms.YYYY-MM-DD`を全文に入れ、`prepare-report-terms.py --document <最終.md> --version <新version>`で正確なbytesのhash/pathを得る。出力は承認証明ではない。
 3. 正文を`docs/legal/report-terms/<version>.md`とiOSの`Features/Reports/Terms/<version>.md`へ同一bytesで配置。旧draft原文/hashを保持。
-4. API `community-publication.ts`には正式承認された値だけを記録し、新版path/hash/URLを登録。API registryの新版とiOS `ReportTerms.documents`を対応させる。iOS要約も上記の採用済み文へ揃える。
+4. API `community-publication.ts`には正式承認された値だけを記録し、新版path/hash/URLを登録。API registryの新版とiOS `ReportTerms.documents`を対応させる。iOS要約は#394の採用済み文を維持し、最終全文との一致を確認する。
 5. 英訳は参考訳としてWeb用に同じversion/適用日を明示。和文正文を英訳hashへすり替えない。iOSで英訳を表示する追加対応を採用する場合は同じ版との対応を別途テストする。
 
 ## 3. 公開WebとPrivacy回答
