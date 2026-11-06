@@ -24,10 +24,10 @@ struct ReportTermsSheet: View {
                 }
                 Section("What is never published") {
                     Text("Your note, observation day, submission time, report reference or anything that could identify you.")
-                    Text("No account is needed. Your device location and location history are not sent.")
+                    Text("No account is needed. Browsing uses your location on the device. Reports send the pin you explicitly select and confirm; it may equal your current location. Location history is not automatically collected.")
                 }
                 Section("Retention") {
-                    Text("Personal content in a report (note, proposed pin, observation day) is deleted within 90 days of receipt.")
+                    Text("Personal report fields, including text, pin and observation date, are designed to be minimized based on 90 days after receipt. Processing must run; authentication, review records and recovery history remain separately. This is not complete erasure of all data.")
                 }
                 Section {
                     if let fullText = ReportTerms.fullText(for: version) {
