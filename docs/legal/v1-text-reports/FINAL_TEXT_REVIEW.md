@@ -43,3 +43,7 @@
 5. 本番受付/DB/デプロイは別途許可。#387のpreflight/停止手順と#388のmigrationレビューは#124承認の代わりではない。許可のない本番操作やApple提出をこの反映PRへ混ぜない。
 
 参考（2026-11-06確認）：[個人情報保護委員会](https://www.ppc.go.jp/personalinfo/legal/)、[D1履歴](https://developers.cloudflare.com/d1/reference/time-travel/)、[Apple App Privacy](https://developer.apple.com/app-store/app-privacy-details/)。法的十分性や実環境設定を推定する根拠にはしない。
+
+## Q2の具体的な残件と調査結果
+
+[保持台帳・請求対応の実態](Q2_RETENTION_REGISTER.md)に、Issue #124の準備方針の採用（正式承認ではない）、22テーブル等の保持目的/実期間/削除可否、P0/P1、担当者の実行証拠を整理しました。Q1〜Q3を再選択する必要はありません。
