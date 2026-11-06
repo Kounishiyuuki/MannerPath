@@ -54,3 +54,7 @@
 4. **P0・Privacy回答の未確定**：位置/本文/Device IDはCollected/Linked/Not Tracking/App Functionality候補。問い合わせ/メール/ログの実態確認、写真非収集の最終Release/API/旧状態/support条件は未了。写真OFFだけでPhotosを無条件除外しない。
 
 法務参照：[個人情報保護委員会](https://www.ppc.go.jp/personalinfo/legal/)。Apple定義：[App Privacy](https://developer.apple.com/app-store/app-privacy-details/)。工程上の評価で、法的結論や承認ではない。
+
+## Q2の具体的な残件と調査結果
+
+[保持台帳・請求対応の実態](Q2_RETENTION_REGISTER.md)に、Issue #124の準備方針の採用（正式承認ではない）、22テーブル等の保持目的/実期間/削除可否、P0/P1、担当者の実行証拠を整理しました。Q1〜Q3を再選択する必要はありません。

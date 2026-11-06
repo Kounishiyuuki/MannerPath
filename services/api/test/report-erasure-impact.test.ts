@@ -33,7 +33,7 @@ test("reports counts and states only, and never writes", async () => {
     moderation: { state: "pending", reconciliationState: "notQueued" },
     photos: { lifecycle: { ready: 1 }, moderation: { approved: 1 }, queuedDeletions: 0 },
     photoRequests: 0, receipt: "active", reviewEvidence: null, locationOfReviews: {}, baseOfReviews: 0,
-    bulkRejectionTargets: 0, adminReviewAudit: 0, deleteBlockedBy: ["receipt"],
+    bulkRejectionTargets: 0, adminReviewAudit: 0, independentEvidenceChecks: 0, deleteBlockedBy: ["receipt"],
   });
   assert.doesNotMatch(JSON.stringify(impact), /private-note-sentinel|35\.68|2026-|test\/ph_|b{64}|c{64}/);
 });
@@ -89,4 +89,18 @@ test("characterization: review evidence blocks DELETE of its report and is itsel
   assert.deepEqual((await erasureImpact(db, id(1), received))?.deleteBlockedBy, ["reviewEvidence"]);
   assert.throws(() => db.raw.prepare("DELETE FROM reports WHERE report_id = ?").run(id(1)), /FOREIGN KEY/);
   assert.throws(() => db.raw.prepare("DELETE FROM report_review_evidence WHERE report_id = ?").run(id(1)), /never deleted/);
+});
+
+// 0011 added an immutable FK not covered by the original impact report.
+test("independent new-place checks block deletion and are reported without URL or operator identifiers", async () => {
+  const db = reportsD1(); await seed(db, 1, "missing", false);
+  db.raw.prepare(`INSERT INTO new_spot_evidence_checks
+    (operation_id,report_id,basis,source_url,checked_on,place_confirmed,recorded_by,recorded_at,request_hash)
+    VALUES ('private-operation',?,'officialSource','https://example.invalid/private-source','2026-01-01',1,'private-operator','2026-01-01T00:00:00Z',?)`)
+    .run(id(1), "d".repeat(64));
+  const impact = await erasureImpact(db, id(1), received);
+  assert.equal(impact?.independentEvidenceChecks, 1);
+  assert.deepEqual(impact?.deleteBlockedBy, ["independentEvidenceChecks"]);
+  assert.throws(() => db.raw.prepare("DELETE FROM reports WHERE report_id = ?").run(id(1)), /FOREIGN KEY/);
+  assert.doesNotMatch(JSON.stringify(impact), /private-|example.invalid|d{64}/);
 });

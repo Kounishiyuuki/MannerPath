@@ -41,3 +41,7 @@ App Storeの[説明](../../release/submission-v1/text-reports/description-ja.txt
 ## 1.0 (8)の次の実作業
 
 #384でiPhone manifestが更新、#385で本番用のローカル生成planが追加済み。[最小運用手順](OPERATIONS.md)は、生成cronの容量修正、未実行/遅延を正常扱いしない検査、削除相談の可能/不可能、P0/P1と承認後のversion/hash準備をまとめています。実配備・法的承認は未完了です。
+
+## Q2の具体的な残件と調査結果
+
+[保持台帳・請求対応の実態](Q2_RETENTION_REGISTER.md)に、Issue #124の準備方針の採用（正式承認ではない）、22テーブル等の保持目的/実期間/削除可否、P0/P1、担当者の実行証拠を整理しました。Q1〜Q3を再選択する必要はありません。

@@ -34,6 +34,7 @@ npm run local:migrate    # wrangler d1 migrations apply DB --local
 npm run local:reports:migrate   # wrangler d1 migrations apply REPORTS_DB --local (the report store, ADR-0014)
 npm run local:pipeline   # ingest -> resolve -> publish the Taito fixture into local D1
 npm run dev              # wrangler dev --local
+npm run local:reports:privacy-inventory  # read-only counts of the 22 reviewed report-store tables; external stores not inspected
 npm run local:reports    # moderation queue / decisions / retention pass (local D1 only)
 npm run local:smoke      # read-only smoke checks against http://127.0.0.1:8787
 npm run local:export     # validate local state and build the promotion bundle (local D1 only)

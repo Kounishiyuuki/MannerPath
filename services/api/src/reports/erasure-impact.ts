@@ -19,6 +19,7 @@ export interface ErasureImpact {
   baseOfReviews: number;
   bulkRejectionTargets: number;
   adminReviewAudit: number;
+  independentEvidenceChecks: number;
   // Why a plain DELETE of the report row is refused today (foreign keys without CASCADE).
   deleteBlockedBy: string[];
 }
@@ -48,6 +49,8 @@ export async function erasureImpact(db: Db, reportId: string, now: Date): Promis
   const deleteBlockedBy: string[] = [];
   if (receipt) deleteBlockedBy.push("receipt");
   if (evidence) deleteBlockedBy.push("reviewEvidence");
+  const independentEvidenceChecks = await count(db, "SELECT count(*) AS n FROM new_spot_evidence_checks WHERE report_id = ?", reportId);
+  if (independentEvidenceChecks > 0) deleteBlockedBy.push("independentEvidenceChecks");
   return {
     reportId,
     report: {
@@ -70,6 +73,7 @@ export async function erasureImpact(db: Db, reportId: string, now: Date): Promis
     baseOfReviews: await count(db, "SELECT count(*) AS n FROM report_reviews WHERE ' ' || base_report_ids || ' ' LIKE ?", `% ${reportId} %`),
     bulkRejectionTargets: await count(db, "SELECT count(*) AS n FROM report_bulk_rejection_targets WHERE report_id = ?", reportId),
     adminReviewAudit: await count(db, "SELECT count(*) AS n FROM admin_review_audit WHERE report_id = ?", reportId),
+    independentEvidenceChecks,
     deleteBlockedBy,
   };
 }
