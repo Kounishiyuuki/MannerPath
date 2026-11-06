@@ -854,7 +854,7 @@ private struct NewSpotClaimSection: View {
         } header: {
             Text(photoStepShown ? "4. Describe the smoking place" : "3. Describe the smoking place")
         } footer: {
-            Text("Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and hours are only for the reviewer and are deleted after 90 days.")
+            Text("Say what the smoking place is, not only what shop is there: a convenience store or café by itself is not a smoking place. Names and free-text hours are for review and are subject to minimization based on 90 days after receipt. See the terms and privacy policy for processing and separately retained records.")
         }
     }
 }
