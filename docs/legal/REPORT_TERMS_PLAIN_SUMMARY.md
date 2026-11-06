@@ -1,47 +1,21 @@
-# Report terms candidate — plain-language summary for the maintainer
+# #124 運営者向け要約 — 写真なしv1.0 (8)
 
-For deciding Issue #124. This explains `docs/legal/REPORT_TERMS_CANDIDATE.md` in plain words. It is **not legal
-advice** and does not say the candidate is legally sufficient; whether to get a lawyer's review is part of the decision.
+**未承認。法的十分性の認定ではありません。** 現行本文は[規約候補](REPORT_TERMS_CANDIDATE.md)、決定入口は[Q1〜Q3の選択表](v1-text-reports/OWNER_CHOICES.md)です。
 
-## What a contributor agrees to, in one paragraph
+## 利用者に説明すること
 
-"If MannerPath's reviewers accept my report, MannerPath may keep and publish the **reviewed facts** that came out of
-it (where the place is, what kind of place, whether it still exists) as MannerPath data, everywhere MannerPath
-distributes data, for free and permanently. My note and anything that points to me are never published and are
-deleted within 90 days. My report might not be used at all, and it will be shown as a reviewed user report, not
-as official information."
+申請は審査待ちで、公式情報や現地確認などの独立した根拠と権利/位置/品質審査を経た場所の事実だけを公開します。
+採用は保証せず、自動掲載しません。審査済み事実は出典/規約URLを付けて再配布・商用利用可とする推奨案です。
+自由文や端末識別情報は公開しません。申請時に明示確定したpinは現在地と一致することがあります。
+App Attestによる端末認証と申請者関連付けがあり、無アカウントでも匿名・非関連付けとは限りません。
 
-## Rights, item by item
+本文・pin・観測日・自由文・申請者関連付けは90日を基準に最小化する設計です。全記録が90日以内に消えるという説明ではありません。
+認証・受付/審査監査・復元履歴・問い合わせは別管理です。実処理の実行/遅延/復旧と、残存保持の根拠・期間/見直し運用を確認する必要があります。
+180日や1年等の未実装期限は約束しません。IDだけで本人認定せず、削除/訂正相談を受付・調査し、可能な対応と理由を案内する候補です。
+早期完全消去・専用本人確認・履歴復旧・公開済み根拠withdrawalは未実装です。法令上必要な対応を説明文で免除しません。
 
-| Need (why MannerPath needs it) | In the candidate | Deliberately NOT taken |
-| --- | --- | --- |
-| Store and moderate the report | §2 | — |
-| Normalize it (round the pin, convert choices to structured fields, merge duplicates) | §2, §4.1 | — |
-| Publish via app, Watch, API, tiles, promotion/export bundles | §4.1 | — |
-| Convert to future formats | §4.1 | — |
-| Third parties reusing MannerPath data | §4.2 — **your choice** (allow / allow with attribution / don't allow) | — |
-| Commercial use | not mentioned separately; follows §4.2's choice | No sale of contributor data is described or needed |
-| Free text (notes) | — | §4.3: notes are never licensed or published |
-| Personal / anti-abuse data | — | §5: never published, §6: deleted within 90 days |
-| Contributor credit by name | — | §7: no names, no IDs; attribution is "MannerPath 利用者報告（審査済み）" |
+## 承認で変わらないこと
 
-"Irrevocable" in §4.1 matters: without it, every withdrawal request could force unpublishing a fact that other
-people also confirmed. Whether you want that is exactly the withdrawal decision below.
-
-## What stays as placeholders (`MAINTAINER-INPUT`)
-
-The repository records no operator name, contact address, governing law or public terms URL, so none was invented:
-
-1. Operator name (§ header)
-2. Third-party reuse / commercial use (§4.2)
-3. Withdrawal wording (§8) — pick option A, B or C in `COMMUNITY_PUBLICATION_DECISION.md`
-4. Liability wording (§10)
-5. Governing law, court, contact point, public terms URL (§11)
-
-The activation test refuses an approved document that still contains `MAINTAINER-INPUT`, `DRAFT` or `CANDIDATE`.
-
-## What changes for people who already consented to the draft
-
-Nothing. The draft told them nothing would be published on it. The approved terms are a **new version**; only
-reports that explicitly agree to that new version can ever be published. Draft-consented reports stay usable as
-review signals only.
+draftへの過去同意は新版へ遡及せず、publicationRightsは現在pending、sourceはblockedのままです。
+正式承認後に新version/hash・iOS全文/要約・APIレジストリ・公開Webを別の最小PRで揃えます。
+文面の承認は個別申請の採用・source承認・本番有効化・Apple提出の許可ではありません。

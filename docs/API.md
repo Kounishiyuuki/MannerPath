@@ -470,8 +470,9 @@ it cannot be used to discover which spots exist. A claim about an ID that resolv
 handled during moderation.
 
 Retention: personal content (`note`, `proposedLocation`, `observedOn`, the hashed submitter key) is
-erased 90 days after the report arrives, whatever its moderation state; the non-personal skeleton
-of the report remains. Moderation metadata holds no free text — only a decision time, a reviewer
+scheduled for minimization at receipt +90 days, whatever its moderation state; completion requires
+the retention worker to execute successfully. The skeleton, retired receipt, authentication and review/audit records
+are separate, and recovery history can retain earlier data. This is not full or physical erasure. Moderation metadata holds no free text — only a decision time, a reviewer
 handle and a reason code from a closed vocabulary — so nothing a reporter wrote can survive through
 it. See ADR-0007 §4.
 

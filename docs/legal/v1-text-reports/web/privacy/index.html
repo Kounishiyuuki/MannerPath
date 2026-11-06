@@ -59,7 +59,8 @@
 <li>申請はCloudflare Workers/D1で処理・保存します。申請本文や端末識別情報を一般公開せず、公式情報や運営者の現地確認など独立した根拠で審査します。受付は審査待ちで、自動掲載・掲載保証はありません。</li>
 <li>受信後90日を基準に、本文・位置・確認日・自由文・申請者との関連付けを運用DB上で削除/最小化する設計です。運営者が処理の実行・完了を管理します。受付・分類・審査/冪等性/独立確認の記録、認証登録は別に残ります。審査済みの場所の事実は継続利用される場合があります。</li>
 <li>D1の復元用履歴や別管理のバックアップには処理前の情報が残る場合があります。SQL上の削除/最小化は、暗号鍵破棄による復元不能化や媒体からの物理消去とは異なります。復元時には必要な最小化を再適用します。</li>
-<li><strong>公開前未決：</strong>認証登録・監査/受付記録・問い合わせ・提供者ログ等の保持期限と削除手順は、保持台帳の承認・必要な実装/運用確認後に確定文へ置き換えます。現状で『全情報が90日で消える』とは約束しません。</li>
+<li>認証登録は端末認証・不正対策のため、受付・審査・独立確認の記録は申請処理と審査根拠の追跡のために別管理します。これらに一律の自動削除期限はありません。保存継続の必要性と法令上の対応を個別に見直します。お問い合わせのメール・対応記録は相談対応とその経緯の確認に用い、申請の90日最小化とは別管理です。</li>
+<li>アプリ内の削除・履歴復旧、申請の早期・完全消去や公開済み根拠の取り下げを自動反映する機能は提供していません。削除等の相談は第9項の窓口で受け付け、対象・権限・利用状況と実施可能な処理を確認して対応内容または対応できない理由を案内します。法令上の請求を一律に拒否するものではありません。</li>
 </ul>
 <h2>6. 解析・広告・トラッキング</h2>
 <ul>
@@ -134,7 +135,8 @@
 <li>Cloudflare Workers/D1 process and store reports. Report text and device identifiers are not made public. An operator reviews independent evidence, such as an official source or a site visit. Receipt means pending review, not automatic or guaranteed publication.</li>
 <li>The design minimizes report text, pin, observation date, free-text claims and submitter linkage in the operational database based on 90 days after receipt. The operator must run and verify the process. Receipt, categorical, review/idempotency/independent-check records and authentication registrations are separate. Reviewed place facts may continue to be used.</li>
 <li>Recovery history in D1 and separately managed backups may retain earlier data. SQL deletion/minimization is different from cryptographic key destruction or physical erasure. Required minimization must be reapplied after restoration.</li>
-<li><strong>Unresolved before publication:</strong> retention and removal procedures for authentication, audit/receipt records, support and provider logs must be finalized after retention-register approval and implementation/operational checks. No promise that all data disappears after 90 days is made.</li>
+<li>Authentication registrations are managed separately for device authentication and abuse prevention. Receipt, review and independent-check records are managed separately to process reports and trace review evidence. These records have no uniform automatic deletion deadline. Continued retention and applicable legal obligations are reviewed individually. Support emails and case records are used to handle inquiries and document the response, separately from 90-day report minimization.</li>
+<li>There is no in-app deletion/history-recovery feature or automatic process for early/full erasure or withdrawal of already published evidence. Requests go to the contact in section 9. We check the target information, authority, use and feasible actions, then explain the action taken or why it cannot be taken. This does not categorically refuse legally recognized requests.</li>
 </ul>
 <h2>6. Analytics, advertising and tracking</h2>
 <ul>

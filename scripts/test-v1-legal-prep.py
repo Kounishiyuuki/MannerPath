@@ -59,7 +59,8 @@ class LegalPrepTests(unittest.TestCase):
             self.assertNotIn('初回公開版では、アプリからの報告の送信は利用できません', text)
             self.assertNotIn('initial read-only version', text)
         privacy = (PACKET / 'web/privacy/index.html').read_text()
-        self.assertIn('Unresolved before publication', privacy)
+        self.assertIn('no uniform automatic deletion deadline', privacy)
+        self.assertIn('アプリ内削除・復旧・自動withdrawalを提供しない', (PACKET / 'FINAL_TEXT_REVIEW.md').read_text())
         self.assertIn('cryptographic key destruction', privacy)
         self.assertIn('not mean anonymous', privacy)
         answers = json.loads((ROOT / 'docs/release/submission-v1/text-reports/app-privacy-candidate.json').read_text())
@@ -70,6 +71,19 @@ class LegalPrepTests(unittest.TestCase):
             self.assertTrue(row['collected'])
             self.assertTrue(row['linked'])
             self.assertFalse(row['tracking'])
+
+    def test_decision_packet_keeps_runtime_mismatch_and_unapproved_translation_visible(self):
+        choices = (PACKET / 'OWNER_CHOICES.md').read_text()
+        self.assertIn('推奨A（条件付き）', choices)
+        self.assertIn('予定URL・未公開', choices)
+        self.assertIn('残るリスク', choices)
+        activation = (PACKET / 'ACTIVATION_DIFF.md').read_text()
+        self.assertIn('Your device location and location history are not sent.', activation)
+        self.assertIn('This is not complete erasure of all data.', activation)
+        english = (ROOT / 'docs/legal/REPORT_TERMS_CANDIDATE_EN.md').read_text()
+        self.assertIn('CANDIDATE — NOT APPROVED', english)
+        self.assertIn('no uniform automatic deletion deadline', english)
+        self.assertIn('An ID helps locate information but is not proof of ownership', english)
 
     def test_only_three_owner_questions_and_no_assumed_implementation(self):
         decisions = (PACKET / 'DECISIONS.md').read_text()
