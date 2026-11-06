@@ -4,10 +4,16 @@ Status: **awaiting maintainer decision.** Nothing in the repository approves com
 Issue #150 (child of #67). Read with `REPORT_TERMS_PLAIN_SUMMARY.md` (what contributors agree to) and
 `REPORT_TERMS_CANDIDATE.md` (the text).
 
-## 0. One-page readiness (re-audited 2026-10-03 against `main` f534778)
+## Current v1.0 decision entry (2026-11-06)
 
-**#124 technical readiness: READY.** No code change is needed before a decision; everything left is a maintainer or
-legal decision, plus the activation PR and launch operations those decisions unlock. `COMMUNITY_PUBLICATION` stays
+Use [Q1–Q3 choices](v1-text-reports/OWNER_CHOICES.md) and [final text review](v1-text-reports/FINAL_TEXT_REVIEW.md).
+All remain unapproved. The old readiness table below is historical, not a release verdict. Current blockers include
+residual retention/rights-request feasibility, actual maintenance evidence, revised iOS consent summaries and final version/hash/Web alignment.
+A report ID alone is not proof of ownership; 90-day minimization does not erase every record, and automatic early erase/withdrawal is not implemented.
+
+## 0. Historical one-page readiness (re-audited 2026-10-03 against `main` f534778)
+
+**Historical 2026-10-03 assessment only (superseded for current release readiness).** The following READY labels are limited to the old code audit. `COMMUNITY_PUBLICATION` stays
 `pending`, so the community source stays `blocked` and no community spot publishes.
 
 | # | Item | Status | Evidence |
@@ -31,7 +37,7 @@ legal decision, plus the activation PR and launch operations those decisions unl
 | 17 | Old clients | READY (by design) | draft-only builds get 409 and must update; release the approving build before `/v1/config` switches (checklist C) |
 | 18 | App Attest | READY (code) | intake requires App Attest in production; the physical-device run (#35) and secrets are launch operations, not a #124 decision |
 
-**Remaining technical blockers:** none.
+**Current technical blockers:** see the current decision entry above. Do not reuse the historical “none” verdict.
 
 **Remaining maintainer decisions** (the `MAINTAINER-INPUT` markers in `REPORT_TERMS_CANDIDATE.md`):
 1. APPROVE / HOLD / CHANGE the candidate, and whether counsel reviews it first (§10 lists the open legal questions;
@@ -75,23 +81,25 @@ checks the published bytes of a simulated activation.
 
 ## 3. Rights granted by the submitter (candidate §4)
 
-Free, perpetual, irrevocable permission to store, normalize, convert, merge and publish reviewed facts through the
+The current unapproved candidate proposes free, ongoing permission to store, normalize, convert, merge and publish reviewed facts through the
 app, Watch, API, tiles and export/promotion bundles, and to convert them to future formats. Notes are excluded.
-**Open:** whether third parties may reuse/redistribute (incl. commercially) MannerPath's community data (§4.2).
+**Q1 recommendation:** third-party/commercial reuse with attribution and terms URL; still unapproved. Statutory rights are not excluded.
 
 ## 4. Privacy and minimization
 
-Unchanged ADR-0007: personal content (note, proposed pin, observation day, submitter hash) is removed within 90 days
-of receipt. The published fact is a MannerPath review result, not the personal report; it outlives the report.
-The App Attest submitter key is now the verified key, not the client-chosen installId (Issue #150).
+The implementation schedules minimization of personal report fields at receipt +90 days; actual cleanup must run.
+Authentication, receipts/audit, independent checks, support and recovery history are separate. It is not full or physical erasure.
+Residual retention and request handling require the Q2 decision and operational evidence. The verified App Attest key,
+not a client-chosen install ID alone, supplies the submitter identity.
 
-## 5. Withdrawal — options (choose one; no recommendation)
+## 5. Historical withdrawal options (Q1/Q2 now govern)
 
 Distinguish the **original personal report** (owned by the contributor, minimized within 90 days anyway) from the
 **published canonical fact** (a MannerPath review result, often corroborated by others).
 
-There are no accounts. The only proof of authorship is the report ID returned at submission, and after the 90-day
-redaction nothing links a report to a submitter, so no option can verify authorship later than that.
+There are no accounts. A report ID helps locate the target but is not ownership proof. Dedicated safe identity
+verification, early full erase and exported-evidence withdrawal are unimplemented. Do not promise those operations
+from the following design options. Current Q1/Q2 recommend case review, statutory-rights preservation and honest limits.
 
 | | A. Personal data only | B. Unlink and re-evaluate | C. Full takedown |
 | --- | --- | --- | --- |
@@ -148,7 +156,7 @@ database (blue/green). Stop accepting reports: remove `REPORT_APP_ATTEST_APP_ID`
 
 ## 10. Unresolved legal questions (for counsel, if you use one)
 
-1. Is the §4 grant (incl. "irrevocable") effective for anonymous contributors via in-app consent?
+1. Is the current §4 reuse grant effective and compatible with statutory withdrawal/correction rights? No blanket irrevocability is assumed.
 2. Third-party / commercial reuse (§4.2) and the license MannerPath offers downstream.
 3. §10 liability wording under 消費者契約法.
 4. Whether the operator must be named / a contact published under 特定商取引法 or other law for a free app.
@@ -162,10 +170,9 @@ canonical data (ADR-0014, `docs/OPERATIONS.md` "Community publication" and "Repo
 report store and are minimized there after 90 days. This item no longer blocks; the legal and maintainer decisions
 above still do.
 
-## 12. Decide
+## 12. Decide using current Q1–Q3
 
-- **APPROVE** — you accept candidate §1–§11 with your fills for: operator name, contact, governing law, terms URL,
-  §4.2 third-party reuse, §8 withdrawal option (A/B/C). Then the activation PR (§8 above).
-- **HOLD** — community stays blocked; reports continue to be collected under the draft and moderated as review
-  signals. Nothing else changes.
-- **CHANGE** — name the sections to change; a new candidate follows. Nothing activates until APPROVE.
+Use [OWNER_CHOICES](v1-text-reports/OWNER_CHOICES.md): select the text/conditions to adopt, change or hold.
+A conditional text choice is not final approval or resolution of retention/request-handling blockers.
+Final approval must identify the finalized text, chosen conditions, approver and date. No statement in this packet records that approval.
+Intake availability must be separately verified; HOLD does not mean production currently accepts draft reports.
