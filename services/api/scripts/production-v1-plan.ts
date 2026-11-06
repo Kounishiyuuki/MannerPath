@@ -80,7 +80,7 @@ export function intakeBlockers(terms: ReviewedTerms = CURRENT_REPORT_TERMS): str
 export function productionSteps(blockers: string[]): { launch: string[]; stop: string[]; rollback: string[] } {
   const C = "-c .wrangler/production-v1/worker.jsonc";
   const launch = [
-    "# 0. Read-only state (expect REPORTS_DB 0004-0011 and DB 0031-0033 unapplied, no secrets, no keys):",
+    "# 0. Read-only state (before-db below checks the exact unapplied migrations and that intake is closed):",
     `npx wrangler d1 migrations list REPORTS_DB ${C} --remote`,
     `npx wrangler d1 migrations list DB ${C} --remote`,
     `npx wrangler secret list ${C}`,
@@ -88,7 +88,7 @@ export function productionSteps(blockers: string[]): { launch: string[]; stop: s
     `npx wrangler d1 time-travel info mannerpath-production-reports`,
     `npx wrangler d1 time-travel info mannerpath-production`,
     "npm run production:v1-check -- --stage before-db   # also requires Lane 2's review of each unapplied migration",
-    "# 2. Migrations (REPORTS_DB holds no report yet; DB 0031-0033 are the read path's own):",
+    "# 2. Migrations, only after before-db PASSes (exactly the expected, Lane 2-approved files on both databases):",
     `npx wrangler d1 migrations apply REPORTS_DB ${C} --remote`,
     `npx wrangler d1 migrations apply DB ${C} --remote`,
     "npm run production:v1-check -- --stage after-db",

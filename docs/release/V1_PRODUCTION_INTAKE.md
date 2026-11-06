@@ -66,8 +66,10 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 4. peppers を対話で設定し、デプロイし、`--stage after-deploy`。App ID なしなので受付は閉じたまま。
 5. 規約が承認されている場合だけ：App ID を設定し、`REPORT_REGISTRATION=enabled` でデプロイし、`--stage after-intake`。
 
-**停止**：`npm run production:v1-stop`（wrangler の確認に答えるだけ）。App ID を消し、既存の鍵を含めて受付を止め、
-続けて `--stage stopped` で fail-closed（`available:false`、challenge 503 `attestationUnavailable`）を確かめる。
+**停止**：`npm run production:v1-stop`（wrangler の確認に答えるだけ）。設定をコミット済みの `wrangler.jsonc` から作り直し、
+対象が本番の Worker と DB であることを確かめてから App ID を消す。生成に失敗したら何も消さずに止まる。App ID が既に
+ないときは何も消さない（何度実行してもよい）。規約の状態に関係なく動く。最後に `--stage stopped` で fail-closed
+（`available:false`、challenge 503 `attestationUnavailable`）を確かめる。
 
 ロールバック：Worker は `wrangler rollback`。その後 `--stage stopped` を実行し、App ID が戻っていないかを確かめる。
 0011 だけを戻すときは `migrations-reports-rollback/0011_new_spot_independent_evidence.sql`。それ以外は D1 Time Travel。
@@ -76,21 +78,25 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 
 ## 5. 段階ごとの自動検査（`npm run production:v1-check`）
 
-読み取り専用：`wrangler d1 migrations list`・`wrangler secret list`（名前のみ）・公開ルートの GET と、書き込みの前に
-拒否される POST（写真の送信、登録用 challenge）だけ。秘密の値や応答の本文は出力しない。全段階で、ビルド番号が
-すべて 8 であること、規約文書の bytes が登録済みの SHA-256 と一致することも確かめる。
+読み取り専用：`wrangler d1 migrations list`・`wrangler secret list`（名前のみ）・公開ルートの GET。POST（写真の送信、
+登録用 challenge）は、受付が閉じているはずの段階で、**App ID がなく `/v1/config` が `available:false` と確かめた後だけ**
+送る（閉じた Worker は書き込みの前に拒否する）。受付が開いているように見えれば送らず FAIL にする。`after-intake` は
+POST を一切送らない（開いた Worker は challenge を保存しうる）。秘密の値や応答の本文は出力しない。全段階で、
+ビルド番号がすべて 8 であること、規約文書の bytes が登録済みの SHA-256 と一致することも確かめる。
+
+結果は `PASS`（終了コード 0）・`FAIL`（1）・`UNVERIFIED`（3：検査は通ったが、読み取りでは示せない項目が残る）。
 
 | 段階 | 確かめること |
 | --- | --- |
-| `before-db` | REPORTS_DB の未適用が 0004〜0011 だけ。未適用の各 migration を Lane 2 が承認済み（下記）。受付は閉じている |
+| `before-db` | **両 DB** の未適用が、想定の一覧（REPORTS_DB 0004〜0011、DB 0031〜0033）と完全に一致。Lane 2 の記録が同じ一覧を1件ずつ承認し、bytes の SHA-256 が一致。未適用なし・記録なしは想定の状態とみなさない。受付は閉じている |
 | `after-db` | 両 DB に未適用なし。受付は閉じている |
 | `after-deploy` | readiness 200、report schema 3、写真 503 `photoEvidenceDisabled`、規約の版が一致、peppers あり。App ID なし・`available:false` |
-| `after-intake` | **規約が草案または公開権利なしなら必ず FAIL**。App ID あり・`available:true`、上記の Worker の項目 |
+| `after-intake` | **規約が草案または公開権利なしなら必ず FAIL**。App ID あり・`available:true`、上記の Worker の項目（写真の POST を除く）。**新しい鍵の登録が開いたことは読み取りでは示せない**（`available:true` は `paused` でも成り立つ）ので、別に承認された canary までは `UNVERIFIED` |
 | `stopped` | `after-deploy` と同じ（受付が既存の鍵を含めて閉じている） |
 
 **Lane 2 の migration レビューの取り込み**：`services/api/release/production-migration-review.json` に、未適用の
-migration ごとに `{ database, name, sha256, verdict: "approved", reviewedBy }` を Lane 2 の PR で追加する。
+migration ごとに `{ database, name, sha256, verdict: "approved", reviewedBy }` を Lane 2 の PR で追加する。推測で埋めない。
 `sha256` はファイルの bytes の SHA-256（`shasum -a 256 <file>`）。ファイルが1 byte でも変われば `before-db` は FAIL に戻る。
 この検査はレビューの内容を判断しない。承認の記録と bytes の一致だけを見る。
 
-2026-11-05 の `--stage before-db`：ビルド 8・規約 hash・受付が閉じていることは PASS、未適用の 11件がレビュー未登録で FAIL。
+2026-11-06 の `--stage before-db`（読み取りのみ）の結果は PR #387 に記録する。Lane 2 の記録が入るまで FAIL のまま。
