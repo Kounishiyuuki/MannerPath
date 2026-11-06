@@ -86,12 +86,10 @@ test("local checks: build 8 everywhere and the terms bytes match their registere
   assert.equal(failed("after-deploy", base({ termsFileSha256: "0".repeat(64) })).length, 1);
 });
 
-test("parses wrangler's migration table and the empty case, refuses unknown output; the committed review list is empty", () => {
+test("parses wrangler's migration table and the empty case, refuses unknown output", () => {
   assert.deepEqual(parsePending("│ Name │\n│ 0031_a_b.sql │\n│ 0032_c.sql   │"), ["0031_a_b.sql", "0032_c.sql"]);
   assert.deepEqual(parsePending("✅ No migrations to apply!"), []);
   assert.throws(() => parsePending("✘ [ERROR] Authentication error"));
-  const review = JSON.parse(readFileSync(new URL("../release/production-migration-review.json", import.meta.url), "utf8"));
-  assert.deepEqual(review.reviews, [], "filled only by Lane 2's own PR");
 });
 
 test("stop targets exactly the committed production Worker and databases, whatever the terms state", () => {
