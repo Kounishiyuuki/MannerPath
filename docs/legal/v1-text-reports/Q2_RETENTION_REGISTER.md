@@ -1,8 +1,10 @@
 # Q2 保持台帳・請求対応の実態と残件
 
-基準main `69c549c`。運営者の[準備方針](https://github.com/Kounishiyuuki/MannerPath/issues/124#issuecomment-6686927248)を確認。
+基準main `b13a061`（#393/#394統合後）。運営者の[準備方針](https://github.com/Kounishiyuuki/MannerPath/issues/124#issuecomment-6686927248)を確認。
 Q1=A、Q2=A条件付き、Q3=既存表示/窓口/予定URLを**準備用**に採用。正式承認・公開権利・施行日・本番有効化は未確定。
 本票はソース/実schemaの調査とローカル試験であり、**本番の件数・実処理成功・メール内容を確認した台帳ではない**。
+
+[公開前P0の確定表](Q2_PUBLICATION_P0.md)に、担当・閉じる証拠・状態別の請求対応と、条件付きの最小実装を具体化した。Q1〜Q3の再選択は不要。
 
 ## 1. 情報別の保持目的・必要期間・削除可能性
 
@@ -16,7 +18,7 @@ Q1=A、Q2=A条件付き、Q3=既存表示/窓口/予定URLを**準備用**に採
 | `app_attest_challenges` | 登録/report用nonce・key参照・発行/期限/消費時刻 | protocolで期限切れを拒否、保持処理でexpires_at経過後を削除。消費しただけでは即物理削除ではない | 失効後の処理完了と監視証拠。nonce原文をサポートへ送らせない |
 | `report_rate_windows` | pepper由来識別値・上限カウント・期間。乱用防止 | expires_at経過後の保持処理で削除。1時間/日budgetは利用上限であって全情報の保存期限ではない | 期限到来分の削除完了・最小限の識別値で足りるか確認 |
 | `report_idempotency` | HMAC digest・report ID・request fingerprint・受付/退役時刻。二重保存防止 | 90日最小化と同batchでrequest hashをNULL化し410へ。receipt自体はno-delete。digestを自動的に匿名としない | receipt残存の必要期間/法的根拠。期限削除すると旧下書きの再作成が起きるためschema/挙動判断が必要 |
-| `report_moderation`・`report_reviews`・`report_review_evidence` | 審査状態・review IDs・report参照・採用位置/分類・担当/時刻/理由 | 元申請の訂正は直接更新不可。既存レビュー取り下げは可能だが、export済み根拠の自動withdrawal/消去ではない。evidence FK等がDELETEを拒否 | 継続公開に必要な根拠と個人との関連を分離して見直す。消去/非識別化にはimmutable/参照/再計数の設計が必要 |
+| `report_moderation`・`report_reviews`・`report_review_evidence` | 審査状態・review IDs・report参照・採用位置/分類・担当/時刻/理由 | 元申請の訂正は直接更新不可。取り下げはproposedレビューに限定され、exportedには使えない。export済み根拠の自動withdrawal/消去ではない。evidence FK等がDELETEを拒否 | 継続公開に必要な根拠と個人との関連を分離して見直す。消去/非識別化にはimmutable/参照/再計数の設計が必要 |
 | `new_spot_evidence_checks` | report ID・公式URL/現地確認・確認日・recorded_by・operation ID・hash。独立確認の追跡 | 0011のFKとimmutable/no-delete。90日最小化後も残る。既存削除影響ツールの参照漏れを今回修正 | URLや担当者名も個人情報を含み得る。誤記録を任意編集できないため根拠訂正/保持期間を個別判断 |
 | `admin_review_audit`・`report_bulk_rejections`・`report_bulk_rejection_targets`・`report_bulk_rejection_completions` | 操作ID・report/photo ID・担当handle・時刻・理由・hash・件数等。審査/一括操作の追跡 | append-only/no-delete。本文は入れない設計でもID/handle/hashが残る。完全匿名とはしない | 監査に必要な範囲・期間と非識別化方式。1年自動削除は未実装 |
 | `community_evidence_photos`・`community_photo_requests`・`community_photo_deletions`・`community_photo_deletion_attempts` | 旧/PoC写真のメタデータ・予約・削除キュー/失敗記録 | v1.0の写真受付は無効。行が0とは断定しない。redactionでキューができても物理削除完了ではない。ツールで件数だけ確認 | 履歴/既存物があるなら別途調査し、Photos除外条件を再評価。今回再有効化しない |
@@ -57,7 +59,7 @@ SELECTだけで、値・ID・URL・hash・本文・メールを出力せず、�
 - **実処理と範囲外**：許可された担当がCron/未実行検知/復旧・容量を検証。提供者設定/Logpush・support mailboxの実態は各権限のある担当へ割当て、確認日時と設定証拠を保存する。無許可の本番操作はしない。
 - **請求の履行可能性**：どの対象を誰が何の根拠で開示/訂正/最小化/利用停止できるか、例外/本人確認不能時も含めたケース表を完成する。
   窓口設置や制限説明だけでは閉じない。法的に必要な処理が現機能で不能なら、その範囲の技術設計/実装をP0へ戻す。
-- **候補と実装の一致**：90日以外の期限・完全消去等を約束しない。正式文面/残存保持の判断、iOS旧要約の修正と署名RC、Privacy/Support/ASCの一致を最終確認。
+- **候補と実装の一致**：90日以外の期限・完全消去等を約束しない。正式文面/残存保持の判断、#394で修正済みのiOS要約と新全文の署名RC照合、Privacy/Support/ASCの一致を最終確認。
 
 ### P1：義務や採用した約束に影響しない範囲で後回し
 

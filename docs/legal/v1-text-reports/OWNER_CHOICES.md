@@ -50,7 +50,7 @@
 
 1. **P0・正式承認なし**：現状のdraft/pendingのままでは正式規約・公開権利へ移せない。文章の選択と法務/運用確認を分ける。
 2. **P0・保持/請求対応**：Q2の残存保持・本人確認/必要な消去の履行可能性、実最小化と監視が未確定。必要な操作が不能なら、その操作の限定修正が必要。セルフサービス画面全体を一律P0にはしない。
-3. **P0・説明の不一致**：現iOS要約/フォームに旧GPS/90日削除表現。承認後の[最小反映手順](ACTIVATION_DIFF.md)で日英文言を置換し、同意全文・API・公開policy/support・manifestと一致させる。
+3. **P0・最終説明の照合**：旧GPS/90日表現は#394で日英修正済み。再修正ではなく、[最小反映手順](ACTIVATION_DIFF.md)で新しい同意全文・API・公開policy/support・manifestと署名RCを一致させる。
 4. **P0・Privacy回答の未確定**：位置/本文/Device IDはCollected/Linked/Not Tracking/App Functionality候補。問い合わせ/メール/ログの実態確認、写真非収集の最終Release/API/旧状態/support条件は未了。写真OFFだけでPhotosを無条件除外しない。
 
 法務参照：[個人情報保護委員会](https://www.ppc.go.jp/personalinfo/legal/)。Apple定義：[App Privacy](https://developer.apple.com/app-store/app-privacy-details/)。工程上の評価で、法的結論や承認ではない。
