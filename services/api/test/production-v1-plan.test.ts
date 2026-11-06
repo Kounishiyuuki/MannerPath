@@ -60,3 +60,9 @@ test("stop deletes the App ID (existing keys included) and rollback re-checks it
   assert.equal(rollback.some((l) => /RE-DELETE the App ID/.test(l)), true);
   assert.equal(rollback.some((l) => /migrations-reports-rollback\/0011_/.test(l)), true);
 });
+
+// Keep dispatch bounded: improve cadence rather than looping past the Free per-invocation query budget.
+test("retention proposal has 288 bounded slots daily instead of ten rows per day", () => {
+  assert.equal(V1_PRODUCTION.retentionCron, "2-57/5 * * * *");
+  assert.deepEqual(productionConfig(committed, "/api").triggers.crons, ["2-57/5 * * * *"]);
+});

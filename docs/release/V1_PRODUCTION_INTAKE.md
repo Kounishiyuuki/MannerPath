@@ -23,8 +23,8 @@
   （消せば、デプロイなしで既存の鍵を含めて受付が止まる）。
 - 登録の上限：**5件/時・20件/日**（staging の半分）。申請の上限は 10件/時・50件/日（D1 トリガー、変更なし）。
 - `CHALLENGE_RATE_LIMITER`：namespace `9802`・60件/60秒（staging は 9801）。
-- 保持処理：`REPORT_RETENTION=cleanup`、毎日 03:17 JST（`17 18 * * *`）の cron だけ。90日の最小化を実行し、
-  未完了・失敗は cron の実行状態とログ（件数のみ）に出る。
+- 保持処理：`REPORT_RETENTION=cleanup`、5分ごと（UTC `2-57/5 * * * *`）の cron だけ。90日の最小化を実行し、
+  未完了・失敗は cron の実行状態とログ（件数のみ）に出る。1日1回最大10件の旧案を改めた生成案で、まだ有効化していない。
 - **規約のゲート**：現行の規約が草案、または公開権利が `granted` でない間は、App ID の設定と登録の開放を出力せず
   `BLOCKED` を表示して終了コード 2 を返す。草案への過去の同意は、どの版の承認でも公開権利にならない
   （`src/reports/terms.ts`、`test/production-v1-plan.test.ts`）。
@@ -51,7 +51,7 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 - 申請系のルートで CPU 10 ms 超が5%を超えた、または 5xx が続けて出た。
 - 同じ下書きの二重保存、規約の版の不一致、写真のルートが 503 以外を返した。
 - 1日の登録が上限（20件）に達した日が続く、または同じ IP からの大量の challenge（429 が出ないままの急増）。
-- 保持処理の cron が失敗した、または `overdue` が2日続いた。
+- 保持処理の cron が失敗/未実行/無効、または `overdue` が2回連続するか、日次確認で未解消backlogが見つかった。
 - Workers Free の日次上限（リクエスト 100,000件）や D1 Free の上限に近づいた。
 
 新しい鍵だけを止めるときは、`paused` のまま再デプロイする（既存の鍵は申請できる）。
@@ -71,6 +71,8 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 
 ロールバック：Worker は `wrangler rollback`。その後 `--stage stopped` を実行し、App ID が戻っていないかを確かめる。
 0011 だけを戻すときは `migrations-reports-rollback/0011_new_spot_independent_evidence.sql`。それ以外は D1 Time Travel。
+
+保持の容量・オフラインheartbeat判定・削除相談・残るP0/P1は[最小運用手順](../legal/v1-text-reports/OPERATIONS.md)を参照。新頻度も実Cron/CPU/D1の成功を保証せず、配備・実測は未実施。
 
 ## 5. 段階ごとの自動検査（`npm run production:v1-check`）
 

@@ -31,3 +31,7 @@ App Storeの[説明](../../release/submission-v1/text-reports/description-ja.txt
 
 `python3 scripts/test-v1-legal-prep.py` は候補の公開artifact非混入、稼働中草案のbytes/hash、pending権利ゲート、申請/写真なし/日英記述を確認。
 `make contract`も実行。実機・本番・法的承認を検証するテストではありません。
+
+## 1.0 (8)の次の実作業
+
+#384でiPhone manifestが更新、#385で本番用のローカル生成planが追加済み。[最小運用手順](OPERATIONS.md)は、生成cronの容量修正、未実行/遅延を正常扱いしない検査、削除相談の可能/不可能、P0/P1と承認後のversion/hash準備をまとめています。実配備・法的承認は未完了です。

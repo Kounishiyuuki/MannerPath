@@ -8,7 +8,7 @@
 // - no R2 binding (it only serves the source check, which has no cron here; R2 is out of scope);
 // - the committed production database IDs, unchanged;
 // - App Attest `production`, build 8, conservative registration caps and CHALLENGE_RATE_LIMITER;
-// - the daily retention run (90-day minimization) as the only cron;
+// - the five-minute retention run (90-day minimization) as the only cron;
 // - REPORT_REGISTRATION always `paused`, and no REPORT_APP_ATTEST_APP_ID: it is a secret, so deleting it stops all
 //   intake at once without a deploy (docs/SECRETS_AND_ROTATION.md).
 // Opening registration is printed only when the current report terms are an approved, non-draft version with
@@ -30,8 +30,9 @@ export const V1_PRODUCTION = {
   // Account-unique; staging uses 9801.
   limiterNamespace: "9802",
   limiterLimit: 60,
-  // 03:17 JST daily. Off the hour, so it does not share a minute with other accounts' jobs.
-  retentionCron: "17 18 * * *",
+  // One bounded pass per five minutes; daily ten-row cleanup cannot keep up with even one key.
+  // This is a generated proposal only, not proof of CPU/D1 quota headroom or an enabled trigger.
+  retentionCron: "2-57/5 * * * *",
 } as const;
 
 export function productionConfig(committed: any, apiDir: string) {
