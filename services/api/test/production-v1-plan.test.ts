@@ -54,7 +54,9 @@ test("only an approved, non-draft version with publication rights unblocks; the 
 
 test("stop deletes the App ID (existing keys included) and rollback re-checks it", () => {
   const { stop, rollback } = productionSteps([]);
-  assert.equal(stop.some((l) => /secret delete REPORT_APP_ATTEST_APP_ID/.test(l)), true);
+  assert.equal(stop.includes("npm run production:v1-stop"), true);
+  const scripts = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).scripts;
+  assert.match(scripts["production:v1-stop"], /scripts\/production-v1-stop\.ts$/);
   assert.equal(rollback.some((l) => /RE-DELETE the App ID/.test(l)), true);
   assert.equal(rollback.some((l) => /migrations-reports-rollback\/0011_/.test(l)), true);
 });

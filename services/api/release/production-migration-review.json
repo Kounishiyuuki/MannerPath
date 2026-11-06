@@ -1,0 +1,4 @@
+{
+  "_comment": "Lane 2's safety review of each production migration (docs/release/V1_PRODUCTION_INTAKE.md §5). production:v1-check refuses the db stage until every unapplied migration is listed here as approved with the SHA-256 of the exact file bytes. Filled in by the reviewer's PR, never by the check.",
+  "reviews": []
+}

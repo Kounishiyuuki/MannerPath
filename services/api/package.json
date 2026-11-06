@@ -38,6 +38,8 @@
     "replay:approximate": "node --experimental-strip-types --no-warnings scripts/approximate-location-replay.ts",
     "coverage:targets": "node --experimental-strip-types --no-warnings scripts/coverage-targets.ts",
     "e2e:config": "node --experimental-strip-types --no-warnings scripts/disposable-env.ts",
+    "production:v1-check": "node --experimental-strip-types --no-warnings scripts/production-v1-check.ts",
+    "production:v1-stop": "node --experimental-strip-types --no-warnings scripts/production-v1-stop.ts",
     "production:v1-plan": "node --experimental-strip-types --no-warnings scripts/production-v1-plan.ts",
     "staging:v1-config": "node --experimental-strip-types --no-warnings scripts/staging-v1-config.ts",
     "free-probe:config": "node --experimental-strip-types --no-warnings scripts/free-tier-probe-config.ts",

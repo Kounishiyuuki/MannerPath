@@ -80,21 +80,24 @@ export function intakeBlockers(terms: ReviewedTerms = CURRENT_REPORT_TERMS): str
 export function productionSteps(blockers: string[]): { launch: string[]; stop: string[]; rollback: string[] } {
   const C = "-c .wrangler/production-v1/worker.jsonc";
   const launch = [
-    "# 0. Read-only state (expect REPORTS_DB 0004-0011 and DB 0031-0033 unapplied, no secrets, no keys):",
+    "# 0. Read-only state (before-db below checks the exact unapplied migrations and that intake is closed):",
     `npx wrangler d1 migrations list REPORTS_DB ${C} --remote`,
     `npx wrangler d1 migrations list DB ${C} --remote`,
     `npx wrangler secret list ${C}`,
     "# 1. Back up: note the D1 Time Travel bookmark of both databases (Free keeps 7 days).",
     `npx wrangler d1 time-travel info mannerpath-production-reports`,
     `npx wrangler d1 time-travel info mannerpath-production`,
-    "# 2. Migrations (REPORTS_DB holds no report yet; DB 0031-0033 are the read path's own, reviewed separately):",
+    "npm run production:v1-check -- --stage before-db   # also requires Lane 2's review of each unapplied migration",
+    "# 2. Migrations, only after before-db PASSes (exactly the expected, Lane 2-approved files on both databases):",
     `npx wrangler d1 migrations apply REPORTS_DB ${C} --remote`,
     `npx wrangler d1 migrations apply DB ${C} --remote`,
+    "npm run production:v1-check -- --stage after-db",
     "# 3. The two peppers, interactively (never on the command line).",
     `npx wrangler secret put REPORT_SUBMITTER_PEPPER ${C}`,
     `npx wrangler secret put RATE_LIMIT_KEY_PEPPER ${C}`,
     "# 4. Deploy. Without the App ID intake is closed: /v1/config available:false, report routes 503 attestationUnavailable.",
     `npx wrangler deploy ${C}`,
+    "npm run production:v1-check -- --stage after-deploy",
   ];
   if (blockers.length > 0) {
     launch.push(`# 5. BLOCKED — no App ID, registration paused: ${blockers.join("; ")}.`);
@@ -103,12 +106,14 @@ export function productionSteps(blockers: string[]): { launch: string[]; stop: s
       "# 5. Open intake (operator approval): the App ID, then REPORT_REGISTRATION=enabled in the generated file only.",
       `npx wrangler secret put REPORT_APP_ATTEST_APP_ID ${C}   # 58A7G4U27M.com.kounishiyuuki.MannerPath (not confidential)`,
       `npx wrangler deploy ${C}`,
+      "npm run production:v1-check -- --stage after-intake",
       "# 6. First 24h: watch 1102, CPU, 429 and duplicates against the stop criteria (runbook §3).",
     );
   }
   const stop = [
-    "# Stop ALL intake, existing keys included, without a deploy (fail-closed: 503 attestationUnavailable, available:false):",
-    `npx wrangler secret delete REPORT_APP_ATTEST_APP_ID ${C}`,
+    "# Stop ALL intake, existing keys included, without a deploy (fail-closed: 503 attestationUnavailable, available:false);",
+    "# it deletes the App ID after wrangler's own confirmation, then runs the `stopped` preflight:",
+    "npm run production:v1-stop",
     "# Stop only new keys: re-run this plan (paused) and deploy.",
     `npx wrangler deploy ${C}`,
   ];
