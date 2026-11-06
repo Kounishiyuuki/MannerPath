@@ -1,4 +1,82 @@
 {
-  "_comment": "Lane 2's safety review of each production migration (docs/release/V1_PRODUCTION_INTAKE.md §5). production:v1-check refuses the db stage until every unapplied migration is listed here as approved with the SHA-256 of the exact file bytes. Filled in by the reviewer's PR, never by the check.",
-  "reviews": []
+  "_comment": "Lane 2 / Codex independent technical safety review of these exact 11 migration files. Decisions, evidence, baseline and recovery conditions: docs/release/PRODUCTION_MIGRATION_REVIEW_2026-11-06.md. This is not authorization to write production, deploy a Worker, enable intake or incur costs; those require a separate operator decision. The preflight must not generate or extend this approval list.",
+  "reviews": [
+    {
+      "database": "DB",
+      "name": "0031_derived_coordinate_evidence_guards.sql",
+      "sha256": "1022dd3c837ed5846a0dc0fd713dd54f72a2100984d1dd8afdedfce77923d452",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "DB",
+      "name": "0032_location_precision_v2.sql",
+      "sha256": "34138a55fa275bc997e743270da05ccda81e85b0d1c3fd4d9a811f29a42ab7f6",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "DB",
+      "name": "0033_spot_evidence_holds.sql",
+      "sha256": "3280dd30cbd4a9720917c2d804f7b74f8a7a9e5c789d86e9e2df729286f1312b",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0004_report_idempotency.sql",
+      "sha256": "89a5b6154ef5302ca50d6d0e6966de8c749d467d85d921778a488ec9b0be95be",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0005_app_attest_key_revocation.sql",
+      "sha256": "a11a5067029fde471730726127d103753eb5987890dc3cd28982e83922190cb2",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0006_bulk_report_rejection.sql",
+      "sha256": "c96452ec62d93358d557c076d8ee9ad05b5aaea5914179c5b83a224d298576c9",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0007_photo_deletion_attempts.sql",
+      "sha256": "cad1b731cf218c4ef60d3fc655918d955ed22589bf8492c562e8437c9d09d6b1",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0008_admin_review_audit.sql",
+      "sha256": "f6367cc82e1cdb8d3cb5c09b5cba884d217708e0fda324483356cb8991105926",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0009_new_spot_photo_gate.sql",
+      "sha256": "ba86ab434d2c6c355ca5e091d4649a11d54ca529c469975ec3c70d5d5a165943",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0010_new_spot_photo_erasure_window.sql",
+      "sha256": "beb811ec6d8812e1f1e79aa5f7fd3ae8f450343027aa34f7f64ef838e579e4c0",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    },
+    {
+      "database": "REPORTS_DB",
+      "name": "0011_new_spot_independent_evidence.sql",
+      "sha256": "350f429b643e2d01c32ddef9dc52460babc504f7baab257cf557a0ec65ec28f9",
+      "verdict": "approved",
+      "reviewedBy": "lane2"
+    }
+  ]
 }
