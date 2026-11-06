@@ -26,7 +26,7 @@ main `2e0eec7`へ#374・#375・#382（旧#381の再送実装）が統合済み�
 | Privacy Policy | リポジトリ`site/privacy/index.html` §5は初回read-only版・報告/端末登録/写真停止の原稿。申請ONの提出文面とはまだ一致しない。公開頁の再取得や改変はしていない。運営者がtext-reports候補の収集/保持/backup説明を承認後、別担当がja/enを更新・公開確認する |
 | Support | `site/support/index.html`の初回版申請不可の原稿も更新が必要。位置/条件の申請、審査待ち、写真添付なし、再install≠サーバー削除を案内する。未提供の履歴復旧/削除ボタンを約束しない |
 | 通常申請規約 | `docs/legal/REPORT_TERMS_CANDIDATE.md`は未承認。対象pin/本文/識別情報・審査/再利用・非遡及同意は方向が一致。§6の90日削除表現はSQL最小化/復元履歴/認証登録等の残存と照合、§8の撤回案/本人確認と未決マーカーを運営者/法務が確定する。report IDが必要でもそれだけで十分とはしない |
-| App Privacy/manifest | 本文・pin・Device IDをCollected/Linked/Not Tracking案で維持。support/email包括案とログ不確実性は別。写真型除外と候補manifestは未承認・未組込。最終archive Privacy Reportとの一致は未確認 |
+| App Privacy/manifest | 本文・pin・Device IDをCollected/Linked/Not Tracking案で維持。support/email包括案とログ不確実性は別。#384でiPhone manifestの申請データ宣言を組込済み。App Privacy回答と写真型除外は未承認。最終archive Privacy Reportとの一致は未確認 |
 | 旧写真資料 | 旧「1〜3枚必須」はv1.1索引とscope上書き注記のある履歴/候補だけに保持。現行のdescription/notes/実行シートに写真stepはない。旧資料をv1.0へ転記しない |
 
 **公開policy/supportに停止文が残ったまま申請ON版を提出しない。** このPRではURL設定を変えず、公開内容の一致を承認済みにしない。
