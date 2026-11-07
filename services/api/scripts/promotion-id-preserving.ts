@@ -39,6 +39,8 @@ import { CHUO_PARK_ADAPTER, CHUO_PARK_FIXTURE_RELEASE, CHUO_PARK_SOURCE_ID } fro
 import { CHUO_PRIVATE_ADAPTER, CHUO_PRIVATE_FIXTURE_RELEASE, CHUO_PRIVATE_SOURCE_ID } from "../src/pipeline/chuo-private-adapter.ts";
 import { SHIBUYA_ADAPTER, SHIBUYA_FIXTURE_RELEASE, SHIBUYA_SOURCE_ID } from "../src/pipeline/shibuya-adapter.ts";
 import { TOSHIMA_ADAPTER, TOSHIMA_FIXTURE_RELEASE, TOSHIMA_SOURCE_ID } from "../src/pipeline/toshima-adapter.ts";
+import { KASSEN_NOMURA_ADAPTER, KASSEN_NOMURA_FIXTURE_RELEASE, KASSEN_NOMURA_SOURCE_ID } from "../src/pipeline/kassen-nomura-adapter.ts";
+import { KANAZAWA_ARTVILLAGE_ADAPTER, KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, KANAZAWA_ARTVILLAGE_SOURCE_ID } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 type Release = Parameters<typeof ingestRelease>[3];
 export interface ReviewedFixture { adapter: SourceAdapter; release: Release; fixture: string }
@@ -54,13 +56,15 @@ export const LIVE_SOURCES: Readonly<Record<string, ReviewedFixture>> = {
   [KYOTO_SOURCE_ID]: { adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE, fixture: `${F}kyoto-public-smoking-places/20260903_shisetsu.csv` },
 };
 
-/** The reviewed Tokyo factReference additions. Listing here is not publication approval. */
+/** The reviewed factReference additions (Tokyo, then Kanazawa). Listing here is not publication approval. */
 export const ADDITIVE_SOURCES: Readonly<Record<string, ReviewedFixture>> = {
   [CHIYODA_SOURCE_ID]: { adapter: CHIYODA_ADAPTER, release: CHIYODA_FIXTURE_RELEASE, fixture: `${F}chiyoda-smoking-places/chiyoda-page-facts.csv` },
   [CHUO_PARK_SOURCE_ID]: { adapter: CHUO_PARK_ADAPTER, release: CHUO_PARK_FIXTURE_RELEASE, fixture: `${F}chuo-park-smoking-places/chuo-park-page-facts.csv` },
   [CHUO_PRIVATE_SOURCE_ID]: { adapter: CHUO_PRIVATE_ADAPTER, release: CHUO_PRIVATE_FIXTURE_RELEASE, fixture: `${F}chuo-private-smoking-places/chuo-private-page-facts.csv` },
   [SHIBUYA_SOURCE_ID]: { adapter: SHIBUYA_ADAPTER, release: SHIBUYA_FIXTURE_RELEASE, fixture: `${F}shibuya-smoking-places/shibuya-page-facts.csv` },
   [TOSHIMA_SOURCE_ID]: { adapter: TOSHIMA_ADAPTER, release: TOSHIMA_FIXTURE_RELEASE, fixture: `${F}toshima-smoking-places/toshima-page-facts.csv` },
+  [KASSEN_NOMURA_SOURCE_ID]: { adapter: KASSEN_NOMURA_ADAPTER, release: KASSEN_NOMURA_FIXTURE_RELEASE, fixture: `${F}kassen-nomura-smoking-places/kassen-nomura-page-facts.csv` },
+  [KANAZAWA_ARTVILLAGE_SOURCE_ID]: { adapter: KANAZAWA_ARTVILLAGE_ADAPTER, release: KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, fixture: `${F}kanazawa-artvillage-smoking-places/kanazawa-artvillage-page-facts.csv` },
 };
 
 /** Bookkeeping that `wrangler d1 export` and SQLite may add; never canonical. */

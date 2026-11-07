@@ -22,7 +22,8 @@ import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW } from "./support/fixture.ts";
 import { SqliteD1, applyMigration, migratedSqlite, migrationFiles } from "./support/sqlite-d1.ts";
 
-const TOKYO = Object.keys(ADDITIVE_SOURCES);
+const KANAZAWA = ["kassen-nomura-smoking-places", "kanazawa-artvillage-smoking-places"];
+const TOKYO = Object.keys(ADDITIVE_SOURCES).filter(s => !KANAZAWA.includes(s));
 const LATER = "2026-10-20T00:00:00Z";
 const dir = mkdtempSync(join(tmpdir(), "mp-id-preserving-"));
 const LIVE = join(dir, "live-green.sqlite");
@@ -123,6 +124,34 @@ test("rebuilds with the 513 live IDs, adds the 125 Tokyo spots, and a second v4 
     assert.ok(t.sources.find(s => s.id === spot.sourceIds[0])?.attributionText, `attribution of ${spot.id}`);
   }
   assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 11);
+});
+
+test("adds only the two Kanazawa sources: 513 live IDs and tile entries unchanged, 2 areaApproximate spots with attribution", async () => {
+  const out = join(dir, "kanazawa-input.sqlite");
+  const live = await entries(LIVE);
+  const report = await buildIdPreservingInput(LIVE, out, KANAZAWA, { now: LATER, expectedAdded: 2 });
+  assert.equal(report.preservedPublishedSpots, 513);
+  assert.equal(report.publishedSpots, 515);
+  assert.deepEqual(report.addedSpots, { "kassen-nomura-smoking-places": 1, "kanazawa-artvillage-smoking-places": 1 });
+  const green = join(dir, "green-kanazawa.sqlite");
+  const pipeline = new DatabaseSync(out, { readOnly: true });
+  try { await promote(pipeline, green); } finally { pipeline.close(); }
+  const liveIds = JSON.stringify([...live.keys()]);
+  assert.deepEqual(all(green, `SELECT ${SPOT_COLUMNS} FROM spots WHERE spot_id IN (SELECT value FROM json_each('${liveIds}')) ORDER BY spot_id`),
+    all(LIVE, `SELECT ${SPOT_COLUMNS} FROM spots ORDER BY spot_id`));
+  const now = await entries(green);
+  for (const [id, entry] of live) assert.deepEqual(now.get(id), entry, `public tile entry of ${id}`);
+  const greenTiles = await tiles(green);
+  const liveTileIds = new Set([...live.values()].map(e => e.tile));
+  const added = greenTiles.flatMap(t => t.spots.map(spot => ({ t, spot }))).filter(({ spot }) => !live.has(spot.id));
+  assert.deepEqual(added.map(({ spot }) => spot.sourceIds[0]).sort(), [...KANAZAWA].sort());
+  for (const { t, spot } of added) {
+    assert.equal(liveTileIds.has(t.tile), false, "Kanazawa tiles are new; no live tile is rewritten");
+    assert.equal(spot.verification.locationPrecision, "areaApproximate");
+    assert.ok(spot.verification.locationArea);
+    assert.ok(t.sources.find(s => s.id === spot.sourceIds[0])?.attributionText, `attribution of ${spot.id}`);
+  }
+  assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 8, "6 live + 2 requested; no other reviewed source rides along");
 });
 
 test("refuses unknown, duplicated or already-live sources and an existing output, leaving nothing behind", async () => {
