@@ -219,18 +219,19 @@ final class MannerPathWatch_Watch_AppUITests: XCTestCase {
     @MainActor
     private func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication,
                                     direction: ScrollDirection = .up, fineScroll: Bool = false) {
-        for _ in 0..<20 where !element.isHittable {
+        // A lazy List row that is not materialized (or was scrolled away) does not exist; querying
+        // isHittable on it throws "Failed to get matching snapshot" instead of returning false.
+        for _ in 0..<20 where !(element.exists && element.isHittable) {
             let start = app.coordinate(withNormalizedOffset:
                 CGVector(dx: 0.5, dy: direction == .up ? 0.78 : 0.42))
             let end = app.coordinate(withNormalizedOffset:
                 CGVector(dx: 0.5, dy: direction == .up ? (fineScroll ? 0.70 : 0.55) : (fineScroll ? 0.50 : 0.65)))
-            if fineScroll {
-                start.press(forDuration: 0.01, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
-            } else {
-                start.press(forDuration: 0.01, thenDragTo: end)
-            }
+            // Holding at the end stops List momentum; otherwise the target can be passed (and released by the
+            // lazy List) between drags, or vanish between the exists and isHittable queries.
+            start.press(forDuration: 0.01, thenDragTo: end, withVelocity: fineScroll ? .slow : .default,
+                        thenHoldForDuration: 0.3)
         }
-        if !element.isHittable {
+        if !(element.exists && element.isHittable) {
             attach(app, named: "unreachable-\(element.identifier)")
             XCTFail("Unreachable element: \(element.identifier). Hierarchy: \(app.debugDescription)")
         }
