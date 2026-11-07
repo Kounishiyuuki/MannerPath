@@ -20,6 +20,9 @@ import { CHUO_PRIVATE_PAGE_URL } from "../src/pipeline/chuo-private-adapter.ts";
 import { CHIYODA_PAGE_URL } from "../src/pipeline/chiyoda-adapter.ts";
 import { SHIBUYA_PAGE_URL } from "../src/pipeline/shibuya-adapter.ts";
 import { TOSHIMA_PAGE_URL } from "../src/pipeline/toshima-adapter.ts";
+import { KASSEN_NOMURA_PAGE_URL } from "../src/pipeline/kassen-nomura-adapter.ts";
+import { KANAZAWA_ARTVILLAGE_PAGE_URL } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
+
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -32,6 +35,9 @@ const resources: Record<string, { filename: string; url: string }> = {
 // Reviewed in the repository but not deployed to production (ADR-0018 D-C page re-check). Kept out of the production
 // inventory above, which only a deployment expands; monitored only with --repository-reviewed.
 const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
+  "kassen-nomura-smoking-places": { filename: "kassen-nomura-page-facts.csv", url: KASSEN_NOMURA_PAGE_URL },
+  "kanazawa-artvillage-smoking-places": { filename: "kanazawa-artvillage-page-facts.csv", url: KANAZAWA_ARTVILLAGE_PAGE_URL },
+
   "hiroshima-airport-smoking-places": { filename: "hiroshima-airport-page-facts.csv", url: "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html" },
   "kochi-airport-smoking-places": { filename: "kochi-airport-page-facts.csv", url: "https://www.kochiap.co.jp/faq/" },
   "matsuyama-airport-smoking-places": { filename: "matsuyama-airport-page-facts.csv", url: "https://www.matsuyama-airport.co.jp/service/smoking.html" },
@@ -57,6 +63,9 @@ export const HEALTH_NOT_CONFIGURED: Record<string, string> = {
 };
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
 const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
+  "kassen-nomura-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"※店内は禁煙となります","end":"カウンター席 6席"},{"start":"〒921-8116","end":"駐車場 6台分"}],"requiredMarkers":["店内は禁煙","店外に喫煙スペース","石川県金沢市泉野出町3-3-32"]},"reviewedFingerprint":"d3144059a13498d5ddac8c51ac4d4c07870963b22242a725d1faf3cf747583e2"},
+  "kanazawa-artvillage-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"大和町広場 設備及び諸注意事項","end":"大和町広場 平面図"},{"start":"〒920-0046","end":"Copyright ©"}],"requiredMarkers":["園路","喫煙場所","石川県金沢市大和町1-1"]},"reviewedFingerprint":"954412b24dc56490db1e41a9c36c69b11aff108f25710bdae2962039c51f7347"},
+
   "hiroshima-airport-smoking-places": {"scope": {"kind": "htmlText", "ranges": [{"start": "2025年2月28日（金）", "end": "[link:/news/] 一覧に戻る"}], "requiredMarkers": ["1階 国際線到着ロビー外", "2階 国際線チェックインカウンター前", "3階 展望デッキ前", "閉鎖"]}, "reviewedFingerprint": "34b51a11f9f0863c15c74fbbb69c390f84528d8fc3ce7662e69ef8dae225fa03"},
   "kochi-airport-smoking-places": {"scope": {"kind": "htmlText", "ranges": [{"start": "喫煙場所はありますか？", "end": "空港近くのホテルを教えてください。"}], "requiredMarkers": ["2F搭乗待合室内", "池の横"]}, "reviewedFingerprint": "b9dc5a0dabbba3a7e71d266d57cad36ffc0fe5814c237e826a9352fb59457ade"},
   "matsuyama-airport-smoking-places": {"scope": {"kind": "htmlText", "ranges": [{"start": "その他の施設 喫煙所 2F 屋外", "end": "フロアガイド [img:喫煙所の1階のフロアガイド]"}], "requiredMarkers": ["国内線2F出発ロビー", "国内線2F搭乗待合室内", "国際線2F搭乗待合室内", "ターミナルビル東側", "国際線到着ロビー出入口側"]}, "reviewedFingerprint": "a142bf657a403a08a4d496bcec7b259168f1ecfb5fd0b26c3d4356e5432d17ec"},

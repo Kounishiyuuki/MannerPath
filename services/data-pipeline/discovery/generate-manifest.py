@@ -140,6 +140,11 @@ PAGE_FACT_SOURCES|={'shibuya-smoking-places'}
 # 豊島区's 区指定喫煙所, anchored at ABR points of its own addresses (ADR-0018 item 5).
 reviewed['ward-toshima']='toshima-smoking-places'
 PAGE_FACT_SOURCES|={'toshima-smoking-places'}
+# ADR-0018: two first-party Kanazawa operators, independent from the city's publications.
+for slug,name,host in [('kassen-nomura','割鮮のむら','www.kassen-nomura.com'),('kanazawa-artvillage','金沢市民芸術村','www.artvillage.gr.jp')]:
+ add('operator-'+slug,name,'石川県','operator','https://'+host+'/', ['facilityOperator'])
+ reviewed['operator-'+slug]=slug+'-smoking-places'
+ PAGE_FACT_SOURCES.add(slug+'-smoking-places')
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:

@@ -8399,6 +8399,76 @@
       "reviewedSourceIds": [
         "hiroshima-airport-smoking-places"
       ]
+    },
+    {
+      "id": "operator-kassen-nomura",
+      "name": "割鮮のむら",
+      "prefecture": "石川県",
+      "publisher": "割鮮のむら",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://www.kassen-nomura.com/about/"
+      ],
+      "homepageUrl": "https://www.kassen-nomura.com/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/kassen-nomura-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "kassen-nomura-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.kassen-nomura.com/about/"
+          ],
+          "sha256": "481566bb5f1d9973c3907edfacfe1c08f8353c28d2d3146d6215a3ce732d8b5c",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-07T13:20:36Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "kassen-nomura-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-kanazawa-artvillage",
+      "name": "金沢市民芸術村",
+      "prefecture": "石川県",
+      "publisher": "金沢市民芸術村",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://www.artvillage.gr.jp/facilities/square"
+      ],
+      "homepageUrl": "https://www.artvillage.gr.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/kanazawa-artvillage-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "kanazawa-artvillage-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.artvillage.gr.jp/facilities/square"
+          ],
+          "sha256": "20636c742d1d0e272af054d28c13f58ea85415f85ff9b91ee521337299ba757f",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-07T13:20:37Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "kanazawa-artvillage-smoking-places"
+      ]
     }
   ]
 }

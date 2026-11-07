@@ -183,21 +183,22 @@ test("v4 parser respects escaped quotes, Unicode, semicolons and stream boundari
   await assert.rejects(async () => { for await (const _ of sqlStatements(path)) { /* consume stream */ } }, /capacity policy/);
 });
 
-test("v4 bootstraps all twenty reviewed sources including the Sendai, eight airport, 14 Chuo park, 47 Chuo private, 30 Chiyoda, 30 Shibuya and 4 Toshima address anchors and deterministically re-exports", async t => {
+test("v4 bootstraps all twenty-two reviewed sources including Sendai, eight airports, municipal address anchors and two Kanazawa facilities and deterministically re-exports", async t => {
   const root = await mkdtemp(join(tmpdir(), "promotion-v4-reviewed-sources-"));
   const source = new SqliteD1(), target = migratedSqlite();
   t.after(async () => { source.raw.close(); target.close(); await rm(root, { recursive: true, force: true }); });
-  await importAllReviewedSources(source, NOW);
-  await publishTiles(source, { now: NOW });
+  const corpusNow = "2026-11-08T00:00:00Z"; // After every reviewed fixture fetch, including Kanazawa.
+  await importAllReviewedSources(source, corpusNow);
+  await publishTiles(source, { now: corpusNow });
   const directory = join(root, "bundle");
   const manifest = await exportPromotionV4(source.raw, directory, { chunkBytes: 90_000 });
-  assert.equal(manifest.sources.length, 20);
-  assert.equal(manifest.rows.tile_snapshot_spots, 647);
-  assert.equal(manifest.rows.tile_snapshots, 103);
-  assert.equal(manifest.rows.area_location_anchors, 134);
-  assert.equal(manifest.rows.area_point_mappings, 14);
+  assert.equal(manifest.sources.length, 22);
+  assert.equal(manifest.rows.tile_snapshot_spots, 649);
+  assert.equal(manifest.rows.tile_snapshots, 105);
+  assert.equal(manifest.rows.area_location_anchors, 136);
+  assert.equal(manifest.rows.area_point_mappings, 16);
   assert.equal((await applyPromotionV4(target, directory, manifest.wholeBundleSha256)).status, "completed");
-  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 647);
+  assert.equal((target.prepare("SELECT count(*) n FROM tile_snapshot_spots").get() as { n: number }).n, 649);
   // Sendai keeps its ADR-0017 v1 anchor (no scope/basis); all ADR-0018 facility anchors keep both through the bootstrap.
   assert.deepEqual(target.prepare("SELECT anchor_id, area_scope, anchor_basis FROM area_location_anchors ORDER BY anchor_id").all()
     .map(r => ({ ...(r as object) })), [
@@ -248,6 +249,8 @@ test("v4 bootstraps all twenty reviewed sources including the Sendai, eight airp
     // 47 Chuo private places: one official-address geocode anchor per reviewed fact row (p01…p58, zero-padded so sorted).
     ...CHUO_PRIVATE_REVIEWED_ROWS.map(r => ({ anchor_id: `aa_chuopriv${r[0]}`, area_scope: "facility", anchor_basis: "officialAddressGeocode" })),
     { anchor_id: "aa_hiroshimaairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
+    { anchor_id: "aa_kanazawaartvillage", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_kassennomura", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_kochiairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_komatsuairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_matsuyamaairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },

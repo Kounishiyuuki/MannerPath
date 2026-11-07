@@ -643,6 +643,68 @@
           "reviewDueAt": "2027-01-19"
         }
       ]
+    },
+    {
+      "sourceId": "kassen-nomura-smoking-places",
+      "rightsReviewedAt": "2026-11-07",
+      "rightsEvidence": "First-party official page and homepage navigation/footer re-read: copyright reservation only; no separate website terms link or explicit information-use, acquisition or database prohibition found in reviewed scope. ADR-0018 D-R normalized facts only; no open licence claimed.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-07",
+      "reviewDueAt": "2027-02-07",
+      "reviewerNote": "Recheck current smoking-place statement, address and footer/site policy links. Undated page check, not a site visit. Publisher objection requires withdrawal. Host/gate hours are not smoking hours.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.kassen-nomura.com/about/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "Copyright &copy; Kassen Nomura",
+                "end": "[img:PAGE TOP]"
+              }
+            ],
+            "requiredMarkers": [
+              "Kassen Nomura"
+            ]
+          },
+          "reviewedFingerprint": "de3b841ba250b46c0e0d7f78397a914cc65f71f0dcc7acc17b0d6fa63a7d5f41",
+          "reviewedAt": "2026-11-07",
+          "reviewDueAt": "2027-02-07"
+        }
+      ]
+    },
+    {
+      "sourceId": "kanazawa-artvillage-smoking-places",
+      "rightsReviewedAt": "2026-11-07",
+      "rightsEvidence": "First-party official page and homepage navigation/footer re-read: copyright reservation only; no separate website terms link or explicit information-use, acquisition or database prohibition found in reviewed scope. ADR-0018 D-R normalized facts only; no open licence claimed.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-07",
+      "reviewDueAt": "2027-02-07",
+      "reviewerNote": "Recheck current smoking-place statement, address and footer/site policy links. Square-page fact health includes its official-address footer; separately recheck access-page consistency. Undated page check, not a site visit. Publisher objection requires withdrawal. Host/gate hours are not smoking hours.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.artvillage.gr.jp/facilities/square",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "Copyright ©",
+                "end": "All Rights Reserved."
+              }
+            ],
+            "requiredMarkers": [
+              "KANAZAWA CITIZEN'S ART CENTER."
+            ]
+          },
+          "reviewedFingerprint": "006afd731e64a4c33861028c349dc239c591092fcce6322bfc32137e24bfa1f3",
+          "reviewedAt": "2026-11-07",
+          "reviewDueAt": "2027-02-07"
+        }
+      ]
     }
   ]
 }

@@ -1532,6 +1532,32 @@
       "sha256": "feb1e8201a0839a3f24d61769da8fc5968aeca3c62062ec6a761fac901ddc31c",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-10-18T20:56:32Z"
+    },
+    {
+      "targetId": "operator-kassen-nomura",
+      "reference": "services/data-pipeline/fixtures/kassen-nomura-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "kassen-nomura-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.kassen-nomura.com/about/"
+      ],
+      "sha256": "481566bb5f1d9973c3907edfacfe1c08f8353c28d2d3146d6215a3ce732d8b5c",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-07T13:20:36Z"
+    },
+    {
+      "targetId": "operator-kanazawa-artvillage",
+      "reference": "services/data-pipeline/fixtures/kanazawa-artvillage-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "kanazawa-artvillage-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.artvillage.gr.jp/facilities/square"
+      ],
+      "sha256": "20636c742d1d0e272af054d28c13f58ea85415f85ff9b91ee521337299ba757f",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-07T13:20:37Z"
     }
   ],
   "researchReferences": [

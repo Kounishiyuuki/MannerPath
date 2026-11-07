@@ -1,0 +1,535 @@
+{
+  "version": 1,
+  "checkedOn": "2026-11-07",
+  "main": "db0c5e951a9e56e2716b4fee6e72661a7ae1e9d6",
+  "scope": "今回の一次情報再確認リスト。全市網羅調査・現地確認・本番登録ではない。",
+  "counts": {
+    "directOperatorConfirmedFacilities": 11,
+    "kanazawaCityDirectOperatorConfirmedFacilities": 4,
+    "nonoichiDirectOperatorConfirmedFacilities": 7,
+    "reviewedAdapterCandidates": 2,
+    "rightsAndPositionReviewPending": 9,
+    "hostedInformationRightsPending": 3,
+    "currentExistencePending": 2,
+    "excluded": 2,
+    "productionAdded": 0
+  },
+  "facilities": [
+    {
+      "id": "nomura",
+      "name": "割鮮のむら",
+      "municipality": "金沢市",
+      "officialAddress": "石川県金沢市泉野出町3-3-32",
+      "primaryUrls": [
+        "https://www.kassen-nomura.com/about/"
+      ],
+      "equipmentEvidence": "客席禁煙、店外に喫煙スペース。店外の囲い・屋根は未確認。",
+      "classification": "reviewedAdapterCandidate",
+      "blockers": [],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "position": "ABR residential_detail accepted; facilityApproximate only",
+      "rights": "ADR-0018 D-R scoped factReference review; expression copyright is not a data licence",
+      "environment": null,
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "sourceSpecificFactReferenceReview",
+        "basis": "ADR-0018 D-R",
+        "openLicenceGranted": false,
+        "reviewRecord": "services/data-pipeline/fixtures/kassen-nomura-smoking-places/PROVENANCE.md"
+      }
+    },
+    {
+      "id": "artvillage",
+      "name": "金沢市民芸術村 大和町広場",
+      "municipality": "金沢市",
+      "officialAddress": "金沢市大和町1-1",
+      "primaryUrls": [
+        "https://www.artvillage.gr.jp/facilities/square",
+        "https://www.artvillage.gr.jp/access/"
+      ],
+      "equipmentEvidence": "園路の指定喫煙場所。施設・広場全体が喫煙可ではない。",
+      "classification": "reviewedAdapterCandidate",
+      "blockers": [],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "position": "ABR residential_detail accepted; facilityApproximate only",
+      "rights": "ADR-0018 D-R scoped factReference review; event dataset CC BY does not license this page",
+      "environment": "outdoor",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "sourceSpecificFactReferenceReview",
+        "basis": "ADR-0018 D-R",
+        "openLicenceGranted": false,
+        "reviewRecord": "services/data-pipeline/fixtures/kanazawa-artvillage-smoking-places/PROVENANCE.md"
+      }
+    },
+    {
+      "id": "international-hotel",
+      "name": "金沢国際ホテル",
+      "municipality": "金沢市",
+      "officialAddress": "金沢市大額町ル8",
+      "primaryUrls": [
+        "https://www.kanazawakokusaihotel.co.jp/question/",
+        "https://www.kanazawakokusaihotel.co.jp/wedding/guest/"
+      ],
+      "equipmentEvidence": "全客室禁煙とは別に館内喫煙コーナー・宴会フロアの喫煙場所。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "ABR parcel precisionTooLow",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "environment": "indoor",
+      "notes": "古い観光紹介の喫煙客室情報より現行運営者FAQを優先。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "kkr",
+      "name": "KKRホテル金沢",
+      "municipality": "金沢市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://kanazawa.kkr.or.jp/facilities/"
+      ],
+      "equipmentEvidence": "1階ロビー入口側と3階エレベーター側の喫煙場所。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "sourceSpecificRightsReviewRequired",
+        "eligibleFacilityAnchorMissing"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "2室を独立した正確なピンとして数えない。宿泊・レストラン利用の案内から非利用客の入室可を推定しない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "homerun",
+      "name": "ホームランGOGO野々市店",
+      "municipality": "野々市市",
+      "officialAddress": "野々市市横宮町3-6",
+      "primaryUrls": [
+        "https://homerun.co.jp/shop_nonoichi.html"
+      ],
+      "equipmentEvidence": "店舗固有の喫煙ブース。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "新しいAmeba工事記事は別ホストの権利審査が必要。電子という表現を加熱式に変換しない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "priorCheckedOn": "2026-10-26",
+        "termsUrls": [
+          "https://homerun.co.jp/privacy.html"
+        ],
+        "priorReading": "店舗footerと個人情報方針を再読。確認範囲に情報利用/DB化の明示禁止を確認せず。表現の権利留保がある。事実参照の技術審査候補であり承認・ライセンスではない。",
+        "note": "Prior rights investigation retained, not silently upgraded to a current approval. Current equipment recheck does not approve reuse."
+      }
+    },
+    {
+      "id": "shiawase",
+      "name": "しあわせの湯",
+      "municipality": "野々市市",
+      "officialAddress": "野々市市横宮町6-3",
+      "primaryUrls": [
+        "https://shiawasenoyu.co.jp/info.html"
+      ],
+      "equipmentEvidence": "2階に喫煙室。浴場・脱衣場は禁煙。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "priorCheckedOn": "2026-10-26",
+        "termsUrls": [
+          "https://shiawasenoyu.co.jp/",
+          "https://shiawasenoyu.co.jp/info.html",
+          "https://shiawasenoyu.co.jp/eigyou.html"
+        ],
+        "priorReading": "確認した公式ページでは表現の権利留保のみ。情報利用/DB化の明示禁止を確認せず。適用範囲をsource別に記録する段階であり承認ではない。",
+        "note": "Prior rights investigation retained, not silently upgraded to a current approval. Current equipment recheck does not approve reuse."
+      }
+    },
+    {
+      "id": "hikousen",
+      "name": "飛行船 工大前店",
+      "municipality": "野々市市",
+      "officialAddress": "野々市市扇が丘4-8",
+      "primaryUrls": [
+        "https://hikaricorp.jp/karaoke/koudaimae.html",
+        "https://hikaricorp.jp/karaoke/koudai_map.html"
+      ],
+      "equipmentEvidence": "客室禁煙とは別に喫煙ブース。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "priorCheckedOn": "2026-10-26",
+        "termsUrls": [
+          "https://hikaricorp.jp/policy/",
+          "https://hikaricorp.jp/karaoke/koudaimae.html"
+        ],
+        "priorReading": "新たに運営者ポリシーを特定・再読。個人情報処理を対象とし、確認範囲に正規化事実/DB利用の明示禁止を確認せず。Copyrightは表現の留保。source審査は未承認。",
+        "note": "Prior rights investigation retained, not silently upgraded to a current approval. Current equipment recheck does not approve reuse."
+      }
+    },
+    {
+      "id": "kurashiki",
+      "name": "倉式珈琲店 御経塚店",
+      "municipality": "野々市市",
+      "officialAddress": "野々市市御経塚2-5",
+      "primaryUrls": [
+        "https://www.saint-marc-hd.com/kurashiki/shop/19/"
+      ],
+      "equipmentEvidence": "店舗固有サービスの喫煙ブース、客席禁煙。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "priorCheckedOn": "2026-10-26",
+        "termsUrls": [
+          "https://www.saint-marc-hd.com/hd/privacy/"
+        ],
+        "priorReading": "リンク先の個人情報/SNS/Cookie方針を再読。SNSでの公式サイト模写禁止は守り、確認範囲で正規化事実の情報利用/DB化禁止を確認せず。承認ではない。",
+        "note": "Prior rights investigation retained, not silently upgraded to a current approval. Current equipment recheck does not approve reuse."
+      }
+    },
+    {
+      "id": "hoshino",
+      "name": "星乃珈琲店 金沢押野店",
+      "municipality": "野々市市",
+      "officialAddress": "野々市市押野6-6",
+      "primaryUrls": [
+        "https://www.hoshinocoffee.com/shop.html"
+      ],
+      "equipmentEvidence": "対象店舗行の禁煙・喫煙ブース。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "店名の金沢から金沢市に分類しない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "priorCheckedOn": "2026-10-26",
+        "termsUrls": [
+          "https://www.hoshinocoffee.com/shop.html",
+          "https://www.n-rs.co.jp/privacypolicy/"
+        ],
+        "priorReading": "ブランドfooterの著作権留保と運営会社の個人情報方針を確認。後者はブランドの一般サイト利用規約ではなく、直接適用する利用許諾と扱わない。適用範囲を未確定としてsource審査を継続。",
+        "note": "Prior rights investigation retained, not silently upgraded to a current approval. Current equipment recheck does not approve reuse."
+      }
+    },
+    {
+      "id": "manten",
+      "name": "満天の湯・道の宿 白山インター店",
+      "municipality": "野々市市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://www.manten-hotel.com/michinoyado-1/room/",
+        "https://www.manten-hotel.com/michinoyado-1/faq/"
+      ],
+      "equipmentEvidence": "1階入浴入口前と2〜4階に喫煙室。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "FAQは客室階の宿泊者以外の入場を禁止。1階の一般入室条件は未確定。1階記載有無のページ差を保持。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "priorCheckedOn": "2026-10-26",
+        "termsUrls": [
+          "https://manten-hotel.co.jp/privacy/",
+          "https://www.manten-hotel.com/img/pdf_agreement.pdf"
+        ],
+        "priorReading": "リンク先宿泊約款PDF全4頁を再読。日本語2024.01/英語2014.09。指定喫煙場所限定などの館内利用条件であり一般客への設備公開許可ではない。確認範囲で情報利用/DB化禁止を確認せず、source権利承認は未完了。",
+        "note": "Prior rights investigation retained, not silently upgraded to a current approval. Current equipment recheck does not approve reuse."
+      }
+    },
+    {
+      "id": "torikizoku",
+      "name": "鳥貴族 野々市店",
+      "municipality": "野々市市",
+      "officialAddress": "野々市市三納1-144",
+      "primaryUrls": [
+        "https://map.torikizoku.co.jp/detail/808/",
+        "https://torikizoku.co.jp/guide/"
+      ],
+      "equipmentEvidence": "選択済み設備は屋内喫煙ブース。屋外喫煙表示は無効表示。",
+      "classification": "rightsAndPositionReviewPending",
+      "blockers": [
+        "informationUseTermsScopeUnresolved",
+        "eligibleFacilityAnchorMissing"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "environment": "indoor",
+      "notes": "非選択の灰色ラベルを設備有りとしない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "dondon",
+      "name": "焼きとり居酒屋どんどん",
+      "municipality": "野々市市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://dondon.foodre.jp/"
+      ],
+      "equipmentEvidence": "客席禁煙、別の喫煙場所",
+      "classification": "hostedInformationRightsPending",
+      "blockers": [
+        "hostingTermsAndEditorialAuthorityUnresolved",
+        "eligibleFacilityAnchorMissing"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "施設が運営するように見えるホスト型ページ。独立した施設ドメイン11施設の件数には含めない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "bullet",
+      "name": "バレット野々市",
+      "municipality": "野々市市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://bullet-darts.owst.jp/"
+      ],
+      "equipmentEvidence": "客席禁煙、喫煙専用室",
+      "classification": "hostedInformationRightsPending",
+      "blockers": [
+        "hostingTermsAndEditorialAuthorityUnresolved",
+        "eligibleFacilityAnchorMissing"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "施設が運営するように見えるホスト型ページ。独立した施設ドメイン11施設の件数には含めない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "ichigo",
+      "name": "一五茶屋",
+      "municipality": "野々市市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://ichigojyaya.owst.jp/"
+      ],
+      "equipmentEvidence": "加熱式対応の限定個室・半個室、テラス喫煙場所、喫煙専用室の区分",
+      "classification": "hostedInformationRightsPending",
+      "blockers": [
+        "hostingTermsAndEditorialAuthorityUnresolved",
+        "eligibleFacilityAnchorMissing"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "施設が運営するように見えるホスト型ページ。独立した施設ドメイン11施設の件数には含めない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "kenroku-parking",
+      "name": "県営兼六駐車場",
+      "municipality": "金沢市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://www.pref.ishikawa.lg.jp/toshi/documents/kennrokutyuusyajyoupannfu.pdf"
+      ],
+      "equipmentEvidence": "竣工資料に1階北側喫煙室6.7㎡。",
+      "classification": "currentExistencePending",
+      "blockers": [
+        "currentOperationUnconfirmed",
+        "eligibleFacilityAnchorMissing",
+        "sourceSpecificRightsReviewRequired"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "過去の完成図面だけで現在利用可にしない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "gokuraku",
+      "name": "極楽湯 金沢野々市店",
+      "municipality": "野々市市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://www.gokurakuyu.ne.jp/tempo/nonoichi/",
+        "https://www.gokurakuyu.ne.jp/tempo/faq.html"
+      ],
+      "equipmentEvidence": "店舗存在とチェーンFAQのみ。店舗固有設備の確認に至らず。",
+      "classification": "currentExistencePending",
+      "blockers": [
+        "storeSpecificSmokingEvidenceMissing"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "atelier",
+      "name": "アトリエ泉野",
+      "municipality": "金沢市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://atelier-izumino.com/"
+      ],
+      "equipmentEvidence": "駐車場を含め禁煙。",
+      "classification": "excluded",
+      "blockers": [
+        "smokingForbidden"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    },
+    {
+      "id": "maxcafe",
+      "name": "MAXCAFE金沢店",
+      "municipality": "金沢市",
+      "officialAddress": null,
+      "primaryUrls": [
+        "https://maxcafe.jp/shop/ishikawa/kanazawa/"
+      ],
+      "equipmentEvidence": "過去の喫煙室記載と2021-11-01から休業案内。",
+      "classification": "excluded",
+      "blockers": [
+        "currentOperationUnconfirmed"
+      ],
+      "paper": null,
+      "heated": null,
+      "smokingHours": null,
+      "generalNonCustomerAccess": null,
+      "checkedOn": "2026-11-07",
+      "notes": "古い喫煙情報を現行候補に数えない。",
+      "productionApproval": false,
+      "rightsReview": {
+        "status": "reviewPending",
+        "openLicenceGranted": false,
+        "note": "Equipment evidence or historical official publication is not itself permission to reuse source expression or a data licence. No facts or coordinates from this held source enter a fixture."
+      }
+    }
+  ]
+}

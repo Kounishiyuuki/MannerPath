@@ -1,0 +1,35 @@
+{
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "candidates": 3,
+  "anchors": 2,
+  "pendingReasons": {
+    "noCoordinate": 1,
+    "precisionTooLow": 1
+  },
+  "results": [
+    {
+      "id": "nomura",
+      "status": "anchor",
+      "latitude": 36.539788283,
+      "longitude": 136.649160875,
+      "coordinateLevel": "residential_detail",
+      "reference": "abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市泉野出町3-3-32 出力=石川県金沢市泉野出町3丁目3-32"
+    },
+    {
+      "id": "artvillage",
+      "status": "anchor",
+      "latitude": 36.569565872,
+      "longitude": 136.641441103,
+      "coordinateLevel": "residential_detail",
+      "reference": "abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市大和町1-1 出力=石川県金沢市大和町1-1"
+    },
+    {
+      "id": "international-hotel",
+      "status": "reviewPending",
+      "reasons": [
+        "noCoordinate",
+        "precisionTooLow"
+      ]
+    }
+  ]
+}

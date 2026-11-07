@@ -117,8 +117,9 @@ test("community:activate applies only a repository-approved decision, for exactl
 
 // =============================================================================================================
 // 2. Simulated activation, end to end (TEST ONLY).
-const RECEIVED = new Date("2026-11-02T03:00:00Z");
-const APPLY = new Date("2026-11-05T03:00:00Z");
+// After the latest reviewed fixture fetch (2026-11-07); future-date quality checks stay enabled.
+const RECEIVED = new Date("2026-11-08T03:00:00Z");
+const APPLY = new Date("2026-11-11T03:00:00Z");
 const INSTALL = "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f";
 const NOTE = "起動シミュレーション用メモ ACT-5521";
 const OBSERVED = "2026-10-29";

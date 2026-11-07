@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+nomura,割鮮のむら 店外喫煙スペース,割鮮のむら,facility,店外（店内禁煙）,石川県金沢市泉野出町3-3-32,restaurantOrCafe,https://www.kassen-nomura.com/about/,2026-11-07,36.539788283,136.649160875,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市泉野出町3-3-32 出力=石川県金沢市泉野出町3丁目3-32

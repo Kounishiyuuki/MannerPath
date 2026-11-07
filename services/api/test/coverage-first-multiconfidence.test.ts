@@ -146,7 +146,7 @@ test("official spots remain official: officialListing, evidence-backed precision
   // ADR-0018 page-fact sources (operator and municipal) have their own facility-approximation regression tests.
   const pageFactIds = new Set(SOURCE_ADAPTERS.filter(a => a.registry.rightsBasis?.kind === "factReference").map(a => a.registry.sourceId));
   const spots = all.filter((s) => !s.sourceIds.some(id => pageFactIds.has(id)));
-  assert.equal(all.length - spots.length, 133);
+  assert.equal(all.length - spots.length, 135);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
@@ -510,7 +510,7 @@ test("an older client that knows only the pre-ADR-0012 fields still reads every 
 // 25
 test("quality counts tiers separately and never fails because a lower tier exists", async () => {
   const db = await world();
-  const corpusNow = "2026-10-14T12:00:00Z"; // After every reviewed fixture date; future-date checks remain unchanged.
+  const corpusNow = "2026-11-08T12:00:00Z"; // After every reviewed fixture date; future-date checks remain unchanged.
   const baseline = await analyzeCorpus(db, { now: corpusNow });
   const official = baseline.nationwide.coverage.official;
   assert.equal(official, 639);
@@ -526,8 +526,8 @@ test("quality counts tiers separately and never fails because a lower tier exist
   simulateRightsGranted(db);
   await publishTiles(db, { now: corpusNow });
   const granted = await analyzeCorpus(db, { now: corpusNow });
-  // Eight ADR-0018 airport spots stay on the operator coverage line.
-  assert.deepEqual(granted.nationwide.coverage, { official, operator: 8, communityVerified: 1, communityReported: 1, allVisible: official + 10 });
+  // Eight ADR-0018 airport spots and two Kanazawa facility spots stay on the operator coverage line.
+  assert.deepEqual(granted.nationwide.coverage, { official, operator: 10, communityVerified: 1, communityReported: 1, allVisible: official + 12 });
   assert.equal(granted.nationwide.confidence.locationPrecision.communityPinned, 2);
   assert.equal(granted.nationwide.confidence.existence.official, official);
   // The simulated approval edits the community source row by hand, so the registry-drift checks rightly flag that

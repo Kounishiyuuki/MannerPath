@@ -1,0 +1,170 @@
+[
+  {
+    "url": "https://atelier-izumino.com/",
+    "status": 200,
+    "sha256": "c1ec269ac00f9c70def83e5b570fa01f0f88380b2aebc093863eebb5c6a38c52",
+    "bytes": 63798,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://bullet-darts.owst.jp/",
+    "status": 200,
+    "sha256": "a4fbb0bfdaebcccfcb1d0434bea611a90e0b8eda18735cdeeeabda78a33302e9",
+    "bytes": 109445,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://dondon.foodre.jp/",
+    "status": 200,
+    "sha256": "53717ff13de66c2563342ef649b9c8a61b7a0f82e39d9b8d3ddaf104a295d318",
+    "bytes": 228874,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://hikaricorp.jp/karaoke/koudai_map.html",
+    "status": 200,
+    "sha256": "d46ec26a3ce8afac53d480c7497eb8c5a0a248412509f77c70fb848faeb6f1a8",
+    "bytes": 5464,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://hikaricorp.jp/karaoke/koudaimae.html",
+    "status": 200,
+    "sha256": "94c61039c38b41e379a7c76c6e8454bffcf26837537c86407fcbb12825f206d0",
+    "bytes": 24794,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://homerun.co.jp/shop_nonoichi.html",
+    "status": 200,
+    "sha256": "040527f397349c1ff77ab38982729e172cd4964754d179530e9f3c62694f0c99",
+    "bytes": 7955,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://ichigojyaya.owst.jp/",
+    "status": 200,
+    "sha256": "369a5d818a99ad82d64a9a3d4954a7f3b7bc3e4f068d526aef7737cc903b824d",
+    "bytes": 283274,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://kanazawa.kkr.or.jp/facilities/",
+    "status": 200,
+    "sha256": "7717c9ba2b2e4613f131347f0c9f0be67f94ff6204ad743916e15454f8cdeec8",
+    "bytes": 126065,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://map.torikizoku.co.jp/detail/808/",
+    "status": 200,
+    "sha256": "90e55a1b1332d079d2c076fea9bd2b78409b8a4ffe74e2f02f934f7ab936dc1d",
+    "bytes": 84706,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://maxcafe.jp/shop/ishikawa/kanazawa/",
+    "status": 200,
+    "sha256": "fe95182475bd74e1dbf32c8f2bb99230178af6b03b842d87d3765c5fe66022bc",
+    "bytes": 16619,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://shiawasenoyu.co.jp/info.html",
+    "status": 200,
+    "sha256": "a153ca3b414435195348cd938b6d4622a2a2a32bf544011ba4b2b6b39f3403f7",
+    "bytes": 9061,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://torikizoku.co.jp/guide/",
+    "status": 200,
+    "sha256": "305377680e5189b021d4256f1918028af0f239f82fd7c913eb0a5a9ec7b9ba7c",
+    "bytes": 44171,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.artvillage.gr.jp/access/",
+    "status": 200,
+    "sha256": "756e3377212477baef10ac761d1da585829959c1dac0ef1b91253b49319115a4",
+    "bytes": 12921,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.artvillage.gr.jp/facilities/square",
+    "status": 200,
+    "sha256": "49789c02ba16346d86c891636d77f3abe41d93c59973c6cf181cdd76c613f2a7",
+    "bytes": 16164,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.gokurakuyu.ne.jp/tempo/faq.html",
+    "status": 200,
+    "sha256": "fdfed217b3191ac98dd2343f33379a092db0e2a642a3fc87669cdb3f0a92765a",
+    "bytes": 2298,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.gokurakuyu.ne.jp/tempo/nonoichi/",
+    "status": 200,
+    "sha256": "fdfed217b3191ac98dd2343f33379a092db0e2a642a3fc87669cdb3f0a92765a",
+    "bytes": 2298,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.hoshinocoffee.com/shop.html",
+    "status": 200,
+    "sha256": "d18882f6b6103c760f8b865b6c23d4e79766944fab2229e971a7503f364f7608",
+    "bytes": 242644,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.kanazawakokusaihotel.co.jp/question/",
+    "status": 200,
+    "sha256": "7e05c4deadb8199e6eea36c3566a6d88f351bb8d60a5e8c0d457278f60005445",
+    "bytes": 15014,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.kanazawakokusaihotel.co.jp/wedding/guest/",
+    "status": 200,
+    "sha256": "e4474ce4b4f782fcc7e45fdc2d4b6d4507992affe74b59f6880b413b3079b866",
+    "bytes": 14523,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.kassen-nomura.com/about/",
+    "status": 200,
+    "sha256": "b5af99efed166bf925dbbdb85ed12ae4732c53d34bc8f139ae40884d3fe7247d",
+    "bytes": 16252,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.manten-hotel.com/michinoyado-1/faq/",
+    "status": 200,
+    "sha256": "2aae044f2263d73e75cf0e7494d1bb3f63d183438989c32ae96620876072a6f2",
+    "bytes": 31942,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.manten-hotel.com/michinoyado-1/room/",
+    "status": 200,
+    "sha256": "6db88d691e9d7f65d747f885b4fb9b81b896a77ff6b289792c07af07cb10aa95",
+    "bytes": 24687,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.pref.ishikawa.lg.jp/toshi/documents/kennrokutyuusyajyoupannfu.pdf",
+    "status": 200,
+    "sha256": "dcfb0577e85e0bfeb876349902765822fe26a61cd03802a8c6ab7425fe730dbd",
+    "bytes": 1449931,
+    "checkedOn": "2026-11-07"
+  },
+  {
+    "url": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+    "status": 200,
+    "sha256": "a81b48ca80067d688ea251901a30e78eec9b9c03e3fb559d0a1e4d3be024e434",
+    "bytes": 40166,
+    "checkedOn": "2026-11-07"
+  }
+]
