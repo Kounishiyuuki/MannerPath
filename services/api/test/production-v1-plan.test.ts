@@ -70,10 +70,25 @@ test("stop deletes the App ID (existing keys included) and rollback re-checks it
   assert.match(scripts["production:v1-stop"], /scripts\/production-v1-stop\.ts$/);
   assert.equal(rollback.some((l) => /RE-DELETE the App ID/.test(l)), true);
   assert.equal(rollback.some((l) => /migrations-reports-rollback\/0011_/.test(l)), true);
-  // The retention Cron is switched off and removed before any rollback to an older version (runbook §4).
-  const at = (re: RegExp) => rollback.findIndex((l) => re.test(l));
-  const order = [at(/^npx wrangler deploy .*retention-off\.jsonc/), at(/20 minutes/), at(/^npx wrangler triggers deploy .*no-cron\.jsonc/), at(/^npx wrangler rollback <version-id>/)];
-  assert.ok(order.every((i, k) => i >= 0 && (k === 0 || i > order[k - 1])), JSON.stringify(order));
+  // The actual operations and manual gates, in order (other comments ignored).
+  const steps = rollback.filter((l) => !l.startsWith("#") || l.startsWith("# CHECKPOINT")).map((l) => l.replace(/\s+#.*$/, "").replace(/ -c \S+/g, ""));
+  assert.deepEqual(steps.slice(0, 13), [
+    "npm run production:v1-stop",
+    "# CHECKPOINT: the stopped preflight above printed PASS. Otherwise STOP HERE: do not switch retention off or roll back.",
+    "npx wrangler deploy",
+    "npm run production:v1-check -- --stage stopped",
+    "# CHECKPOINT: PASS (intake still closed) — otherwise STOP HERE.",
+    "npx wrangler triggers deploy",
+    "# CHECKPOINT: at least 20 minutes after the line above, an operator confirmed in the dashboard: Triggers empty, no run",
+    "npm run production:v1-check -- --stage stopped",
+    "# CHECKPOINT: PASS — otherwise STOP HERE.",
+    "npx wrangler deployments list",
+    "npx wrangler rollback <version-id>",
+    "npx wrangler secret list",
+    "# CHECKPOINT: REPORT_APP_ATTEST_APP_ID is absent after the rollback. If it is back, RE-DELETE the App ID; never restore it here.",
+  ]);
+  assert.match(rollback.find((l) => l.startsWith("npx wrangler deploy "))!, /retention-off\.jsonc/);
+  assert.match(rollback.find((l) => l.startsWith("npx wrangler triggers deploy "))!, /no-cron\.jsonc/);
 });
 
 // Keep dispatch bounded: improve cadence rather than looping past the Free per-invocation query budget.
