@@ -574,3 +574,24 @@ test("the submitter is the attested key: rotating installId neither escapes the 
   const counted = h.db.raw.prepare("SELECT report_count FROM report_rate_windows WHERE submitter_hash = ? AND window_kind = 'hour'").get(hashes[0]) as Row;
   assert.equal(counted.report_count, 2);
 });
+
+test("removing the App ID (production:v1-stop) closes intake for already-registered keys too", async () => {
+  const h = await harness();
+  const device = await registered(h);
+  // Signed while intake was open, sent after the stop.
+  const signed = await submission(h, device, reportPayload({ idempotencyKey: "d".repeat(64) }));
+  const reports = count(h.db, "reports"), challenges = count(h.db, "app_attest_challenges");
+  const { REPORT_APP_ATTEST_APP_ID: _removed, ...stopped } = ENV;
+  for (const [path, body] of [
+    ["/v1/app-attest/challenges", { schemaVersion: 1, purpose: "report", keyId: device.keyIdBase64 }],
+    ["/v1/app-attest/challenges", { schemaVersion: 1, purpose: "registration" }],
+    ["/v1/reports", signed],
+  ] as [string, unknown][]) {
+    const res = await h.post(path, body, stopped);
+    assert.equal(res.status, 503, path);
+    assert.equal(((await res.json()) as Row).error, "attestationUnavailable");
+  }
+  assert.equal(count(h.db, "reports"), reports);
+  assert.equal(count(h.db, "app_attest_challenges"), challenges);
+  assert.equal((await h.post("/v1/reports", signed)).status, 201, "the same submission is valid while intake is open");
+});

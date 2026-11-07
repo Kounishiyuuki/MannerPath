@@ -108,6 +108,7 @@ Cronイベントの`event.cron`、`eventTimestamp`、`outcome`と`logs[].message
 - `healthy`/exit 0：15分以内に実行されたcleanupがcompleteで全残件0。このexportの最新時点だけの証拠。
 - `missing`/`stale`：該当cronなし/15分超。未実行や古い資料を正常0件にしない。
 - `failed`/`overdue`/`disabled`/`invalid`：要対応。monitorだけの成功、未来時刻、欠落/不正な結果は正常にしない。
+- 同じ出力の`action`/`reason`は、export全体の履歴から停止基準を判定する（[受付開始の準備 §3](../../release/V1_PRODUCTION_INTAKE.md)の表）。`stopIntake`なら受付だけを止め、保持Cronは続ける。
 
 実行しなければ検知しないため、本コマンドだけで独立した自動heartbeat監視が完成したとは扱わない。自動通知はP1、毎日の担当者確認はP0。
 現在のtail snapshotがhealthyでも、過去24時間の例外・overdue件数は別に見る。Cron履歴と失敗ログも確認し、健康な後続1回で前の失敗を未発生扱いにしない。
@@ -115,8 +116,8 @@ Cronイベントの`event.cron`、`eventTimestamp`、`outcome`と`logs[].message
 | 状態 | 担当者の対応 |
 | --- | --- |
 | 残件なし/complete | 時刻・Worker版・環境・結果だけを運用記録へ。個別報告ID/本文は不要 |
-| overdueが続く/残件が減らない | 受付停止。1 bounded passの残件自体はあり得るが、2回連続または日次確認で見つかった未解消backlogを放置しない。容量/失敗原因を確認 |
-| failed/receipt不整合/未実行・stale/無効化 | 受付停止し原因を切り分け、保持は可能なら継続。receiptの再生成や任意DELETEで解決しない |
+| overdueが続く/残件が減らない | 2回連続で調査（受付は止めない）。最後のcompleteから24時間以上未解消なら受付停止。容量/失敗原因を確認 |
+| failed/receipt不整合/未実行・stale/無効化 | 本当の失敗が2回連続、1102が1件、または24時間以上未実行なら受付停止。1回だけなら調査。保持は継続。receiptの再生成や任意DELETEで解決しない |
 | クォータ/CPU余裕不足 | 受付停止、無料枠内で計画を修正。有料化や写真機能の有効化を自動で選ばない |
 
 ## 3. 削除・訂正相談の実行可能な最小手順

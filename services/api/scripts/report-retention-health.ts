@@ -37,14 +37,107 @@ export function retentionHealth(events: unknown[], now: number): { event: "repor
   return result("healthy");
 }
 
+/**
+ * The stop criteria of docs/release/V1_PRODUCTION_INTAKE.md §3, over the whole export (give it at least the last 24 hours).
+ * `overdue` is normal progress while a backlog drains, so it never counts as a failure: two in a row ask for investigation,
+ * and only a backlog left unresolved for a day stops intake. A real failure (failed outcome, an invocation that threw
+ * without an overdue record, a malformed record) stops intake when two come in a row; one exceededCpu (1102) stops it at once.
+ * No run for a day stops intake only when continuous capture over that day is confirmed (`--covered-since`); without
+ * that, an empty or old export is missing evidence and asks for investigation.
+ * Stopping intake never stops the retention Cron.
+ */
+type Run = "cpu" | "failed" | "overdue" | "disabled" | "complete";
+export type Action = "none" | "watch" | "investigate" | "stopIntake";
+export type Reason = "healthy" | "overdue" | "overdueDraining" | "overdueNotDraining" | "overdueOverOneDay" | "failed"
+  | "consecutiveFailures" | "exceededCpu" | "cpuOver10ms" | "notRunning" | "unconfirmedCoverage" | "disabled" | "invalid";
+export const OVERDUE_STOP_MS = 24 * 3_600_000;
+function dueReports(e: any): number | undefined {
+  for (const log of Array.isArray(e?.logs) ? e.logs : []) for (const message of Array.isArray(log?.message) ? log.message : []) {
+    try { const r = JSON.parse(message); if (r?.event === "reportRetention" && Number.isSafeInteger(r.remaining?.dueReports)) return r.remaining.dueReports; } catch { /* private */ }
+  }
+  return undefined;
+}
+function classify(e: any): Run {
+  if (e?.outcome === "exceededCpu") return "cpu";
+  const records: any[] = [];
+  for (const log of Array.isArray(e?.logs) ? e.logs : []) for (const message of Array.isArray(log?.message) ? log.message : []) {
+    if (typeof message !== "string") continue;
+    try { const parsed = JSON.parse(message); if (parsed?.event === "reportRetention") records.push(parsed); } catch { /* unrelated logs stay private */ }
+  }
+  if (records.length !== 1) return "failed";
+  const r = records[0];
+  if (r.outcome === "disabled") return "disabled";
+  if (r.outcome === "overdue" && r.mode === "cleanup" && Number.isSafeInteger(r.remaining?.dueReports) && r.remaining.dueReports > 0) return "overdue";
+  return retentionHealth([e], e.eventTimestamp).status === "healthy" ? "complete" : "failed";
+}
+export function retentionAction(events: unknown[], now: number, coveredSince?: number): { event: "reportRetentionAction"; action: Action; reason: Reason } {
+  const out = (action: Action, reason: Reason) => ({ event: "reportRetentionAction" as const, action, reason });
+  if (!Number.isSafeInteger(now) || now < 0) return out("investigate", "invalid");
+  if (coveredSince !== undefined && (!Number.isSafeInteger(coveredSince) || coveredSince < 0 || coveredSince > now)) return out("investigate", "invalid");
+  const health = retentionHealth(events, now).status;
+  const all = events.filter((e: any) => e?.event?.cron === V1_PRODUCTION.retentionCron) as any[];
+  const valid = (e: any) => Number.isSafeInteger(e.eventTimestamp) && e.eventTimestamp >= 0 && e.eventTimestamp <= now;
+  const matching = all.filter(valid);
+  // One invocation per scheduled time; of conflicting records the worst one counts.
+  const rank: Run[] = ["cpu", "failed", "overdue", "disabled", "complete"];
+  const byTime = new Map<number, Run>(), due = new Map<number, number | undefined>();
+  for (const e of matching) {
+    const run = classify(e), prev = byTime.get(e.eventTimestamp);
+    if (!prev || rank.indexOf(run) < rank.indexOf(prev)) { byTime.set(e.eventTimestamp, run); due.set(e.eventTimestamp, dueReports(e)); }
+  }
+  const runs = [...byTime].sort((a, b) => a[0] - b[0]);
+  if (runs.some(([, r]) => r === "cpu")) return out("stopIntake", "exceededCpu");
+  // Anywhere in the window: a later healthy run does not erase two real failures in a row. overdue is not a failure.
+  if (runs.some(([, r], i) => r === "failed" && runs[i + 1]?.[1] === "failed")) return out("stopIntake", "consecutiveFailures");
+  // A Cron that stopped running leaves due reports unminimized as surely as an overdue backlog does. Only an
+  // operator-confirmed continuous capture (coveredSince) proves the absence; an export alone may be truncated.
+  const lastRun = runs.at(-1)?.[0];
+  const quietDay = lastRun === undefined || now - lastRun >= OVERDUE_STOP_MS;
+  if (quietDay && coveredSince !== undefined && now - coveredSince >= OVERDUE_STOP_MS) return out("stopIntake", "notRunning");
+  // The unresolved backlog: the trailing runs that did not complete, if any of them was overdue.
+  let start = runs.length;
+  while (start > 0 && (runs[start - 1][1] === "overdue" || runs[start - 1][1] === "failed")) start--;
+  const tail = runs.slice(start);
+  if (tail.some(([, r]) => r === "overdue") && now - tail[0][0] >= OVERDUE_STOP_MS) return out("stopIntake", "overdueOverOneDay");
+  // A malformed or future-dated record never lets the rest of the history read as healthy.
+  if (all.some((e) => !valid(e))) return out("investigate", "invalid");
+  if (quietDay) return out("investigate", runs.length > 0 || coveredSince !== undefined ? "unconfirmedCoverage" : "notRunning");
+  if (health === "missing" || health === "stale") return out("investigate", "notRunning");
+  const latest = runs.at(-1)![1];
+  if (latest === "failed") return out("investigate", "failed");
+  if (latest === "disabled") return out("investigate", "disabled");
+  if (latest === "overdue" && runs.at(-2)?.[1] === "overdue") {
+    // Investigate either way; a backlog that keeps shrinking is progress, one that does not is the capacity problem.
+    const [a, b] = [due.get(runs.at(-2)![0]), due.get(runs.at(-1)![0])];
+    return out("investigate", a !== undefined && b !== undefined && b < a ? "overdueDraining" : "overdueNotDraining");
+  }
+  // CPU over 10 ms in at least half of the last hour's runs: investigate and watch more closely, never a stop on its own.
+  const hour = matching.filter((e) => now - e.eventTimestamp < 3_600_000 && Number.isFinite(e.cpuTime));
+  if (hour.length > 0 && hour.filter((e) => e.cpuTime > 10).length * 2 >= hour.length) return out("investigate", "cpuOver10ms");
+  // An earlier single failure stays visible behind later healthy runs (docs/legal/v1-text-reports/OPERATIONS.md).
+  if (runs.some(([, r]) => r === "failed")) return out("investigate", "failed");
+  if (latest === "overdue") return out("watch", "overdue");
+  return out("none", "healthy");
+}
+
 function main(args: string[]) {
   let output: ReturnType<typeof retentionHealth> = { event: "reportRetentionHealth", status: "invalid" };
+  let action: Pick<ReturnType<typeof retentionAction>, "action" | "reason"> = { action: "investigate", reason: "invalid" };
   try {
+    // Optional `--covered-since <UTC second>`: when the operator's continuous capture of this Worker began (§3).
+    let coveredSince: number | undefined;
+    if (args.length === 3 && args[0] === "--covered-since" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(args[1])) {
+      coveredSince = Date.parse(args[1]); args = args.slice(2);
+      if (!Number.isSafeInteger(coveredSince)) throw new Error();
+    }
     if (args.length !== 1 || args[0].startsWith("-") || statSync(args[0]).size > 4 * 1024 * 1024) throw new Error();
     const events = readFileSync(args[0], "utf8").split(/\r?\n/).filter(s => s.trim()).map(s => JSON.parse(s));
-    output = retentionHealth(events, Date.now());
+    const now = Date.now();
+    output = retentionHealth(events, now);
+    const { action: a, reason } = retentionAction(events, now, coveredSince);
+    action = { action: a, reason };
   } catch { /* fixed failure metadata only */ }
-  console.log(JSON.stringify(output));
+  console.log(JSON.stringify({ ...output, ...action }));
   if (output.status !== "healthy") process.exitCode = 1;
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main(process.argv.slice(2));
