@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseJsonc } from "../scripts/disposable-env.ts";
-import { PRODUCTION_WORKER, V1_PRODUCTION, intakeBlockers, productionConfig, productionSteps } from "../scripts/production-v1-plan.ts";
+import { PRODUCTION_WORKER, V1_PRODUCTION, intakeBlockers, productionConfig, productionSteps, rollbackConfigs } from "../scripts/production-v1-plan.ts";
 import { CURRENT_REPORT_TERMS, REPORT_TERMS } from "../src/reports/terms.ts";
 
 const committed = parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
@@ -52,6 +52,17 @@ test("only an approved, non-draft version with publication rights unblocks; the 
   assert.equal(productionSteps([]).launch.some((l) => /enabled/.test(l)), true);
 });
 
+test("rollback configs: retention off with the Cron kept, then without the Cron; nothing else changes", () => {
+  const config = productionConfig(committed, "/api");
+  const { retentionOff, noCron } = rollbackConfigs(config);
+  assert.equal(retentionOff.vars.REPORT_RETENTION, "off");
+  assert.equal(retentionOff.vars.REPORT_RETENTION_CRON, config.vars.REPORT_RETENTION_CRON);
+  assert.deepEqual(retentionOff.triggers.crons, config.triggers.crons);
+  assert.deepEqual(noCron.triggers.crons, []);
+  assert.deepEqual({ ...noCron, triggers: config.triggers, vars: config.vars }, config);
+  assert.equal(config.vars.REPORT_RETENTION, "cleanup", "the launch config is untouched");
+});
+
 test("stop deletes the App ID (existing keys included) and rollback re-checks it", () => {
   const { stop, rollback } = productionSteps([]);
   assert.equal(stop.includes("npm run production:v1-stop"), true);
@@ -59,6 +70,10 @@ test("stop deletes the App ID (existing keys included) and rollback re-checks it
   assert.match(scripts["production:v1-stop"], /scripts\/production-v1-stop\.ts$/);
   assert.equal(rollback.some((l) => /RE-DELETE the App ID/.test(l)), true);
   assert.equal(rollback.some((l) => /migrations-reports-rollback\/0011_/.test(l)), true);
+  // The retention Cron is switched off and removed before any rollback to an older version (runbook §4).
+  const at = (re: RegExp) => rollback.findIndex((l) => re.test(l));
+  const order = [at(/^npx wrangler deploy .*retention-off\.jsonc/), at(/20 minutes/), at(/^npx wrangler triggers deploy .*no-cron\.jsonc/), at(/^npx wrangler rollback <version-id>/)];
+  assert.ok(order.every((i, k) => i >= 0 && (k === 0 || i > order[k - 1])), JSON.stringify(order));
 });
 
 // Keep dispatch bounded: improve cadence rather than looping past the Free per-invocation query budget.

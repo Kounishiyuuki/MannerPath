@@ -117,15 +117,30 @@ export function productionSteps(blockers: string[]): { launch: string[]; stop: s
     "# Stop only new keys: re-run this plan (paused) and deploy.",
     `npx wrangler deploy ${C}`,
   ];
+  const OFF = "-c .wrangler/production-v1/retention-off.jsonc", NO_CRON = "-c .wrangler/production-v1/no-cron.jsonc";
   const rollback = [
-    "# Worker: roll back to the previous version, then RE-DELETE the App ID if intake was stopped (a rollback can restore it).",
-    `npx wrangler rollback ${C}`,
+    "# Worker, to a version older than this plan (e.g. 2026-10-05, which binds R2 and predates the unexpectedCron guard):",
+    "# Cron Triggers are not versioned, so remove the retention Cron first or it would fall into source checks there.",
+    "# a. Retention off, Cron kept (it logs `disabled`):",
+    `npx wrangler deploy ${OFF}`,
+    "# b. Remove the Cron, then wait at least 20 minutes: dashboard Triggers empty, no run other than `disabled`, no next run.",
+    `npx wrangler triggers deploy ${NO_CRON}`,
+    "# c. Roll back to the chosen version by its ID (step a made the previous version the v1 one with retention off),",
+    "#    then RE-DELETE the App ID if intake was stopped (a rollback can restore it).",
+    `npx wrangler deployments list ${C}`,
+    `npx wrangler rollback <version-id> ${C}`,
     `npx wrangler secret list ${C}`,
     "# REPORTS_DB 0011 only (photo-only gate returns; no new-spot export without photos):",
     `npx wrangler d1 execute REPORTS_DB ${C} --remote --file migrations-reports-rollback/0011_new_spot_independent_evidence.sql`,
     "# Anything else: D1 Time Travel restore to the bookmark from step 1 (loses every write after it).",
   ];
   return { launch, stop, rollback };
+}
+
+/** The rollback configs (runbook §4): the same Worker with retention off, then also without the Cron. */
+export function rollbackConfigs(config: any): { retentionOff: any; noCron: any } {
+  const retentionOff = { ...structuredClone(config), vars: { ...config.vars, REPORT_RETENTION: "off" } };
+  return { retentionOff, noCron: { ...structuredClone(retentionOff), triggers: { crons: [] } } };
 }
 
 function main(argv: string[]) {
@@ -135,6 +150,9 @@ function main(argv: string[]) {
   const config = productionConfig(parseJsonc(readFileSync(`${apiDir}/wrangler.jsonc`, "utf8")), apiDir);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(`${outDir}/worker.jsonc`, JSON.stringify(config, null, 2) + "\n");
+  const { retentionOff, noCron } = rollbackConfigs(config);
+  writeFileSync(`${outDir}/retention-off.jsonc`, JSON.stringify(retentionOff, null, 2) + "\n");
+  writeFileSync(`${outDir}/no-cron.jsonc`, JSON.stringify(noCron, null, 2) + "\n");
   const blockers = intakeBlockers();
   const { launch, stop, rollback } = productionSteps(blockers);
   console.log(`wrote ${outDir}/worker.jsonc (worker ${PRODUCTION_WORKER}, no R2, retention cron only, registration paused)`);
