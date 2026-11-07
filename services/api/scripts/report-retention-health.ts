@@ -47,9 +47,15 @@ export function retentionHealth(events: unknown[], now: number): { event: "repor
  */
 type Run = "cpu" | "failed" | "overdue" | "disabled" | "complete";
 export type Action = "none" | "watch" | "investigate" | "stopIntake";
-export type Reason = "healthy" | "overdue" | "consecutiveOverdue" | "overdueOverOneDay" | "failed" | "consecutiveFailures"
-  | "exceededCpu" | "notRunning" | "disabled" | "invalid";
+export type Reason = "healthy" | "overdue" | "overdueDraining" | "overdueNotDraining" | "overdueOverOneDay" | "failed"
+  | "consecutiveFailures" | "exceededCpu" | "cpuOver10ms" | "notRunning" | "disabled" | "invalid";
 export const OVERDUE_STOP_MS = 24 * 3_600_000;
+function dueReports(e: any): number | undefined {
+  for (const log of Array.isArray(e?.logs) ? e.logs : []) for (const message of Array.isArray(log?.message) ? log.message : []) {
+    try { const r = JSON.parse(message); if (r?.event === "reportRetention" && Number.isSafeInteger(r.remaining?.dueReports)) return r.remaining.dueReports; } catch { /* private */ }
+  }
+  return undefined;
+}
 function classify(e: any): Run {
   if (e?.outcome === "exceededCpu") return "cpu";
   const records: any[] = [];
@@ -71,10 +77,10 @@ export function retentionAction(events: unknown[], now: number): { event: "repor
     .filter((e) => Number.isSafeInteger(e.eventTimestamp) && e.eventTimestamp >= 0 && e.eventTimestamp <= now);
   // One invocation per scheduled time; of conflicting records the worst one counts.
   const rank: Run[] = ["cpu", "failed", "overdue", "disabled", "complete"];
-  const byTime = new Map<number, Run>();
+  const byTime = new Map<number, Run>(), due = new Map<number, number | undefined>();
   for (const e of matching) {
     const run = classify(e), prev = byTime.get(e.eventTimestamp);
-    if (!prev || rank.indexOf(run) < rank.indexOf(prev)) byTime.set(e.eventTimestamp, run);
+    if (!prev || rank.indexOf(run) < rank.indexOf(prev)) { byTime.set(e.eventTimestamp, run); due.set(e.eventTimestamp, dueReports(e)); }
   }
   const runs = [...byTime].sort((a, b) => a[0] - b[0]);
   if (runs.some(([, r]) => r === "cpu")) return out("stopIntake", "exceededCpu");
@@ -90,7 +96,15 @@ export function retentionAction(events: unknown[], now: number): { event: "repor
   if (tail.some(([, r]) => r === "overdue") && now - tail[0][0] >= OVERDUE_STOP_MS) return out("stopIntake", "overdueOverOneDay");
   if (latest === "failed") return out("investigate", "failed");
   if (latest === "disabled") return out("investigate", "disabled");
-  if (latest === "overdue") return runs.at(-2)?.[1] === "overdue" ? out("investigate", "consecutiveOverdue") : out("watch", "overdue");
+  if (latest === "overdue" && runs.at(-2)?.[1] === "overdue") {
+    // Investigate either way; a backlog that keeps shrinking is progress, one that does not is the capacity problem.
+    const [a, b] = [due.get(runs.at(-2)![0]), due.get(runs.at(-1)![0])];
+    return out("investigate", a !== undefined && b !== undefined && b < a ? "overdueDraining" : "overdueNotDraining");
+  }
+  // CPU over 10 ms in at least half of the last hour's runs: investigate and watch more closely, never a stop on its own.
+  const hour = matching.filter((e) => now - e.eventTimestamp < 3_600_000 && Number.isFinite(e.cpuTime));
+  if (hour.length > 0 && hour.filter((e) => e.cpuTime > 10).length * 2 >= hour.length) return out("investigate", "cpuOver10ms");
+  if (latest === "overdue") return out("watch", "overdue");
   return out("none", "healthy");
 }
 

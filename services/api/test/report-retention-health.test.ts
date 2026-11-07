@@ -66,9 +66,10 @@ test("stop criteria: overdue is progress, not failure; two real failures or one 
   assert.equal(act([run("complete", now - FIVE), run("complete", now)]), "none:healthy");
   // A backlog draining over consecutive overdue runs never stops intake by itself.
   assert.equal(act([run("complete", now - FIVE), run("overdue", now)]), "watch:overdue");
-  assert.equal(act([run("overdue", now - FIVE), run("overdue", now)]), "investigate:consecutiveOverdue");
+  assert.equal(act([run("overdue", now - FIVE, 13), run("overdue", now, 3)]), "investigate:overdueDraining");
+  assert.equal(act([run("overdue", now - FIVE, 13), run("overdue", now, 13)]), "investigate:overdueNotDraining");
   const day = Array.from({ length: 288 }, (_, i) => run("overdue", now - (287 - i) * FIVE));
-  assert.equal(act(day), "investigate:consecutiveOverdue", "just under a day");
+  assert.equal(act(day), "investigate:overdueNotDraining", "just under a day");
   assert.equal(act([run("overdue", now - OVERDUE_STOP_MS), ...day]), "stopIntake:overdueOverOneDay");
   assert.equal(act([run("overdue", now - OVERDUE_STOP_MS), run("failed", now - FIVE), run("overdue", now)]), "stopIntake:overdueOverOneDay");
   assert.equal(act([run("overdue", now - OVERDUE_STOP_MS), run("complete", now - FIVE), run("overdue", now)]), "watch:overdue", "a complete run resets the clock");
@@ -80,6 +81,11 @@ test("stop criteria: overdue is progress, not failure; two real failures or one 
   assert.equal(act([run("failed", now - FIVE), crash]), "stopIntake:consecutiveFailures", "a throw without a record is a failure");
   const cpu = run("complete", now - 6 * FIVE); cpu.outcome = "exceededCpu"; cpu.logs = [];
   assert.equal(act([cpu, run("complete", now - FIVE), run("complete", now)]), "stopIntake:exceededCpu");
+  // CPU: half or more of the last hour's runs over 10 ms asks for investigation only.
+  const cpuRun = (at: number, ms: number) => Object.assign(run("complete", at), { cpuTime: ms });
+  assert.equal(act([cpuRun(now - 3 * FIVE, 12), cpuRun(now - 2 * FIVE, 14), cpuRun(now - FIVE, 6), cpuRun(now, 5)]), "investigate:cpuOver10ms");
+  assert.equal(act([cpuRun(now - 3 * FIVE, 12), cpuRun(now - 2 * FIVE, 6), cpuRun(now - FIVE, 6), cpuRun(now, 5)]), "none:healthy");
+  assert.equal(act([cpuRun(now - 13 * FIVE, 30), cpuRun(now - FIVE, 6), cpuRun(now, 5)]), "none:healthy", "older than an hour");
   // Not running, paused.
   assert.equal(act([]), "investigate:notRunning");
   assert.equal(act([run("complete", now - 4 * FIVE)]), "investigate:notRunning");
