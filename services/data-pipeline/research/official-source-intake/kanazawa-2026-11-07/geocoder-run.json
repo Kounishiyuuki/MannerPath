@@ -1,0 +1,21 @@
+{
+  "checkedOn": "2026-11-07",
+  "tool": "@digital-go-jp/abr-geocoder@2.3.1",
+  "node": "23.3.0",
+  "downloadCodes": [
+    "172014",
+    "172120"
+  ],
+  "downloadOptions": [
+    "--keep",
+    "-t",
+    "1"
+  ],
+  "geocodeOptions": {
+    "format": "json",
+    "target": "all",
+    "fuzzy": null
+  },
+  "originalOutputSha256": "aca48ea102ef8dba1f325fedfb54dcf5b3fb04bcdffc6aa4ae0d253edfce961b",
+  "redaction": "Rejected parcel coordinates and parcel identifiers omitted from committed result. Original output stays outside repository; absence adds noCoordinate rejection. Accepted residential_detail records unchanged. No parcel coordinates licensed or used as anchors."
+}

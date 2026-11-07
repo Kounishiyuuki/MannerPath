@@ -391,17 +391,19 @@ test("18: a tampered merge in a v3 bundle is refused and rolls back the whole fi
 
 test("19: every reviewed source's real pipeline: candidates change nothing, v3 bundle has no merge key", async () => {
   const db = new SqliteD1();
-  await importAllReviewedSources(db, NOW);
-  await publishTiles(db, { now: NOW });
-  // All twenty repository-reviewed sources include Sendai, eight airport, 14 Chuo park, 47 Chuo private, 30 Chiyoda, 30 Shibuya and 4 Toshima address facility anchors; two Taito rows stay unpublished.
-  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 649);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 647);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshots").n, 103);
+  const corpusNow = "2026-11-08T00:00:00Z"; // After every reviewed fixture fetch, including Kanazawa.
+  await importAllReviewedSources(db, corpusNow);
+  await publishTiles(db, { now: corpusNow });
+  // All twenty-two repository-reviewed sources include Sendai, eight airports, Chuo/Chiyoda/Shibuya/Toshima
+  // address facility anchors and two Kanazawa facilities; two Taito rows stay unpublished.
+  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 651);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 649);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshots").n, 105);
   const bundleBefore = await buildMultiSourcePromotionBundle(db);
   const before = canonical(db);
-  await generateCrossSourceCandidates(db, { now: NOW });
+  await generateCrossSourceCandidates(db, { now: corpusNow });
   assert.deepEqual(canonical(db), before, "candidates alone change nothing");
-  assert.equal((await publishTiles(db, { now: REPUBLISH })).published.length, 0);
+  assert.equal((await publishTiles(db, { now: "2026-11-08T01:00:00Z" })).published.length, 0);
   const bundle = await buildMultiSourcePromotionBundle(db);
   assert.equal(bundle.sql, bundleBefore.sql, "the v3 bytes do not depend on unreviewed candidates");
   assert.equal("promotion_cross_source_merge_attestations" in bundle.manifest.rows, false);

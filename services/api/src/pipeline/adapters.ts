@@ -25,6 +25,9 @@ import { TOSHIMA_ADAPTER } from "./toshima-adapter.ts";
 import { MIYAZAKI_AIRPORT_ADAPTER } from "./miyazaki-airport-adapter.ts";
 import { HIROSHIMA_AIRPORT_ADAPTER } from "./hiroshima-airport-adapter.ts";
 
+import { KASSEN_NOMURA_ADAPTER } from "./kassen-nomura-adapter.ts";
+import { KANAZAWA_ARTVILLAGE_ADAPTER } from "./kanazawa-artvillage-adapter.ts";
+
 export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
   TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER,
   SENDAI_ADAPTER, KOMATSU_AIRPORT_ADAPTER,
@@ -34,4 +37,5 @@ export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
   CHIYODA_ADAPTER,
   SHIBUYA_ADAPTER,
   TOSHIMA_ADAPTER,
+  KASSEN_NOMURA_ADAPTER, KANAZAWA_ARTVILLAGE_ADAPTER,
 ];

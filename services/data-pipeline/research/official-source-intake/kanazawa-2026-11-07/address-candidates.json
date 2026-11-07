@@ -1,0 +1,20 @@
+[
+  {
+    "id": "nomura",
+    "officialAddress": "石川県金沢市泉野出町3-3-32",
+    "prefecture": "石川県",
+    "municipality": "金沢市"
+  },
+  {
+    "id": "artvillage",
+    "officialAddress": "石川県金沢市大和町1-1",
+    "prefecture": "石川県",
+    "municipality": "金沢市"
+  },
+  {
+    "id": "international-hotel",
+    "officialAddress": "石川県金沢市大額町ル8",
+    "prefecture": "石川県",
+    "municipality": "金沢市"
+  }
+]

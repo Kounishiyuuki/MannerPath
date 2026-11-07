@@ -1,0 +1,98 @@
+[
+  {
+    "query": {
+      "input": "石川県金沢市泉野出町3-3-32"
+    },
+    "result": {
+      "output": "石川県金沢市泉野出町3丁目3-32",
+      "others": [],
+      "score": 0.89,
+      "match_level": "residential_detail",
+      "coordinate_level": "residential_detail",
+      "lat": 36.539788283,
+      "lon": 136.649160875,
+      "lg_code": "172014",
+      "machiaza_id": "0031003",
+      "rsdt_addr_flg": 1,
+      "blk_id": "003",
+      "rsdt_id": "032",
+      "rsdt2_id": null,
+      "prc_id": null,
+      "pref": "石川県",
+      "county": null,
+      "city": "金沢市",
+      "ward": null,
+      "oaza_cho": "泉野出町",
+      "chome": "3丁目",
+      "koaza": null,
+      "blk_num": "3",
+      "rsdt_num": "32",
+      "rsdt_num2": null,
+      "prc_num1": null,
+      "prc_num2": null,
+      "prc_num3": null
+    }
+  },
+  {
+    "query": {
+      "input": "石川県金沢市大和町1-1"
+    },
+    "result": {
+      "output": "石川県金沢市大和町1-1",
+      "others": [],
+      "score": 1,
+      "match_level": "residential_detail",
+      "coordinate_level": "residential_detail",
+      "lat": 36.569565872,
+      "lon": 136.641441103,
+      "lg_code": "172014",
+      "machiaza_id": "0280000",
+      "rsdt_addr_flg": 1,
+      "blk_id": "001",
+      "rsdt_id": "001",
+      "rsdt2_id": null,
+      "prc_id": null,
+      "pref": "石川県",
+      "county": null,
+      "city": "金沢市",
+      "ward": null,
+      "oaza_cho": "大和町",
+      "chome": null,
+      "koaza": null,
+      "blk_num": "1",
+      "rsdt_num": "1",
+      "rsdt_num2": null,
+      "prc_num1": null,
+      "prc_num2": null,
+      "prc_num3": null
+    }
+  },
+  {
+    "query": {
+      "input": "石川県金沢市大額町ル8"
+    },
+    "result": {
+      "output": "石川県金沢市大額町ル8",
+      "others": [],
+      "score": 1,
+      "match_level": "parcel",
+      "coordinate_level": "parcel",
+      "lg_code": "172014",
+      "machiaza_id": "0079108",
+      "rsdt_addr_flg": 0,
+      "blk_id": null,
+      "rsdt_id": null,
+      "rsdt2_id": null,
+      "pref": "石川県",
+      "county": null,
+      "city": "金沢市",
+      "ward": null,
+      "oaza_cho": "大額町",
+      "chome": null,
+      "koaza": "ル",
+      "blk_num": null,
+      "rsdt_num": null,
+      "rsdt_num2": null
+    }
+  }
+]

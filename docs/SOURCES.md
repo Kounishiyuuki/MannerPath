@@ -482,3 +482,25 @@ Anchor source: 国土交通省 国土数値情報 空港データ C28 令和3年
 Completeness is partial and `crossReleaseValidated=false`; no automatic refresh is approved. Changed bytes, smoking-page scope loss, closure/relocation conflicts, publisher objection, rights prohibition or mismatched anchor identity require review/hold via the existing gate. Takamatsu excludes the closed international boarding room; Oita excludes the former cash-corner location; Hiroshima excludes the closed domestic-arrival exterior. Repository review does not deploy a source: the deployed production inventory remains six sources / 513 published; health defaults remain unchanged.
 
 Kagoshima Airport is **not approved** in this batch: its terms reject commercial-purpose linking. No adapter, fixture or spot is added for it. See [batch review](research/2026-10-14-nationwide-airport-expansion.md) and machine-readable evidence.
+
+### 金沢市：割鮮のむら・金沢市民芸術村 — independent operator factReference sources
+
+Reviewed 2026-11-07 under ADR-0018 D-A/D-R/D-C. Each is a separate first-party operator source and a single pinned normalized fact sheet; neither is a municipal dataset or a third-party map import.
+
+| Field | 割鮮のむら | 金沢市民芸術村 |
+|---|---|---|
+| Source ID | `kassen-nomura-smoking-places` | `kanazawa-artvillage-smoking-places` |
+| Official page | https://www.kassen-nomura.com/about/ | https://www.artvillage.gr.jp/facilities/square |
+| Smoking existence | Store-exterior smoking space; interior smoke-free | Smoking place along 大和町広場 garden path |
+| Kind / rights | operator / factReference | operator / factReference |
+| Location | Official address ABR residential_detail representative point; facility-scope areaApproximate | Official address ABR residential_detail representative point; facility-scope areaApproximate |
+| Hours / tobacco / access | unknown; host hours not transferred; non-customer access not claimed | unknown; grounds/gate hours not transferred; general access not claimed |
+| Publication status | approved for pinned fact sheet only, local pipeline | approved for pinned fact sheet only, local pipeline |
+
+The reviewed official pages and homepages reserve copyright in their footers; their navigation/footer and scoped search disclosed no separate website terms link or explicit information-use/data-acquisition/database prohibition. D-R permits normalized factual reference, **not an open licence or legal clearance**. No prose, image, map or logo is redistributed. The foundation's event-data CC BY licence is not used for the arts-village facility page. A publisher objection or contradictory restriction requires withdrawal/review.
+
+Location rights are independent: アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）, actual abr-geocoder2.3.1 run with the unchanged address-anchor gate; no Google/Apple/OSM coordinate. The pin is the facility address's representative point, never the smoking place. Current operation is an undated official-page check on 2026-11-07, not a site visit; smoking facts and copyright scopes have repository-only source-health targets. No production inventory, DB, tile or Worker deployment is expanded.
+
+Full receipts, rights limitations, anchor references and pinned hashes:
+`services/data-pipeline/fixtures/kassen-nomura-smoking-places/PROVENANCE.md` and
+`services/data-pipeline/fixtures/kanazawa-artvillage-smoking-places/PROVENANCE.md`.

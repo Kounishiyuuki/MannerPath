@@ -23,6 +23,8 @@ import { TOSHIMA_ADAPTER } from "../src/pipeline/toshima-adapter.ts";
 import { MIYAZAKI_AIRPORT_ADAPTER } from "../src/pipeline/miyazaki-airport-adapter.ts";
 import { HIROSHIMA_AIRPORT_ADAPTER } from "../src/pipeline/hiroshima-airport-adapter.ts";
 import { KOMATSU_AIRPORT_ADAPTER } from "../src/pipeline/komatsu-airport-adapter.ts";
+import { KASSEN_NOMURA_ADAPTER } from "../src/pipeline/kassen-nomura-adapter.ts";
+import { KANAZAWA_ARTVILLAGE_ADAPTER } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 import { ingestRelease } from "../src/pipeline/ingest.ts";
 import { REVIEWED_SOURCES, ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
@@ -49,12 +51,12 @@ function insertBareRelease(db: SqliteD1, sourceId: string, parserVersion: string
 
 test("the reviewed registry is exactly the independently reviewed adapters' registry entries", () => {
   // The community userReport source is reviewed but not fetched, so it is outside SOURCE_ADAPTERS (Issue #123).
-  assert.deepEqual(REVIEWED_SOURCES, [TAITO_REGISTRY, OSAKA_ADAPTER.registry, KOTO_ADAPTER.registry, MUSASHINO_ADAPTER.registry, MINATO_ADAPTER.registry, KYOTO_ADAPTER.registry, SENDAI_ADAPTER.registry, KOMATSU_AIRPORT_ADAPTER.registry, MATSUYAMA_AIRPORT_ADAPTER.registry, TAKAMATSU_AIRPORT_ADAPTER.registry, OITA_AIRPORT_ADAPTER.registry, KOCHI_AIRPORT_ADAPTER.registry, YONAGO_AIRPORT_ADAPTER.registry, MIYAZAKI_AIRPORT_ADAPTER.registry, HIROSHIMA_AIRPORT_ADAPTER.registry, CHUO_PARK_ADAPTER.registry, CHUO_PRIVATE_ADAPTER.registry, CHIYODA_ADAPTER.registry, SHIBUYA_ADAPTER.registry, TOSHIMA_ADAPTER.registry, COMMUNITY_REGISTRY]);
+  assert.deepEqual(REVIEWED_SOURCES, [TAITO_REGISTRY, OSAKA_ADAPTER.registry, KOTO_ADAPTER.registry, MUSASHINO_ADAPTER.registry, MINATO_ADAPTER.registry, KYOTO_ADAPTER.registry, SENDAI_ADAPTER.registry, KOMATSU_AIRPORT_ADAPTER.registry, MATSUYAMA_AIRPORT_ADAPTER.registry, TAKAMATSU_AIRPORT_ADAPTER.registry, OITA_AIRPORT_ADAPTER.registry, KOCHI_AIRPORT_ADAPTER.registry, YONAGO_AIRPORT_ADAPTER.registry, MIYAZAKI_AIRPORT_ADAPTER.registry, HIROSHIMA_AIRPORT_ADAPTER.registry, CHUO_PARK_ADAPTER.registry, CHUO_PRIVATE_ADAPTER.registry, CHIYODA_ADAPTER.registry, SHIBUYA_ADAPTER.registry, TOSHIMA_ADAPTER.registry, KASSEN_NOMURA_ADAPTER.registry, KANAZAWA_ARTVILLAGE_ADAPTER.registry, COMMUNITY_REGISTRY]);
   assert.equal(COMMUNITY_REGISTRY.publicationStatus, "blocked", "no terms yet let MannerPath republish submissions (Issue #124)");
-  assert.deepEqual(SOURCE_ADAPTERS, [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER, SENDAI_ADAPTER, KOMATSU_AIRPORT_ADAPTER, MATSUYAMA_AIRPORT_ADAPTER, TAKAMATSU_AIRPORT_ADAPTER, OITA_AIRPORT_ADAPTER, KOCHI_AIRPORT_ADAPTER, YONAGO_AIRPORT_ADAPTER, MIYAZAKI_AIRPORT_ADAPTER, HIROSHIMA_AIRPORT_ADAPTER, CHUO_PARK_ADAPTER, CHUO_PRIVATE_ADAPTER, CHIYODA_ADAPTER, SHIBUYA_ADAPTER, TOSHIMA_ADAPTER]);
+  assert.deepEqual(SOURCE_ADAPTERS, [TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER, SENDAI_ADAPTER, KOMATSU_AIRPORT_ADAPTER, MATSUYAMA_AIRPORT_ADAPTER, TAKAMATSU_AIRPORT_ADAPTER, OITA_AIRPORT_ADAPTER, KOCHI_AIRPORT_ADAPTER, YONAGO_AIRPORT_ADAPTER, MIYAZAKI_AIRPORT_ADAPTER, HIROSHIMA_AIRPORT_ADAPTER, CHUO_PARK_ADAPTER, CHUO_PRIVATE_ADAPTER, CHIYODA_ADAPTER, SHIBUYA_ADAPTER, TOSHIMA_ADAPTER, KASSEN_NOMURA_ADAPTER, KANAZAWA_ARTVILLAGE_ADAPTER]);
   assert.equal(new Set(SOURCE_ADAPTERS.map((a) => a.registry.sourceId)).size, SOURCE_ADAPTERS.length);
   assert.equal(SOURCE_ADAPTERS.filter(a => a.registry.kind === "municipal").length, 12);
-  assert.equal(SOURCE_ADAPTERS.filter(a => a.registry.kind === "operator").length, 8);
+  assert.equal(SOURCE_ADAPTERS.filter(a => a.registry.kind === "operator").length, 10);
   assert.equal(SOURCE_ADAPTERS.includes(TEST_BLOCKED_TAITO_ADAPTER), false, "the test-only adapter is never reviewed");
 });
 
