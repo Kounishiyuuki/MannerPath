@@ -191,6 +191,21 @@ hold below (migration 0033).
   source's rights and publication come only from the reviewed registry (a batch cannot approve its source), suspended or
   closed rows and duplicate listings are rejected, and rows sharing one anchor count as one spot. It writes nothing;
   adopting rows remains a reviewed adapter and pinned fact sheet.
+- **Facility listing and gate v3 (2026-11-08, maintainer policy).** A smoking place is listed at facility level when
+  the facility's own first-party page states the smoking facility and the facility's address is confirmed; the
+  smoking place's own coordinate is not required. The pin is the facility's address point, always `areaApproximate` /
+  scope `facility` (「約」, never the smoking place, entrance or floor). Unknown hours, tobacco type, access or
+  environment never block listing; they stay `unknown`. Unchanged: existence, current operation (closed, no-smoking or
+  suspended is excluded), the source's rights review (D-R), no point from Google/Apple maps, user reports never shown
+  as official. `address-anchor-gate.v3` accepts an ABR `parcel` (地番) point under every v2 rule (coordinate level =
+  match level, no remainder, jurisdiction, release scope) **only when `PARCEL_TERMS_REVIEW` is recorded**: ABR's terms
+  (read 2026-11-08) say 地番マスター位置参照 is also under the 登記所備付地図データ利用規約 (法務省). Until the maintainer
+  records that review (terms URL, reviewer, date, credit text), a parcel point is `parcelTermsUnreviewed`, never
+  adopted. An accepted point returns `requiredAttribution`, which the adapter's attribution must carry. A parent lot
+  matched with a branch number left over (「3-6」 → lot 3, remainder 「-6」) stays `unmatchedRemainder`: it is another
+  lot's point. Residential results are unchanged; anchors already published keep their v2 reference.
+  Address-only listing (no point at all) is not implemented: tiles hold points only, so it needs its own ADR
+  (wire, DB, clients).
 
 ## Future work (not decided)
 

@@ -12,7 +12,7 @@ import { type GeocodeRun, REVIEWED_GEOCODERS, evaluateDerivedCoordinate } from "
 
 export type { GeocodeRun };
 
-export const ADDRESS_ANCHOR_GATE_VERSION = "address-anchor-gate.v2";
+export const ADDRESS_ANCHOR_GATE_VERSION = "address-anchor-gate.v3";
 
 /** One reviewed ABR download: its id (ending in the digest scripts/address-anchor-dataset.ts recomputes), the zip count
  * and the municipality codes it was downloaded for. A geocode is accepted only under the release that produced it and
@@ -47,9 +47,23 @@ export function addressAnchorDatasetRelease(releaseId: string,
   return found[0];
 }
 
-/** ABR coordinate levels accepted as an approximate facility anchor. Parcel points carry another licence and can sit
- * far from a building inside a large lot; coarser levels are a town or city, not a facility. */
-const ANCHOR_LEVELS = ["residential_detail", "residential_block"] as const;
+/** ABR coordinate levels that can be an approximate facility anchor; coarser levels are a town or city, not a facility. */
+const ANCHOR_LEVELS = ["residential_detail", "residential_block", "parcel"] as const;
+
+/**
+ * The maintainer's review of the 登記所備付地図データ利用規約 (法務省, G空間情報センター), which ABR's 地番マスター位置参照 adds
+ * to PDL1.0 (デジタル庁 ABR terms, read 2026-11-08). A parcel (地番) representative point is a facility anchor only once
+ * this is recorded; until then it is `parcelTermsUnreviewed`, never adopted (gate v3). Being the lot's representative
+ * point, it says "on or near this facility's lot" only: the spot stays areaApproximate / facility, as every anchor here.
+ */
+export interface ParcelTermsReview {
+  readonly termsUrl: string;
+  readonly reviewedBy: string;
+  readonly reviewedOn: string;
+  /** Credit the adapter's attribution must carry next to the ABR one. */
+  readonly attributionText: string;
+}
+export const PARCEL_TERMS_REVIEW: ParcelTermsReview | null = null;
 
 export interface AddressAnchorInput {
   /** The publisher's own address cell, verbatim. Empty/absent is never filled from another source. */
@@ -58,9 +72,15 @@ export interface AddressAnchorInput {
   expectedMunicipality: string;
   geocode: GeocodeRun | null;
 }
+export interface AddressAnchorOptions {
+  releases?: readonly AddressAnchorDatasetRelease[];
+  parcelTerms?: ParcelTermsReview | null;
+}
 
 export type AddressAnchorResult =
-  | { status: "anchor"; latitude: number; longitude: number; coordinateLevel: (typeof ANCHOR_LEVELS)[number]; reference: string }
+  | { status: "anchor"; latitude: number; longitude: number; coordinateLevel: (typeof ANCHOR_LEVELS)[number]; reference: string;
+      /** Credits the published attribution must carry for this point (ABR, plus the parcel terms for a parcel point). */
+      requiredAttribution: readonly string[] }
   | { status: "reviewPending"; reasons: string[] };
 
 const KANJI_DIGITS: Record<string, string> = { 〇: "0", 一: "1", 二: "2", 三: "3", 四: "4", 五: "5", 六: "6", 七: "7", 八: "8", 九: "9" };
@@ -133,7 +153,10 @@ export function completeOfficialAddress(cell: string, scope: { prefecture: strin
 }
 
 export function evaluateAddressAnchor(input: AddressAnchorInput,
-  releases: readonly AddressAnchorDatasetRelease[] = ADDRESS_ANCHOR_DATASET_RELEASES): AddressAnchorResult {
+  releasesOrOptions: readonly AddressAnchorDatasetRelease[] | AddressAnchorOptions = ADDRESS_ANCHOR_DATASET_RELEASES): AddressAnchorResult {
+  const options: AddressAnchorOptions = Array.isArray(releasesOrOptions) ? { releases: releasesOrOptions } : releasesOrOptions as AddressAnchorOptions;
+  const releases = options.releases ?? ADDRESS_ANCHOR_DATASET_RELEASES;
+  const parcelTerms = options.parcelTerms === undefined ? PARCEL_TERMS_REVIEW : options.parcelTerms;
   const address = input.officialAddress?.trim() ?? "";
   if (address === "") return { status: "reviewPending", reasons: ["officialAddressMissing"] };
   if (AMBIGUOUS_LOCATION.test(address)) return { status: "reviewPending", reasons: ["ambiguousLocationWording"] };
@@ -144,7 +167,7 @@ export function evaluateAddressAnchor(input: AddressAnchorInput,
     const output = input.geocode.output?.endsWith(suffix) ? input.geocode.output.slice(0, -suffix.length).trimEnd() : null;
     if (output === null) return { status: "reviewPending", reasons: ["unmatchedRemainder"] };
     // The lot is a verbatim prefix of the official address; the gate re-checks it as if it had been the whole input.
-    const r = evaluateAddressAnchor({ ...input, officialAddress: lot, geocode: { ...input.geocode, input: lot, output, others: [] } }, releases);
+    const r = evaluateAddressAnchor({ ...input, officialAddress: lot, geocode: { ...input.geocode, input: lot, output, others: [] } }, { releases, parcelTerms });
     return r.status === "anchor" ? { ...r, reference: `${r.reference} 除外=${suffix}` } : r;
   }
   const run = input.geocode;
@@ -163,12 +186,16 @@ export function evaluateAddressAnchor(input: AddressAnchorInput,
   if (release !== undefined && (run.lgCode === null || !release.lgCodes.includes(run.lgCode))) reasons.push("datasetReleaseOutOfScope");
   const level = ANCHOR_LEVELS.find((l) => l === run.coordinateLevel);
   if (level === undefined && !reasons.includes("precisionTooLow")) reasons.push("precisionTooLow");
+  if (level === "parcel" && parcelTerms === null) reasons.push("parcelTermsUnreviewed");
   if (reasons.length > 0 || level === undefined || run.latitude === null || run.longitude === null) {
     return { status: "reviewPending", reasons: reasons.length > 0 ? reasons : ["noCoordinate"] };
   }
   return {
     status: "anchor", latitude: run.latitude, longitude: run.longitude, coordinateLevel: level,
     reference: `${run.geocoderId} ${run.geocoderVersion} ${run.datasetReleaseId} ${level} 入力=${address} 出力=${run.output}`,
+    requiredAttribution: level === "parcel" && parcelTerms !== null
+      ? ["アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）", parcelTerms.attributionText]
+      : ["アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）"],
   };
 }
 

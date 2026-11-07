@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   ADDRESS_ANCHOR_DATASET_RELEASE, ADDRESS_ANCHOR_DATASET_RELEASES, type AddressAnchorDatasetRelease, abrJsonRun,
-  addressAnchorDatasetRelease, canonicalAddress, completeOfficialAddress, evaluateAddressAnchor,
+  PARCEL_TERMS_REVIEW, addressAnchorDatasetRelease, canonicalAddress, completeOfficialAddress, evaluateAddressAnchor,
 } from "../src/pipeline/address-anchor.ts";
 import { AREA_ANCHOR_POLICY_VERSION, type ReviewedAreaAnchor, anchoredObservation, recordReviewedAnchors } from "../src/pipeline/area-anchor.ts";
 import { parseCsv } from "../src/pipeline/csv.ts";
@@ -78,7 +78,8 @@ test("anything else is reviewPending with reasons, never a guessed point", () =>
   assert.ok(pending(evaluate(FLOOR, "中央区", { matchLevel: "residential_block", coordinateLevel: "residential_block" })).includes("unmatchedRemainder"));
   // A town or city point is not a facility.
   assert.ok(pending(evaluate(TOWN, "千代田区")).includes("precisionTooLow"));
-  assert.ok(pending(evaluate(KYOBASHI, "中央区", { coordinateLevel: "parcel", matchLevel: "parcel" })).includes("precisionTooLow"));
+  // A parcel point is not coarse; it waits only for the 登記所備付地図データ terms review (gate v3).
+  assert.deepEqual(pending(evaluate(KYOBASHI, "中央区", { coordinateLevel: "parcel", matchLevel: "parcel", score: 1 })), ["parcelTermsUnreviewed"]);
   assert.ok(pending(evaluate(KYOBASHI, "渋谷区")).includes("jurisdictionMismatch"));
   assert.ok(pending(evaluate(KYOBASHI, "中央区", { input: "東京都中央区京橋1-2-1" })).includes("verbatimInputMismatch"));
   assert.ok(pending(evaluate(KYOBASHI, "中央区", { output: "東京都中央区京橋1丁目2-2" })).includes("normalizationChangedMeaning"));
@@ -263,4 +264,27 @@ test("a geocoded anchor travels as officialAddressGeocode and publishes areaAppr
   assert.equal(spots.length, 1);
   assert.equal(spots[0].verification.locationPrecision, "areaApproximate");
   assert.deepEqual(spots[0].verification.locationArea, { name: "テストビル", kind: "facility", scope: "facility" });
+});
+
+test("gate v3: a parcel point is an approximate facility anchor only once its terms are reviewed, and carries that credit", () => {
+  assert.equal(PARCEL_TERMS_REVIEW, null, "the committed review is recorded only by the maintainer");
+  const pending = (r: ReturnType<typeof evaluateAddressAnchor>) => (r.status === "reviewPending" ? r.reasons : ["ANCHOR"]);
+  const parcel = { ...KYOBASHI, result: { ...KYOBASHI.result, score: 1, match_level: "parcel", coordinate_level: "parcel" } };
+  const input = { officialAddress: parcel.query.input, expectedPrefecture: "東京都", expectedMunicipality: "中央区", geocode: abrJsonRun(parcel, "2.3.1", ADDRESS_ANCHOR_DATASET_RELEASE) };
+  assert.deepEqual(pending(evaluateAddressAnchor(input)), ["parcelTermsUnreviewed"]);
+  const parcelTerms = { termsUrl: "https://example.invalid/terms", reviewedBy: "TEST ONLY", reviewedOn: "2026-11-08", attributionText: "TEST ONLY 登記所備付地図データ（法務省）" };
+  const r = evaluateAddressAnchor(input, { parcelTerms });
+  assert.equal(r.status, "anchor");
+  if (r.status !== "anchor") return;
+  assert.equal(r.coordinateLevel, "parcel");
+  assert.match(r.reference, / parcel 入力=/);
+  assert.deepEqual(r.requiredAttribution, ["アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）", parcelTerms.attributionText]);
+  // Every other v2 rule still holds for a parcel point: a coarser coordinate, a remainder or another municipality.
+  const other = (over: object) => pending(evaluateAddressAnchor({ ...input, geocode: { ...input.geocode, ...over } }, { parcelTerms }));
+  assert.ok(other({ coordinateLevel: "machiaza" }).includes("precisionTooLow"));
+  assert.ok(other({ others: ["7階"] }).includes("unmatchedRemainder"));
+  assert.ok(pending(evaluateAddressAnchor({ ...input, expectedMunicipality: "渋谷区" }, { parcelTerms })).includes("jurisdictionMismatch"));
+  // residential points are unchanged by the review and carry only the ABR credit.
+  const detail = evaluateAddressAnchor({ ...input, geocode: abrJsonRun(KYOBASHI, "2.3.1", ADDRESS_ANCHOR_DATASET_RELEASE) }, { parcelTerms });
+  assert.equal(detail.status === "anchor" && detail.requiredAttribution.length, 1);
 });
