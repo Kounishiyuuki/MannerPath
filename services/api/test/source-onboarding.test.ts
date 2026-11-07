@@ -109,7 +109,7 @@ test("Sendai onboarding diagnoses the park anchor as approximate and never as a 
   // Park and airport facility anchors stay approximate; exact municipal fixtures stay publisherPoint.
   const facilityAnchored = (id: string) => id.endsWith("-airport-smoking-places") || id === "chuo-park-smoking-places" || id === "chuo-private-smoking-places"
     || id === "chiyoda-smoking-places" || id === "shibuya-smoking-places"
-    || id === "toshima-smoking-places" || id === "kassen-nomura-smoking-places" || id === "kanazawa-artvillage-smoking-places";
+    || id === "toshima-smoking-places" || id === "kassen-nomura-smoking-places" || id === "kanazawa-artvillage-smoking-places" || id === "kkr-kanazawa-smoking-places";
   for (const other of inspectReviewedSources().filter(r => r.sourceId !== result.sourceId)) {
     assert.equal(other.coordinates.kind, facilityAnchored(other.sourceId) ? "areaApproximate" : "publisherPoint", other.sourceId);
   }

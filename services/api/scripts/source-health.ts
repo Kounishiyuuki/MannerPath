@@ -23,6 +23,8 @@ import { TOSHIMA_PAGE_URL } from "../src/pipeline/toshima-adapter.ts";
 import { KASSEN_NOMURA_PAGE_URL } from "../src/pipeline/kassen-nomura-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_PAGE_URL } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
+import { KKR_KANAZAWA_PAGE_URL } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
   "taito-public-smoking-areas": { filename: "20260818_koshukitsuenjo.csv", url: TAITO_ORIGINAL_DATA_URL },
@@ -35,6 +37,7 @@ const resources: Record<string, { filename: string; url: string }> = {
 // Reviewed in the repository but not deployed to production (ADR-0018 D-C page re-check). Kept out of the production
 // inventory above, which only a deployment expands; monitored only with --repository-reviewed.
 const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
+  "kkr-kanazawa-smoking-places": { filename: "kkr-kanazawa-page-facts.csv", url: KKR_KANAZAWA_PAGE_URL },
   "kassen-nomura-smoking-places": { filename: "kassen-nomura-page-facts.csv", url: KASSEN_NOMURA_PAGE_URL },
   "kanazawa-artvillage-smoking-places": { filename: "kanazawa-artvillage-page-facts.csv", url: KANAZAWA_ARTVILLAGE_PAGE_URL },
 
@@ -63,6 +66,7 @@ export const HEALTH_NOT_CONFIGURED: Record<string, string> = {
 };
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
 const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
+  "kkr-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"喫煙所 １Fロビー入口側","end":"その他施設・設備 Other Facilities"},{"start":"〒920-0912","end":"TEL:"}],"requiredMarkers":["１Fロビー入口側","３Fエレベーター側","石川県金沢市大手町2-32"]},"reviewedFingerprint":"9596f52fcdf6ec2331dfad3d3f1b22338b0b129e4c080d3d26f48fa9f9866a3a"},
   "kassen-nomura-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"※店内は禁煙となります","end":"カウンター席 6席"},{"start":"〒921-8116","end":"駐車場 6台分"}],"requiredMarkers":["店内は禁煙","店外に喫煙スペース","石川県金沢市泉野出町3-3-32"]},"reviewedFingerprint":"d3144059a13498d5ddac8c51ac4d4c07870963b22242a725d1faf3cf747583e2"},
   "kanazawa-artvillage-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"大和町広場 設備及び諸注意事項","end":"大和町広場 平面図"},{"start":"〒920-0046","end":"Copyright ©"}],"requiredMarkers":["園路","喫煙場所","石川県金沢市大和町1-1"]},"reviewedFingerprint":"954412b24dc56490db1e41a9c36c69b11aff108f25710bdae2962039c51f7347"},
 

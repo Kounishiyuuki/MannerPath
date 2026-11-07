@@ -145,6 +145,11 @@ for slug,name,host in [('kassen-nomura','割鮮のむら','www.kassen-nomura.com
  add('operator-'+slug,name,'石川県','operator','https://'+host+'/', ['facilityOperator'])
  reviewed['operator-'+slug]=slug+'-smoking-places'
  PAGE_FACT_SOURCES.add(slug+'-smoking-places')
+# ADR-0018: KKR Kanazawa normalized page facts; parent terms are context, not a reproduction grant.
+kkr=add('operator-kkr-kanazawa','KKRホテル金沢','石川県','operator','https://kanazawa.kkr.or.jp/', ['facilityOperator'])
+kkr['publisher']='国家公務員共済組合連合会 KKRホテル金沢'
+reviewed[kkr['id']]='kkr-kanazawa-smoking-places'
+PAGE_FACT_SOURCES.add('kkr-kanazawa-smoking-places')
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:
