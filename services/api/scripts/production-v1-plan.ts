@@ -117,15 +117,36 @@ export function productionSteps(blockers: string[]): { launch: string[]; stop: s
     "# Stop only new keys: re-run this plan (paused) and deploy.",
     `npx wrangler deploy ${C}`,
   ];
+  const OFF = "-c .wrangler/production-v1/retention-off.jsonc", NO_CRON = "-c .wrangler/production-v1/no-cron.jsonc";
   const rollback = [
-    "# Worker: roll back to the previous version, then RE-DELETE the App ID if intake was stopped (a rollback can restore it).",
-    `npx wrangler rollback ${C}`,
+    "# Worker, to a version older than this plan (e.g. 2026-10-05, which binds R2 and predates the unexpectedCron guard).",
+    "# Cron Triggers are not versioned: remove the retention Cron before the rollback, and stop ALL intake before",
+    "# retention is switched off (paused registration still lets existing keys submit). Each CHECKPOINT is a manual gate.",
+    "npm run production:v1-stop",
+    "# CHECKPOINT: the stopped preflight above printed PASS. Otherwise STOP HERE: do not switch retention off or roll back.",
+    `npx wrangler deploy ${OFF}`,
+    "npm run production:v1-check -- --stage stopped",
+    "# CHECKPOINT: PASS (intake still closed) — otherwise STOP HERE.",
+    `npx wrangler triggers deploy ${NO_CRON}`,
+    "# CHECKPOINT: at least 20 minutes after the line above, an operator confirmed in the dashboard: Triggers empty, no run",
+    "#   other than `disabled` since, no next scheduled run. Until then do NOT roll back; this plan cannot wait or check for you.",
+    "npm run production:v1-check -- --stage stopped",
+    "# CHECKPOINT: PASS — otherwise STOP HERE.",
+    `npx wrangler deployments list ${C}`,
+    `npx wrangler rollback <version-id> ${C}   # an explicit ID: without one it returns to the retention-off v1 version`,
     `npx wrangler secret list ${C}`,
+    "# CHECKPOINT: REPORT_APP_ATTEST_APP_ID is absent after the rollback. If it is back, RE-DELETE the App ID; never restore it here.",
     "# REPORTS_DB 0011 only (photo-only gate returns; no new-spot export without photos):",
     `npx wrangler d1 execute REPORTS_DB ${C} --remote --file migrations-reports-rollback/0011_new_spot_independent_evidence.sql`,
     "# Anything else: D1 Time Travel restore to the bookmark from step 1 (loses every write after it).",
   ];
   return { launch, stop, rollback };
+}
+
+/** The rollback configs (runbook §4): the same Worker with retention off, then also without the Cron. */
+export function rollbackConfigs(config: any): { retentionOff: any; noCron: any } {
+  const retentionOff = { ...structuredClone(config), vars: { ...config.vars, REPORT_RETENTION: "off" } };
+  return { retentionOff, noCron: { ...structuredClone(retentionOff), triggers: { crons: [] } } };
 }
 
 function main(argv: string[]) {
@@ -135,6 +156,9 @@ function main(argv: string[]) {
   const config = productionConfig(parseJsonc(readFileSync(`${apiDir}/wrangler.jsonc`, "utf8")), apiDir);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(`${outDir}/worker.jsonc`, JSON.stringify(config, null, 2) + "\n");
+  const { retentionOff, noCron } = rollbackConfigs(config);
+  writeFileSync(`${outDir}/retention-off.jsonc`, JSON.stringify(retentionOff, null, 2) + "\n");
+  writeFileSync(`${outDir}/no-cron.jsonc`, JSON.stringify(noCron, null, 2) + "\n");
   const blockers = intakeBlockers();
   const { launch, stop, rollback } = productionSteps(blockers);
   console.log(`wrote ${outDir}/worker.jsonc (worker ${PRODUCTION_WORKER}, no R2, retention cron only, registration paused)`);

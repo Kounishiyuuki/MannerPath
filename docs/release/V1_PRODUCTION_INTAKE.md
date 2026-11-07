@@ -122,7 +122,7 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
   止まった、というのが**有力な推定**（ログ本文は権限不足で未確認。時刻・版・コードから推定）。R2 がある本番では
   実際の出典確認が動きうるため、上の順序と防御を設けた。
 
-ロールバック：Worker は `wrangler rollback`。その後 `--stage stopped` を実行し、App ID が戻っていないかを確かめる。
+ロールバック：Worker は、v1 より前の版（2026-10-05 の版は R2 を持ち、`unexpectedCron` の防御がない）へ戻す前に、必ず `production:v1-plan` の rollback の順で、`production:v1-stop` で既存の鍵を含めて受付を止め、`stopped` が PASS でなければ先へ進まない → `retention-off.jsonc` をデプロイ → `no-cron.jsonc` で Cron を削除 → 20分以上待って確認 → 版 ID を指定して `wrangler rollback <version-id>`（ID なしでは直前の v1 の版に戻るだけ）。ロールバック後は `wrangler secret list` で App ID がないことを確認し、復活していた場合は再度削除する。旧版の API は v1 と異なるため、旧版へ戻した後に v1 専用の `--stage stopped` は使わない。
 0011 だけを戻すときは `migrations-reports-rollback/0011_new_spot_independent_evidence.sql`。それ以外は D1 Time Travel。
 
 保持の容量・オフラインheartbeat判定・削除相談・残るP0/P1は[最小運用手順](../legal/v1-text-reports/OPERATIONS.md)を参照。新頻度も実Cron/CPU/D1の成功を保証せず、配備・実測は未実施。
