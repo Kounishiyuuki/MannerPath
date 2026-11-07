@@ -25,6 +25,8 @@ import { SqliteD1, applyMigration, migratedSqlite, migrationFiles } from "./supp
 const KANAZAWA = ["kassen-nomura-smoking-places", "kanazawa-artvillage-smoking-places"];
 const TOKYO = Object.keys(ADDITIVE_SOURCES).filter(s => !KANAZAWA.includes(s));
 const LATER = "2026-10-20T00:00:00Z";
+// The Kanazawa pages were checked 2026-11-07; promoting them at an earlier instant would date the rows before their evidence.
+const KANAZAWA_LATER = "2026-11-08T00:00:00Z";
 const dir = mkdtempSync(join(tmpdir(), "mp-id-preserving-"));
 const LIVE = join(dir, "live-green.sqlite");
 const sha = (p: string) => createHash("sha256").update(readFileSync(p)).digest("hex");
@@ -129,7 +131,7 @@ test("rebuilds with the 513 live IDs, adds the 125 Tokyo spots, and a second v4 
 test("adds only the two Kanazawa sources: 513 live IDs and tile entries unchanged, 2 areaApproximate spots with attribution", async () => {
   const out = join(dir, "kanazawa-input.sqlite");
   const live = await entries(LIVE);
-  const report = await buildIdPreservingInput(LIVE, out, KANAZAWA, { now: LATER, expectedAdded: 2 });
+  const report = await buildIdPreservingInput(LIVE, out, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 2 });
   assert.equal(report.preservedPublishedSpots, 513);
   assert.equal(report.publishedSpots, 515);
   assert.deepEqual(report.addedSpots, { "kassen-nomura-smoking-places": 1, "kanazawa-artvillage-smoking-places": 1 });
