@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { retentionHealth } from "../scripts/report-retention-health.ts";
+import { OVERDUE_STOP_MS, retentionAction, retentionHealth } from "../scripts/report-retention-health.ts";
 import { V1_PRODUCTION } from "../scripts/production-v1-plan.ts";
 const now = Date.parse("2026-11-05T12:00:00Z");
 function event(outcome = "complete", at = now) {
@@ -52,6 +52,38 @@ test("offline CLI refuses remote/extra flags and unreadable input with fixed met
     const child = spawnSync(process.execPath, ["--experimental-strip-types", "--no-warnings", "scripts/report-retention-health.ts", ...args], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
     assert.equal(child.status, 1);
     assert.equal(child.stderr, "");
-    assert.deepEqual(JSON.parse(child.stdout), { event: "reportRetentionHealth", status: "invalid" });
+    assert.deepEqual(JSON.parse(child.stdout), { event: "reportRetentionHealth", status: "invalid", action: "investigate", reason: "invalid" });
   }
+});
+
+const FIVE = 5 * 60_000;
+function run(outcome: string, at: number, due = outcome === "overdue" ? 3 : 0) {
+  const e = event(outcome, at); const r = JSON.parse(e.logs[0].message[0]); r.remaining.dueReports = due;
+  e.logs[0].message[0] = JSON.stringify(r); if (outcome !== "complete") e.outcome = "exception"; return e;
+}
+const act = (events: unknown[]) => { const a = retentionAction(events, now); return `${a.action}:${a.reason}`; };
+test("stop criteria: overdue is progress, not failure; two real failures or one 1102 stop intake", () => {
+  assert.equal(act([run("complete", now - FIVE), run("complete", now)]), "none:healthy");
+  // A backlog draining over consecutive overdue runs never stops intake by itself.
+  assert.equal(act([run("complete", now - FIVE), run("overdue", now)]), "watch:overdue");
+  assert.equal(act([run("overdue", now - FIVE), run("overdue", now)]), "investigate:consecutiveOverdue");
+  const day = Array.from({ length: 288 }, (_, i) => run("overdue", now - (287 - i) * FIVE));
+  assert.equal(act(day), "investigate:consecutiveOverdue", "just under a day");
+  assert.equal(act([run("overdue", now - OVERDUE_STOP_MS), ...day]), "stopIntake:overdueOverOneDay");
+  assert.equal(act([run("overdue", now - OVERDUE_STOP_MS), run("failed", now - FIVE), run("overdue", now)]), "stopIntake:overdueOverOneDay");
+  assert.equal(act([run("overdue", now - OVERDUE_STOP_MS), run("complete", now - FIVE), run("overdue", now)]), "watch:overdue", "a complete run resets the clock");
+  // Real failures.
+  assert.equal(act([run("complete", now - FIVE), run("failed", now)]), "investigate:failed");
+  assert.equal(act([run("failed", now - FIVE), run("failed", now)]), "stopIntake:consecutiveFailures");
+  assert.equal(act([run("overdue", now - FIVE), run("failed", now)]), "investigate:failed", "overdue is not a failure");
+  const crash = run("complete", now); crash.logs = []; crash.outcome = "exception";
+  assert.equal(act([run("failed", now - FIVE), crash]), "stopIntake:consecutiveFailures", "a throw without a record is a failure");
+  const cpu = run("complete", now - 6 * FIVE); cpu.outcome = "exceededCpu"; cpu.logs = [];
+  assert.equal(act([cpu, run("complete", now - FIVE), run("complete", now)]), "stopIntake:exceededCpu");
+  // Not running, paused.
+  assert.equal(act([]), "investigate:notRunning");
+  assert.equal(act([run("complete", now - 4 * FIVE)]), "investigate:notRunning");
+  assert.equal(act([run("complete", now - OVERDUE_STOP_MS)]), "stopIntake:notRunning");
+  assert.equal(act([run("disabled", now)]), "investigate:disabled");
+  assert.equal(act([run("complete", now - FIVE)].concat([{ ...run("complete", now), event: { cron: "0 18 * * *" } }])), "none:healthy");
 });

@@ -51,10 +51,33 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 - 申請系のルートで CPU 10 ms 超が5%を超えた、または 5xx が続けて出た。
 - 同じ下書きの二重保存、規約の版の不一致、写真のルートが 503 以外を返した。
 - 1日の登録が上限（20件）に達した日が続く、または同じ IP からの大量の challenge（429 が出ないままの急増）。
-- 保持処理の cron が失敗/未実行/無効、または `overdue` が2回連続するか、日次確認で未解消backlogが見つかった。
+- 保持処理の cron：下の「保持処理の判定」で `stopIntake` になった。
 - Workers Free の日次上限（リクエスト 100,000件）や D1 Free の上限に近づいた。
 
 新しい鍵だけを止めるときは、`paused` のまま再デプロイする（既存の鍵は申請できる）。
+
+**保持処理の判定**（`npm run reports:retention-health -- <直近24時間以上の tail.jsonl>` の `action` と `reason`）
+
+`overdue` は、滞留を10件ずつ解消している途中でも出る正常な経過で、Cron の実行状態は失敗（例外）になる。
+そのため Cron の失敗件数ではなく、ログの `reportRetention` の結果で区別する。
+
+| `action:reason` | 条件 | 対応 |
+| --- | --- | --- |
+| `stopIntake:exceededCpu` | 保持 Cron で `exceededCpu`（1102）が1件 | 直ちに受付停止、原因調査 |
+| `stopIntake:consecutiveFailures` | 本当の失敗（`failed`、`overdue` の記録なしの例外、不正な記録）が2回連続 | 直ちに受付停止、原因調査 |
+| `stopIntake:overdueOverOneDay` | `overdue` を含む未完了が、最後の `complete` から24時間以上続く | 受付停止 |
+| `stopIntake:notRunning` | 保持 Cron の実行が24時間以上ない | 受付停止、Cron の設定と実行履歴を確認 |
+| `investigate:consecutiveOverdue` | `overdue` が2回連続（受付は止めない） | 残件が減っているか、受付量と処理量を調べる |
+| `investigate:failed` / `disabled` / `notRunning` / `invalid` | 失敗1回、`off`、15分超の空白、読めない export | 調べる。次の実行で再判定 |
+| `watch:overdue` | `overdue` 1回 | 次の実行で残件が減ることを見る |
+| `none:healthy` | 最新が `complete` で残件0 | 記録のみ |
+
+- 受付の停止は `npm run production:v1-stop`（App ID の削除）だけで行う。**保持 Cron は止めず、`REPORT_RETENTION=cleanup`
+  のまま続ける**。受付を止めても滞留の解消は続き、`complete` に戻ることを確認してから再開を判断する。
+- 初回24時間は、`wrangler tail --format json` を記録し続け、1時間ごとに上のコマンドで判定する。あわせて Cloudflare の
+  Workers Metrics で CPU time と `exceededCpu`、D1 の Metrics で rows read／written を見る。その後は毎日1回。
+- CPU 10 ms 超が1時間の半数以上の回で出たら、調査して確認の頻度を上げる（停止はしない）。
+- 停止後の改善の候補は、1回の件数 10→5、状態確認 3→2回、5→10分間隔の順。いずれも効果と整合性を検証してから変える。
 
 ## 4. 手順（`npm run production:v1-plan` が出力する）
 
