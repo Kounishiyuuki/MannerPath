@@ -1,6 +1,6 @@
 # 確定前の整合チェックと承認後の変更順序
 
-基準main `b13a061`（#383/#384/#385統合後、iPhone 1.0(8)）。本PRは候補だけを更新し、稼働する規約・同意・公開URL・source gateは変更しません。
+基準main `6729d56`（2026-11-08、iPhone 1.0(8)）。本PRは候補だけを更新し、稼働する規約・同意・公開URL・source gateは変更しません。
 
 | 対象 | 現状を確認した根拠 | このPRと、承認後に残る操作 |
 | --- | --- | --- |
@@ -15,9 +15,17 @@
 
 [最小反映差分](ACTIVATION_DIFF.md)のGPS/90日要約は#394で日英採用済み。新しい全文と最終署名RCの一致は別途確認する。Q2の[公開前P0確定表](Q2_PUBLICATION_P0.md)に、判断・実行証拠・必要時のみの追加実装を分けた。
 
+## 新版の同期箇所（ソース確認済み、未変更）
+
+- 正文：`docs/legal/report-terms/<version>.md`と`apps/apple/MannerPath/MannerPath/Features/Reports/Terms/<version>.md`を同一bytesにする。
+- iOS：`Features/Reports/ReportDomain.swift`の`ReportTerms.documents`。要約は#394採用済みの`ReportTermsSheet.swift`/`Localizable.xcstrings`と照合。
+- API：`services/api/src/reports/community-publication.ts`の新version・documentPath・documentSha256・termsUrl・承認者/日付。`reports/terms.ts`の`REPORT_TERMS`/`CURRENT_REPORT_TERMS`はその判断から派生するため、旧draftの固定hash/権利を上書きしない。
+- Web：承認後に`site/terms/reports/index.html`、`site/privacy/index.html`、`site/support/index.html`。HTML全体のhashを正文Markdownのhashと混同せず、正文内容・版・施行日・予定URLとの一致を確認。
+- 提出候補：`docs/release/submission-v1/text-reports/app-privacy-candidate.json`は未承認のまま。5型のCollected/Linked/Not Tracking案を維持し、写真の除外は最終Release/API/サポート等の既存条件を検証してから確定する。
+
 ## 最短の実施順序
 
-1. Q1〜Q3への回答を記録し、保持台帳/本人確認・削除/取り下げの未実装・運用不能を解消。推奨期限を現状の保証として先に公開しない。
+1. Q1〜Q3の選択済み準備方針を再質問せず、保持台帳/本人確認・削除/取り下げの未実装・運用不能を解消。推奨期限を現状の保証として先に公開しない。
 2. 必要に応じ法務確認後、候補本文の未決注記を除き、最終bytesから新しい規約version/hashを生成。旧draftは不変。
 3. 小さい承認済みPRで新規約をアプリ/APIへ揃え、同意署名/権利/独立確認/非遡及の既存テストを実行。承認とsource公開操作は分離。
 4. Privacy/Support/規約URL・manifestを同じ意味へ揃え、署名ReleaseでURL到達・同意全文・送信payload・写真非収集を確認。公開URLを切替える担当と受付開始時点を合わせる。

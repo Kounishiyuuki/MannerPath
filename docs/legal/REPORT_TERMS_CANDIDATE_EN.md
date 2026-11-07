@@ -1,10 +1,10 @@
 # MannerPath User Report Terms — English reference translation
 
 > **CANDIDATE — NOT APPROVED. Not displayed in the app, not published and not a basis for publication.**
-> Translation of [Japanese candidate](REPORT_TERMS_CANDIDATE.md) for Q3 review. Japanese is proposed as the authoritative text; this language choice is itself unapproved.
-> Version, effective date and public URL remain unset. Consent to `report-terms.2026-09-30.draft` never becomes consent to the final version.
+> Translation of [Japanese candidate](REPORT_TERMS_CANDIDATE.md) for Q3 review. The selected working direction uses Japanese as the authoritative text and English as a reference translation; the final text is not approved.
+> Version and effective date remain unset. The planned public URL is not yet published. Consent to `report-terms.2026-09-30.draft` never becomes consent to the final version.
 
-Operator candidate: MannerPath 運営. Contact candidate: mannerpath.support@gmail.com. Both require final confirmation.
+Selected operator: MannerPath 運営. Contact: mannerpath.support@gmail.com. These preparation choices do not approve the final terms.
 
 ## Summary
 
@@ -65,7 +65,7 @@ Published reviewed facts are labelled “MannerPath 利用者報告（審査済�
 
 ## 8. Removal and correction requests
 
-Contact support for deletion, correction or restriction requests, including the report ID if known and details.
+Contact support for access, correction, deletion or restriction requests, including the report ID if known and details.
 An ID helps locate information but is not proof of ownership. Do not email private keys, authentication data or identity documents.
 Losing original authentication information after reinstalling may prevent ownership checks or recovery. Third-party privacy/rights concerns are investigated even when ownership is hard to verify.
 Requests are considered under applicable law and confirmed facts. Personal report deletion and publication of independently confirmed place facts are separate.
@@ -86,5 +86,5 @@ These terms do not exclude liabilities or user rights that applicable law does n
 
 ## 11. Governing law and contact
 
-Japanese law is proposed. No exclusive jurisdiction is designated. Contact candidate: mannerpath.support@gmail.com.
-The public terms URL is to be finalized in Q3 and must match the API terms URL.
+Japanese law is proposed. No exclusive jurisdiction is designated. Contact: mannerpath.support@gmail.com.
+Planned public terms URL: https://kounishiyuuki.github.io/MannerPath/terms/reports/ (not yet published). After formal approval it must match the API terms URL.
