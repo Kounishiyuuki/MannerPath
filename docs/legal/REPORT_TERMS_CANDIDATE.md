@@ -9,10 +9,10 @@
 
 - 版: `report-terms.〔MAINTAINER-INPUT: 承認日 YYYY-MM-DD〕`
 - 施行日: 〔MAINTAINER-INPUT: 施行日〕
-- 運営者: MannerPath 運営（公開名の最終確認待ち）
+- 運営者: MannerPath 運営
 - 対象: MannerPath アプリの「場所を追加」「まだあります」「情報を報告」から送信される報告（以下「報告」）
 
-英語の参考訳は [English reference translation](REPORT_TERMS_CANDIDATE_EN.md) を参照してください。日本語を正文とする方針もQ3の承認対象です。
+英語の参考訳は [English reference translation](REPORT_TERMS_CANDIDATE_EN.md) を参照してください。日本語を正文、英語を参考訳とする準備方針です。本文の正式承認は未了です。
 
 ## 要約（本文が優先します）
 
@@ -95,7 +95,7 @@ D1の復元用履歴・バックアップ等には処理前の情報が残るこ
 
 ## 第 8 条（取り下げ・訂正の申し出）
 
-削除・訂正・利用停止等の相談は問い合わせ窓口で受け付けます。分かる場合は報告IDと相談内容を添えてください。
+開示・訂正・削除・利用停止等の相談は問い合わせ窓口で受け付けます。分かる場合は報告IDと相談内容を添えてください。
 報告IDは対象を探す手掛かりであり、それだけで申請者本人と認定しません。秘密鍵・認証情報・本人確認書類をメールで送らないでください。
 再インストール等で元の認証情報を失った場合、本人との関連付けや過去申請の復旧を保証できません。
 本人確認が困難でも、第三者の個人情報や権利の問題は内容を調査します。個別の取扱いは法令と確認できた事実に基づいて判断します。
@@ -122,5 +122,5 @@ MannerPath の情報は、喫煙が許可されていることや場所が利用
 
 - 準拠法: 日本法
 - 管轄: 本規約では専属管轄の指定を置きません
-- 問い合わせ窓口: mannerpath.support@gmail.com（既存公開窓口。最終確認待ち）
-- 本規約の公開場所: 〔MAINTAINER-INPUT: 新規約の公開URL。承認後の配置先とAPIのtermsUrlを一致させる〕
+- 問い合わせ窓口: mannerpath.support@gmail.com
+- 本規約の公開場所: https://kounishiyuuki.github.io/MannerPath/terms/reports/ （予定URL・未公開。正式承認後にAPIのtermsUrlと一致させます）
