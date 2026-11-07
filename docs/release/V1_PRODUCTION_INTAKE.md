@@ -56,7 +56,7 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 
 新しい鍵だけを止めるときは、`paused` のまま再デプロイする（既存の鍵は申請できる）。
 
-**保持処理の判定**（`npm run reports:retention-health -- <直近24時間以上の tail.jsonl>` の `action` と `reason`）
+**保持処理の判定**（`npm run reports:retention-health -- [--covered-since <UTC>] <直近24時間以上の tail.jsonl>` の `action` と `reason`）
 
 `overdue` は、滞留を10件ずつ解消している途中でも出る正常な経過で、Cron の実行状態は失敗（例外）になる。
 そのため Cron の失敗件数ではなく、ログの `reportRetention` の結果で区別する。
@@ -66,14 +66,21 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 | `stopIntake:exceededCpu` | 保持 Cron で `exceededCpu`（1102）が1件 | 直ちに受付停止、原因調査 |
 | `stopIntake:consecutiveFailures` | 本当の失敗（`failed`、`overdue` の記録なしの例外、不正な記録）が2回連続 | 直ちに受付停止、原因調査 |
 | `stopIntake:overdueOverOneDay` | `overdue` を含む未完了が、最後の `complete` から24時間以上続く | 受付停止 |
-| `stopIntake:notRunning` | 保持 Cron の実行が24時間以上ない | 受付停止、Cron の設定と実行履歴を確認 |
+| `stopIntake:notRunning` | 途切れのない記録（`--covered-since`）で、保持 Cron の実行が24時間以上ないと確認できた | 受付停止、Cron の設定と実行履歴を確認 |
 | `investigate:overdueDraining` | `overdue` が2回連続で、残件は減っている（受付は止めない） | 正常な解消の途中か、受付量と処理量を調べる |
 | `investigate:overdueNotDraining` | `overdue` が2回連続で、残件が減っていない（受付は止めない） | 容量・失敗の原因を調べる。24時間続けば上の `overdueOverOneDay` で停止 |
 | `investigate:cpuOver10ms` | 直近1時間の保持 Cron の半数以上で `cpuTime` が 10 ms 超 | 調査し、確認の頻度を上げる（停止しない） |
-| `investigate:failed` / `disabled` / `notRunning` / `invalid` | 失敗1回、`off`、15分超の空白、読めない export | 調べる。次の実行で再判定 |
+| `investigate:failed` / `disabled` / `notRunning` | 失敗1回（後の成功で消えない）、`off`、15分超の空白 | 調べる。次の実行で再判定 |
+| `investigate:unconfirmedCoverage` | 24時間以上実行が見えないが、その間の記録が途切れなく続いていたか確認できない | 証拠不足。Workers の Cron 実行履歴（ダッシュボード）で確かめ、未実行が確かなら受付停止 |
+| `investigate:invalid` | 不正な時刻・未来の時刻・読めない記録が1件でもある | 正常扱いにしない。記録を取り直して再判定 |
 | `watch:overdue` | `overdue` 1回 | 次の実行で残件が減ることを見る |
 | `none:healthy` | 最新が `complete` で残件0 | 記録のみ |
 
+- **判定の証拠の範囲**：判定できるのは渡したファイルに入っている分だけ。空のファイルや途中で切れたファイルは、24時間の
+  未実行の証拠にならない。`--covered-since <UTC、例 2026-11-08T00:00:00Z>` は、運営者が `wrangler tail --format json` を
+  その時刻から再接続の切れ目なく記録し続けたと確認できたときだけ付ける（または Workers の Cron 実行履歴で同じ期間を確認した）。
+  ファイルは 4 MiB まで（保持 Cron は1日約288件で、この範囲に収まる）。超えるときは期間を分けず、記録の取り方を見直す。
+- 2回連続の本当の失敗は、ファイルのどこにあっても停止になる（後の成功で消えない）。間に `overdue` があれば連続とは数えない。
 - 受付の停止は `npm run production:v1-stop`（App ID の削除）だけで行う。**保持 Cron は止めず、`REPORT_RETENTION=cleanup`
   のまま続ける**。受付を止めても滞留の解消は続き、`complete` に戻ることを確認してから再開を判断する。
 - 初回24時間は、`wrangler tail --format json` を記録し続け、1時間ごとに上のコマンドで判定する。あわせて Cloudflare の

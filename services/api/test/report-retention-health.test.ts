@@ -54,6 +54,11 @@ test("offline CLI refuses remote/extra flags and unreadable input with fixed met
     assert.equal(child.stderr, "");
     assert.deepEqual(JSON.parse(child.stdout), { event: "reportRetentionHealth", status: "invalid", action: "investigate", reason: "invalid" });
   }
+  for (const args of [["--covered-since", "2026-11-05", "x.jsonl"], ["--covered-since", "2026-11-05T00:00:00Z"], ["x.jsonl", "--covered-since", "2026-11-05T00:00:00Z"]]) {
+    const child = spawnSync(process.execPath, ["--experimental-strip-types", "--no-warnings", "scripts/report-retention-health.ts", ...args], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
+    assert.equal(child.status, 1);
+    assert.deepEqual(JSON.parse(child.stdout), { event: "reportRetentionHealth", status: "invalid", action: "investigate", reason: "invalid" });
+  }
 });
 
 const FIVE = 5 * 60_000;
@@ -81,6 +86,13 @@ test("stop criteria: overdue is progress, not failure; two real failures or one 
   assert.equal(act([run("failed", now - FIVE), crash]), "stopIntake:consecutiveFailures", "a throw without a record is a failure");
   const cpu = run("complete", now - 6 * FIVE); cpu.outcome = "exceededCpu"; cpu.logs = [];
   assert.equal(act([cpu, run("complete", now - FIVE), run("complete", now)]), "stopIntake:exceededCpu");
+  // Regression (#398 review): two real failures in a row anywhere in the window, even if later runs are healthy.
+  assert.equal(act([run("failed", now - 2 * FIVE), run("failed", now - FIVE), run("complete", now)]), "stopIntake:consecutiveFailures");
+  assert.equal(act([run("failed", now - 3 * FIVE), run("overdue", now - 2 * FIVE), run("failed", now - FIVE), run("complete", now)]), "investigate:failed", "overdue breaks a failure streak; the failures stay visible");
+  // Regression: a future-dated or malformed record never leaves the history healthy.
+  assert.equal(act([run("complete", now - FIVE), run("complete", now + FIVE)]), "investigate:invalid");
+  assert.equal(act([run("complete", now), { ...run("complete", now), eventTimestamp: "yesterday" }]), "investigate:invalid");
+  assert.equal(act([run("failed", now + 2 * FIVE), run("failed", now - FIVE), run("failed", now)]), "stopIntake:consecutiveFailures", "stops still win");
   // CPU: half or more of the last hour's runs over 10 ms asks for investigation only.
   const cpuRun = (at: number, ms: number) => Object.assign(run("complete", at), { cpuTime: ms });
   assert.equal(act([cpuRun(now - 3 * FIVE, 12), cpuRun(now - 2 * FIVE, 14), cpuRun(now - FIVE, 6), cpuRun(now, 5)]), "investigate:cpuOver10ms");
@@ -89,7 +101,14 @@ test("stop criteria: overdue is progress, not failure; two real failures or one 
   // Not running, paused.
   assert.equal(act([]), "investigate:notRunning");
   assert.equal(act([run("complete", now - 4 * FIVE)]), "investigate:notRunning");
-  assert.equal(act([run("complete", now - OVERDUE_STOP_MS)]), "stopIntake:notRunning");
+  // A day without runs stops intake only with confirmed continuous capture over that day.
+  assert.equal(act([run("complete", now - OVERDUE_STOP_MS)]), "investigate:unconfirmedCoverage", "an old export may be truncated");
+  const covered = (events: unknown[], since: number) => { const a = retentionAction(events, now, since); return `${a.action}:${a.reason}`; };
+  assert.equal(covered([], now - OVERDUE_STOP_MS), "stopIntake:notRunning");
+  assert.equal(covered([run("complete", now - OVERDUE_STOP_MS - FIVE)], now - 2 * OVERDUE_STOP_MS), "stopIntake:notRunning");
+  assert.equal(covered([], now - OVERDUE_STOP_MS + FIVE), "investigate:unconfirmedCoverage", "capture shorter than a day");
+  assert.equal(covered([run("complete", now)], now - OVERDUE_STOP_MS), "none:healthy");
+  assert.equal(covered([run("complete", now)], now + 1), "investigate:invalid");
   assert.equal(act([run("disabled", now)]), "investigate:disabled");
   assert.equal(act([run("complete", now - FIVE)].concat([{ ...run("complete", now), event: { cron: "0 18 * * *" } }])), "none:healthy");
 });
