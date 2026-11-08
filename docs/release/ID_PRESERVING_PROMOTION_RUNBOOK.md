@@ -67,11 +67,11 @@ npm run promotion:v4:prepare-import -- --dir <path>/bundle --out <path>/plan --e
 npm run promotion:v4:verify-import-plan -- --dir <path>/plan --expected-digest <digest> --expected-plan-digest <wholePlanSha256>
 ```
 
-For the two reviewed Kanazawa facility sources only (nothing else rides along; `--add` is the whole addition):
+For the three reviewed Kanazawa facility sources only (割鮮のむら, 金沢市民芸術村, KKRホテル金沢 from #404) (nothing else rides along; `--add` is the whole addition):
 
 ```sh
 npm run promotion:id-preserving -- --snapshot <path>/live.sqlite --out <path>/kanazawa-input.sqlite \
-  --add kassen-nomura-smoking-places,kanazawa-artvillage-smoking-places --expect-added 2
+  --add kassen-nomura-smoking-places,kanazawa-artvillage-smoking-places,kkr-kanazawa-smoking-places --expect-added 3
 ```
 
 Then build, verify, apply-local, prepare-import and verify-import-plan as above. The snapshot must be exported after

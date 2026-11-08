@@ -41,6 +41,7 @@ import { SHIBUYA_ADAPTER, SHIBUYA_FIXTURE_RELEASE, SHIBUYA_SOURCE_ID } from "../
 import { TOSHIMA_ADAPTER, TOSHIMA_FIXTURE_RELEASE, TOSHIMA_SOURCE_ID } from "../src/pipeline/toshima-adapter.ts";
 import { KASSEN_NOMURA_ADAPTER, KASSEN_NOMURA_FIXTURE_RELEASE, KASSEN_NOMURA_SOURCE_ID } from "../src/pipeline/kassen-nomura-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_ADAPTER, KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, KANAZAWA_ARTVILLAGE_SOURCE_ID } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
+import { KKR_KANAZAWA_ADAPTER, KKR_KANAZAWA_FIXTURE_RELEASE, KKR_KANAZAWA_SOURCE_ID } from "../src/pipeline/kkr-kanazawa-adapter.ts";
 
 type Release = Parameters<typeof ingestRelease>[3];
 export interface ReviewedFixture { adapter: SourceAdapter; release: Release; fixture: string }
@@ -65,6 +66,7 @@ export const ADDITIVE_SOURCES: Readonly<Record<string, ReviewedFixture>> = {
   [TOSHIMA_SOURCE_ID]: { adapter: TOSHIMA_ADAPTER, release: TOSHIMA_FIXTURE_RELEASE, fixture: `${F}toshima-smoking-places/toshima-page-facts.csv` },
   [KASSEN_NOMURA_SOURCE_ID]: { adapter: KASSEN_NOMURA_ADAPTER, release: KASSEN_NOMURA_FIXTURE_RELEASE, fixture: `${F}kassen-nomura-smoking-places/kassen-nomura-page-facts.csv` },
   [KANAZAWA_ARTVILLAGE_SOURCE_ID]: { adapter: KANAZAWA_ARTVILLAGE_ADAPTER, release: KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, fixture: `${F}kanazawa-artvillage-smoking-places/kanazawa-artvillage-page-facts.csv` },
+  [KKR_KANAZAWA_SOURCE_ID]: { adapter: KKR_KANAZAWA_ADAPTER, release: KKR_KANAZAWA_FIXTURE_RELEASE, fixture: `${F}kkr-kanazawa-smoking-places/kkr-kanazawa-page-facts.csv` },
 };
 
 /** Bookkeeping that `wrangler d1 export` and SQLite may add; never canonical. */
