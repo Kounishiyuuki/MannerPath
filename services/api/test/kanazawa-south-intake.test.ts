@@ -17,7 +17,7 @@ const json = (file: string) => JSON.parse(read(file).toString());
 const RELEASE = "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d";
 const inputs = json("manifest.json").sources as { sourceId: string; factsFile: string; receiptFile: string; expectedRows: number; factsSha256: string }[];
 
-test("actual south ABR release has a pinned 15-zip manifest but all six results fail the unchanged precision gate", () => {
+test("actual south ABR release: under gate v3 no result is an anchor; three parcel points wait only for the parcel terms review", () => {
   assert.deepEqual(addressAnchorDatasetRelease(RELEASE), { releaseId: RELEASE, fileCount: 15, lgCodes: ["172014", "172120"] });
   assert.equal(createHash("sha256").update(read("abr-manifest.txt")).digest("hex"), RELEASE.split(":sha256:")[1]);
   assert.equal(read("abr-manifest.txt").toString().trim().split("\n").length, 15);
@@ -25,12 +25,18 @@ test("actual south ABR release has a pinned 15-zip manifest but all six results 
   const candidates = json("address-candidates.json");
   const evaluated = evaluateCandidates(candidates, json("abrg-output.json"), RELEASE);
   assert.equal(evaluated.length, 6);
-  for (const result of evaluated) {
-    assert.equal(result.status, "reviewPending");
-    assert.ok(result.status === "reviewPending" && result.reasons.includes("precisionTooLow"));
-    assert.equal("latitude" in result, false, "parcel/town coordinates do not escape as facility anchors");
-  }
-  assert.deepEqual(json("anchor-review.json").results, evaluated);
+  for (const result of evaluated) assert.equal("latitude" in result, false, "parcel/town coordinates do not escape as facility anchors");
+  // A parent lot matched with the branch number left over (「3-6」 → lot 3, remainder 「-6」) is not this address's point.
+  assert.deepEqual(Object.fromEntries(evaluated.map((r) => [r.id, r.status === "reviewPending" ? r.reasons : []])), {
+    "homerun-nonoichi-smoking-place": ["unmatchedRemainder", "parcelTermsUnreviewed"],
+    "shiawasenoyu-smoking-place": ["unmatchedRemainder", "parcelTermsUnreviewed"],
+    "hikousen-koudaimae-smoking-place": ["unmatchedRemainder", "precisionTooLow"],
+    "kurashiki-okyozuka-smoking-place": ["parcelTermsUnreviewed"],
+    "hoshino-oshino-smoking-place": ["precisionTooLow", "coordinateCoarserThanMatch"],
+    "manten-hakusan-smoking-place": ["parcelTermsUnreviewed"],
+  });
+  // anchor-review.json is the committed gate-v2 record (parcel was then precisionTooLow); it is history, not re-written.
+  for (const r of json("anchor-review.json").results) assert.ok(r.status === "reviewPending" && r.reasons.includes("precisionTooLow"));
   // Explicit residential target is a separate genuine run, not a fabricated level upgrade.
   for (const result of evaluateCandidates(candidates, json("abrg-residential-output.json"), RELEASE)) {
     assert.equal(result.status, "reviewPending");

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { evaluateCandidates } from "../scripts/address-anchor-candidates.ts";
-import { addressAnchorDatasetRelease } from "../src/pipeline/address-anchor.ts";
+import { abrJsonRun, addressAnchorDatasetRelease, evaluateAddressAnchor } from "../src/pipeline/address-anchor.ts";
 import { haversineMeters } from "../src/geo/distance.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { readPublishedTiles } from "../src/tiles/parts.ts";
@@ -87,7 +87,11 @@ test("new addresses reuse the byte-identical registered dataset without acceptin
   assert.equal(createHash("sha256").update(JSON.stringify(residential)).digest("hex"),
     "7ae6107cee561c40ecd2f5f2b36e35890cd59b2fb63b73a63cf3d3746f94d93f");
   const results = evaluateCandidates(json("address-candidates.json"), raw, RELEASE);
-  assert.deepEqual(json("anchor-evaluation.json").results, results);
+  // anchor-evaluation.json is the committed gate-v2 record: gate v3 adds only requiredAttribution to the two anchors
+  // and names the hotel's parcel blocker parcelTermsUnreviewed instead of precisionTooLow.
+  const v2 = json("anchor-evaluation.json").results;
+  assert.deepEqual(results.filter(r => r.status === "anchor").map(({ requiredAttribution: _, ...rest }: any) => rest), v2.filter((r: any) => r.status === "anchor"));
+  assert.deepEqual(v2.find((r: any) => r.id === "international-hotel").reasons, ["noCoordinate", "precisionTooLow"]);
   const eligible = results.filter(result => result.status === "anchor");
   assert.deepEqual(eligible.map(result => result.id).sort(), ["artvillage", "nomura"]);
   for (const result of eligible) {
@@ -96,8 +100,13 @@ test("new addresses reuse the byte-identical registered dataset without acceptin
   }
   const hotel = results.find(result => result.id === "international-hotel");
   assert.ok(hotel && hotel.status === "reviewPending");
-  assert.ok(hotel.reasons.includes("precisionTooLow"));
-  assert.ok(hotel.reasons.includes("noCoordinate"));
+  assert.deepEqual(hotel.reasons, ["noCoordinate", "parcelTermsUnreviewed"]);
+  // Even once the parcel terms are reviewed, the redacted record has no coordinate to adopt: a re-run is needed.
+  const reviewed = { termsUrl: "https://example.invalid/terms", reviewedBy: "TEST ONLY", reviewedOn: "2026-11-08", attributionText: "TEST ONLY" };
+  const input = json("address-candidates.json").find((c: any) => c.id === "international-hotel");
+  const hotelRun = abrJsonRun(raw.find((x: any) => x.query.input === input.officialAddress), "2.3.1", RELEASE);
+  const again = evaluateAddressAnchor({ officialAddress: input.officialAddress, expectedPrefecture: "石川県", expectedMunicipality: "金沢市", geocode: hotelRun }, { parcelTerms: reviewed });
+  assert.deepEqual(again.status === "reviewPending" && again.reasons, ["noCoordinate"]);
   assert.equal("latitude" in hotel, false, "raw parcel coordinates are research evidence, never an accepted facility anchor");
 });
 
