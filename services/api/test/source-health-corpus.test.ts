@@ -4,7 +4,7 @@ import { SENDAI_SOURCE_ID } from "../src/pipeline/sendai-adapter.ts";
 import { KOMATSU_AIRPORT_SOURCE_ID } from "../src/pipeline/komatsu-airport-adapter.ts";
 import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
 import { checkSourceHealth } from "../src/source-health/check.ts";
-import { productionHealthTargets } from "../scripts/source-health.ts";
+import { productionHealthTargets, repositoryReviewedHealthTargets } from "../scripts/source-health.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { importAllReviewedSources, REVIEWED_FIXTURES, reviewedFixtureBytes } from "./support/reviewed-fixtures.ts";
 import { SqliteD1 } from "./support/sqlite-d1.ts";
@@ -39,7 +39,7 @@ test("source health failures and changed payloads leave the approved corpus and 
   assert.equal(targets.some(target => target.adapter.registry.sourceId === KOMATSU_AIRPORT_SOURCE_ID), false, "repository-reviewed Komatsu is not production-monitored");
   assert.equal(db.raw.prepare("SELECT count(*) n FROM sources WHERE source_id = ?").get(SENDAI_SOURCE_ID)?.n, 1, "the unchanged corpus comparison includes Sendai");
 
-  for (const target of targets) {
+  for (const target of repositoryReviewedHealthTargets()) {
     for (const [httpStatus, expected] of [[403, "accessBlocked"], [404, "unavailable"]] as const) {
       const result = await checkSourceHealth(target, {
         fetch: async () => new Response(null, { status: httpStatus }),
