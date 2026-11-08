@@ -1,7 +1,8 @@
 // TEST ONLY. Adds verification states the reviewed Taito fixture never produces to a COPY of the local D1 database,
 // so the iPhone UI tests can render them in the real app (scripts/run-iphone-ui-tests.sh, visual-audit phase):
 //   - an ADR-0017 areaApproximate spot inside a park (test/support/area.ts, the same pipeline the API tests run);
-//   - an ADR-0012 communityReported spot from one moderated report (REPORTS_DB is in memory and discarded).
+//   - an ADR-0012 communityReported spot from one moderated report with a TEST ONLY operator check (REPORTS_DB is in memory
+//     and discarded).
 // The community source stays blocked and the report terms stay draft in the code and registry; this copy simulates
 // their approval by hand, exactly as test/coverage-first-multiconfidence.test.ts does. It never runs against the
 // default local state, a remote database, or anything a release is built from.
@@ -12,6 +13,7 @@ import { isoSeconds } from "../src/db.ts";
 import { COMMUNITY_SOURCE_ID } from "../src/pipeline/community-adapter.ts";
 import { applyCommunityApplication } from "../src/pipeline/community-reconciliation.ts";
 import { createReport } from "../src/reports/create.ts";
+import { getAdminReport, recordIndependentEvidence } from "../src/reports/admin-review.ts";
 import { recordModerationDecision, setReconciliationState } from "../src/reports/moderation.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
@@ -38,6 +40,15 @@ const { reportId } = await createReport(reportsOf(db), {
   installId: "8f1c4d2e-0a3b-4c5d-8e9f-0a1b2c3d4e5f", note: "TEST ONLY", acceptedTermsVersion: CURRENT_REPORT_TERMS.version,
   claim: { spotType: "ashtray", hostType: "convenienceStore", environment: "outdoor", accessType: "public" },
 } as never, { now, attestationStatus: "notProvided", submitterHash: "0123456789abcdef".repeat(4) });
+// v1.0 publishes a new place only on an approved evidence photo or an operator-recorded independent check. Photos are
+// closed in v1.0, so this copy records a TEST ONLY check through the real admin path (validated like any other); its
+// source is example.invalid and its recorder "ui-fixture", so it can never be mistaken for a real check.
+await recordIndependentEvidence(reportsOf(db), {
+  reportId, basis: "officialSource", sourceUrl: "https://example.invalid/ui-fixture-independent-check",
+  checkedOn: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).format(now),
+  expectedVersion: (await getAdminReport(reportsOf(db), reportId, now)).version,
+  operationId: crypto.randomUUID(), decidedBy: "ui-fixture", placeConfirmed: true,
+}, now);
 await recordModerationDecision(reportsOf(db), reportId, { state: "accepted", decidedBy: "ui-fixture", reason: "confirmed", now });
 await setReconciliationState(reportsOf(db), reportId, "queued", now);
 const applicationId = await proposeNewSpot(storesOf(db), {
