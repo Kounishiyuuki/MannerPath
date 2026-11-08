@@ -394,11 +394,11 @@ test("19: every reviewed source's real pipeline: candidates change nothing, v3 b
   const corpusNow = "2026-11-08T00:00:00Z"; // After every reviewed fixture fetch, including Kanazawa.
   await importAllReviewedSources(db, corpusNow);
   await publishTiles(db, { now: corpusNow });
-  // All twenty-three repository-reviewed sources include Sendai, eight airports, Chuo/Chiyoda/Shibuya/Toshima
-  // address facility anchors and three Kanazawa facilities; two Taito rows stay unpublished.
-  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 652);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 650);
-  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshots").n, 106);
+  // All twenty-nine repository-reviewed sources include Sendai, eight airports, Chuo/Chiyoda/Shibuya/Toshima
+  // address facility anchors and nine Kanazawa facilities; two Taito rows stay unpublished.
+  assert.equal(one(db, "SELECT count(*) n FROM spots").n, 658);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshot_spots").n, 656);
+  assert.equal(one(db, "SELECT count(*) n FROM tile_snapshots").n, 108);
   const bundleBefore = await buildMultiSourcePromotionBundle(db);
   const before = canonical(db);
   await generateCrossSourceCandidates(db, { now: corpusNow });

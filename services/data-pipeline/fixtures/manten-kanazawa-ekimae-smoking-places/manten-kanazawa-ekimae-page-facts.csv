@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+manten-kanazawa-ekimae,金沢マンテンホテル駅前 喫煙室（1F・4F・7F）,金沢マンテンホテル駅前,facility,1F駐車場入口横・4Fエレベーター付近・7Fエレベーター付近,石川県金沢市北安江1-6-1,other,https://www.manten-hotel.com/kanazawa/faq/,2026-11-08,36.581441767,136.649589106,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市北安江1-6-1 出力=石川県金沢市北安江1丁目6-1

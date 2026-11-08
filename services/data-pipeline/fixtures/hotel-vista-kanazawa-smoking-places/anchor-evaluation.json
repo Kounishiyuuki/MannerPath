@@ -1,0 +1,19 @@
+{
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "candidates": 1,
+  "anchors": 1,
+  "pendingReasons": {},
+  "results": [
+    {
+      "id": "hotel-vista-kanazawa",
+      "status": "anchor",
+      "latitude": 36.580329911,
+      "longitude": 136.643377003,
+      "coordinateLevel": "residential_detail",
+      "reference": "abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市広岡2-13-27 出力=石川県金沢市広岡2丁目13-27",
+      "requiredAttribution": [
+        "アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）"
+      ]
+    }
+  ]
+}

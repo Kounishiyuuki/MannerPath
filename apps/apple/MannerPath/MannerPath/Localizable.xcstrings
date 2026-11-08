@@ -2676,6 +2676,36 @@
         }
       }
     },
+    "Suggestions appear on the map only after MannerPath reviews them.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提案はMannerPathが確認した後に地図へ掲載されます。"
+          }
+        }
+      }
+    },
+    "Opens your saved report.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存した申請を開きます。"
+          }
+        }
+      }
+    },
+    "Explains why new place submissions are paused.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい場所の受付を停止している理由を表示します。"
+          }
+        }
+      }
+    },
     "Suggest missing place": {
       "localizations": {
         "ja": {

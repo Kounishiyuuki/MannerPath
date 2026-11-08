@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+route-inn-kanazawa-ekimae,ホテルルートイン金沢駅前 喫煙スペース（1F）,ホテルルートイン金沢駅前,facility,1F,石川県金沢市昭和町22番5号,other,https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/,2026-11-08,36.574896175,136.646092219,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市昭和町22番5号 出力=石川県金沢市昭和町22-5

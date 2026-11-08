@@ -524,3 +524,27 @@ Reviewed 2026-11-08 JST. Receipts, rights scope and reproduced address anchor:
 | Attribution | Operator/source URL/check date plus アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）, normalization/geocoding notice and facility-point disclaimer; full text in adapter |
 | Pinned release | CSV SHA-256 `dee2776a66e4e6c018684c7213b85366919377126482e999d49ba24ed23d65c8`; 1 row → 1 local published spot |
 | Status | approved for pinned local-pipeline release only; partial, crossReleaseValidated=false. No production inventory expansion, DB/tile write or deployment |
+
+### 金沢市のホテル4施設 — ADR-0018 operator factReference sources (shared reviewed-facility adapter)
+
+Reviewed 2026-11-08 JST. Receipts, rights scope and reproduced address anchors: each `services/data-pipeline/fixtures/<source>/PROVENANCE.md`. Held, not added: ホテル日航金沢 and 三井ガーデンホテル金沢 (ABR residential_block, gate `unmatchedRemainder`); ダイワロイネットホテル金沢駅西口・MIYABI (site terms Art.11 restrict use beyond private use; operator permission needed).
+
+| Source ID | Facility / publisher | Official page | Existence (normalized) | Address anchor | Rights context | Pinned CSV SHA-256 |
+|---|---|---|---|---|---|---|
+| `manten-kanazawa-ekimae-smoking-places` | 金沢マンテンホテル駅前 / マンテンホテル株式会社 | https://www.manten-hotel.com/kanazawa/faq/ | 1F駐車場入口横・4F/7Fエレベーター付近の喫煙室（4F/7Fは客室階） | 金沢市北安江1-6-1, ABR residential_detail, areaApproximate / facility | Footer copyright and linked privacy policy reviewed; no information-use or database prohibition found | `65f0151bf8b26fc2938d35ea849137560bf6f904dfae115e11fd05ff9f67019a` |
+| `hotel-sanraku-kanazawa-smoking-places` | 金沢白鳥路 ホテル山楽 / Ken Hotels & Resorts Holdings | https://sanraku.kenhotels.com/hakuchoro/faq/ | ロビーエントランス付近の屋外・地下駐車場の喫煙スペース（館内は全館禁煙、喫煙室ではない） | 金沢市丸の内6-3, ABR residential_detail, areaApproximate / facility | Footer rights notice and group privacy policy reviewed; no information-use or database prohibition found | `5a86fa29639fa2968de9ba92b3773bbf2acf7d9bd150b254b8bab8dea0f54384` |
+| `route-inn-kanazawa-ekimae-smoking-places` | ホテルルートイン金沢駅前 / ルートインジャパン株式会社 | https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/ | 1Fの喫煙スペース（加熱式たばこ専用客室は対象外） | 金沢市昭和町22番5号, ABR residential_detail, areaApproximate / facility | Footer copyright; member terms govern member services (no public-page fact-reference prohibition) | `4c3b9f32a145371b2bd45a38d9a0ccfba3ad05609886a264d02c60f1ac29035f` |
+| `hotel-vista-kanazawa-smoking-places` | ホテルビスタ金沢 / 株式会社ビスタホテルマネジメント | https://kanazawa.hotel-vista.jp/ja/facilities | 2Fの喫煙ブース（それ以外の館内は禁煙） | 金沢市広岡2-13-27, ABR residential_detail, areaApproximate / facility | Terms read in full 2026-11-08: reservation-system terms (Art.1 scope, Art.3 for-profit use of the system), accommodation terms, usage rules; no copyright/reproduction/database clause. Reference limited to the public facilities page, never the reservation system | `88156dd6147a2c917584a746609d4e8285e3c6287a9fc8253f4250252c00c6a6` |
+
+Common to all four: factReference, no licence claimed, normalized facts only; one spot per facility, never the smoking-place coordinate; access (incl. non-guest), tobacco types, smoking hours and physical classification unknown; current official page checked 2026-11-08, not a site visit; repository-only source-health scopes for smoking/address facts and rights pages; approved for pinned local-pipeline release only, partial, crossReleaseValidated=false. No production inventory expansion, DB/tile write or deployment.
+
+### 金沢市のホテル 第2バッチ — ADR-0018 operator factReference sources (shared reviewed-facility adapter)
+
+Reviewed 2026-11-08 JST; research in `docs/research/2026-11-08-kanazawa-hotels-batch2.md`. Held, not added: 金沢東急ホテル and the three ホテルマイステイズ (site terms prohibit using content without permission), 野乃金沢 (address gate), チサン バジェット (no official address in page text), インターゲート (sign-design evidence only), スマイルプレミアム東口 (ashtray outside, management unclear).
+
+| Source ID | Facility / publisher | Official page | Existence (normalized) | Address anchor | Rights context | Pinned CSV SHA-256 |
+|---|---|---|---|---|---|---|
+| `dormy-inn-kanazawa-smoking-places` | 天然温泉 加賀の湧泉 ドーミーイン金沢 / 株式会社共立メンテナンス | https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/ | 1Fの液晶TV付喫煙ブース（7Fの喫煙フロアーは客室で対象外） | 金沢市堀川新町2-25（アクセスページ。県名は既存の補完規則）, ABR residential_detail, areaApproximate / facility | Footer rights notice; terms clause 12 (copyrighted works → private use) and clause 11 (commercial acts through the service) recorded as context; no fact-reference/information-use prohibition | `9703a8b70e8b84d955af6cb01f64a13f54a1ce40908f46011cabbcaac0bca864` |
+| `smile-hotel-kanazawa-nishiguchi-smoking-places` | スマイルホテル金沢西口駅前 / ホスピタリティパートナーズグループ | https://smile-hotels.com/hotels/kanazawanishiguchiekimae/ | 指定の喫煙スペース（場所・階は記載なし） | 石川県金沢市広岡3丁目2番37号, ABR residential_detail, areaApproximate / facility | Footer copyright; facility privacy/特商法 page governs personal data only; no use restriction found | `0f3e4ab9eac6ac41dca97482a7c01a768addcaa2dd4269926d58a9cd2f8d0b0d` |
+
+Common: factReference, no licence claimed, normalized facts only; one spot per facility, never the smoking-place coordinate; access (incl. non-guest), tobacco types, smoking hours and physical classification unknown; current official page checked 2026-11-08, not a site visit; repository-only source-health scopes; approved for pinned local-pipeline release only, partial, crossReleaseValidated=false. No production inventory expansion, DB/tile write or deployment.

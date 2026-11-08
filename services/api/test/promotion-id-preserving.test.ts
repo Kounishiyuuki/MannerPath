@@ -23,7 +23,9 @@ import { NOW } from "./support/fixture.ts";
 import { SqliteD1, applyMigration, migratedSqlite, migrationFiles } from "./support/sqlite-d1.ts";
 
 const KANAZAWA = ["kassen-nomura-smoking-places", "kanazawa-artvillage-smoking-places", "kkr-kanazawa-smoking-places"];
-const TOKYO = Object.keys(ADDITIVE_SOURCES).filter(s => !KANAZAWA.includes(s));
+const TOKYO = ["chiyoda-smoking-places", "chuo-park-smoking-places", "chuo-private-smoking-places", "shibuya-smoking-places", "toshima-smoking-places"];
+const HOTELS = ["hotel-sanraku-kanazawa-smoking-places", "hotel-vista-kanazawa-smoking-places", "manten-kanazawa-ekimae-smoking-places",
+  "route-inn-kanazawa-ekimae-smoking-places", "dormy-inn-kanazawa-smoking-places", "smile-hotel-kanazawa-nishiguchi-smoking-places"];
 const LATER = "2026-10-20T00:00:00Z";
 // The Kanazawa pages were checked 2026-11-07; promoting them at an earlier instant would date the rows before their evidence.
 const KANAZAWA_LATER = "2026-11-08T00:00:00Z";
@@ -157,12 +159,81 @@ test("adds only the three Kanazawa sources: 513 live IDs and tile entries unchan
   assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 9, "6 live + 3 requested; no other reviewed source rides along");
 });
 
+test("re-running is safe: the same input preserves the same 513 entries, a promoted source is never re-added, and the next run keeps all 516", async () => {
+  const first = join(dir, "rerun-a.sqlite"), second = join(dir, "rerun-b.sqlite");
+  const a = await buildIdPreservingInput(LIVE, first, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 3 });
+  const b = await buildIdPreservingInput(LIVE, second, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 3 });
+  assert.equal(a.snapshotSha256, b.snapshotSha256);
+  assert.deepEqual([a.preservedPublishedSpots, a.publishedSpots, a.tiles], [b.preservedPublishedSpots, b.publishedSpots, b.tiles]);
+  const live = await entries(LIVE), ea = await entries(first), eb = await entries(second);
+  for (const id of live.keys()) assert.deepEqual(ea.get(id), eb.get(id), `live entry ${id} is the same in both runs`);
+  // New IDs are fresh per run, so the reviewed bundle digest belongs to one run: never rebuild between review and import.
+  assert.notEqual(a.outputSha256, b.outputSha256);
+
+  // After the Kanazawa promotion, its GREEN is the next snapshot.
+  const green = join(dir, "green-rerun.sqlite");
+  const pipeline = new DatabaseSync(first, { readOnly: true });
+  try { await promote(pipeline, green); } finally { pipeline.close(); }
+  const before = sha(green);
+  for (const id of KANAZAWA) await assert.rejects(buildIdPreservingInput(green, join(dir, "again.sqlite"), [id], { now: KANAZAWA_LATER }), /already exists in the snapshot/);
+  assert.equal(existsSync(join(dir, "again.sqlite")) || existsSync(join(dir, "again.sqlite.partial")), false);
+  const next = await buildIdPreservingInput(green, join(dir, "next.sqlite"), ["chiyoda-smoking-places"], { now: KANAZAWA_LATER, expectedAdded: 30 });
+  assert.equal(next.preservedPublishedSpots, 516, "the 513 and the 3 Kanazawa spots are all rebuilt under their live IDs");
+  assert.equal(next.publishedSpots, 546);
+  assert.equal(sha(green), before, "the snapshot is never written");
+});
+
+test("the additive list is exactly Tokyo, Kanazawa and the hotels, disjoint from the live sources", () => {
+  assert.deepEqual(Object.keys(ADDITIVE_SOURCES).sort(), [...TOKYO, ...KANAZAWA, ...HOTELS].sort());
+  for (const id of HOTELS) assert.equal(Object.hasOwn(LIVE_SOURCES, id), false, id);
+});
+
+test("chained: 513 live, then the three Kanazawa sources, then the six hotels; every earlier spot keeps its ID, row and tile entry", async () => {
+  const promoted = async (input: string, green: string) => {
+    const pipeline = new DatabaseSync(input, { readOnly: true });
+    try { await promote(pipeline, green); } finally { pipeline.close(); }
+  };
+  const stage1 = join(dir, "chain-k.sqlite"), green1 = join(dir, "chain-green-k.sqlite");
+  const k = await buildIdPreservingInput(LIVE, stage1, KANAZAWA, { now: KANAZAWA_LATER });
+  await promoted(stage1, green1);
+  const stage2 = join(dir, "chain-h.sqlite"), green2 = join(dir, "chain-green-h.sqlite");
+  const before = sha(green1);
+  const h = await buildIdPreservingInput(green1, stage2, HOTELS, { now: KANAZAWA_LATER });
+  assert.equal(sha(green1), before, "the snapshot is never written");
+  await promoted(stage2, green2);
+  // Counts come from the stages themselves, not from a fixed expectation.
+  const livePublished = (await entries(LIVE)).size;
+  assert.equal(k.preservedPublishedSpots, livePublished);
+  assert.equal(k.publishedSpots, livePublished + Object.values(k.addedSpots).reduce((a, b) => a + b, 0));
+  assert.equal(h.preservedPublishedSpots, k.publishedSpots, "the Kanazawa spots are live in the second stage");
+  assert.deepEqual(Object.keys(h.addedSpots).sort(), [...HOTELS].sort());
+  for (const id of HOTELS) assert.ok(h.addedSpots[id] >= 1, id);
+  assert.equal(h.publishedSpots, k.publishedSpots + Object.values(h.addedSpots).reduce((a, b) => a + b, 0));
+  const e1 = await entries(green1), e2 = await entries(green2);
+  for (const [id, entry] of e1) assert.deepEqual(e2.get(id), entry, `public tile entry of ${id}`);
+  const ids = JSON.stringify([...e1.keys()]);
+  assert.deepEqual(all(green2, `SELECT ${SPOT_COLUMNS} FROM spots WHERE spot_id IN (SELECT value FROM json_each('${ids}')) ORDER BY spot_id`),
+    all(green1, `SELECT ${SPOT_COLUMNS} FROM spots ORDER BY spot_id`));
+  assert.equal(Number(all(green2, "SELECT count(*) - count(DISTINCT spot_id) n FROM tile_snapshot_spots")[0].n), 0);
+  assert.equal(Number(all(green2, "SELECT count(*) n FROM sources")[0].n), Number(all(green1, "SELECT count(*) n FROM sources")[0].n) + HOTELS.length);
+  for (const { spot } of e2.values()) if (!e1.has(spot.id)) {
+    assert.equal(HOTELS.includes(spot.sourceIds[0]), true);
+    assert.equal(spot.verification.locationPrecision, "areaApproximate");
+  }
+  for (const id of [...KANAZAWA, ...HOTELS]) await assert.rejects(buildIdPreservingInput(green2, join(dir, "chain-again.sqlite"), [id], { now: KANAZAWA_LATER }), /already exists in the snapshot/);
+});
+
 test("refuses unknown, duplicated or already-live sources and an existing output, leaving nothing behind", async () => {
   const out = join(dir, "refused.sqlite");
   await assert.rejects(buildIdPreservingInput(LIVE, out, ["sendai-kaigan-park-smoking-areas"], { now: LATER }), /not a reviewed additive source/);
   await assert.rejects(buildIdPreservingInput(LIVE, out, ["toshima-smoking-places", "toshima-smoking-places"], { now: LATER }), /duplicate source/);
   await assert.rejects(buildIdPreservingInput(LIVE, LIVE, TOKYO, { now: LATER }), /must differ/);
-  await assert.rejects(buildIdPreservingInput(LIVE, out, ["taito-public-smoking-areas"], { now: LATER, additiveSources: LIVE_SOURCES }), /already exists in the snapshot/);
+  // One ID in both lists is refused before anything is read, whichever fixture each side names.
+  for (const additiveSources of [{ ...ADDITIVE_SOURCES, "taito-public-smoking-areas": LIVE_SOURCES["taito-public-smoking-areas"] },
+    { ...ADDITIVE_SOURCES, "taito-public-smoking-areas": ADDITIVE_SOURCES["chiyoda-smoking-places"] }]) {
+    await assert.rejects(buildIdPreservingInput(LIVE, out, ["chiyoda-smoking-places"], { now: LATER, additiveSources }), /taito-public-smoking-areas is in both the live and the additive sources/);
+  }
+  assert.deepEqual(Object.keys(LIVE_SOURCES).filter(id => Object.hasOwn(ADDITIVE_SOURCES, id)), [], "the committed lists are disjoint");
   writeFileSync(out, "");
   await assert.rejects(buildIdPreservingInput(LIVE, out, TOKYO, { now: LATER }), /already exists/);
   rmSync(out);

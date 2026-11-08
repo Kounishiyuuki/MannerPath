@@ -3,6 +3,8 @@ import SwiftUI
 struct AboutPrivacyView: View {
     let sources: [SpotSource]
     let reportModel: ReportModel
+    /// Starts the same entry as the map and search buttons; offered only while new-place proposals are accepted.
+    var onSuggestPlace: (() -> Void)? = nil
 
     #if DEBUG
     @State private var confirmWatchFixture = false
@@ -78,6 +80,13 @@ struct AboutPrivacyView: View {
             Section("Reports") {
                 ForEach(AboutPrivacyCopy.reportParagraphs(for: reportModel.availability), id: \.self) { paragraph in
                     Text(verbatim: paragraph)
+                }
+                if let onSuggestPlace, reportModel.acceptsNewSpotProposals {
+                    Button(action: onSuggestPlace) {
+                        Label("Suggest a missing place", systemImage: "plus.circle")
+                    }
+                    .accessibilityHint(Text(verbatim: ReportEntryCopy.reviewNote))
+                    .accessibilityIdentifier("aboutSuggestPlaceButton")
                 }
                 Text("Browsing does not register this device for reports. Secure registration is attempted only when you submit a report, if required.")
                 Text("Photo uploads are unavailable in this version.")
