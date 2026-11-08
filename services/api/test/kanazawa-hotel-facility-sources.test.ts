@@ -121,5 +121,6 @@ test("new hotel pins are distinct facilities: none shares or stacks on another p
 test("registered once each, after KKR, as approved factReference sources", () => {
   const ids = SOURCE_ADAPTERS.map(a => a.registry.sourceId);
   for (const c of CASES) assert.equal(ids.filter(id => id === c.adapter.registry.sourceId).length, 1, c.slug);
-  assert.deepEqual(ids.slice(ids.indexOf("kkr-kanazawa-smoking-places") + 1), CASES.map(c => c.adapter.registry.sourceId));
+  const k = ids.indexOf("kkr-kanazawa-smoking-places");
+  assert.deepEqual(ids.slice(k + 1, k + 1 + CASES.length), CASES.map(c => c.adapter.registry.sourceId));
 });

@@ -146,6 +146,18 @@ struct NearbyLocationModelTests {
         #expect(withPhotos.hasSuffix(String(localized: "Send its location and photos. MannerPath reviews them and adds approved information to the map.")))
     }
 
+    @Test func reportEntryHintSaysSuggestionsWaitForReview() {
+        let review = ReportEntryCopy.reviewNote
+        #expect(review == String(localized: "Suggestions appear on the map only after MannerPath reviews them."))
+        #expect(ReportEntryCopy.hint(acceptsNewSpotProposals: true, continuesSavedReport: false) == review)
+        #expect(ReportEntryCopy.hint(acceptsNewSpotProposals: false, continuesSavedReport: false)
+                == String(localized: "Explains why new place submissions are paused."))
+        // A saved draft or photo follow-up reopens; it never promises a new listing.
+        for accepts in [true, false] {
+            #expect(ReportEntryCopy.hint(acceptsNewSpotProposals: accepts, continuesSavedReport: true) == String(localized: "Opens your saved report."))
+        }
+    }
+
     @Test func permissionIsRequestedOnlyByExplicitAction() async {
         let location = FakeLocationProvider(state: .notDetermined)
         let store = FakeTileData()
