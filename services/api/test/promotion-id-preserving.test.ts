@@ -22,7 +22,7 @@ import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW } from "./support/fixture.ts";
 import { SqliteD1, applyMigration, migratedSqlite, migrationFiles } from "./support/sqlite-d1.ts";
 
-const KANAZAWA = ["kassen-nomura-smoking-places", "kanazawa-artvillage-smoking-places"];
+const KANAZAWA = ["kassen-nomura-smoking-places", "kanazawa-artvillage-smoking-places", "kkr-kanazawa-smoking-places"];
 const TOKYO = Object.keys(ADDITIVE_SOURCES).filter(s => !KANAZAWA.includes(s));
 const LATER = "2026-10-20T00:00:00Z";
 // The Kanazawa pages were checked 2026-11-07; promoting them at an earlier instant would date the rows before their evidence.
@@ -128,13 +128,13 @@ test("rebuilds with the 513 live IDs, adds the 125 Tokyo spots, and a second v4 
   assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 11);
 });
 
-test("adds only the two Kanazawa sources: 513 live IDs and tile entries unchanged, 2 areaApproximate spots with attribution", async () => {
+test("adds only the three Kanazawa sources: 513 live IDs and tile entries unchanged, 3 areaApproximate spots with attribution, KKR once", async () => {
   const out = join(dir, "kanazawa-input.sqlite");
   const live = await entries(LIVE);
-  const report = await buildIdPreservingInput(LIVE, out, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 2 });
+  const report = await buildIdPreservingInput(LIVE, out, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 3 });
   assert.equal(report.preservedPublishedSpots, 513);
-  assert.equal(report.publishedSpots, 515);
-  assert.deepEqual(report.addedSpots, { "kassen-nomura-smoking-places": 1, "kanazawa-artvillage-smoking-places": 1 });
+  assert.equal(report.publishedSpots, 516);
+  assert.deepEqual(report.addedSpots, { "kassen-nomura-smoking-places": 1, "kanazawa-artvillage-smoking-places": 1, "kkr-kanazawa-smoking-places": 1 });
   const green = join(dir, "green-kanazawa.sqlite");
   const pipeline = new DatabaseSync(out, { readOnly: true });
   try { await promote(pipeline, green); } finally { pipeline.close(); }
@@ -147,13 +147,14 @@ test("adds only the two Kanazawa sources: 513 live IDs and tile entries unchange
   const liveTileIds = new Set([...live.values()].map(e => e.tile));
   const added = greenTiles.flatMap(t => t.spots.map(spot => ({ t, spot }))).filter(({ spot }) => !live.has(spot.id));
   assert.deepEqual(added.map(({ spot }) => spot.sourceIds[0]).sort(), [...KANAZAWA].sort());
+  assert.equal(added.filter(({ spot }) => spot.name.startsWith("KKRホテル金沢")).length, 1, "KKR is one spot, under its #404 source only");
   for (const { t, spot } of added) {
     assert.equal(liveTileIds.has(t.tile), false, "Kanazawa tiles are new; no live tile is rewritten");
     assert.equal(spot.verification.locationPrecision, "areaApproximate");
     assert.ok(spot.verification.locationArea);
     assert.ok(t.sources.find(s => s.id === spot.sourceIds[0])?.attributionText, `attribution of ${spot.id}`);
   }
-  assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 8, "6 live + 2 requested; no other reviewed source rides along");
+  assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 9, "6 live + 3 requested; no other reviewed source rides along");
 });
 
 test("refuses unknown, duplicated or already-live sources and an existing output, leaving nothing behind", async () => {
