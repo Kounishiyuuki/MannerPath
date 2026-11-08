@@ -75,7 +75,8 @@
     "capacity:summary": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-summary.ts",
     "capacity:run": "node --experimental-strip-types --experimental-sqlite --no-warnings scripts/capacity-run.ts",
     "source:health": "node --experimental-strip-types --no-warnings scripts/source-health.ts",
-    "source:hold": "node --experimental-strip-types --no-warnings scripts/source-hold.ts"
+    "source:hold": "node --experimental-strip-types --no-warnings scripts/source-hold.ts",
+    "production:preflight": "node --experimental-strip-types --no-warnings scripts/cloudflare-production-preflight.ts"
   },
   "dependencies": {
     "fast-png": "8.0.0",
