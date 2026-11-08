@@ -193,10 +193,32 @@ export function evaluateAddressAnchor(input: AddressAnchorInput,
   return {
     status: "anchor", latitude: run.latitude, longitude: run.longitude, coordinateLevel: level,
     reference: `${run.geocoderId} ${run.geocoderVersion} ${run.datasetReleaseId} ${level} 入力=${address} 出力=${run.output}`,
-    requiredAttribution: level === "parcel" && parcelTerms !== null
-      ? ["アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）", parcelTerms.attributionText]
-      : ["アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）"],
+    requiredAttribution: requiredAnchorAttribution(level, parcelTerms),
   };
+}
+
+export const ABR_ATTRIBUTION = "アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）";
+
+/** Whether an attribution carries a credit. The ABR credit is worded several ways across reviewed sources; it must name
+ * the dataset and its terms. Any other credit (the parcel terms) must appear verbatim. */
+export function attributionCarriesCredit(attribution: string, credit: string): boolean {
+  return credit === ABR_ATTRIBUTION
+    ? attribution.includes("アドレス・ベース・レジストリ") && attribution.includes("公共データ利用規約")
+    : attribution.includes(credit);
+}
+
+/** The credits a published attribution must carry for an anchor at this level; a parcel point without its terms review has none to give. */
+export function requiredAnchorAttribution(level: (typeof ANCHOR_LEVELS)[number], parcelTerms: ParcelTermsReview | null = PARCEL_TERMS_REVIEW): readonly string[] {
+  if (level !== "parcel") return [ABR_ATTRIBUTION];
+  if (parcelTerms === null) throw new Error("address anchors: a parcel point needs the recorded parcel terms review");
+  return [ABR_ATTRIBUTION, parcelTerms.attributionText];
+}
+
+/** The credits for a committed `officialAddressGeocode` reference (its level is the fourth token, as the gate writes it). */
+export function requiredAttributionForReference(reference: string, parcelTerms: ParcelTermsReview | null = PARCEL_TERMS_REVIEW): readonly string[] {
+  const level = ANCHOR_LEVELS.find((l) => reference.split(" ")[3] === l);
+  if (level === undefined) throw new Error(`address anchors: no anchor level in reference ${reference}`);
+  return requiredAnchorAttribution(level, parcelTerms);
 }
 
 /** Parses one element of `abrg <file> -f json` output into the gate's run shape (one best result per input). */
