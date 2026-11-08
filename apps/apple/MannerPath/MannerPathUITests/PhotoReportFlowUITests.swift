@@ -42,7 +42,17 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     }
 
     func choosePinAndAgree() {
-        app.buttons["地図でピンを選ぶ"].tap()
+        let choose = app.buttons["地図でピンを選ぶ"]
+        // At AX5 the button is ~155 pt tall, and scrolling up to it can stop with it partly above the Form, its centre
+        // behind the top bars (observed y=-6.7 and y=2.3 under a bar ending at 142): XCTest calls that hittable, but the
+        // tap lands on the bars and the picker never opens. Bring it fully below the bar in short drags, then tap once settled.
+        let bar = app.navigationBars["喫煙場所を追加"]
+        for _ in 0..<4 where bar.exists && choose.exists && choose.frame.minY < bar.frame.maxY {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.45)).press(forDuration: 0.05,
+                thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.65)))
+        }
+        waitUntilSettled(choose)
+        choose.tap()
         XCTAssertTrue(app.navigationBars["提案するピンを選ぶ"].waitForExistence(timeout: 10))
         app.buttons["地図の中心を使用"].tap()
         let confirm = app.buttons["提案するピンを確定"]
