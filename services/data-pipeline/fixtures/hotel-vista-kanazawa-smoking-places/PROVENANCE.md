@@ -15,6 +15,7 @@
 Engineering `factReference` classification under ADR-0018 D-R, **not legal clearance, an open licence or operator permission**. Registry licence name and URL remain null.
 
 - フッターは © VISTA HOTEL MANAGEMENT CO.,Ltd.。「規約/約款/ポリシー」ページはインターネット宿泊予約システム利用規約で、私的利用以外の目的での「本システム」の無断利用を禁じる。これは予約システムの利用に関する条項で、公開施設ページの事実参照を対象とする記載はないと読んだ。適用範囲について法的確定判断はしていない（メンテナー確認推奨）。情報利用・DB化の明示禁止は確認されなかった。
+- The terms page was re-read in full on 2026-11-08 (reservation-system terms, accommodation terms, usage rules, external transmission): Article 1 defines 「本システム」 as the lodging reservation function, and the for-profit (Article 3) and non-private-use clauses govern that system. There is no copyright, reproduction or database clause. The reference is limited to the public facilities page and never uses the reservation system.
 - Only the factual existence, the location qualifiers and the operator's factual address are stored in our own normalized form. If the operator objects or an information-use restriction appears, hold/re-review and withdraw the source.
 
 ## Independent facility-address anchor
@@ -29,4 +30,4 @@ Engineering `factReference` classification under ADR-0018 D-R, **not legal clear
 
 CSV SHA-256 `88156dd6147a2c917584a746609d4e8285e3c6287a9fc8253f4250252c00c6a6`, one record. Only this pinned reviewed release is approved; a changed page needs review. Cross-release validation false, completeness partial.
 
-**Not yet registered**: the adapter is standalone until the shared reviewed-facility adapter (#408) lands; `SOURCE_ADAPTERS`, `REVIEWED_SOURCES`, `docs/SOURCES.md`, source-health and onboarding are untouched, so nothing is published by the pipeline yet. `test/kanazawa-hotel-facility-sources.test.ts` rehearses ingest → anchor → tile/detail in an in-memory database. No production database, tile, Worker or configuration change.
+**Registered** through the shared reviewed-facility adapter (#409) like KKR: `SOURCE_ADAPTERS`, reviewed fixtures, onboarding pins, `docs/SOURCES.md`, discovery manifest, and repository-only source health (smoking/address scope and rights-page scopes with reviewed fingerprints; review due 2027-02-08). `test/kanazawa-hotel-facility-sources.test.ts` covers ingest → anchor → tile/detail. Production inventory is not expanded; no production database, tile, Worker or configuration change.
