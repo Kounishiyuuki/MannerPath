@@ -371,7 +371,18 @@
     "manten/receipt.json": "71497845de4fbe9dcacb54c2d87629f84805c500d0d55142c0fa42980b45f28c",
     "manten/rights-review.json": "d9f18eb34c5d762c3da189b993985edc9146711969bef35ed7204c068e62e1cc",
     "spatial-review.json": "1b09f3f209a469c766b5fbd9ba42985f6eff341e14c4189a988fe33c84104900",
-    "terms-evidence.json": "3f26be0339446975c609dbbfc03363b5d1d4f4178c56edf6994ff7cb4cdf392d",
-    "terms-review.md": "181a55e8f483a6fb536a90063ab4202938710cc4ddab74a0fb3d1b767ad24ae3"
+    "terms-evidence.json": "b85b552f4143c694d342515a7591070d836dfca350a9cae7af9cd4e85a46ee00",
+    "terms-review.md": "67bb3ab643c2502dc8525c31bf0725db387877ff8059537669e9d8a043dcb1df",
+    "data-lineage.json": "25bfa3a5fb2e7764063e2969c34a630800cd2c3de6f23a0d918f436ccf991a22",
+    "canonical-terms-receipt.json": "316bc30a6a0bdc6dceab4d18144d44804a93bab6d7a07c45eb0329ade85a7ac2",
+    "facility-followup.json": "4490348447b2092c33baa171c07b93834bd89e5dfd9b552861753344b2872e53",
+    "facility-followup-receipts.json": "75c97331eb46e25968d5201f5ae7b0fd8a6d14c3d3ec1cbe7913092b6120f9e3"
+  },
+  "followupEvidence": {
+    "dataLineage": "data-lineage.json",
+    "canonicalTerms": "canonical-terms-receipt.json",
+    "facilities": "facility-followup.json",
+    "creditDraftSupersededBy": "terms-evidence.json#creditDraft",
+    "productionReady": 0
   }
 }

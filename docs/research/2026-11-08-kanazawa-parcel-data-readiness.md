@@ -86,3 +86,16 @@ ABR2.3.1をリポジトリ外で実行し、登録済み金沢・野々市15ZIP�
 
 候補ファイルは既存source:intakeへadapterなしで通し、shape/hashを検証した結果を保存する。registry、SOURCE_ADAPTERS、SOURCES、共通adapter、公開設定には接続しない。
 テストでは実際のデフォルトゲートで3件とも`parcelTermsUnreviewed`を確認し、intakeはblocked、承認false、adapterPreview=nullのままで、既存基準データ・tile状態が変わらないことを検証する。
+
+
+## Followup: canonical identity and distribution lineage (2026-11-08)
+
+The earlier 403 is a historical observation, superseded by a successful ordinary public CKAN metadata/resource GET. The canonical GSpatial PDF is byte-identical to the Tellus copy (141,976 bytes; checksum in canonical-terms-receipt.json). Tellus/AIGID hosted the corroborating terms copy, not the coordinates used here. The actual provider is Digital Agency ABR. All four current official master/position ZIP downloads match the cached ZIP checksums (data-lineage.json).
+
+The local snapshot label, acquisition date and catalog update dates are NOT the original MOJ XML map edition or survey date; the latter remain unknown. ABRG projects the ABR EPSG:6668 representative point to WGS84; it does not survey an entrance/smoking room or compute a new centroid. rep_scale is not an error radius; efct_date is not survey vintage. Legal parcel extents remain unconfirmed. Kurashiki still has weaker spatial context and needs an explicit location decision.
+
+The retrieved terms conditionally support commercial use and address matching/projection (processing), coordinate storage (reproduction), and API/tile/offline/Watch distribution (public transmission/copies). Source and processing/processor credit, no governmental endorsement, and prohibitions on identifying-person combinations and rights/privacy infringement remain applicable. Catalog CC BY metadata does not replace ABR PDL and additional MOJ conditions. The terms-document catalog gfdl field is not the coordinate license. The corrected credit draft in terms-evidence.json supersedes earlier non-executable credit drafts; all executable fixtures and reviews must be regenerated after approval. This is an engineering reading, not owner approval.
+
+All 13 facility documents were refetched HTTP200 with unchanged bytes (facility-followup*.json). Kurashiki has a smoking booth; noncustomer/purchase-only access remains unknown. Manten: distinguish the first-floor room from floors2-4, where nonguests cannot enter guest floors; first-floor daybath/smoking-only permission remains unknown. Kokusai: smoking facilities are documented; shuttle-bus nonguest restrictions must not be treated as smoking-room restrictions. Paper/heated support and smoking-room hours remain unknown for all three. No onsite operating-status verification was performed.
+
+The #409 common adapter is merged. Adoption still requires owner license-scope/credit approval plus independent source fact/rights/location approval, candidate-to-anchor column conversion, regenerated hashes and reviewed fixtures. No factory instantiation or source registration occurs here. PARCEL_TERMS_REVIEW remains null: approved anchors 0, production additions 0.

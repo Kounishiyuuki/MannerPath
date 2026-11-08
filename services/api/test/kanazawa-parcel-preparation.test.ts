@@ -56,7 +56,7 @@ test("three actual parcel runs remain unapproved under the current default v3 te
   }
 });
 
-test("retrieved original terms are evidence with an unresolved version check, never an owner's approval", () => {
+test("retrieved original terms are evidence with verified canonical identity, never an owner's approval", () => {
   const evidence = json("terms-evidence.json");
   assert.equal(evidence.originalTextVerified, true);
   assert.equal(evidence.document.title, "登記所備付地図データ利用規約");
@@ -67,8 +67,8 @@ test("retrieved original terms are evidence with an unresolved version check, ne
   assert.equal(evidence.document.maintainerApproval, false);
   assert.equal(evidence.formalApproval, false);
   assert.equal(evidence.parcelTermsReview, null);
-  assert.equal(evidence.canonicalCurrentVersionEquivalence, "unconfirmed");
-  assert.match(evidence.document.canonicalCurrentVersionEquivalence, /not established/);
+  assert.equal(evidence.canonicalCurrentVersionEquivalence, "confirmedAtFollowup");
+  assert.match(evidence.document.canonicalCurrentVersionEquivalence, /confirmed at/);
   assert.equal(PARCEL_TERMS_REVIEW, null);
   assert.deepEqual(evidence.applicableDatasets, ["地番マスター", "地番マスター位置参照"]);
   assert.ok(evidence.remainingDecisions.length > 0);
@@ -220,4 +220,31 @@ test("candidate inspection and failed registration preserve every baseline row, 
       assert.ok(haversineMeters(points[i], points[j]) > 25);
     }
   } finally { db.raw.close(); }
+});
+
+test("followup provenance and facility checks do not confer approval", () => {
+  const lineage = json("data-lineage.json");
+  assert.match(lineage.dataProvider, /Digital Agency ABR/);
+  assert.equal(lineage.resources.length, 4);
+  for (const resource of lineage.resources) {
+    assert.equal(resource.currentGet.httpStatus, 200);
+    assert.equal(resource.currentGet.byteIdenticalToCachedZip, true);
+    assert.equal(resource.currentGet.sha256, resource.cachedZipSha256);
+    assert.equal(new URL(resource.downloadUrl).hostname, "data.address-br.digital.go.jp");
+  }
+  assert.equal(lineage.limits.upstreamMojMapEpoch, "unconfirmed");
+  assert.equal(lineage.geocoderTransformation.sourceSridForAllThree, "EPSG:6668");
+  const canonical = json("canonical-terms-receipt.json");
+  assert.equal(canonical.canonicalTerms.equalsPriorTellusPdfBytes, true);
+  assert.equal(canonical.canonicalTerms.pdfSha256, json("terms-evidence.json").document.sha256);
+  assert.equal(canonical.formalApproval, false);
+  assert.equal(canonical.parcelTermsReview, null);
+  const followup = json("facility-followup.json");
+  assert.equal(followup.http200, 13);
+  assert.equal(followup.all13BytesUnchanged, true);
+  for (const facility of followup.facilities) {
+    assert.equal(facility.publicationApproved, false);
+    assert.equal(facility.parcelTermsApproved, false);
+    assert.equal(facility.siteVisitPerformed, false);
+  }
 });
