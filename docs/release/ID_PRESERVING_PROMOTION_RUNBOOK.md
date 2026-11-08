@@ -82,12 +82,80 @@ If the tool refuses, stop. A refusal means production differs from the reviewed 
 a relocation or a refresh applied only in production. A rebuild would undo that state silently. Do not work
 around the refusal: report it and decide the case.
 
-## Then (maintainer only)
+## Repeated runs and later additions
 
-Follow §4 steps 4–7 of the release plan:
-1. Create a fresh GREEN, import the plan, then readiness and smoke.
-2. Switch the `DB` binding.
-3. To roll back, rebind to BLUE.
+- A source that an earlier run promoted is live from then on. The next snapshot carries it, and the tool rebuilds
+  it from its `ADDITIVE_SOURCES` fixture under its live IDs, like the six original sources. Requesting it again in
+  `--add` is refused (`already exists in the snapshot`).
+- Two runs on the same snapshot preserve the same live entries, but they give the new spots different fresh IDs, so
+  the output and bundle digests differ. Build once, review that bundle's digests, and import that bundle. Never
+  rebuild between the review and the import.
+- **#411 (4 Kanazawa hotels) is a dependency, not part of this runbook.** Until #411 is merged, those sources are not
+  in `SOURCE_ADAPTERS` or `ADDITIVE_SOURCES`, and `--add` refuses them. After #411 merges, a separate PR adds its
+  4 adapters to `ADDITIVE_SOURCES`, using the existing `KKR_KANAZAWA` line as the pattern, plus a test like the
+  Kanazawa one: preserved N, +4, each source once. Their command is then `--add <4 ids> --expect-added 4`, on a
+  snapshot taken after the 3-source promotion. It is a separate promotion; it is not combined into the 3.
+
+## Production procedure (maintainer only; Claude ran none of it)
+
+Every remote step needs the maintainer's separate authorization for that release. The order is fixed. At any
+**STOP**, do nothing further and keep BLUE serving.
+
+1. **Preconditions.**
+   - The production migrations are applied, so the snapshot schema equals `migrations/`.
+   - The rights sign-off for every source in `--add` is recorded.
+   - `make api-validate` and `make contract` pass on the commit being released.
+2. **Backup.** The live database (BLUE) is never written by this procedure. A new database (GREEN) receives the
+   import. Even so, before the switch, record both of these in the deployment record:
+   - the export file from "Read-only operations" above, as the offline copy;
+   - the Time Travel bookmark of BLUE: `npx wrangler d1 time-travel info <BLUE database>`. Time Travel is
+     Cloudflare's point-in-time recovery for D1, `developers.cloudflare.com/d1/reference/time-travel/`.
+3. **Dry run (local, no remote call).**
+   - Run the "Local steps" commands on the snapshot.
+   - Then run `apply-local` into a fresh local GREEN file.
+   - Expected results: `preservedPublishedSpots` = live published, `publishedSpots` = live + `--expect-added`,
+     `verify` and `verify-import-plan` are `verified`.
+   - Run the local SQL check below on the local GREEN against the snapshot. **STOP** on any refusal or any non-zero count.
+
+   ```sql
+   ATTACH '<snapshot>.sqlite' AS l;
+   -- 0: every live spot keeps its ID, coordinates, tile, name and lifecycle
+   SELECT count(*) FROM l.spots a LEFT JOIN spots b USING (spot_id)
+    WHERE b.spot_id IS NULL OR a.latitude <> b.latitude OR a.longitude <> b.longitude OR a.tile_id <> b.tile_id
+       OR a.name IS NOT b.name OR a.lifecycle <> b.lifecycle;
+   -- 0: live tiles change only in generatedAt
+   SELECT count(*) FROM l.tile_snapshots a JOIN tile_snapshots b USING (tile_id)
+    WHERE json_remove(a.body_json, '$.generatedAt') <> json_remove(b.body_json, '$.generatedAt');
+   -- 0: no spot ID published twice
+   SELECT count(*) - count(DISTINCT spot_id) FROM tile_snapshot_spots;
+   ```
+
+4. **Apply.** Follow the release plan §4 steps 4–5:
+   - create a fresh GREEN D1, migrate it, import the verified plan in order, and finalize;
+   - point a staging Worker or a readiness check at GREEN.
+   - BLUE and REPORTS_DB are not touched.
+5. **Verify after the apply, before the switch.**
+   - `GET /v1/readiness` reports a completed v4.
+   - The tiles of the new spots return the new spots.
+   - One live tile is identical to BLUE's, apart from `generatedAt`.
+   - **STOP** (do not switch, and delete GREEN at leisure) on any mismatch.
+6. **Switch.** Rebind `DB` to GREEN with a deploy. Then re-run the public GET scan (`release:data-audit`), the
+   source notices and `GET /v1/config` (release plan §4 step 7).
+7. **Rollback.** On any failed check or user-visible fault after the switch:
+   - rebind `DB` to BLUE, which is unchanged, and redeploy;
+   - BLUE's bookmark from step 2 is needed only if BLUE itself was written by mistake;
+   - keep BLUE until the release is accepted.
+
+### Without a production copy
+
+If the export cannot be taken, nothing above step 3 has been checked against production. The synthetic rehearsal
+does not show any of these:
+- that the live fixtures' digests equal the live releases;
+- that the live corpus has no hold, relocation or merge outside the fixtures;
+- the live published count, which the evidence of 2026-10-15 puts at 513;
+- the live schema.
+
+The tool refuses each of these cases on a real snapshot. Without one, the promotion is not ready.
 
 ## Evidence (synthetic, 2026-10-19)
 
@@ -101,3 +169,16 @@ The synthetic live DB is a sealed v4 GREEN promoted from the 6 production fixtur
 - Tests: `test/promotion-id-preserving.test.ts`, 6 tests.
 - Mutation checks were run on the guards: ID reuse, tile-entry comparison, release-digest check and the duplicate
   radius. Each mutation was killed.
+
+## Evidence (synthetic, 2026-11-08, Kanazawa 3 and a repeated run)
+
+The synthetic live DB is a sealed v4 GREEN from the 6 production fixtures: 513 published, 81 tiles.
+- `id-preserving --add <3 Kanazawa> --expect-added 3`: `preservedPublishedSpots 513`, `publishedSpots 516`, `tiles 84`.
+- build, verify, apply-local, prepare-import and verify-import-plan: `verified`, `completed`, `verified`, `files 4`.
+- The GREEN had 516 spots / 516 published / 84 tiles / 9 sources / 1 completion / 1 KKR spot.
+- The SQL checks in step 3 gave 0 / 0 / 0. The snapshot SHA-256 was unchanged.
+- That GREEN as the next snapshot:
+  - `--add kkr-kanazawa-smoking-places` was refused (`already exists in the snapshot`), with no output;
+  - `--add chiyoda-smoking-places --expect-added 30` gave `preservedPublishedSpots 516`, `publishedSpots 546`.
+- Before this change, the second run was refused: the snapshot carried `kanazawa-artvillage-smoking-places`, which
+  had no reviewed fixture to rebuild from. The new test fails on that code.

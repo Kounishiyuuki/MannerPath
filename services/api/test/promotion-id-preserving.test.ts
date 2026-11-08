@@ -157,6 +157,30 @@ test("adds only the three Kanazawa sources: 513 live IDs and tile entries unchan
   assert.equal(Number(all(green, "SELECT count(*) n FROM sources")[0].n), 9, "6 live + 3 requested; no other reviewed source rides along");
 });
 
+test("re-running is safe: the same input preserves the same 513 entries, a promoted source is never re-added, and the next run keeps all 516", async () => {
+  const first = join(dir, "rerun-a.sqlite"), second = join(dir, "rerun-b.sqlite");
+  const a = await buildIdPreservingInput(LIVE, first, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 3 });
+  const b = await buildIdPreservingInput(LIVE, second, KANAZAWA, { now: KANAZAWA_LATER, expectedAdded: 3 });
+  assert.equal(a.snapshotSha256, b.snapshotSha256);
+  assert.deepEqual([a.preservedPublishedSpots, a.publishedSpots, a.tiles], [b.preservedPublishedSpots, b.publishedSpots, b.tiles]);
+  const live = await entries(LIVE), ea = await entries(first), eb = await entries(second);
+  for (const id of live.keys()) assert.deepEqual(ea.get(id), eb.get(id), `live entry ${id} is the same in both runs`);
+  // New IDs are fresh per run, so the reviewed bundle digest belongs to one run: never rebuild between review and import.
+  assert.notEqual(a.outputSha256, b.outputSha256);
+
+  // After the Kanazawa promotion, its GREEN is the next snapshot.
+  const green = join(dir, "green-rerun.sqlite");
+  const pipeline = new DatabaseSync(first, { readOnly: true });
+  try { await promote(pipeline, green); } finally { pipeline.close(); }
+  const before = sha(green);
+  for (const id of KANAZAWA) await assert.rejects(buildIdPreservingInput(green, join(dir, "again.sqlite"), [id], { now: KANAZAWA_LATER }), /already exists in the snapshot/);
+  assert.equal(existsSync(join(dir, "again.sqlite")) || existsSync(join(dir, "again.sqlite.partial")), false);
+  const next = await buildIdPreservingInput(green, join(dir, "next.sqlite"), ["chiyoda-smoking-places"], { now: KANAZAWA_LATER, expectedAdded: 30 });
+  assert.equal(next.preservedPublishedSpots, 516, "the 513 and the 3 Kanazawa spots are all rebuilt under their live IDs");
+  assert.equal(next.publishedSpots, 546);
+  assert.equal(sha(green), before, "the snapshot is never written");
+});
+
 test("refuses unknown, duplicated or already-live sources and an existing output, leaving nothing behind", async () => {
   const out = join(dir, "refused.sqlite");
   await assert.rejects(buildIdPreservingInput(LIVE, out, ["sendai-kaigan-park-smoking-areas"], { now: LATER }), /not a reviewed additive source/);
