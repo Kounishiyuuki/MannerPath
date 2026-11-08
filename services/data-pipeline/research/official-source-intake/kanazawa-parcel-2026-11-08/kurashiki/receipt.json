@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sourceId": "kurashiki-okyozuka-smoking-place",
+  "publisher": "倉式珈琲店 御経塚店（運営者公式）",
+  "publisherUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+  "resourceUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+  "receivedOn": "2026-11-08",
+  "evidenceReference": "facts-review.json; ../fetch-receipts.json; locally normalized candidate, not a publisher-delivered dataset",
+  "rightsReference": "rights-review.json; ../terms-review.md; parcel terms formal review remains null, source approval pending",
+  "attributionText": "出典：倉式珈琲店 御経塚店 喫煙場所（公式サイト） https://www.saint-marc-hd.com/kurashiki/shop/19/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：野々市市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+  "licenseName": null,
+  "licenseUrl": null,
+  "coordinateMeaning": "facility",
+  "operationClaim": "unknown",
+  "operationEvidenceReference": "Current official page lists smoking place; desk observation only, no formally approved lifecycle claim"
+}
