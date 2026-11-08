@@ -73,20 +73,25 @@ function local(o: Observed): Check[] {
 
 const sameSet = (a: string[], b: string[]) => a.length === b.length && [...a].sort().every((x, i) => x === [...b].sort()[i]);
 
-function beforeDb(o: Observed): Check[] {
+/** Shared pure review check; no Wrangler, probe or database operation. */
+export function migrationReviewChecks(o: Pick<Observed, "reviews" | "fileSha256">, db: Database): Check[] {
   const checks: Check[] = [];
-  for (const db of DATABASES) {
-    checks.push(check(`${db}: unapplied migrations are exactly the expected ${EXPECTED_PENDING[db].length}`, sameSet(o.pending[db], EXPECTED_PENDING[db])));
-    const listed = o.reviews.filter((r) => r.database === db).map((r) => r.name);
-    checks.push(check(`${db}: Lane 2's review names exactly the expected migrations`, sameSet(listed, EXPECTED_PENDING[db])));
-    for (const name of EXPECTED_PENDING[db]) {
-      const r = o.reviews.filter((x) => x.database === db && x.name === name);
-      checks.push(check(`${db} ${name}: Lane 2 approved these exact bytes`,
-        r.length === 1 && r[0].verdict === "approved" && /^[0-9a-f]{64}$/.test(r[0].sha256) && r[0].sha256 === o.fileSha256(db, name)
-        && typeof r[0].reviewedBy === "string" && r[0].reviewedBy.length > 0));
-    }
+  const listed = o.reviews.filter((r) => r.database === db).map((r) => r.name);
+  checks.push(check(`${db}: Lane 2's review names exactly the expected migrations`, sameSet(listed, EXPECTED_PENDING[db])));
+  for (const name of EXPECTED_PENDING[db]) {
+    const r = o.reviews.filter((x) => x.database === db && x.name === name);
+    checks.push(check(`${db} ${name}: Lane 2 approved these exact bytes`,
+      r.length === 1 && r[0].verdict === "approved" && /^[0-9a-f]{64}$/.test(r[0].sha256) && r[0].sha256 === o.fileSha256(db, name)
+      && typeof r[0].reviewedBy === "string" && r[0].reviewedBy.length > 0));
   }
   return checks;
+}
+
+function beforeDb(o: Observed): Check[] {
+  return DATABASES.flatMap(db => [
+    check(`${db}: unapplied migrations are exactly the expected ${EXPECTED_PENDING[db].length}`, sameSet(o.pending[db], EXPECTED_PENDING[db])),
+    ...migrationReviewChecks(o, db),
+  ]);
 }
 
 function closed(o: Observed): Check[] {
