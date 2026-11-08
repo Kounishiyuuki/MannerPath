@@ -136,12 +136,42 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
         XCTAssertTrue(searchEntry.isHittable)
         XCTAssertLessThanOrEqual(searchEntry.frame.maxY, keyboard.frame.minY, "Entry hidden by the keyboard")
         XCTAssertTrue(searchEntry.label.contains("喫煙所を追加"))
+        let reviewNote = app.staticTexts["searchReportReviewNote"]
+        XCTAssertTrue(reviewNote.exists, "The search entry says a suggestion is reviewed before it is listed")
+        XCTAssertTrue(reviewNote.label.contains("確認した後に地図へ掲載"), reviewNote.label)
         screenshot("primary-05-search-report-entry")
         searchEntry.tap()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["report.newPlace.introduction"].exists)
         discardReportDraft()
         XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForNonExistence(timeout: 10))
+    }
+
+    func testDataAndPrivacyOffersSuggestionOnlyWhileIntakeIsOpen() {
+        launch(extraArguments: ["-uiTestPhotoReport", "success"])
+        XCTAssertTrue(app.buttons["mapReportButton"].waitForExistence(timeout: 90))
+        app.buttons["データとプライバシー"].tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        let suggest = app.buttons["aboutSuggestPlaceButton"]
+        scrollTo(suggest)
+        XCTAssertTrue(suggest.label.contains("未掲載の場所を提案"), suggest.label)
+        screenshot("primary-09-about-suggest-place")
+        suggest.tap()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["report.newPlace.introduction"].exists)
+        discardReportDraft()
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForNonExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].exists, "Closing the form returns to Data & Privacy")
+    }
+
+    func testDataAndPrivacyHasNoSuggestionWhilePaused() {
+        launch(extraArguments: ["-uiTestPhotoReport", "paused"])
+        XCTAssertTrue(app.buttons["mapReportButton"].waitForExistence(timeout: 90))
+        app.buttons["データとプライバシー"].tap()
+        XCTAssertTrue(app.navigationBars["データとプライバシー"].waitForExistence(timeout: 10))
+        // This Reports line comes after where the button would sit, so reaching it scrolls past that position.
+        scrollTo(app.staticTexts["このバージョンでは写真を送信できません。"])
+        XCTAssertFalse(app.buttons["aboutSuggestPlaceButton"].exists)
     }
 
     func testPausedEntryIsFoundWhileSearchingAndOnlyExplainsThePause() {
@@ -159,6 +189,7 @@ final class N_PrimaryFlowUITests: MannerPathUITestCase {
         XCTAssertFalse(mapEntry.exists)
         XCTAssertFalse(app.buttons["sheetReportButton"].exists)
         XCTAssertTrue(searchEntry.label.contains("新規申請の受付停止中"))
+        XCTAssertFalse(app.staticTexts["searchReportReviewNote"].exists, "No review note while intake is paused")
         screenshot("primary-08-paused-search-entry")
         searchEntry.tap()
         assertIntakePausedAlert()

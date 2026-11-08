@@ -204,7 +204,7 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
-                        AboutPrivacyView(sources: model.sources, reportModel: reportModel)
+                        AboutPrivacyView(sources: model.sources, reportModel: reportModel, onSuggestPlace: { openReportEntry() })
                             // Not a `path` push, so the detent follows here: a full page needs the full sheet.
                             .onAppear { sheetDetent = .large }
                     } label: {
@@ -378,6 +378,16 @@ struct ContentView: View {
         return reportModel.acceptsNewSpotProposals ? "plus.circle.fill" : "pause.circle"
     }
 
+    private var reportEntryHint: String {
+        ReportEntryCopy.hint(acceptsNewSpotProposals: reportModel.acceptsNewSpotProposals,
+                             continuesSavedReport: reportModel.draft != nil || reportModel.hasPendingPhotoFollowUp)
+    }
+
+    /// Shown under the search entry only when it starts a new place, the moment a place was not found.
+    private var showsSearchReviewNote: Bool {
+        reportModel.acceptsNewSpotProposals && reportModel.draft == nil && !reportModel.hasPendingPhotoFollowUp
+    }
+
     /// A saved draft is reopened rather than replaced, as the in-list "Continue saved report" does. Drafts and photo
     /// follow-ups keep their own gates; only a new place needs the deployment to accept new-place proposals.
     private func openReportEntry() {
@@ -422,21 +432,29 @@ struct ContentView: View {
         .buttonStyle(.borderedProminent)
         .disabled(reportModel.isBusy)
         .accessibilityIdentifier("sheetReportButton")
-        .accessibilityHint("Check submission availability and saved drafts")
+        .accessibilityHint(Text(verbatim: reportEntryHint))
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(.bar)
     }
 
     private var searchReportButton: some View {
-        Button { openReportEntry() } label: {
-            Label(reportEntryTitle, systemImage: reportEntrySymbol)
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        VStack(alignment: .leading, spacing: 6) {
+            Button { openReportEntry() } label: {
+                Label(reportEntryTitle, systemImage: reportEntrySymbol)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }
+            .buttonStyle(.bordered)
+            .disabled(reportModel.isBusy)
+            .accessibilityIdentifier("searchReportButton")
+            .accessibilityHint(Text(verbatim: reportEntryHint))
+            if showsSearchReviewNote {
+                Text(verbatim: ReportEntryCopy.reviewNote)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("searchReportReviewNote")
+            }
         }
-        .buttonStyle(.bordered)
-        .disabled(reportModel.isBusy)
-        .accessibilityIdentifier("searchReportButton")
-        .accessibilityHint("Check submission availability and saved drafts")
     }
 
     private var mapReportButton: some View {
@@ -456,7 +474,7 @@ struct ContentView: View {
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .accessibilityShowsLargeContentViewer()
         .accessibilityIdentifier("mapReportButton")
-        .accessibilityHint("Check submission availability and saved drafts")
+        .accessibilityHint(Text(verbatim: reportEntryHint))
     }
 
     /// ADR-0013 nearby tasks: a light, ignorable prompt inside the Nearby screen — no push, no streaks, no tracking.
@@ -810,6 +828,7 @@ struct ContentView: View {
                         Label(reportEntryTitle, systemImage: reportEntrySymbol)
                     }
                         .buttonStyle(.borderedProminent)
+                        .accessibilityHint(Text(verbatim: reportEntryHint))
                 }
             }
         case .refreshFailed:
@@ -1023,6 +1042,16 @@ private struct DetailSelection {
 }
 
 @MainActor
+/// Entry wording shared by every report entry: a new place is a proposal, never published before operator review.
+enum ReportEntryCopy {
+    static let reviewNote = String(localized: "Suggestions appear on the map only after MannerPath reviews them.")
+
+    static func hint(acceptsNewSpotProposals: Bool, continuesSavedReport: Bool) -> String {
+        if continuesSavedReport { return String(localized: "Opens your saved report.") }
+        return acceptsNewSpotProposals ? reviewNote : String(localized: "Explains why new place submissions are paused.")
+    }
+}
+
 enum NearbyEmptyStateCopy {
     static func description(for availability: ReportAvailability, acceptsNewSpotProposals: Bool = false,
                             asksForPhotos: Bool = false) -> String {
