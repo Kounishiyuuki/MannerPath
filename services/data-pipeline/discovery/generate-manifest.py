@@ -150,6 +150,13 @@ kkr=add('operator-kkr-kanazawa','KKRホテル金沢','石川県','operator','htt
 kkr['publisher']='国家公務員共済組合連合会 KKRホテル金沢'
 reviewed[kkr['id']]='kkr-kanazawa-smoking-places'
 PAGE_FACT_SOURCES.add('kkr-kanazawa-smoking-places')
+# ADR-0018: four Kanazawa hotel operators' official facility pages, through the shared reviewed-facility adapter.
+for slug,name,publisher,home in [('manten-kanazawa-ekimae','金沢マンテンホテル駅前','マンテンホテル株式会社 金沢マンテンホテル駅前','https://www.manten-hotel.com/kanazawa/'),
+  ('hotel-sanraku-kanazawa','金沢白鳥路 ホテル山楽','Ken Hotels & Resorts Holdings 金沢白鳥路 ホテル山楽','https://sanraku.kenhotels.com/hakuchoro/'),
+  ('route-inn-kanazawa-ekimae','ホテルルートイン金沢駅前','ルートインジャパン株式会社 ホテルルートイン金沢駅前','https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/'),
+  ('hotel-vista-kanazawa','ホテルビスタ金沢','株式会社ビスタホテルマネジメント ホテルビスタ金沢','https://kanazawa.hotel-vista.jp/ja/')]:
+ h=add('operator-'+slug,name,'石川県','operator',home,['facilityOperator']); h['publisher']=publisher
+ reviewed[h['id']]=slug+'-smoking-places'; PAGE_FACT_SOURCES.add(slug+'-smoking-places')
 # ADR-0018: Kanazawa hotel operators' official facility pages (batch 2), through the shared reviewed-facility adapter.
 for slug,name,publisher,home in [('dormy-inn-kanazawa','天然温泉 加賀の湧泉 ドーミーイン金沢','株式会社共立メンテナンス ドーミーイン金沢','https://dormy-hotels.com/dormyinn/hotels/kanazawa/'),
   ('smile-hotel-kanazawa-nishiguchi','スマイルホテル金沢西口駅前','ホスピタリティパートナーズグループ スマイルホテル金沢西口駅前','https://smile-hotels.com/hotels/kanazawanishiguchiekimae/')]:

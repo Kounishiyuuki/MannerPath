@@ -781,6 +781,203 @@
       ]
     },
     {
+      "sourceId": "manten-kanazawa-ekimae-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "ADR-0018 D-R normalized fact reference from the hotel official FAQ. Footer reserves copyright; linked privacy policy regulates personal data only. No explicit information-use or database prohibition found in the reviewed scope. Not operator permission or an open licence. No expressive content copied.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the FAQ smoking answer (1F parking-entrance side, 4F/7F near elevators), official name/address footer and policy links. 4F/7F are guest floors; non-guest access, tobacco types and smoking hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.manten-hotel.com/kanazawa/faq/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "宿泊約款 Copyright",
+                "end": "メニュー"
+              }
+            ],
+            "requiredMarkers": [
+              "All Rights Reserved."
+            ]
+          },
+          "reviewedFingerprint": "b822af51f3c83fbe0f15a47c000e6a030a3738d063b4f741d802dfcb3f3ccb63",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://manten-hotel.co.jp/privacy/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "Privacy Policy 個人情報保護方針",
+                "end": "1.個人情報のご提供をお願いする場合"
+              }
+            ],
+            "requiredMarkers": [
+              "個人情報の適正な保護を重大な責務と認識し"
+            ]
+          },
+          "reviewedFingerprint": "1b1f87b7f30ef7f3e708e9a3a32fb5729d9f477661c2520402695953ec6e5794",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
+    },
+    {
+      "sourceId": "hotel-sanraku-kanazawa-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "ADR-0018 D-R normalized fact reference from the hotel official FAQ. Footer (Ken Hotels & Resorts Holdings) reserves rights; linked group privacy policy regulates personal data only. No explicit information-use or database prohibition found in the reviewed scope. Not operator permission or an open licence. No expressive content copied.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the FAQ smoking answer (outdoor near lobby entrance, basement parking; building otherwise non-smoking), address and policy links. Not an indoor smoking room. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://sanraku.kenhotels.com/hakuchoro/faq/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "お知らせ一覧 &copy;",
+                "end": "Holdings Ltd."
+              }
+            ],
+            "requiredMarkers": [
+              "Ken Hotels & Resorts"
+            ]
+          },
+          "reviewedFingerprint": "58c53af816be6bda5bec631f52e6b29086374b401fc44621bd1f575dab47af42",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://kenhotels.com/privacy/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "弊社のプライバシーポリシーは、下記のとおりでございます。",
+                "end": "3. 個人情報および保有個人データの利用目的"
+              }
+            ],
+            "requiredMarkers": [
+              "個人情報の適正な取り扱いと保護に努めております"
+            ]
+          },
+          "reviewedFingerprint": "0df31cedfe7f1c4da978ea6929947b64265a91283e03e919ddedd8d9f7e0cff5",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
+    },
+    {
+      "sourceId": "route-inn-kanazawa-ekimae-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "ADR-0018 D-R normalized fact reference from the hotel official facilities page. Footer reserves copyright; the internet member terms govern member services and prohibit infringing rights, not fact reference of public pages. No explicit information-use or database prohibition found. Not operator permission or an open licence. No expressive content copied.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the 1F smoking-space statement, address and member-terms scope. Heated-tobacco guest rooms are rooms, not this shared space. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "閉じる Copyright",
+                "end": "All Rights Reserved."
+              }
+            ],
+            "requiredMarkers": [
+              "Route Inn Japan co., Ltd."
+            ]
+          },
+          "reviewedFingerprint": "06a6d3eb00037e82d525ed521b55c298098d5457e601871f120b4dac72fcc4e3",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://www.route-inn.co.jp/reserve_rules/kiyaku/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "禁止事項 (1) 会員は、会員サービスを利用して",
+                "end": "(d) 第三者の会員サービスの利用を制限又は妨げること。"
+              }
+            ],
+            "requiredMarkers": [
+              "著作権その他の財産的又は人格的な権利を侵害"
+            ]
+          },
+          "reviewedFingerprint": "533894b9fa86e601a7ee87793cc94e8b8686e5f2443adbdda4bd5b22f6481622",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
+    },
+    {
+      "sourceId": "hotel-vista-kanazawa-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "ADR-0018 D-R normalized fact reference from the public hotel facilities page only. Footer reserves copyright. The terms page (reservation-system terms, accommodation terms, usage rules, external transmission) was read in full on 2026-11-08: Article 1 defines the reservation system, and the for-profit/non-private-use prohibitions concern that system. No copyright, reproduction or database clause. Not operator permission or an open licence. No expressive content copied.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the 2F smoking-booth statement, address and the reservation-system terms scope (Article 1, Article 3). Fact reference stays limited to public facility pages, never the reservation system. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://kanazawa.hotel-vista.jp/ja/facilities",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "グループトップ &copy;",
+                "end": "All Rights Reserved."
+              }
+            ],
+            "requiredMarkers": [
+              "VISTA HOTEL MANAGEMENT CO.,Ltd."
+            ]
+          },
+          "reviewedFingerprint": "fe458492fa36a900ed3a7c340930d6498ee78a987f8296bf8f1a7c828ad9c9db",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://kanazawa.hotel-vista.jp/ja/terms",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "宿泊予約システム利用規約 株式会社ビスタホテルマネジメント",
+                "end": "(基本的事項に反する場合の措置)"
+              }
+            ],
+            "requiredMarkers": [
+              "インターネット宿泊予約システム(以下「本システム」という)",
+              "営利を目的として本システムを利用することを、固くお断りいたします"
+            ]
+          },
+          "reviewedFingerprint": "21ea36170710663c379eee46519215e142df11528aa05200ec7333696a831201",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
+    },
+    {
       "sourceId": "dormy-inn-kanazawa-smoking-places",
       "rightsReviewedAt": "2026-11-08",
       "rightsEvidence": "ADR-0018 D-R normalized fact reference from the hotel official rooms page; address from the official access page. Footer reserves rights (kyoritsugroup). Terms (本サービス) clause 12 limits use of copyrighted works to private use and clause 11 prohibits commercial acts through the service; recorded and monitored as context. No explicit fact-reference, information-use or database prohibition. Not operator permission or an open licence. No expressive content copied.",

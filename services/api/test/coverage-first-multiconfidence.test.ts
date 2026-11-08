@@ -146,7 +146,7 @@ test("official spots remain official: officialListing, evidence-backed precision
   // ADR-0018 page-fact sources (operator and municipal) have their own facility-approximation regression tests.
   const pageFactIds = new Set(SOURCE_ADAPTERS.filter(a => a.registry.rightsBasis?.kind === "factReference").map(a => a.registry.sourceId));
   const spots = all.filter((s) => !s.sourceIds.some(id => pageFactIds.has(id)));
-  assert.equal(all.length - spots.length, 138);
+  assert.equal(all.length - spots.length, 140);
   assert.ok(spots.length > 0);
   for (const s of spots) {
     assert.equal(s.evidenceQuality, "officialListing");
@@ -526,8 +526,8 @@ test("quality counts tiers separately and never fails because a lower tier exist
   simulateRightsGranted(db);
   await publishTiles(db, { now: corpusNow });
   const granted = await analyzeCorpus(db, { now: corpusNow });
-  // Eight ADR-0018 airport spots and five Kanazawa facility spots stay on the operator coverage line.
-  assert.deepEqual(granted.nationwide.coverage, { official, operator: 13, communityVerified: 1, communityReported: 1, allVisible: official + 15 });
+  // Eight ADR-0018 airport spots and seven Kanazawa facility spots stay on the operator coverage line.
+  assert.deepEqual(granted.nationwide.coverage, { official, operator: 15, communityVerified: 1, communityReported: 1, allVisible: official + 17 });
   assert.equal(granted.nationwide.confidence.locationPrecision.communityPinned, 2);
   assert.equal(granted.nationwide.confidence.existence.official, official);
   // The simulated approval edits the community source row by hand, so the registry-drift checks rightly flag that

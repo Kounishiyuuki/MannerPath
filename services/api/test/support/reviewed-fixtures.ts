@@ -36,11 +36,19 @@ import { KASSEN_NOMURA_FIXTURE_RELEASE, KASSEN_NOMURA_SOURCE_ID } from "../../sr
 import { KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, KANAZAWA_ARTVILLAGE_SOURCE_ID } from "../../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_FIXTURE_RELEASE, KKR_KANAZAWA_SOURCE_ID } from "../../src/pipeline/kkr-kanazawa-adapter.ts";
+import { MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, MANTEN_KANAZAWA_EKIMAE_SOURCE_ID } from "../../src/pipeline/manten-kanazawa-ekimae-adapter.ts";
+import { HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, HOTEL_SANRAKU_KANAZAWA_SOURCE_ID } from "../../src/pipeline/hotel-sanraku-kanazawa-adapter.ts";
+import { ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, ROUTE_INN_KANAZAWA_EKIMAE_SOURCE_ID } from "../../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
+import { HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, HOTEL_VISTA_KANAZAWA_SOURCE_ID } from "../../src/pipeline/hotel-vista-kanazawa-adapter.ts";
 import { DORMY_INN_KANAZAWA_FIXTURE_RELEASE, DORMY_INN_KANAZAWA_SOURCE_ID } from "../../src/pipeline/dormy-inn-kanazawa-adapter.ts";
 import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, SMILE_HOTEL_KANAZAWA_NISHIGUCHI_SOURCE_ID } from "../../src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 export const REVIEWED_FIXTURES: Readonly<Record<string, { release: ReleaseMetadata; file: string }>> = {
   [KKR_KANAZAWA_SOURCE_ID]: { release: KKR_KANAZAWA_FIXTURE_RELEASE, file: "kkr-kanazawa-smoking-places/kkr-kanazawa-page-facts.csv" },
+  [MANTEN_KANAZAWA_EKIMAE_SOURCE_ID]: { release: MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, file: "manten-kanazawa-ekimae-smoking-places/manten-kanazawa-ekimae-page-facts.csv" },
+  [HOTEL_SANRAKU_KANAZAWA_SOURCE_ID]: { release: HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, file: "hotel-sanraku-kanazawa-smoking-places/hotel-sanraku-kanazawa-page-facts.csv" },
+  [ROUTE_INN_KANAZAWA_EKIMAE_SOURCE_ID]: { release: ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, file: "route-inn-kanazawa-ekimae-smoking-places/route-inn-kanazawa-ekimae-page-facts.csv" },
+  [HOTEL_VISTA_KANAZAWA_SOURCE_ID]: { release: HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, file: "hotel-vista-kanazawa-smoking-places/hotel-vista-kanazawa-page-facts.csv" },
   [DORMY_INN_KANAZAWA_SOURCE_ID]: { release: DORMY_INN_KANAZAWA_FIXTURE_RELEASE, file: "dormy-inn-kanazawa-smoking-places/dormy-inn-kanazawa-page-facts.csv" },
   [SMILE_HOTEL_KANAZAWA_NISHIGUCHI_SOURCE_ID]: { release: SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, file: "smile-hotel-kanazawa-nishiguchi-smoking-places/smile-hotel-kanazawa-nishiguchi-page-facts.csv" },
   [KASSEN_NOMURA_SOURCE_ID]: { release: KASSEN_NOMURA_FIXTURE_RELEASE, file: "kassen-nomura-smoking-places/kassen-nomura-page-facts.csv" },

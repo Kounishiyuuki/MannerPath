@@ -29,6 +29,10 @@ import { KASSEN_NOMURA_ADAPTER } from "./kassen-nomura-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_ADAPTER } from "./kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_ADAPTER } from "./kkr-kanazawa-adapter.ts";
+import { MANTEN_KANAZAWA_EKIMAE_ADAPTER } from "./manten-kanazawa-ekimae-adapter.ts";
+import { HOTEL_SANRAKU_KANAZAWA_ADAPTER } from "./hotel-sanraku-kanazawa-adapter.ts";
+import { ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER } from "./route-inn-kanazawa-ekimae-adapter.ts";
+import { HOTEL_VISTA_KANAZAWA_ADAPTER } from "./hotel-vista-kanazawa-adapter.ts";
 import { DORMY_INN_KANAZAWA_ADAPTER } from "./dormy-inn-kanazawa-adapter.ts";
 import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_ADAPTER } from "./smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
@@ -42,5 +46,6 @@ export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
   SHIBUYA_ADAPTER,
   TOSHIMA_ADAPTER,
   KASSEN_NOMURA_ADAPTER, KANAZAWA_ARTVILLAGE_ADAPTER, KKR_KANAZAWA_ADAPTER,
+  MANTEN_KANAZAWA_EKIMAE_ADAPTER, HOTEL_SANRAKU_KANAZAWA_ADAPTER, ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, HOTEL_VISTA_KANAZAWA_ADAPTER,
   DORMY_INN_KANAZAWA_ADAPTER, SMILE_HOTEL_KANAZAWA_NISHIGUCHI_ADAPTER,
 ];

@@ -173,8 +173,12 @@ export async function buildIdPreservingInput(snapshotPath: string, outputPath: s
   if (new Set(addSourceIds).size !== addSourceIds.length) refuse("duplicate source in request");
   for (const id of addSourceIds) if (!Object.hasOwn(additiveSources, id)) refuse(`${id} is not a reviewed additive source`);
 
+  // A source promoted by an earlier run is live from then on: the next snapshot carries it, so it is rebuilt too.
+  // One ID in both lists would make the rebuild fixture ambiguous; refuse instead of letting one silently win.
+  for (const id of Object.keys(liveSources)) if (Object.hasOwn(additiveSources, id)) refuse(`${id} is in both the live and the additive sources`);
+  const rebuildable: Readonly<Record<string, ReviewedFixture>> = { ...liveSources, ...additiveSources };
   const snapshotSha256 = fileSha256(snapshot);
-  const live = await readSnapshot(snapshot, addSourceIds, liveSources);
+  const live = await readSnapshot(snapshot, addSourceIds, rebuildable);
   if (fileSha256(snapshot) !== snapshotSha256) refuse("snapshot changed while it was read");
   const liveIds = new Set(live.idByRecord.values());
 
@@ -206,14 +210,14 @@ export async function buildIdPreservingInput(snapshotPath: string, outputPath: s
       return id;
     };
 
-    for (const id of Object.keys(liveSources).filter(s => live.releases.has(s))) {
+    for (const id of Object.keys(rebuildable).filter(s => live.releases.has(s))) {
       const want = live.releases.get(id)!;
       const record = (recordId: number) => {
         const r = raw.prepare("SELECT r.content_sha256, sr.ordinal, sr.raw_sha256 FROM source_records sr JOIN source_releases r USING(release_id) WHERE sr.record_id=?").get(recordId) as Record<string, string | number>;
         if (r.content_sha256 !== want.contentSha256) refuse(`${id}: the reviewed fixture (${r.content_sha256}) is not the live release (${want.contentSha256})`);
         return live.idByRecord.get(recordKey(id, String(r.content_sha256), Number(r.ordinal), String(r.raw_sha256))) ?? freshId();
       };
-      const { releaseId } = await ingestSource(id, liveSources[id], record);
+      const { releaseId } = await ingestSource(id, rebuildable[id], record);
       const parser = (raw.prepare("SELECT parser_version FROM source_releases WHERE release_id=?").get(releaseId) as { parser_version: string }).parser_version;
       if (parser !== want.parserVersion) refuse(`${id}: parser ${parser} differs from the live ${want.parserVersion}`);
     }

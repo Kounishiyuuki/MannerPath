@@ -8507,6 +8507,150 @@
       ]
     },
     {
+      "id": "operator-manten-kanazawa-ekimae",
+      "name": "金沢マンテンホテル駅前",
+      "prefecture": "石川県",
+      "publisher": "マンテンホテル株式会社 金沢マンテンホテル駅前",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://www.manten-hotel.com/kanazawa/",
+        "https://www.manten-hotel.com/kanazawa/faq/"
+      ],
+      "homepageUrl": "https://www.manten-hotel.com/kanazawa/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/manten-kanazawa-ekimae-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "manten-kanazawa-ekimae-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.manten-hotel.com/kanazawa/faq/"
+          ],
+          "sha256": "65f0151bf8b26fc2938d35ea849137560bf6f904dfae115e11fd05ff9f67019a",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T04:56:55Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "manten-kanazawa-ekimae-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-hotel-sanraku-kanazawa",
+      "name": "金沢白鳥路 ホテル山楽",
+      "prefecture": "石川県",
+      "publisher": "Ken Hotels & Resorts Holdings 金沢白鳥路 ホテル山楽",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://sanraku.kenhotels.com/hakuchoro/",
+        "https://sanraku.kenhotels.com/hakuchoro/faq/"
+      ],
+      "homepageUrl": "https://sanraku.kenhotels.com/hakuchoro/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/hotel-sanraku-kanazawa-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "hotel-sanraku-kanazawa-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://sanraku.kenhotels.com/hakuchoro/faq/"
+          ],
+          "sha256": "5a86fa29639fa2968de9ba92b3773bbf2acf7d9bd150b254b8bab8dea0f54384",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T04:56:57Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "hotel-sanraku-kanazawa-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-route-inn-kanazawa-ekimae",
+      "name": "ホテルルートイン金沢駅前",
+      "prefecture": "石川県",
+      "publisher": "ルートインジャパン株式会社 ホテルルートイン金沢駅前",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/",
+        "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/"
+      ],
+      "homepageUrl": "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/route-inn-kanazawa-ekimae-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "route-inn-kanazawa-ekimae-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/"
+          ],
+          "sha256": "4c3b9f32a145371b2bd45a38d9a0ccfba3ad05609886a264d02c60f1ac29035f",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T04:56:58Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "route-inn-kanazawa-ekimae-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-hotel-vista-kanazawa",
+      "name": "ホテルビスタ金沢",
+      "prefecture": "石川県",
+      "publisher": "株式会社ビスタホテルマネジメント ホテルビスタ金沢",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://kanazawa.hotel-vista.jp/ja/",
+        "https://kanazawa.hotel-vista.jp/ja/facilities"
+      ],
+      "homepageUrl": "https://kanazawa.hotel-vista.jp/ja/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/hotel-vista-kanazawa-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "hotel-vista-kanazawa-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://kanazawa.hotel-vista.jp/ja/facilities"
+          ],
+          "sha256": "88156dd6147a2c917584a746609d4e8285e3c6287a9fc8253f4250252c00c6a6",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T04:57:00Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "hotel-vista-kanazawa-smoking-places"
+      ]
+    },
+    {
       "id": "operator-dormy-inn-kanazawa",
       "name": "天然温泉 加賀の湧泉 ドーミーイン金沢",
       "prefecture": "石川県",
