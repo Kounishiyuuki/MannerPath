@@ -116,12 +116,56 @@ export function activeSignals(signals: HealthSignals): string[] {
   return active;
 }
 
-// Markdown for humans and GitHub step summaries. Only symbolic values; no response bodies.
-export function renderSummary(report: HealthReport): string {
-  const lines = [`## Source health ${report.evaluatedOn} (JST)`, "",
+// URLs come only from the configured targets/contracts, never redirects or response metadata.
+export interface SummarySource { sourceId: string; dataUrl: string; rightsUrls: readonly string[] }
+const cell = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  .replaceAll("|", "&#124;").replaceAll("`", "&#96;").replace(/[\r\n]/g, " ");
+function summaryUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password) return "URL omitted";
+    url.search = ""; url.hash = "";
+    return cell(url.href);
+  } catch { return "URL omitted"; }
+}
+function nextChecks(item: EvaluatedResult): string[] {
+  const reasons = [...item.blocking, ...item.advisory];
+  const has = (pattern: RegExp) => reasons.some(reason => pattern.test(reason));
+  const checks: string[] = [];
+  if (has(/rightsChanged|rightsScopeMissing|rightsMetadataMissing/))
+    checks.push("規約・参照範囲を公式ページで比較。住所/設備の範囲変更も含むため、法的変更と即断しない。権利承認・baseline更新は人のレビュー後。");
+  if (has(/transport:|http:|resourceMissing|AccessBlocked|rateLimited|rightsPage:/))
+    checks.push("取得/接続状況を再確認。取得失敗は施設閉鎖ではない。アクセス制限を回避しない。");
+  if (has(/parserIncompatible|schemaIncompatible|unexpectedMime|crossOriginRelocation|contentChanged|packagingChanged|^moved$/))
+    checks.push("公式本文・形式・移動先を確認しfixtureとの意味差分をレビュー。文言変更だけでfixtureを更新しない。");
+  if (has(/humanReviewDue|rightsReviewDue/))
+    checks.push("期限対象の出典/権利/版を人が再確認。期限到来は公開失効ではなく、日付だけ延長しない。");
+  if (has(/^known:|knownAdvisoryExpired/))
+    checks.push("既知advisoryの対象・有効期限をJSONで確認。期限切れを自動延長しない。");
+  if (has(/rightsNotChecked|pageFactNotChecked/))
+    checks.push("offlineでは公式ページ/規約が未確認。fixture再生成功を現行情報の確認としない。");
+  if (!checks.length) checks.push(item.severity === "ok" ? "定期確認を継続。現地稼働の証明ではない。" : "JSONの検知理由と運用手順を確認。未分類を正常扱いしない。");
+  return checks;
+}
+
+// Presentation only: preserve evaluator decisions, JSON schema/order and the read-only boundary.
+export function renderSummary(report: HealthReport, sources: readonly SummarySource[] = []): string {
+  const lines = [`## Source health ${cell(report.evaluatedOn)} (JST)`, "",
     `Result: **${report.exitCode ? "BLOCKING" : report.summary.advisory.length ? "ADVISORY ONLY" : "OK"}** — blocking ${report.summary.blocking.length}, advisory ${report.summary.advisory.length}, ok ${report.summary.ok.length}`, "",
-    "| Source | Primary | Severity | Signals | Rights | Reasons | Review due |", "| --- | --- | --- | --- | --- | --- | --- |"];
-  for (const item of report.results) lines.push(`| ${item.sourceId} | ${item.status} | ${item.severity.toUpperCase()} | ${activeSignals(item.signals).join(", ")} | ${(item.rights ?? []).map(r => r.outcome).join(", ") || "-"} | ${[...item.blocking, ...item.advisory].join(", ") || "-"} | ${item.review.reviewDueAt}${item.review.humanReviewDue ? " (DUE)" : ""} |`);
+    "### 運営者の確認順（公開判断ではありません）", "",
+    "既存の重大度順です。緑のrunにも要確認があります。設定済みURLのみ表示し、query/fragmentは省略します。", "",
+    "| 優先度 | Source ID | 検知理由 | 対象URL | 確認すること |", "| --- | --- | --- | --- | --- |"];
+  const rank = { blocking: 0, advisory: 1, ok: 2 };
+  for (const item of [...report.results].sort((a, b) => rank[a.severity] - rank[b.severity] || a.sourceId.localeCompare(b.sourceId))) {
+    const context = sources.find(source => source.sourceId === item.sourceId);
+    const reasons = [...item.blocking, ...item.advisory];
+    const needsRights = reasons.some(reason => /rights|humanReviewDue/.test(reason));
+    const urls = context ? [context.dataUrl, ...(needsRights ? context.rightsUrls : [])] : [];
+    lines.push(`| ${item.severity === "blocking" ? "1 要確認" : item.severity === "advisory" ? "2 要レビュー" : "3 正常"} | ${cell(item.sourceId)} | ${cell(reasons.join(", ") || "healthy")} | ${[...new Set(urls.map(summaryUrl))].join("<br>") || "設定済みURLはJSON/設定を参照"} | ${nextChecks(item).map(cell).join("<br>")} |`);
+  }
+  lines.push("", "### 詳細（既存シグナル）", "",
+    "| Source | Primary | Severity | Signals | Rights | Reasons | Review due |", "| --- | --- | --- | --- | --- | --- | --- |");
+  for (const item of report.results) lines.push(`| ${cell(item.sourceId)} | ${cell(item.status)} | ${item.severity.toUpperCase()} | ${cell(activeSignals(item.signals).join(", "))} | ${cell((item.rights ?? []).map(r => r.outcome).join(", ") || "-")} | ${cell([...item.blocking, ...item.advisory].join(", ") || "-")} | ${cell(item.review.reviewDueAt)}${item.review.humanReviewDue ? " (DUE)" : ""} |`);
   lines.push("", "Advisory only: no source approval, baseline update, ingestion, spot deletion, D1 operation, publication change or deployment occurs.",
     "Content change ≠ bad source; content change ≠ rights change; unavailable ≠ removed; rights page unavailable ≠ rights changed; TLS failure ≠ rights failure; review due ≠ publication revoked.",
     "Rights baselines are updated only by a human editing review-metadata.json after reading the scoped notice.");

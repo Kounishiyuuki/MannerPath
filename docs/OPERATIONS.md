@@ -552,6 +552,15 @@ page, unclassified. **Green may still carry ADVISORY rows**: content changed wit
 same-origin move, `humanReviewDue`, `rightsReviewDue`, and `known:<signal>` while an explicit known
 advisory is active. Read the step summary on every run, not only red ones.
 
+The summary starts with an operator queue ordered by the existing `blocking`, `advisory`, `ok` severity;
+it does not reclassify signals or change the JSON/exit code. Each row gives the source ID, existing reason
+codes, configured official data/contract URLs and a suggested human check. Query strings/fragments are
+omitted and response/redirect URLs, bodies and arbitrary error text are not rendered. Consult the JSON
+and reviewed config for the exact scoped resource. Rights-check drift can be equipment/address text drift,
+not necessarily a legal change. The existing detailed signal table remains below the queue.
+Failed fetches never establish closure; wording changes never authorize fixture/baseline updates.
+The queue is read-only and never invokes a hold, approval, import, export, publication or deploy.
+
 The scheduled inventory includes all health-configured repository-reviewed sources, including the six new
 Kanazawa hotels. This does **not** assert they are deployed or expand the six-source production inventory;
 `--live` without `--repository-reviewed` still checks only that deployed inventory. Sequential data and
