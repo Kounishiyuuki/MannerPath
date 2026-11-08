@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+hotel-vista-kanazawa,ホテルビスタ金沢 喫煙ブース（2F）,ホテルビスタ金沢,facility,2F,石川県金沢市広岡2-13-27,other,https://kanazawa.hotel-vista.jp/ja/facilities,2026-11-08,36.580329911,136.643377003,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市広岡2-13-27 出力=石川県金沢市広岡2丁目13-27

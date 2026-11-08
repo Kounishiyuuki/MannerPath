@@ -1,0 +1,16 @@
+{
+  "https://kanazawa.hotel-vista.jp/ja/facilities": {
+    "fetchedAt": "2026-11-08T04:57:00Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 321087,
+    "sha256": "ff07088a948ce631cdeb85247de9b433730e95754336910b8c934a8566bafac5"
+  },
+  "https://kanazawa.hotel-vista.jp/ja/terms": {
+    "fetchedAt": "2026-11-08T04:57:01Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 368613,
+    "sha256": "e0654f5923b70613b76aebb55b2ff6b2a2cf12c870a26d1fbf64c1fe0b8528bd"
+  }
+}

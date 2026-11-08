@@ -1,0 +1,23 @@
+{
+  "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/": {
+    "fetchedAt": "2026-11-08T04:56:58Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 156996,
+    "sha256": "66afbf86adf50ec70911afce3c6a3052e2c2dee3315053a2feed4f1e1c7e9ef7"
+  },
+  "https://www.route-inn.co.jp/reserve_rules/kiyaku/": {
+    "fetchedAt": "2026-11-08T04:56:59Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 137344,
+    "sha256": "f68d4a7ee32c3bd205538ec97f0def4c3a4c6e52eac2645d0023a05a3f483e75"
+  },
+  "https://www.route-inn.co.jp/company/privacy/": {
+    "fetchedAt": "2026-11-08T04:56:59Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 141565,
+    "sha256": "477736badbd8b00a00554acf77b942fe0cde4e3a40f69e47c76aa426a82803e4"
+  }
+}

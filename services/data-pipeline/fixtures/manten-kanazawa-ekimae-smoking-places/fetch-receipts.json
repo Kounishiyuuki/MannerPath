@@ -1,0 +1,16 @@
+{
+  "https://www.manten-hotel.com/kanazawa/faq/": {
+    "fetchedAt": "2026-11-08T04:56:55Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 34284,
+    "sha256": "75ab13607f7669d6bf79ff41c9abab7aaac2f71c34c54fe89830358706beeaa6"
+  },
+  "https://manten-hotel.co.jp/privacy/": {
+    "fetchedAt": "2026-11-08T04:59:29Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 14551,
+    "sha256": "7358a919c4912955154a1f3f4fa7d14cfee9f662bd44508fdfed7133e308b6e4"
+  }
+}
