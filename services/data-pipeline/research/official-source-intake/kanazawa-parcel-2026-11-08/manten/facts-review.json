@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "sourceId": "manten-hakusan-smoking-place",
+  "status": "normalizedCandidateOnly",
+  "productionApproval": false,
+  "checkedOn": "2026-11-08",
+  "dateBasis": "UTC calendar date of actual HTTP fetch; same day in JST",
+  "officialAddress": "石川県野々市市柳町460番地",
+  "name": "満天の湯・道の宿 喫煙場所（一部宿泊者専用）",
+  "zones": "1階大浴場入口前|2階・3階・4階客室フロア（宿泊者専用）",
+  "sourceReceipts": [
+    {
+      "id": "manten-room",
+      "url": "https://www.manten-hotel.com/michinoyado-1/room/",
+      "finalUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 24687,
+      "sha256": "6db88d691e9d7f65d747f885b4fb9b81b896a77ff6b289792c07af07cb10aa95"
+    },
+    {
+      "id": "manten-faq",
+      "url": "https://www.manten-hotel.com/michinoyado-1/faq/",
+      "finalUrl": "https://www.manten-hotel.com/michinoyado-1/faq/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 31942,
+      "sha256": "2aae044f2263d73e75cf0e7494d1bb3f63d183438989c32ae96620876072a6f2"
+    },
+    {
+      "id": "manten-access",
+      "url": "https://www.manten-hotel.com/michinoyado-1/access/",
+      "finalUrl": "https://www.manten-hotel.com/michinoyado-1/access/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 19218,
+      "sha256": "95490b575019a7becfd81da97023e6137582e0f6b9edc54bc1cc39b1917192c9"
+    },
+    {
+      "id": "manten-home",
+      "url": "https://www.manten-hotel.com/michinoyado-1/",
+      "finalUrl": "https://www.manten-hotel.com/michinoyado-1/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 25866,
+      "sha256": "34f916c1a80affe7bfa820ace4d61e115e38cd40e8172ad7cba5c79dad44f9ea"
+    },
+    {
+      "id": "manten-privacy",
+      "url": "https://manten-hotel.co.jp/privacy/",
+      "finalUrl": "https://manten-hotel.co.jp/privacy/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 14551,
+      "sha256": "7358a919c4912955154a1f3f4fa7d14cfee9f662bd44508fdfed7133e308b6e4"
+    },
+    {
+      "id": "manten-agreement",
+      "url": "https://www.manten-hotel.com/img/pdf_agreement.pdf",
+      "finalUrl": "https://www.manten-hotel.com/img/pdf_agreement.pdf",
+      "status": 200,
+      "contentType": "application/pdf",
+      "fetchedAt": "2026-11-08T05:00:04Z",
+      "bytes": 8430348,
+      "sha256": "2a1d442eb2156749b555755fe4316ea522b55e4b699bcaeb82efbe3f9c6a39d6"
+    },
+    {
+      "id": "manten-common-agreement",
+      "url": "https://www.manten-hotel.com/common/pdf/pdf_agreement.pdf",
+      "finalUrl": "https://www.manten-hotel.com/common/pdf/pdf_agreement.pdf",
+      "status": 200,
+      "contentType": "application/pdf",
+      "fetchedAt": "2026-11-08T05:00:45Z",
+      "bytes": 5801441,
+      "sha256": "a132768c0dd48c2beb8bffa6bf05759a974e7da6da1ce5639dfff90be433ebaf"
+    }
+  ],
+  "currentOperation": {
+    "status": "listedOnCurrentOfficialPage",
+    "siteVerified": false,
+    "formalApproval": false
+  },
+  "supportsPaper": "unknown",
+  "supportsHeated": "unknown",
+  "openingHours": {
+    "status": "none",
+    "raw": null,
+    "parsed": null
+  },
+  "accessType": "unknown",
+  "spotType": "unknown",
+  "environment": "unknown",
+  "hostType": "other",
+  "hostHoursNotSmokingHours": true,
+  "accessNote": "Guest floors are guest-only; independent access to the first-floor smoking place is not established.",
+  "knownAccessRestriction": "一部宿泊者専用：2階・3階・4階客室フロア。1階の独立利用可否は不明。",
+  "physicalTypeNotes": "Official booth/room/corner wording retained as fact; no inference about enclosure or canonical classification.",
+  "coordinateMeaning": "candidate facility-vicinity parcel representative point only",
+  "notSmokingPlaceCoordinate": true,
+  "existenceReview": "Current room page explicitly lists 1F before bath entrance and 2/3/4F smoking rooms; FAQ states non-guests may not enter guest rooms/floors. Restriction stays in public-facing candidate name because zones alone are not projected by the future factory.",
+  "sourceAddressUrls": [
+    "https://www.manten-hotel.com/michinoyado-1/access/",
+    "https://www.manten-hotel.com/michinoyado-1/room/"
+  ],
+  "sourceExistenceUrls": [
+    "https://www.manten-hotel.com/michinoyado-1/room/",
+    "https://www.manten-hotel.com/michinoyado-1/faq/"
+  ],
+  "hostHoursSeparate": "ホテルcheckin/out、浴場6〜23時、駐車時間は喫煙固有時間ではない。",
+  "knownSourceEnvironment": "indoor (official 館内施設/喫煙ルーム; use unknown if selected schema cannot preserve exact source distinction)",
+  "environmentConservatism": "Normalized candidate retains unknown environment; source indoor wording is preserved separately and is not discarded.",
+  "accessNotes": [
+    "客室と客室階への非宿泊客立入は禁止",
+    "1階喫煙ルームの受付前後・非入浴客単独利用・喫煙固有時間は不明",
+    "浴場公式別hostは同住所・同195台駐車場のidentity/currentoperation参考のみ。直接HTTP403のため回避せず、candidate factualfixtureの喫煙根拠にはしない"
+  ]
+}

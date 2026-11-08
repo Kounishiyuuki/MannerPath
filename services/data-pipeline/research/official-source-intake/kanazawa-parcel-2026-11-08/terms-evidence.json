@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "scope": "Engineering evidence for an operator decision; not a ParcelTermsReview approval or production import.",
+  "document": {
+    "url": "https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf",
+    "linkedFrom": "https://www.tellusxdp.com/ja/catalog/data/terrestrial-data/aigid-moj.html",
+    "checkedAtUtc": "2026-11-08T05:00:34.842720+00:00",
+    "status": 200,
+    "bytes": 141976,
+    "sha256": "275914c735b19cc7a274a13aac22e0c08378269d9d80f26f6b285aca32367b99",
+    "headers": [
+      "HTTP/2 200 ",
+      "content-type: application/pdf",
+      "content-length: 141976",
+      "etag: \"6adfee6f-22a98\"",
+      "last-modified: Tue, 27 Oct 2026 00:21:03 GMT"
+    ],
+    "title": "登記所備付地図データ利用規約",
+    "dateStated": "2023-01-23",
+    "pages": 2,
+    "sourceType": "Original terms PDF directly linked by official Tellus catalogue; provider AIGID",
+    "canonicalCurrentVersionEquivalence": "confirmed at 2026-11-08 followup: canonical public PDF bytes match this copy",
+    "maintainerApproval": false
+  },
+  "abrTermsUrl": "https://www.digital.go.jp/policies/base_registry_address_tos",
+  "applicableDatasets": [
+    "地番マスター",
+    "地番マスター位置参照"
+  ],
+  "originalTextVerified": true,
+  "formalApproval": false,
+  "parcelTermsReview": null,
+  "canonicalCurrentVersionEquivalence": "confirmedAtFollowup",
+  "reading": {
+    "commercialUse": "Expressly permitted by the opening paragraph of the retrieved original PDF.",
+    "copyTransmissionModification": "Opening paragraph permits reproduction, public transmission and adaptation; source/processing notices and the remaining conditions apply.",
+    "attribution": "Section 1 requires source identification; its example identifies the Ministry of Justice cadastral map data, municipality, URL and date of use.",
+    "processingNotice": "Section 1 additionally requires identifying modification and its producer; do not imply that the government authored MannerPath processing.",
+    "redistribution": "Copying/public transmission permissions support redistribution subject to the conditions. No ODbL-style share-alike requirement was found in this document; this does not make it equivalent to CC BY.",
+    "restrictions": "Sections 2-3 reserve Ministry usage-restriction discretion and prohibit unlawful/fraudulent uses, service interference, collection/combination to identify particular persons, and infringement of property/privacy rights, among other stated restrictions.",
+    "accuracyAndChange": "Sections 5-6 disclaim liability, permit changes/removal, and warn that dates and accuracy differ by source map. A matched parcel point is not a survey, boundary guarantee, entrance or smoking-room point.",
+    "governingLaw": "Section 4 specifies Japanese law and jurisdiction; no separate legal-sufficiency conclusion is made."
+  },
+  "creditDraft": "出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：金沢市・野々市市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.geospatial.jp/ckan/dataset/fc3b0593-ce9e-40d1-aa33-94382d5f0da1/resource/47871bf1-4c85-48f7-a8fe-b27c6643c1c5/download/license.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+  "remainingDecisions": [
+    "Operator review and explicit approval of the applicable original terms, their scope and final credit text before PARCEL_TERMS_REVIEW can be recorded.",
+    "Individual upstream MOJ XML map edition/survey date is not established; ABR catalog dates and local snapshot label must not be presented as map vintage. Operator must decide license scope and credit, including catalog CC BY metadata, ABR PDL and additional MOJ conditions.",
+    "Source-specific fact/rights/current-operation review and per-facility location notes must remain separate from the parcel licence decision.",
+    "No common adapter instantiation, source registration, public tile or production/staging change in this data-preparation PR."
+  ],
+  "canonicalReceipt": "canonical-terms-receipt.json",
+  "dataLineage": "data-lineage.json",
+  "historicalObservation": "Initial canonical page requests returned 403; subsequent ordinary public CKAN metadata and resource GET succeeded. Initial failure is not a continuing identity blocker.",
+  "actualProvider": "Digital Agency ABR; Tellus/AIGID is a corroborating terms-copy host, not the coordinate download provider.",
+  "operationAssessment": {
+    "addressMatchingAndProjection": {
+      "assessment": "conditionallySupportedByRetrievedTerms",
+      "formalApproval": false,
+      "conditions": "Processing notice and processor credit; no surveyed entrance or smoking-room claim."
+    },
+    "coordinateStorage": {
+      "assessment": "conditionallySupportedByRetrievedTerms",
+      "formalApproval": false,
+      "conditions": "Reproduction with source provenance; no identifying-person linkage or privacy infringement."
+    },
+    "apiTileOfflineWatchDistribution": {
+      "assessment": "conditionallySupportedByRetrievedTerms",
+      "formalApproval": false,
+      "conditions": "Public transmission/reproduction with source and processing attribution, applicable terms and approximate-position disclosure; no government endorsement claim."
+    }
+  }
+}

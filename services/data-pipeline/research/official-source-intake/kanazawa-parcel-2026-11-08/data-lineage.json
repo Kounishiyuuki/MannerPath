@@ -1,0 +1,509 @@
+{
+  "scope": "Read-only extraction from actual ABR cached files and current official public resource GETs; no repo/original dataset/approval changes.",
+  "dataProvider": "digitalagency-br / Digital Agency ABR",
+  "actualDownloadIndex": "https://dataset.address-br.digital.go.jp/api/feed/dcat-us/1.1.json",
+  "catalogReceipt": {
+    "checkedAt": "2026-11-08T05:34:22.270092+00:00",
+    "status": 200,
+    "bytes": 13077529,
+    "sha256": "436a932299ef42ea1786c8145df03dd98c54354551b988912a4f2be686ecf767"
+  },
+  "localPin": {
+    "id": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+    "meaning": "Local MannerPath checksum pin, not an official ABR/MOJ release version or map epoch",
+    "recordedDownloadDate": "2026-11-07"
+  },
+  "resources": [
+    {
+      "file": "mt_parcel_city172014.csv.zip",
+      "downloadUrl": "https://data.address-br.digital.go.jp/mt_parcel/city/mt_parcel_city172014.csv.zip",
+      "cache": {
+        "url_key": "e2d9e12a",
+        "url": "https://data.address-br.digital.go.jp/mt_parcel/city/mt_parcel_city172014.csv.zip",
+        "etag": "",
+        "last_modified": "2026-02-25T14:23:29.000Z",
+        "content_length": 4413132,
+        "crc32": "e1fa3ac1"
+      },
+      "zipBytes": 4413132,
+      "cachedZipSha256": "4fd3507c6dae11775cf04a7005184e5c1cc68f53980eb0c8977b3d6548ef933a",
+      "officialMetadata": {
+        "resourceId": "6d488fef95bb4830a526a4a087d78337",
+        "landingPage": "https://dataset.address-br.digital.go.jp/documents/6d488fef95bb4830a526a4a087d78337",
+        "itemApi": "https://www.arcgis.com/sharing/rest/content/items/6d488fef95bb4830a526a4a087d78337?f=json",
+        "owner": "digitalagency-br",
+        "descriptionLastUpdated": "2026-02-25T14:23:29.000Z",
+        "catalogModified": "2026-02-25T22:58:35.000Z",
+        "format": "ZIP containing one UTF-8 CSV; ArcGIS catalog labels this as a Document Link",
+        "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+        "accessInformation": "https://www.digital.go.jp/policies/base_registry_address_tos"
+      },
+      "currentGet": {
+        "startedAt": "2026-11-08T05:36:40.157206+00:00",
+        "completedAt": "2026-11-08T05:36:41.392328+00:00",
+        "httpStatus": 200,
+        "finalUrl": "https://data.address-br.digital.go.jp/mt_parcel/city/mt_parcel_city172014.csv.zip",
+        "queryRedacted": false,
+        "bytes": 4413132,
+        "sha256": "4fd3507c6dae11775cf04a7005184e5c1cc68f53980eb0c8977b3d6548ef933a",
+        "byteIdenticalToCachedZip": true,
+        "headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "4413132",
+          "Last-Modified": "Wed, 25 Feb 2026 14:23:29 GMT",
+          "ETag": "\"cd3d287569a8e145b301673ef99916b5\""
+        }
+      },
+      "member": {
+        "name": "mt_parcel_city172014.csv",
+        "zipTimestamp": [
+          2026,
+          2,
+          25,
+          23,
+          23,
+          24
+        ],
+        "zipTimestampMeaning": "Container timestamp only, not MOJ map epoch",
+        "csvBytes": 57041674,
+        "csvSha256": "5788b641f9b818af89ac73df4d04c675e19e8ee7e031a3575c9b893bd079a6df",
+        "headers": [
+          "lg_code",
+          "machiaza_id",
+          "prc_id",
+          "city",
+          "ward",
+          "oaza_cho",
+          "chome",
+          "koaza",
+          "machiaza_dist",
+          "prc_num1",
+          "prc_num2",
+          "prc_num3",
+          "rsdt_addr_flg",
+          "prc_rec_flg",
+          "prc_area_code",
+          "efct_date",
+          "ablt_date",
+          "src_code",
+          "remarks",
+          "real_prop_num"
+        ]
+      }
+    },
+    {
+      "file": "mt_parcel_city172120.csv.zip",
+      "downloadUrl": "https://data.address-br.digital.go.jp/mt_parcel/city/mt_parcel_city172120.csv.zip",
+      "cache": {
+        "url_key": "bbd9678c",
+        "url": "https://data.address-br.digital.go.jp/mt_parcel/city/mt_parcel_city172120.csv.zip",
+        "etag": "",
+        "last_modified": "2026-02-25T14:26:07.000Z",
+        "content_length": 269722,
+        "crc32": "e5f782d9"
+      },
+      "zipBytes": 269722,
+      "cachedZipSha256": "0ab548685e3b50baf3432a559b09cdcacd03f64a4efbd15aa7dbb6bf2ec0a23e",
+      "officialMetadata": {
+        "resourceId": "8dd74cc121fa40aeb5e195099927d999",
+        "landingPage": "https://dataset.address-br.digital.go.jp/documents/8dd74cc121fa40aeb5e195099927d999",
+        "itemApi": "https://www.arcgis.com/sharing/rest/content/items/8dd74cc121fa40aeb5e195099927d999?f=json",
+        "owner": "digitalagency-br",
+        "descriptionLastUpdated": "2026-02-25T14:26:07.000Z",
+        "catalogModified": "2026-02-25T22:58:51.000Z",
+        "format": "ZIP containing one UTF-8 CSV; ArcGIS catalog labels this as a Document Link",
+        "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+        "accessInformation": "https://www.digital.go.jp/policies/base_registry_address_tos"
+      },
+      "currentGet": {
+        "startedAt": "2026-11-08T05:36:47.401980+00:00",
+        "completedAt": "2026-11-08T05:36:47.751375+00:00",
+        "httpStatus": 200,
+        "finalUrl": "https://data.address-br.digital.go.jp/mt_parcel/city/mt_parcel_city172120.csv.zip",
+        "queryRedacted": false,
+        "bytes": 269722,
+        "sha256": "0ab548685e3b50baf3432a559b09cdcacd03f64a4efbd15aa7dbb6bf2ec0a23e",
+        "byteIdenticalToCachedZip": true,
+        "headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "269722",
+          "Last-Modified": "Wed, 25 Feb 2026 14:26:07 GMT",
+          "ETag": "\"20a36eb712f134965ff36fc16277807d\""
+        }
+      },
+      "member": {
+        "name": "mt_parcel_city172120.csv",
+        "zipTimestamp": [
+          2026,
+          2,
+          25,
+          23,
+          26,
+          2
+        ],
+        "zipTimestampMeaning": "Container timestamp only, not MOJ map epoch",
+        "csvBytes": 3760759,
+        "csvSha256": "b618c6f33803eab483cf2d01442aaa7152564edce208b577d8510cca47c882a0",
+        "headers": [
+          "lg_code",
+          "machiaza_id",
+          "prc_id",
+          "city",
+          "ward",
+          "oaza_cho",
+          "chome",
+          "koaza",
+          "machiaza_dist",
+          "prc_num1",
+          "prc_num2",
+          "prc_num3",
+          "rsdt_addr_flg",
+          "prc_rec_flg",
+          "prc_area_code",
+          "efct_date",
+          "ablt_date",
+          "src_code",
+          "remarks",
+          "real_prop_num"
+        ]
+      }
+    },
+    {
+      "file": "mt_parcel_pos_city172014.csv.zip",
+      "downloadUrl": "https://data.address-br.digital.go.jp/mt_parcel_pos/city/mt_parcel_pos_city172014.csv.zip",
+      "cache": {
+        "url_key": "c6db890a",
+        "url": "https://data.address-br.digital.go.jp/mt_parcel_pos/city/mt_parcel_pos_city172014.csv.zip",
+        "etag": "",
+        "last_modified": "2026-06-23T09:58:36.000Z",
+        "content_length": 4893222,
+        "crc32": "14a111c9"
+      },
+      "zipBytes": 4893222,
+      "cachedZipSha256": "b4b1e49ef728d7c97d340f38f5c1b967293ee5a9ab31ee6d8e8bf83b2e7ce5d6",
+      "officialMetadata": {
+        "resourceId": "6d52212ff0544ed69bdc786ec3158c2e",
+        "landingPage": "https://dataset.address-br.digital.go.jp/documents/6d52212ff0544ed69bdc786ec3158c2e",
+        "itemApi": "https://www.arcgis.com/sharing/rest/content/items/6d52212ff0544ed69bdc786ec3158c2e?f=json",
+        "owner": "digitalagency-br",
+        "descriptionLastUpdated": "2026-06-23T09:58:36.000Z",
+        "catalogModified": "2026-06-23T23:16:36.000Z",
+        "format": "ZIP containing one UTF-8 CSV; ArcGIS catalog labels this as a Document Link",
+        "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+        "accessInformation": "https://www.digital.go.jp/policies/base_registry_address_tos"
+      },
+      "currentGet": {
+        "startedAt": "2026-11-08T05:36:48.035928+00:00",
+        "completedAt": "2026-11-08T05:36:49.707198+00:00",
+        "httpStatus": 200,
+        "finalUrl": "https://data.address-br.digital.go.jp/mt_parcel_pos/city/mt_parcel_pos_city172014.csv.zip",
+        "queryRedacted": false,
+        "bytes": 4893222,
+        "sha256": "b4b1e49ef728d7c97d340f38f5c1b967293ee5a9ab31ee6d8e8bf83b2e7ce5d6",
+        "byteIdenticalToCachedZip": true,
+        "headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "4893222",
+          "Last-Modified": "Tue, 23 Jun 2026 09:58:36 GMT",
+          "ETag": "\"f100a8d9334ace1a77fffe1b95b00a27\""
+        }
+      },
+      "member": {
+        "name": "mt_parcel_pos_city172014.csv",
+        "zipTimestamp": [
+          2026,
+          6,
+          23,
+          18,
+          58,
+          30
+        ],
+        "zipTimestampMeaning": "Container timestamp only, not MOJ map epoch",
+        "csvBytes": 36450322,
+        "csvSha256": "6c07ed7c8c18ab9e330736dc21a39a94391546757287fcc73c1542fa3bc0bc63",
+        "headers": [
+          "lg_code",
+          "machiaza_id",
+          "prc_id",
+          "rep_lon",
+          "rep_lat",
+          "rep_srid",
+          "rep_scale",
+          "rep_src_code",
+          "plygn_fname",
+          "plygn_kcode",
+          "plygn_fmt",
+          "plygn_srid",
+          "plygn_scale",
+          "plygn_src_code",
+          "moj_map_city_code",
+          "moj_map_oaza_code",
+          "moj_map_chome_code",
+          "moj_map_koaza_code",
+          "moj_map_spare_code",
+          "moj_map_brushid"
+        ]
+      }
+    },
+    {
+      "file": "mt_parcel_pos_city172120.csv.zip",
+      "downloadUrl": "https://data.address-br.digital.go.jp/mt_parcel_pos/city/mt_parcel_pos_city172120.csv.zip",
+      "cache": {
+        "url_key": "9f4c02ec",
+        "url": "https://data.address-br.digital.go.jp/mt_parcel_pos/city/mt_parcel_pos_city172120.csv.zip",
+        "etag": "",
+        "last_modified": "2026-06-23T09:59:34.000Z",
+        "content_length": 518666,
+        "crc32": "2617bb0c"
+      },
+      "zipBytes": 518666,
+      "cachedZipSha256": "3b17556a45e7b0a54678287ec76f5bff6d410bd22582ed781aa838c084b39726",
+      "officialMetadata": {
+        "resourceId": "c9f3070ab01447ebbf7ad2455b64c82a",
+        "landingPage": "https://dataset.address-br.digital.go.jp/documents/c9f3070ab01447ebbf7ad2455b64c82a",
+        "itemApi": "https://www.arcgis.com/sharing/rest/content/items/c9f3070ab01447ebbf7ad2455b64c82a?f=json",
+        "owner": "digitalagency-br",
+        "descriptionLastUpdated": "2026-06-23T09:59:34.000Z",
+        "catalogModified": "2026-06-23T23:16:54.000Z",
+        "format": "ZIP containing one UTF-8 CSV; ArcGIS catalog labels this as a Document Link",
+        "licenseMetadata": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+        "accessInformation": "https://www.digital.go.jp/policies/base_registry_address_tos"
+      },
+      "currentGet": {
+        "startedAt": "2026-11-08T05:36:53.528594+00:00",
+        "completedAt": "2026-11-08T05:36:54.004434+00:00",
+        "httpStatus": 200,
+        "finalUrl": "https://data.address-br.digital.go.jp/mt_parcel_pos/city/mt_parcel_pos_city172120.csv.zip",
+        "queryRedacted": false,
+        "bytes": 518666,
+        "sha256": "3b17556a45e7b0a54678287ec76f5bff6d410bd22582ed781aa838c084b39726",
+        "byteIdenticalToCachedZip": true,
+        "headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "518666",
+          "Last-Modified": "Tue, 23 Jun 2026 09:59:34 GMT",
+          "ETag": "\"612ab5f2d2fd4f5ee0acfb96a61cd3d3\""
+        }
+      },
+      "member": {
+        "name": "mt_parcel_pos_city172120.csv",
+        "zipTimestamp": [
+          2026,
+          6,
+          23,
+          18,
+          59,
+          30
+        ],
+        "zipTimestampMeaning": "Container timestamp only, not MOJ map epoch",
+        "csvBytes": 4767833,
+        "csvSha256": "b596e33ecf9dd8a00b352e010e857af10fb74e0d766302b75e52072b4b505e93",
+        "headers": [
+          "lg_code",
+          "machiaza_id",
+          "prc_id",
+          "rep_lon",
+          "rep_lat",
+          "rep_srid",
+          "rep_scale",
+          "rep_src_code",
+          "plygn_fname",
+          "plygn_kcode",
+          "plygn_fmt",
+          "plygn_srid",
+          "plygn_scale",
+          "plygn_src_code",
+          "moj_map_city_code",
+          "moj_map_oaza_code",
+          "moj_map_chome_code",
+          "moj_map_koaza_code",
+          "moj_map_spare_code",
+          "moj_map_brushid"
+        ]
+      }
+    }
+  ],
+  "sourceNativeRows": [
+    {
+      "candidateId": "kokusai",
+      "file": "mt_parcel_city172014.csv.zip",
+      "row": {
+        "lg_code": "172014",
+        "machiaza_id": "0079108",
+        "prc_id": "000080000000000",
+        "city": "金沢市",
+        "ward": "",
+        "oaza_cho": "大額町",
+        "chome": "",
+        "koaza": "ル",
+        "machiaza_dist": "",
+        "prc_num1": "8",
+        "prc_num2": "",
+        "prc_num3": "",
+        "rsdt_addr_flg": "0",
+        "prc_rec_flg": "1",
+        "prc_area_code": "",
+        "efct_date": "1947-04-17",
+        "ablt_date": "",
+        "src_code": "1",
+        "remarks": "",
+        "real_prop_num": ""
+      }
+    },
+    {
+      "candidateId": "kurashiki",
+      "file": "mt_parcel_city172120.csv.zip",
+      "row": {
+        "lg_code": "172120",
+        "machiaza_id": "0004002",
+        "prc_id": "000050000000000",
+        "city": "野々市市",
+        "ward": "",
+        "oaza_cho": "御経塚",
+        "chome": "２丁目",
+        "koaza": "",
+        "machiaza_dist": "",
+        "prc_num1": "5",
+        "prc_num2": "",
+        "prc_num3": "",
+        "rsdt_addr_flg": "0",
+        "prc_rec_flg": "1",
+        "prc_area_code": "",
+        "efct_date": "1947-04-17",
+        "ablt_date": "",
+        "src_code": "1",
+        "remarks": "",
+        "real_prop_num": ""
+      }
+    },
+    {
+      "candidateId": "manten",
+      "file": "mt_parcel_city172120.csv.zip",
+      "row": {
+        "lg_code": "172120",
+        "machiaza_id": "0025000",
+        "prc_id": "004600000000000",
+        "city": "野々市市",
+        "ward": "",
+        "oaza_cho": "柳町",
+        "chome": "",
+        "koaza": "",
+        "machiaza_dist": "",
+        "prc_num1": "460",
+        "prc_num2": "",
+        "prc_num3": "",
+        "rsdt_addr_flg": "0",
+        "prc_rec_flg": "1",
+        "prc_area_code": "",
+        "efct_date": "1947-04-17",
+        "ablt_date": "",
+        "src_code": "1",
+        "remarks": "",
+        "real_prop_num": ""
+      }
+    },
+    {
+      "candidateId": "kokusai",
+      "file": "mt_parcel_pos_city172014.csv.zip",
+      "row": {
+        "lg_code": "172014",
+        "machiaza_id": "0079108",
+        "prc_id": "000080000000000",
+        "rep_lon": "136.631460822",
+        "rep_lat": "36.513793726",
+        "rep_srid": "EPSG:6668",
+        "rep_scale": "250",
+        "rep_src_code": "1",
+        "plygn_fname": "",
+        "plygn_kcode": "",
+        "plygn_fmt": "",
+        "plygn_srid": "EPSG:6668",
+        "plygn_scale": "250",
+        "plygn_src_code": "1",
+        "moj_map_city_code": "17201",
+        "moj_map_oaza_code": "398",
+        "moj_map_chome_code": "000",
+        "moj_map_koaza_code": "0020",
+        "moj_map_spare_code": "00",
+        "moj_map_brushid": "H000000620"
+      }
+    },
+    {
+      "candidateId": "kurashiki",
+      "file": "mt_parcel_pos_city172120.csv.zip",
+      "row": {
+        "lg_code": "172120",
+        "machiaza_id": "0004002",
+        "prc_id": "000050000000000",
+        "rep_lon": "136.599780445",
+        "rep_lat": "36.547847521",
+        "rep_srid": "EPSG:6668",
+        "rep_scale": "500",
+        "rep_src_code": "1",
+        "plygn_fname": "",
+        "plygn_kcode": "",
+        "plygn_fmt": "",
+        "plygn_srid": "EPSG:6668",
+        "plygn_scale": "500",
+        "plygn_src_code": "1",
+        "moj_map_city_code": "17212",
+        "moj_map_oaza_code": "034",
+        "moj_map_chome_code": "002",
+        "moj_map_koaza_code": "0000",
+        "moj_map_spare_code": "00",
+        "moj_map_brushid": "H000000729"
+      }
+    },
+    {
+      "candidateId": "manten",
+      "file": "mt_parcel_pos_city172120.csv.zip",
+      "row": {
+        "lg_code": "172120",
+        "machiaza_id": "0025000",
+        "prc_id": "004600000000000",
+        "rep_lon": "136.580940911",
+        "rep_lat": "36.526230767",
+        "rep_srid": "EPSG:6668",
+        "rep_scale": "500",
+        "rep_src_code": "1",
+        "plygn_fname": "",
+        "plygn_kcode": "",
+        "plygn_fmt": "",
+        "plygn_srid": "EPSG:6668",
+        "plygn_scale": "500",
+        "plygn_src_code": "1",
+        "moj_map_city_code": "17212",
+        "moj_map_oaza_code": "016",
+        "moj_map_chome_code": "000",
+        "moj_map_koaza_code": "0000",
+        "moj_map_spare_code": "00",
+        "moj_map_brushid": "H000000149"
+      }
+    }
+  ],
+  "limits": {
+    "upstreamMojMapEpoch": "unconfirmed",
+    "upstreamMojOriginalFileName": "not present in the three CSV position rows; plygn_fname/kcode/fmt empty",
+    "efct_date": "Master effective-date field; not a map-survey date",
+    "rep_scale": "Stored source scale metadata; not a positional error radius",
+    "tellus": "Not in coordinate lineage; terms-copy evidence only",
+    "catalogLicense": "Current ArcGIS/DCAT metadata states CC BY 4.0 while accessInformation points to ABR terms. Generic metadata is not a waiver of ABR additional MOJ conditions."
+  },
+  "geocoderTransformation": {
+    "package": "@digital-go-jp/abr-geocoder",
+    "version": "2.3.1",
+    "file": "src/domain/models/dataset-file.ts",
+    "symbol": "DataForPosFile.parseCsv",
+    "operation": "Read rep_lat/rep_lon/rep_srid, proj4(source rep_srid, WGS84), store output point; no centroid or field survey performed by this geocoder step",
+    "sourceSridForAllThree": "EPSG:6668",
+    "geocodeSelection": "src/usecases/geocode/steps/parcel-transform.ts ParcelTransform copies matching parcel DB rep_lat/rep_lon and sets coordinate_level parcel",
+    "sourceDataFieldsNotConsumedByGeocoder": [
+      "rep_scale",
+      "rep_src_code",
+      "plygn_fname",
+      "moj_map_brushid"
+    ],
+    "upstreamPointDerivation": "Not established by CSV/metadata. Do not label it a surveyed point or prove it a centroid."
+  },
+  "complete": true
+}

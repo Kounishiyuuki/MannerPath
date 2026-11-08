@@ -1,0 +1,20 @@
+[
+  {
+    "id": "kurashiki",
+    "officialAddress": "石川県野々市市御経塚２ー５",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "manten",
+    "officialAddress": "石川県野々市市柳町460番地",
+    "prefecture": "石川県",
+    "municipality": "野々市市"
+  },
+  {
+    "id": "kokusai",
+    "officialAddress": "石川県金沢市大額町ル８番地",
+    "prefecture": "石川県",
+    "municipality": "金沢市"
+  }
+]

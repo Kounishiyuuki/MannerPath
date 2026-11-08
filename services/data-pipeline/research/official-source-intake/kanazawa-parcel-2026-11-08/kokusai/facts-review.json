@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "sourceId": "kanazawa-kokusai-hotel-smoking-place",
+  "status": "normalizedCandidateOnly",
+  "productionApproval": false,
+  "checkedOn": "2026-11-08",
+  "dateBasis": "UTC calendar date of actual HTTP fetch; same day in JST",
+  "officialAddress": "石川県金沢市大額町ル８番地",
+  "name": "金沢国際ホテル 館内喫煙場所",
+  "zones": "館内喫煙コーナー|披露宴会場の各フロア",
+  "sourceReceipts": [
+    {
+      "id": "kokusai-question",
+      "url": "https://www.kanazawakokusaihotel.co.jp/question/",
+      "finalUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:04Z",
+      "bytes": 15014,
+      "sha256": "7e05c4deadb8199e6eea36c3566a6d88f351bb8d60a5e8c0d457278f60005445"
+    },
+    {
+      "id": "kokusai-guest",
+      "url": "https://www.kanazawakokusaihotel.co.jp/wedding/guest/",
+      "finalUrl": "https://www.kanazawakokusaihotel.co.jp/wedding/guest/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:04Z",
+      "bytes": 14523,
+      "sha256": "e4474ce4b4f782fcc7e45fdc2d4b6d4507992affe74b59f6880b413b3079b866"
+    },
+    {
+      "id": "kokusai-access",
+      "url": "https://www.kanazawakokusaihotel.co.jp/access/",
+      "finalUrl": "https://www.kanazawakokusaihotel.co.jp/access/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:04Z",
+      "bytes": 13862,
+      "sha256": "47afd26412af6df1cce868c48f606e879ebcbc710e6b2b9d9e29847c22b73f3d"
+    },
+    {
+      "id": "kokusai-home",
+      "url": "https://www.kanazawakokusaihotel.co.jp/",
+      "finalUrl": "https://www.kanazawakokusaihotel.co.jp/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:04Z",
+      "bytes": 35312,
+      "sha256": "77d5aae36ba83acf54738914cb5a0cacad457209e67317547e71a10b038fe05c"
+    },
+    {
+      "id": "kokusai-privacy",
+      "url": "https://www.kanazawakokusaihotel.co.jp/privacypolicy/",
+      "finalUrl": "https://www.kanazawakokusaihotel.co.jp/privacypolicy/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:44Z",
+      "bytes": 11205,
+      "sha256": "1fe8bb2fc3eda8eba8040204942e4f7ce3e9ca9ef795354a260e6dbe40b291b9"
+    },
+    {
+      "id": "kokusai-wedding-privacy",
+      "url": "https://www.kanazawakokusaihotel.co.jp/wedding/privacypolicy/",
+      "finalUrl": "https://www.kanazawakokusaihotel.co.jp/wedding/privacypolicy/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:44Z",
+      "bytes": 15046,
+      "sha256": "f652b81da1cb55cd4d3d021e0bedf43571d5455e8093320f3b426f5cd558b876"
+    }
+  ],
+  "currentOperation": {
+    "status": "listedOnCurrentOfficialPage",
+    "siteVerified": false,
+    "formalApproval": false
+  },
+  "supportsPaper": "unknown",
+  "supportsHeated": "unknown",
+  "openingHours": {
+    "status": "none",
+    "raw": null,
+    "parsed": null
+  },
+  "accessType": "unknown",
+  "spotType": "unknown",
+  "environment": "unknown",
+  "hostType": "other",
+  "hostHoursNotSmokingHours": true,
+  "accessNote": "General/non-customer access and any per-floor event/guest restrictions are not stated.",
+  "knownAccessRestriction": null,
+  "physicalTypeNotes": "Official booth/room/corner wording retained as fact; no inference about enclosure or canonical classification.",
+  "coordinateMeaning": "candidate facility-vicinity parcel representative point only",
+  "notSmokingPlaceCoordinate": true,
+  "existenceReview": "Current hotel FAQ: all guest rooms smoke-free with smoking corner inside facility. Official wedding guest page lists smoking places on banquet floors. Aggregate one facility, no duplication by floor.",
+  "sourceAddressUrls": [
+    "https://www.kanazawakokusaihotel.co.jp/question/",
+    "https://www.kanazawakokusaihotel.co.jp/access/"
+  ],
+  "sourceExistenceUrls": [
+    "https://www.kanazawakokusaihotel.co.jp/question/",
+    "https://www.kanazawakokusaihotel.co.jp/wedding/guest/"
+  ],
+  "hostHoursSeparate": "宿泊checkin/out・婚礼受付10〜19時・24h駐車場は喫煙固有時間ではない。",
+  "knownSourceEnvironment": "indoor (館内の喫煙コーナー is explicit)",
+  "environmentConservatism": "Normalized candidate retains unknown environment; source indoor wording is preserved separately and is not discarded.",
+  "accessNotes": [
+    "宿泊客・宴会客以外の喫煙場所利用は不明",
+    "宴会フロアの設備を独立した正確な座標や一般無料利用へ変換しない"
+  ]
+}

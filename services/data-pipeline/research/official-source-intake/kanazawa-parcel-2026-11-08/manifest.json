@@ -1,0 +1,390 @@
+{
+  "version": 1,
+  "checkedOn": "2026-11-08",
+  "scope": "Three publisher-separated research preparations only; no runtime imports, adapter construction, registration, approved anchor, publication or promotion.",
+  "publicationStatus": "blocked",
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "parcelTermsReviewWritten": false,
+  "readinessMetrics": {
+    "normalizedFactSheets": 3,
+    "fullyAddressMatched": 3,
+    "contextCorroborated": 2,
+    "weakerContext": 1,
+    "productionReady": 0
+  },
+  "candidateHeader": [
+    "fact_id",
+    "place_name",
+    "area_name",
+    "area_scope",
+    "zones",
+    "official_address",
+    "host_type",
+    "page_url",
+    "checked_at",
+    "candidate_latitude",
+    "candidate_longitude",
+    "candidate_basis",
+    "candidate_reference"
+  ],
+  "candidates": [
+    {
+      "id": "kurashiki",
+      "sourceId": "kurashiki-okyozuka-smoking-place",
+      "files": {
+        "facts": "kurashiki/candidate-facts.csv",
+        "receipt": "kurashiki/receipt.json",
+        "intake": "kurashiki/intake.json",
+        "factsReview": "kurashiki/facts-review.json",
+        "rightsReview": "kurashiki/rights-review.json"
+      },
+      "csvSha256": "ff604142e06c783e285574ed2386bb119c3476363ad41c97f06bea42cd451aa4",
+      "factRowCount": 1,
+      "publicationStatus": "blocked",
+      "productionApproval": false,
+      "spatialAssessment": {
+        "grade": "weakerContext",
+        "decision": "facilityVicinityCandidateOnly",
+        "formalLocationApproval": false,
+        "finding": "The point is in the roadside strip of small commercial buildings/parking adjoining a large commercial site in Okyōzuka 2-chome. It is not visibly displaced into a distant town or road. GSI does not label the particular cafe building, so its exact building identity is not independently established from these images.",
+        "exactBuildingIdentityConfirmed": false,
+        "entranceConfirmed": false,
+        "smokingPlacePositionConfirmed": false,
+        "legalParcelExtentConfirmed": false,
+        "imageryCaptureDate": null,
+        "sourceUrls": [
+          "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+          "https://maps.gsi.go.jp/development/ichiran.html",
+          "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html"
+        ],
+        "limitations": [
+          "operator or otherwise licensed facility-specific site reference can strengthen cafe-building identity",
+          "parcel boundary/extent not established",
+          "original parcel reuse terms and maintainer approval remain independent requirements"
+        ],
+        "notANewRoofIdentityGate": true
+      },
+      "blockers": [
+        "parcelTermsUnreviewed",
+        "sourceSpecificFormalReviewRequired",
+        "sourceRegistrationAfterOwnerApproval"
+      ],
+      "configDraft": {
+        "notExecutable": true,
+        "targetContract": "ReviewedFacilitySource at PR409 ae0c739e08e23c447f18ba7889ab7f4951c824f6; reference only",
+        "sourceId": "kurashiki-okyozuka-smoking-place",
+        "slug": "kurashiki",
+        "displayName": "倉式珈琲店 御経塚店 喫煙場所（公式サイト）",
+        "pageUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+        "futureFixtureFile": null,
+        "futureFixtureSha256": null,
+        "release": {
+          "sourceUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+          "observedOn": "2026-11-08",
+          "fetchedAt": "2026-11-08T05:00:03Z",
+          "httpLastModified": null
+        },
+        "candidateValues": [
+          "kurashiki",
+          "倉式珈琲店 御経塚店 喫煙ブース",
+          "倉式珈琲店 御経塚店",
+          "facility",
+          "喫煙ブース（客席禁煙）",
+          "石川県野々市市御経塚２ー５",
+          "restaurantOrCafe",
+          "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+          "2026-11-08",
+          "36.547847521",
+          "136.599780445",
+          "officialAddressGeocode",
+          "abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d parcel 入力=石川県野々市市御経塚２ー５ 出力=石川県野々市市御経塚2丁目5"
+        ],
+        "hostType": "restaurantOrCafe",
+        "environment": "unknown",
+        "attributionText": "出典：倉式珈琲店 御経塚店 喫煙場所（公式サイト） https://www.saint-marc-hd.com/kurashiki/shop/19/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：野々市市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+        "rightsBasisDraft": {
+          "kind": "factReference",
+          "pageUrls": [
+            "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+            "https://www.saint-marc-hd.com/kurashiki/"
+          ],
+          "termsUrls": [
+            "https://www.saint-marc-hd.com/hd/privacy/"
+          ],
+          "reviewStatus": "technicalCandidateOnly",
+          "formalApproval": false,
+          "reviewedBy": null,
+          "reviewedOn": null
+        },
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "attributionReviewStatus": "draftAwaitingOwnerFormalTermsAndCreditReview"
+      }
+    },
+    {
+      "id": "manten",
+      "sourceId": "manten-hakusan-smoking-place",
+      "files": {
+        "facts": "manten/candidate-facts.csv",
+        "receipt": "manten/receipt.json",
+        "intake": "manten/intake.json",
+        "factsReview": "manten/facts-review.json",
+        "rightsReview": "manten/rights-review.json"
+      },
+      "csvSha256": "1154b5aa4f4a5238dacd40d088390d96fae77da916b80aaf4d5fba51e9a7087c",
+      "factRowCount": 1,
+      "publicationStatus": "blocked",
+      "productionApproval": false,
+      "spatialAssessment": {
+        "grade": "contextCorroborated",
+        "decision": "facilityVicinityCandidateOnly",
+        "formalLocationApproval": false,
+        "finding": "The GSI aerial image places the existing ABR point on a roof in the developed triangular site. Hotel north/parking south and surrounding road arrangement agree with the operator parking diagram. GSI standard map still renders the site largely empty, so its building omission is not evidence of closure.",
+        "exactBuildingIdentityConfirmed": null,
+        "entranceConfirmed": false,
+        "smokingPlacePositionConfirmed": false,
+        "legalParcelExtentConfirmed": false,
+        "imageryCaptureDate": null,
+        "sourceUrls": [
+          "https://www.manten-hotel.com/michinoyado-1/access/",
+          "https://maps.gsi.go.jp/development/ichiran.html",
+          "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html",
+          "https://www.manten-hotel.com/common/images/michinoyado-1/access/map-04.png"
+        ],
+        "limitations": [
+          "point is not an entrance, smoking room or validated walking route",
+          "imagery capture date and legal parcel extent not established",
+          "original parcel reuse terms and maintainer approval remain independent requirements"
+        ],
+        "notANewRoofIdentityGate": true
+      },
+      "blockers": [
+        "parcelTermsUnreviewed",
+        "sourceSpecificFormalReviewRequired",
+        "sourceRegistrationAfterOwnerApproval"
+      ],
+      "configDraft": {
+        "notExecutable": true,
+        "targetContract": "ReviewedFacilitySource at PR409 ae0c739e08e23c447f18ba7889ab7f4951c824f6; reference only",
+        "sourceId": "manten-hakusan-smoking-place",
+        "slug": "manten",
+        "displayName": "満天の湯・道の宿 喫煙場所（公式サイト）",
+        "pageUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+        "futureFixtureFile": null,
+        "futureFixtureSha256": null,
+        "release": {
+          "sourceUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+          "observedOn": "2026-11-08",
+          "fetchedAt": "2026-11-08T05:00:03Z",
+          "httpLastModified": null
+        },
+        "candidateValues": [
+          "manten",
+          "満天の湯・道の宿 喫煙場所（一部宿泊者専用）",
+          "満天の湯・道の宿",
+          "facility",
+          "1階大浴場入口前|2階・3階・4階客室フロア（宿泊者専用）",
+          "石川県野々市市柳町460番地",
+          "other",
+          "https://www.manten-hotel.com/michinoyado-1/room/",
+          "2026-11-08",
+          "36.526230767",
+          "136.580940911",
+          "officialAddressGeocode",
+          "abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d parcel 入力=石川県野々市市柳町460番地 出力=石川県野々市市柳町460"
+        ],
+        "hostType": "other",
+        "environment": "unknown",
+        "attributionText": "出典：満天の湯・道の宿 喫煙場所（公式サイト） https://www.manten-hotel.com/michinoyado-1/room/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：野々市市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+        "rightsBasisDraft": {
+          "kind": "factReference",
+          "pageUrls": [
+            "https://www.manten-hotel.com/michinoyado-1/room/",
+            "https://www.manten-hotel.com/michinoyado-1/faq/",
+            "https://www.manten-hotel.com/michinoyado-1/access/",
+            "https://www.manten-hotel.com/michinoyado-1/"
+          ],
+          "termsUrls": [
+            "https://manten-hotel.co.jp/privacy/",
+            "https://www.manten-hotel.com/img/pdf_agreement.pdf",
+            "https://www.manten-hotel.com/common/pdf/pdf_agreement.pdf"
+          ],
+          "reviewStatus": "technicalCandidateOnly",
+          "formalApproval": false,
+          "reviewedBy": null,
+          "reviewedOn": null
+        },
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "attributionReviewStatus": "draftAwaitingOwnerFormalTermsAndCreditReview"
+      }
+    },
+    {
+      "id": "kokusai",
+      "sourceId": "kanazawa-kokusai-hotel-smoking-place",
+      "files": {
+        "facts": "kokusai/candidate-facts.csv",
+        "receipt": "kokusai/receipt.json",
+        "intake": "kokusai/intake.json",
+        "factsReview": "kokusai/facts-review.json",
+        "rightsReview": "kokusai/rights-review.json"
+      },
+      "csvSha256": "851bcc619b875369ff87bad1b23daed62ca81a1a4288ce36748bb1f01c67e587",
+      "factRowCount": 1,
+      "publicationStatus": "blocked",
+      "productionApproval": false,
+      "spatialAssessment": {
+        "grade": "contextCorroborated",
+        "decision": "facilityVicinityCandidateOnly",
+        "formalLocationApproval": false,
+        "finding": "The point lies inside the large complex building outline on GSI standard mapping and on the complex roof in GSI aerial imagery, on the east side of the main road with a southern pool/courtyard complex. It is not visibly in adjacent housing or across the road. The hotel official access page identifies the hotel address and entry guidance; the point is not that entry.",
+        "exactBuildingIdentityConfirmed": null,
+        "entranceConfirmed": false,
+        "smokingPlacePositionConfirmed": false,
+        "legalParcelExtentConfirmed": false,
+        "imageryCaptureDate": null,
+        "sourceUrls": [
+          "https://www.kanazawakokusaihotel.co.jp/access/",
+          "https://maps.gsi.go.jp/development/ichiran.html",
+          "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html"
+        ],
+        "limitations": [
+          "point is not an entrance, smoking corner or floor",
+          "imagery capture date and legal parcel extent not established",
+          "original parcel reuse terms and maintainer approval remain independent requirements"
+        ],
+        "notANewRoofIdentityGate": true
+      },
+      "blockers": [
+        "parcelTermsUnreviewed",
+        "sourceSpecificFormalReviewRequired",
+        "sourceRegistrationAfterOwnerApproval"
+      ],
+      "configDraft": {
+        "notExecutable": true,
+        "targetContract": "ReviewedFacilitySource at PR409 ae0c739e08e23c447f18ba7889ab7f4951c824f6; reference only",
+        "sourceId": "kanazawa-kokusai-hotel-smoking-place",
+        "slug": "kokusai",
+        "displayName": "金沢国際ホテル 喫煙場所（公式サイト）",
+        "pageUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+        "futureFixtureFile": null,
+        "futureFixtureSha256": null,
+        "release": {
+          "sourceUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+          "observedOn": "2026-11-08",
+          "fetchedAt": "2026-11-08T05:00:04Z",
+          "httpLastModified": null
+        },
+        "candidateValues": [
+          "kokusai",
+          "金沢国際ホテル 館内喫煙場所",
+          "金沢国際ホテル",
+          "facility",
+          "館内喫煙コーナー|披露宴会場の各フロア",
+          "石川県金沢市大額町ル８番地",
+          "other",
+          "https://www.kanazawakokusaihotel.co.jp/question/",
+          "2026-11-08",
+          "36.513793726",
+          "136.631460822",
+          "officialAddressGeocode",
+          "abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d parcel 入力=石川県金沢市大額町ル８番地 出力=石川県金沢市大額町ル8"
+        ],
+        "hostType": "other",
+        "environment": "unknown",
+        "attributionText": "出典：金沢国際ホテル 喫煙場所（公式サイト） https://www.kanazawakokusaihotel.co.jp/question/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：金沢市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+        "rightsBasisDraft": {
+          "kind": "factReference",
+          "pageUrls": [
+            "https://www.kanazawakokusaihotel.co.jp/question/",
+            "https://www.kanazawakokusaihotel.co.jp/wedding/guest/",
+            "https://www.kanazawakokusaihotel.co.jp/access/",
+            "https://www.kanazawakokusaihotel.co.jp/"
+          ],
+          "termsUrls": [
+            "https://www.kanazawakokusaihotel.co.jp/privacypolicy/",
+            "https://www.kanazawakokusaihotel.co.jp/wedding/privacypolicy/"
+          ],
+          "reviewStatus": "technicalCandidateOnly",
+          "formalApproval": false,
+          "reviewedBy": null,
+          "reviewedOn": null
+        },
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "attributionReviewStatus": "draftAwaitingOwnerFormalTermsAndCreditReview"
+      }
+    }
+  ],
+  "futureIntegration": {
+    "targetPullRequest": 409,
+    "targetHead": "ae0c739e08e23c447f18ba7889ab7f4951c824f6",
+    "mustNotInstantiateCurrentFactory": true,
+    "reason": "Its constructor returns an approved registry entry; this preparation is deliberately adapterless.",
+    "columnMapping": {
+      "candidate_latitude": "anchor_latitude",
+      "candidate_longitude": "anchor_longitude",
+      "candidate_basis": "anchor_basis",
+      "candidate_reference": "anchor_reference"
+    },
+    "requiredBeforeMapping": [
+      "Owner formal original parcel-terms approval, independently recorded; current PARCEL_TERMS_REVIEW remains null.",
+      "Review the merged shared factory contract; never import a research config into runtime without the separate formal source and parcel approvals.",
+      "Per-source facts/rights/current-operation/location review and source approval; preserve unknowns and access qualifiers.",
+      "Create a new approved fixture with anchor column names and recompute its SHA, then add registry/SOURCES/tests/health targets in a separate reviewed PR."
+    ],
+    "targetMerged": true,
+    "targetMergeCommit": "533b63f"
+  },
+  "commonEvidenceFiles": [
+    "address-candidates.json",
+    "abrg-output.json",
+    "anchor-evaluation.json",
+    "abr-manifest.sha256",
+    "geocoder-run.json",
+    "fetch-receipts.json",
+    "spatial-review.json",
+    "terms-evidence.json",
+    "terms-review.md"
+  ],
+  "artifactDigests": {
+    "abr-manifest.sha256": "7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+    "abrg-output.json": "9b6a16092d3b80965ac85d555748a36dbd43d39f79d4644ba40eb4fb8d679ff4",
+    "address-candidates.json": "29a4ff40372c5ed7cdc46f652c99a8fe394e7a993af75d4b90abbba6950d7414",
+    "anchor-evaluation.json": "a3a4f3fb12784fe971b4ec7ad08d7e2459b7d84e5026103e5507f642ba466273",
+    "fetch-receipts.json": "d840fe8f68b9e422b919a5767185805c2c06b900b652265a430f7c1e716b0d89",
+    "geocoder-run.json": "6fbe015179ccf08f18e2f5f07dbce4b462720c4b69f831c84f23436c02e512fe",
+    "kokusai/candidate-facts.csv": "851bcc619b875369ff87bad1b23daed62ca81a1a4288ce36748bb1f01c67e587",
+    "kokusai/facts-review.json": "b51485ea405d57247b97d3841e72f691fc85ed1867dfd0161ba19dcf48aa0269",
+    "kokusai/intake.json": "91fd42902e73216ac6af48add5be4475373fb240ef09a26f24ec96eb15f4f2b2",
+    "kokusai/receipt.json": "708dcb8d4a961825c823a8d90e8b4ed26de372189305deaa0f76a05c3b8ddfff",
+    "kokusai/rights-review.json": "bcc4c382a5e818f15a11eea316ac6f7ce396e5a844a287be0638b65d68556289",
+    "kurashiki/candidate-facts.csv": "ff604142e06c783e285574ed2386bb119c3476363ad41c97f06bea42cd451aa4",
+    "kurashiki/facts-review.json": "43f4e5d7f56a6ea84e781eeed810185e79f2c18c50825779f7b5799f77d80aa0",
+    "kurashiki/intake.json": "f3ab0c249f204ce7292995719eca83c754f24269ad8bddec41f5e873f9157c6a",
+    "kurashiki/receipt.json": "a0d2d5561d96bbf2fe3c6ced8fbebbceb373dad89576cfd75626df3b0f643834",
+    "kurashiki/rights-review.json": "12b2ada63a78d1e173c3492fc17b7d601426c4b3dc347f3dbd8654cd4ac53ac9",
+    "manten/candidate-facts.csv": "1154b5aa4f4a5238dacd40d088390d96fae77da916b80aaf4d5fba51e9a7087c",
+    "manten/facts-review.json": "a30f3b4c114bbf7d79fbe5913d44f51d9960cbfc336a056fcc8ac03f8771368b",
+    "manten/intake.json": "1e26842b4af76eb9a3df9cc3a4902e5ea8ef0f75b0628db16f2f4cd40fa04779",
+    "manten/receipt.json": "71497845de4fbe9dcacb54c2d87629f84805c500d0d55142c0fa42980b45f28c",
+    "manten/rights-review.json": "d9f18eb34c5d762c3da189b993985edc9146711969bef35ed7204c068e62e1cc",
+    "spatial-review.json": "1b09f3f209a469c766b5fbd9ba42985f6eff341e14c4189a988fe33c84104900",
+    "terms-evidence.json": "b85b552f4143c694d342515a7591070d836dfca350a9cae7af9cd4e85a46ee00",
+    "terms-review.md": "67bb3ab643c2502dc8525c31bf0725db387877ff8059537669e9d8a043dcb1df",
+    "data-lineage.json": "25bfa3a5fb2e7764063e2969c34a630800cd2c3de6f23a0d918f436ccf991a22",
+    "canonical-terms-receipt.json": "316bc30a6a0bdc6dceab4d18144d44804a93bab6d7a07c45eb0329ade85a7ac2",
+    "facility-followup.json": "4490348447b2092c33baa171c07b93834bd89e5dfd9b552861753344b2872e53",
+    "facility-followup-receipts.json": "75c97331eb46e25968d5201f5ae7b0fd8a6d14c3d3ec1cbe7913092b6120f9e3",
+    "approval-checklist.md": "2a320088bf6db9a0d730a7f200544b8e34ec92665959d947231a41f0a63eb691"
+  },
+  "followupEvidence": {
+    "dataLineage": "data-lineage.json",
+    "canonicalTerms": "canonical-terms-receipt.json",
+    "facilities": "facility-followup.json",
+    "creditDraftSupersededBy": "terms-evidence.json#creditDraft",
+    "productionReady": 0
+  },
+  "approvalChecklist": "approval-checklist.md"
+}

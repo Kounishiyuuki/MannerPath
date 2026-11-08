@@ -1,0 +1,16 @@
+{
+  "receiptWrittenAt": "2026-11-08T05:06:19Z",
+  "receiptMeaning": "Written after actual local geocode/evaluation in this task, not a source observation timestamp.",
+  "version": "2.3.1",
+  "nodeVersion": "23.3.0",
+  "datasetDownloadedOn": "2026-11-07",
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "fileCount": 15,
+  "inputs": "address-candidates.json; official publisher strings verbatim, no fuzzy option",
+  "output": "abrg-output.json",
+  "evaluation": "anchor-evaluation.json",
+  "gateVersion": "address-anchor-gate.v3",
+  "optionsOverride": false,
+  "parcelTermsReview": null,
+  "result": "3 reviewPending / parcelTermsUnreviewed, zero approved anchors"
+}
