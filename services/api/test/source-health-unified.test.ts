@@ -293,3 +293,19 @@ test("repository Sendai and Komatsu onboarding do not expand the six-source prod
   assert.deepEqual([...repository, ...Object.keys(HEALTH_NOT_CONFIGURED)].sort(), SOURCE_ADAPTERS.map(a => a.registry.sourceId).sort());
   assert.equal(sourceReviews().some(review => review.sourceId === "sendai-kaigan-park-smoking-areas"), false);
 });
+
+
+test("scheduled health audit covers repository hotels without expanding deployed inventory", async () => {
+  const workflow = readFileSync(new URL("../../../.github/workflows/source-health.yml", import.meta.url), "utf8");
+  assert.match(workflow, /scripts\/source-health\.ts --live --repository-reviewed > source-health\.json/);
+  assert.match(workflow, /contents: read/);
+  const { report } = await runOffline(["--repository-reviewed"]);
+  for (const sourceId of ["manten-kanazawa-ekimae-smoking-places", "hotel-sanraku-kanazawa-smoking-places",
+    "route-inn-kanazawa-ekimae-smoking-places", "hotel-vista-kanazawa-smoking-places",
+    "dormy-inn-kanazawa-smoking-places", "smile-hotel-kanazawa-nishiguchi-smoking-places"]) {
+    const result = report.results.find((item: HealthResult) => item.sourceId === sourceId);
+    assert.ok(result, sourceId);
+    assert.equal(result.pageFactNotChecked, true, "offline fixtures do not claim a live facility recheck");
+    assert.equal(productionHealthTargets().some(target => target.adapter.registry.sourceId === sourceId), false);
+  }
+});

@@ -536,7 +536,7 @@ previous release and tiles stay as they were. To stop checks, set `crons` back t
 
 ## Production source health monitor (read-only, GitHub Actions)
 
-`.github/workflows/source-health.yml` runs `services/api/scripts/source-health.ts --live` daily (06:20 JST)
+`.github/workflows/source-health.yml` runs `services/api/scripts/source-health.ts --live --repository-reviewed` daily (06:20 JST)
 and on `workflow_dispatch`. The same run checks each data resource and its scoped rights notice(s). It has
 `contents: read` only, no secrets, pinned official actions, and never touches D1, R2, the registry,
 baselines, publication or deployment. `--offline` replays the reviewed fixtures through the same checker
@@ -551,6 +551,32 @@ non-200 final HTTP status (3xx left after redirect handling, 304, 418, 5xx, …)
 page, unclassified. **Green may still carry ADVISORY rows**: content changed with healthy parser/schema,
 same-origin move, `humanReviewDue`, `rightsReviewDue`, and `known:<signal>` while an explicit known
 advisory is active. Read the step summary on every run, not only red ones.
+
+The scheduled inventory includes all health-configured repository-reviewed sources, including the six new
+Kanazawa hotels. This does **not** assert they are deployed or expand the six-source production inventory;
+`--live` without `--repository-reviewed` still checks only that deployed inventory. Sequential data and
+rights requests have a 30-minute job budget. `HEALTH_NOT_CONFIGURED` sources remain explicitly excluded
+until reviewed scoped contracts exist; the monitor does not invent them.
+
+Facility smoking-equipment text, location/access qualifiers and official addresses are checked within
+reviewed scopes. Dormy Inn's address uses a separate access-page contract in `review-metadata.json`;
+address drift there is reported as `rightsChanged` / `rightsScopeMissing` because it reuses the scoped
+notice checker. Read the contract URL before classifying the finding as a legal change.
+Notices outside the reviewed scopes are not guaranteed to be seen; operator checks remain necessary.
+
+| Observation | Existing output | Operator action |
+| --- | --- | --- |
+| Scopes unchanged | `healthy`, rights separately `unchanged` | Check review-due advisories; this is not an on-site operation confirmation |
+| Equipment/address/access text differs | `contentChanged`, or `schemaChanged` + `pageFactScopeMissing` | Read the current official facts and compare the fixture; missing markers alone are not closure evidence |
+| Page unavailable, including 404/410 | `unavailable` / `accessBlocked`, HTTP/transport signals | Retry or review the source; unavailable is not removal |
+| Notice/terms changes | `rightsChanged` / `rightsScopeMissing` blocking reasons | Review the scoped contract; no automatic rights approval |
+| Explicit official closure/removal notice verified by a reviewer | Record official URL, affected facility/zone, notice/effective dates, reviewer and evidence in a reviewed source-update PR | Distinguish temporary suspension, room restrictions and equipment removal; do not infer closure from keywords |
+
+An evidence hold (`npm run source:hold`) is a separate explicit maintainer action under ADR-0018 §5,
+not a red-job side effect or closure decision. It accepts a live missing-fact-range/resource report,
+refuses ordinary content changes, transport failures and 5xx responses, and records the hold with an atomic tile rewrite.
+The monitor never runs it. Verified closure/removal requires a reviewed fixture/adapter update through
+the existing pipeline; failed fetches or changed wording do not establish closure.
 
 Triage rules — each is an operational reminder, never a publication decision:
 
