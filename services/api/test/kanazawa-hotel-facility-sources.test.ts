@@ -1,6 +1,5 @@
-// Four reviewed Kanazawa hotel facility sources, before registration in SOURCE_ADAPTERS (#408 owns the shared
-// registration). The registry row is written into the in-memory test database only, from the adapter's own reviewed
-// entry, to rehearse ingest → anchor → resolve → tile/detail. Nothing here registers or approves a source.
+// Four reviewed Kanazawa hotel facility sources through the shared reviewed-facility adapter: pinned facts, the address
+// gate, ingest → anchor → resolve → tile/detail, and their place in the registered source list.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -14,7 +13,7 @@ import { HOTEL_VISTA_KANAZAWA_ADAPTER, HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, HOT
 import { ingestRelease, type ReleaseMetadata } from "../src/pipeline/ingest.ts";
 import { KKR_KANAZAWA_ADAPTER } from "../src/pipeline/kkr-kanazawa-adapter.ts";
 import { MANTEN_KANAZAWA_EKIMAE_ADAPTER, MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, MANTEN_KANAZAWA_EKIMAE_FIXTURE_SHA256 } from "../src/pipeline/manten-kanazawa-ekimae-adapter.ts";
-import { assertRightsBasis } from "../src/pipeline/registry.ts";
+import { assertRightsBasis, ensureReviewedSource } from "../src/pipeline/registry.ts";
 import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
 import { ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_SHA256 } from "../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
 import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
@@ -30,7 +29,7 @@ const RELEASE_ID = "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc
 interface Case { slug: string; adapter: SourceAdapter; release: ReleaseMetadata; hash: string; name: string; area: string; address: string; point: [number, number] }
 const CASES: Case[] = [
   { slug: "manten-kanazawa-ekimae", adapter: MANTEN_KANAZAWA_EKIMAE_ADAPTER, release: MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, hash: MANTEN_KANAZAWA_EKIMAE_FIXTURE_SHA256,
-    name: "マンテンホテル金沢駅前 喫煙室（1F・4F・7F）", area: "マンテンホテル金沢駅前", address: "石川県金沢市北安江1-6-1", point: [36.581441767, 136.649589106] },
+    name: "金沢マンテンホテル駅前 喫煙室（1F・4F・7F）", area: "金沢マンテンホテル駅前", address: "石川県金沢市北安江1-6-1", point: [36.581441767, 136.649589106] },
   { slug: "hotel-sanraku-kanazawa", adapter: HOTEL_SANRAKU_KANAZAWA_ADAPTER, release: HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, hash: HOTEL_SANRAKU_KANAZAWA_FIXTURE_SHA256,
     name: "金沢白鳥路 ホテル山楽 喫煙スペース（エントランス付近屋外・地下駐車場）", area: "金沢白鳥路 ホテル山楽", address: "石川県金沢市丸の内6-3", point: [36.568208225, 136.662038903] },
   { slug: "route-inn-kanazawa-ekimae", adapter: ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, release: ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, hash: ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_SHA256,
@@ -40,11 +39,9 @@ const CASES: Case[] = [
 ];
 const fixture = (slug: string, file: string) => new URL(`../../data-pipeline/fixtures/${slug}-smoking-places/${file}`, import.meta.url);
 
-async function rehearsalDb(c: Case) {
+async function reviewedDb(c: Case) {
   const db = new SqliteD1();
-  const r = c.adapter.registry;
-  db.raw.prepare(`INSERT INTO sources (source_id, display_name, kind, license_name, license_url, attribution_text, publication_status, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(r.sourceId, r.displayName, r.kind, r.licenseName, r.licenseUrl, r.attributionText, r.publicationStatus, NOW, NOW);
+  await ensureReviewedSource(db, c.adapter.registry.sourceId, NOW);
   return db;
 }
 
@@ -80,7 +77,7 @@ for (const c of CASES) {
   });
 
   test(`${c.slug}: tiles/detail carry ONE approximate facility spot with unknown support, access and hours`, async () => {
-    const db = await rehearsalDb(c);
+    const db = await reviewedDb(c);
     const { releaseId } = await ingestRelease(db, c.adapter, bytes, c.release);
     assert.equal(await recordReviewedAnchors(db, c.adapter, c.hash, NOW), 1);
     assert.equal((await resolveFirstRelease(db, c.adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds("N") })).status, "resolved");
@@ -101,7 +98,7 @@ for (const c of CASES) {
   });
 
   test(`${c.slug}: existence cannot resolve without the reviewed anchor`, async () => {
-    const db = await rehearsalDb(c);
+    const db = await reviewedDb(c);
     const { releaseId } = await ingestRelease(db, c.adapter, bytes, c.release);
     await assert.rejects(resolveFirstRelease(db, c.adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds("N") }), /anchor/);
     assert.equal((db.raw.prepare("SELECT count(*) n FROM spots").get() as { n: number }).n, 0);
@@ -121,6 +118,8 @@ test("new hotel pins are distinct facilities: none shares or stacks on another p
   }
 });
 
-test("standalone until registration: not in SOURCE_ADAPTERS, so nothing is published by the real pipeline yet", () => {
-  for (const c of CASES) assert.equal(SOURCE_ADAPTERS.some(a => a.registry.sourceId === c.adapter.registry.sourceId), false, c.slug);
+test("registered once each, after KKR, as approved factReference sources", () => {
+  const ids = SOURCE_ADAPTERS.map(a => a.registry.sourceId);
+  for (const c of CASES) assert.equal(ids.filter(id => id === c.adapter.registry.sourceId).length, 1, c.slug);
+  assert.deepEqual(ids.slice(ids.indexOf("kkr-kanazawa-smoking-places") + 1), CASES.map(c => c.adapter.registry.sourceId));
 });

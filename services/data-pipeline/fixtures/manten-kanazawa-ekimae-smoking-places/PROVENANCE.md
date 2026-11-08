@@ -1,10 +1,10 @@
-# マンテンホテル金沢駅前 — reviewed normalized page facts (ADR-0018)
+# 金沢マンテンホテル駅前 — reviewed normalized page facts (ADR-0018)
 
 `manten-kanazawa-ekimae-page-facts.csv` is MannerPath's **normalized fact sheet**, not an operator dataset. No HTML, expressive prose, photographs, floor plans, maps, screenshots or logos are redistributed. One hotel facility is one approximate spot.
 
 ## Official existence and current operation
 
-- First-party source: [マンテンホテル金沢駅前・よくあるご質問](https://www.manten-hotel.com/kanazawa/faq/), operated by 株式会社マンテンホテル.
+- First-party source: [金沢マンテンホテル駅前・よくあるご質問](https://www.manten-hotel.com/kanazawa/faq/), operated by 株式会社マンテンホテル.
 - Actual HTTP200 fetch `2026-11-08T04:56:55Z`; size and whole-page SHA-256 are in `fetch-receipts.json` (receipts, not licences). Raw HTML stays outside the repository.
 - Normalized existence fact: 公式FAQが「1階の駐車場入り口横と館内4・7階EV近くに喫煙室を設置」と述べる（全客室禁煙の案内と同じページ）。 The facility's existence alone is not the evidence; the explicit smoking-place statement is.
 - Current-operation check: 2026-11-08 (UTC date of the actual fetch). Undated current official page (ADR-0018 D-C). Desk check, not an on-site visit. No closure, relocation or removal was found in the reviewed page.
@@ -27,6 +27,6 @@ Engineering `factReference` classification under ADR-0018 D-R, **not legal clear
 
 ## Pinned release and deployment boundary
 
-CSV SHA-256 `74278ffe737cba22bf7286a5794bf53374ab94ad51bc42d706c9b0f6ab1339ca`, one record. Only this pinned reviewed release is approved; a changed page needs review. Cross-release validation false, completeness partial.
+CSV SHA-256 `65f0151bf8b26fc2938d35ea849137560bf6f904dfae115e11fd05ff9f67019a`, one record. Only this pinned reviewed release is approved; a changed page needs review. Cross-release validation false, completeness partial.
 
 **Not yet registered**: the adapter is standalone until the shared reviewed-facility adapter (#408) lands; `SOURCE_ADAPTERS`, `REVIEWED_SOURCES`, `docs/SOURCES.md`, source-health and onboarding are untouched, so nothing is published by the pipeline yet. `test/kanazawa-hotel-facility-sources.test.ts` rehearses ingest → anchor → tile/detail in an in-memory database. No production database, tile, Worker or configuration change.
