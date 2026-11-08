@@ -1,0 +1,51 @@
+{
+  "checkedOn": "2026-11-08",
+  "note": "HTTP metadata only; raw HTML remains outside repository. Whole-page hashes are volatile receipts, not licences or source-health baselines.",
+  "pages": [
+    {
+      "name": "facilities",
+      "url": "https://kanazawa.kkr.or.jp/facilities/",
+      "fetchedAt": "2026-11-07T18:59:18Z",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 126065,
+      "sha256": "7717c9ba2b2e4613f131347f0c9f0be67f94ff6204ad743916e15454f8cdeec8"
+    },
+    {
+      "name": "faq",
+      "url": "https://kanazawa.kkr.or.jp/faq/",
+      "fetchedAt": "2026-11-07T18:59:19Z",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 155967,
+      "sha256": "a807d59cedad3a02994e8615a56c5df08cf021ce876f6001941a8de67b2e9119"
+    },
+    {
+      "name": "privacy",
+      "url": "https://kanazawa.kkr.or.jp/privacy/",
+      "fetchedAt": "2026-11-07T18:59:20Z",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 112448,
+      "sha256": "2dbd4494d9eaa3c1596ea7e733526dfb8e94f51a55e5ec46cf16d47225a38c8b"
+    },
+    {
+      "name": "home",
+      "url": "https://kanazawa.kkr.or.jp/",
+      "fetchedAt": "2026-11-07T18:59:21Z",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 244220,
+      "sha256": "a83620fa70494b045f345c0e5214dec50e62fe2a881b116da81cd8743d149386"
+    },
+    {
+      "name": "parent-terms",
+      "url": "https://www.kkr.or.jp/siteriyo.html",
+      "fetchedAt": "2026-11-07T18:59:22Z",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bytes": 21750,
+      "sha256": "ae309cd5e5bae453efa9e2d4283a436b190d4c032472ab7c581646a27fb1bd35"
+    }
+  ]
+}

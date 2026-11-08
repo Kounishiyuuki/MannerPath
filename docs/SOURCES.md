@@ -504,3 +504,23 @@ Location rights are independent: アドレス・ベース・レジストリ（�
 Full receipts, rights limitations, anchor references and pinned hashes:
 `services/data-pipeline/fixtures/kassen-nomura-smoking-places/PROVENANCE.md` and
 `services/data-pipeline/fixtures/kanazawa-artvillage-smoking-places/PROVENANCE.md`.
+
+### KKRホテル金沢 — ADR-0018 operator factReference source
+
+Reviewed 2026-11-08 JST. Receipts, rights scope and reproduced address anchor:
+`services/data-pipeline/fixtures/kkr-kanazawa-smoking-places/PROVENANCE.md`.
+
+| Field | Value |
+|---|---|
+| Source ID | `kkr-kanazawa-smoking-places` |
+| Publisher / kind | 国家公務員共済組合連合会・KKRホテル金沢 / operator |
+| Official smoking-place page | https://kanazawa.kkr.or.jp/facilities/ |
+| Existence | 1階ロビー入口側・3階エレベーター側; explicit current smoking-place statement, not merely a hotel POI |
+| Rights | factReference, no licence claimed; normalized facts only, no expressive content reproduced |
+| Rights context | Hotel copyright footer and privacy policy reviewed. Parent https://www.kkr.or.jp/siteriyo.html introduction excludes other linked sites and §3 requires prior contact for commercial reproduction. Both are recorded; neither parent permission nor legally certain non-applicability is asserted. D-R fact reference is the internal decision; objections/additional information-use restrictions require hold/re-review |
+| Location | Official-address ABR residential_detail representative point; areaApproximate / facility; one spot for the two floors, never the smoking-place coordinate |
+| Access / tobacco / smoking hours / physical classification | unknown; facility/check-in hours and photos not transferred |
+| Current operation | Current official page checked 2026-11-08 JST, not a site visit; source-health smoking/address scopes plus hotel and parent rights context monitored in repository-only inventory |
+| Attribution | Operator/source URL/check date plus アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）, normalization/geocoding notice and facility-point disclaimer; full text in adapter |
+| Pinned release | CSV SHA-256 `dee2776a66e4e6c018684c7213b85366919377126482e999d49ba24ed23d65c8`; 1 row → 1 local published spot |
+| Status | approved for pinned local-pipeline release only; partial, crossReleaseValidated=false. No production inventory expansion, DB/tile write or deployment |

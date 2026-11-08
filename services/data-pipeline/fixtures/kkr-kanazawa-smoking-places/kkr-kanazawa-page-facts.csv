@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+kkr,KKRホテル金沢 喫煙所（1階・3階）,KKRホテル金沢,facility,1階ロビー入口側|3階エレベーター側,石川県金沢市大手町2-32,other,https://kanazawa.kkr.or.jp/facilities/,2026-11-07,36.568729789,136.660338131,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市大手町2-32 出力=石川県金沢市大手町2-32
