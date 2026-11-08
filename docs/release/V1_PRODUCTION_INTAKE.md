@@ -23,8 +23,8 @@
   （消せば、デプロイなしで既存の鍵を含めて受付が止まる）。
 - 登録の上限：**5件/時・20件/日**（staging の半分）。申請の上限は 10件/時・50件/日（D1 トリガー、変更なし）。
 - `CHALLENGE_RATE_LIMITER`：namespace `9802`・60件/60秒（staging は 9801）。
-- 保持処理：`REPORT_RETENTION=cleanup`、5分ごと（UTC `2-57/5 * * * *`）の cron だけ。90日の最小化を実行し、
-  未完了・失敗は cron の実行状態とログ（件数のみ）に出る。1日1回最大10件の旧案を改めた生成案で、まだ有効化していない。
+- 保持処理の**未承認候補**：`REPORT_RETENTION=cleanup`、5分ごと（UTC `2-57/5 * * * *`）の cron だけ。90日の最小化を実行し、
+  未完了・失敗は cron の実行状態とログ（件数のみ）に出る。1日1回最大10件の旧案を改めた生成案で、まだ有効化していない。5分が必要との結論は未確定で、[間隔の採用ゲート](V1_RETENTION_CAPACITY.md#6-最終評価5分間隔を確定しない2026-11-09)を閉じるまでdeployしない。
 - **規約のゲート**：現行の規約が草案、または公開権利が `granted` でない間は、App ID の設定と登録の開放を出力せず
   `BLOCKED` を表示して終了コード 2 を返す。草案への過去の同意は、どの版の承認でも公開権利にならない
   （`src/reports/terms.ts`、`test/production-v1-plan.test.ts`）。
@@ -151,3 +151,48 @@ migration ごとに `{ database, name, sha256, verdict: "approved", reviewedBy }
 この検査はレビューの内容を判断しない。承認の記録と bytes の一致だけを見る。
 
 2026-11-06 の `--stage before-db`（読み取りのみ）の結果は PR #387 に記録する。Lane 2 の記録が入るまで FAIL のまま。
+
+## 6. 保持Cron導入runbook（別許可の担当者用・本PRでは全て未実行）
+
+冒頭§1の状態は2026-11-05時点の履歴。#410の2026-11-08 GETでは本番Cron空・invocationログ無効・console/error保存有効、Worker Logpush無効/tail0。新しい本番状態を推測しない。
+次のコマンド群を一括実行しない。段階ごとの承認/証拠を残し、FAIL/不明なら止める。本PRのmergeはCloudflare操作・規約承認・受付開始許可ではない。
+
+### A. 適用前HOLD（ここまではローカル準備）
+
+1. 実plan/課金・外部出力と既存P0、担当の受任、許容遅れと間隔の判断を記録する。実CPU/D1証拠がない現時点では間隔は未確定。検証環境の配備も別許可とする。
+2. 最新mainの承認対象SHAで`make contract`、`make api-validate`、`npm run reports:retention-rehearsal`を確認。生成/テストのmerge以外の自動deploy workflowがないことを再確認する。
+3. `services/api`で`npm run production:v1-plan`を実行し、出力を**手順書として読む**。現在の草案ならexit 2/BLOCKEDが期待結果で、表示されたdeployコマンドを続けて実行する許可にはならない。
+4. 生成した`.wrangler/production-v1/worker.jsonc`をreview。対象Worker/既存DB IDs・REPORTS_DB分離、写真/R2なし、invocation_logs=false、registration paused、App IDなし、採用後のCron/varsが一致すること。`REPORT_SUBMITTER_PEPPER`/`RATE_LIMIT_KEY_PEPPER`は既存値を保持し、新規必要時のみ別承認で設定。Cron専用secretは不要。
+
+### B. 配備（ここから全て別の本番操作許可が必要）
+
+1. 次の既存preflightを段階ごとに使う。`before-db`は履歴の未適用一覧とレビューを照合するため、既にmigration済み等なら失敗を迂回せず現状に合うレビュー/手順を先に用意する。両DBの復旧bookmarkと戻すWorker versionを私的運用記録へ残す。
+
+```sh
+# services/apiから。許可前には実行しない。
+npm run production:v1-check -- --stage before-db
+# 生成planの承認済みmigration/secret手順が必要な場合だけ実施後：
+npm run production:v1-check -- --stage after-db
+npx wrangler deploy -c .wrangler/production-v1/worker.jsonc
+npm run production:v1-check -- --stage after-deploy
+```
+
+2. `after-deploy`のPASSはWorker/readiness/受付停止/写真無効の証拠で、**Cronの配備/実行成功は検証しない**。ダッシュボードの対象Worker Settings/Triggersで採用Cron・vars・版を照合し、反映に最大15分かかり得ることを考慮して実行履歴を確認する。
+3. WorkersのCron履歴でscheduledTime/版/実間隔、`reportRetention`のmode=cleanup・outcome・remainingと実失敗を確認。`overdue`は例外表示でも進捗の場合がある。DB/R2/source処理の想定外実行、無効化、missing、未知のログを正常0件としない。
+4. Workers MetricsのCPU/1102/失敗、D1 Metricsのread/write/storageを確認。合成localの測定で本番の負荷/保存件数/保持完了を代用しない。許可なく実申請の期限を書き換えたり合成申請を本番投入したりしない。
+5. 初日1時間ごと、その後毎日の担当記録へ「環境・Worker SHA・UTC範囲・Cron/vars・complete/overdue/failed・残件・CPU/1102・D1使用量・判断/対応」を保存。生ログ/本文/鍵/IP/私的URLはGit/CI artifactへ置かない。
+6. ローカルの`reports:retention-health`は取得済み私的tail JSONLを判定するだけ。途切れのない観測を確認できた場合だけ`--covered-since`を付ける。取得や観測範囲、CPU/D1は別確認する。Dashboardだけの確認をこのCLIのPASSと表現しない。
+
+```sh
+# 許可済みの秘匿された観測ファイルのみ。UTCは実際に確認した開始時刻。
+npm run reports:retention-health -- --covered-since <UTC> <private-tail.jsonl>
+```
+
+### C. 停止・復旧・rollback
+
+- §3の`stopIntake`判定時は、許可された担当が`npm run production:v1-stop`→`stopped` PASSを確認。App ID削除は既存鍵も止める。通常は保持Cronを継続し、受付のみ止める。規約未承認時の単なるregistration pausedは全停止の証拠ではない。
+- 保持を外す必要があるrollbackは、生成planの順序を守る：全受付停止/PASS→retention-off版/PASS→no-cron triggers適用→20分以上待ちTriggers空/disabled以外の実行なし/次回なし→stopped PASS→**明示version**へrollback→App ID不在再確認。offは進行中batchの即時キャンセルではない。Cronは版と独立なので古い版へ先に戻さない。
+- REPORTS_DBを別DBへ切替えない。Time Travel/DB rollbackは別許可で、受付停止のままschema/receipt full検査と必要最小化を再適用し、復旧確認後に別途再開判断。単純DELETE/secret再作成で復旧を装わない。
+- Cronから審査/承認/export/publish/promotionは呼ばない。ローカルリハーサルのcanonical/R2/source tripwireとpending/notQueued不変、対象回帰テストを証拠にする。全処理の再実行安全性と分散排他は別であり、重複呼出しそのもののコストは残る。
+
+導入完了の証拠：採用間隔の判断、承認対象SHA、各preflight、Triggers照合、実行/CPU/D1/復旧・監視記録。いずれか未確認なら受付開始へ進まない。正式規約・受付/個別地点公開の許可は引き続き別。
