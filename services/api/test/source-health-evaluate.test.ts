@@ -180,3 +180,11 @@ test("summary table escapes markup and cannot gain rows from configured labels",
   assert.match(output, /test&#124;&#96;label&#96; &lt;img src=x&gt;/);
   assert.match(output, /official.example\/a&#124;b/);
 });
+
+test("known-advisory expiry points to its metadata, not fields absent from the report JSON", async () => {
+  const result = await check(async () => response(null, 503));
+  const report = buildReport([result], [review({ knownAdvisories: [{ signal: "http:503", reason: "temporary", recordedAt: TODAY, expiresAt: "2026-11-09" }] })], TODAY);
+  assert.equal(report.results[0].severity, "advisory");
+  assert.ok(report.results[0].advisory.includes("known:http:503"));
+  assert.match(renderSummary(report), /有効期限をreview-metadata.jsonで確認/);
+});

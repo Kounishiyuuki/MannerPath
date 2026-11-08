@@ -141,7 +141,7 @@ function nextChecks(item: EvaluatedResult): string[] {
   if (has(/humanReviewDue|rightsReviewDue/))
     checks.push("期限対象の出典/権利/版を人が再確認。期限到来は公開失効ではなく、日付だけ延長しない。");
   if (has(/^known:|knownAdvisoryExpired/))
-    checks.push("既知advisoryの対象・有効期限をJSONで確認。期限切れを自動延長しない。");
+    checks.push("既知advisoryの対象・有効期限をreview-metadata.jsonで確認。期限切れを自動延長しない。");
   if (has(/rightsNotChecked|pageFactNotChecked/))
     checks.push("offlineでは公式ページ/規約が未確認。fixture再生成功を現行情報の確認としない。");
   if (!checks.length) checks.push(item.severity === "ok" ? "定期確認を継続。現地稼働の証明ではない。" : "JSONの検知理由と運用手順を確認。未分類を正常扱いしない。");
