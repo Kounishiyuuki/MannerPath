@@ -112,8 +112,8 @@ test("batch-2 pins are distinct facilities: neither shares or stacks on the othe
   }
 });
 
-test("registered once each, right after KKR", () => {
+test("registered once each, right after the first Kanazawa hotel batch", () => {
   const ids = SOURCE_ADAPTERS.map(a => a.registry.sourceId);
   for (const c of CASES) assert.equal(ids.filter(id => id === c.adapter.registry.sourceId).length, 1, c.slug);
-  assert.deepEqual(ids.slice(ids.indexOf("kkr-kanazawa-smoking-places") + 1), CASES.map(c => c.adapter.registry.sourceId));
+  assert.deepEqual(ids.slice(ids.indexOf("hotel-vista-kanazawa-smoking-places") + 1), CASES.map(c => c.adapter.registry.sourceId));
 });
