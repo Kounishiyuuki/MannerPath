@@ -41,8 +41,8 @@ receipt は1回の retire しかできず削除もできない（0004 のトリ�
 読み取りは「滞留 + 直近7日の受付」に比例し、履歴には比例しない。どの条件でも 23件の滞留は3回で解消し
 （`overdue, overdue, complete`）、その後の再実行は何も変えない。最後の `full` の確認で receipt の不整合は0件。
 
-**書き込み**：1回 最大30行（10件の最小化 + 10件の receipt + 期限切れの枠・challenge）。最大 288 × 30 = 8,640行/日で、
-D1 Free の 10万行/日の 8.6%（滞留がある日だけ）。round trip は1回 7〜8（Free の1回 50 subrequest の範囲内）。
+**書き込み**：本体行は1回最大40行（申請10 + receipt10 + 期限切れ枠10 + challenge10）。288 × 40 = 11,520行/日は本体行の名目計算で、索引更新を含むD1課金値の上限保証ではない。
+D1 Free枠の判定は実際のmeta/metricsで行う（この訂正は処理件数を変更しない）。round trip は1回 7〜8（Free の1回 50 subrequest の範囲内）。
 
 ## 3. CPU（10 ms）について
 
@@ -70,3 +70,32 @@ D1 Free の 10万行/日の 8.6%（滞留がある日だけ）。round trip は1
 6. 終わったら cron なしの設定で再デプロイする。
 
 判定：`exceededCpu` 0件、`cpuTime` の最大が 10 ms 未満、rows read が予測の2倍以内。満たさなければ §3 の改善を行う。
+
+## 5. 配備準備のローカルD1リハーサル（本番変更なし）
+
+`npm run reports:retention-rehearsal`は、入力引数/remote/任意config/既存DBを受け付けず、一時local D1へ実migrationを適用して合成申請23件を作る。
+実際の`dispatchScheduled`を呼び、期限前非消去、receipt更新途中のSQL失敗によるbatch rollback、同じ行を選んだ2回の重複実行、proxy再起動後の再実行、残件13→3→0とreceipt整合性、実行途中に後続invocationをoffにした場合のDB非アクセスと、既に選択済みのbatchの安全な完了を検証する。最後に一時DBを削除する。
+DB/R2/source dispatcherはtripwireでアクセスを拒否する。公開513地点の実データを読み込まず、本番の現件数/データ同一性を再監査したとはしない。
+`pending/notQueued`が保持後も変わらないことを確認し、承認/公開は実行しない。runtime・同意・source/公開ゲートの変更はない。
+
+このリハーサルのscheduled関数はNodeから実行し、DBはlocal workerd/miniflare。**Workers isolateのCPU測定、実Cron/実D1同時実行の保証ではない**。
+重複時は原子的更新/条件付き退役で復活を防ぐが、排他leaseは追加しない。二重読取り/実行自体を防ぐものではなく、設定は1系統、手動cleanupを重ねない。
+失敗診断は固定phaseだけを出し、SQL例外/本文を出力しない。ローカルworkerdを起動できる環境で実行する。
+
+2026-11-08の実行結果：**PASS**。合成23件、failureRollback / overlappingSelections / restartAndRetry / stopDuringRun / moderationUnchangedはすべてtrue、canonicalAccesses/sourceCallsは0。`productionVerified`と`workersCpuMeasured`はfalse。起動権限が制限されたsandboxではlocal proxyのopenに失敗したため、ローカルworkerd起動を許可した隔離実行で確認した。
+
+### 本番に適用する差分と配備ゲート（未適用）
+
+| 項目 | 準備済み差分/確認方法 |
+| --- | --- |
+| 設定案 | 既存`production:v1-plan`が生成するworker.jsonc。`REPORT_RETENTION=cleanup`、`REPORT_RETENTION_CRON=2-57/5 * * * *`、triggersにも同じ1件。本番GETで空だったCronを有効にする差分なので、別許可までdeployしない |
+| 5分間隔の根拠 | 288枠/日×申請10件=名目2,880件/日。1日1枠の10件では1鍵の50件/日にも追いつかない。§2の索引範囲の既存測定は5分案を支持するが、複数鍵の総流入・実CPU・quota余裕は未保証。間隔を短縮する前に実負荷で再判断 |
+| 必要なsecret | 申請用の既存`REPORT_SUBMITTER_PEPPER`、`RATE_LIMIT_KEY_PEPPER`。`REPORT_APP_ATTEST_APP_ID`は受付を閉じて保持を確認する段階では追加しない。Cron専用secretは不要。値の生成/設定/削除は今回行わず、存在確認は名前だけ。既存pepperを作り直すと関連付けが変わるため置換しない |
+| 保持開始前 | REPORTS_DB binding/schema/receipt、復旧bookmark、migrationレビュー、停止手順を確認。正式規約未承認によるplanのBLOCKEDは正常であり、受付許可ではない。写真/R2/source用Cronを追加しない |
+| 配備後/受付前 | 別許可の担当が実vars/Triggers/版を確認。実Cronのcleanup集計、失敗復旧、CPU/1102・D1 rows/read/write、24時間分の観測を確認。実plan/account出力/Gmailは未確認のまま。本番の5分間隔・CPUをローカルPASSで代用しない |
+| 停止 | 通常は`production:v1-stop`で全受付を止め、健全な保持は継続。offは後続実行を止める設定で、進行中batchを即時キャンセルしない。registration pausedだけでは既存鍵を止めない。実失敗2回/1102は既存監視の停止判定を使い、bounded overdueは別扱い |
+| rollback | 既存planの順序：全受付停止/PASS→retention-off版/PASS→no-cron適用→20分以上待ってTriggers空・disabled以外の実行なし・次回なしを確認→PASS→明示versionへrollback→App ID不在再確認。復元後は受付を閉じたままfull検査/必要最小化。復旧履歴を物理消去としない |
+
+生成plan・既存`production-v1-check`・`production-v1-stop`と対象テストを再利用する。本資料は公開許可や設定適用ではない。
+
+公式仕様の再確認（2026-11-08）：[Cron](https://developers.cloudflare.com/workers/configuration/cron-triggers/)のUTC/反映遅延、[D1 batch](https://developers.cloudflare.com/d1/worker-api/d1-database/)のトランザクションと失敗時rollbackを参照。再実行安全性と排他は別である。

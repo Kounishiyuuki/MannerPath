@@ -18,6 +18,7 @@
     "bulk:intake": "node --experimental-strip-types --no-warnings scripts/bulk-intake.ts",
     "local:registry": "node --experimental-strip-types --no-warnings scripts/apply-source-registry.ts",
     "local:reports": "node --experimental-strip-types --no-warnings scripts/report-queue.ts",
+    "reports:retention-rehearsal": "node --experimental-strip-types --no-warnings scripts/retention-rehearsal.ts",
     "reports:retention-capacity": "node --experimental-strip-types --no-warnings scripts/retention-capacity.ts",
     "reports:retention-health": "node --experimental-strip-types --no-warnings scripts/report-retention-health.ts",
     "local:reports:retention": "node --experimental-strip-types --no-warnings scripts/report-retention.ts",
