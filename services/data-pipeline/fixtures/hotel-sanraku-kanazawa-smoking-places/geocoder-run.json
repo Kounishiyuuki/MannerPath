@@ -1,0 +1,12 @@
+{
+  "runAt": "2026-11-08T04:47:00Z",
+  "runAtMeaning": "receipt of the local geocode/evaluation in this task, not a source observation timestamp",
+  "geocoder": "@digital-go-jp/abr-geocoder",
+  "version": "2.3.1",
+  "nodeVersion": "23.3.0",
+  "fuzzy": false,
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "fileCount": 15,
+  "result": "residential_detail, accepted by unchanged address-anchor-gate.v2",
+  "coordinateMeaning": "facility address representative point only; never the smoking-place position"
+}

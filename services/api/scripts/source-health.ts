@@ -24,6 +24,10 @@ import { KASSEN_NOMURA_PAGE_URL } from "../src/pipeline/kassen-nomura-adapter.ts
 import { KANAZAWA_ARTVILLAGE_PAGE_URL } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_PAGE_URL } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+import { MANTEN_KANAZAWA_EKIMAE_PAGE_URL } from "../src/pipeline/manten-kanazawa-ekimae-adapter.ts";
+import { HOTEL_SANRAKU_KANAZAWA_PAGE_URL } from "../src/pipeline/hotel-sanraku-kanazawa-adapter.ts";
+import { ROUTE_INN_KANAZAWA_EKIMAE_PAGE_URL } from "../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
+import { HOTEL_VISTA_KANAZAWA_PAGE_URL } from "../src/pipeline/hotel-vista-kanazawa-adapter.ts";
 
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
@@ -38,6 +42,10 @@ const resources: Record<string, { filename: string; url: string }> = {
 // inventory above, which only a deployment expands; monitored only with --repository-reviewed.
 const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
   "kkr-kanazawa-smoking-places": { filename: "kkr-kanazawa-page-facts.csv", url: KKR_KANAZAWA_PAGE_URL },
+  "manten-kanazawa-ekimae-smoking-places": { filename: "manten-kanazawa-ekimae-page-facts.csv", url: MANTEN_KANAZAWA_EKIMAE_PAGE_URL },
+  "hotel-sanraku-kanazawa-smoking-places": { filename: "hotel-sanraku-kanazawa-page-facts.csv", url: HOTEL_SANRAKU_KANAZAWA_PAGE_URL },
+  "route-inn-kanazawa-ekimae-smoking-places": { filename: "route-inn-kanazawa-ekimae-page-facts.csv", url: ROUTE_INN_KANAZAWA_EKIMAE_PAGE_URL },
+  "hotel-vista-kanazawa-smoking-places": { filename: "hotel-vista-kanazawa-page-facts.csv", url: HOTEL_VISTA_KANAZAWA_PAGE_URL },
   "kassen-nomura-smoking-places": { filename: "kassen-nomura-page-facts.csv", url: KASSEN_NOMURA_PAGE_URL },
   "kanazawa-artvillage-smoking-places": { filename: "kanazawa-artvillage-page-facts.csv", url: KANAZAWA_ARTVILLAGE_PAGE_URL },
 
@@ -67,6 +75,10 @@ export const HEALTH_NOT_CONFIGURED: Record<string, string> = {
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
 const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
   "kkr-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"喫煙所 １Fロビー入口側","end":"その他施設・設備 Other Facilities"},{"start":"〒920-0912","end":"TEL:"}],"requiredMarkers":["１Fロビー入口側","３Fエレベーター側","石川県金沢市大手町2-32"]},"reviewedFingerprint":"9596f52fcdf6ec2331dfad3d3f1b22338b0b129e4c080d3d26f48fa9f9866a3a"},
+  "manten-kanazawa-ekimae-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"喫煙できる場所はありますか?","end":"ミーティングスペースはありますか?"},{"start":"金沢マンテンホテル駅前 〒920-0022","end":"TEL 076-265-0100"}],"requiredMarkers":["1階の駐車場入り口横","4・7階EV近くに喫煙室","石川県金沢市北安江1-6-1"]},"reviewedFingerprint":"df6dada7c632b92936ab1423b29df3fb8e7c5adcacbb4b93d9a905e985c4066d"},
+  "hotel-sanraku-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"施設内（客室以外）は喫煙可能ですか？","end":"各種自動販売機の設置はありますか？"},{"start":"〒920-0937","end":"[link:https://www.facebook.com/hakuchoro/]"}],"requiredMarkers":["ロビーエントランス付近の屋外スペース","地下駐車場","石川県金沢市丸の内6-3"]},"reviewedFingerprint":"54103eaeabbe8ce1263b50974f269be682d355971cbe737fb6c778eef1c9a847"},
+  "route-inn-kanazawa-ekimae-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"喫煙スペース 喫煙スペースは1階です。","end":"自動販売機コーナー"},{"start":"ホテルルートイン金沢駅前 〒920-0856","end":"[link:tel:050-5576-8105]"}],"requiredMarkers":["喫煙スペースは1階です。","石川県金沢市昭和町22番5号"]},"reviewedFingerprint":"f72bc9456cf27917281b13a006046e9988401500e4a9e6006b8bf2fa2d7993b6"},
+  "hotel-vista-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"喫煙ブース（2F）","end":"[img:スモーキングコーナーのピクトグラムの描かれた扉の写真]"},{"start":"ホテルビスタ金沢 〒920-0031","end":"[link:tel:0762600007]"}],"requiredMarkers":["喫煙ブースを除き、館内は禁煙です","石川県金沢市広岡2-13-27"]},"reviewedFingerprint":"1dbc6c2135a39b900d8a19ab04b438b91bb6cd07b8a11e70028eb59cd595855c"},
   "kassen-nomura-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"※店内は禁煙となります","end":"カウンター席 6席"},{"start":"〒921-8116","end":"駐車場 6台分"}],"requiredMarkers":["店内は禁煙","店外に喫煙スペース","石川県金沢市泉野出町3-3-32"]},"reviewedFingerprint":"d3144059a13498d5ddac8c51ac4d4c07870963b22242a725d1faf3cf747583e2"},
   "kanazawa-artvillage-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"大和町広場 設備及び諸注意事項","end":"大和町広場 平面図"},{"start":"〒920-0046","end":"Copyright ©"}],"requiredMarkers":["園路","喫煙場所","石川県金沢市大和町1-1"]},"reviewedFingerprint":"954412b24dc56490db1e41a9c36c69b11aff108f25710bdae2962039c51f7347"},
 

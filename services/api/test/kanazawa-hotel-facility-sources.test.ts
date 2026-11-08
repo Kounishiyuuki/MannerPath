@@ -1,0 +1,125 @@
+// Four reviewed Kanazawa hotel facility sources through the shared reviewed-facility adapter: pinned facts, the address
+// gate, ingest → anchor → resolve → tile/detail, and their place in the registered source list.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { app } from "../src/app.ts";
+import { abrJsonRun, evaluateAddressAnchor } from "../src/pipeline/address-anchor.ts";
+import { SOURCE_ADAPTERS } from "../src/pipeline/adapters.ts";
+import { recordReviewedAnchors } from "../src/pipeline/area-anchor.ts";
+import { HOTEL_SANRAKU_KANAZAWA_ADAPTER, HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, HOTEL_SANRAKU_KANAZAWA_FIXTURE_SHA256 } from "../src/pipeline/hotel-sanraku-kanazawa-adapter.ts";
+import { HOTEL_VISTA_KANAZAWA_ADAPTER, HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, HOTEL_VISTA_KANAZAWA_FIXTURE_SHA256 } from "../src/pipeline/hotel-vista-kanazawa-adapter.ts";
+import { ingestRelease, type ReleaseMetadata } from "../src/pipeline/ingest.ts";
+import { KKR_KANAZAWA_ADAPTER } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+import { MANTEN_KANAZAWA_EKIMAE_ADAPTER, MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, MANTEN_KANAZAWA_EKIMAE_FIXTURE_SHA256 } from "../src/pipeline/manten-kanazawa-ekimae-adapter.ts";
+import { assertRightsBasis, ensureReviewedSource } from "../src/pipeline/registry.ts";
+import { resolveFirstRelease } from "../src/pipeline/resolve.ts";
+import { ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_SHA256 } from "../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
+import type { SourceAdapter } from "../src/pipeline/source-adapter.ts";
+import { TileBodyV1, type TileSpotV1 } from "../src/tiles/dto.ts";
+import { publishTiles } from "../src/tiles/publish.ts";
+import { sequentialSpotIds } from "./support/fixture.ts";
+import { SqliteD1 } from "./support/sqlite-d1.ts";
+import { v1TileRows } from "./support/tiles.ts";
+
+const NOW = "2026-11-08T05:10:00Z"; // After the actual fetches (04:56–04:57Z), not a simulated future date.
+const RELEASE_ID = "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d";
+
+interface Case { slug: string; adapter: SourceAdapter; release: ReleaseMetadata; hash: string; name: string; area: string; address: string; point: [number, number] }
+const CASES: Case[] = [
+  { slug: "manten-kanazawa-ekimae", adapter: MANTEN_KANAZAWA_EKIMAE_ADAPTER, release: MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, hash: MANTEN_KANAZAWA_EKIMAE_FIXTURE_SHA256,
+    name: "金沢マンテンホテル駅前 喫煙室（1F・4F・7F）", area: "金沢マンテンホテル駅前", address: "石川県金沢市北安江1-6-1", point: [36.581441767, 136.649589106] },
+  { slug: "hotel-sanraku-kanazawa", adapter: HOTEL_SANRAKU_KANAZAWA_ADAPTER, release: HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, hash: HOTEL_SANRAKU_KANAZAWA_FIXTURE_SHA256,
+    name: "金沢白鳥路 ホテル山楽 喫煙スペース（エントランス付近屋外・地下駐車場）", area: "金沢白鳥路 ホテル山楽", address: "石川県金沢市丸の内6-3", point: [36.568208225, 136.662038903] },
+  { slug: "route-inn-kanazawa-ekimae", adapter: ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, release: ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, hash: ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_SHA256,
+    name: "ホテルルートイン金沢駅前 喫煙スペース（1F）", area: "ホテルルートイン金沢駅前", address: "石川県金沢市昭和町22番5号", point: [36.574896175, 136.646092219] },
+  { slug: "hotel-vista-kanazawa", adapter: HOTEL_VISTA_KANAZAWA_ADAPTER, release: HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, hash: HOTEL_VISTA_KANAZAWA_FIXTURE_SHA256,
+    name: "ホテルビスタ金沢 喫煙ブース（2F）", area: "ホテルビスタ金沢", address: "石川県金沢市広岡2-13-27", point: [36.580329911, 136.643377003] },
+];
+const fixture = (slug: string, file: string) => new URL(`../../data-pipeline/fixtures/${slug}-smoking-places/${file}`, import.meta.url);
+
+async function reviewedDb(c: Case) {
+  const db = new SqliteD1();
+  await ensureReviewedSource(db, c.adapter.registry.sourceId, NOW);
+  return db;
+}
+
+for (const c of CASES) {
+  const bytes = new Uint8Array(readFileSync(fixture(c.slug, `${c.slug}-page-facts.csv`)));
+
+  test(`${c.slug}: pinned normalized facts reject coordinate, date, address and basis tampering`, () => {
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), c.hash);
+    assert.equal(c.adapter.parse(bytes).rows.length, 1);
+    const text = new TextDecoder().decode(bytes);
+    for (const [before, after] of [[String(c.point[0]), "35.0"], [c.release.observedOn, "2026-11-09"], ["officialAddressGeocode", "referenceDatasetPoint"], ["石川県金沢市", "東京都中央区"]]) {
+      assert.throws(() => c.adapter.parse(new TextEncoder().encode(text.replace(before, after))), /reviewed fact row/);
+    }
+    assert.doesNotThrow(() => assertRightsBasis(c.adapter.registry));
+    assert.equal(c.adapter.registry.rightsBasis?.kind, "factReference");
+    assert.equal(c.adapter.registry.rightsBasis?.prohibitsInformationUse, false);
+    assert.deepEqual([c.adapter.registry.licenseName, c.adapter.registry.licenseUrl], [null, null]);
+    assert.match(c.adapter.registry.attributionText, /アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）/);
+    assert.match(c.adapter.registry.attributionText, /喫煙場所そのものの位置ではありません/);
+    assert.throws(() => c.adapter.assertResolvable!({ contentSha256: "f".repeat(64), sourceUrl: c.release.sourceUrl, observedOn: c.release.observedOn }, []), /reviewed fact sheet/);
+  });
+
+  test(`${c.slug}: the pin is what the unchanged address gate accepts from the recorded geocoder output`, () => {
+    const [abr] = JSON.parse(readFileSync(fixture(c.slug, "abrg-output.json"), "utf8")) as unknown[];
+    const run = abrJsonRun(abr, "2.3.1", RELEASE_ID);
+    const result = evaluateAddressAnchor({ officialAddress: c.address, expectedPrefecture: "石川県", expectedMunicipality: "金沢市", geocode: run });
+    assert.equal(result.status, "anchor");
+    if (result.status !== "anchor") return;
+    assert.equal(result.coordinateLevel, "residential_detail");
+    assert.deepEqual([result.latitude, result.longitude], c.point);
+    const text = new TextDecoder().decode(bytes);
+    assert.ok(text.includes(result.reference), "the fact row carries the gate's own reference");
+  });
+
+  test(`${c.slug}: tiles/detail carry ONE approximate facility spot with unknown support, access and hours`, async () => {
+    const db = await reviewedDb(c);
+    const { releaseId } = await ingestRelease(db, c.adapter, bytes, c.release);
+    assert.equal(await recordReviewedAnchors(db, c.adapter, c.hash, NOW), 1);
+    assert.equal((await resolveFirstRelease(db, c.adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds("N") })).status, "resolved");
+    await publishTiles(db, { now: NOW });
+    const spots = v1TileRows(db).flatMap(t => TileBodyV1.parse(JSON.parse(t.body_json)).spots);
+    assert.equal(spots.length, 1);
+    const s = spots[0] as TileSpotV1;
+    assert.equal(s.name, c.name);
+    assert.deepEqual([s.latitude, s.longitude], c.point);
+    assert.equal(s.verification.locationPrecision, "areaApproximate");
+    assert.deepEqual(s.verification.locationArea, { name: c.area, kind: "facility", scope: "facility" });
+    assert.equal(s.lastVerifiedAt, c.release.observedOn, "official page check, not a site visit");
+    assert.deepEqual([s.supportsPaper, s.supportsHeated, s.spotType, s.environment, s.accessType, s.accessDetail, s.hostType],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", null, "other"]);
+    assert.deepEqual(s.openingHours, { status: "none", raw: null, parsed: null, timeZone: "Asia/Tokyo" });
+    const detail = await (await app.request(`/v1/spots/${s.id}`, {}, { DB: db })).json() as { spot: TileSpotV1 };
+    assert.deepEqual(detail.spot.verification, s.verification);
+  });
+
+  test(`${c.slug}: existence cannot resolve without the reviewed anchor`, async () => {
+    const db = await reviewedDb(c);
+    const { releaseId } = await ingestRelease(db, c.adapter, bytes, c.release);
+    await assert.rejects(resolveFirstRelease(db, c.adapter, releaseId, { now: NOW, newSpotId: sequentialSpotIds("N") }), /anchor/);
+    assert.equal((db.raw.prepare("SELECT count(*) n FROM spots").get() as { n: number }).n, 0);
+  });
+}
+
+test("new hotel pins are distinct facilities: none shares or stacks on another pin or on KKR", () => {
+  const metres = (a: readonly number[], b: readonly number[]) => {
+    const r = Math.PI / 180, x = (b[1] - a[1]) * r * Math.cos(((a[0] + b[0]) / 2) * r), y = (b[0] - a[0]) * r;
+    return Math.hypot(x, y) * 6_371_000;
+  };
+  const kkr = KKR_KANAZAWA_ADAPTER.areaPoint!(KKR_KANAZAWA_ADAPTER.parse(new Uint8Array(readFileSync(new URL(
+    "../../data-pipeline/fixtures/kkr-kanazawa-smoking-places/kkr-kanazawa-page-facts.csv", import.meta.url)))).rows[0]);
+  const points = [...CASES.map(c => c.point), [kkr.latitude, kkr.longitude]];
+  for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) {
+    assert.ok(metres(points[i], points[j]) > 100, `pins ${i} and ${j} are ${metres(points[i], points[j]).toFixed(0)} m apart`);
+  }
+});
+
+test("registered once each, after KKR, as approved factReference sources", () => {
+  const ids = SOURCE_ADAPTERS.map(a => a.registry.sourceId);
+  for (const c of CASES) assert.equal(ids.filter(id => id === c.adapter.registry.sourceId).length, 1, c.slug);
+  assert.deepEqual(ids.slice(ids.indexOf("kkr-kanazawa-smoking-places") + 1), CASES.map(c => c.adapter.registry.sourceId));
+});

@@ -32,6 +32,10 @@ import { KASSEN_NOMURA_FIXTURE_RELEASE } from "../src/pipeline/kassen-nomura-ada
 import { KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+import { MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE } from "../src/pipeline/manten-kanazawa-ekimae-adapter.ts";
+import { HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/hotel-sanraku-kanazawa-adapter.ts";
+import { ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE } from "../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
+import { HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/hotel-vista-kanazawa-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const sourceIdSchema = z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).max(100);
@@ -72,6 +76,10 @@ export type Candidate = z.input<typeof candidateSchema>;
 // Pins of already reviewed releases, not a new approval registry or a latest-live-release claim.
 const pins = [
   ["kkr-kanazawa-smoking-places", "kkr-kanazawa-page-facts.csv", KKR_KANAZAWA_FIXTURE_RELEASE, "kkr-kanazawa-source.test.ts"],
+  ["manten-kanazawa-ekimae-smoking-places", "manten-kanazawa-ekimae-page-facts.csv", MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
+  ["hotel-sanraku-kanazawa-smoking-places", "hotel-sanraku-kanazawa-page-facts.csv", HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
+  ["route-inn-kanazawa-ekimae-smoking-places", "route-inn-kanazawa-ekimae-page-facts.csv", ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
+  ["hotel-vista-kanazawa-smoking-places", "hotel-vista-kanazawa-page-facts.csv", HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
   ["kassen-nomura-smoking-places", "kassen-nomura-page-facts.csv", KASSEN_NOMURA_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
   ["kanazawa-artvillage-smoking-places", "kanazawa-artvillage-page-facts.csv", KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
 

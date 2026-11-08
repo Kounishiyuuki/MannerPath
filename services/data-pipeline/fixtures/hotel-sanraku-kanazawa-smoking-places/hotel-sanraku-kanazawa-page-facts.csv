@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+hotel-sanraku-kanazawa,金沢白鳥路 ホテル山楽 喫煙スペース（エントランス付近屋外・地下駐車場）,金沢白鳥路 ホテル山楽,facility,ロビーエントランス付近の屋外・地下駐車場,石川県金沢市丸の内6-3,other,https://sanraku.kenhotels.com/hakuchoro/faq/,2026-11-08,36.568208225,136.662038903,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市丸の内6-3 出力=石川県金沢市丸の内6-3

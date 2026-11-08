@@ -1,0 +1,16 @@
+{
+  "https://sanraku.kenhotels.com/hakuchoro/faq/": {
+    "fetchedAt": "2026-11-08T04:56:57Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "bytes": 63382,
+    "sha256": "a8b18e00917c0c580177b8792e6b70d20ac0ef67cc4ad799644fc864fb18ef1f"
+  },
+  "https://kenhotels.com/privacy/": {
+    "fetchedAt": "2026-11-08T04:56:57Z",
+    "httpStatus": 200,
+    "contentType": "text/html",
+    "bytes": 23212,
+    "sha256": "a7017ed0c426c36b0fd0b655b5efd6a7393a0060bc0c31ba77587c667e6d846a"
+  }
+}

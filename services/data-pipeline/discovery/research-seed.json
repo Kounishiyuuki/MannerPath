@@ -1571,6 +1571,58 @@
       "sha256": "dee2776a66e4e6c018684c7213b85366919377126482e999d49ba24ed23d65c8",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-11-07T18:59:18Z"
+    },
+    {
+      "targetId": "operator-manten-kanazawa-ekimae",
+      "reference": "services/data-pipeline/fixtures/manten-kanazawa-ekimae-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "manten-kanazawa-ekimae-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.manten-hotel.com/kanazawa/faq/"
+      ],
+      "sha256": "65f0151bf8b26fc2938d35ea849137560bf6f904dfae115e11fd05ff9f67019a",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T04:56:55Z"
+    },
+    {
+      "targetId": "operator-hotel-sanraku-kanazawa",
+      "reference": "services/data-pipeline/fixtures/hotel-sanraku-kanazawa-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "hotel-sanraku-kanazawa-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://sanraku.kenhotels.com/hakuchoro/faq/"
+      ],
+      "sha256": "5a86fa29639fa2968de9ba92b3773bbf2acf7d9bd150b254b8bab8dea0f54384",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T04:56:57Z"
+    },
+    {
+      "targetId": "operator-route-inn-kanazawa-ekimae",
+      "reference": "services/data-pipeline/fixtures/route-inn-kanazawa-ekimae-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "route-inn-kanazawa-ekimae-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/"
+      ],
+      "sha256": "4c3b9f32a145371b2bd45a38d9a0ccfba3ad05609886a264d02c60f1ac29035f",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T04:56:58Z"
+    },
+    {
+      "targetId": "operator-hotel-vista-kanazawa",
+      "reference": "services/data-pipeline/fixtures/hotel-vista-kanazawa-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "hotel-vista-kanazawa-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://kanazawa.hotel-vista.jp/ja/facilities"
+      ],
+      "sha256": "88156dd6147a2c917584a746609d4e8285e3c6287a9fc8253f4250252c00c6a6",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T04:57:00Z"
     }
   ],
   "researchReferences": [
