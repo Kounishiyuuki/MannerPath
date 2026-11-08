@@ -504,3 +504,19 @@ Location rights are independent: アドレス・ベース・レジストリ（�
 Full receipts, rights limitations, anchor references and pinned hashes:
 `services/data-pipeline/fixtures/kassen-nomura-smoking-places/PROVENANCE.md` and
 `services/data-pipeline/fixtures/kanazawa-artvillage-smoking-places/PROVENANCE.md`.
+
+### 金沢市：KKRホテル金沢 — operator factReference source (shared facility adapter)
+
+Reviewed 2026-11-08 under ADR-0018 D-A/D-R/D-C. This is the first source built on `reviewed-facility-adapter.ts`: one pinned normalized fact row, with no adapter-specific parsing.
+
+| Field | KKRホテル金沢 |
+|---|---|
+| Source ID | `kkr-hotel-kanazawa-smoking-places` |
+| Official page | https://kanazawa.kkr.or.jp/facilities/ (address also on the top page) |
+| Smoking existence | 喫煙所 at 1Fロビー入口側 and 3Fエレベーター側: one facility spot, not two pins |
+| Kind / rights | operator / factReference. Footer © reservation. The operator's site terms (kkr.or.jp/siteriyo.html §3) allow reproduction with the source shown and ask for contact before commercial reproduction. Only facts are used; no expression is copied |
+| Location | ABR residential_detail point of 石川県金沢市大手町2-32 (gate v3, residential rules unchanged); facility-scope areaApproximate |
+| Hours / tobacco / access / environment | unknown; non-guest use not claimed |
+| Publication status | approved for pinned fact sheet only, local pipeline |
+
+Evidence: `services/data-pipeline/fixtures/kkr-hotel-kanazawa-smoking-places/PROVENANCE.md`. The adapter refuses to load unless its attribution carries the credits its anchor level requires (`requiredAttributionForReference`).

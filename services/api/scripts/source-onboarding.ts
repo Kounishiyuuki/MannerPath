@@ -29,6 +29,7 @@ import { MIYAZAKI_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/miyazaki-airpo
 import { HIROSHIMA_AIRPORT_FIXTURE_RELEASE } from "../src/pipeline/hiroshima-airport-adapter.ts";
 
 import { KASSEN_NOMURA_FIXTURE_RELEASE } from "../src/pipeline/kassen-nomura-adapter.ts";
+import { KKR_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/kkr-hotel-kanazawa-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -70,6 +71,7 @@ export type Candidate = z.input<typeof candidateSchema>;
 // Pins of already reviewed releases, not a new approval registry or a latest-live-release claim.
 const pins = [
   ["kassen-nomura-smoking-places", "kassen-nomura-page-facts.csv", KASSEN_NOMURA_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
+  ["kkr-hotel-kanazawa-smoking-places", "kkr-hotel-kanazawa-page-facts.csv", KKR_KANAZAWA_FIXTURE_RELEASE, "kkr-hotel-kanazawa-source.test.ts"],
   ["kanazawa-artvillage-smoking-places", "kanazawa-artvillage-page-facts.csv", KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
 
   ["hiroshima-airport-smoking-places", "hiroshima-airport-page-facts.csv", HIROSHIMA_AIRPORT_FIXTURE_RELEASE, "nationwide-airport-expansion.test.ts"],

@@ -141,7 +141,7 @@ PAGE_FACT_SOURCES|={'shibuya-smoking-places'}
 reviewed['ward-toshima']='toshima-smoking-places'
 PAGE_FACT_SOURCES|={'toshima-smoking-places'}
 # ADR-0018: two first-party Kanazawa operators, independent from the city's publications.
-for slug,name,host in [('kassen-nomura','割鮮のむら','www.kassen-nomura.com'),('kanazawa-artvillage','金沢市民芸術村','www.artvillage.gr.jp')]:
+for slug,name,host in [('kassen-nomura','割鮮のむら','www.kassen-nomura.com'),('kanazawa-artvillage','金沢市民芸術村','www.artvillage.gr.jp'),('kkr-hotel-kanazawa','KKRホテル金沢','kanazawa.kkr.or.jp')]:
  add('operator-'+slug,name,'石川県','operator','https://'+host+'/', ['facilityOperator'])
  reviewed['operator-'+slug]=slug+'-smoking-places'
  PAGE_FACT_SOURCES.add(slug+'-smoking-places')

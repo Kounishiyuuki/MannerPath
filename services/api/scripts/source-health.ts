@@ -21,6 +21,7 @@ import { CHIYODA_PAGE_URL } from "../src/pipeline/chiyoda-adapter.ts";
 import { SHIBUYA_PAGE_URL } from "../src/pipeline/shibuya-adapter.ts";
 import { TOSHIMA_PAGE_URL } from "../src/pipeline/toshima-adapter.ts";
 import { KASSEN_NOMURA_PAGE_URL } from "../src/pipeline/kassen-nomura-adapter.ts";
+import { KKR_KANAZAWA_PAGE_URL } from "../src/pipeline/kkr-hotel-kanazawa-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_PAGE_URL } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
@@ -36,6 +37,7 @@ const resources: Record<string, { filename: string; url: string }> = {
 // inventory above, which only a deployment expands; monitored only with --repository-reviewed.
 const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
   "kassen-nomura-smoking-places": { filename: "kassen-nomura-page-facts.csv", url: KASSEN_NOMURA_PAGE_URL },
+  "kkr-hotel-kanazawa-smoking-places": { filename: "kkr-hotel-kanazawa-page-facts.csv", url: KKR_KANAZAWA_PAGE_URL },
   "kanazawa-artvillage-smoking-places": { filename: "kanazawa-artvillage-page-facts.csv", url: KANAZAWA_ARTVILLAGE_PAGE_URL },
 
   "hiroshima-airport-smoking-places": { filename: "hiroshima-airport-page-facts.csv", url: "https://www.hij.airport.jp/news/2025/02/terminalinfo-smokingarea.html" },
@@ -64,6 +66,7 @@ export const HEALTH_NOT_CONFIGURED: Record<string, string> = {
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
 const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
   "kassen-nomura-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"※店内は禁煙となります","end":"カウンター席 6席"},{"start":"〒921-8116","end":"駐車場 6台分"}],"requiredMarkers":["店内は禁煙","店外に喫煙スペース","石川県金沢市泉野出町3-3-32"]},"reviewedFingerprint":"d3144059a13498d5ddac8c51ac4d4c07870963b22242a725d1faf3cf747583e2"},
+  "kkr-hotel-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"[img:キッズエリア] 喫煙所","end":"[img:喫煙所]"},{"start":"KKRホテル金沢 〒920-0912","end":"076-264-3261 (代表)"}],"requiredMarkers":["１Fロビー入口側・３Fエレベーター側に喫煙所","石川県金沢市大手町2-32"]},"reviewedFingerprint":"3e85aa09861b830764a3ee71c7b59b0d8d9edee1e2dd5d382c086d97ee0dd698"},
   "kanazawa-artvillage-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"大和町広場 設備及び諸注意事項","end":"大和町広場 平面図"},{"start":"〒920-0046","end":"Copyright ©"}],"requiredMarkers":["園路","喫煙場所","石川県金沢市大和町1-1"]},"reviewedFingerprint":"954412b24dc56490db1e41a9c36c69b11aff108f25710bdae2962039c51f7347"},
 
   "hiroshima-airport-smoking-places": {"scope": {"kind": "htmlText", "ranges": [{"start": "2025年2月28日（金）", "end": "[link:/news/] 一覧に戻る"}], "requiredMarkers": ["1階 国際線到着ロビー外", "2階 国際線チェックインカウンター前", "3階 展望デッキ前", "閉鎖"]}, "reviewedFingerprint": "34b51a11f9f0863c15c74fbbb69c390f84528d8fc3ce7662e69ef8dae225fa03"},

@@ -1558,6 +1558,19 @@
       "sha256": "20636c742d1d0e272af054d28c13f58ea85415f85ff9b91ee521337299ba757f",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-11-07T13:20:37Z"
+    },
+    {
+      "targetId": "operator-kkr-hotel-kanazawa",
+      "reference": "services/data-pipeline/fixtures/kkr-hotel-kanazawa-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "kkr-hotel-kanazawa-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://kanazawa.kkr.or.jp/facilities/"
+      ],
+      "sha256": "a98489eaf55f133b45b8e62746bbd9b66a883fd6055c22b846714eba8d67a38a",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T04:28:47Z"
     }
   ],
   "researchReferences": [

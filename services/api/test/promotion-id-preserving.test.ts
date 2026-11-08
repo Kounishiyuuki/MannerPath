@@ -23,7 +23,7 @@ import { NOW } from "./support/fixture.ts";
 import { SqliteD1, applyMigration, migratedSqlite, migrationFiles } from "./support/sqlite-d1.ts";
 
 const KANAZAWA = ["kassen-nomura-smoking-places", "kanazawa-artvillage-smoking-places"];
-const TOKYO = Object.keys(ADDITIVE_SOURCES).filter(s => !KANAZAWA.includes(s));
+const TOKYO = Object.keys(ADDITIVE_SOURCES).filter(s => !KANAZAWA.includes(s) && s !== "kkr-hotel-kanazawa-smoking-places");
 const LATER = "2026-10-20T00:00:00Z";
 // The Kanazawa pages were checked 2026-11-07; promoting them at an earlier instant would date the rows before their evidence.
 const KANAZAWA_LATER = "2026-11-08T00:00:00Z";

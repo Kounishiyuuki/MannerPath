@@ -33,10 +33,12 @@ import { MIYAZAKI_AIRPORT_FIXTURE_RELEASE, MIYAZAKI_AIRPORT_SOURCE_ID } from "..
 import { HIROSHIMA_AIRPORT_FIXTURE_RELEASE, HIROSHIMA_AIRPORT_SOURCE_ID } from "../../src/pipeline/hiroshima-airport-adapter.ts";
 
 import { KASSEN_NOMURA_FIXTURE_RELEASE, KASSEN_NOMURA_SOURCE_ID } from "../../src/pipeline/kassen-nomura-adapter.ts";
+import { KKR_KANAZAWA_FIXTURE_RELEASE, KKR_KANAZAWA_SOURCE_ID } from "../../src/pipeline/kkr-hotel-kanazawa-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, KANAZAWA_ARTVILLAGE_SOURCE_ID } from "../../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 export const REVIEWED_FIXTURES: Readonly<Record<string, { release: ReleaseMetadata; file: string }>> = {
   [KASSEN_NOMURA_SOURCE_ID]: { release: KASSEN_NOMURA_FIXTURE_RELEASE, file: "kassen-nomura-smoking-places/kassen-nomura-page-facts.csv" },
+  [KKR_KANAZAWA_SOURCE_ID]: { release: KKR_KANAZAWA_FIXTURE_RELEASE, file: "kkr-hotel-kanazawa-smoking-places/kkr-hotel-kanazawa-page-facts.csv" },
   [KANAZAWA_ARTVILLAGE_SOURCE_ID]: { release: KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, file: "kanazawa-artvillage-smoking-places/kanazawa-artvillage-page-facts.csv" },
   [TAKAMATSU_AIRPORT_SOURCE_ID]: { release: TAKAMATSU_AIRPORT_FIXTURE_RELEASE, file: "takamatsu-airport-smoking-places/takamatsu-airport-page-facts.csv" },
   [KOCHI_AIRPORT_SOURCE_ID]: { release: KOCHI_AIRPORT_FIXTURE_RELEASE, file: "kochi-airport-smoking-places/kochi-airport-page-facts.csv" },

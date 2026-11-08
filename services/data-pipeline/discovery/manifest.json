@@ -8469,6 +8469,41 @@
       "reviewedSourceIds": [
         "kanazawa-artvillage-smoking-places"
       ]
+    },
+    {
+      "id": "operator-kkr-hotel-kanazawa",
+      "name": "KKRホテル金沢",
+      "prefecture": "石川県",
+      "publisher": "KKRホテル金沢",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://kanazawa.kkr.or.jp/facilities/"
+      ],
+      "homepageUrl": "https://kanazawa.kkr.or.jp/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/kkr-hotel-kanazawa-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "kkr-hotel-kanazawa-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://kanazawa.kkr.or.jp/facilities/"
+          ],
+          "sha256": "a98489eaf55f133b45b8e62746bbd9b66a883fd6055c22b846714eba8d67a38a",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T04:28:47Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "kkr-hotel-kanazawa-smoking-places"
+      ]
     }
   ]
 }

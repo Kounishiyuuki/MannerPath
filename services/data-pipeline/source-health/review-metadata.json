@@ -676,6 +676,56 @@
       ]
     },
     {
+      "sourceId": "kkr-hotel-kanazawa-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "Facility page footer reserves copyright only; operator site-use terms (kkr.or.jp/siteriyo.html §3) allow quotation/reproduction with source shown and ask for contact before commercial reproduction. No explicit information-use or database prohibition found. ADR-0018 D-R normalized facts only; no expression reproduced; no open licence claimed.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the 喫煙所 statement, address, footer and the operator's site-use terms. Undated page check, not a site visit. Publisher objection requires withdrawal. Hotel hours are not smoking hours; non-guest use is unknown.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://kanazawa.kkr.or.jp/facilities/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "&copy; 国家公務員共済組合連合会",
+                "end": "Reserved."
+              }
+            ],
+            "requiredMarkers": [
+              "国家公務員共済組合連合会 All Rights"
+            ]
+          },
+          "reviewedFingerprint": "5044f997d31b28838308f8e2f6cbec5412bc80e43e303b4dd1abf5fc87993a0d",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://www.kkr.or.jp/siteriyo.html",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "3.著作権について",
+                "end": "4.登録商標について"
+              }
+            ],
+            "requiredMarkers": [
+              "出所を明示することにより、引用・転載・複製を行うことができます",
+              "商用目的で複製する場合は、あらかじめ広報課までご連絡ください"
+            ]
+          },
+          "reviewedFingerprint": "540ad81b36b003ec692f5299f61c50497af87de2d9ba887f0be8db48643e82ee",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
+    },
+    {
       "sourceId": "kanazawa-artvillage-smoking-places",
       "rightsReviewedAt": "2026-11-07",
       "rightsEvidence": "First-party official page and homepage navigation/footer re-read: copyright reservation only; no separate website terms link or explicit information-use, acquisition or database prohibition found in reviewed scope. ADR-0018 D-R normalized facts only; no open licence claimed.",
