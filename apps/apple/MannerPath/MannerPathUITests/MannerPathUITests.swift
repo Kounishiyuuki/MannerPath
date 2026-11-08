@@ -704,8 +704,9 @@ final class B_OnlineUITests: MannerPathUITestCase {
         screenshot("32-map-report-form")
         discardReportDraft()
 
-        // Large sheet: the map button is covered, so the sheet's own labelled bar offers the same entry.
-        app.navigationBars["近くの場所"].swipeUp()
+        // Large sheet: the map button is covered, so the sheet's own labelled bar offers the same entry. A quick swipe on
+        // the title no longer moves the iOS 26 sheet; drag its grabber and wait for the large detent like the other tests.
+        dragSheet(to: 0.05, settlingIn: Self.largeSheet, "Sheet did not expand to the large detent")
         let bar = app.buttons["sheetReportButton"]
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
         XCTAssertEqual(bar.label, "喫煙所を追加")
