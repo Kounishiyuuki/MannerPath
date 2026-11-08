@@ -33,6 +33,8 @@ import { MANTEN_KANAZAWA_EKIMAE_ADAPTER } from "./manten-kanazawa-ekimae-adapter
 import { HOTEL_SANRAKU_KANAZAWA_ADAPTER } from "./hotel-sanraku-kanazawa-adapter.ts";
 import { ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER } from "./route-inn-kanazawa-ekimae-adapter.ts";
 import { HOTEL_VISTA_KANAZAWA_ADAPTER } from "./hotel-vista-kanazawa-adapter.ts";
+import { DORMY_INN_KANAZAWA_ADAPTER } from "./dormy-inn-kanazawa-adapter.ts";
+import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_ADAPTER } from "./smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
   TAITO_ADAPTER, OSAKA_ADAPTER, KOTO_ADAPTER, MUSASHINO_ADAPTER, MINATO_ADAPTER, KYOTO_ADAPTER,
@@ -45,4 +47,5 @@ export const SOURCE_ADAPTERS: readonly SourceAdapter[] = [
   TOSHIMA_ADAPTER,
   KASSEN_NOMURA_ADAPTER, KANAZAWA_ARTVILLAGE_ADAPTER, KKR_KANAZAWA_ADAPTER,
   MANTEN_KANAZAWA_EKIMAE_ADAPTER, HOTEL_SANRAKU_KANAZAWA_ADAPTER, ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, HOTEL_VISTA_KANAZAWA_ADAPTER,
+  DORMY_INN_KANAZAWA_ADAPTER, SMILE_HOTEL_KANAZAWA_NISHIGUCHI_ADAPTER,
 ];

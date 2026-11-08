@@ -248,6 +248,7 @@ test("v4 bootstraps all twenty-seven reviewed sources including Sendai, eight ai
     { anchor_id: "aa_chuoparktsukuda", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     // 47 Chuo private places: one official-address geocode anchor per reviewed fact row (p01…p58, zero-padded so sorted).
     ...CHUO_PRIVATE_REVIEWED_ROWS.map(r => ({ anchor_id: `aa_chuopriv${r[0]}`, area_scope: "facility", anchor_basis: "officialAddressGeocode" })),
+    { anchor_id: "aa_dormyinnkanazawa", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_hiroshimaairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_hotelsanrakukanazawa", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_hotelvistakanazawa", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
@@ -292,6 +293,7 @@ test("v4 bootstraps all twenty-seven reviewed sources including Sendai, eight ai
     { anchor_id: "aa_shibuya40", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_shibuya41", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_shibuya42", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
+    { anchor_id: "aa_smilehotelkanazawanishiguchi", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_takamatsuairportterminal", area_scope: "facility", anchor_basis: "referenceDatasetPoint" },
     { anchor_id: "aa_toshima03", area_scope: "facility", anchor_basis: "officialAddressGeocode" },
     { anchor_id: "aa_toshima04", area_scope: "facility", anchor_basis: "officialAddressGeocode" },

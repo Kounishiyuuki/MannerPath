@@ -976,6 +976,123 @@
           "reviewDueAt": "2027-02-08"
         }
       ]
+    },
+    {
+      "sourceId": "dormy-inn-kanazawa-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "ADR-0018 D-R normalized fact reference from the hotel official rooms page; address from the official access page. Footer reserves rights (kyoritsugroup). Terms (本サービス) clause 12 limits use of copyrighted works to private use and clause 11 prohibits commercial acts through the service; recorded and monitored as context. No explicit fact-reference, information-use or database prohibition. Not operator permission or an open licence. No expressive content copied.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the 1F smoking-booth statement (the 7F smoking floor is guest rooms, never registered), the access-page address and terms clauses 11/12. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "[img:THE SPA by BARAKA] ©",
+                "end": "[img:logo_kyoritsu]"
+              }
+            ],
+            "requiredMarkers": [
+              "All rights reserved."
+            ]
+          },
+          "reviewedFingerprint": "60e5211f0cd049ff1aae3e2fca836f070e9c4b02108e1c2aedfc0a96b8003ba1",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://dormy-hotels.com/dormyinn/hotels/kanazawa/access/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "天然温泉 加賀の湧泉 ドーミーイン金沢 アクセス 〒920-0849",
+                "end": "TEL："
+              }
+            ],
+            "requiredMarkers": [
+              "金沢市堀川新町2-25"
+            ]
+          },
+          "reviewedFingerprint": "0e5418baef77c1d05fa82ae42a5080880adab5216e4e5077057ddbbb84d3c0ae",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://dormy-hotels.com/terms/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "当社の承諾なく、本サービスを通じて",
+                "end": "13. 情報の削除"
+              }
+            ],
+            "requiredMarkers": [
+              "営利を目的とした行為",
+              "私的使用の範囲内でのみ利用する"
+            ]
+          },
+          "reviewedFingerprint": "2d5af4245fe7438f6d864efaba8387f71b4d493e3bb517668bcee4d9ec5a88ba",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
+    },
+    {
+      "sourceId": "smile-hotel-kanazawa-nishiguchi-smoking-places",
+      "rightsReviewedAt": "2026-11-08",
+      "rightsEvidence": "ADR-0018 D-R normalized fact reference from the hotel official page. Footer copyright; the facility privacy/特商法 page (Hospitality Partners group) governs personal data only. No copyright, reproduction, information-use or database prohibition found. Not operator permission or an open licence. No expressive content copied.",
+      "sourceObservedAt": null,
+      "editionLabel": null,
+      "editionObservedAt": "2026-11-08",
+      "reviewDueAt": "2027-02-08",
+      "reviewerNote": "Recheck the designated smoking-space statement and the address block. The location/floor of the space is not stated and is never inferred. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "knownAdvisories": [],
+      "rights": [
+        {
+          "url": "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "求人情報 Copyright",
+                "end": "[link:https://hpg.hospitality-partners.co.jp/] [img:"
+              }
+            ],
+            "requiredMarkers": [
+              "smile hotel"
+            ]
+          },
+          "reviewedFingerprint": "53ab0c31a159d29a0b0f9ac6c96eacd0a59ba8a3d4c5f364d8bc40a3f6ab65b6",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://smile-hotels.com/privacy-policies/show/kanazawanishiguchiekimae",
+          "scope": {
+            "kind": "htmlText",
+            "ranges": [
+              {
+                "start": "④―④ 責任者の氏名又は名称",
+                "end": "⑤ 以下の場合"
+              }
+            ],
+            "requiredMarkers": [
+              "株式会社ホスピタリティオペレーションズ"
+            ]
+          },
+          "reviewedFingerprint": "53196b24d425b259d6fee7375f21d7858345a60936dea842e7bd3ad55c6c88d1",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ]
     }
   ]
 }

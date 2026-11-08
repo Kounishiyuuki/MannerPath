@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+smile-hotel-kanazawa-nishiguchi,スマイルホテル金沢西口駅前 喫煙スペース,スマイルホテル金沢西口駅前,facility,指定の喫煙スペース（場所の記載なし）,石川県金沢市広岡3丁目2番37号,other,https://smile-hotels.com/hotels/kanazawanishiguchiekimae/,2026-11-08,36.580760028,136.644971769,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市広岡3丁目2番37号 出力=石川県金沢市広岡3丁目2-37

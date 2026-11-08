@@ -157,6 +157,11 @@ for slug,name,publisher,home in [('manten-kanazawa-ekimae','金沢マンテン�
   ('hotel-vista-kanazawa','ホテルビスタ金沢','株式会社ビスタホテルマネジメント ホテルビスタ金沢','https://kanazawa.hotel-vista.jp/ja/')]:
  h=add('operator-'+slug,name,'石川県','operator',home,['facilityOperator']); h['publisher']=publisher
  reviewed[h['id']]=slug+'-smoking-places'; PAGE_FACT_SOURCES.add(slug+'-smoking-places')
+# ADR-0018: Kanazawa hotel operators' official facility pages (batch 2), through the shared reviewed-facility adapter.
+for slug,name,publisher,home in [('dormy-inn-kanazawa','天然温泉 加賀の湧泉 ドーミーイン金沢','株式会社共立メンテナンス ドーミーイン金沢','https://dormy-hotels.com/dormyinn/hotels/kanazawa/'),
+  ('smile-hotel-kanazawa-nishiguchi','スマイルホテル金沢西口駅前','ホスピタリティパートナーズグループ スマイルホテル金沢西口駅前','https://smile-hotels.com/hotels/kanazawanishiguchiekimae/')]:
+ h=add('operator-'+slug,name,'石川県','operator',home,['facilityOperator']); h['publisher']=publisher
+ reviewed[h['id']]=slug+'-smoking-places'; PAGE_FACT_SOURCES.add(slug+'-smoking-places')
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:

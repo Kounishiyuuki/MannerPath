@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,anchor_latitude,anchor_longitude,anchor_basis,anchor_reference
+dormy-inn-kanazawa,天然温泉 加賀の湧泉 ドーミーイン金沢 喫煙ブース（1F）,天然温泉 加賀の湧泉 ドーミーイン金沢,facility,1F,石川県金沢市堀川新町2-25,other,https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/,2026-11-08,36.579348656,136.650432875,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d residential_detail 入力=石川県金沢市堀川新町2-25 出力=石川県金沢市堀川新町2-25

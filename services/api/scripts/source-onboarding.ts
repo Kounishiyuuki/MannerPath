@@ -36,6 +36,8 @@ import { MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE } from "../src/pipeline/manten-k
 import { HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/hotel-sanraku-kanazawa-adapter.ts";
 import { ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE } from "../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
 import { HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/hotel-vista-kanazawa-adapter.ts";
+import { DORMY_INN_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/dormy-inn-kanazawa-adapter.ts";
+import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE } from "../src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const sourceIdSchema = z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).max(100);
@@ -80,6 +82,8 @@ const pins = [
   ["hotel-sanraku-kanazawa-smoking-places", "hotel-sanraku-kanazawa-page-facts.csv", HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
   ["route-inn-kanazawa-ekimae-smoking-places", "route-inn-kanazawa-ekimae-page-facts.csv", ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
   ["hotel-vista-kanazawa-smoking-places", "hotel-vista-kanazawa-page-facts.csv", HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, "kanazawa-hotel-facility-sources.test.ts"],
+  ["dormy-inn-kanazawa-smoking-places", "dormy-inn-kanazawa-page-facts.csv", DORMY_INN_KANAZAWA_FIXTURE_RELEASE, "kanazawa-hotel-batch2-sources.test.ts"],
+  ["smile-hotel-kanazawa-nishiguchi-smoking-places", "smile-hotel-kanazawa-nishiguchi-page-facts.csv", SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, "kanazawa-hotel-batch2-sources.test.ts"],
   ["kassen-nomura-smoking-places", "kassen-nomura-page-facts.csv", KASSEN_NOMURA_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
   ["kanazawa-artvillage-smoking-places", "kanazawa-artvillage-page-facts.csv", KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
 
