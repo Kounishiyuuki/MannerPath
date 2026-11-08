@@ -1,0 +1,16 @@
+{
+  "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/": {
+    "fetchedAt": "2026-11-08T11:20:13Z",
+    "httpStatus": 200,
+    "contentType": "text/html",
+    "bytes": 264215,
+    "sha256": "4e82d413658b82b57e9371e33211ad52c2867293c30703c4a389d500a2c5ebd2"
+  },
+  "https://smile-hotels.com/privacy-policies/show/kanazawanishiguchiekimae": {
+    "fetchedAt": "2026-11-08T11:20:13Z",
+    "httpStatus": 200,
+    "contentType": "text/html",
+    "bytes": 43814,
+    "sha256": "6c3b016a13d6872d531ec6028510cb978be1b2fcbbb8991085fd83dfd5bfd668"
+  }
+}

@@ -524,3 +524,14 @@ Reviewed 2026-11-08 JST. Receipts, rights scope and reproduced address anchor:
 | Attribution | Operator/source URL/check date plus アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）, normalization/geocoding notice and facility-point disclaimer; full text in adapter |
 | Pinned release | CSV SHA-256 `dee2776a66e4e6c018684c7213b85366919377126482e999d49ba24ed23d65c8`; 1 row → 1 local published spot |
 | Status | approved for pinned local-pipeline release only; partial, crossReleaseValidated=false. No production inventory expansion, DB/tile write or deployment |
+
+### 金沢市のホテル 第2バッチ — ADR-0018 operator factReference sources (shared reviewed-facility adapter)
+
+Reviewed 2026-11-08 JST; research in `docs/research/2026-11-08-kanazawa-hotels-batch2.md`. Held, not added: 金沢東急ホテル and the three ホテルマイステイズ (site terms prohibit using content without permission), 野乃金沢 (address gate), チサン バジェット (no official address in page text), インターゲート (sign-design evidence only), スマイルプレミアム東口 (ashtray outside, management unclear).
+
+| Source ID | Facility / publisher | Official page | Existence (normalized) | Address anchor | Rights context | Pinned CSV SHA-256 |
+|---|---|---|---|---|---|---|
+| `dormy-inn-kanazawa-smoking-places` | 天然温泉 加賀の湧泉 ドーミーイン金沢 / 株式会社共立メンテナンス | https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/ | 1Fの液晶TV付喫煙ブース（7Fの喫煙フロアーは客室で対象外） | 金沢市堀川新町2-25（アクセスページ。県名は既存の補完規則）, ABR residential_detail, areaApproximate / facility | Footer rights notice; terms clause 12 (copyrighted works → private use) and clause 11 (commercial acts through the service) recorded as context; no fact-reference/information-use prohibition | `9703a8b70e8b84d955af6cb01f64a13f54a1ce40908f46011cabbcaac0bca864` |
+| `smile-hotel-kanazawa-nishiguchi-smoking-places` | スマイルホテル金沢西口駅前 / ホスピタリティパートナーズグループ | https://smile-hotels.com/hotels/kanazawanishiguchiekimae/ | 指定の喫煙スペース（場所・階は記載なし） | 石川県金沢市広岡3丁目2番37号, ABR residential_detail, areaApproximate / facility | Footer copyright; facility privacy/特商法 page governs personal data only; no use restriction found | `0f3e4ab9eac6ac41dca97482a7c01a768addcaa2dd4269926d58a9cd2f8d0b0d` |
+
+Common: factReference, no licence claimed, normalized facts only; one spot per facility, never the smoking-place coordinate; access (incl. non-guest), tobacco types, smoking hours and physical classification unknown; current official page checked 2026-11-08, not a site visit; repository-only source-health scopes; approved for pinned local-pipeline release only, partial, crossReleaseValidated=false. No production inventory expansion, DB/tile write or deployment.

@@ -24,6 +24,8 @@ import { KASSEN_NOMURA_PAGE_URL } from "../src/pipeline/kassen-nomura-adapter.ts
 import { KANAZAWA_ARTVILLAGE_PAGE_URL } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_PAGE_URL } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+import { DORMY_INN_KANAZAWA_PAGE_URL } from "../src/pipeline/dormy-inn-kanazawa-adapter.ts";
+import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_PAGE_URL } from "../src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 const root = new URL("../../../services/data-pipeline/fixtures/", import.meta.url);
 const resources: Record<string, { filename: string; url: string }> = {
@@ -38,6 +40,8 @@ const resources: Record<string, { filename: string; url: string }> = {
 // inventory above, which only a deployment expands; monitored only with --repository-reviewed.
 const repositoryReviewedResources: Record<string, { filename: string; url: string }> = {
   "kkr-kanazawa-smoking-places": { filename: "kkr-kanazawa-page-facts.csv", url: KKR_KANAZAWA_PAGE_URL },
+  "dormy-inn-kanazawa-smoking-places": { filename: "dormy-inn-kanazawa-page-facts.csv", url: DORMY_INN_KANAZAWA_PAGE_URL },
+  "smile-hotel-kanazawa-nishiguchi-smoking-places": { filename: "smile-hotel-kanazawa-nishiguchi-page-facts.csv", url: SMILE_HOTEL_KANAZAWA_NISHIGUCHI_PAGE_URL },
   "kassen-nomura-smoking-places": { filename: "kassen-nomura-page-facts.csv", url: KASSEN_NOMURA_PAGE_URL },
   "kanazawa-artvillage-smoking-places": { filename: "kanazawa-artvillage-page-facts.csv", url: KANAZAWA_ARTVILLAGE_PAGE_URL },
 
@@ -67,6 +71,8 @@ export const HEALTH_NOT_CONFIGURED: Record<string, string> = {
 // ADR-0018 page-fact sources: the reviewed scoped fact text of the official page (PROVENANCE.md of the fixture).
 const PAGE_FACTS: Record<string, NonNullable<HealthTarget["pageFact"]>> = {
   "kkr-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"喫煙所 １Fロビー入口側","end":"その他施設・設備 Other Facilities"},{"start":"〒920-0912","end":"TEL:"}],"requiredMarkers":["１Fロビー入口側","３Fエレベーター側","石川県金沢市大手町2-32"]},"reviewedFingerprint":"9596f52fcdf6ec2331dfad3d3f1b22338b0b129e4c080d3d26f48fa9f9866a3a"},
+  "dormy-inn-kanazawa-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"7F喫煙フロアー/1Ｆに液晶TV付喫煙ブースがございます。","end":"総合TOP"}],"requiredMarkers":["1Ｆに液晶TV付喫煙ブース"]},"reviewedFingerprint":"22127e77a070e24c40b0a4043564d6cb70e1e651b9fa610266b06827ceaa9f60"},
+  "smile-hotel-kanazawa-nishiguchi-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"愛煙家の方のために指定の喫煙スペースを設けております。","end":"[img:ズボンプレッサーのアイコン]"},{"start":"Smile Hotel Kanazawa Nishiguchi Ekimae [img:] チェックイン","end":"[img:] マップ"}],"requiredMarkers":["指定の喫煙スペース","石川県金沢市広岡3丁目2番37号"]},"reviewedFingerprint":"13b772362b0375cb8b6da5dc0c533469959752eb7b0d27a62fcf3cb53d1f6e6f"},
   "kassen-nomura-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"※店内は禁煙となります","end":"カウンター席 6席"},{"start":"〒921-8116","end":"駐車場 6台分"}],"requiredMarkers":["店内は禁煙","店外に喫煙スペース","石川県金沢市泉野出町3-3-32"]},"reviewedFingerprint":"d3144059a13498d5ddac8c51ac4d4c07870963b22242a725d1faf3cf747583e2"},
   "kanazawa-artvillage-smoking-places": {"scope":{"kind":"htmlText","ranges":[{"start":"大和町広場 設備及び諸注意事項","end":"大和町広場 平面図"},{"start":"〒920-0046","end":"Copyright ©"}],"requiredMarkers":["園路","喫煙場所","石川県金沢市大和町1-1"]},"reviewedFingerprint":"954412b24dc56490db1e41a9c36c69b11aff108f25710bdae2962039c51f7347"},
 

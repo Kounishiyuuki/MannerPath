@@ -1,0 +1,23 @@
+{
+  "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/": {
+    "fetchedAt": "2026-11-08T11:20:09Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=utf-8",
+    "bytes": 344587,
+    "sha256": "c01b0192db9a93bfa3c28b353561f682e28255c4f08edf612a6f09e2ad444da9"
+  },
+  "https://dormy-hotels.com/dormyinn/hotels/kanazawa/access/": {
+    "fetchedAt": "2026-11-08T11:20:09Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=utf-8",
+    "bytes": 320534,
+    "sha256": "1d708360dc28f452181994851bc8c0b3a9498430aa6c7a0dbd318a30fb146fc5"
+  },
+  "https://dormy-hotels.com/terms/": {
+    "fetchedAt": "2026-11-08T11:20:11Z",
+    "httpStatus": 200,
+    "contentType": "text/html; charset=utf-8",
+    "bytes": 214212,
+    "sha256": "f2e99e1166a52d3a0f144ad231f25e201067d6f9e84d6fac1d0878f04fbafa11"
+  }
+}

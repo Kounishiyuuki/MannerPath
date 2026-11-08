@@ -8505,6 +8505,77 @@
       "reviewedSourceIds": [
         "kkr-kanazawa-smoking-places"
       ]
+    },
+    {
+      "id": "operator-dormy-inn-kanazawa",
+      "name": "天然温泉 加賀の湧泉 ドーミーイン金沢",
+      "prefecture": "石川県",
+      "publisher": "株式会社共立メンテナンス ドーミーイン金沢",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://dormy-hotels.com/dormyinn/hotels/kanazawa/",
+        "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/"
+      ],
+      "homepageUrl": "https://dormy-hotels.com/dormyinn/hotels/kanazawa/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/dormy-inn-kanazawa-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "dormy-inn-kanazawa-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/"
+          ],
+          "sha256": "9703a8b70e8b84d955af6cb01f64a13f54a1ce40908f46011cabbcaac0bca864",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T11:20:09Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "dormy-inn-kanazawa-smoking-places"
+      ]
+    },
+    {
+      "id": "operator-smile-hotel-kanazawa-nishiguchi",
+      "name": "スマイルホテル金沢西口駅前",
+      "prefecture": "石川県",
+      "publisher": "ホスピタリティパートナーズグループ スマイルホテル金沢西口駅前",
+      "kind": "operator",
+      "roles": [
+        "facilityOperator"
+      ],
+      "urls": [
+        "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/"
+      ],
+      "homepageUrl": "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/",
+      "catalogs": [],
+      "rawResources": [],
+      "priorResearch": [
+        {
+          "reference": "services/data-pipeline/fixtures/smile-hotel-kanazawa-nishiguchi-smoking-places/PROVENANCE.md",
+          "status": "implemented",
+          "sourceId": "smile-hotel-kanazawa-nishiguchi-smoking-places",
+          "blockerCodes": [],
+          "rawUrls": [
+            "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/"
+          ],
+          "sha256": "0f3e4ab9eac6ac41dca97482a7c01a768addcaa2dd4269926d58a9cd2f8d0b0d",
+          "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+          "fetchedAt": "2026-11-08T11:20:13Z"
+        }
+      ],
+      "seedStatus": "implemented",
+      "blockerCodes": [],
+      "reviewedSourceIds": [
+        "smile-hotel-kanazawa-nishiguchi-smoking-places"
+      ]
     }
   ]
 }

@@ -1571,6 +1571,32 @@
       "sha256": "dee2776a66e4e6c018684c7213b85366919377126482e999d49ba24ed23d65c8",
       "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
       "fetchedAt": "2026-11-07T18:59:18Z"
+    },
+    {
+      "targetId": "operator-dormy-inn-kanazawa",
+      "reference": "services/data-pipeline/fixtures/dormy-inn-kanazawa-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "dormy-inn-kanazawa-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/"
+      ],
+      "sha256": "9703a8b70e8b84d955af6cb01f64a13f54a1ce40908f46011cabbcaac0bca864",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T11:20:09Z"
+    },
+    {
+      "targetId": "operator-smile-hotel-kanazawa-nishiguchi",
+      "reference": "services/data-pipeline/fixtures/smile-hotel-kanazawa-nishiguchi-smoking-places/PROVENANCE.md",
+      "status": "implemented",
+      "sourceId": "smile-hotel-kanazawa-nishiguchi-smoking-places",
+      "blockerCodes": [],
+      "rawUrls": [
+        "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/"
+      ],
+      "sha256": "0f3e4ab9eac6ac41dca97482a7c01a768addcaa2dd4269926d58a9cd2f8d0b0d",
+      "reviewedHashScope": "reviewedPageFactSheetBytesNotPageHtml",
+      "fetchedAt": "2026-11-08T11:20:13Z"
     }
   ],
   "researchReferences": [

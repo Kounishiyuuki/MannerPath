@@ -150,6 +150,11 @@ kkr=add('operator-kkr-kanazawa','KKRホテル金沢','石川県','operator','htt
 kkr['publisher']='国家公務員共済組合連合会 KKRホテル金沢'
 reviewed[kkr['id']]='kkr-kanazawa-smoking-places'
 PAGE_FACT_SOURCES.add('kkr-kanazawa-smoking-places')
+# ADR-0018: Kanazawa hotel operators' official facility pages (batch 2), through the shared reviewed-facility adapter.
+for slug,name,publisher,home in [('dormy-inn-kanazawa','天然温泉 加賀の湧泉 ドーミーイン金沢','株式会社共立メンテナンス ドーミーイン金沢','https://dormy-hotels.com/dormyinn/hotels/kanazawa/'),
+  ('smile-hotel-kanazawa-nishiguchi','スマイルホテル金沢西口駅前','ホスピタリティパートナーズグループ スマイルホテル金沢西口駅前','https://smile-hotels.com/hotels/kanazawanishiguchiekimae/')]:
+ h=add('operator-'+slug,name,'石川県','operator',home,['facilityOperator']); h['publisher']=publisher
+ reviewed[h['id']]=slug+'-smoking-places'; PAGE_FACT_SOURCES.add(slug+'-smoking-places')
 reviewed_resources=[]
 for t in targets:
  if t['id'] in reviewed:

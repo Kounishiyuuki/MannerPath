@@ -36,9 +36,13 @@ import { KASSEN_NOMURA_FIXTURE_RELEASE, KASSEN_NOMURA_SOURCE_ID } from "../../sr
 import { KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, KANAZAWA_ARTVILLAGE_SOURCE_ID } from "../../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_FIXTURE_RELEASE, KKR_KANAZAWA_SOURCE_ID } from "../../src/pipeline/kkr-kanazawa-adapter.ts";
+import { DORMY_INN_KANAZAWA_FIXTURE_RELEASE, DORMY_INN_KANAZAWA_SOURCE_ID } from "../../src/pipeline/dormy-inn-kanazawa-adapter.ts";
+import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, SMILE_HOTEL_KANAZAWA_NISHIGUCHI_SOURCE_ID } from "../../src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 export const REVIEWED_FIXTURES: Readonly<Record<string, { release: ReleaseMetadata; file: string }>> = {
   [KKR_KANAZAWA_SOURCE_ID]: { release: KKR_KANAZAWA_FIXTURE_RELEASE, file: "kkr-kanazawa-smoking-places/kkr-kanazawa-page-facts.csv" },
+  [DORMY_INN_KANAZAWA_SOURCE_ID]: { release: DORMY_INN_KANAZAWA_FIXTURE_RELEASE, file: "dormy-inn-kanazawa-smoking-places/dormy-inn-kanazawa-page-facts.csv" },
+  [SMILE_HOTEL_KANAZAWA_NISHIGUCHI_SOURCE_ID]: { release: SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, file: "smile-hotel-kanazawa-nishiguchi-smoking-places/smile-hotel-kanazawa-nishiguchi-page-facts.csv" },
   [KASSEN_NOMURA_SOURCE_ID]: { release: KASSEN_NOMURA_FIXTURE_RELEASE, file: "kassen-nomura-smoking-places/kassen-nomura-page-facts.csv" },
   [KANAZAWA_ARTVILLAGE_SOURCE_ID]: { release: KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, file: "kanazawa-artvillage-smoking-places/kanazawa-artvillage-page-facts.csv" },
   [TAKAMATSU_AIRPORT_SOURCE_ID]: { release: TAKAMATSU_AIRPORT_FIXTURE_RELEASE, file: "takamatsu-airport-smoking-places/takamatsu-airport-page-facts.csv" },

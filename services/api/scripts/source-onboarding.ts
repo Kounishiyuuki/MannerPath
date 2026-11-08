@@ -32,6 +32,8 @@ import { KASSEN_NOMURA_FIXTURE_RELEASE } from "../src/pipeline/kassen-nomura-ada
 import { KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 
 import { KKR_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+import { DORMY_INN_KANAZAWA_FIXTURE_RELEASE } from "../src/pipeline/dormy-inn-kanazawa-adapter.ts";
+import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE } from "../src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const sourceIdSchema = z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).max(100);
@@ -72,6 +74,8 @@ export type Candidate = z.input<typeof candidateSchema>;
 // Pins of already reviewed releases, not a new approval registry or a latest-live-release claim.
 const pins = [
   ["kkr-kanazawa-smoking-places", "kkr-kanazawa-page-facts.csv", KKR_KANAZAWA_FIXTURE_RELEASE, "kkr-kanazawa-source.test.ts"],
+  ["dormy-inn-kanazawa-smoking-places", "dormy-inn-kanazawa-page-facts.csv", DORMY_INN_KANAZAWA_FIXTURE_RELEASE, "kanazawa-hotel-batch2-sources.test.ts"],
+  ["smile-hotel-kanazawa-nishiguchi-smoking-places", "smile-hotel-kanazawa-nishiguchi-page-facts.csv", SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, "kanazawa-hotel-batch2-sources.test.ts"],
   ["kassen-nomura-smoking-places", "kassen-nomura-page-facts.csv", KASSEN_NOMURA_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
   ["kanazawa-artvillage-smoking-places", "kanazawa-artvillage-page-facts.csv", KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, "kanazawa-operator-source.test.ts"],
 
