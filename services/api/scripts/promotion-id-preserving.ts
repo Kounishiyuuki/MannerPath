@@ -42,6 +42,12 @@ import { TOSHIMA_ADAPTER, TOSHIMA_FIXTURE_RELEASE, TOSHIMA_SOURCE_ID } from "../
 import { KASSEN_NOMURA_ADAPTER, KASSEN_NOMURA_FIXTURE_RELEASE, KASSEN_NOMURA_SOURCE_ID } from "../src/pipeline/kassen-nomura-adapter.ts";
 import { KANAZAWA_ARTVILLAGE_ADAPTER, KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, KANAZAWA_ARTVILLAGE_SOURCE_ID } from "../src/pipeline/kanazawa-artvillage-adapter.ts";
 import { KKR_KANAZAWA_ADAPTER, KKR_KANAZAWA_FIXTURE_RELEASE, KKR_KANAZAWA_SOURCE_ID } from "../src/pipeline/kkr-kanazawa-adapter.ts";
+import { HOTEL_SANRAKU_KANAZAWA_ADAPTER, HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, HOTEL_SANRAKU_KANAZAWA_SOURCE_ID } from "../src/pipeline/hotel-sanraku-kanazawa-adapter.ts";
+import { HOTEL_VISTA_KANAZAWA_ADAPTER, HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, HOTEL_VISTA_KANAZAWA_SOURCE_ID } from "../src/pipeline/hotel-vista-kanazawa-adapter.ts";
+import { MANTEN_KANAZAWA_EKIMAE_ADAPTER, MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, MANTEN_KANAZAWA_EKIMAE_SOURCE_ID } from "../src/pipeline/manten-kanazawa-ekimae-adapter.ts";
+import { ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, ROUTE_INN_KANAZAWA_EKIMAE_SOURCE_ID } from "../src/pipeline/route-inn-kanazawa-ekimae-adapter.ts";
+import { DORMY_INN_KANAZAWA_ADAPTER, DORMY_INN_KANAZAWA_FIXTURE_RELEASE, DORMY_INN_KANAZAWA_SOURCE_ID } from "../src/pipeline/dormy-inn-kanazawa-adapter.ts";
+import { SMILE_HOTEL_KANAZAWA_NISHIGUCHI_ADAPTER, SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, SMILE_HOTEL_KANAZAWA_NISHIGUCHI_SOURCE_ID } from "../src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts";
 
 type Release = Parameters<typeof ingestRelease>[3];
 export interface ReviewedFixture { adapter: SourceAdapter; release: Release; fixture: string }
@@ -57,7 +63,7 @@ export const LIVE_SOURCES: Readonly<Record<string, ReviewedFixture>> = {
   [KYOTO_SOURCE_ID]: { adapter: KYOTO_ADAPTER, release: KYOTO_FIXTURE_RELEASE, fixture: `${F}kyoto-public-smoking-places/20260903_shisetsu.csv` },
 };
 
-/** The reviewed factReference additions (Tokyo, then Kanazawa). Listing here is not publication approval. */
+/** The reviewed factReference additions (Tokyo, Kanazawa, then the Kanazawa hotels). Listing here is not publication approval. */
 export const ADDITIVE_SOURCES: Readonly<Record<string, ReviewedFixture>> = {
   [CHIYODA_SOURCE_ID]: { adapter: CHIYODA_ADAPTER, release: CHIYODA_FIXTURE_RELEASE, fixture: `${F}chiyoda-smoking-places/chiyoda-page-facts.csv` },
   [CHUO_PARK_SOURCE_ID]: { adapter: CHUO_PARK_ADAPTER, release: CHUO_PARK_FIXTURE_RELEASE, fixture: `${F}chuo-park-smoking-places/chuo-park-page-facts.csv` },
@@ -67,6 +73,12 @@ export const ADDITIVE_SOURCES: Readonly<Record<string, ReviewedFixture>> = {
   [KASSEN_NOMURA_SOURCE_ID]: { adapter: KASSEN_NOMURA_ADAPTER, release: KASSEN_NOMURA_FIXTURE_RELEASE, fixture: `${F}kassen-nomura-smoking-places/kassen-nomura-page-facts.csv` },
   [KANAZAWA_ARTVILLAGE_SOURCE_ID]: { adapter: KANAZAWA_ARTVILLAGE_ADAPTER, release: KANAZAWA_ARTVILLAGE_FIXTURE_RELEASE, fixture: `${F}kanazawa-artvillage-smoking-places/kanazawa-artvillage-page-facts.csv` },
   [KKR_KANAZAWA_SOURCE_ID]: { adapter: KKR_KANAZAWA_ADAPTER, release: KKR_KANAZAWA_FIXTURE_RELEASE, fixture: `${F}kkr-kanazawa-smoking-places/kkr-kanazawa-page-facts.csv` },
+  [HOTEL_SANRAKU_KANAZAWA_SOURCE_ID]: { adapter: HOTEL_SANRAKU_KANAZAWA_ADAPTER, release: HOTEL_SANRAKU_KANAZAWA_FIXTURE_RELEASE, fixture: `${F}hotel-sanraku-kanazawa-smoking-places/hotel-sanraku-kanazawa-page-facts.csv` },
+  [HOTEL_VISTA_KANAZAWA_SOURCE_ID]: { adapter: HOTEL_VISTA_KANAZAWA_ADAPTER, release: HOTEL_VISTA_KANAZAWA_FIXTURE_RELEASE, fixture: `${F}hotel-vista-kanazawa-smoking-places/hotel-vista-kanazawa-page-facts.csv` },
+  [MANTEN_KANAZAWA_EKIMAE_SOURCE_ID]: { adapter: MANTEN_KANAZAWA_EKIMAE_ADAPTER, release: MANTEN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, fixture: `${F}manten-kanazawa-ekimae-smoking-places/manten-kanazawa-ekimae-page-facts.csv` },
+  [ROUTE_INN_KANAZAWA_EKIMAE_SOURCE_ID]: { adapter: ROUTE_INN_KANAZAWA_EKIMAE_ADAPTER, release: ROUTE_INN_KANAZAWA_EKIMAE_FIXTURE_RELEASE, fixture: `${F}route-inn-kanazawa-ekimae-smoking-places/route-inn-kanazawa-ekimae-page-facts.csv` },
+  [DORMY_INN_KANAZAWA_SOURCE_ID]: { adapter: DORMY_INN_KANAZAWA_ADAPTER, release: DORMY_INN_KANAZAWA_FIXTURE_RELEASE, fixture: `${F}dormy-inn-kanazawa-smoking-places/dormy-inn-kanazawa-page-facts.csv` },
+  [SMILE_HOTEL_KANAZAWA_NISHIGUCHI_SOURCE_ID]: { adapter: SMILE_HOTEL_KANAZAWA_NISHIGUCHI_ADAPTER, release: SMILE_HOTEL_KANAZAWA_NISHIGUCHI_FIXTURE_RELEASE, fixture: `${F}smile-hotel-kanazawa-nishiguchi-smoking-places/smile-hotel-kanazawa-nishiguchi-page-facts.csv` },
 };
 
 /** Bookkeeping that `wrangler d1 export` and SQLite may add; never canonical. */

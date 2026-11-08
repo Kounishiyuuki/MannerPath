@@ -91,11 +91,36 @@ around the refusal: report it and decide the case.
 - Two runs on the same snapshot preserve the same live entries, but they give the new spots different fresh IDs, so
   the output and bundle digests differ. Build once, review that bundle's digests, and import that bundle. Never
   rebuild between the review and the import.
-- **#411 (4 Kanazawa hotels) is a dependency, not part of this runbook.** Until #411 is merged, those sources are not
-  in `SOURCE_ADAPTERS` or `ADDITIVE_SOURCES`, and `--add` refuses them. After #411 merges, a separate PR adds its
-  4 adapters to `ADDITIVE_SOURCES`, using the existing `KKR_KANAZAWA` line as the pattern, plus a test like the
-  Kanazawa one: preserved N, +4, each source once. Their command is then `--add <4 ids> --expect-added 4`, on a
-  snapshot taken after the 3-source promotion. It is a separate promotion; it is not combined into the 3.
+- **The six Kanazawa hotels (#411 and #417) are a second, separate promotion.** It runs on a snapshot taken after the
+  3-source Kanazawa promotion is live, and it is never combined into that one:
+
+  ```sh
+  npm run promotion:id-preserving -- --snapshot <path>/live-after-kanazawa.sqlite --out <path>/hotels-input.sqlite \
+    --add hotel-sanraku-kanazawa-smoking-places,hotel-vista-kanazawa-smoking-places,manten-kanazawa-ekimae-smoking-places,route-inn-kanazawa-ekimae-smoking-places,dormy-inn-kanazawa-smoking-places,smile-hotel-kanazawa-nishiguchi-smoking-places \
+    --expect-added <the count from the local dry run>
+  ```
+
+  Take `--expect-added` from the dry run on the real snapshot, not from this document. On the synthetic snapshot
+  it was 6, one per source. Two existing Kanazawa tiles receive hotel spots. Their earlier entries must stay
+  byte-identical, and the tool checks this.
+
+### Publication approval (G5): not recorded, so no production publication
+
+Listing a source in `ADDITIVE_SOURCES`, or rehearsing it, is not approval. Before any remote step for a source,
+the maintainer records these items for that source, in that source's PR or in the release record:
+1. **Rights:** the `rightsBasis.termsReading` and `PROVENANCE.md` are accepted as factReference use (ADR-0018 D-R).
+   - Dormy Inn: its terms limit works provided through the "本サービス" to private use (Art. 12) and forbid
+     for-profit acts through it without consent (Art. 11). The review records both clauses as context only;
+     the maintainer decides whether they apply.
+   - Hotel Vista: only the public facilities page is referenced, never the reservation system.
+2. **Location:** the ABR `residential_detail` anchor, with the pin at the facility's representative point
+   (`areaApproximate`). The attribution names the ABR and the 公共データ利用規約. No unreviewed parcel anchor is used
+   (`PARCEL_TERMS_REVIEW` is `null`).
+3. **Listing:** the facility-level listing (ADR-0018 / #407) is accepted. Rooms and guest-room smoking floors are not
+   listed, and guest-only areas are labelled as the pages state.
+4. **Re-check:** the page is re-checked within the release window. Source health must not be red for the source.
+   An objection or a new restriction from the operator moves the source to hold or withdrawal review.
+5. **Release:** the digests of the dry-run bundle and plan are recorded, and that same bundle is imported.
 
 ## Production procedure (maintainer only; Claude ran none of it)
 
@@ -183,3 +208,24 @@ The synthetic live DB is a sealed v4 GREEN from the 6 production fixtures: 513 p
   - `--add chiyoda-smoking-places --expect-added 30` gave `preservedPublishedSpots 516`, `publishedSpots 546`.
 - Before this change, the second run was refused: the snapshot carried `kanazawa-artvillage-smoking-places`, which
   had no reviewed fixture to rebuild from. The new test fails on that code.
+
+## Evidence (synthetic, 2026-11-08, 513 → Kanazawa 3 → hotels 6)
+
+Each stage was run through the CLI: id-preserving, then build, verify, apply-local, prepare-import and
+verify-import-plan. Every stage ended `verified` / `completed` / `verified`, with `files 4`.
+
+| Stage | preserved | published | tiles | sources | duplicate IDs | earlier spots changed | earlier tile entries changed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| live (synthetic) | — | 513 | 81 | 6 | 0 | — | — |
+| + Kanazawa 3 | 513 | 516 | 84 | 9 | 0 | 0 | 0 |
+| + hotels 6 | 516 | 522 | 86 | 15 | 0 | 0 | 0 of 516 |
+
+- Earlier spots are compared on ID, coordinates, tile, name and lifecycle.
+- In the hotel stage, the 2 tile bodies that changed are the Kanazawa tiles `14/14410/6401` and `14/14411/6401`,
+  which gained hotel spots. None of their earlier spot entries or source notices changed.
+- The original 513 are unchanged in the final GREEN. Neither snapshot's SHA-256 changed.
+- Refusals on the final GREEN:
+  - re-adding KKR or Dormy Inn: `already exists in the snapshot`;
+  - a live source: `not a reviewed additive source`;
+  - the output equal to the snapshot: `must differ`.
+- This is synthetic only. No production copy was used, so it is not production verification.
