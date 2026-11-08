@@ -99,3 +99,8 @@ The retrieved terms conditionally support commercial use and address matching/pr
 All 13 facility documents were refetched HTTP200 with unchanged bytes (facility-followup*.json). Kurashiki has a smoking booth; noncustomer/purchase-only access remains unknown. Manten: distinguish the first-floor room from floors2-4, where nonguests cannot enter guest floors; first-floor daybath/smoking-only permission remains unknown. Kokusai: smoking facilities are documented; shuttle-bus nonguest restrictions must not be treated as smoking-room restrictions. Paper/heated support and smoking-room hours remain unknown for all three. No onsite operating-status verification was performed.
 
 The #409 common adapter is merged. Adoption still requires owner license-scope/credit approval plus independent source fact/rights/location approval, candidate-to-anchor column conversion, regenerated hashes and reviewed fixtures. No factory instantiation or source registration occurs here. PARCEL_TERMS_REVIEW remains null: approved anchors 0, production additions 0.
+
+
+## Final operator decision checklist
+
+[未承認項目・根拠・リスク・不承認時の扱い](../../services/data-pipeline/research/official-source-intake/kanazawa-parcel-2026-11-08/approval-checklist.md)を参照。規約再調査は行わず、正式判断だけを切り出した。承認null、採用アンカー0、本番追加0は維持。

@@ -376,7 +376,8 @@
     "data-lineage.json": "25bfa3a5fb2e7764063e2969c34a630800cd2c3de6f23a0d918f436ccf991a22",
     "canonical-terms-receipt.json": "316bc30a6a0bdc6dceab4d18144d44804a93bab6d7a07c45eb0329ade85a7ac2",
     "facility-followup.json": "4490348447b2092c33baa171c07b93834bd89e5dfd9b552861753344b2872e53",
-    "facility-followup-receipts.json": "75c97331eb46e25968d5201f5ae7b0fd8a6d14c3d3ec1cbe7913092b6120f9e3"
+    "facility-followup-receipts.json": "75c97331eb46e25968d5201f5ae7b0fd8a6d14c3d3ec1cbe7913092b6120f9e3",
+    "approval-checklist.md": "2a320088bf6db9a0d730a7f200544b8e34ec92665959d947231a41f0a63eb691"
   },
   "followupEvidence": {
     "dataLineage": "data-lineage.json",
@@ -384,5 +385,6 @@
     "facilities": "facility-followup.json",
     "creditDraftSupersededBy": "terms-evidence.json#creditDraft",
     "productionReady": 0
-  }
+  },
+  "approvalChecklist": "approval-checklist.md"
 }

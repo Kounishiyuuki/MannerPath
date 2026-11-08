@@ -248,3 +248,31 @@ test("followup provenance and facility checks do not confer approval", () => {
     assert.equal(facility.siteVisitPerformed, false);
   }
 });
+
+test("access restrictions and unknowns remain candidate evidence, never public permissions", () => {
+  const facilities = json("facility-followup.json").facilities;
+  for (const facility of facilities) {
+    const facts = json(`${facility.id}/facts-review.json`);
+    assert.equal(facility.supportsPaper, "unknown");
+    assert.equal(facility.supportsHeated, "unknown");
+    assert.equal(facility.smokingHours, null);
+    assert.equal(facts.accessType, "unknown");
+    assert.equal(facts.hostHoursNotSmokingHours, true);
+    const intake = json(`${facility.id}/intake.json`);
+    assert.equal(intake.adapterPreview, null);
+    assert.equal(intake.publicationStatus, "blocked");
+  }
+  const cafe = facilities.find((item: { id: string }) => item.id === "kurashiki");
+  assert.equal(cafe.zones[0].purchaseRequirement, "unknown");
+  assert.equal(cafe.zones[0].standaloneUse, "unknown");
+  const bath = facilities.find((item: { id: string }) => item.id === "manten");
+  assert.equal(bath.zones[0].dayBathGuestUse, "unknown");
+  assert.equal(bath.zones[0].smokingOnlyEntryConditions, "unknown");
+  assert.equal(bath.zones[1].generalNonCustomerUse, "prohibitedByGuestFloorRestriction");
+  assert.match(bath.zones[1].accessRestriction, /宿泊者以外.*立入不可/);
+  const hotel = facilities.find((item: { id: string }) => item.id === "kokusai");
+  for (const zone of hotel.zones) assert.equal(zone.generalNonCustomerUse, "unknown");
+  assert.equal(hotel.zones[0].exclusiveHotelGuestRestrictionExplicit, false);
+  assert.equal(hotel.zones[1].exclusiveBanquetGuestRestrictionExplicit, false);
+  assert.equal(PARCEL_TERMS_REVIEW, null);
+});
