@@ -186,7 +186,12 @@ test("refuses unknown, duplicated or already-live sources and an existing output
   await assert.rejects(buildIdPreservingInput(LIVE, out, ["sendai-kaigan-park-smoking-areas"], { now: LATER }), /not a reviewed additive source/);
   await assert.rejects(buildIdPreservingInput(LIVE, out, ["toshima-smoking-places", "toshima-smoking-places"], { now: LATER }), /duplicate source/);
   await assert.rejects(buildIdPreservingInput(LIVE, LIVE, TOKYO, { now: LATER }), /must differ/);
-  await assert.rejects(buildIdPreservingInput(LIVE, out, ["taito-public-smoking-areas"], { now: LATER, additiveSources: LIVE_SOURCES }), /already exists in the snapshot/);
+  // One ID in both lists is refused before anything is read, whichever fixture each side names.
+  for (const additiveSources of [{ ...ADDITIVE_SOURCES, "taito-public-smoking-areas": LIVE_SOURCES["taito-public-smoking-areas"] },
+    { ...ADDITIVE_SOURCES, "taito-public-smoking-areas": ADDITIVE_SOURCES["chiyoda-smoking-places"] }]) {
+    await assert.rejects(buildIdPreservingInput(LIVE, out, ["chiyoda-smoking-places"], { now: LATER, additiveSources }), /taito-public-smoking-areas is in both the live and the additive sources/);
+  }
+  assert.deepEqual(Object.keys(LIVE_SOURCES).filter(id => Object.hasOwn(ADDITIVE_SOURCES, id)), [], "the committed lists are disjoint");
   writeFileSync(out, "");
   await assert.rejects(buildIdPreservingInput(LIVE, out, TOKYO, { now: LATER }), /already exists/);
   rmSync(out);

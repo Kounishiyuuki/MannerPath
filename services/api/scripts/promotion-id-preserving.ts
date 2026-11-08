@@ -174,6 +174,8 @@ export async function buildIdPreservingInput(snapshotPath: string, outputPath: s
   for (const id of addSourceIds) if (!Object.hasOwn(additiveSources, id)) refuse(`${id} is not a reviewed additive source`);
 
   // A source promoted by an earlier run is live from then on: the next snapshot carries it, so it is rebuilt too.
+  // One ID in both lists would make the rebuild fixture ambiguous; refuse instead of letting one silently win.
+  for (const id of Object.keys(liveSources)) if (Object.hasOwn(additiveSources, id)) refuse(`${id} is in both the live and the additive sources`);
   const rebuildable: Readonly<Record<string, ReviewedFixture>> = { ...liveSources, ...additiveSources };
   const snapshotSha256 = fileSha256(snapshot);
   const live = await readSnapshot(snapshot, addSourceIds, rebuildable);

@@ -87,6 +87,7 @@ around the refusal: report it and decide the case.
 - A source that an earlier run promoted is live from then on. The next snapshot carries it, and the tool rebuilds
   it from its `ADDITIVE_SOURCES` fixture under its live IDs, like the six original sources. Requesting it again in
   `--add` is refused (`already exists in the snapshot`).
+- A source ID in both `LIVE_SOURCES` and `ADDITIVE_SOURCES` is refused before anything is read (`is in both the live and the additive sources`), so neither fixture silently wins.
 - Two runs on the same snapshot preserve the same live entries, but they give the new spots different fresh IDs, so
   the output and bundle digests differ. Build once, review that bundle's digests, and import that bundle. Never
   rebuild between the review and the import.
