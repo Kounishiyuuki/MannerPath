@@ -121,3 +121,70 @@ test("hardened transport offers only ECDHE AEAD suites and refuses unsafe inputs
   const source = readFileSync(new URL("../scripts/source-health-transport.ts", import.meta.url), "utf8");
   assert.doesNotMatch(source, /rejectUnauthorized:\s*false|SECLEVEL|NODE_TLS_REJECT_UNAUTHORIZED|checkServerIdentity/);
 });
+
+test("operator queue uses existing severity, gives distinct checks and leaves JSON untouched", async () => {
+  const healthy = await check(async () => response());
+  const results: HealthResult[] = [
+    { ...healthy, sourceId: "z-normal" },
+    { ...healthy, sourceId: "c-content", status: "contentChanged", signals: { ...healthy.signals, contentChanged: true } },
+    { ...healthy, sourceId: "b-fetch", status: "unavailable", httpStatus: 503, signals: { ...healthy.signals, serverError: true } },
+    { ...healthy, sourceId: "a-rights", signals: { ...healthy.signals, rightsChanged: true } },
+    { ...healthy, sourceId: "d-due" },
+  ];
+  const report = buildReport(results, results.map(r => review({ sourceId: r.sourceId, reviewDueAt: r.sourceId === "d-due" ? TODAY : "2027-01-09" })), TODAY);
+  const before = JSON.stringify(report);
+  const markdown = renderSummary(report, results.map(r => ({ sourceId: r.sourceId, dataUrl: `https://official.example/${r.sourceId}`, rightsUrls: ["https://official.example/terms"] })));
+  assert.equal(JSON.stringify(report), before);
+  assert.deepEqual(report.summary.blocking, ["b-fetch", "a-rights"], "existing report order and exit code stay intact");
+  assert.equal(report.exitCode, 1);
+  const queue = markdown.split("### 詳細")[0];
+  assert.ok(queue.indexOf("a-rights") < queue.indexOf("b-fetch"));
+  assert.ok(queue.indexOf("b-fetch") < queue.indexOf("c-content"));
+  assert.ok(queue.indexOf("c-content") < queue.indexOf("z-normal"));
+  assert.match(queue, /取得失敗は施設閉鎖ではない/);
+  assert.match(queue, /文言変更だけでfixtureを更新しない/);
+  assert.match(queue, /住所\/設備の範囲変更/);
+  assert.match(queue, /期限到来は公開失効ではなく/);
+  assert.match(queue, /3 正常/);
+  const contentRow = queue.split("\n").find(line => line.includes("| c-content |"))!;
+  assert.match(contentRow, /https:\/\/official.example\/c-content/);
+  assert.doesNotMatch(contentRow, /official.example\/terms/);
+  const rightsRow = queue.split("\n").find(line => line.includes("| a-rights |"))!;
+  assert.match(rightsRow, /official.example\/terms/);
+});
+
+test("summary uses configured URLs only and excludes credentials, queries, fragments and raw observations", async () => {
+  const result = await check(async () => response());
+  result.finalUrl = "https://redirect.example/PRIVATE_REDIRECT";
+  result.redirects = [{ url: "https://other.example/PRIVATE_ORIGIN", status: 302, location: result.finalUrl }];
+  result.notes.push("PRIVATE_NOTE <script>response body</script>");
+  const report = buildReport([result], [review()], TODAY);
+  const context = [{ sourceId: result.sourceId, dataUrl: "https://official.example/data?token=PRIVATE_QUERY#PRIVATE_FRAGMENT", rightsUrls: [] }];
+  const output = renderSummary(report, context);
+  assert.match(output, /https:\/\/official.example\/data/);
+  assert.doesNotMatch(output, /PRIVATE_|redirect.example|other.example|<script>/);
+  assert.equal(context[0].dataUrl, "https://official.example/data?token=PRIVATE_QUERY#PRIVATE_FRAGMENT");
+  for (const dataUrl of ["https://user:PRIVATE_PASSWORD@official.example/", "javascript:PRIVATE_SCRIPT", "not a URL"]) {
+    const omitted = renderSummary(report, [{ sourceId: result.sourceId, dataUrl, rightsUrls: [] }]);
+    assert.match(omitted, /URL omitted/); assert.doesNotMatch(omitted, /PRIVATE_|user:/);
+  }
+  assert.doesNotMatch(renderSummary(report), /PRIVATE_REDIRECT/, "missing trusted context never falls back to final URL");
+});
+
+test("summary table escapes markup and cannot gain rows from configured labels", async () => {
+  const healthy = await check(async () => response());
+  const sourceId = "test|`label`\n<img src=x>";
+  const report = buildReport([{ ...healthy, sourceId }], [review({ sourceId })], TODAY);
+  const output = renderSummary(report, [{ sourceId, dataUrl: "https://official.example/a|b", rightsUrls: [] }]);
+  assert.doesNotMatch(output, /<img|`label`|test\|/);
+  assert.match(output, /test&#124;&#96;label&#96; &lt;img src=x&gt;/);
+  assert.match(output, /official.example\/a&#124;b/);
+});
+
+test("known-advisory expiry points to its metadata, not fields absent from the report JSON", async () => {
+  const result = await check(async () => response(null, 503));
+  const report = buildReport([result], [review({ knownAdvisories: [{ signal: "http:503", reason: "temporary", recordedAt: TODAY, expiresAt: "2026-11-09" }] })], TODAY);
+  assert.equal(report.results[0].severity, "advisory");
+  assert.ok(report.results[0].advisory.includes("known:http:503"));
+  assert.match(renderSummary(report), /有効期限をreview-metadata.jsonで確認/);
+});

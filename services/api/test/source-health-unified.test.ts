@@ -228,13 +228,13 @@ test("production rights contracts: one+ scoped contract per source, never a whol
 
 // ---- Offline CLI, no automatic baseline update, corpus invariance.
 
-async function runOffline(extra: string[] = []): Promise<{ exitCode: number; report: ReturnType<typeof buildReport> }> {
-  const network = globalThis.fetch, out: string[] = [];
+async function runOffline(extra: string[] = []): Promise<{ exitCode: number; report: ReturnType<typeof buildReport>; summary: string }> {
+  const network = globalThis.fetch, out: string[] = [], summary: string[] = [];
   globalThis.fetch = async () => { throw new Error("offline monitor attempted network"); };
-  try { await main(["--offline", ...extra], new Date("2026-10-09T00:00:00Z"), { out: text => void out.push(text), err: () => {} }); }
+  try { await main(["--offline", ...extra], new Date("2026-10-09T00:00:00Z"), { out: text => void out.push(text), err: text => void summary.push(text) }); }
   finally { globalThis.fetch = network; }
   const exitCode = Number(process.exitCode ?? 0); process.exitCode = 0;
-  return { exitCode, report: JSON.parse(out.join("")) };
+  return { exitCode, report: JSON.parse(out.join("")), summary: summary.join("") };
 }
 test("offline monitor replays reviewed fixtures with no network and never writes a baseline", async () => {
   const metadata = new URL("../../data-pipeline/source-health/review-metadata.json", import.meta.url);
@@ -299,12 +299,18 @@ test("scheduled health audit covers repository hotels without expanding deployed
   const workflow = readFileSync(new URL("../../../.github/workflows/source-health.yml", import.meta.url), "utf8");
   assert.match(workflow, /scripts\/source-health\.ts --live --repository-reviewed > source-health\.json/);
   assert.match(workflow, /contents: read/);
-  const { report } = await runOffline(["--repository-reviewed"]);
+  const { report, summary } = await runOffline(["--repository-reviewed"]);
+  assert.match(summary, /運営者の確認順/);
+  assert.match(summary, /offlineでは公式ページ/);
   for (const sourceId of ["manten-kanazawa-ekimae-smoking-places", "hotel-sanraku-kanazawa-smoking-places",
     "route-inn-kanazawa-ekimae-smoking-places", "hotel-vista-kanazawa-smoking-places",
     "dormy-inn-kanazawa-smoking-places", "smile-hotel-kanazawa-nishiguchi-smoking-places"]) {
     const result = report.results.find((item: HealthResult) => item.sourceId === sourceId);
     assert.ok(result, sourceId);
+    assert.ok(summary.includes(`| ${sourceId} |`));
+    const configured = new URL(repositoryReviewedHealthTargets().find(t => t.adapter.registry.sourceId === sourceId)!.url);
+    configured.search = ""; configured.hash = "";
+    assert.ok(summary.includes(configured.href.replaceAll("&", "&amp;")), "the CLI supplies configured official URLs");
     assert.equal(result.pageFactNotChecked, true, "offline fixtures do not claim a live facility recheck");
     assert.equal(productionHealthTargets().some(target => target.adapter.registry.sourceId === sourceId), false);
   }

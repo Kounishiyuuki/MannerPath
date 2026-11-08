@@ -261,7 +261,8 @@ export async function main(args: string[] = process.argv.slice(2), now = new Dat
   }
   const report = buildReport(results, reviews, jstDate(now));
   io.out(JSON.stringify(report, null, 2) + "\n");
-  io.err(renderSummary(report));
+  io.err(renderSummary(report, targets.map(target => ({ sourceId: target.adapter.registry.sourceId, dataUrl: target.url,
+    rightsUrls: reviews.find(review => review.sourceId === target.adapter.registry.sourceId)!.rights.map(contract => contract.url) }))));
   process.exitCode = report.exitCode;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch(error => { process.stderr.write(String(error) + "\n"); process.exitCode = 2; });
