@@ -1,0 +1,456 @@
+{
+  "auditedBase": "a77549a0a1106a339c649f7ea43104173935a32c",
+  "recordedAt": "2026-11-09T08:54:54.997288+00:00",
+  "mode": "live --repository-reviewed; six explicitly selected source IDs",
+  "exitCode": 1,
+  "summary": {
+    "blocking": [
+      "smile-hotel-kanazawa-nishiguchi-smoking-places"
+    ],
+    "advisory": [],
+    "ok": [
+      "dormy-inn-kanazawa-smoking-places",
+      "hotel-sanraku-kanazawa-smoking-places",
+      "hotel-vista-kanazawa-smoking-places",
+      "manten-kanazawa-ekimae-smoking-places",
+      "route-inn-kanazawa-ekimae-smoking-places"
+    ]
+  },
+  "results": [
+    {
+      "sourceId": "dormy-inn-kanazawa-smoking-places",
+      "status": "healthy",
+      "httpStatus": 200,
+      "finalUrl": "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/",
+      "contentType": "text/html; charset=utf-8",
+      "schemaCompatible": true,
+      "parserCompatible": true,
+      "redirects": [],
+      "notes": [],
+      "signals": {
+        "moved": false,
+        "crossOriginRelocation": false,
+        "accessBlocked": false,
+        "resourceMissing": false,
+        "serverError": false,
+        "rateLimited": false,
+        "unexpectedHttpStatus": false,
+        "transportFailure": null,
+        "transportCode": null,
+        "mimeUnexpected": false,
+        "contentChanged": false,
+        "packagingChanged": false,
+        "schemaCompatible": true,
+        "parserCompatible": true,
+        "rightsReviewRequired": false,
+        "rightsChanged": false,
+        "rightsScopeMissing": false
+      },
+      "bytes": 344587,
+      "sha256": "faf63f817221549fc33726c81c4c63e412025a842fe8645f84da88ead99b5eae",
+      "rights": [
+        {
+          "url": "https://dormy-hotels.com/dormyinn/hotels/kanazawa/rooms/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "60e5211f0cd049ff1aae3e2fca836f070e9c4b02108e1c2aedfc0a96b8003ba1",
+          "reviewedFingerprint": "60e5211f0cd049ff1aae3e2fca836f070e9c4b02108e1c2aedfc0a96b8003ba1",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://dormy-hotels.com/dormyinn/hotels/kanazawa/access/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "0e5418baef77c1d05fa82ae42a5080880adab5216e4e5077057ddbbb84d3c0ae",
+          "reviewedFingerprint": "0e5418baef77c1d05fa82ae42a5080880adab5216e4e5077057ddbbb84d3c0ae",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://dormy-hotels.com/terms/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "2d5af4245fe7438f6d864efaba8387f71b4d493e3bb517668bcee4d9ec5a88ba",
+          "reviewedFingerprint": "2d5af4245fe7438f6d864efaba8387f71b4d493e3bb517668bcee4d9ec5a88ba",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ],
+      "transport": "node-fetch",
+      "severity": "ok",
+      "blocking": [],
+      "advisory": [
+        "observationDateUnknown"
+      ],
+      "review": {
+        "rightsReviewedAt": "2026-11-08",
+        "sourceObservedAt": null,
+        "observationDateUnknown": true,
+        "editionLabel": null,
+        "editionObservedAt": "2026-11-08",
+        "reviewDueAt": "2027-02-08",
+        "humanReviewDue": false,
+        "reviewerNote": "Recheck the 1F smoking-booth statement (the 7F smoking floor is guest rooms, never registered), the access-page address and terms clauses 11/12. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review."
+      }
+    },
+    {
+      "sourceId": "hotel-sanraku-kanazawa-smoking-places",
+      "status": "healthy",
+      "httpStatus": 200,
+      "finalUrl": "https://sanraku.kenhotels.com/hakuchoro/faq/",
+      "contentType": "text/html; charset=UTF-8",
+      "schemaCompatible": true,
+      "parserCompatible": true,
+      "redirects": [],
+      "notes": [],
+      "signals": {
+        "moved": false,
+        "crossOriginRelocation": false,
+        "accessBlocked": false,
+        "resourceMissing": false,
+        "serverError": false,
+        "rateLimited": false,
+        "unexpectedHttpStatus": false,
+        "transportFailure": null,
+        "transportCode": null,
+        "mimeUnexpected": false,
+        "contentChanged": false,
+        "packagingChanged": false,
+        "schemaCompatible": true,
+        "parserCompatible": true,
+        "rightsReviewRequired": false,
+        "rightsChanged": false,
+        "rightsScopeMissing": false
+      },
+      "bytes": 63382,
+      "sha256": "a8b18e00917c0c580177b8792e6b70d20ac0ef67cc4ad799644fc864fb18ef1f",
+      "rights": [
+        {
+          "url": "https://sanraku.kenhotels.com/hakuchoro/faq/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "58c53af816be6bda5bec631f52e6b29086374b401fc44621bd1f575dab47af42",
+          "reviewedFingerprint": "58c53af816be6bda5bec631f52e6b29086374b401fc44621bd1f575dab47af42",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://kenhotels.com/privacy/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "0df31cedfe7f1c4da978ea6929947b64265a91283e03e919ddedd8d9f7e0cff5",
+          "reviewedFingerprint": "0df31cedfe7f1c4da978ea6929947b64265a91283e03e919ddedd8d9f7e0cff5",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ],
+      "transport": "node-fetch",
+      "severity": "ok",
+      "blocking": [],
+      "advisory": [
+        "observationDateUnknown"
+      ],
+      "review": {
+        "rightsReviewedAt": "2026-11-08",
+        "sourceObservedAt": null,
+        "observationDateUnknown": true,
+        "editionLabel": null,
+        "editionObservedAt": "2026-11-08",
+        "reviewDueAt": "2027-02-08",
+        "humanReviewDue": false,
+        "reviewerNote": "Recheck the FAQ smoking answer (outdoor near lobby entrance, basement parking; building otherwise non-smoking), address and policy links. Not an indoor smoking room. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review."
+      }
+    },
+    {
+      "sourceId": "hotel-vista-kanazawa-smoking-places",
+      "status": "healthy",
+      "httpStatus": 200,
+      "finalUrl": "https://kanazawa.hotel-vista.jp/ja/facilities",
+      "contentType": "text/html; charset=UTF-8",
+      "schemaCompatible": true,
+      "parserCompatible": true,
+      "redirects": [],
+      "notes": [],
+      "signals": {
+        "moved": false,
+        "crossOriginRelocation": false,
+        "accessBlocked": false,
+        "resourceMissing": false,
+        "serverError": false,
+        "rateLimited": false,
+        "unexpectedHttpStatus": false,
+        "transportFailure": null,
+        "transportCode": null,
+        "mimeUnexpected": false,
+        "contentChanged": false,
+        "packagingChanged": false,
+        "schemaCompatible": true,
+        "parserCompatible": true,
+        "rightsReviewRequired": false,
+        "rightsChanged": false,
+        "rightsScopeMissing": false
+      },
+      "lastModified": "Mon, 09 Nov 2026 08:51:54 GMT",
+      "bytes": 321087,
+      "sha256": "eb4ba95a7cd4742c754f02bfb1d643f4c99082e449bb2c94d954d00e06abceba",
+      "rights": [
+        {
+          "url": "https://kanazawa.hotel-vista.jp/ja/facilities",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "fe458492fa36a900ed3a7c340930d6498ee78a987f8296bf8f1a7c828ad9c9db",
+          "reviewedFingerprint": "fe458492fa36a900ed3a7c340930d6498ee78a987f8296bf8f1a7c828ad9c9db",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://kanazawa.hotel-vista.jp/ja/terms",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "21ea36170710663c379eee46519215e142df11528aa05200ec7333696a831201",
+          "reviewedFingerprint": "21ea36170710663c379eee46519215e142df11528aa05200ec7333696a831201",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ],
+      "transport": "node-fetch",
+      "severity": "ok",
+      "blocking": [],
+      "advisory": [
+        "observationDateUnknown"
+      ],
+      "review": {
+        "rightsReviewedAt": "2026-11-08",
+        "sourceObservedAt": null,
+        "observationDateUnknown": true,
+        "editionLabel": null,
+        "editionObservedAt": "2026-11-08",
+        "reviewDueAt": "2027-02-08",
+        "humanReviewDue": false,
+        "reviewerNote": "Recheck the 2F smoking-booth statement, address and the reservation-system terms scope (Article 1, Article 3). Fact reference stays limited to public facility pages, never the reservation system. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review."
+      }
+    },
+    {
+      "sourceId": "manten-kanazawa-ekimae-smoking-places",
+      "status": "healthy",
+      "httpStatus": 200,
+      "finalUrl": "https://www.manten-hotel.com/kanazawa/faq/",
+      "contentType": "text/html; charset=UTF-8",
+      "schemaCompatible": true,
+      "parserCompatible": true,
+      "redirects": [],
+      "notes": [],
+      "signals": {
+        "moved": false,
+        "crossOriginRelocation": false,
+        "accessBlocked": false,
+        "resourceMissing": false,
+        "serverError": false,
+        "rateLimited": false,
+        "unexpectedHttpStatus": false,
+        "transportFailure": null,
+        "transportCode": null,
+        "mimeUnexpected": false,
+        "contentChanged": false,
+        "packagingChanged": false,
+        "schemaCompatible": true,
+        "parserCompatible": true,
+        "rightsReviewRequired": false,
+        "rightsChanged": false,
+        "rightsScopeMissing": false
+      },
+      "contentLength": "11629",
+      "bytes": 34284,
+      "sha256": "75ab13607f7669d6bf79ff41c9abab7aaac2f71c34c54fe89830358706beeaa6",
+      "rights": [
+        {
+          "url": "https://www.manten-hotel.com/kanazawa/faq/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "b822af51f3c83fbe0f15a47c000e6a030a3738d063b4f741d802dfcb3f3ccb63",
+          "reviewedFingerprint": "b822af51f3c83fbe0f15a47c000e6a030a3738d063b4f741d802dfcb3f3ccb63",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://manten-hotel.co.jp/privacy/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "1b1f87b7f30ef7f3e708e9a3a32fb5729d9f477661c2520402695953ec6e5794",
+          "reviewedFingerprint": "1b1f87b7f30ef7f3e708e9a3a32fb5729d9f477661c2520402695953ec6e5794",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ],
+      "transport": "node-fetch",
+      "severity": "ok",
+      "blocking": [],
+      "advisory": [
+        "observationDateUnknown"
+      ],
+      "review": {
+        "rightsReviewedAt": "2026-11-08",
+        "sourceObservedAt": null,
+        "observationDateUnknown": true,
+        "editionLabel": null,
+        "editionObservedAt": "2026-11-08",
+        "reviewDueAt": "2027-02-08",
+        "humanReviewDue": false,
+        "reviewerNote": "Recheck the FAQ smoking answer (1F parking-entrance side, 4F/7F near elevators), official name/address footer and policy links. 4F/7F are guest floors; non-guest access, tobacco types and smoking hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review."
+      }
+    },
+    {
+      "sourceId": "route-inn-kanazawa-ekimae-smoking-places",
+      "status": "healthy",
+      "httpStatus": 200,
+      "finalUrl": "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/",
+      "contentType": "text/html; charset=UTF-8",
+      "schemaCompatible": true,
+      "parserCompatible": true,
+      "redirects": [],
+      "notes": [],
+      "signals": {
+        "moved": false,
+        "crossOriginRelocation": false,
+        "accessBlocked": false,
+        "resourceMissing": false,
+        "serverError": false,
+        "rateLimited": false,
+        "unexpectedHttpStatus": false,
+        "transportFailure": null,
+        "transportCode": null,
+        "mimeUnexpected": false,
+        "contentChanged": false,
+        "packagingChanged": false,
+        "schemaCompatible": true,
+        "parserCompatible": true,
+        "rightsReviewRequired": false,
+        "rightsChanged": false,
+        "rightsScopeMissing": false
+      },
+      "bytes": 156996,
+      "sha256": "66afbf86adf50ec70911afce3c6a3052e2c2dee3315053a2feed4f1e1c7e9ef7",
+      "rights": [
+        {
+          "url": "https://www.route-inn.co.jp/hotel_list/ishikawa/index_hotel_id_231/facilitiesetc/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "06a6d3eb00037e82d525ed521b55c298098d5457e601871f120b4dac72fcc4e3",
+          "reviewedFingerprint": "06a6d3eb00037e82d525ed521b55c298098d5457e601871f120b4dac72fcc4e3",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://www.route-inn.co.jp/reserve_rules/kiyaku/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "533894b9fa86e601a7ee87793cc94e8b8686e5f2443adbdda4bd5b22f6481622",
+          "reviewedFingerprint": "533894b9fa86e601a7ee87793cc94e8b8686e5f2443adbdda4bd5b22f6481622",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ],
+      "transport": "node-fetch",
+      "severity": "ok",
+      "blocking": [],
+      "advisory": [
+        "observationDateUnknown"
+      ],
+      "review": {
+        "rightsReviewedAt": "2026-11-08",
+        "sourceObservedAt": null,
+        "observationDateUnknown": true,
+        "editionLabel": null,
+        "editionObservedAt": "2026-11-08",
+        "reviewDueAt": "2027-02-08",
+        "humanReviewDue": false,
+        "reviewerNote": "Recheck the 1F smoking-space statement, address and member-terms scope. Heated-tobacco guest rooms are rooms, not this shared space. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review."
+      }
+    },
+    {
+      "sourceId": "smile-hotel-kanazawa-nishiguchi-smoking-places",
+      "status": "healthy",
+      "httpStatus": 200,
+      "finalUrl": "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/",
+      "contentType": "text/html",
+      "schemaCompatible": true,
+      "parserCompatible": true,
+      "redirects": [],
+      "notes": [],
+      "signals": {
+        "moved": false,
+        "crossOriginRelocation": false,
+        "accessBlocked": false,
+        "resourceMissing": false,
+        "serverError": false,
+        "rateLimited": false,
+        "unexpectedHttpStatus": false,
+        "transportFailure": null,
+        "transportCode": null,
+        "mimeUnexpected": false,
+        "contentChanged": false,
+        "packagingChanged": false,
+        "schemaCompatible": true,
+        "parserCompatible": true,
+        "rightsReviewRequired": false,
+        "rightsChanged": false,
+        "rightsScopeMissing": false
+      },
+      "contentLength": "29479",
+      "bytes": 264215,
+      "sha256": "4e82d413658b82b57e9371e33211ad52c2867293c30703c4a389d500a2c5ebd2",
+      "rights": [
+        {
+          "url": "https://smile-hotels.com/hotels/kanazawanishiguchiekimae/",
+          "outcome": "unchanged",
+          "reason": null,
+          "httpStatus": 200,
+          "fingerprint": "53ab0c31a159d29a0b0f9ac6c96eacd0a59ba8a3d4c5f364d8bc40a3f6ab65b6",
+          "reviewedFingerprint": "53ab0c31a159d29a0b0f9ac6c96eacd0a59ba8a3d4c5f364d8bc40a3f6ab65b6",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        },
+        {
+          "url": "https://smile-hotels.com/privacy-policies/show/kanazawanishiguchiekimae",
+          "outcome": "unavailable",
+          "reason": "http:301",
+          "httpStatus": 301,
+          "fingerprint": null,
+          "reviewedFingerprint": "53196b24d425b259d6fee7375f21d7858345a60936dea842e7bd3ad55c6c88d1",
+          "reviewedAt": "2026-11-08",
+          "reviewDueAt": "2027-02-08"
+        }
+      ],
+      "transport": "node-fetch",
+      "severity": "blocking",
+      "blocking": [
+        "rightsPage:http:301"
+      ],
+      "advisory": [
+        "observationDateUnknown"
+      ],
+      "review": {
+        "rightsReviewedAt": "2026-11-08",
+        "sourceObservedAt": null,
+        "observationDateUnknown": true,
+        "editionLabel": null,
+        "editionObservedAt": "2026-11-08",
+        "reviewDueAt": "2027-02-08",
+        "humanReviewDue": false,
+        "reviewerNote": "Recheck the designated smoking-space statement and the address block. The location/floor of the space is not stated and is never inferred. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review."
+      }
+    }
+  ]
+}

@@ -106,6 +106,9 @@ around the refusal: report it and decide the case.
 
 ### Publication approval (G5): not recorded, so no production publication
 
+The [six-hotel evidence checklist](KANAZAWA_HOTELS_G5_EVIDENCE.md) separates current checks from outstanding
+maintainer decisions. Merging that document does not record G5 approval or permit publication.
+
 Listing a source in `ADDITIVE_SOURCES`, or rehearsing it, is not approval. Before any remote step for a source,
 the maintainer records these items for that source, in that source's PR or in the release record:
 1. **Rights:** the `rightsBasis.termsReading` and `PROVENANCE.md` are accepted as factReference use (ADR-0018 D-R).
