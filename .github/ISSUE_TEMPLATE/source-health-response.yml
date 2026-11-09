@@ -1,0 +1,71 @@
+name: Source-health 対応記録
+description: 監視結果の確認・保留・再確認・解消を人が記録します。
+title: "[source-health] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        同じsource ID・監視範囲・理由の未解決Issueを先に検索し、繰り返しは既存Issueへ追記してください。
+        この記録は監視の抑制、権利承認、fixture更新、公開、施設閉鎖の判断を実行しません。
+        緑のrunや取得復旧だけでは自動解消しません。個人情報・secret・申請内容・生ログは貼らないでください。
+        [対応手順](https://github.com/Kounishiyuuki/MannerPath/blob/main/docs/OPERATIONS.md#source-health-response-records-manual-issues)
+  - type: input
+    id: source
+    attributes:
+      label: Source ID
+      description: Summary/JSONの設定済みsource ID。タイトルにも記載してください。
+    validations:
+      required: true
+  - type: input
+    id: scope
+    attributes:
+      label: 対象範囲
+      description: 公開可能な公式URLと監視範囲（データ・設備・住所・規約等）。認証値や私的queryは除いてください。
+    validations:
+      required: true
+  - type: input
+    id: reason
+    attributes:
+      label: 検知理由
+      description: blocking/advisoryの理由コード。変更したfingerprintは新しい観測として記録し、既存の確認で済ませないでください。
+    validations:
+      required: true
+  - type: dropdown
+    id: response
+    attributes:
+      label: 対応状態（人の判断）
+      options:
+        - 確認中
+        - 保留
+        - 再確認待ち
+        - 解消（根拠を人が確認済み）
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: 担当
+      description: 公開できる役割またはGitHub handle。
+    validations:
+      required: true
+  - type: input
+    id: next_review
+    attributes:
+      label: 次回確認日・条件
+      description: 保留・再確認の日時または条件。解消なら再確認不要の理由。
+    validations:
+      required: true
+  - type: textarea
+    id: history
+    attributes:
+      label: 対応履歴
+      description: 以後の観測・判断は日時付きコメントで追記し、過去の履歴を上書きしないでください。
+      value: |
+        | 確認日時/担当 | run URL/観測日時 | 対応状態 | 確認した根拠・判断/未解決点 | 次回確認 |
+        | --- | --- | --- | --- | --- |
+        | | | 確認中 | | |
+
+        解消根拠：未確認
+        関連するレビューPR/commit（必要な場合）：未確認
+    validations:
+      required: true
