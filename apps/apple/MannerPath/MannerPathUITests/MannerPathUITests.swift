@@ -706,6 +706,9 @@ final class B_OnlineUITests: MannerPathUITestCase {
 
         // Large sheet: the map button is covered, so the sheet's own labelled bar offers the same entry. A quick swipe on
         // the title no longer moves the iOS 26 sheet; drag its grabber and wait for the large detent like the other tests.
+        // The grabber returns only once the form has finished dismissing; dragging earlier is lost on a busy simulator.
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForNonExistence(timeout: 10), "The report form did not close")
+        XCTAssertTrue(app.buttons["シートグラバー"].waitForExistence(timeout: 10), "The sheet grabber did not return")
         dragSheet(to: 0.05, settlingIn: Self.largeSheet, "Sheet did not expand to the large detent")
         let bar = app.buttons["sheetReportButton"]
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "No report entry at the large detent")
@@ -721,6 +724,7 @@ final class B_OnlineUITests: MannerPathUITestCase {
         discardReportDraft()
 
         // Searching owns the bottom of the sheet: the bar steps aside for the keyboard and suggestions.
+        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForNonExistence(timeout: 10), "The report form did not close")
         destinationSearch.tap()
         destinationSearch.typeText("上野")
         XCTAssertTrue(app.buttons["sheetReportButton"].waitForNonExistence(timeout: 5), "The report bar competes with search")
