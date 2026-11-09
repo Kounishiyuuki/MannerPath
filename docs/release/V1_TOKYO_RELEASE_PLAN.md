@@ -82,21 +82,27 @@ selection state. Even so, the canonical history changes, and that must be a deli
 Update (2026-10-19, after the 11-source target was set): the target is option (a), and it is implemented by
 `npm run promotion:id-preserving`. The live GREEN is sealed, so the tool rebuilds from the reviewed fixtures,
 reuses each live record's spot ID, and refuses anything that would change a live published spot. See the
-[runbook](ID_PRESERVING_PROMOTION_RUNBOOK.md), which also lists the read-only export and secret handling.
+[runbook](ID_PRESERVING_PROMOTION_RUNBOOK.md), which also separates the authorized export (DB lock/D1 Write)
+from strictly read-only checks and describes secret handling.
 
 Steps:
-1. Maintainer: take the read-only export and convert it to SQLite locally (runbook). Then run
+1. Maintainer: obtain the separately authorized DATA_DB export and convert it to SQLite locally (runbook). Then run
    `promotion:id-preserving --expect-added 125` on it. Option (b), accepting re-ID'd spots, is no longer needed.
-2. Build, verify and apply-local to a fresh local GREEN. Run `local:quality`, `release:data-audit` (local) and an
-   independent digest review. Compare per-source counts against §2: 638 published, and the 513 existing rows
-   unchanged in content.
+2. Build, verify and apply-local to a fresh local GREEN. Run the runbook's explicit-file quality analysis,
+   existing-place SQL and full public DTO/revision comparisons, then independently review the digests.
+   `local:quality` reads the default `.wrangler/state`, not this GREEN file; `release:data-audit` is a
+   production-origin HTTP CLI with no local mode. Neither is final-local-GREEN evidence. Compare per-source
+   counts against §2: 638 published, and the 513 existing rows unchanged in content; those are this plan's
+   historical Tokyo target, not a substitute for the current snapshot's measured counts.
 3. `prepare-import`, then `verify-import-plan` with independently recorded digests.
 4. Remote, by the maintainer only: create a **fresh GREEN** D1, migrate it, then import the initialization files and
    chunks in plan order, then finalize (runbook steps 1–5). Keep BLUE untouched. REPORTS_DB is never touched.
 5. Point a staging Worker or readiness check at GREEN. `GET /v1/readiness` must report completed v4 and the smoke checks must pass.
    Then switch the DATA_DB binding (a deploy, maintainer only).
 6. Rollback: rebind DATA_DB to BLUE (unchanged) and redeploy. Keep BLUE until the release has been accepted.
-7. Re-run the public GET scan (old G19 method), source notices 11/11, and `GET /v1/config` (G16).
+7. After a separately authorized cutover, re-run the production public GET scan (`release:data-audit`, old G19
+   method), source notices 11/11, and `GET /v1/config` (G16). Do not run this production-only CLI as a local or
+   pre-cutover GREEN audit. Real GREEN HTTP checks before cutover remain separately required by the runbook.
 
 ## 5. P0 / P1 / P2 for submission
 

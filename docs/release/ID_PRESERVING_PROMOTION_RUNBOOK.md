@@ -150,6 +150,7 @@ Every remote step needs the maintainer's separate authorization for that release
      `verify` and `verify-import-plan` are `verified`.
    - Run the local SQL checks below and the full public DTO comparison in the next section on the final local
      GREEN against the snapshot. **STOP** on any refusal, non-zero SQL count or comparison failure.
+   - Run the explicit-file quality analysis below on that same final GREEN; **STOP** if it fails.
 
    ```sql
    ATTACH '<snapshot>.sqlite' AS l;
@@ -185,6 +186,41 @@ Every remote step needs the maintainer's separate authorization for that release
    - rebind `DB` to BLUE, which is unchanged, and redeploy;
    - BLUE's bookmark from step 2 is needed only if BLUE itself was written by mistake;
    - keep BLUE until the release is accepted.
+
+### Quality analysis of the selected local GREEN
+
+Run from `services/api`, Node>=24, with `MP_GREEN` set to the final `apply-local` SQLite file outside Git.
+This reuses the same analyzer as `local:quality` but opens the **selected file read-only**. The `local:quality`
+CLI itself reads default `.wrangler/state` and cannot select this file; its PASS is not evidence about GREEN.
+The `release:data-audit` CLI always uses the production origin, so never run it as a local/GREEN rehearsal.
+
+```sh
+node --experimental-strip-types --experimental-sqlite --no-warnings --input-type=module <<'QUALITY'
+import assert from 'node:assert/strict';
+import { DatabaseSync } from 'node:sqlite';
+import { gzipSync } from 'node:zlib';
+import { analyzeCorpus } from './src/quality/analyze.ts';
+import { SqliteD1 } from './test/support/sqlite-d1.ts';
+let raw;
+try {
+  assert.ok(process.env.MP_GREEN);
+  raw = new DatabaseSync(process.env.MP_GREEN, { readOnly: true });
+  const now = new Date().toISOString();
+  const report = await analyzeCorpus(new SqliteD1(raw), { now, gzip: body => gzipSync(body).length });
+  console.log(JSON.stringify({ now, failedChecks: report.failedChecks,
+    checks: report.checks.map(({ id, status }) => ({ id, status })) }));
+  if (report.failedChecks > 0) process.exitCode = 1;
+} catch {
+  console.error('STOP: selected local GREEN quality analysis failed'); process.exitCode = 1;
+} finally { raw?.close(); }
+QUALITY
+```
+
+Record the reference time, selected file SHA-256 and the check results alongside the artifact digests.
+Quality PASS does not waive the existing-place SQL, full DTO/revision comparison, G5 or actual remote GREEN checks.
+The 2026-11-10 synthetic CLI rehearsal ran this exact example on both the 516-spot Kanazawa GREEN and the
+522-spot hotel GREEN: zero failed quality checks, with existing-place SQL0/0/0. The hotel addition still stopped
+at the required revision comparison. These are synthetic results only, not evidence about production or G5.
 
 ### Comparing tiles that receive additions (all checks are required)
 
