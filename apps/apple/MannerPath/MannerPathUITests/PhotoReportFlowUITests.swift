@@ -66,8 +66,10 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         // leaving it settled just below the screen (frame y=854 on 852pt). Scroll again rather than tap off-screen.
         scrollTo(agree)
         var control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
+        // At AX5 the row is ~217 pt tall: its first line peeking above the bottom edge already makes the row hittable, so
+        // scrolling to the row stops with the knob still below the screen (observed y=882–939 on 874 pt). Scroll to the knob.
         for _ in 0..<2 where !waitUntilSettled(control, timeout: 5, failing: false) {
-            scrollTo(agree)
+            scrollTo(control)
             control = agree.switches.firstMatch.exists ? agree.switches.firstMatch : agree
         }
         waitUntilSettled(control)
