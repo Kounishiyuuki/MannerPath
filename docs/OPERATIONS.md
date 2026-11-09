@@ -610,6 +610,40 @@ Triage rules — each is an operational reminder, never a publication decision:
   human review may a reviewed PR set `rights[].reviewedFingerprint` (copy `fingerprint` from the JSON
   artifact) and `reviewedAt`, or re-point the scope contract. The tool never writes a baseline.
 
+### Source-health response records (manual Issues)
+
+The detector and #423 triage are sufficient for observing/classifying signals. They do not store who checked,
+why an item is on hold, or when it must be revisited. Use existing GitHub Issues and the **Source-health 対応記録**
+issue form as the single response record; no second history database, automatic issue creation or auto-close is added.
+The workflow artifacts expire after 30 days: retain the minimal reason codes, observation/review fingerprints
+where relevant, scope and decision in the issue; a run link alone is not durable evidence. Never treat a hash as approval.
+Public records contain only public source IDs/URLs, run references and human reasoning; never copy raw logs,
+personal information, submitter content, credentials or private URL parameters.
+
+1. Search `is:issue is:open "[source-health]" "<source ID>"` before creating an issue. Match the source ID,
+   monitored scope (URL and section/contract) and reason. Append repeat detections to the existing issue rather
+   than duplicating it. A different fingerprint or affected scope needs fresh review; it is not covered by an old acknowledgement.
+2. Record the public source/scope, exact reason codes, run URL/observation time, **確認中 / 保留 / 再確認待ち / 解消**,
+   owner, evidence/unresolved questions and next check date/condition. Keep past entries and append dated comments
+   for new observations and decisions. Record first/last seen via those run references; do not infer continuous
+   coverage from two snapshots. A missing artifact, omitted source, offline replay or failed job is not recovery evidence.
+3. Keep the issue open through confirmation/hold/recheck. Acknowledging an alert, putting it on hold or closing
+   an issue does not suppress signals, alter exit codes or approve a known advisory. The existing reviewed,
+   expiring `knownAdvisories` mechanism remains separate and must not be extended just to clear an alert.
+
+| Observation / response | What to record before moving on |
+| --- | --- |
+| Repeated same failure | Append latest run/time/reason to the same unresolved item; retain the first observation, owner and next check. Do not infer a new closure or silently reset its age |
+| Fetch failure then successful fetch | Record “取得復旧・解消確認待ち”. Check the intended resource/scope, parser and rights results; a 200/green run alone does not close the issue. If content/rights changed, keep that work unresolved |
+| Rights/scope drift | Preserve the observed fingerprint/reason and exact reviewed scope. Facility/address contracts can also emit rights signals. Human review and any required reviewed metadata PR are separate; an issue status never grants rights |
+| Facility/content drift or missing scope | Compare official facts and normalized fixture locally. A wording change/404/missing marker does not prove facility closure. Link any reviewed source-update PR; never overwrite a fixture/baseline from the alert |
+| Review due | Record the actual recheck and evidence. Do not advance dates solely to silence the signal |
+| Human-confirmed resolution | Add the resolving run, reviewed evidence/PR where required, remaining limitations and the reason no action remains. Only then manually select 解消 and close. If the signal returns, reopen/link the earlier record; do not delete history |
+
+The scheduled monitor never reads issue state and has only `contents: read`; there is no issue event workflow
+that applies these decisions. This form changes no rights review, source registry, data, hold or publication state.
+A resolved response record means operational follow-up ended, not that licensing/publication was approved.
+
 ### Osaka known advisory: manual read-only check (until 2026-11-09)
 
 While Osaka `transport:timeout` is active, the GitHub-hosted runner cannot fetch the mapnavi data host
