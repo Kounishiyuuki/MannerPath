@@ -35,18 +35,22 @@ exports published spots only, so these do not reach GREEN.
 
 ## Before touching production (maintainer only; nothing below was run by Claude)
 
-**Read-only operations needed.** These are the only ones:
+**Identity check, then separately authorized export.** Export is outside the strictly read-only checklist:
 
-1. Find the database that the deployed `production` Worker's `DB` binding points at. Use the `database_id` in
-   `services/api/wrangler.jsonc` `env.production` at the deployed commit. Do not assume `mannerpath-production`
-   after a GREEN cut-over.
+1. Find the database that the active production Worker version's `DB` binding actually points at, using
+   [the administrator read-only procedure](PRODUCTION_ADMIN_GATE_PROCEDURE.md). Compare it with
+   `services/api/wrangler.jsonc` at the deployed commit and the independent target; a local config alone is not
+   live binding evidence. Do not assume `mannerpath-production` after a GREEN cut-over.
 2. Run `npx wrangler d1 export <that database> --remote --output=<path outside the repo>/data-<date>.sql`. This
-   reads only, but Cloudflare blocks other requests to the database while an export runs, so use a low-traffic
-   window. **Never export `REPORTS_DB`** for this purpose: it is not an input.
+   preserves application data, but locks the database and requires D1 Write permission according to
+   [Cloudflare's export permission guidance](https://developers.cloudflare.com/d1/observability/debug-d1/#error-10000-and-token-permissions).
+   It needs explicit export/impact-window approval and a low-traffic window. **Never export `REPORTS_DB`** for this
+   purpose: it is not an input. A D1 Read token failing here is not permission to broaden its scope automatically.
 3. Convert it locally: `sqlite3 <path>/live.sqlite < <path>/data-<date>.sql`. There is no remote call after the export.
 
 **Secrets and sensitive files.**
-- Use the maintainer's own Wrangler login, or a scoped token with D1 read permission, from the shell environment.
+- Use the maintainer's approved Wrangler session, or an approved scoped token, from the shell environment.
+  Metadata/SELECT uses D1 Read; export requires a separately approved D1 Write-capable session as above.
   Never write a token into a file, a command saved in the repo, a log, a PR or a chat.
 - Do not share the `wrangler whoami` output or the account ID.
 - Keep the `.sql` and `.sqlite` exports outside the repository (the scratch directory, not `services/`).
@@ -133,7 +137,7 @@ Every remote step needs the maintainer's separate authorization for that release
    - `make api-validate` and `make contract` pass on the commit being released.
 2. **Backup.** The live database (BLUE) is never written by this procedure. A new database (GREEN) receives the
    import. Even so, before the switch, record both of these in the deployment record:
-   - the export file from "Read-only operations" above, as the offline copy;
+   - the export file from the separately authorized export above, as the offline copy;
    - the Time Travel bookmark of BLUE: `npx wrangler d1 time-travel info <BLUE database>`. Time Travel is
      Cloudflare's point-in-time recovery for D1, `developers.cloudflare.com/d1/reference/time-travel/`.
 3. **Dry run (local, no remote call).**
@@ -141,7 +145,8 @@ Every remote step needs the maintainer's separate authorization for that release
    - Then run `apply-local` into a fresh local GREEN file.
    - Expected results: `preservedPublishedSpots` = live published, `publishedSpots` = live + `--expect-added`,
      `verify` and `verify-import-plan` are `verified`.
-   - Run the local SQL check below on the local GREEN against the snapshot. **STOP** on any refusal or any non-zero count.
+   - Run the local SQL checks below and the full public DTO comparison in the next section on the final local
+     GREEN against the snapshot. **STOP** on any refusal, non-zero SQL count or comparison failure.
 
    ```sql
    ATTACH '<snapshot>.sqlite' AS l;
@@ -149,9 +154,9 @@ Every remote step needs the maintainer's separate authorization for that release
    SELECT count(*) FROM l.spots a LEFT JOIN spots b USING (spot_id)
     WHERE b.spot_id IS NULL OR a.latitude <> b.latitude OR a.longitude <> b.longitude OR a.tile_id <> b.tile_id
        OR a.name IS NOT b.name OR a.lifecycle <> b.lifecycle;
-   -- 0: live tiles change only in generatedAt
-   SELECT count(*) FROM l.tile_snapshots a JOIN tile_snapshots b USING (tile_id)
-    WHERE json_remove(a.body_json, '$.generatedAt') <> json_remove(b.body_json, '$.generatedAt');
+   -- 0: no old tile disappears (including an empty tile)
+   SELECT count(*) FROM l.tile_snapshots a LEFT JOIN tile_snapshots b USING (tile_id)
+    WHERE b.tile_id IS NULL;
    -- 0: no spot ID published twice
    SELECT count(*) - count(DISTINCT spot_id) FROM tile_snapshot_spots;
    ```
@@ -163,7 +168,13 @@ Every remote step needs the maintainer's separate authorization for that release
 5. **Verify after the apply, before the switch.**
    - `GET /v1/readiness` reports a completed v4.
    - The tiles of the new spots return the new spots.
-   - One live tile is identical to BLUE's, apart from `generatedAt`.
+   - Obtain the actual GREEN's HTTP manifests/parts and detail DTOs through the separately authorized check
+     endpoint; correlate its binding/version and completed import receipts with the fixed bundle/plan digests.
+     Compare all earlier public spot DTOs and source notices, including in tiles receiving additions, using
+     the same equality criteria as below. The local SQLite snippet is **pre-apply local evidence only**:
+     re-reading it does not verify the remote import. Missing remote full-comparison evidence is UNVERIFIED/STOP.
+     Check an unaffected live tile through HTTP too. If every old tile receives additions, record that fact
+     and compare the old entries instead of inventing an unaffected tile.
    - **STOP** (do not switch, and delete GREEN at leisure) on any mismatch.
 6. **Switch.** Rebind `DB` to GREEN with a deploy. Then re-run the public GET scan (`release:data-audit`), the
    source notices and `GET /v1/config` (release plan §4 step 7).
@@ -171,6 +182,104 @@ Every remote step needs the maintainer's separate authorization for that release
    - rebind `DB` to BLUE, which is unchanged, and redeploy;
    - BLUE's bookmark from step 2 is needed only if BLUE itself was written by mistake;
    - keep BLUE until the release is accepted.
+
+### Comparing tiles that receive additions (all checks are required)
+
+The former `json_remove(tile_snapshots.body_json, '$.generatedAt')` equality was incorrect for additions to
+an existing tile. Since migration0028 that column is a v2 **manifest**; public spots and source notices live
+in `tile_snapshot_parts`. A hotel may add an entry to an existing tile, changing its count, parts and hashes.
+The two changed tiles in the evidence below are synthetic results, not a prediction for production.
+
+Use `readPublishedTiles()` to reconstruct either v1 or v2, and compare **every** earlier entry, not just names,
+coordinates, a sample or a count. The id-preserving builder already compares `{tile, spot}` in full; this extra
+final-GREEN check also covers missing/empty tiles, duplicate IDs, attribution and separately computed detail
+DTO/provenance. Existing build/verify/apply-local/import-plan verification and the SQL checks above remain mandatory.
+
+Run from `services/api`, Node>=24. Set `MP_SNAPSHOT`, `MP_GREEN` to the private original snapshot and **final
+apply-local GREEN**, `MP_ADD` to the exact comma-separated `--add` list, and `MP_EXPECTED_ADDED` to the reviewed
+integer from that snapshot's dry-run report. These are local file paths/source IDs/counts, never credentials.
+Both DBs are opened read-only; only summary counts or a fixed STOP message are printed.
+
+```sh
+node --experimental-strip-types --experimental-sqlite --no-warnings --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import { DatabaseSync } from 'node:sqlite';
+import { readPublishedTiles } from './src/tiles/parts.ts';
+import { readPublishedSpot } from './src/spots/detail.ts';
+import { SqliteD1 } from './test/support/sqlite-d1.ts';
+const opened = [];
+try {
+  const allowed = new Set((process.env.MP_ADD ?? '').split(',').filter(Boolean));
+  const expected = Number(process.env.MP_EXPECTED_ADDED);
+  assert.ok(allowed.size && process.env.MP_EXPECTED_ADDED && Number.isSafeInteger(expected) && expected > 0);
+  const load = async path => {
+    assert.ok(path);
+    const raw = new DatabaseSync(path, { readOnly: true }); opened.push(raw);
+    const db = new SqliteD1(raw), tiles = await readPublishedTiles(db);
+    const byTile = new Map(), bySpot = new Map();
+    for (const t of tiles) {
+      assert.ok(!byTile.has(t.tile)); byTile.set(t.tile, t);
+      const notices = new Map();
+      for (const s of t.sources) { assert.ok(!notices.has(s.id)); notices.set(s.id, s); }
+      const cited = new Set();
+      for (const s of t.spots) {
+        assert.ok(!bySpot.has(s.id) && s.sourceIds.length);
+        bySpot.set(s.id, { tile: t.tile, spot: s });
+        for (const id of s.sourceIds) { assert.ok(notices.has(id)); cited.add(id); }
+      }
+      assert.deepEqual([...notices.keys()].sort(), [...cited].sort());
+    }
+    return { db, byTile, bySpot };
+  };
+  const old = await load(process.env.MP_SNAPSHOT), next = await load(process.env.MP_GREEN);
+  assert.ok(old.bySpot.size);
+  for (const [id, entry] of old.bySpot) {
+    assert.equal(JSON.stringify(next.bySpot.get(id)), JSON.stringify(entry));
+    const before = await readPublishedSpot(old.db, id), after = await readPublishedSpot(next.db, id);
+    assert.ok(before && after); assert.deepEqual(after, before);
+    const { tile, ...detailSpot } = after.spot;
+    assert.equal(tile, entry.tile); assert.deepEqual(detailSpot, entry.spot);
+  }
+  const addedBySource = {};
+  for (const [id, entry] of next.bySpot) if (!old.bySpot.has(id)) {
+    assert.ok(entry.spot.sourceIds.every(s => allowed.has(s)));
+    for (const s of new Set(entry.spot.sourceIds)) addedBySource[s] = (addedBySource[s] ?? 0) + 1;
+  }
+  assert.equal(next.bySpot.size, old.bySpot.size + expected);
+  assert.deepEqual(Object.keys(addedBySource).sort(), [...allowed].sort());
+  for (const [id, t] of old.byTile) {
+    const n = next.byTile.get(id); assert.ok(n);
+    assert.equal(n.schemaVersion, t.schemaVersion);
+    const notices = new Map(n.sources.map(s => [s.id, s]));
+    for (const s of t.sources) assert.equal(JSON.stringify(notices.get(s.id)), JSON.stringify(s));
+    const oldSources = new Set(t.sources.map(s => s.id));
+    for (const s of n.sources) if (!oldSources.has(s.id)) assert.ok(allowed.has(s.id));
+    const changed = n.spots.some(s => !old.bySpot.has(s.id));
+    // ADR-0005: content changes must increase revision; rebuilding cannot silently reset it.
+    assert.ok(changed ? n.revision > t.revision : n.revision === t.revision);
+    if (!changed) {
+      const { generatedAt: a, ...before } = t, { generatedAt: b, ...after } = n;
+      assert.deepEqual(after, before);
+    }
+  }
+  for (const [id, t] of next.byTile) if (!old.byTile.has(id)) {
+    assert.ok(t.spots.length);
+    assert.ok(t.sources.every(s => allowed.has(s.id)));
+  }
+  console.log(JSON.stringify({ preserved: old.bySpot.size, added: expected, addedBySource, comparison: 'verified' }));
+} catch {
+  console.error('STOP: local public DTO, notice, membership or revision comparison failed'); process.exitCode = 1;
+} finally { for (const db of opened) db.close(); }
+JS
+```
+
+Compare `addedBySource` with the exact per-source dry-run counts too; a total alone does not authorize a
+different allocation. Manifest/part integrity, schema version, part policy and capacity are checked by the existing
+v4 verifiers. `generatedAt`, hashes/ETags and part boundaries may change with a new release; old DTOs/notices may
+not. ADR-0005's revision rule remains a separate required gate. The current fresh rebuild starts revisions at1;
+therefore the synthetic hotel addition can pass the old entry tests yet **fail this revision gate**. Do not edit
+sealed GREEN SQL, lower the assertion, or treat that as release-ready. STOP for a separately reviewed solution
+if the real snapshot comparison fails. This documentation change does not implement a revision repair.
 
 ### Without a production copy
 
