@@ -10,13 +10,16 @@ match the reviewed target. It cannot pre-approve a BLUE→GREEN rebinding while 
 That prospective cutover stays entirely in Lane 3's promotion runbook; re-run this check for the new settled
 target only after a separately authorized cutover. A cutover mismatch here is expected, not permission to flip.
 
+For operator commands, permissions, HTTP403 diagnosis and STOP gates, use the
+[administrator read-only procedure](PRODUCTION_ADMIN_GATE_PROCEDURE.md). Unknown evidence remains UNVERIFIED.
+
 ## Responsibilities and existing tools
 
 | Check | Local tool | Administrator evidence / production-operation boundary |
 | --- | --- | --- |
 | Candidate v1 Worker/vars | Reuse `productionConfig()`; require paused registration, required attestation, no App ID/pepper values in vars, no photo/R2 source binding | Confirm actual account, Worker and deployed vars at operation time; local generated config is not deployed state |
 | DB versus REPORTS_DB | Compare candidate ID/name/stream and observed active-version D1 IDs to an **independently reviewed target file** | Use the existing [ID-preserving promotion runbook](ID_PRESERVING_PROMOTION_RUNBOOK.md) for DB identity, schema, backup, BLUE/GREEN and preserved REPORTS_DB; never derive both expectations and observations from one config |
-| Migration | Reuse exact 11-file approval/SHA checks from `production-v1-check`; before-migration expects the historical reviewed pending set, before-deploy expects none | Obtain pending lists for both exact databases with existing read-only Wrangler migration-list tooling. Verify schema/history/integrity; an empty list does not prove successful recovery or unchanged applied SQL |
+| Migration | Reuse exact 11-file approval/SHA checks from `production-v1-check`; before-migration expects the historical reviewed pending set, before-deploy expects none | Read each exact database's existing ledger with SELECT and compare with local migration filenames. Do not use `d1 migrations list` in a strictly read-only session: pinned Wrangler initializes its ledger with CREATE TABLE IF NOT EXISTS. Verify schema/history/integrity; an empty pending set does not prove successful recovery or unchanged applied SQL |
 | Secrets | Accept only a list of names; both existing peppers must be present before-deploy and App ID absent | Existing `wrangler secret list` names only. Do not obtain, print, copy or persist values; existence does not prove correctness and peppers must not be regenerated here |
 | Readiness | Check recorded GET status/state plus administrator-correlated version and DB identity | `/v1/readiness` does not return DB ID or version. Correlate these through active deployment metadata; GET alone cannot establish D1 identity or prove a future candidate works |
 | Cron | Separate recorded current triggers from proposed retention Cron | Read actual trigger settings separately: Cron is not versioned with Worker code. Keep the five-minute proposal **unapproved** until CPU, D1/account usage, frequency/backlog, plan/cost ceiling and monitor/stop criteria reviews are recorded |
