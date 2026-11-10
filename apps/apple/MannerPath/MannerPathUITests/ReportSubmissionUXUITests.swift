@@ -205,6 +205,19 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         XCTAssertTrue(control.exists && form.frame.contains(control.frame), "Control must be fully visible before tapping")
     }
 
+    // Scrolling up can stop with the element above the form's bar and still "hittable" (#367: AX5 note at y=0, h=76
+    // under a bar ending at 142); a tap there hits the bar and gives no keyboard focus. Drag it fully below the bar.
+    private func revealBelowFormBar(_ control: XCUIElement) {
+        let bar = app.navigationBars["喫煙場所を追加"]
+        var drags = 0
+        while bar.exists && (!control.exists || control.frame.minY < bar.frame.maxY) && drags < 4 {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.45)).press(forDuration: 0.05,
+                thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.65)))
+            drags += 1
+        }
+        XCTAssertTrue(control.exists && control.frame.minY >= bar.frame.maxY, "Control must be below the form bar before tapping")
+    }
+
     func testLargestTextKeepsUnconfirmedSubmissionAndRetryReachable() {
         launch(extraArguments: ["-uiTestPhotoReport", "reportRetry",
                                 "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
@@ -213,6 +226,7 @@ final class J_ReportSubmissionUXUITests: MannerPathUITestCase {
         addPhotoAndAgree()
         let note = app.textViews.firstMatch
         scrollTo(note, upwards: true)
+        revealBelowFormBar(note)
         settle(note)
         note.tap()
         note.typeText("Saved before retry")
