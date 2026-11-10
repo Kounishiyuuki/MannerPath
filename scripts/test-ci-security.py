@@ -17,6 +17,12 @@ class CiSecurityTests(unittest.TestCase):
     def setUp(self):
         self.doc = guard.parse_yaml((ROOT / '.github/workflows/pr-validation.yml').read_text())
 
+    @staticmethod
+    def step(doc, *, command=None, action=None):
+        return next(s for s in doc['jobs']['validate']['steps']
+                    if (command is not None and s.get('run') == command)
+                    or (action is not None and str(s.get('uses', '')).startswith(action + '@')))
+
     def rejects(self, mutate, reason):
         doc = copy.deepcopy(self.doc)
         mutate(doc)
@@ -71,15 +77,15 @@ class CiSecurityTests(unittest.TestCase):
                 doc['jobs']['validate']['steps'][0]['uses'] = step['uses']
             else:
                 if name == 'actions/setup-node':
-                    doc['jobs']['validate']['steps'][1]['uses'] = step['uses']
+                    self.step(doc, action='actions/setup-node')['uses'] = step['uses']
                 else:
-                    doc['jobs']['validate']['steps'].append(step)
+                    doc['jobs']['validate']['steps'].insert(-1, step)
             self.assertEqual(guard.workflow_errors(doc, 'pr-validation.yml'), [])
 
     def test_node_patch_cannot_float(self):
         for version in ('24', '24.x', '24.20.0', '${{ inputs.node }}'):
-            self.rejects(lambda d: d['jobs']['validate']['steps'][1]['with'].update({'node-version': version}), 'reviewed patch')
-        self.rejects(lambda d: d['jobs']['validate']['steps'].pop(1), 'reviewed Node patch')
+            self.rejects(lambda d: self.step(d, action='actions/setup-node')['with'].update({'node-version': version}), 'reviewed patch')
+        self.rejects(lambda d: d['jobs']['validate']['steps'].remove(self.step(d, action='actions/setup-node')), 'reviewed Node patch')
 
     def test_action_tags_branches_short_shas_and_docker(self):
         for action in ('actions/checkout@v4', 'vendor/action@main', 'vendor/action@abc123', 'docker://image:latest'):
@@ -91,6 +97,21 @@ class CiSecurityTests(unittest.TestCase):
         for key, value in (('ref', '${{ github.event.pull_request.head.sha }}'), ('repository', '${{ github.event.pull_request.head.repo.full_name }}')):
             self.rejects(lambda d: d['jobs']['validate']['steps'][0]['with'].update({key: value}), 'default event ref')
         self.rejects(lambda d: d['jobs']['validate']['steps'][0]['with'].pop('persist-credentials'), 'persist-credentials')
+        self.rejects(lambda d: d['jobs']['validate']['steps'][0]['with'].update(clean='false'), 'cleaning')
+
+    def test_checkout_identity_checks_cannot_skip_or_move(self):
+        command = 'python3 scripts/check-validation-checkout.py --ci'
+        def receipts(doc):
+            return [s for s in doc['jobs']['validate']['steps'] if s.get('run') == command]
+        for position in (0, 1):
+            self.rejects(lambda d: d['jobs']['validate']['steps'].remove(receipts(d)[position]), 'identity checks')
+            for key, value in (('continue-on-error', 'true'), ('working-directory', 'other'),
+                               ('shell', 'bash -c true {0}'), ('env', {'GITHUB_SHA': 'fake'})):
+                self.rejects(lambda d: receipts(d)[position].update({key: value}), 'identity checks')
+        self.rejects(lambda d: receipts(d)[0].update({'if': 'always()'}), 'bracket')
+        self.rejects(lambda d: receipts(d)[1].update({'if': 'success()'}), 'bracket')
+        self.rejects(lambda d: d['jobs']['validate']['steps'].append({'run': 'echo later'}), 'bracket')
+        self.rejects(lambda d: d['jobs']['validate']['steps'].insert(1, {'run': 'echo before'}), 'bracket')
 
     def test_secret_output_direct_and_via_environment(self):
         self.rejects(lambda d: d['jobs']['validate']['steps'].append({'run': 'echo "${{ secrets.EXAMPLE }}"'}), 'secrets/token')
@@ -106,12 +127,12 @@ class CiSecurityTests(unittest.TestCase):
 
     def test_required_checks_cannot_skip(self):
         for key, value in (('if', 'false'), ('continue-on-error', 'true'), ('working-directory', 'other'), ('shell', 'bash -c true {0}'), ('env', {'MAKEFLAGS': '-n'})):
-            self.rejects(lambda d: d['jobs']['validate']['steps'][3].update({key: value}), 'required check')
+            self.rejects(lambda d: self.step(d, command='make contract').update({key: value}), 'required check')
         self.rejects(lambda d: d['on'].update(pull_request={'paths': ['services/**']}), 'all PRs')
         self.rejects(lambda d: d['jobs']['validate']['steps'][0]['with'].update({'fetch-depth': '1'}), 'full history')
         self.rejects(lambda d: d['jobs']['validate'].update({'runs-on': 'self-hosted'}), 'hosted literal')
         for command in ('npm ci', 'npm ci --ignore-scripts=false', 'npm ci --ignore-scripts --ignore-scripts=false', 'npm ci --ignore-scripts --no-ignore-scripts'):
-            self.rejects(lambda d: d['jobs']['validate']['steps'][2].update(run=command), 'lifecycle scripts')
+            self.rejects(lambda d: self.step(d, command='npm ci --ignore-scripts').update(run=command), 'lifecycle scripts')
         self.rejects(lambda d: d.update(env={'MAKEFLAGS': '-n'}), 'command environment')
         self.rejects(lambda d: d['jobs']['validate'].update(env={'MAKEFLAGS': '-n'}), 'command environment')
 

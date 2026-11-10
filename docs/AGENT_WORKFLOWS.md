@@ -41,6 +41,33 @@ One Issue, one branch, one worktree, one fresh session. Branch name `claude/<top
 If a command cannot run in this environment, say so and give the exact command the
 user should run; never substitute a different command.
 
+## Commit-bound validation evidence
+
+For local validation, commit the intended changes first and use a clean isolated worktree/clone. Record the
+full reviewed SHA, not just a branch name or a previous run's test count. From the repository root:
+
+```sh
+reviewed_commit=$(git rev-parse HEAD)
+python3 scripts/check-validation-checkout.py --commit "$reviewed_commit"
+make contract
+# Run the other required validation commands for the changed area here.
+python3 scripts/check-validation-checkout.py --commit "$reviewed_commit"
+```
+
+Both identity checks must pass on the same SHA, and each validation command must independently succeed.
+The helper reports checkout identity/cleanliness, **not** test success. Unstaged, staged and untracked files,
+or a moved HEAD, invalidate the receipt. Ignored build output and the process environment are outside this
+Git cleanliness check; prefer a fresh clone and record runtime/tool versions. Do not reset away a dirty result
+and claim that its earlier test run validated the commit. Recommit and repeat the relevant checks instead.
+
+GitHub PR validation keeps the default event checkout: for `pull_request`, `GITHUB_SHA` is the synthetic merge
+commit, while the PR head is a separate SHA. The workflow checks/prints the actual checkout SHA, tree and PR
+head before and after validation and requires the PR head to be included. It does not substitute a developer's
+local files or silently switch to the head branch. On main push it checks that event `after` matches the checkout.
+The final check runs after failures too; a clean final tree does not make skipped/failed tests successful.
+Read the job conclusion, command results and both identity records together. Canceled, missing, billing-blocked
+or skipped jobs are UNVERIFIED. See [CI coverage and administrator gates](CI_SUPPLY_CHAIN_SECURITY.md#quality-gate-audit-2026-11-11).
+
 ## Local Apple workload admission (all lanes on one Mac)
 
 Execute the runner scripts; do not source them. `run-iphone-ui-tests.sh`, `validate-apple.sh`,

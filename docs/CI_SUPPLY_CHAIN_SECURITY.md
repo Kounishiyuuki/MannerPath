@@ -37,6 +37,88 @@ The checker is a structural policy, not a general shell taint analyzer or a proo
 PR code cannot communicate over the network. Protected checks and human review remain necessary;
 a PR can edit the checker itself.
 
+## Quality-gate audit (2026-11-11)
+
+Read-only GitHub API observations: `main` has `protected:false` (classic protection reports "Branch not
+protected"), repository/inherited rulesets are empty, and effective rules for main are empty. Actions are
+enabled, with `allowed_actions:all` and server-side `sha_pinning_required:false`. Repository files pin actions
+and check the policy, but that is not equivalent to enforced account settings. Default workflow permissions
+are read-only, Actions PR-review approval is disabled, and no repository self-hosted runners are registered.
+No billing/protection/ruleset
+or runner registration was changed. The billing lock remains an external execution blocker.
+
+| Scope | Current automatic path | What its success would establish / remaining gap |
+| --- | --- | --- |
+| Contract | Every PR + main push: `make contract` | Contract/inventory and lightweight Python/runner stand-ins; not actual Apple/UI execution |
+| API | Same job: `make api-validate` → typecheck → `npm test` | API suite against local/synthetic stores; no production validation |
+| Discovery | `npm test` runs `test:discovery` after API tests succeed | Discovery is included in a successful aggregate; after API failure it is **not run**, not passed. No separate discovery check context |
+| Security | Same job: `make security-validate`, `if: always()` | Workflow/dependency policy, reachable-history scan and release-security/deploy-config tests |
+| Checkout identity | Same job, before tests and `always()` after tests | HEAD equals event SHA, clean Git tree, PR head included; logs separately identify merge SHA and PR head |
+| Apple tests/build | **Not configured in hosted workflows** | `make apple-validate` remains a manual iOS/Watch/build/plist gate; no hosted result exists |
+| iPhone UI | **Not configured in hosted workflows** | `run-iphone-ui-tests.sh` remains a manual Simulator/Worker gate; contract's mocks are not UI evidence |
+| Pages | PR read-only package/upload job; separate main publication workflow | Artifact packaging is separate from code validation; PR artifact job never deploys |
+| Source health | Separate scheduled/manual read-only network audit | Advisory source evidence, not deterministic PR/API success or G5 approval |
+
+The `check-validation-checkout.py --ci` steps verify the checkout actually used by Actions. They preserve the
+default event ref (PR merge commit), record the PR head separately and reject dirty trees or HEAD changes.
+Generated `__pycache__/` directories are intentionally ignored, like other build outputs, so Python imports
+on a fresh hosted runner do not invalidate the final check. Untracked Python source files are still rejected.
+The policy checker requires these steps to bracket validation and forbids disabling checkout cleaning.
+No test command or existing workflow is removed or tolerated on failure, and no new heavy job is enabled.
+The helper does not prove tests ran: only a successful, completed **PR validation** job with all expected steps
+does. Reading the final checkout record alone, a local summary, a missing check or an obsolete SHA is insufficient.
+
+PR #417's published local counts are not a commit-bound receipt; its hosted checks were unsuccessful under the
+billing lock. This audit cannot retrospectively prove that developer's old worktree was clean. Future local
+evidence must name a clean committed SHA and run the before/after checks described in
+[AGENT_WORKFLOWS](AGENT_WORKFLOWS.md#commit-bound-validation-evidence). For hosted PRs, retain the checkout/tree,
+PR head, run URL and actual command/job conclusions. [GitHub's PR event semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request)
+explain why merge SHA and head SHA differ.
+
+These checks inspect the initial/final Git state. They do not attest ignored files, environment variables,
+transient changes restored during a test or malicious test/checker edits. Independent workflow/script review
+and enforced required checks remain necessary; repository code cannot secure itself against its own replacement.
+
+### Runner, resource and cost boundaries
+
+| Runner | Feasible work and resources | Current decision |
+| --- | --- | --- |
+| GitHub-hosted macOS15 | Current Node/Python/Ruby/plutil validation in a disposable VM,30-minute job limit. Apple tests/UI additionally need compatible Xcode, iPhone/Watch runtimes, Simulator storage, DerivedData and UI result space | Keep current job. Actual hosted timings and project/runtime compatibility for Apple/UI remain UNVERIFIED |
+| GitHub-hosted Ubuntu | Node/Discovery/contract portions and Pages packaging; cannot build Apple SDK targets or run Simulator UI | Pages packaging only; do not label Linux checks Apple coverage |
+| Local Mac | Existing Apple scripts can use installed Xcode/runtimes; UI also runs a local Worker and owns a Simulator. Build/UI time and disk demand are substantial; UI bounds setup/build/individual phases, not a measured hosted duration | Run reviewed commands through #436's existing per-user workload lock; no second lock/scheduler is introduced |
+| Self-hosted Mac Actions runner | Could execute Apple/UI, but would run PR code on a persistent machine and need runner operation, isolation, maintenance and capacity | Not registered/enabled. Current structural policy requires hosted runners. Do not use another Lane's/personal signing Mac as a billing workaround |
+
+#436's kernel lock coordinates cooperating commands on **one local Mac/user**. Actions `concurrency` cancels
+superseded runs for the same ref; it is not a cross-PR or cross-machine hardware lock. Separate hosted VMs do
+not share the local lock. If Apple/UI automation is proposed later, reuse the scripts rather than duplicating
+their Simulator ownership, serial-test flags or cleanup, and separately review runner/Xcode/runtimes, timeout,
+artifact retention and budget before enabling it. Do not launch local heavy builds to estimate hosted costs.
+
+The repository is currently public. Official [Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+distinguishes free standard-hosted public-repository execution from larger-runner and artifact/cache storage
+charges; private/internal compute has different allowances/rates. Local/self-hosted hardware, maintenance and
+electricity still have costs. No actual account allowance, expenditure or future bill was verified here.
+More Apple/UI jobs increase runtime/storage demand; this PR adds only two small Git identity checks to the
+existing job. The billing lock is not resolved by choosing another runner or changing repository visibility.
+[GitHub warns against public-PR self-hosting](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners)
+because PR code can compromise the persistent runner.
+
+### Required administrator decisions
+
+After an authorized billing resolution and a real successful hosted run, confirm the unique **PR validation**
+check and GitHub Actions source, then approve/configure the existing administrator controls below: require PRs,
+independent reviews, the latest up-to-date required checks and appropriate bypass/direct-push restrictions.
+Consider requiring **Pages artifact validation (no deploy)** as a separate artifact gate. Missing/canceled or
+failed required checks must not be replaced by a local test-count claim. Confirm that a deliberately failing PR
+cannot merge. Review server-side action allowlisting/SHA enforcement as well; nothing was changed here.
+
+Apple/UI automation remains a separate runner/resource approval, and until configured, a separately reviewed
+manual receipt on the **exact clean PR head** is necessary for Apple changes. If merge-result validation is
+required locally, record that merge SHA separately and repeat after any PR head/base change. Manual evidence
+does not become a GitHub required check by being written in a PR. Do not enable merge queue without separately
+adding/reviewing its `merge_group` trigger and identity semantics; the current workflow/helper supports only
+PR and push events. Hosted execution, effective enforcement and Apple/UI coverage remain open gates.
+
 ## Action pin inventory
 
 The former tag-only references were all in `pages.yml`; the source-health workflow was already
@@ -159,7 +241,7 @@ upload/deploy confirmation also remain follow-ups; neither SBOM nor absent hoste
 evidence is turned into a code merge blocker by this change. Required-check/account approval
 evidence remains a separate production-readiness boundary below.
 
-## Maintainer account actions (not performed or verified here)
+## Maintainer account actions (configuration changes not performed)
 
 These controls cannot be enforced by adding repository files. Inspect GitHub Settings and retain
 evidence of the effective rules, including organization rulesets and bypass identities.
@@ -186,7 +268,7 @@ evidence of the effective rules, including organization rulesets and bypass iden
 
 Missing effective main protection / required checks / production deployment approval is a
 **P1 production-readiness gap** until maintainer evidence is recorded. The code changes alone
-cannot close it. Hosted PR CI execution is also pending until an authorized push; local checks
+cannot close it. Hosted PR CI execution remains unverified until a completed successful run; local checks
 are not evidence of a GitHub runner pass. No `act` run is required.
 
 References: [GitHub secure use](https://docs.github.com/en/actions/reference/security/secure-use),
