@@ -1053,7 +1053,7 @@
       "editionLabel": null,
       "editionObservedAt": "2026-11-08",
       "reviewDueAt": "2027-02-08",
-      "reviewerNote": "Recheck the designated smoking-space statement and the address block. The location/floor of the space is not stated and is never inferred. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review.",
+      "reviewerNote": "Recheck the designated smoking-space statement and the address block. The location/floor of the space is not stated and is never inferred. Non-guest access, tobacco types and hours unknown. Publisher objection or explicit information-use restriction requires hold/re-review. Monitoring URL migration checked 2026-11-10: official facility footer links the same-host 301 destination; existing scoped fingerprint unchanged. See docs/release/KANAZAWA_HOTELS_G5_EVIDENCE.md (URL migration). Not G5 approval.",
       "knownAdvisories": [],
       "rights": [
         {
@@ -1075,7 +1075,7 @@
           "reviewDueAt": "2027-02-08"
         },
         {
-          "url": "https://smile-hotels.com/privacy-policies/show/kanazawanishiguchiekimae",
+          "url": "https://smile-hotels.com/privacy-policies/kanazawanishiguchiekimae/",
           "scope": {
             "kind": "htmlText",
             "ranges": [

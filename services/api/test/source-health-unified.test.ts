@@ -136,6 +136,47 @@ test("production htmlText contracts use start/end anchors that are distinct", ()
   for (const review of reviews) for (const contract of review.rights) if (contract.scope.kind === "htmlText")
     for (const range of contract.scope.ranges) assert.ok(range.start && range.end && !range.start.includes(range.end), contract.url);
 });
+
+test("Smile old privacy URL 301 remains blocking and is never auto-followed", async () => {
+  const review = reviewOf("smile-hotel-kanazawa-nishiguchi-smoking-places");
+  const contract = { ...review.rights[1], url: "https://smile-hotels.com/privacy-policies/show/kanazawanishiguchiekimae" };
+  let requests = 0;
+  const observed = await checkRights(contract, { fetch: async (url, options) => {
+    requests++;
+    assert.equal(url, contract.url);
+    assert.equal(options?.redirect, "manual");
+    return new Response(null, { status: 301, headers: { location: review.rights[1].url } });
+  } });
+  assert.equal(requests, 1);
+  assert.equal(observed.outcome, "unavailable");
+  assert.equal(observed.fingerprint, null);
+  const result = evaluateResult(withRights(await checkSourceHealth(taito, { fetch: async () => csv() }), [observed]),
+    { ...plain(), rights: [contract] }, "2026-11-10");
+  assert.deepEqual(result.blocking, ["rightsPage:http:301"]);
+});
+
+test("Smile migrated privacy contract keeps the reviewed scope and fingerprint", async () => {
+  const contract = reviewOf("smile-hotel-kanazawa-nishiguchi-smoking-places").rights[1];
+  assert.equal(contract.url, "https://smile-hotels.com/privacy-policies/kanazawanishiguchiekimae/");
+  assert.equal(contract.reviewedFingerprint, "53196b24d425b259d6fee7375f21d7858345a60936dea842e7bd3ad55c6c88d1");
+  assert.equal(contract.reviewedAt, "2026-11-08", "URL review does not rewrite the original scope review date");
+  assert.equal(contract.reviewDueAt, "2027-02-08");
+  // Minimal scope sample, not a copy of the operator's full document.
+  const body = "<p>④―④ 責任者の氏名又は名称</p><p>株式会社ホスピタリティオペレーションズ</p><p>⑤ 以下の場合</p>";
+  const fetch = async (url: string | URL | Request, options?: RequestInit) => {
+    assert.equal(url, contract.url);
+    assert.equal(options?.redirect, "manual");
+    return new Response(body, { headers: { "content-type": "text/html" } });
+  };
+  const observed = await checkRights(contract, { fetch });
+  assert.equal(observed.outcome, "unchanged");
+  const result = evaluateResult(withRights(await checkSourceHealth(taito, { fetch: async () => csv() }), [observed]),
+    { ...plain(), rights: [contract] }, "2026-11-10");
+  assert.equal(result.severity, "ok");
+  const changed = await checkRights(contract, { fetch: async () => new Response(body.replace("</p><p>⑤", " 変更</p><p>⑤"),
+    { headers: { "content-type": "text/html" } }) });
+  assert.equal(changed.outcome, "changed", "URL migration must not suppress scoped drift detection");
+});
 test("rights body is stream-bounded: Content-Length is a hint, the stream itself is cut and cancelled", async () => {
   const max = 64, base: RightsContract = { url: "https://example.lg.jp/r.html", reviewedAt: TODAY, reviewDueAt: "2099-01-01", reviewedFingerprint: "x",
     scope: { kind: "htmlText", ranges: [{ start: "S", end: "E" }], requiredMarkers: [] } };
