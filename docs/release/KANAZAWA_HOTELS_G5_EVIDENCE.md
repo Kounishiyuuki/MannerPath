@@ -1,6 +1,6 @@
 # 金沢ホテル6施設 — G5掲載判断用証拠
 
-2026-11-09確認。対象は #411 の4施設と #417 の2施設。基準mainは
+初回2026-11-09確認、監視URL移行は2026-11-10追記。対象は #411 の4施設と #417 の2施設。初回基準mainは
 `a77549a0a1106a339c649f7ea43104173935a32c`。
 **この文書のマージはG5承認でも公開許可でもない。6施設すべて承認記録は未作成。**
 既存の `reviewedBy` / `reviewedOn` は技術的なsource reviewの履歴で、今回の運営者承認ではない。
@@ -19,9 +19,9 @@ adapter、fixture、source registry、rights review、監視baseline、公開デ
 | ホテルルートイン金沢駅前 / `route-inn-kanazawa-ekimae` | 1F喫煙スペース | 運営者判断待ち。会員規約の適用範囲、概略位置・unknownを受容するか |
 | ホテルビスタ金沢 / `hotel-vista-kanazawa` | 2F喫煙ブースのみ | 運営者判断待ち。下記予約システム規約の適用範囲の判断が必要 |
 | ドーミーイン金沢 / `dormy-inn-kanazawa` | 1F喫煙ブースのみ | **権利判断まで保留推奨**。第11条6項・第12条の適用範囲を確定できていない |
-| スマイルホテル金沢西口駅前 / `smile-hotel-kanazawa-nishiguchi` | 指定喫煙スペース（階・具体的位置不明） | **保留推奨**。権利ページ旧URLが301で監視BLOCKING。移転先の再審査と別PRによる監視修正後に再取得 |
+| スマイルホテル金沢西口駅前 / `smile-hotel-kanazawa-nishiguchi` | 指定喫煙スペース（階・具体的位置不明） | **G5未承認**。旧URLの301による技術的残件は2026-11-10の監視先移行とlive再取得で解消。移行証跡とfactReferenceの掲載権利判断は運営者確認待ち |
 
-## 現在の公式ページと監視
+## 2026-11-09の公式ページと監視（移行前の履歴）
 
 本作業で公式ページをGETして確認した。現地調査・施設への照会は行っていない。
 [測定メタデータ](KANAZAWA_HOTELS_G5_HEALTH.json)にsourceごとのHTTP、対象URL、scoped fingerprint、baselineとの比較結果を保存。
@@ -43,9 +43,43 @@ adapter、fixture、source registry、rights review、監視baseline、公開デ
 自動追従・fixture更新・監視のgreen化はしていない。人が移転先の運営主体・条項・scopeを読み、
 承認された変更だけを別PRで監視へ反映し、その後live検証する。
 
+### URL migration — 2026-11-10の監視先移行審査（G5未承認）
+
+旧URLへの読み取り専用GETでHTTP301、Locationは上記現Privacy URLを確認
+（2026-11-10T10:20:36Z）。公式施設ページのフッターも同じ新URLへ直接リンクしている。
+両URLは同一の公式HTTPSホスト。移転先はHTTP200で、個人情報の共同利用責任者は既存scopeと同じ
+株式会社ホスピタリティオペレーションズ。特商法表示には同社とアーリートラベル株式会社が記載されており、
+文書の対象はホスピタリティパートナーズグループの個人情報保護・Cookie・オンライン予約の特商法表示である。
+同一ホテルの公式リンク先として監視する妥当性を確認した。移転開始日や旧本文全体との同一性は未確認。
+
+新ページの個人情報保護方針【1】〜【8】、グループ法人一覧、特商法表示、フッターを確認した範囲では、
+喫煙設備の正規化事実の掲載を制限する明示条項や、特別な出典表示要件は見つからなかった。
+これは全サイト・外部予約システムの規約を網羅した判断でも、許諾取得でもない。著作権留保は継続しており、
+事実参照の最終権利判断はG5で運営者が行う。既存の施設ページ・ABRの出典表示を維持し、新たな許諾を表示しない。
+
+既存の正規化scope（責任者名の見出しから次の外国第三者提供項目前まで、必須markerは同社名）を
+新URLで取得すると、fingerprintは `53196b24d425b259d6fee7375f21d7858345a60936dea842e7bd3ad55c6c88d1`
+で一致。**責任者名の短い区間の一致であり、規約全文の変更監視ではない。**
+`review-metadata.json` の該当監視URLと移行確認メモだけを変更する。
+scope・fingerprint・元のreviewedAt（2026-11-08）・reviewDueAt（2027-02-08）は維持する。
+元のrightsBasisやPROVENANCE内の旧URLは2026-11-08の参照履歴として変更せず、本節から現確認先を辿れるようにする。
+設備fixture・住所アンカー・source ID・source registry・G5承認状態も変更しない。
+
+既存の2026-11-09測定JSONと上表のBLOCKINGは当時の履歴として保持する。
+今後の監視は新URLを直接GETし、旧URLへの301は引き続き `rightsPage:http:301` で停止する。
+URL移行の正常化とG5掲載承認は別であり、冒頭一覧と下のチェック欄は未承認のまま。
+スマイルの「監視修正後に再取得」という技術的残件は本変更のlive検証結果で評価し、
+施設別チェック欄を承認済みにする根拠にはしない。
+
+移行後の2026-11-10 live検証は終了コード0、設備/住所healthy、権利2scopeともHTTP200/unchanged、
+severity=ok（公式発表日不明の `observationDateUnknown` は維持）。
+`source-health-unified.test.ts` 21/21成功：旧URLの301は1リクエスト・manual redirectでBLOCKING、
+新URLの既存scope/fingerprintは正常、scope内の文面差分は引き続きchangedになる。
+
 GitHubの直近定期run [42542798834](https://github.com/Kounishiyuuki/MannerPath/actions/runs/42542798834) は
 請求によるアカウントlockでjob未開始。定期監視が稼働した証拠には使わない。上表は本作業のローカルlive測定。
-再実行（読み取り専用、終了コード1は今回はスマイルのBLOCKING）：
+再実行（読み取り専用、現在の設定を使用）：2026-11-09の旧設定ではスマイルのBLOCKINGで終了コード1。
+移行後は新URLで判定する。他施設も含む実行時点の異常があれば再び停止し、正常を保証する手順ではない。
 
 ```sh
 cd services/api
@@ -164,7 +198,7 @@ npm run source:health -- --live --repository-reviewed \
 - 著作権留保と個人情報保護方針は利用許諾ではない。旧Privacyへの301は取得上の異常で、施設閉鎖の根拠ではない。
 - 証拠: [PROVENANCE](../../services/data-pipeline/fixtures/smile-hotel-kanazawa-nishiguchi-smoking-places/PROVENANCE.md)、
   [adapter/rightsBasis/出典](../../services/api/src/pipeline/smile-hotel-kanazawa-nishiguchi-adapter.ts)。
-- [ ] 権利：移転先を読み旧scope/運営主体/追加制限を確認、別PRで監視URL/baseline等を審査しlive BLOCKINGを解消
+- [ ] G5権利：上のURL移行証跡を確認（技術的な監視移行・live再取得の完了は掲載承認ではない）
 - [ ] 権利：上記解消後に正規化事実のみのfactReferenceを承認 / 保留
 - [ ] 掲載条件・位置・出典：具体場所不明を維持、広岡3丁目2番37号の施設代表点とABR表示を受容
 - [ ] 公開直前：live再確認とG5判断、bundle/plan digestの記録
