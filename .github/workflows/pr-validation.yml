@@ -25,6 +25,9 @@ jobs:
           persist-credentials: false
           # security-validate scans reachable history, including deleted files.
           fetch-depth: 0
+      # PRs keep the default merge checkout. Record its SHA separately from the PR head.
+      - name: Verify checkout before validation
+        run: python3 scripts/check-validation-checkout.py --ci
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.21.0"
@@ -38,6 +41,10 @@ jobs:
       - name: Security validation
         if: always()
         run: make security-validate
+      # This cannot turn earlier failures/skips into test success; it also runs after failures.
+      - name: Verify checkout after validation
+        if: always()
+        run: python3 scripts/check-validation-checkout.py --ci
   # Build/upload evidence only: no Pages environment, write permission, OIDC or deployment action.
   pages-artifact:
     name: Pages artifact validation (no deploy)

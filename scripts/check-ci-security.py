@@ -148,6 +148,7 @@ def workflow_errors(doc, filename):
                     options = step.get('with', {})
                     reject(not isinstance(options, dict) or str(options.get('persist-credentials')).lower() != 'false', 'checkout must set persist-credentials: false')
                     reject('ref' in options or 'repository' in options, 'checkout must use the default event ref/repository')
+                    reject('clean' in options and str(options['clean']).lower() != 'true', 'checkout cleaning cannot be disabled')
                 if privileged_pages:
                     reject(not isinstance(action, str) or action.split('@')[0] not in {
                         'actions/configure-pages', 'actions/deploy-pages'}, 'unexpected action in privileged Pages job')
@@ -205,6 +206,17 @@ def workflow_errors(doc, filename):
         reject(len(nodes) != 1, 'PR must install the reviewed Node patch')
         checkouts = [s for s in job.get('steps', []) if isinstance(s, dict) and str(s.get('uses', '')).startswith('actions/checkout@')]
         reject(len(checkouts) != 1 or str(checkouts[0].get('with', {}).get('fetch-depth')) != '0', 'full history checkout required')
+        sequence = job.get('steps', [])
+        receipt = 'python3 scripts/check-validation-checkout.py --ci'
+        receipts = [(i, s) for i, s in enumerate(sequence) if isinstance(s, dict) and s.get('run') == receipt]
+        reject(len(receipts) != 2 or any(any(k in s for k in ('continue-on-error', 'working-directory', 'shell', 'env'))
+                                       for _, s in receipts), 'checkout identity checks required before and after validation')
+        if len(receipts) == 2:
+            before, after = receipts
+            reject(before[0] != 1 or before[1].get('if') is not None or after[0] != len(sequence) - 1
+                   or after[1].get('if') != 'always()'
+                   or not sequence or sequence[0] not in checkouts,
+                   'checkout identity checks must bracket all validation after checkout')
     return errors
 
 
