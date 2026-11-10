@@ -41,6 +41,42 @@ One Issue, one branch, one worktree, one fresh session. Branch name `claude/<top
 If a command cannot run in this environment, say so and give the exact command the
 user should run; never substitute a different command.
 
+## Local Apple workload admission (all lanes on one Mac)
+
+Execute the runner scripts; do not source them. `run-iphone-ui-tests.sh`, `validate-apple.sh`,
+`check-iphone-api-base-url.sh` and the unsigned archive path of `apple-beta-preflight.sh` use
+`scripts/apple-workload-lock.py`. It acquires one non-waiting, per-user kernel lock at
+`/tmp/mannerpath-apple-workload-<uid>.lock`, shared across worktrees, before preparing data,
+creating a Simulator or invoking Xcode. It retains the lock through all phases and cleanup.
+Nested validation reuses an inherited descriptor, rather than releasing/reacquiring between builds.
+Read-only inspection of an existing signed artifact does not require the Xcode slot.
+
+For a standalone test/build command, join the same gate:
+
+```sh
+python3 scripts/apple-workload-lock.py -- xcodebuild <reviewed arguments>
+```
+
+Exit3 means another cooperating workload holds the lock, an xcodebuild already exists (including another
+project), or the process/lock state cannot be verified. Leave other lanes/PulseCue running and retry later;
+do not use kill/pkill or delete their Simulators. After acquiring the lock, the gate checks `pgrep -x xcodebuild`;
+it never signals those results. Cancellation is forwarded only to the new command's own session.
+
+The lock file persists after success/failure and may contain old supervisor metadata. File existence, PID
+absence or age is **not** a held-lock test. Never unlink it to recover a slot: a live child may still own the
+inode, and replacement would create two independent locks. Normal exits release the kernel lock; after
+SIGKILL, surviving children retain the lock while they keep the inherited descriptor open. A future acquisition can
+reuse the same old file when the kernel permits it. If busy persists, ask the workload owner to inspect
+their own run; do not automatically clear it or stop another process.
+
+This is cooperative admission, not a machine-wide Xcode scheduler or a CPU/load cap. All lanes must use the
+updated scripts/helper, including manual commands. An old checkout or an unrelated project can still start
+direct xcodebuild after the snapshot check; the helper cannot prevent that race. A descendant that explicitly
+closes inherited descriptors is outside the supervisor-crash retention guarantee. `-parallel-testing-enabled NO`
+prevents test clones in these runners, while compiler/build parallelism remains unchanged. No extra heavy
+run should be launched merely to measure contention. `test-apple-workload-lock.py` and the existing runner
+stand-ins cover concurrency/lifecycle without launching Xcode, simctl or accessing the live lock.
+
 ## PR review workflow
 
 1. Get the diff (`gh pr diff <n>`, or `git diff main...HEAD` for a local branch).

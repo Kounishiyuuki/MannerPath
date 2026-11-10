@@ -12,11 +12,16 @@
 # Keep each test destination serial: extra Xcode Simulator clones compete with other lanes and make
 # app-install stalls harder to distinguish from a test failure. Swift test logic is unchanged.
 set -euo pipefail
-cd "$(dirname "$0")/.."
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "$script_dir/.."
 
 if ! command -v xcodebuild >/dev/null 2>&1; then
   echo "xcodebuild not available; run 'make apple-validate' on a macOS machine with Xcode." >&2
   exit 1
+fi
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  exec python3 "$script_dir/apple-workload-lock.py" --script "$script_dir/validate-apple.sh" "$@"
 fi
 
 project=apps/apple/MannerPath/MannerPath.xcodeproj

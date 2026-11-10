@@ -7,11 +7,21 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 
 
 RUNNER = pathlib.Path(__file__).with_name("run-iphone-ui-tests.sh")
 VALIDATOR = pathlib.Path(__file__).with_name("validate-apple.sh")
+LOCK = pathlib.Path(__file__).with_name("apple-workload-lock.py")
+
+
+def copy_private_lock(scripts, root):
+    # Exercise the real helper, but never open the user's live shared lock.
+    source = LOCK.read_text()
+    assert source.count('LOCK_ROOT = Path("/tmp")') == 1
+    (scripts / LOCK.name).write_text(source.replace(
+        'LOCK_ROOT = Path("/tmp")', f'LOCK_ROOT = Path({str(root)!r})'))
 
 
 class UIRunnerSafetyTests(unittest.TestCase):
@@ -23,12 +33,14 @@ class UIRunnerSafetyTests(unittest.TestCase):
         scripts.mkdir()
         self.runner = scripts / RUNNER.name
         shutil.copyfile(RUNNER, self.runner)
+        copy_private_lock(scripts, self.root)
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.log = self.root / "calls"
         self.env = dict(os.environ, PATH=str(self.bin) + os.pathsep + os.environ["PATH"],
                         CALL_LOG=str(self.log), MANNERPATH_UI_RESULTS=str(self.root / "results"),
                         ACTIVE_XCODE="0", OCCUPIED_PORT="0", MANNERPATH_UI_PORT="8787")
+        self.env.pop("MANNERPATH_APPLE_WORKLOAD_FD", None)
         self.stub("pgrep", 'if [ "$ACTIVE_XCODE" = 1 ]; then echo 1234; exit 0; fi\nexit 1')
         self.stub("lsof", 'if [ "$OCCUPIED_PORT" = 1 ]; then exit 0; fi\nexit 1')
         for command in ("xcrun", "xcodebuild", "npm", "pkill", "kill"):
@@ -77,6 +89,35 @@ class UIRunnerSafetyTests(unittest.TestCase):
         self.assertIn("port is already in use", result.stderr)
         self.assertEqual(self.calls(), ["pgrep -x xcodebuild", "lsof -nP -iTCP:9123 -sTCP:LISTEN"])
 
+    def test_validator_cannot_enter_during_ui_setup_before_any_xcodebuild(self):
+        validator = self.runner.with_name(VALIDATOR.name)
+        shutil.copyfile(VALIDATOR, validator)
+        release = self.root / "release-mock-create"
+        self.stub("xcrun", 'while [ ! -f "$RELEASE_MOCK" ]; do /bin/sleep 0.02; done\nexit 97')
+        owner = subprocess.Popen(["bash", str(self.runner)],
+                                 env=dict(self.env, RELEASE_MOCK=str(release)),
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            deadline = time.monotonic() + 5
+            while not any(c.startswith("xcrun simctl create") for c in self.calls()):
+                self.assertIsNone(owner.poll())
+                self.assertLess(time.monotonic(), deadline)
+                time.sleep(0.01)
+            other = subprocess.run(["bash", str(validator)], env=self.env,
+                                   capture_output=True, text=True, timeout=5)
+            self.assertEqual(other.returncode, 3, other.stderr)
+            self.assertIn("shared lock", other.stderr)
+            self.assertFalse(any(c.startswith("xcodebuild") for c in self.calls()))
+        finally:
+            release.touch()
+            owner.communicate(timeout=5)
+        self.assertEqual(owner.returncode, 97)
+        # Reuse the persistent file after the owner exits; the build remains a stub.
+        after = subprocess.run(["bash", str(validator)], env=self.env,
+                               capture_output=True, text=True, timeout=5)
+        self.assertEqual(after.returncode, 97, after.stderr)
+        self.assertTrue(any(c.startswith("xcodebuild") for c in self.calls()))
+
     def test_stop_worker_targets_only_tracked_pid_and_is_idempotent(self):
         match = re.search(r"^stop_worker\(\) \{\n.*?^\}", RUNNER.read_text(), re.M | re.S)
         self.assertIsNotNone(match, "Runner must define stop_worker")
@@ -105,11 +146,16 @@ class AppleValidationOrchestrationTests(unittest.TestCase):
         scripts.mkdir()
         self.validator = scripts / VALIDATOR.name
         shutil.copyfile(VALIDATOR, self.validator)
+        copy_private_lock(scripts, self.root)
         self.log = self.root / "calls.jsonl"
         self.env = dict(os.environ, PATH=str(scripts) + os.pathsep + os.environ["PATH"],
                         CALL_LOG=str(self.log), FAIL_STAGE="",
                         MANNERPATH_IOS_DESTINATION="platform=iOS Simulator,id=ios-fixture-uuid",
                         MANNERPATH_WATCH_DESTINATION="platform=watchOS Simulator,id=watch-fixture-uuid")
+        self.env.pop("MANNERPATH_APPLE_WORKLOAD_FD", None)
+        probe = scripts / "pgrep"
+        probe.write_text("#!/bin/sh\nexit 1\n")
+        probe.chmod(0o755)
         # Record argument arrays so destinations and the Watch scheme retain their spaces.
         for name in ("xcodebuild", "check-iphone-api-base-url.sh"):
             stub = scripts / name
@@ -162,6 +208,23 @@ sys.exit(42 if os.environ["FAIL_STAGE"] == stage else 0)
                 result, calls = self.run_validator(stage)
                 self.assertEqual(result.returncode, 42, result.stderr)
                 self.assertEqual([name for name, _ in calls], stages[:index + 1])
+
+    def test_real_nested_plist_entry_reuses_lock_through_bash(self):
+        scripts = self.validator.parent
+        source = VALIDATOR.with_name("check-iphone-api-base-url.sh")
+        checker = scripts / source.name
+        shutil.copyfile(source, checker)
+        checker.chmod(0o755)
+        # Stop immediately after the nested gate, before any actual plist/Xcode checks.
+        (scripts / "test-watch-fixture-build-boundary.py").write_text('''import json, os
+with open(os.environ["CALL_LOG"], "a") as log:
+    log.write(json.dumps(["nested-guard", []]) + "\\n")
+raise SystemExit(42)
+''')
+        result, calls = self.run_validator()
+        self.assertEqual(result.returncode, 42, result.stderr)
+        self.assertEqual([stage for stage, _ in calls],
+                         ["ios-test", "watch-test", "watch-build", "nested-guard"])
 
 
 if __name__ == "__main__":
