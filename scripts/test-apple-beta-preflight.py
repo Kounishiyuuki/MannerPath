@@ -600,9 +600,17 @@ class PreflightOrchestrationTests(unittest.TestCase):
         scripts.mkdir()
         self.wrapper = scripts / "apple-beta-preflight.sh"
         shutil.copyfile(SCRIPT.with_name("apple-beta-preflight.sh"), self.wrapper)
+        helper = SCRIPT.with_name("apple-workload-lock.py")
+        helper_source = helper.read_text()
+        self.assertEqual(helper_source.count('LOCK_ROOT = Path("/tmp")'), 1)
+        (scripts / helper.name).write_text(helper_source.replace(
+            'LOCK_ROOT = Path("/tmp")', f'LOCK_ROOT = Path({str(self.root)!r})'))
         self.log = self.root / "calls.jsonl"
         self.bin = self.root / "bin"
         self.bin.mkdir()
+        probe = self.bin / "pgrep"
+        probe.write_text("#!/bin/sh\nexit 1\n")
+        probe.chmod(0o755)
         self.write_stub(self.bin / "xcodebuild", """
 args = sys.argv[1:]
 artifact = args[args.index('-archivePath') + 1]
@@ -640,6 +648,7 @@ def record(kind, args):
                "PREFLIGHT_CALL_LOG": str(self.log), "SCANNER_EXIT": str(scanner_exit)}
         env.pop("MANNERPATH_API_BASE_URL", None)
         env.pop("MANNERPATH_PUBLIC_SITE_URL", None)
+        env.pop("MANNERPATH_APPLE_WORKLOAD_FD", None)
         return subprocess.run(["bash", str(self.wrapper), *([str(self.signed_app if signed == "app" else self.signed)] if signed else [])],
                               env=env, capture_output=True, text=True)
 

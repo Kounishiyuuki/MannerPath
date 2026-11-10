@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/.."
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "$script_dir/.."
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  exec python3 "$script_dir/apple-workload-lock.py" --script "$script_dir/check-iphone-api-base-url.sh" "$@"
+fi
 
 python3 scripts/test-watch-fixture-build-boundary.py
 

@@ -163,11 +163,13 @@ Search key with a full-search fallback after empty completion.
 The entire chosen row must be visible/hittable between the search field and the open keyboard.
 Known fixture names are assertions; a live service's count or XCUI's lazy visible-row count is not.
 
-Use one Xcode workload at a time and a lane-owned Simulator; first check `pgrep -x xcodebuild`.
+Use one Xcode workload at a time and a lane-owned Simulator. The runners acquire the shared
+[Apple workload gate](../../docs/AGENT_WORKFLOWS.md#local-apple-workload-admission-all-lanes-on-one-mac);
+standalone commands must join it too (a `pgrep` check alone has a simultaneous-start race).
 For standalone execution (Debug, no MannerPath backend):
 
 ```sh
-xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj -scheme MannerPathUITests \
+python3 scripts/apple-workload-lock.py -- xcodebuild test -project apps/apple/MannerPath/MannerPath.xcodeproj -scheme MannerPathUITests \
   -destination 'platform=iOS Simulator,id=<owned-iphone-uuid>' -parallel-testing-enabled NO \
   MANNERPATH_API_BASE_URL= MANNERPATH_PUBLIC_SITE_URL= \
   -only-testing:MannerPathUITests/DestinationSearchUITests
@@ -374,8 +376,8 @@ always rejects residual fixture files, regardless of whether cleanup was possibl
 
 ### Operator matrix (record build, OS, result, revision and time for each row)
 
-Run Xcode workloads serially across lanes; check `pgrep -x xcodebuild` before starting. Do not stop
-another lane's process. Use `make apple-validate`, then `make contract` and `git diff --check`.
+Run Xcode workloads through the shared gate across lanes; do not stop another lane's process or remove
+the persistent lock file. Use `make apple-validate`, then `make contract` and `git diff --check`.
 Automated WC tests inject callbacks; they cannot establish physical radio/background delivery.
 
 1. Clean Watch install: accept eligibility; verify no-saved-data copy. Open phone, permit When In Use

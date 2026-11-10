@@ -4,7 +4,8 @@
 #                public-site origins; no override is accepted), then the artifact checks with source entitlements.
 #   one argument: a signed MannerPath.app or .xcarchive; reads signed entitlements and embedded profiles.
 set -euo pipefail
-cd "$(dirname "$0")/.."
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "$script_dir/.."
 
 scan_artifact() {
   local artifact="$1"
@@ -27,6 +28,9 @@ fi
 if [[ -n "${MANNERPATH_API_BASE_URL:-}${MANNERPATH_PUBLIC_SITE_URL:-}" ]]; then
   echo "unset MANNERPATH_API_BASE_URL / MANNERPATH_PUBLIC_SITE_URL: the release preflight checks committed Release values" >&2
   exit 2
+fi
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  exec python3 "$script_dir/apple-workload-lock.py" --script "$script_dir/apple-beta-preflight.sh" "$@"
 fi
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT

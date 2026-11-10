@@ -8,7 +8,8 @@
 #
 # Result bundles (with screenshots) go to $MANNERPATH_UI_RESULTS (default: a temp directory).
 set -euo pipefail
-cd "$(dirname "$0")/.."
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "$script_dir/.."
 
 project=apps/apple/MannerPath/MannerPath.xcodeproj
 bundle_id=com.kounishiyuuki.MannerPath
@@ -18,6 +19,9 @@ if [[ ! "$ui_port" =~ ^[0-9]{4,5}$ ]] || (( 10#$ui_port < 1024 || 10#$ui_port > 
   exit 2
 fi
 ui_origin="http://127.0.0.1:$ui_port"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  exec python3 "$script_dir/apple-workload-lock.py" --script "$script_dir/run-iphone-ui-tests.sh" "$@"
+fi
 results="${MANNERPATH_UI_RESULTS:-$(mktemp -d -t mannerpath-ui)}"
 derived="$results/DerivedData"
 worker_log="$results/worker.log"
@@ -52,13 +56,7 @@ bounded() {
   wait "$pid"
 }
 
-# A concurrent xcodebuild test run starves this one: queries time out and fixture results arrive late, which
-# reads as app failures (first-launch, report draft, data/privacy in the v1 RC run). Refuse instead of reporting them.
-if other=$(pgrep -x xcodebuild 2>/dev/null); then
-  echo "Another xcodebuild test run is active; wait for it to finish (it is not stopped here):" >&2
-  echo "$other" >&2
-  exit 3
-fi
+# The shared gate checked xcodebuild under the lock, before any setup or Simulator creation.
 if lsof -nP -iTCP:"$ui_port" -sTCP:LISTEN >/dev/null 2>&1; then
   echo "UI-test port is already in use; leave its owner running and select MANNERPATH_UI_PORT" >&2
   exit 3
