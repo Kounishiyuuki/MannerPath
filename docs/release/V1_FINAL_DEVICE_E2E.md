@@ -112,7 +112,7 @@ reachable by scrolling. Reduce Motion and Reduce Transparency: sheet and map tra
 | --- | --- | --- | --- | --- |
 | 1 | Photo-backed new-place submission on the **Release** build (gate §1 "P0 since 2026-10-22", photo plan R14) | submission | Lane 2 staging + maintainer approval, Lane 1 legal | Production `reports.available:false`; real upload only after staging + approval. The developer photo build (§3.4) does not close it |
 | 2 | Signed RC chosen and preflighted (G14, G21) | TestFlight | maintainer | No build 4–6 upload/processing recorded; signing untouched by this lane |
-| 3 | Watch / widget device rows W1, W2, W3, W5, W5b, G2/S1–S2, G3/G3b, WG2/S3–S4 (G15) | TestFlight testers | maintainer device run | Never observed on a device |
+| 3 | Watch / widget device rows W1, W2, W2c, W3, W5, W5b, G2/S1–S2, G3/G3b, WG2/S3–S4 (G15) | TestFlight testers | maintainer device run | Never observed on a device |
 | 4 | First launch, permission, offline, reports-off rows P1, P4, P10, P14, P8/P9b, R1, AI1 (G17) on the RC | submission | maintainer device run | Build 2 partial results do not carry forward |
 | 5 | Search P0 rows D1–D5, L1, L2, L5, U1–U3 on the RC (§3.1) | submission | maintainer device run | Build 3 rows never filled; #318 completion changed since |
 | 6 | G1–G3, G5–G8, G10–G12, G19 (store record, privacy, rights, screenshots, data) | submission | Lanes 1/4, maintainer | Unchanged by this run; see [release gate](../V1_APP_STORE_RELEASE_GATE.md) |

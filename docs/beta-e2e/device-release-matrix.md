@@ -155,7 +155,7 @@ iPhone paired with the Watch, standing inside published coverage unless the row 
 | W1 | Clean install, iPhone Nearby not yet opened | Open Watch app | First-use notice → "open iPhone to sync" | screenshot | P0 | |
 | W2 | iPhone Nearby loaded | Open Watch app | Same nearby places; sync time | screenshot | P0 | |
 | W2b | W2, then Watch app quit | Turn iPhone Bluetooth off/on; reopen iPhone Nearby; reopen Watch | Snapshot updates after reconnect | — | P1 | |
-| W2c | W2 refreshed at least twice so the Watch holds revision > 1; note the Watch's first place and sync time. Owner-chosen reinstall only | Delete and reinstall the iPhone app only (keep the Watch app and its data); open iPhone Nearby on device location and refresh; open Watch, use its sync action; if unchanged, refresh iPhone again and reconnect (Bluetooth off/on); recheck after > 1 h without a new sync | Record whether the Watch reaches the new corpus and after how many iPhone refreshes. Until it does, the old places must be labelled old (never a current sync time). Whether WC application context survives the reinstall is **unverified**: the iPhone journal (`outgoing-watch-v1.json`) is lost, so if the context is lost too, revisions restart at 1 and the Watch ignores them (`WatchStore.acceptSnapshot`) | notes | P1 | |
+| W2c | W2 refreshed at least twice so the Watch holds revision > 1; note the Watch's first place and sync time. Owner-chosen reinstall of the **iPhone app only**; the Watch app and its saved data stay installed | Delete and reinstall the iPhone app only (keep the Watch app and its data); open iPhone Nearby on device location and refresh; open Watch, use its sync action; if unchanged, refresh iPhone again and reconnect (Bluetooth off/on); recheck after > 1 h without a new sync | Record whether the Watch reaches the new corpus and after how many iPhone refreshes. Until it does, the old places must be labelled old (never a current sync time). Whether WC application context survives the reinstall is **unverified**: the iPhone journal (`outgoing-watch-v1.json`) is lost, so if the context is lost too, revisions restart at 1 and the Watch ignores them (`WatchStore.acceptSnapshot`) | notes | P0 | |
 | W3 | W2; iPhone off/out of range; Watch Wi-Fi/cellular off | Force-quit; reopen | Cached places and filters remain | — | P0 | |
 | W5 | W3 for > 1 h | Reopen | Labelled old; no current distance from an old fix | screenshot | P0 | |
 | W5b | Snapshot holds exact, approximate and unknown-precision spots | Open each detail | Approximate is visibly approximate; unknown never presented as exact | screenshot | P0 | |
@@ -254,7 +254,7 @@ Automated cover (not device evidence): `testCachedResultsRemainAndFailureIsExpla
 
 - **Widgets / App Group**: G1–G10, WG1–WG6. The P0 rows G2/S1–S2, G3/G3b and WG2/S3–S4 are the only proof that the
   App Group works in a signed build; the signed entitlements alone do not prove it.
-- **Watch**: W1–W10, A1W. W1, W2, W3, W5, W5b are P0.
+- **Watch**: W1–W10, A1W. W1, W2, W2c, W3, W5, W5b are P0.
 - **VoiceOver and large text**: A1, A1W, P17, W9/W10, L7, L8.
 - **iPhone**: P1, P3–P5, P7, P8/P9b, P9c, P9d, P11, P15, P16a, P24, R1, AI1, D6–D8.
 
@@ -292,7 +292,7 @@ its own severity; this section only groups them.
 
 | Severity | Items |
 | --- | --- |
-| P0 — before the build goes to any tester | T1–T3 signed archive + signed preflight; T5 upload **and export-compliance answer**; §4 P0 rows: P1, P4, P10, P14, P8/P9b, R1, AI1, W1, W2, W3, W5, W5b, G2/S1–S2, G3/G3b, WG2/S3–S4 |
+| P0 — before the build goes to any tester | T1–T3 signed archive + signed preflight; T5 upload **and export-compliance answer**; §4 P0 rows: P1, P4, P10, P14, P8/P9b, R1, AI1, W1, W2, W2c, W3, W5, W5b, G2/S1–S2, G3/G3b, WG2/S3–S4 |
 | P1 — before App Store submission (may follow the first TestFlight) | every §4 P1 row (iPhone, Watch, widgets, A1/A1W VoiceOver, P17/W9/W10 large text), T10 external testers, §6 privacy report and SDK/entitlement inventory, physical icon appearance, final export-compliance/territory re-check for the submitted build |
 | P2 — recorded, not blocking | P16a, G10, `nearby-spots.json` fixture in bundle (`APPLE_DISTRIBUTION_READINESS.md` §3) |
 
