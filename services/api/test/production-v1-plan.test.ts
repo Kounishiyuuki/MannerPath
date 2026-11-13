@@ -39,7 +39,7 @@ test("the draft terms block registration; the printed launch never opens it", ()
   assert.equal(CURRENT_REPORT_TERMS.version.endsWith(".draft"), true, "update this test when #124 is approved");
   const blockers = intakeBlockers();
   assert.equal(blockers.length, 2);
-  const { launch } = productionSteps(blockers);
+  const { launch } = productionSteps(blockers, productionConfig(committed, "/api"));
   assert.equal(launch.some((l) => /BLOCKED/.test(l)), true);
   assert.equal(launch.some((l) => /enabled|secret put REPORT_APP_ATTEST_APP_ID/.test(l)), false);
 });
@@ -49,7 +49,7 @@ test("only an approved, non-draft version with publication rights unblocks; the 
   assert.equal(intakeBlockers({ ...draft, publicationRights: "granted" }).length, 1, "a granted draft is still the draft");
   assert.equal(intakeBlockers({ ...draft, version: "report-terms.2026-12-01", publicationRights: "revoked" }).length, 1);
   assert.deepEqual(intakeBlockers({ ...draft, version: "report-terms.2026-12-01", publicationRights: "granted" }), []);
-  assert.equal(productionSteps([]).launch.some((l) => /enabled/.test(l)), true);
+  assert.equal(productionSteps([], productionConfig(committed, "/api")).launch.some((l) => /enabled/.test(l)), true);
 });
 
 test("rollback configs: retention off with the Cron kept, then without the Cron; nothing else changes", () => {
@@ -64,7 +64,7 @@ test("rollback configs: retention off with the Cron kept, then without the Cron;
 });
 
 test("stop deletes the App ID (existing keys included) and rollback re-checks it", () => {
-  const { stop, rollback } = productionSteps([]);
+  const { stop, rollback } = productionSteps([], productionConfig(committed, "/api"));
   assert.equal(stop.includes("npm run production:v1-stop"), true);
   const scripts = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).scripts;
   assert.match(scripts["production:v1-stop"], /scripts\/production-v1-stop\.ts$/);
@@ -95,4 +95,41 @@ test("stop deletes the App ID (existing keys included) and rollback re-checks it
 test("retention proposal has 288 bounded slots daily instead of ten rows per day", () => {
   assert.equal(V1_PRODUCTION.retentionCron, "2-57/5 * * * *");
   assert.deepEqual(productionConfig(committed, "/api").triggers.crons, ["2-57/5 * * * *"]);
+});
+
+
+test("backup bookmarks use configured bindings after a canonical GREEN cutover", () => {
+  const config = productionConfig(committed, "/api");
+  config.d1_databases[0].database_name = "reviewed-green";
+  config.d1_databases[0].database_id = "11111111-1111-4111-8111-111111111111";
+  const launch = productionSteps([], config).launch;
+  assert.deepEqual(launch.filter(l => l.includes("d1 time-travel info")), [
+    "npx wrangler d1 time-travel info REPORTS_DB -c .wrangler/production-v1/worker.jsonc",
+    "npx wrangler d1 time-travel info DB -c .wrangler/production-v1/worker.jsonc",
+  ]);
+  assert.equal(launch.some(l => l.includes("mannerpath-production")), false);
+  assert.ok(launch.some(l => l.includes("NOT strictly read-only")));
+  assert.ok(launch.some(l => l.includes("PRODUCTION_ADMIN_GATE_PROCEDURE.md")));
+  // Names are resolved through the config, never interpolated into shell command text.
+  config.d1_databases[0].database_name = "$(do-not-run)";
+  assert.equal(productionSteps([], config).launch.some(l => l.includes("do-not-run")), false);
+});
+
+test("plan refuses missing or ambiguous configured backup identities", () => {
+  const mutations = [
+    (c: any) => { delete c.d1_databases; },
+    (c: any) => { c.d1_databases.pop(); },
+    (c: any) => { c.d1_databases.push({ ...c.d1_databases[0] }); },
+    (c: any) => { c.d1_databases[1].binding = "DB"; },
+    (c: any) => { delete c.d1_databases[0].database_name; },
+    (c: any) => { c.d1_databases[0].database_name = "  "; },
+    (c: any) => { c.d1_databases[0].database_name = c.d1_databases[1].database_name; },
+    (c: any) => { c.d1_databases[0].database_name = "REPORTS_DB"; },
+    (c: any) => { delete c.d1_databases[0].database_id; },
+    (c: any) => { c.d1_databases[0].database_id = c.d1_databases[1].database_id; },
+  ];
+  for (const mutate of mutations) {
+    const config = productionConfig(committed, "/api"); mutate(config);
+    assert.throws(() => productionSteps([], config), /unambiguous configured/);
+  }
 });

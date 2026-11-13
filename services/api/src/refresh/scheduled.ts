@@ -46,7 +46,8 @@ export async function scheduled(controller: ScheduledController, env: RefreshEnv
     { db: env.DB, store: r2ArtifactStore(env.RAW_ARTIFACTS), fetch: (url, init) => fetch(url, init), now: () => new Date() },
     runKey, "scheduled",
   );
-  // Source ids and outcomes only: nothing here relates to a user or a position.
-  console.log(JSON.stringify({ event: "sourceChecks", runKey, results: results.map((r) => ({ sourceId: r.sourceId, status: r.result.status, outcome: "outcome" in r.result ? r.result.outcome : null })) }));
-  if (results.some((r) => r.result.status === "error")) throw new Error(`scheduled source check ${runKey}: ${JSON.stringify(results)}`);
+  // The platform may retain thrown errors too; neither channel may contain raw diagnostics.
+  const summary = results.map((r) => ({ sourceId: r.sourceId, status: r.result.status, outcome: "outcome" in r.result ? r.result.outcome : null }));
+  console.log(JSON.stringify({ event: "sourceChecks", runKey, results: summary }));
+  if (results.some((r) => r.result.status === "error")) throw new Error(`scheduled source check ${runKey}: ${JSON.stringify(summary)}`);
 }

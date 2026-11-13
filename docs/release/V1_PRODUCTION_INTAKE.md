@@ -129,7 +129,10 @@ CPU の余裕と `CHALLENGE_RATE_LIMITER` の 429 は**未検証**（staging の
 
 ## 5. 段階ごとの自動検査（`npm run production:v1-check`）
 
-読み取り専用：`wrangler d1 migrations list`・`wrangler secret list`（名前のみ）・公開ルートの GET。POST（写真の送信、
+**厳密な読み取り専用ではないため、実行には別の操作承認が必要。** `wrangler d1 migrations list` はledgerを
+`CREATE TABLE IF NOT EXISTS`で初期化し得る。SELECT/GETだけの確認には
+[管理者の読み取り専用手順](PRODUCTION_ADMIN_GATE_PROCEDURE.md)を使い、このCLIを実行しない。
+このCLIはsecret名一覧（値は取得しない）と公開ルートのGETも行う。POST（写真の送信、
 登録用 challenge）は、受付が閉じているはずの段階で、**App ID がなく `/v1/config` が `available:false` と確かめた後だけ**
 送る（閉じた Worker は書き込みの前に拒否する）。受付が開いているように見えれば送らず FAIL にする。`after-intake` は
 POST を一切送らない（開いた Worker は challenge を保存しうる）。秘密の値や応答の本文は出力しない。全段階で、

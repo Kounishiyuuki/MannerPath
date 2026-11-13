@@ -26,6 +26,7 @@ import { createReport, minimizeAfter } from "../src/reports/create.ts";
 import { ArtifactContent, canonicalJson, openArtifact, sealArtifact } from "../src/reports/evidence-artifact.ts";
 import { recordModerationDecision, setReconciliationState } from "../src/reports/moderation.ts";
 import { moderationTarget } from "../src/reports/moderation-target.ts";
+import { parseJsonc } from "../scripts/disposable-env.ts";
 import { applyReportRetention, runReportRetention } from "../src/reports/retention.ts";
 import { exportReview, proposeEffectReview, proposeNewSpotReview } from "../src/reports/review.ts";
 import { CURRENT_REPORT_TERMS } from "../src/reports/terms.ts";
@@ -501,7 +502,8 @@ test("migration streams are separate, and the long-lived report stream is append
 
 test("remote moderation needs every explicit flag, a typed production confirmation and an interactive terminal; the default is local", () => {
   const tty = { interactive: true, ci: false };
-  const id = "12345678-1234-4234-8234-123456789abc";
+  const committed = parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  const id = committed.env.production.d1_databases.find((d: { binding: string }) => d.binding === "REPORTS_DB").database_id;
   assert.deepEqual(moderationTarget(["list"], tty), { ok: true, target: { kind: "local" }, rest: ["list"] });
   assert.deepEqual(moderationTarget([], { interactive: false, ci: true }), { ok: true, target: { kind: "local" }, rest: [] }, "local needs no terminal");
   const refusals: [string[], RegExp][] = [
@@ -515,15 +517,15 @@ test("remote moderation needs every explicit flag, a typed production confirmati
     [["--remot"], /unknown flag/],
   ];
   for (const [argv, error] of refusals) {
-    const r = moderationTarget(argv, tty);
+    const r = moderationTarget(argv, tty, committed);
     assert.equal(r.ok, false, argv.join(" "));
     assert.match((r as { error: string }).error, error);
   }
   const prod = ["--remote", "--env", "production", "--database-id", id, "--confirm-production", "mannerpath-production-reports", "list"];
   for (const facts of [{ interactive: false, ci: false }, { interactive: true, ci: true }]) {
-    assert.match((moderationTarget(prod, facts) as { error: string }).error, /interactive terminal/, "never unattended");
+    assert.match((moderationTarget(prod, facts, committed) as { error: string }).error, /interactive terminal/, "never unattended");
   }
-  assert.deepEqual(moderationTarget(prod, tty), { ok: true, rest: ["list"],
+  assert.deepEqual(moderationTarget(prod, tty, committed), { ok: true, rest: ["list"],
     target: { kind: "remote", environment: "production", databaseName: "mannerpath-production-reports", databaseId: id } });
 });
 

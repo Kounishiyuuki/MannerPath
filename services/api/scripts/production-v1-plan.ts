@@ -77,16 +77,29 @@ export function intakeBlockers(terms: ReviewedTerms = CURRENT_REPORT_TERMS): str
   return problems;
 }
 
-export function productionSteps(blockers: string[]): { launch: string[]; stop: string[]; rollback: string[] } {
+export function productionSteps(blockers: string[], config: Pick<ReturnType<typeof productionConfig>, "d1_databases">): { launch: string[]; stop: string[]; rollback: string[] } {
+  // Fixed binding tokens keep commands shell-safe; the selected config supplies the reviewed identities.
+  const databases = config.d1_databases;
+  if (!Array.isArray(databases) || databases.length !== 2
+    || ["DB", "REPORTS_DB"].some(binding => databases.filter(d => d.binding === binding).length !== 1)
+    || databases.some(d => typeof d.database_name !== "string" || !d.database_name.trim()
+      || typeof d.database_id !== "string" || !d.database_id.trim())
+    || new Set(databases.map(d => d.database_name)).size !== 2
+    || new Set(databases.map(d => d.database_id)).size !== 2
+    || databases.some(d => databases.some(other => other !== d && d.database_name === other.binding))) {
+    throw new Error("production plan requires unambiguous configured DB and REPORTS_DB identities");
+  }
   const C = "-c .wrangler/production-v1/worker.jsonc";
   const launch = [
-    "# 0. Read-only state (before-db below checks the exact unapplied migrations and that intake is closed):",
+    "# 0. Separately authorized staged checks, NOT strictly read-only: migrations list can CREATE its ledger;",
+    "# production:v1-check also sends conditional POST probes. For SELECT/GET-only evidence use",
+    "# docs/release/PRODUCTION_ADMIN_GATE_PROCEDURE.md before running any commands below.",
     `npx wrangler d1 migrations list REPORTS_DB ${C} --remote`,
     `npx wrangler d1 migrations list DB ${C} --remote`,
     `npx wrangler secret list ${C}`,
     "# 1. Back up: note the D1 Time Travel bookmark of both databases (Free keeps 7 days).",
-    `npx wrangler d1 time-travel info mannerpath-production-reports`,
-    `npx wrangler d1 time-travel info mannerpath-production`,
+    `npx wrangler d1 time-travel info REPORTS_DB ${C}`,
+    `npx wrangler d1 time-travel info DB ${C}`,
     "npm run production:v1-check -- --stage before-db   # also requires Lane 2's review of each unapplied migration",
     "# 2. Migrations, only after before-db PASSes (exactly the expected, Lane 2-approved files on both databases):",
     `npx wrangler d1 migrations apply REPORTS_DB ${C} --remote`,
@@ -154,13 +167,13 @@ function main(argv: string[]) {
   const apiDir = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
   const outDir = `${apiDir}/.wrangler/production-v1`;
   const config = productionConfig(parseJsonc(readFileSync(`${apiDir}/wrangler.jsonc`, "utf8")), apiDir);
+  const blockers = intakeBlockers();
+  const { launch, stop, rollback } = productionSteps(blockers, config);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(`${outDir}/worker.jsonc`, JSON.stringify(config, null, 2) + "\n");
   const { retentionOff, noCron } = rollbackConfigs(config);
   writeFileSync(`${outDir}/retention-off.jsonc`, JSON.stringify(retentionOff, null, 2) + "\n");
   writeFileSync(`${outDir}/no-cron.jsonc`, JSON.stringify(noCron, null, 2) + "\n");
-  const blockers = intakeBlockers();
-  const { launch, stop, rollback } = productionSteps(blockers);
   console.log(`wrote ${outDir}/worker.jsonc (worker ${PRODUCTION_WORKER}, no R2, retention cron only, registration paused)`);
   console.log(["", "## launch", ...launch, "", "## stop", ...stop, "", "## rollback", ...rollback].join("\n"));
   if (blockers.length > 0) process.exitCode = 2;

@@ -1,10 +1,12 @@
 import { createInterface } from 'node:readline/promises';
 import { Writable } from 'node:stream';
+import { readFileSync } from 'node:fs';
+import { parseJsonc } from './disposable-env.ts';
 import { moderationTarget } from '../src/reports/moderation-target.ts';
 import { createAdminServer } from './admin/server.ts';
 
 /** Parsing remains pure and testable. No flag silently enables remote access or writes. */
-export function parseAdminArguments(argv:readonly string[],facts:{interactive:boolean;ci:boolean}){
+export function parseAdminArguments(argv:readonly string[],facts:{interactive:boolean;ci:boolean},committed?:unknown){
   const rest:string[]=[];let demo=false,enableDecisions=false,port=4318,actor='operator';let photoBucket:string|undefined;
   for(let i=0;i<argv.length;i++){
     const a=argv[i];if(a==='--demo')demo=true;else if(a==='--enable-decisions')enableDecisions=true;
@@ -15,7 +17,7 @@ export function parseAdminArguments(argv:readonly string[],facts:{interactive:bo
       else{if(!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(v))throw new Error('invalidPrivateBucketName');photoBucket=v;}
     }else rest.push(a);
   }
-  const target=moderationTarget(rest,facts);if(!target.ok)throw new Error(target.error);
+  const target=moderationTarget(rest,facts,committed);if(!target.ok)throw new Error(target.error);
   if(target.rest.length)throw new Error('unexpectedArgument');
   if(demo&&(target.target.kind==='remote'||photoBucket))throw new Error('demoCannotConnectRemotely');
   if(photoBucket&&target.target.kind!=='remote')throw new Error('privateBucketRequiresExplicitRemote');
@@ -31,7 +33,8 @@ async function passphrase(){
   try{const value=await rl.question('');process.stdout.write('\n');if(value.length<24||value.length>256)throw new Error('passphraseLength');return value;}finally{rl.close();}
 }
 export async function runAdmin(argv=process.argv.slice(2)){
-  const args=parseAdminArguments(argv,{interactive:process.stdin.isTTY===true&&process.stdout.isTTY===true,ci:!!process.env.CI});
+  const committed=argv.includes('--remote')?parseJsonc(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8')):undefined;
+  const args=parseAdminArguments(argv,{interactive:process.stdin.isTTY===true&&process.stdout.isTTY===true,ci:!!process.env.CI},committed);
   const password=await passphrase();
   // Dynamic imports ensure demo mode cannot initialize Wrangler or connect to any remote binding.
   const connection=args.demo?await (await import('./admin/demo.ts')).createAdminDemo()
