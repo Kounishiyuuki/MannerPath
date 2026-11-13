@@ -45,6 +45,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { getPlatformProxy } from "wrangler";
+import { parseJsonc } from "./disposable-env.ts";
 import type { Db } from "../src/db.ts";
 import {
   DECISION_REASONS, type DecisionReason, type ExposedReconciliationState, type ModerationState, listModerationQueue, moderationQueuePage,
@@ -84,7 +85,8 @@ for (let i = 0; i < rawArgs.length; i++) {
     if (!cursor || cursor.startsWith("--")) throw new Error("--cursor needs a value");
   } else targetArgs.push(rawArgs[i]);
 }
-const parsed = moderationTarget(targetArgs, { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) });
+const committed = targetArgs.includes("--remote") ? parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8")) : undefined;
+const parsed = moderationTarget(targetArgs, { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) }, committed);
 if (!parsed.ok) {
   console.error(`refused: ${parsed.error}`);
   process.exit(2);

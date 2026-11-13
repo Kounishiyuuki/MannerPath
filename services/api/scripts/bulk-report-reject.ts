@@ -9,6 +9,7 @@ import {
   planBulkReportRejection, applyBulkReportRejection, type BulkRejectionPlan, type BulkSelector, type KeySelection,
 } from "../src/reports/bulk-rejection.ts";
 import type { Db } from "../src/db.ts";
+import { parseJsonc } from "./disposable-env.ts";
 
 class CliRefusal extends Error {
   readonly code: string;
@@ -16,7 +17,7 @@ class CliRefusal extends Error {
 }
 const API_DIR = fileURLToPath(new URL("../", import.meta.url));
 const refuse = (): never => { throw new CliRefusal("invalidArguments"); };
-export function parseBulkArguments(argv: readonly string[], facts: { interactive: boolean; ci: boolean }) {
+export function parseBulkArguments(argv: readonly string[], facts: { interactive: boolean; ci: boolean }, committed?: unknown) {
   const args = [...argv];
   const mode = args[0] === "apply" ? (args.shift(), "apply") : (args[0] === "plan" && args.shift(), "plan");
   const flags = new Map<string, string>();
@@ -37,7 +38,7 @@ export function parseBulkArguments(argv: readonly string[], facts: { interactive
     flags.set(flag, value);
     if (targetFlags.includes(flag)) targetArgs.push(flag, value);
   }
-  const target = moderationTarget(targetArgs, facts);
+  const target = moderationTarget(targetArgs, facts, committed);
   if (!target.ok || (target.target.kind === "remote" && flags.has("--persist-to"))) refuse();
   if (flags.has("--key-file") !== flags.has("--pepper-file")) refuse();
   if (mode === "apply") {
@@ -87,7 +88,8 @@ function targetDescriptor(target: ModerationTarget, flags: Map<string, string>) 
 
 async function runBulkCli(argv: readonly string[]) {
   const facts = { interactive: process.stdin.isTTY === true && process.stdout.isTTY === true, ci: Boolean(process.env.CI) };
-  const { mode, flags, target } = parseBulkArguments(argv, facts);
+  const committed = argv.includes("--remote") ? parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8")) : undefined;
+  const { mode, flags, target } = parseBulkArguments(argv, facts, committed);
   const key = keyInputs(flags);
   const descriptor = targetDescriptor(target, flags);
   let plan: BulkRejectionPlan | undefined;

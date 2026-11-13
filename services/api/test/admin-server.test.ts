@@ -4,6 +4,8 @@ import { request } from 'node:http';
 import { createAdminServer } from '../scripts/admin/server.ts';
 import { createAdminDemo } from '../scripts/admin/demo.ts';
 import { parseAdminArguments } from '../scripts/report-admin.ts';
+import { readFileSync } from 'node:fs';
+import { parseJsonc } from '../scripts/disposable-env.ts';
 
 const password='fixture-only-'.repeat(3);
 async function fixture(t:any,readOnly=false,ageMs=0){
@@ -94,11 +96,13 @@ test('launch parser reuses real terminal/CI remote guards and refuses public bin
   const facts={interactive:false,ci:false};assert.equal(parseAdminArguments(['--demo'],facts).target.kind,'local');
   assert.throws(()=>parseAdminArguments(['--host','0.0.0.0'],facts));
   assert.throws(()=>parseAdminArguments(['--env','production'],facts));
-  const remote=['--remote','--env','production','--database-id','11111111-1111-4111-8111-111111111111','--confirm-production','mannerpath-production-reports'];
+  const committed=parseJsonc(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
+  const id=committed.env.production.d1_databases.find((d:{binding:string})=>d.binding==='REPORTS_DB').database_id;
+  const remote=['--remote','--env','production','--database-id',id,'--confirm-production','mannerpath-production-reports'];
   assert.throws(()=>parseAdminArguments(remote,facts),/interactive terminal/);
   assert.throws(()=>parseAdminArguments(remote,{interactive:true,ci:true}),/interactive terminal/);
-  assert.throws(()=>parseAdminArguments([...remote,'--demo'],{interactive:true,ci:false}),/demoCannot/);
-  assert.equal(parseAdminArguments(remote,{interactive:true,ci:false}).enableDecisions,false);
+  assert.throws(()=>parseAdminArguments([...remote,'--demo'],{interactive:true,ci:false},committed),/demoCannot/);
+  assert.equal(parseAdminArguments(remote,{interactive:true,ci:false},committed).enableDecisions,false);
 });
 test('independent-check record uses its own confirmation, then enables new-place approval without a photo',async t=>{
   const f=await fixture(t);const id=f.ids[0];

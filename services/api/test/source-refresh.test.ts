@@ -13,6 +13,7 @@ import { runSourceChecks, scheduled } from "../src/refresh/scheduled.ts";
 import { publishTiles } from "../src/tiles/publish.ts";
 import { NOW, TAITO_BYTES, importTaito, sequentialSpotIds } from "./support/fixture.ts";
 import { SqliteD1, migratedSqlite } from "./support/sqlite-d1.ts";
+import type { Db } from "../src/db.ts";
 
 const TEXT = new TextDecoder().decode(TAITO_BYTES);
 const bytesOf = (s: string) => new TextEncoder().encode(s);
@@ -347,6 +348,40 @@ test("runSourceChecks: a source that cannot be checked does not stop the others"
     { db, store: memoryStore().store, fetch: fakeFetch(TAITO_BYTES).fetch, now, adapters: [broken, TAITO_ADAPTER] }, "run-1", "manual");
   assert.equal(results[0].result.status, "skipped");
   assert.equal(results[1].result.status, "recorded");
+});
+
+test("Cron unexpected errors expose only bounded metadata while local results retain diagnostics", async () => {
+  const diagnostic = "synthetic-private-diagnostic-sentinel";
+  for (const thrown of [new Error(diagnostic), diagnostic]) {
+    const db: Db = {
+      prepare() { throw thrown; },
+      async batch() { throw thrown; },
+    };
+    const local = await runSourceChecks(
+      { db, store: memoryStore().store, fetch: fakeFetch(TAITO_BYTES).fetch, now, adapters: [TAITO_ADAPTER] },
+      "local-diagnostic", "manual",
+    );
+    assert.deepEqual(local, [{ sourceId: TAITO_SOURCE_ID, result: { status: "error", error: diagnostic } }]);
+
+    const logs: string[] = [];
+    const log = console.log;
+    console.log = (line: string) => { logs.push(line); };
+    try {
+      const controller = { scheduledTime: Date.parse("2026-09-28T03:00:00Z"), cron: "0 3 * * *", noRetry() {} };
+      await assert.rejects(scheduled(controller, { DB: db, RAW_ARTIFACTS: {} as R2Bucket }), (error: Error) => {
+        assert.match(error.message, /scheduled source check cron:2026-09-28T03:00:00.000Z:/);
+        assert.match(error.message, /"status":"error"/);
+        assert.ok(!error.message.includes(diagnostic), "platform exception text must not contain raw diagnostics");
+        return true;
+      });
+    } finally { console.log = log; }
+    assert.equal(logs.length, 1);
+    assert.ok(!logs[0].includes(diagnostic));
+    const summary = JSON.parse(logs[0]);
+    assert.equal(summary.event, "sourceChecks");
+    assert.ok(summary.results.some((r: { sourceId: string; status: string }) => r.sourceId === TAITO_SOURCE_ID && r.status === "error"));
+    for (const result of summary.results) assert.deepEqual(Object.keys(result).sort(), ["outcome", "sourceId", "status"]);
+  }
 });
 
 test("the refresh code cannot reach resolve, publish, removal, relocation or promotion", () => {

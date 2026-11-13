@@ -1,10 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, chmodSync, symlinkSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, chmodSync, symlinkSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseBulkArguments, readPrivateInput } from "../scripts/bulk-report-reject.ts";
+import { parseJsonc } from "../scripts/disposable-env.ts";
 const facts = { interactive: true, ci: false };
 const base = ["--ids-file", "ids.json", "--reason", "abuse", "--decided-by", "maintainer", "--out", "plan.json"];
 test("bulk CLI defaults to dry-run and rejects empty/unknown/duplicate selectors and confirmations", () => {
@@ -17,9 +18,11 @@ test("bulk CLI defaults to dry-run and rejects empty/unknown/duplicate selectors
   assert.equal(parseBulkArguments(["apply", "--plan", "plan.json", "--confirm", "a".repeat(64)], facts).mode, "apply");
 });
 test("remote bulk moderation needs existing explicit environment/identity/TTY guards", () => {
-  const remote = [...base, "--remote", "--env", "production", "--database-id", "12345678-1234-1234-1234-123456789abc",
+  const committed = parseJsonc(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  const id = committed.env.production.d1_databases.find((d: { binding: string }) => d.binding === "REPORTS_DB").database_id;
+  const remote = [...base, "--remote", "--env", "production", "--database-id", id,
     "--confirm-production", "mannerpath-production-reports"];
-  assert.equal(parseBulkArguments(remote, facts).target.kind, "remote");
+  assert.equal(parseBulkArguments(remote, facts, committed).target.kind, "remote");
   for (const f of [{ interactive: false, ci: false }, { interactive: true, ci: true }]) assert.throws(() => parseBulkArguments(remote, f));
   assert.throws(() => parseBulkArguments([...base, "--remote", "--env", "production"], facts));
   assert.throws(() => parseBulkArguments([...base, "--env", "staging"], facts));

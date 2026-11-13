@@ -1,5 +1,7 @@
-// The v1.0 production preflight, one stage at a time (docs/release/V1_PRODUCTION_INTAKE.md §5). READ-ONLY: it runs
-// `wrangler d1 migrations list` and `wrangler secret list` (names only) and GETs public routes. Only in a stage where
+// The v1.0 staged production check (docs/release/V1_PRODUCTION_INTAKE.md §5) is NOT strictly read-only:
+// `wrangler d1 migrations list` can CREATE its ledger. Use docs/release/PRODUCTION_ADMIN_GATE_PROCEDURE.md
+// for SELECT/GET-only evidence; running this CLI requires separate operation authorization. It also lists
+// secret names (never values) and GETs public routes. Only in a stage where
 // intake must be closed, and only after the App ID is seen absent and /v1/config says unavailable, does it POST the two
 // requests a closed Worker refuses before any write (a photo upload, a registration challenge). `after-intake` sends
 // no POST at all: a live Worker could answer a challenge request by storing a challenge.
