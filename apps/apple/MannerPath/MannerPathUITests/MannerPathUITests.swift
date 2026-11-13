@@ -29,6 +29,16 @@ class MannerPathUITestCase: XCTestCase {
 
     /// A row selects its place, as a pin does: the summary with directions leads the sheet; details are one step further.
     func openDetail(fromRow row: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        // The floating report bar overlays the list's bottom, and a row partly behind it still reads as hittable: its
+        // tap then lands on the bar and opens the report form. Scroll the whole row above the bar first.
+        let bar = app.buttons["sheetReportButton"]
+        var drags = 0
+        while bar.exists, row.frame.maxY > bar.frame.minY, drags < 5 {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.6))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.45)))
+            drags += 1
+        }
+        XCTAssertFalse(bar.exists && row.frame.maxY > bar.frame.minY, "Row stays behind the report bar", file: file, line: line)
         row.tap()
         let details = app.buttons["selectedSpotDetails"]
         XCTAssertTrue(details.waitForExistence(timeout: 10), "Row did not select its place", file: file, line: line)
