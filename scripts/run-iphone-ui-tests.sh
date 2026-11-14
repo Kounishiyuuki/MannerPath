@@ -133,7 +133,10 @@ run_phase not-determined -only-testing:MannerPathUITests/F_LocationNotDetermined
 xcrun simctl privacy "$sim" grant location "$bundle_id"
 run_phase light -only-testing:MannerPathUITests/B_OnlineUITests
 # Photo-report form flow against the DEBUG-only report stack (-uiTestPhotoReport): no report or photo is sent anywhere.
-run_phase photo-report -only-testing:MannerPathUITests/I_PhotoReportFlowUITests -only-testing:MannerPathUITests/J_ReportSubmissionUXUITests
+# Two phases: together the 27 tests took 1790 s when all passed (RC run 2026-11-14), so the 1800 s phase bound killed
+# the last test and left an unreadable result bundle.
+run_phase photo-report -only-testing:MannerPathUITests/I_PhotoReportFlowUITests
+run_phase report-submission -only-testing:MannerPathUITests/J_ReportSubmissionUXUITests
 run_phase destination-search -only-testing:MannerPathUITests/DestinationSearchUITests
 run_phase primary-flows -only-testing:MannerPathUITests/N_PrimaryFlowUITests
 
