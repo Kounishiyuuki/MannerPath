@@ -95,7 +95,7 @@ are DEV notes, not matrix PASS:
 | Step | Result |
 | --- | --- |
 | 1 `success`: 1→2→3 real photos, remove, re-add, no 4th, consent and submit with one reference and 「写真を受け付けました（審査待ち）」, picker without a full-library prompt | DEV OK (all six checks reported fine) |
-| 2 `retry` | not yet run |
+| 2 `retry`: 2 real photos; both first uploads failed; 「未送信の写真を再送信」 → receipt | DEV OK with a UX finding. Device files: before retry the follow-up showed `rp_UITEST1`, `uploadedCount 0`; after retry the follow-up was deleted and the report count stayed 1, so there was no second report and the reference was kept. "Both photos sent" is inferred from the deletion plus the on-screen receipt, because the mock keeps no upload log. **The failure and the retry button were not noticed after submitting until the form was scrolled: #447** |
 | 3 `closed` | not yet run |
 | 4 AX5, VoiceOver, Reduce Motion | not yet run |
 
