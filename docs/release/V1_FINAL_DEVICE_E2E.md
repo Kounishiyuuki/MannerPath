@@ -88,6 +88,17 @@ Real uploads wait for Lane 2's staging and a separate approval. Until then:
 3. Scenario `closed`: new places are blocked with the explanation; existing-place reports still open.
 4. Large text (AX5) and VoiceOver through steps 1–3; Reduce Motion on.
 
+**DEV results, 1.0 (8)** (Debug build of `main` `159bee8`, development signed, `MannerPathAPIBaseURL` empty so nothing
+leaves the device; iPhone 16 Pro, iOS 27.2; reported by the maintainer on 2026-11-21; local times not recorded). These
+are DEV notes, not matrix PASS:
+
+| Step | Result |
+| --- | --- |
+| 1 `success`: 1→2→3 real photos, remove, re-add, no 4th, consent and submit with one reference and 「写真を受け付けました（審査待ち）」, picker without a full-library prompt | DEV OK (all six checks reported fine) |
+| 2 `retry` | not yet run |
+| 3 `closed` | not yet run |
+| 4 AX5, VoiceOver, Reduce Motion | not yet run |
+
 ### 3.5 #330 interrupted upload and relaunch (developer photo build)
 
 1. Scenario `hang` with `-uiTestReportPersistent YES -uiTestReportReset YES`: submit a new place with one photo;
