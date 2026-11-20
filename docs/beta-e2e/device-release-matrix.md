@@ -41,6 +41,20 @@ Observed by the maintainer on an iPhone with TestFlight 1.0 (2), production API,
 Everything else in §4 is **not yet observed on a device**, including every Watch, widget, VoiceOver,
 large-text, offline/cache, location-permission and first-launch row.
 
+Observed by the maintainer, reported 2026-11-21. Build: `main` `159bee8`, Release configuration, **development
+signed** (Apple Development, team `58A7G4U27M`; not a TestFlight build), `1.0 (8)`, production API. Installed with
+`devicectl` on iPhone 16 Pro (iOS 27.2) and on Apple Watch Series 9 (watchOS 26.6) on 2026-11-18.
+`check-apple-beta-artifact.py` exited 0 on this app; it reports App Attest `development` because of the signing.
+Location and local time were not recorded.
+
+| Observation | Row |
+| --- | --- |
+| iPhone basic use reported without problems; the steps and screens were not itemised | none (no row-level PASS) |
+| 「喫煙所を追加」 shows that new-place submissions are paused (production intake closed) | note only; R1 (detail/About text) not observed |
+| Apple Watch: detailed checks deferred, because too few places are published around Kanazawa | W1–W10, A1W stay open |
+
+No §4 row changes result from this run.
+
 ## 1. Target inventory (from `xcodebuild -showBuildSettings`, Debug and Release identical unless noted)
 
 | Target | Bundle ID | Min OS | Family | Entitlements (source) | Signing |
