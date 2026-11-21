@@ -85,7 +85,9 @@ Real uploads wait for Lane 2's staging and a separate approval. Until then:
    re-add; confirm a 4th cannot be added; consent; submit. Expect one report reference and 「写真を受け付けました（審査待ち）」.
    Check the picker shows only the selection UI (no full-library permission prompt).
 2. Scenario `retry`: the first attempt of each photo fails; 「未送信の写真を再送信」 sends photos only; the report is not resent.
-3. Scenario `closed`: new places are blocked with the explanation; existing-place reports still open.
+3. Scenario `closed` (photo intake off, reporting open, as in the v1.0 deployment): a new place starts with no photo
+   section and no paused notice (`acceptsNewSpotProposals` depends only on reporting availability; UI test
+   `testClosedIntakeHidesRestoredFollowUpAndConnectionFailureKeepsIt` asserts the same); existing-place reports still open.
 4. Large text (AX5) and VoiceOver through steps 1–3; Reduce Motion on.
 
 **DEV results, 1.0 (8)** (Debug build of `main` `159bee8`, development signed, `MannerPathAPIBaseURL` empty so nothing
@@ -96,7 +98,7 @@ are DEV notes, not matrix PASS:
 | --- | --- |
 | 1 `success`: 1→2→3 real photos, remove, re-add, no 4th, consent and submit with one reference and 「写真を受け付けました（審査待ち）」, picker without a full-library prompt | DEV OK (all six checks reported fine) |
 | 2 `retry`: 2 real photos; both first uploads failed; 「未送信の写真を再送信」 → receipt | DEV OK with a UX finding. Device files: before retry the follow-up showed `rp_UITEST1`, `uploadedCount 0`; after retry the follow-up was deleted and the report count stayed 1, so there was no second report and the reference was kept. "Both photos sent" is inferred from the deletion plus the on-screen receipt, because the mock keeps no upload log. **The failure and the retry button were not noticed after submitting until the form was scrolled: #447** |
-| 3 `closed` | not yet run |
+| 3 `closed` | DEV OK for what was checked: no paused notice (expected, see step 3), no photo section, existing-place detail shown, 「保存済みの報告を再開」 opened the form. **Starting a new report was not checked**: only a saved report was resumed |
 | 4 AX5, VoiceOver, Reduce Motion | not yet run |
 
 ### 3.5 #330 interrupted upload and relaunch (developer photo build)
