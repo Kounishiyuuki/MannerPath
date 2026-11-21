@@ -121,7 +121,7 @@ are DEV notes, not matrix PASS:
 | 1 `hang` + Persistent + Reset: one photo, app swiped away while sending | DEV OK. Device files after the kill: `ui-test-report-count` 1; `photo-follow-up.json` `reportId` `rp_UITEST1`, `uploadedCount 0` |
 | 2–4 `success` + Persistent: 「受け付け済みの報告に写真を送る」 → add a photo → receipt | DEV OK. Device files after: count still 1 (unchanged since the `hang` submit), follow-up file deleted, so no second report, reference stays `rp_UITEST1`, and the unsent-photo state was cleared. The individual screens of step 3 (two choices, closing keeps the entry) were not reported one by one |
 | 5 new report from the choice | not yet run |
-| Repeat of 1–4 after relaunch | in progress |
+| Repeat of 1–4 after relaunch, 5 rounds (2026-11-22, 3:07–3:20; each round `hang` with Reset, kill while sending, then `success`) | DEV OK 5/5. After each kill the device files showed `rp_UITEST1`, `uploadedCount 0`, count 1; after each resume the follow-up file was deleted and the count stayed 1. The maintainer reported the form opened right after every relaunch (no #367-type "sheet not presented") and every photo was received. Files are unreadable while the iPhone is locked (data protection: `openat` EPERM), so each read was done unlocked |
 
 ### 3.6 Accessibility (RC build; A1, A1W, P17, W9/W10, L7, L8, U5, U7)
 
