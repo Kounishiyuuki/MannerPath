@@ -114,6 +114,15 @@ are DEV notes, not matrix PASS:
 6. Scenarios `closed` (paused intake text), `offline` (connection failure, retry), `old` (expired: no send button),
    `unsaved` (warning to keep the app open). VoiceOver reads each warning as one element (icon + text).
 
+**DEV results, 1.0 (8)** (same build and device as §3.4; DEV notes, not matrix PASS):
+
+| Step | Result |
+| --- | --- |
+| 1 `hang` + Persistent + Reset: one photo, app swiped away while sending | DEV OK. Device files after the kill: `ui-test-report-count` 1; `photo-follow-up.json` `reportId` `rp_UITEST1`, `uploadedCount 0` |
+| 2–4 `success` + Persistent: 「受け付け済みの報告に写真を送る」 → add a photo → receipt | DEV OK. Device files after: count still 1 (unchanged since the `hang` submit), follow-up file deleted, so no second report, reference stays `rp_UITEST1`, and the unsent-photo state was cleared. The individual screens of step 3 (two choices, closing keeps the entry) were not reported one by one |
+| 5 new report from the choice | not yet run |
+| Repeat of 1–4 after relaunch | in progress |
+
 ### 3.6 Accessibility (RC build; A1, A1W, P17, W9/W10, L7, L8, U5, U7)
 
 VoiceOver on: Nearby list rows, pins, filters, detail, search suggestions, Watch list/detail. AX5 text: every screen
