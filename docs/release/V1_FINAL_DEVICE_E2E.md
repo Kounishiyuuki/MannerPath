@@ -3,10 +3,13 @@
 Audit base: `origin/main` `eb4ed96` (after #321 admin web, #328, #329, #330), 2026-10-24. Project version **1.0 (6)**.
 This page adds what changed since the Build 3 run sheet ([device matrix §9](../beta-e2e/device-release-matrix.md)) and
 Lane 4's audit at `b5f7d91` ([Apple readiness](V1_APPLE_RELEASE_READINESS.md)): live search completion (#318), the photo
-form (#319/#320), interrupted-upload recovery (#330), and the release decisions that make photo submission P0.
+form (#319/#320), interrupted-upload recovery (#330), and the release decisions that made photo submission P0 at the
+time. **Superseded 2026-11-02** ([release gate](../V1_APP_STORE_RELEASE_GATE.md) header): v1.0 ships text-only new-place
+reports without photos; photos are v1.1. Photo items below are kept as v1.1 preparation, not v1.0 submission conditions.
 
-**Nothing in this page was observed on a physical device.** Every result below is Simulator/unit evidence and is
-labelled so; it never fills a device cell. No TestFlight upload, App Store action, signing change, production or
+Sections 1, 2, 4 and 5 hold Simulator/unit evidence only; it never fills a device cell. The only device observations
+are the **DEV results** tables in §3.4 and §3.5 (dev-signed Debug photo build, 2026-11-21/22), which are DEV notes, not
+matrix PASS. No TestFlight upload, App Store action, signing change, production or
 staging operation, real photo upload or build-number change was made.
 
 ## 1. Simulator / repo evidence on `eb4ed96` (not device evidence)
@@ -141,14 +144,14 @@ evidence is off in the 1.0 Release (matrix §4 rows unchanged):
 VoiceOver on: Nearby list rows, pins, filters, detail, search suggestions, Watch list/detail. AX5 text: every screen
 reachable by scrolling. Reduce Motion and Reduce Transparency: sheet and map transitions readable, no lost controls.
 
-## 4. Open P0 items (2026-10-24)
+## 4. Open P0 items (2026-10-24; row 1 and row 4 updated 2026-11-22 for the text-only v1.0 scope)
 
 | # | Item | Blocks | Owner | Why open |
 | --- | --- | --- | --- | --- |
-| 1 | Photo-backed new-place submission on the **Release** build (gate §1 "P0 since 2026-10-22", photo plan R14) | submission | Lane 2 staging + maintainer approval, Lane 1 legal | Production `reports.available:false`; real upload only after staging + approval. The developer photo build (§3.4) does not close it |
+| 1 | Text-only new-place submission on the **Release** RC (gate G16, G17, G23); photo-backed submission moved to v1.1 on 2026-11-02 | submission | maintainer approval, Lane 1 legal | #124 terms not approved; production intake stays paused until ready (the 1.0 (8) Release build showed 「受付停止」 on iPhone, matrix 1.0 (8) section). §3.4–3.5 DEV results are v1.1 preparation and do not close it |
 | 2 | Signed RC chosen and preflighted (G14, G21) | TestFlight | maintainer | No build 4–6 upload/processing recorded; signing untouched by this lane |
 | 3 | Watch / widget device rows W1, W2, W2c, W3, W5, W5b, G2/S1–S2, G3/G3b, WG2/S3–S4 (G15) | TestFlight testers | maintainer device run | Never observed on a device |
-| 4 | First launch, permission, offline, reports-off rows P1, P4, P10, P14, P8/P9b, R1, AI1 (G17) on the RC | submission | maintainer device run | Build 2 partial results do not carry forward |
+| 4 | First launch, permission, offline rows P1, P4, P10, P14, P8/P9b, AI1, and text-only report acceptance and resend (G17) on the RC; R1 only as the paused negative case | submission | maintainer device run | Build 2 partial results do not carry forward |
 | 5 | Search P0 rows D1–D5, L1, L2, L5, U1–U3 on the RC (§3.1) | submission | maintainer device run | Build 3 rows never filled; #318 completion changed since |
 | 6 | G1–G3, G5–G8, G10–G12, G19 (store record, privacy, rights, screenshots, data) | submission | Lanes 1/4, maintainer | Unchanged by this run; see [release gate](../V1_APP_STORE_RELEASE_GATE.md) |
 
@@ -183,12 +186,12 @@ TestFlight (internal):
 - [ ] Signed archive → `apple-beta-preflight.sh <archive>` and `check-apple-beta-artifact.py --distribution` exit 0 (G14).
 - [ ] Production `/v1/config` read-only GET on the day: values match the release decision for reports/photos.
 - [ ] Upload, processing done, export compliance answered (T5). Internal group only.
-- [ ] Device run: §3.1–3.3, 3.6 on the RC; §3.4–3.5 on the developer photo build; results in the matrix.
+- [ ] Device run: §3.1–3.3, 3.6 on the RC; results in the matrix. (§3.4–3.5 are v1.1 photo preparation, not required for v1.0.)
 
 App Store submission:
 - [ ] Every P0 in §4 closed with device evidence on the submitted build; P1 rows closed or accepted by the maintainer.
-- [ ] Photo intake decision: either Release photo submission verified on staging and enabled under approval, or the
-      release decision formally changed. Store copy and Review Notes match what actually ships.
+- [ ] Text-only report scope confirmed on the submitted build (decision of 2026-11-02: no photos in v1.0); production
+      intake opened only under separate approval. Store copy and Review Notes match what actually ships.
 - [ ] G1–G13, G19–G21 per [release gate](../V1_APP_STORE_RELEASE_GATE.md); screenshots from the RC (G10).
 - [ ] Maintainer sign-off. Submission is a maintainer action; no lane submits.
 
