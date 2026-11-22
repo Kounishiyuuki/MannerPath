@@ -1,9 +1,11 @@
-# 暫定RC 1.0 (8) の提出素材準備（2026-11-22）
+# 1.0 (8)／次のRC候補 1.0 (9) の提出素材準備（2026-11-22）
 
 **SUBMISSION: BLOCKED のまま。** この文書は準備の照合結果で、承認・ASC転記・本番操作は行っていない。
 ゲートは [canonical Gate](../../../V1_APP_STORE_RELEASE_GATE.md) のとおり全項目OPEN。
 
-- 暫定RC：1.0 (8)（運営者決定 2026-11-22）。アプリのソースは `main` `159bee8` から `3749a56` まで `apps/` に差分なし
+- **次のRC候補：1.0 (9)（運営者決定 2026-11-22）。** 正式な申請規約を同梱する必要があるため（§8）。1.0 (8) は
+  draft規約のみを同梱しており、正式受付の提出ビルドにはできない。以下の照合は1.0 (8) のソースに対するもの。
+- 旧：暫定RC 1.0 (8)（同日決定）。アプリのソースは `main` `159bee8` から `3749a56` まで `apps/` に差分なし
   （その間の15コミットは `docs/` のみ）。16構成すべて `MARKETING_VERSION = 1.0` / `CURRENT_PROJECT_VERSION = 8`。
   ソースの再ビルドは不要。提出には別途、配布署名のarchiveが必要（G14、運営者判断）。
 - 範囲：写真なし・テキストの新規地点申請あり（2026-11-02決定）。本番受付は準備が整うまで停止のまま。
@@ -78,7 +80,9 @@ npm run local:quality
 結果（2026-11-22）：`failedChecks: 0`（16項目すべてpass）。publishedSpots 647、publishedTiles 103、空tile 0、
 全tile z14、tile part上限内、OSM由来なし、area anchorは全て `areaApproximate`、確度の過大表示なし。
 
-注意：最近傍距離の最小が0 mの組がある（同一地点に2件）。重複か、別施設の同一座標かは未確認。
+最近傍距離0 mの組（10件・4建物）は調査済み：港区データで階ごとに別ページを持つ**別の喫煙場所**で、区のCSVが同じ建物の
+全階に同じ緯度経度を与えている（例：日比谷フォートタワー 1F/2F/11F、105/106/107.html）。重複ではないため削除・統合しない。
+階数の構造化（`floor` はNULL、名称にのみ階がある）とピンの重なりは将来課題として #452 に記録。
 金沢のホテル系fixture（`*-kanazawa-*`）は `local:pipeline` の対象外のため、この結果に含まれない。
 本番の掲載内容（G19）は別途、許可されたGETで当日に確認する。
 
@@ -93,9 +97,55 @@ npm run local:quality
 | Email Address | なし | 同上 |
 | Photos or Videos | なし | アプリ内収集なし |
 
-- manifestと候補はアプリ内収集の3型で一致する。Customer Support／Email AddressはアプリのUI外（メール）での取得のため
-  manifestにはなく、ASCでの申告要否は運営者が判断する。
+- manifestと候補はアプリ内収集の3型で一致する。
+- **運営者決定（2026-11-22）：Customer Support と Email Address はASCで申告する（Collected／Linked／Not Tracking／
+  App Functionality）。Privacy Manifestは現状の3型を維持。** ASCへの反映はまだ行わない。
+  根拠：アプリの問い合わせ導線は `mailto:` リンクのみ（`AboutPrivacyView.swift:25`）で、送信は利用者のメールアプリが行う。
+  Appleの任意開示の例外は4条件すべてを要し、その1つが「アプリのインターフェース内で利用者が提供する」こと
+  （[App Privacy Details](https://developer.apple.com/app-store/app-privacy-details/)、2026-11-22確認）。メールアプリは
+  アプリのインターフェースではないため例外に当たらないと判断した。外部メール経由のデータについてAppleは明示していないため、
+  これは解釈であり、過少申告の審査リスクを避ける保守的な選択。
 - [README](README.md) の「現iPhone manifestは収集型未宣言」は古い記述（2026-11-05の `8cc409c` で3型を宣言済み）。
 - 未決（候補の `unresolved` より）：Cloudflareのログ・IP・診断の保持、D1 Time Travel、サポートの保持範囲、
   App Attest登録・監査記録の保持、最終archiveのPrivacy Report。いずれも運営者・法務の判断。
 - Watch appのmanifestは収集型を宣言していない（Watchは申請を送らない）。
+
+## 7. G23 テキスト申請規約（#124）
+
+**運営者の選択（2026-11-22）：Q1 A、Q2 条件付きA、Q3 提案どおり**（[OWNER_CHOICES.md](../../../legal/v1-text-reports/OWNER_CHOICES.md)）。
+**G23は正式承認済みではない。** 90日最小化・保存期間・削除対応の実態と規約の整合性が確認できるまで承認しない（運営者条件）。
+
+規約候補（[REPORT_TERMS_CANDIDATE.md](../../../legal/REPORT_TERMS_CANDIDATE.md)）とコードの照合（2026-11-22、`main` `3749a56`）：
+
+| 規約の記述 | コード | 判定 |
+| --- | --- | --- |
+| §6 受信後90日を基準に最小化 | `services/api/src/reports/create.ts:13` `REPORT_MINIMIZE_AFTER_DAYS = 90` | 一致 |
+| §6 対象：本文、指定位置、確認日、申請者との関連付け、自由記述の施設名・営業時間 | `retention.ts:51-53` が `note`、`proposed_latitude/longitude`、`observed_on`、`submitter_hash`、`claim_host_name`、`claim_hours_note` をNULL化 | 一致 |
+| §6 受付ID・分類項目・監査記録・認証登録は別に残る | 上記UPDATEの対象外 | 一致 |
+| §6 期限到来だけで完了せず、運営者が実行を管理 | `scheduled.ts` は `REPORT_RETENTION=cleanup` と cron `2-57/5 * * * *` で動くが、`wrangler.jsonc` は全環境 `crons: []` | 文面は一致。**実行は未設定**（P03） |
+| §6 残る記録に一律の期限なし、個別に見直す | 実装なし（文面どおり） | 文面は一致。**区分ごとの根拠・期間が未確定**（P01） |
+| §8 削除等は窓口で個別対応、アプリ内削除なし | アプリ内削除機能なし | 文面は一致。**請求ケースごとの手順・リハーサルなし**（P02） |
+
+正式承認の前に閉じる必要があるもの（[公開前P0](../../../legal/v1-text-reports/Q2_PUBLICATION_P0.md)）：
+
+- P01 残存記録の区分別の根拠・期間または終了条件
+- P02 請求ケースごとの履行手順と非本番リハーサル
+- P03 隔離stagingでの実Cron実行証拠（期限前後、複数pass、失敗と再実行、CPU）
+- P04 Cloudflare・ログ・サポートの保存先の実態
+- P05 文面・Web・RCの最終整合
+
+本番のcron有効化は本番変更のため、別の承認で行う。
+
+## 8. 1.0 (9) で正式規約へ切り替えるための変更（未実施）
+
+手順の正本は [ACTIVATION_DIFF.md](../../../legal/v1-text-reports/ACTIVATION_DIFF.md)。G23の正式承認後にのみ着手する。
+
+| 区分 | 変更 |
+| --- | --- |
+| 正文 | 承認全文に新version `report-terms.YYYY-MM-DD` を入れ、`scripts/prepare-report-terms.py --document <最終.md> --version <新version>` でhash/pathを得る。`docs/legal/report-terms/<version>.md` に配置。旧draftは不変 |
+| iOS | 同一bytesを `apps/apple/MannerPath/MannerPath/Features/Reports/Terms/<version>.md` に追加。`ReportDomain.swift:70` の `ReportTerms.documents` に `Document(version: <新version>, isDraft: false)` を追加 |
+| iOS（ビルド） | 16構成の `CURRENT_PROJECT_VERSION` を 8 → 9（Lane 3のレビュー済みPR） |
+| API | `services/api/src/reports/community-publication.ts` に承認済みの版・path・hash・URLを記録し、configの `termsVersion` を新版に。iOSの `ReportTerms.documents` と対応させる |
+| Web | `site/terms/reports/index.html`（新規）、`site/privacy`・`site/support` の承認済み日英。**Pagesが自動公開するため、Web公開の許可までmergeしない** |
+| 検証 | `make contract`、`make api-validate`、`make apple-validate`、`scripts/run-iphone-ui-tests.sh`、新版の同一bytes/hash・旧版拒否と更新案内・非遡及の対象テスト、配布署名後の `apple-beta-preflight.sh` |
+| 切替 | 承認済みアプリ・公開URL・サーバー版を同時に切り替える。片方だけ先行しない。本番デプロイ・受付開始は別の承認 |
