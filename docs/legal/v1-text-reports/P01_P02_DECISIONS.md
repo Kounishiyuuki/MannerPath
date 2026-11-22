@@ -59,7 +59,7 @@ ADR-0021 が退けた「IDだけを根拠にした本人からの請求」には
   - 中身は既存の UPDATE（`:51-53`）と `retireReceiptStatement` を、**その1件にだけ**、同じ `db.batch` で実行するもの。
   - 条件は `WHERE report_id = ? AND redacted_at IS NULL`。`minimize_after` は条件にしない。
   - ID の形式が不正なら throw する（`erasure-impact.ts` の `REPORT_ID` と同じ検査）。
-- **reports の schema は変更不要：** `migrations-reports/0001_report_store.sql:233-252` の不変 trigger は、期限前でも、個人列をNULLにして `redacted_at` を入れる1回だけの UPDATE を許可する（§3.1 Q1 で確認）。
+- **reports の schema は変更不要：** `migrations-reports/0001_report_store.sql:233-254` の不変 trigger は、期限前でも、個人列をNULLにして `redacted_at` を入れる1回だけの UPDATE を許可する（§3.1 Q1 で確認）。
 - **CLI：** `scripts/report-queue.ts` に `minimize-early <reportId> <decidedBy> <reason>` を追加する。
   - 実行前に `erasureImpact` の結果を表示し、確認を求める。
   - 記録：既存の `admin_review_audit` は `state` が審査状態に限られ（`0008_admin_review_audit.sql` の CHECK）、最小化を記録できない（§3.1 Q2）。
