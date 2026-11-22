@@ -77,6 +77,8 @@
 
 着手の条件：§6 の 3・4・5 の回答、G23 の判断、P03 の staging 承認（D1 の原子性の確認用）。
 
+実装開始時の必須確認事項：migration 0012 の rollback で「監査行があれば中止する」を、どの仕組みで保証するか（SQLファイル単体では条件付きで止められないため、例：rollback前に行数を確認する手順またはスクリプト）。決まるまで PR 1 を作らない。
+
 | PR | 内容 | 検証 |
 | --- | --- | --- |
 | 1 | migration 0012 と rollback、`minimizeReportEarly`、テスト（§2〜4 の固定） | `make api-validate`、ローカルの migration 適用と rollback |
