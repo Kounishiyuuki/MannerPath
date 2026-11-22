@@ -134,7 +134,7 @@ npm run local:quality
 - P04 Cloudflare・ログ・サポートの保存先の実態
 - P05 文面・Web・RCの最終整合
 
-本番のcron有効化は本番変更のため、別の承認で行う。
+本番のcron有効化は本番変更のため、別の承認で行う。担当の切り分けは [BACKEND_HANDOFF.md](../../../legal/v1-text-reports/BACKEND_HANDOFF.md)。
 
 ## 8. 1.0 (9) で正式規約へ切り替えるための変更（未実施）
 
