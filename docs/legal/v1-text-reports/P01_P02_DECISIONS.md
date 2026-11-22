@@ -59,13 +59,25 @@ ADR-0021 が退けた「IDだけを根拠にした本人からの請求」には
   - 中身は既存の UPDATE（`:51-53`）と `retireReceiptStatement` を、**その1件にだけ**、同じ `db.batch` で実行するもの。
   - 条件は `WHERE report_id = ? AND redacted_at IS NULL`。`minimize_after` は条件にしない。
   - ID の形式が不正なら throw する（`erasure-impact.ts` の `REPORT_ID` と同じ検査）。
-- **schema は変更しない：** `migrations-reports/0001_report_store.sql:236-250` の不変 trigger は、`minimize_after` を変えず、個人列をNULLにするだけの UPDATE を拒否しない。この点は実装時にテストで確認する（未確認）。
+- **reports の schema は変更不要：** `migrations-reports/0001_report_store.sql:233-252` の不変 trigger は、期限前でも、個人列をNULLにして `redacted_at` を入れる1回だけの UPDATE を許可する（§3.1 Q1 で確認）。
 - **CLI：** `scripts/report-queue.ts` に `minimize-early <reportId> <decidedBy> <reason>` を追加する。
   - 実行前に `erasureImpact` の結果を表示し、確認を求める。
-  - 記録は既存の管理監査（`admin_review_audit`）に、ID と理由だけを残す。本文は記録しない。
+  - 記録：既存の `admin_review_audit` は `state` が審査状態に限られ（`0008_admin_review_audit.sql` の CHECK）、最小化を記録できない（§3.1 Q2）。
+    `state='rejected'`・`reason='privacyRisk'` で代用すると審査判断と誤読されるため使わない。最小の案は、ID・日時・担当・理由区分だけを持つ追記専用の表を1つ足す migration（REPORTS_DB 0012）。
 - **テスト：** 期限前の1件だけがNULL化されること、他の申請は変わらないこと、receipt が退役して同じ鍵での再送が410になること、2回目は何もしないこと、不正な ID は throw すること。
 - **範囲外：** アプリ内の削除画面、本人証明（ADR-0021 §12.1）、行の削除、DATA_DB の根拠撤回（option 3）、写真（v1.1）。
-- **規模の見込み：** 本体約30行、テスト約80行。本番での実行は別の承認とする。
+- **規模の見込み：** 本体約30行、migration 約20行（rollback 付き）、テスト約100行。本番での実行・migration 適用は別の承認とする。
+
+### 3.1 技術調査の結果（2026-11-23、ローカル合成DB、正式実装なし）
+
+使い捨てのテスト（リポジトリ外、`test/support/sqlite-d1.ts` のSQLite）で4件とも pass。
+
+| 問い | 結果 |
+| --- | --- |
+| Q1 期限前の最小化はtriggerで許可されるか | **許可される。** 期限前の1件だけがNULL化され、`minimize_after` は変わらず、他の申請は不変。2回目の UPDATE は trigger が拒否する |
+| Q2 既存の監査表で記録できるか | **できない。** `state='minimized'` は CHECK で失敗。上記の新しい表が必要 |
+| Q3 receipt退役と最小化を原子的に処理できるか | **できる（SQLite上）。** 同じ batch の3つ目が失敗すると、本文もreceiptも元のまま。Cloudflare D1 の batch がトランザクションであることは、この環境では未確認 |
+| Q4 二重報告防止への影響 | 同じ下書きの再送：receiptは `retired` となり、受付されない（既存の90日最小化と同じ）。ほかに次の影響がある（コード読みのみ）：<br>・**重複候補の検出から外れる**（`community-evidence.ts` `duplicateCandidates` は `redacted_at IS NULL` が条件）。同じ場所への新しい申請は、この件との重複として示されなくなる<br>・**独立した申請者として数えられなくなる**（`spotEvidenceStates`、`submitter_hash` がNULL）<br>・送信回数の制限（`report_rate_windows`）は別の表なので影響しない |
 
 ## 4. 運用手順
 
