@@ -29,7 +29,7 @@ Lane1/3の実装と下記の条件が揃うまでASCへ転記しない。掲載�
 
 根拠：[Apple Privacy定義](https://developer.apple.com/app-store/app-privacy-details/)を2026-11-03再確認。
 申請は主要機能で毎回同意しても開示例外とはしない。写真型を除くmanifest候補5型は未組込。
-現iPhone manifestは収集型未宣言のため、この候補とまだ一致しない。
+iPhone manifestは2026-11-05（`8cc409c`）に3型を宣言済みで、アプリ内収集の3型は候補と一致する（[1.0 (8) 準備](PREP_1_0_8.md) §6）。
 最終manifest/生成Privacy Report/承認済み回答/公開policyを一致させる作業はLane1/3・運営者側に残る。
 
 ## 保持・削除・再installの利用者向け候補（未公開）
