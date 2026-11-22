@@ -11,7 +11,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         // The entry copy can differ from the form title; use the shipped map-entry contract.
         // Launch reads availability from the stack; a loaded Simulator can take well over 30 s to show the entry.
         tapMapEntryWhenSettled()
-        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        assertPresented(app.navigationBars["喫煙場所を追加"], by: app.buttons["mapReportButton"], "newPlaceForm")
     }
 
     /// The map entry appears as soon as availability loads, which can be while the Nearby sheet is still being
@@ -39,6 +39,42 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         }
         if failing { XCTFail("\(element) did not settle within \(timeout) s; last frame \(last)", file: file, line: line) }
         return false
+    }
+
+    /// Issue #367 diagnostic: the entry tap is delivered but the report sheet sometimes never appears. On a miss, keep
+    /// the screen, the tree and the sheet state, then tap once more only to learn whether the presentation was dropped
+    /// (state stuck) or just late. The test fails either way: a second-tap success is evidence, never a PASS.
+    func assertPresented(_ target: XCUIElement, by entry: XCUIElement, _ label: String,
+                         file: StaticString = #filePath, line: UInt = #line) {
+        if target.waitForExistence(timeout: 10) { return }
+        func state(_ phase: String) -> String {
+            let nearby = app.navigationBars["近くの場所"]
+            let alerts = app.alerts.allElementsBoundByIndex.map(\.label)
+            return "DIAG367 \(label) \(phase): target=\(target.exists) alerts=\(alerts) sheets=\(app.sheets.count) "
+                + "nearbyBar=\(nearby.exists ? "\(nearby.frame)" : "absent") "
+                + "entry=\(entry.exists ? "\(entry.frame) enabled=\(entry.isEnabled) hittable=\(entry.isHittable)" : "absent") "
+                + "mapEntry=\(app.buttons["mapReportButton"].exists) barEntry=\(app.buttons["sheetReportButton"].exists) "
+                + "navBars=\(app.navigationBars.allElementsBoundByIndex.map(\.identifier))"
+        }
+        func keep(_ phase: String) {
+            let summary = state(phase)
+            print(summary)
+            screenshot("diag367-\(label)-\(phase)")
+            let tree = XCTAttachment(string: summary + "\n" + app.debugDescription)
+            tree.name = "diag367-\(label)-\(phase)-tree"
+            tree.lifetime = .keepAlways
+            add(tree)
+        }
+        keep("miss")
+        let late = target.waitForExistence(timeout: 5)
+        keep(late ? "late" : "still-missing")
+        var retap = "not-tried"
+        if !late, entry.exists, entry.isHittable {
+            entry.tap()
+            retap = target.waitForExistence(timeout: 10) ? "presented" : "not-presented"
+            keep("retap-\(retap)")
+        }
+        XCTFail("DIAG367 \(label): sheet not presented within 10 s; late=\(late) retap=\(retap)", file: file, line: line)
     }
 
     func choosePinAndAgree() {
@@ -288,7 +324,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func testPhotolessLostAnswerRetriesTheSavedReportAfterRelaunch() {
         launchPersistent("photolessRetry", reset: true)
         tapMapEntryWhenSettled()
-        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        assertPresented(app.navigationBars["喫煙場所を追加"], by: app.buttons["mapReportButton"], "newPlaceForm")
         choosePinAndAgree()
         scrollTo(submit)
         waitUntilSettled(submit)
@@ -325,7 +361,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func submitAndTerminateDuringUpload(_ scenario: String = "hang") {
         launchPersistent(scenario, reset: true)
         tapMapEntryWhenSettled()
-        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        assertPresented(app.navigationBars["喫煙場所を追加"], by: app.buttons["mapReportButton"], "newPlaceForm")
         choosePinAndAgree()
         addPhotos(1)
         scrollTo(submit)
@@ -337,7 +373,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     /// The map entry after a relaunch: with a report still waiting for photos, the form opens on a choice.
     func tapMapEntryAndExpectChoice(file: StaticString = #filePath, line: UInt = #line) {
         tapMapEntryWhenSettled(file: file, line: line)
-        XCTAssertTrue(text("前回の報告が残っています").waitForExistence(timeout: 10), file: file, line: line)
+        assertPresented(text("前回の報告が残っています"), by: app.buttons["mapReportButton"], "followUpChoice", file: file, line: line)
         // Form rows below the fold are absent from the accessibility tree until scrolled to (large text sizes).
         scrollTo(app.buttons["report.followUp.resume"], file: file, line: line)
         scrollTo(app.buttons["report.followUp.newReport"], file: file, line: line)
@@ -455,7 +491,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
         let entry = app.buttons["resumeReportPhotos"]
         scrollTo(entry)
         entry.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["report-photo-follow-up-expired"].waitForExistence(timeout: 10))
+        assertPresented(app.descendants(matching: .any)["report-photo-follow-up-expired"], by: entry, "expiredFollowUp")
         XCTAssertFalse(app.buttons["report.photo.addTest"].exists)
         XCTAssertFalse(app.buttons["report.photo.sendResumed"].exists)
         scrollTo(app.buttons["report.photo.endFollowUp"])
@@ -465,7 +501,7 @@ final class I_PhotoReportFlowUITests: MannerPathUITestCase {
     func testUnsavedFollowUpWarnsToKeepTheAppOpen() {
         launchPersistent("unsaved", reset: true)
         tapMapEntryWhenSettled()
-        XCTAssertTrue(app.navigationBars["喫煙場所を追加"].waitForExistence(timeout: 10))
+        assertPresented(app.navigationBars["喫煙場所を追加"], by: app.buttons["mapReportButton"], "newPlaceForm")
         choosePinAndAgree()
         addPhotos(1)
         scrollTo(submit)
