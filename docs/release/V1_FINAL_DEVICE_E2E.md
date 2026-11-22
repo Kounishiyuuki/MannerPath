@@ -99,7 +99,7 @@ are DEV notes, not matrix PASS:
 | 1 `success`: 1→2→3 real photos, remove, re-add, no 4th, consent and submit with one reference and 「写真を受け付けました（審査待ち）」, picker without a full-library prompt | DEV OK (all six checks reported fine) |
 | 2 `retry`: 2 real photos; both first uploads failed; 「未送信の写真を再送信」 → receipt | DEV OK with a UX finding. Device files: before retry the follow-up showed `rp_UITEST1`, `uploadedCount 0`; after retry the follow-up was deleted and the report count stayed 1, so there was no second report and the reference was kept. "Both photos sent" is inferred from the deletion plus the on-screen receipt, because the mock keeps no upload log. **The failure and the retry button were not noticed after submitting until the form was scrolled: #447** |
 | 3 `closed` | DEV OK for what was checked: no paused notice (expected, see step 3), no photo section, existing-place detail shown, 「保存済みの報告を再開」 opened the form. New report (2026-11-22, fresh launch without Persistent): DEV OK, the new-place form opened, had no photo section, and reached the receipt without photos |
-| 4 AX5, VoiceOver, Reduce Motion | AX5 + Reduce Motion (2026-11-22, `success`): DEV OK, two photos added, one removed, consent, submit and receipt all operable; no clipped or overlapping text. Failure text and retry button at AX5: not yet run (planned with `retry`). VoiceOver: not yet run |
+| 4 AX5, VoiceOver, Reduce Motion | AX5 + Reduce Motion (2026-11-22, `success`): DEV OK, two photos added, one removed, consent, submit and receipt all operable; no clipped or overlapping text. **Not verified**: failure text and retry button at AX5, and all of VoiceOver (device checks ended 2026-11-22); carried to the v1.1 list below §3.5 |
 
 ### 3.5 #330 interrupted upload and relaunch (developer photo build)
 
@@ -125,6 +125,16 @@ are DEV notes, not matrix PASS:
 | 6 `offline` (2026-11-22): `offline` + Persistent + Reset, new place with one photo, then 「未送信の写真を再送信」 | DEV OK: connection-failure text shown, retry showed the same error. Device files after the retry: `rp_UITEST1`, `uploadedCount 0`, count 1, so no second report and the photo stays unsent for a later retry. Whether the text was noticed without scrolling was not reported (#447) |
 | 6 `unsaved` (2026-11-22): `unsaved` + Persistent + Reset, new place with one photo | DEV OK: 「アプリを閉じないでください」 warning on screen right after the receipt without scrolling, and the photo connection error shown. Device files: no follow-up file (the store is unwritable by design), count 1 |
 | 6 `old` (2026-11-22): `old` + Persistent + Reset, one photo, killed while sending, then `success` + Persistent; entered through 「受け付け済みの報告に写真を送る」 in the Nearby sheet | DEV OK for what was checked: expired notice shown, no add-photo or send button. Device files after the kill: `rp_UITEST1`, `uploadedCount 0`, `uploadDeadline` 2020-03-30, count 1; after relaunch the follow-up file was deleted and the count stayed 1. The end button was not reported. A first attempt never showed the notice: the map entry reads 「喫煙所を追加」 once expired and a new draft hid the sheet button, see #448 |
+
+**Not verified on device; check before photo intake is enabled (v1.1).** None of these is a 1.0 blocker, because photo
+evidence is off in the 1.0 Release (matrix §4 rows unchanged):
+
+- VoiceOver through §3.4 steps 1–3 and the §3.5 warnings (each read as one element, icon + text).
+- AX5: photo failure text and 「未送信の写真を再送信」 reachable and operable (scenario `retry`).
+- §3.5 step 3 screens one by one (two choices; closing keeps the entry), step 5 confirmation that the previous report
+  is not deleted, and the `old` end button.
+- UX findings to resolve or accept first: #447 (failure and retry button off screen after submitting), #448 (expired
+  notice reachable only from the Nearby sheet on the first launch).
 
 ### 3.6 Accessibility (RC build; A1, A1W, P17, W9/W10, L7, L8, U5, U7)
 
