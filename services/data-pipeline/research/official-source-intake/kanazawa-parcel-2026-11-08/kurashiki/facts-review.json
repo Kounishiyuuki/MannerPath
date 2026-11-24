@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "sourceId": "kurashiki-okyozuka-smoking-place",
+  "status": "normalizedCandidateOnly",
+  "productionApproval": false,
+  "checkedOn": "2026-11-08",
+  "dateBasis": "UTC calendar date of actual HTTP fetch; same day in JST",
+  "officialAddress": "石川県野々市市御経塚２ー５",
+  "name": "倉式珈琲店 御経塚店 喫煙ブース",
+  "zones": "喫煙ブース（客席禁煙）",
+  "sourceReceipts": [
+    {
+      "id": "kurashiki-shop",
+      "url": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+      "finalUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 40166,
+      "sha256": "a81b48ca80067d688ea251901a30e78eec9b9c03e3fb559d0a1e4d3be024e434"
+    },
+    {
+      "id": "kurashiki-home",
+      "url": "https://www.saint-marc-hd.com/kurashiki/",
+      "finalUrl": "https://www.saint-marc-hd.com/kurashiki/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:03Z",
+      "bytes": 60449,
+      "sha256": "d572a010899e786d439fe45c1963aae89e445190fd23f32fe90d461e54fa1e0c"
+    },
+    {
+      "id": "kurashiki-privacy",
+      "url": "https://www.saint-marc-hd.com/hd/privacy/",
+      "finalUrl": "https://www.saint-marc-hd.com/hd/privacy/",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "fetchedAt": "2026-11-08T05:00:43Z",
+      "bytes": 34792,
+      "sha256": "80fd9046e2f5ec61c496a0f4954bd8dd846241e2a5fa324ed0126089d35ca06b"
+    }
+  ],
+  "currentOperation": {
+    "status": "listedOnCurrentOfficialPage",
+    "siteVerified": false,
+    "formalApproval": false
+  },
+  "supportsPaper": "unknown",
+  "supportsHeated": "unknown",
+  "openingHours": {
+    "status": "none",
+    "raw": null,
+    "parsed": null
+  },
+  "accessType": "unknown",
+  "spotType": "unknown",
+  "environment": "unknown",
+  "hostType": "restaurantOrCafe",
+  "hostHoursNotSmokingHours": true,
+  "accessNote": "Non-customer/general use of the smoking booth is not stated.",
+  "knownAccessRestriction": null,
+  "physicalTypeNotes": "Official booth/room/corner wording retained as fact; no inference about enclosure or canonical classification.",
+  "coordinateMeaning": "candidate facility-vicinity parcel representative point only",
+  "notSmokingPlaceCoordinate": true,
+  "existenceReview": "Selected 喫煙ブース service label is active in current official shop HTML, not a disabled icon. 全席禁煙 qualifies dining seats, not a prohibition of the separately stated booth.",
+  "sourceAddressUrls": [
+    "https://www.saint-marc-hd.com/kurashiki/shop/19/"
+  ],
+  "sourceExistenceUrls": [
+    "https://www.saint-marc-hd.com/kurashiki/shop/19/"
+  ],
+  "hostHoursSeparate": "店舗7:00〜21:00、LO20:30。不定休。喫煙場所時間へ転用しない。",
+  "knownSourceEnvironment": null,
+  "environmentConservatism": "Normalized candidate retains unknown environment; source indoor wording is preserved separately and is not discarded.",
+  "accessNotes": [
+    "注文・非利用客・ブース単独利用・喫煙固有時間は不明"
+  ]
+}

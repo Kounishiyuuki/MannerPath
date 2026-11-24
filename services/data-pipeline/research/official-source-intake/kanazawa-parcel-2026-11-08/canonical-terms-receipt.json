@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-08T05:35:15.696511+00:00",
+  "canonicalTerms": {
+    "metadataUrl": "https://www.geospatial.jp/ckan/api/3/action/package_show?id=houmusyouchizu-riyoukiyaku",
+    "metadataSha256": "51594fb1d0b536044c5d2cb5ceedda008f40bfa80e4daed9e20c2c1bede2bc7b",
+    "packageId": "fc3b0593-ce9e-40d1-aa33-94382d5f0da1",
+    "resourceId": "47871bf1-4c85-48f7-a8fe-b27c6643c1c5",
+    "publicResourceUrl": "https://www.geospatial.jp/ckan/dataset/fc3b0593-ce9e-40d1-aa33-94382d5f0da1/resource/47871bf1-4c85-48f7-a8fe-b27c6643c1c5/download/license.pdf",
+    "httpChain": [
+      "HTTP/2 302 ",
+      "HTTP/1.1 200 OK"
+    ],
+    "pdfBytes": 141976,
+    "pdfSha256": "275914c735b19cc7a274a13aac22e0c08378269d9d80f26f6b285aca32367b99",
+    "contentType": "application/pdf",
+    "originLastModified": "2023-01-18T01:31:32Z",
+    "dateStatedInDocument": "2023-01-23",
+    "equalsPriorTellusPdfBytes": true,
+    "metadataLicenseIdNotDataLicense": "Catalogue licence_id=gfdl is attached to the terms-document record; not relied on as the ABR coordinate licence"
+  },
+  "formalApproval": false,
+  "parcelTermsReview": null
+}

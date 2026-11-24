@@ -1,0 +1,31 @@
+{
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "candidates": 3,
+  "anchors": 0,
+  "pendingReasons": {
+    "parcelTermsUnreviewed": 3
+  },
+  "results": [
+    {
+      "id": "kurashiki",
+      "status": "reviewPending",
+      "reasons": [
+        "parcelTermsUnreviewed"
+      ]
+    },
+    {
+      "id": "manten",
+      "status": "reviewPending",
+      "reasons": [
+        "parcelTermsUnreviewed"
+      ]
+    },
+    {
+      "id": "kokusai",
+      "status": "reviewPending",
+      "reasons": [
+        "parcelTermsUnreviewed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "scope": "PR413 followup; only three existing facilities; read-only primary facts check; no publication/parcel terms approval",
+  "checkedUtc": "2026-11-08T05:32:32Z..2026-11-08T05:32:33Z",
+  "checkedJst": "2026-11-08 14:32 JST",
+  "http200": 13,
+  "all13BytesUnchanged": true,
+  "pdfReview": "Both unchanged Manten PDF SHA values match prior files whose all four pages were visually read. No repeated OCR/render.",
+  "facilities": [
+    {
+      "id": "kurashiki",
+      "officialAddress": "石川県野々市市御経塚２ー５",
+      "equipment": "喫煙ブース（客席は全席禁煙）",
+      "zones": [
+        {
+          "zone": "店舗の喫煙ブース",
+          "existenceConfirmed": true,
+          "generalNonCustomerUse": "unknown",
+          "purchaseRequirement": "unknown",
+          "standaloneUse": "unknown",
+          "hostCustomerRestrictionExplicit": false
+        }
+      ],
+      "notes": [
+        "Normal selected p-shop-data__label span; no disabled equipment inference.",
+        "Store opening hours are not smoking-booth hours."
+      ],
+      "supportsPaper": "unknown",
+      "supportsHeated": "unknown",
+      "smokingHours": null,
+      "rightsChanged": false,
+      "rightsRecommendation": "Same narrow factReference review eligibility as prior recorded scope; not an open licence or publisher permission",
+      "publicationApproved": false,
+      "parcelTermsApproved": false,
+      "siteVisitPerformed": false
+    },
+    {
+      "id": "manten",
+      "officialAddress": "石川県野々市市柳町460番地",
+      "equipment": "1階大浴場入口手前と客室階2・3・4階の喫煙ルーム",
+      "zones": [
+        {
+          "zone": "1階大浴場入口手前",
+          "existenceConfirmed": true,
+          "generalNonCustomerUse": "unknown",
+          "dayBathGuestUse": "unknown",
+          "smokingOnlyEntryConditions": "unknown"
+        },
+        {
+          "zone": "2・3・4階客室フロアの喫煙ルーム",
+          "existenceConfirmed": true,
+          "accessRestriction": "ホテル宿泊者以外は客室・客室階へ立入不可",
+          "generalNonCustomerUse": "prohibitedByGuestFloorRestriction",
+          "dayBathGuestUse": "notEstablished; nonguest floor restriction applies"
+        }
+      ],
+      "notes": [
+        "FAQ mentions only floors2–4 while current room page expressly includes1F. Omission does not establish abolition.",
+        "Nonguest breakfast invitation concerns breakfast only and does not establish smoking-room permission.",
+        "Do not describe the entire facility as public/free or all rooms as smoking-permitted."
+      ],
+      "supportsPaper": "unknown",
+      "supportsHeated": "unknown",
+      "smokingHours": null,
+      "rightsChanged": false,
+      "rightsRecommendation": "Same narrow factReference review eligibility as prior recorded scope; not an open licence or publisher permission",
+      "publicationApproved": false,
+      "parcelTermsApproved": false,
+      "siteVisitPerformed": false
+    },
+    {
+      "id": "kokusai",
+      "officialAddress": "石川県金沢市大額町ル８番地",
+      "equipment": "館内喫煙コーナー、各披露宴会場フロアの喫煙場所",
+      "zones": [
+        {
+          "zone": "館内の喫煙コーナー",
+          "existenceConfirmed": true,
+          "context": "宿泊FAQで客室禁煙と別に利用を案内",
+          "generalNonCustomerUse": "unknown",
+          "exclusiveHotelGuestRestrictionExplicit": false
+        },
+        {
+          "zone": "各披露宴会場フロア",
+          "existenceConfirmed": true,
+          "context": "婚礼列席ゲスト向け案内",
+          "generalNonCustomerUse": "unknown",
+          "exclusiveBanquetGuestRestrictionExplicit": false
+        }
+      ],
+      "notes": [
+        "Guest-directed page does not prove noncustomer free entry or a blanket hotel-guest-only legal restriction.",
+        "Access page nonguest prohibition concerns reserved shuttle bus, not smoking-room access.",
+        "All guest bedrooms are nonsmoking; never classify the whole hotel or guest rooms as smoking-permitted."
+      ],
+      "supportsPaper": "unknown",
+      "supportsHeated": "unknown",
+      "smokingHours": null,
+      "rightsChanged": false,
+      "rightsRecommendation": "Same narrow factReference review eligibility as prior recorded scope; not an open licence or publisher permission",
+      "publicationApproved": false,
+      "parcelTermsApproved": false,
+      "siteVisitPerformed": false
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "sourceId": "kurashiki-okyozuka-smoking-place",
+  "status": "technicalFactReferenceCandidate",
+  "formalApproval": false,
+  "productionApproval": false,
+  "rightsBasisKindCandidate": "factReference",
+  "licenseName": null,
+  "licenseUrl": null,
+  "reviewedScope": "First-party existence pages, current homepage/footer, linked privacy/conditions and bounded same-host search. No explicit information-use, acquisition or database prohibition found in this technical review.",
+  "prohibitsInformationUseObserved": false,
+  "notLegalClearance": true,
+  "notOperatorPermission": true,
+  "reviewedBy": null,
+  "reviewedOn": null,
+  "sourceReceiptIds": [
+    "kurashiki-shop",
+    "kurashiki-home",
+    "kurashiki-privacy"
+  ],
+  "reuseLimits": [
+    "Normalized factual existence/address/qualifiers only; no HTML, prose, images, floor plans, maps or logos redistributed.",
+    "A source-specific approval is still required independently from coordinate/parcel terms approval.",
+    "A publisher objection or applicable explicit information-use restriction requires hold/re-review."
+  ],
+  "parcelTermsFormalApproval": false,
+  "parcelTermsEvidence": "../terms-evidence.json",
+  "parcelTermsReview": "../terms-review.md",
+  "context": "Saint-Marc privacy policy covers personal data/SNS; restrictions on SNS copying are not treated as a licence or an information/database prohibition on this fact sheet.",
+  "rightsReading": "公式ナビ・footerの権利関連リンクはprivacy。privacy内の個人情報・SNS利用規約の範囲を確認し、SNSで公式WEBサイトを模写して投稿する禁止を、正規化した最小限の店舗事実の情報利用禁止と読み替えない。確認範囲で情報利用・取得・DB化の明示禁止は発見せず。オープンライセンスでも個別許諾でもない。",
+  "rightsUrls": [
+    "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+    "https://www.saint-marc-hd.com/kurashiki/",
+    "https://www.saint-marc-hd.com/hd/privacy/"
+  ]
+}

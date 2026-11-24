@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sourceId": "kanazawa-kokusai-hotel-smoking-place",
+  "status": "technicalFactReferenceCandidate",
+  "formalApproval": false,
+  "productionApproval": false,
+  "rightsBasisKindCandidate": "factReference",
+  "licenseName": null,
+  "licenseUrl": null,
+  "reviewedScope": "First-party existence pages, current homepage/footer, linked privacy/conditions and bounded same-host search. No explicit information-use, acquisition or database prohibition found in this technical review.",
+  "prohibitsInformationUseObserved": false,
+  "notLegalClearance": true,
+  "notOperatorPermission": true,
+  "reviewedBy": null,
+  "reviewedOn": null,
+  "sourceReceiptIds": [
+    "kokusai-question",
+    "kokusai-guest",
+    "kokusai-access",
+    "kokusai-home",
+    "kokusai-privacy",
+    "kokusai-wedding-privacy"
+  ],
+  "reuseLimits": [
+    "Normalized factual existence/address/qualifiers only; no HTML, prose, images, floor plans, maps or logos redistributed.",
+    "A source-specific approval is still required independently from coordinate/parcel terms approval.",
+    "A publisher objection or applicable explicit information-use restriction requires hold/re-review."
+  ],
+  "parcelTermsFormalApproval": false,
+  "parcelTermsEvidence": "../terms-evidence.json",
+  "parcelTermsReview": "../terms-review.md",
+  "context": "Hotel and wedding privacy policies concern personal data. Copyright footer does not grant an open licence; normalized fact-reference eligibility remains a technical candidate review.",
+  "rightsReading": "ホテルと婚礼のprivacyは個人情報保護規定。footerはcopyright留保。実ナビfooterと同一hostの規約/著作権/転載の限定検索では情報利用・取得・DB化を明示禁止する条項を確認せず。オープンライセンスや事業者個別許諾ではない。",
+  "rightsUrls": [
+    "https://www.kanazawakokusaihotel.co.jp/privacypolicy/",
+    "https://www.kanazawakokusaihotel.co.jp/wedding/privacypolicy/",
+    "https://www.kanazawakokusaihotel.co.jp/"
+  ]
+}

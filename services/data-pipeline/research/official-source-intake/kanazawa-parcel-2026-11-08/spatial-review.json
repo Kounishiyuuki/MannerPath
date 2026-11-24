@@ -1,0 +1,88 @@
+{
+  "status": "researchOnlyNotPublicationApproval",
+  "checkedOnJst": "2026-11-08",
+  "abrgVersion": "2.3.1",
+  "datasetRelease": "abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d",
+  "method": "Reproduced full official addresses using existing ABR data. Compared only the already-known ABR points with GSI standard tiles and seamless aerial photography; no new point was extracted from an image. Official facility directions were used to compare site layout. This does not establish legal parcel boundaries, entrances, smoking-room positions or public access.",
+  "mapTermsUrl": "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html",
+  "tileInformationUrl": "https://maps.gsi.go.jp/development/ichiran.html",
+  "mapAttribution": "Source: GSI Tiles (National Geospatial Information Authority of Japan). ABR marker and tile mosaic composed for private validation only.",
+  "imageryCaptureDate": null,
+  "parcelGeometryVerified": false,
+  "parcelTermsApprovalWritten": false,
+  "verbatimInput": "/private/tmp/parcel-three-spatial-verbatim-input.txt",
+  "abrgOutput": "abrg-output.json",
+  "observations": [
+    {
+      "id": "kurashiki",
+      "grade": "weakerContext",
+      "decision": "facilityVicinityCandidateOnly",
+      "formalLocationApproval": false,
+      "finding": "The point is in the roadside strip of small commercial buildings/parking adjoining a large commercial site in Okyōzuka 2-chome. It is not visibly displaced into a distant town or road. GSI does not label the particular cafe building, so its exact building identity is not independently established from these images.",
+      "exactBuildingIdentityConfirmed": false,
+      "entranceConfirmed": false,
+      "smokingPlacePositionConfirmed": false,
+      "legalParcelExtentConfirmed": false,
+      "imageryCaptureDate": null,
+      "sourceUrls": [
+        "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+        "https://maps.gsi.go.jp/development/ichiran.html",
+        "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html"
+      ],
+      "limitations": [
+        "operator or otherwise licensed facility-specific site reference can strengthen cafe-building identity",
+        "parcel boundary/extent not established",
+        "original parcel reuse terms and maintainer approval remain independent requirements"
+      ],
+      "notANewRoofIdentityGate": true
+    },
+    {
+      "id": "manten",
+      "grade": "contextCorroborated",
+      "decision": "facilityVicinityCandidateOnly",
+      "formalLocationApproval": false,
+      "finding": "The GSI aerial image places the existing ABR point on a roof in the developed triangular site. Hotel north/parking south and surrounding road arrangement agree with the operator parking diagram. GSI standard map still renders the site largely empty, so its building omission is not evidence of closure.",
+      "exactBuildingIdentityConfirmed": null,
+      "entranceConfirmed": false,
+      "smokingPlacePositionConfirmed": false,
+      "legalParcelExtentConfirmed": false,
+      "imageryCaptureDate": null,
+      "sourceUrls": [
+        "https://www.manten-hotel.com/michinoyado-1/access/",
+        "https://maps.gsi.go.jp/development/ichiran.html",
+        "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html",
+        "https://www.manten-hotel.com/common/images/michinoyado-1/access/map-04.png"
+      ],
+      "limitations": [
+        "point is not an entrance, smoking room or validated walking route",
+        "imagery capture date and legal parcel extent not established",
+        "original parcel reuse terms and maintainer approval remain independent requirements"
+      ],
+      "notANewRoofIdentityGate": true
+    },
+    {
+      "id": "kokusai",
+      "grade": "contextCorroborated",
+      "decision": "facilityVicinityCandidateOnly",
+      "formalLocationApproval": false,
+      "finding": "The point lies inside the large complex building outline on GSI standard mapping and on the complex roof in GSI aerial imagery, on the east side of the main road with a southern pool/courtyard complex. It is not visibly in adjacent housing or across the road. The hotel official access page identifies the hotel address and entry guidance; the point is not that entry.",
+      "exactBuildingIdentityConfirmed": null,
+      "entranceConfirmed": false,
+      "smokingPlacePositionConfirmed": false,
+      "legalParcelExtentConfirmed": false,
+      "imageryCaptureDate": null,
+      "sourceUrls": [
+        "https://www.kanazawakokusaihotel.co.jp/access/",
+        "https://maps.gsi.go.jp/development/ichiran.html",
+        "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html"
+      ],
+      "limitations": [
+        "point is not an entrance, smoking corner or floor",
+        "imagery capture date and legal parcel extent not established",
+        "original parcel reuse terms and maintainer approval remain independent requirements"
+      ],
+      "notANewRoofIdentityGate": true
+    }
+  ],
+  "note": "Context comparison of previously derived ABR points, never extraction of new map coordinates. No map image or render is redistributed."
+}

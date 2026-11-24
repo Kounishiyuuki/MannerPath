@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "sourceId": "manten-hakusan-smoking-place",
+  "status": "technicalFactReferenceCandidate",
+  "formalApproval": false,
+  "productionApproval": false,
+  "rightsBasisKindCandidate": "factReference",
+  "licenseName": null,
+  "licenseUrl": null,
+  "reviewedScope": "First-party existence pages, current homepage/footer, linked privacy/conditions and bounded same-host search. No explicit information-use, acquisition or database prohibition found in this technical review.",
+  "prohibitsInformationUseObserved": false,
+  "notLegalClearance": true,
+  "notOperatorPermission": true,
+  "reviewedBy": null,
+  "reviewedOn": null,
+  "sourceReceiptIds": [
+    "manten-room",
+    "manten-faq",
+    "manten-access",
+    "manten-home",
+    "manten-privacy",
+    "manten-agreement",
+    "manten-common-agreement"
+  ],
+  "reuseLimits": [
+    "Normalized factual existence/address/qualifiers only; no HTML, prose, images, floor plans, maps or logos redistributed.",
+    "A source-specific approval is still required independently from coordinate/parcel terms approval.",
+    "A publisher objection or applicable explicit information-use restriction requires hold/re-review."
+  ],
+  "parcelTermsFormalApproval": false,
+  "parcelTermsEvidence": "../terms-evidence.json",
+  "parcelTermsReview": "../terms-review.md",
+  "context": "Linked privacy policy and accommodation agreements concern personal data and hotel-use conditions, including designated smoking areas. No content licence is inferred. Bath subdomain returned403; not bypassed and not a source of new canonical facts.",
+  "rightsReading": "privacyは個人情報取扱。実PDF2種とも4頁視認、日本語2024.01・英語2014.09。宿泊・利用規則であり、指定場所以外の喫煙禁止を保持する。確認範囲に情報利用・取得・DB化の禁止なし。原PDFの転載許諾ではなくD-Rの正規化事実参照候補。",
+  "rightsUrls": [
+    "https://manten-hotel.co.jp/privacy/",
+    "https://www.manten-hotel.com/img/pdf_agreement.pdf",
+    "https://www.manten-hotel.com/common/pdf/pdf_agreement.pdf"
+  ]
+}

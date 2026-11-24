@@ -1,0 +1,174 @@
+[
+  {
+    "id": "kurashiki-shop",
+    "url": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+    "finalUrl": "https://www.saint-marc-hd.com/kurashiki/shop/19/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 40166,
+    "sha256": "a81b48ca80067d688ea251901a30e78eec9b9c03e3fb559d0a1e4d3be024e434"
+  },
+  {
+    "id": "kurashiki-home",
+    "url": "https://www.saint-marc-hd.com/kurashiki/",
+    "finalUrl": "https://www.saint-marc-hd.com/kurashiki/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 60449,
+    "sha256": "d572a010899e786d439fe45c1963aae89e445190fd23f32fe90d461e54fa1e0c"
+  },
+  {
+    "id": "manten-room",
+    "url": "https://www.manten-hotel.com/michinoyado-1/room/",
+    "finalUrl": "https://www.manten-hotel.com/michinoyado-1/room/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 24687,
+    "sha256": "6db88d691e9d7f65d747f885b4fb9b81b896a77ff6b289792c07af07cb10aa95"
+  },
+  {
+    "id": "manten-faq",
+    "url": "https://www.manten-hotel.com/michinoyado-1/faq/",
+    "finalUrl": "https://www.manten-hotel.com/michinoyado-1/faq/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 31942,
+    "sha256": "2aae044f2263d73e75cf0e7494d1bb3f63d183438989c32ae96620876072a6f2"
+  },
+  {
+    "id": "manten-access",
+    "url": "https://www.manten-hotel.com/michinoyado-1/access/",
+    "finalUrl": "https://www.manten-hotel.com/michinoyado-1/access/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 19218,
+    "sha256": "95490b575019a7becfd81da97023e6137582e0f6b9edc54bc1cc39b1917192c9"
+  },
+  {
+    "id": "manten-home",
+    "url": "https://www.manten-hotel.com/michinoyado-1/",
+    "finalUrl": "https://www.manten-hotel.com/michinoyado-1/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 25866,
+    "sha256": "34f916c1a80affe7bfa820ace4d61e115e38cd40e8172ad7cba5c79dad44f9ea"
+  },
+  {
+    "id": "manten-privacy",
+    "url": "https://manten-hotel.co.jp/privacy/",
+    "finalUrl": "https://manten-hotel.co.jp/privacy/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:03Z",
+    "bytes": 14551,
+    "sha256": "7358a919c4912955154a1f3f4fa7d14cfee9f662bd44508fdfed7133e308b6e4"
+  },
+  {
+    "id": "manten-agreement",
+    "url": "https://www.manten-hotel.com/img/pdf_agreement.pdf",
+    "finalUrl": "https://www.manten-hotel.com/img/pdf_agreement.pdf",
+    "status": 200,
+    "contentType": "application/pdf",
+    "fetchedAt": "2026-11-08T05:00:04Z",
+    "bytes": 8430348,
+    "sha256": "2a1d442eb2156749b555755fe4316ea522b55e4b699bcaeb82efbe3f9c6a39d6"
+  },
+  {
+    "id": "kokusai-question",
+    "url": "https://www.kanazawakokusaihotel.co.jp/question/",
+    "finalUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:04Z",
+    "bytes": 15014,
+    "sha256": "7e05c4deadb8199e6eea36c3566a6d88f351bb8d60a5e8c0d457278f60005445"
+  },
+  {
+    "id": "kokusai-guest",
+    "url": "https://www.kanazawakokusaihotel.co.jp/wedding/guest/",
+    "finalUrl": "https://www.kanazawakokusaihotel.co.jp/wedding/guest/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:04Z",
+    "bytes": 14523,
+    "sha256": "e4474ce4b4f782fcc7e45fdc2d4b6d4507992affe74b59f6880b413b3079b866"
+  },
+  {
+    "id": "kokusai-access",
+    "url": "https://www.kanazawakokusaihotel.co.jp/access/",
+    "finalUrl": "https://www.kanazawakokusaihotel.co.jp/access/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:04Z",
+    "bytes": 13862,
+    "sha256": "47afd26412af6df1cce868c48f606e879ebcbc710e6b2b9d9e29847c22b73f3d"
+  },
+  {
+    "id": "kokusai-home",
+    "url": "https://www.kanazawakokusaihotel.co.jp/",
+    "finalUrl": "https://www.kanazawakokusaihotel.co.jp/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:04Z",
+    "bytes": 35312,
+    "sha256": "77d5aae36ba83acf54738914cb5a0cacad457209e67317547e71a10b038fe05c"
+  },
+  {
+    "id": "kurashiki-privacy",
+    "url": "https://www.saint-marc-hd.com/hd/privacy/",
+    "finalUrl": "https://www.saint-marc-hd.com/hd/privacy/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:43Z",
+    "bytes": 34792,
+    "sha256": "80fd9046e2f5ec61c496a0f4954bd8dd846241e2a5fa324ed0126089d35ca06b"
+  },
+  {
+    "id": "kokusai-privacy",
+    "url": "https://www.kanazawakokusaihotel.co.jp/privacypolicy/",
+    "finalUrl": "https://www.kanazawakokusaihotel.co.jp/privacypolicy/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:44Z",
+    "bytes": 11205,
+    "sha256": "1fe8bb2fc3eda8eba8040204942e4f7ce3e9ca9ef795354a260e6dbe40b291b9"
+  },
+  {
+    "id": "kokusai-wedding-privacy",
+    "url": "https://www.kanazawakokusaihotel.co.jp/wedding/privacypolicy/",
+    "finalUrl": "https://www.kanazawakokusaihotel.co.jp/wedding/privacypolicy/",
+    "status": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "fetchedAt": "2026-11-08T05:00:44Z",
+    "bytes": 15046,
+    "sha256": "f652b81da1cb55cd4d3d021e0bedf43571d5455e8093320f3b426f5cd558b876"
+  },
+  {
+    "id": "manten-common-agreement",
+    "url": "https://www.manten-hotel.com/common/pdf/pdf_agreement.pdf",
+    "finalUrl": "https://www.manten-hotel.com/common/pdf/pdf_agreement.pdf",
+    "status": 200,
+    "contentType": "application/pdf",
+    "fetchedAt": "2026-11-08T05:00:45Z",
+    "bytes": 5801441,
+    "sha256": "a132768c0dd48c2beb8bffa6bf05759a974e7da6da1ce5639dfff90be433ebaf"
+  },
+  {
+    "id": "manten-yu-hakusan",
+    "url": "https://www.manten-yu.co.jp/hakusan",
+    "fetchedAt": "2026-11-08T05:03:30Z",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "id": "manten-yu-institution",
+    "url": "https://www.manten-yu.co.jp/hakusan/institution",
+    "fetchedAt": "2026-11-08T05:03:30Z",
+    "error": "HTTP Error 403: Forbidden"
+  }
+]

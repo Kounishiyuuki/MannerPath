@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "publicationStatus": "blocked",
+  "approvalAutomated": false,
+  "productionApproval": false,
+  "humanReviewRequired": true,
+  "receipt": {
+    "version": 1,
+    "sourceId": "kanazawa-kokusai-hotel-smoking-place",
+    "publisher": "金沢国際ホテル（運営者公式）",
+    "publisherUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+    "resourceUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+    "receivedOn": "2026-11-08",
+    "evidenceReference": "facts-review.json; ../fetch-receipts.json; locally normalized candidate, not a publisher-delivered dataset",
+    "rightsReference": "rights-review.json; ../terms-review.md; parcel terms formal review remains null, source approval pending",
+    "attributionText": "出典：金沢国際ホテル 喫煙場所（公式サイト） https://www.kanazawakokusaihotel.co.jp/question/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：金沢市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+    "licenseName": null,
+    "licenseUrl": null,
+    "coordinateMeaning": "facility",
+    "operationClaim": "unknown",
+    "operationEvidenceReference": "Current official page lists smoking place; desk observation only, no formally approved lifecycle claim",
+    "reviewStatus": "UNREVIEWED"
+  },
+  "inspection": {
+    "sha256": "851bcc619b875369ff87bad1b23daed62ca81a1a4288ce36748bb1f01c67e587",
+    "format": "csv",
+    "encoding": "utf-8",
+    "header": [
+      "fact_id",
+      "place_name",
+      "area_name",
+      "area_scope",
+      "zones",
+      "official_address",
+      "host_type",
+      "page_url",
+      "checked_at",
+      "candidate_latitude",
+      "candidate_longitude",
+      "candidate_basis",
+      "candidate_reference"
+    ],
+    "rawRowCount": 1,
+    "missingFieldCount": 0,
+    "nullFieldCount": 0,
+    "identicalRowCount": 0,
+    "scanner": {
+      "reviewStatus": "UNREVIEWED",
+      "matchingRowCount": 1,
+      "coordinateAvailability": "missing",
+      "blockerCodes": [
+        "coordinatesMissing",
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ]
+    },
+    "reviewHints": [
+      "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW"
+    ]
+  },
+  "onboarding": {
+    "sourceId": "kanazawa-kokusai-hotel-smoking-place",
+    "state": "BLOCKED",
+    "approvalAutomated": false,
+    "productionApproval": false,
+    "publicationStatus": "blocked",
+    "publisher": "金沢国際ホテル（運営者公式）",
+    "resourceUrl": "https://www.kanazawakokusaihotel.co.jp/question/",
+    "smokingEvidence": {
+      "status": "unknown",
+      "reference": null
+    },
+    "rights": {
+      "status": "RIGHTS_REVIEW_REQUIRED",
+      "licenseName": null,
+      "licenseUrl": null,
+      "metadata": null,
+      "commercialReuse": "unknown"
+    },
+    "attribution": "出典：金沢国際ホテル 喫煙場所（公式サイト） https://www.kanazawakokusaihotel.co.jp/question/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：金沢市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+    "provider": {
+      "id": null,
+      "role": null,
+      "rights": null,
+      "catalogObservations": []
+    },
+    "coordinates": {
+      "status": "COORDINATE_AUTHORITY_REQUIRED",
+      "kind": "unknown",
+      "requestedKind": "unknown",
+      "columns": []
+    },
+    "operation": "unknown",
+    "review": {
+      "reviewedBy": null,
+      "reviewedOn": null
+    },
+    "adapter": false,
+    "fixture": false,
+    "registryEntry": false,
+    "tests": false,
+    "pinnedRelease": null,
+    "latestLiveRelease": "unknown",
+    "quality": "notEvaluated",
+    "promotion": "notEvaluated",
+    "discovery": {
+      "classification": "RIGHTS_AND_COORDINATES_UNKNOWN",
+      "priority": "P2",
+      "smokingEvidence": "keyword-signal",
+      "rights": "unknown",
+      "coordinates": "unknown",
+      "licenseMetadata": null,
+      "attributionMetadata": "出典：金沢国際ホテル 喫煙場所（公式サイト） https://www.kanazawakokusaihotel.co.jp/question/（2026-11-08 UTC確認、未承認候補）。出典：アドレス・ベース・レジストリ（デジタル庁、公共データ利用規約1.0）。参照元：登記所備付地図データ（法務省、対象市：金沢市）。https://www.digital.go.jp/policies/base_registry_address_tos / https://www.tellusxdp.com/docs/api-service/aigid-moj/tos.pdf （2026-11-08利用）。MannerPathが施設住所とABR地番位置参照を照合・加工して候補を作成。国が本加工情報を作成・保証したものではありません。点は施設所在地付近の目安で、喫煙所・入口・筆界を示すものではありません。",
+      "coordinateColumns": [],
+      "geometryTypes": [],
+      "blockerCodes": [
+        "coordinatesMissing",
+        "licenseUnknown",
+        "currentOperationUnknown"
+      ],
+      "approvalAutomated": false
+    },
+    "drift": {
+      "status": "notObserved",
+      "changes": []
+    },
+    "blockers": [
+      "coordinatesMissing",
+      "licenseUnknown",
+      "currentOperationUnknown",
+      "officialPublisherReviewRequired",
+      "smokingExistenceReviewRequired",
+      "rightsReviewRequired",
+      "coordinateAuthorityReviewRequired",
+      "operationReviewRequired"
+    ],
+    "nextAction": "Resolve listed human review gates; do not implement or publish from signals."
+  },
+  "adapterPreview": null,
+  "diff": null,
+  "reviewHints": [
+    "SCANNER_SIGNALS_REQUIRE_HUMAN_REVIEW"
+  ],
+  "scope": "Offline advisory receipt only; no import, deduplication, entity matching, lifecycle update or approval."
+}

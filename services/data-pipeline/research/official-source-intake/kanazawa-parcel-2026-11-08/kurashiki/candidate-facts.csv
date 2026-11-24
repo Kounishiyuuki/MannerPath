@@ -1,0 +1,2 @@
+fact_id,place_name,area_name,area_scope,zones,official_address,host_type,page_url,checked_at,candidate_latitude,candidate_longitude,candidate_basis,candidate_reference
+kurashiki,倉式珈琲店 御経塚店 喫煙ブース,倉式珈琲店 御経塚店,facility,喫煙ブース（客席禁煙）,石川県野々市市御経塚２ー５,restaurantOrCafe,https://www.saint-marc-hd.com/kurashiki/shop/19/,2026-11-08,36.547847521,136.599780445,officialAddressGeocode,abr-geocoder 2.3.1 abr-kanazawa-nonoichi-2026-10-26:sha256:7be5d250d29e1fb3befc00b5578b10406b4ba225ade172eb5b1148626a77014d parcel 入力=石川県野々市市御経塚２ー５ 出力=石川県野々市市御経塚2丁目5
