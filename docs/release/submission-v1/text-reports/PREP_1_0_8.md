@@ -166,3 +166,22 @@ npm run local:quality
 | 4 | 記録 | Gate（G21・G23）・OPERATIONS の RC記録・証拠 | 署名RC と実機の結果が出たあと |
 
 PR 1 と PR 2 を merge して署名RC を作り、実機で確認したあと、PR 3 の merge・本番の API 設定・受付開始を同時に行う。最後の3つは、それぞれ別の承認で行う。
+
+### 8.3 切り替えの順序と失敗時の復旧（コードで確認、2026-11-28、未実施）
+
+前提となる動き：
+- API は、`/v1/config` の現在の版（`CURRENT_REPORT_TERMS`）への同意しか受け付けない。ほかの版は 409 `termsVersionOutdated`（`services/api/src/app.ts` `outdatedTerms`）。
+- iOS は、config の版を同梱していなければ `.incompatible`（更新を促す表示）になり、送信しない（`ReportAPI.swift:151`）。409 を受けた場合も `.incompatible` になる（`ReportModel.swift:500`）。
+- 1.0 (9) は旧draftと新版の両方を同梱する。サーバーが旧draftのあいだは旧draftで動く。
+
+| 順 | 操作 | 失敗したときの戻し方 |
+| --- | --- | --- |
+| 1 | 1.0 (9) を App Store で配信（受付は停止のまま） | サーバーは変わっていないので影響なし。不具合があれば次のbuildで直す |
+| 2 | 本番の App Attest 設定（`REPORT_APP_ATTEST_BUNDLE_VERSIONS` に 9、`ENVIRONMENT=production`） | 設定を元の値に戻す。受付は停止のままなので、利用者への影響はない |
+| 3 | 公開Web（PR 3）を merge | revert PR を merge すれば Pages が戻る。公開済みの内容はキャッシュなどに残りうる |
+| 4 | API の版を新版に切り替えて配備 | 旧版の Worker へ戻す（`production:v1-plan` の rollback の順）。1.0 (8) 以前は、この時点から `.incompatible` になる |
+| 5 | 受付開始 | `production:v1-stop` で受付を止める（既存の鍵も含む）。保持処理は止めない |
+
+- **4 を 1 より先にしない。** 先にすると、新版を同梱したアプリがないので、全利用者が送信できなくなる（安全側には止まる）。
+- **4 を戻したとき：** 新版に同意済みの下書きは 409 になり、アプリは `.incompatible` になる。旧draftへの同意で受け付けた申請を新版の同意として扱わない（非遡及）。
+- 本番の操作（2・4・5）は、いずれもこの文書の範囲外で、別の承認で行う。
