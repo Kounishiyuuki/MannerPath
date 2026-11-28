@@ -149,3 +149,20 @@ npm run local:quality
 | Web | `site/terms/reports/index.html`（新規）、`site/privacy`・`site/support` の承認済み日英。**Pagesが自動公開するため、Web公開の許可までmergeしない** |
 | 検証 | `make contract`、`make api-validate`、`make apple-validate`、`scripts/run-iphone-ui-tests.sh`、新版の同一bytes/hash・旧版拒否と更新案内・非遡及の対象テスト、配布署名後の `apple-beta-preflight.sh` |
 | 切替 | 承認済みアプリ・公開URL・サーバー版を同時に切り替える。片方だけ先行しない。本番デプロイ・受付開始は別の承認 |
+
+### 8.1 G23承認とは別に確認が必要な前提（2026-11-28、未確認）
+
+- **build番号：** App Store Connect に登録済みの build番号と、ローカルの 1.0 (8) の関係は未確認。9 が未使用であることを ASC で確認してから上げる。確認がとれない限り、番号を推測で変えない。
+- **App Attest の許可リスト：** 本番の `REPORT_APP_ATTEST_BUNDLE_VERSIONS` に 9 を追加し、`REPORT_APP_ATTEST_ENVIRONMENT=production` にする。本番の変更なので、運営者が別の承認で行う。受付開始より前に行う。
+- **自動公開の範囲：** main への merge で自動公開されるのは `site/**` だけ（`.github/workflows/pages.yml`）。API は main から自動配備されない（2026-11-28、workflow を確認）。
+
+### 8.2 PRの分け方（G23承認後に作成。現時点では作らない）
+
+| 順 | PR | 内容 | merge の条件 |
+| --- | --- | --- | --- |
+| 1 | 正文・iOS・API | 承認全文と hash、iOS の同一bytes と `ReportTerms.documents`、API `community-publication.ts`、関連テスト | G23 正式承認。`make contract`・`make api-validate`・`make apple-validate` |
+| 2 | build 9 | 16構成の `CURRENT_PROJECT_VERSION` を 8 → 9 | 8.1 の ASC 確認。PR 1 と同じ RC に入れる |
+| 3 | 公開Web | `site/terms/reports`（新規）、`site/privacy`、`site/support` | Web公開の許可。merge した時点で公開されるため、切替の時刻に合わせる |
+| 4 | 記録 | Gate（G21・G23）・OPERATIONS の RC記録・証拠 | 署名RC と実機の結果が出たあと |
+
+PR 1 と PR 2 を merge して署名RC を作り、実機で確認したあと、PR 3 の merge・本番の API 設定・受付開始を同時に行う。最後の3つは、それぞれ別の承認で行う。
